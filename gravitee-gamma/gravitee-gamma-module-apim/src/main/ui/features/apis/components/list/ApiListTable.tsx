@@ -83,20 +83,26 @@ function RuntimeStatusBadge({ state }: { state: ApiState | undefined }) {
 }
 
 function SyncStatusBadge({ deploymentState }: { deploymentState: ApiDeploymentState | undefined }) {
-    if (deploymentState === 'NEED_REDEPLOY') {
-        return (
-            <Badge variant="warning">
-                <AlertCircleIcon className="size-3 mr-1" aria-hidden />
-                Out of sync
-            </Badge>
-        );
+    if (!deploymentState) return <span className="text-muted-foreground text-xs">—</span>;
+    switch (deploymentState) {
+        case 'NEED_REDEPLOY':
+            return (
+                <Badge variant="warning">
+                    <AlertCircleIcon className="size-3 mr-1" aria-hidden />
+                    Out of sync
+                </Badge>
+            );
+        case 'DEPLOYED':
+            return (
+                <Badge variant="success">
+                    <RefreshCwIcon className="size-3 mr-1" aria-hidden />
+                    In sync
+                </Badge>
+            );
+        default:
+            console.warn('[ApiList] Unrecognized API deployment state, rendering the empty-value indicator:', deploymentState);
+            return <span className="text-muted-foreground text-xs">—</span>;
     }
-    return (
-        <Badge variant="success">
-            <RefreshCwIcon className="size-3 mr-1" aria-hidden />
-            In sync
-        </Badge>
-    );
 }
 
 function OriginIndicator({ originContext }: { originContext: ApiListOriginContext | undefined }) {

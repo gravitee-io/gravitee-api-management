@@ -18,7 +18,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 
 import { ApiListTable } from './ApiListTable';
-import type { ApiListItem, ApiListOriginContext } from '../../types';
+import type { ApiDeploymentState, ApiListItem, ApiListOriginContext, ApiState } from '../../types';
 
 jest.mock('react-router-dom', () => ({
     ...jest.requireActual('react-router-dom'),
@@ -44,9 +44,14 @@ function renderTable(props: Partial<Parameters<typeof ApiListTable>[0]> = {}) {
     );
 }
 
-function originCellOf(row: HTMLElement) {
-    const originColumnIndex = screen.getAllByRole('columnheader').findIndex(header => header.textContent === 'Origin');
-    return within(row).getAllByRole('cell')[originColumnIndex];
+const federatedOrigin: ApiListOriginContext = { origin: 'INTEGRATION', provider: 'solace' };
+
+function cellUnderHeader(row: HTMLElement, headerText: string) {
+    // Resolved through getByRole rather than an index scan so a renamed header fails with Testing
+    // Library naming the header it could not find, instead of an undefined-cell TypeError.
+    const header = screen.getByRole('columnheader', { name: headerText });
+    const columnIndex = screen.getAllByRole('columnheader').indexOf(header);
+    return within(row).getAllByRole('cell')[columnIndex];
 }
 
 describe('ApiListTable', () => {
@@ -130,6 +135,21 @@ describe('ApiListTable', () => {
             renderTable({ apis: [makeApi({ state: 'CLOSED' })] });
             expect(screen.queryByText('Closed')).not.toBeNull();
         });
+
+        // `FederatedApiEntity.getState()` returns null unconditionally (FederatedApiEntity.java:107),
+        // so the state reaches the client either as an absent key or as an explicit JSON null.
+        const nullState = null as unknown as ApiState;
+
+        it.each<[string, Partial<ApiListItem>]>([
+            ['absent', {}],
+            ['null', { state: nullState }],
+        ])('shows the em dash and no status badge when the state is %s', (_scenario, overrides) => {
+            renderTable({ apis: [makeApi({ originContext: federatedOrigin, ...overrides })] });
+            const [, dataRow] = screen.getAllByRole('row');
+            const statusCell = cellUnderHeader(dataRow, 'Runtime Status');
+            expect(statusCell.textContent).toBe('—');
+            expect(within(statusCell).queryByText(/Started|Stopped|Closed/)).toBeNull();
+        });
     });
 
     describe('SyncStatusBadge', () => {
@@ -141,6 +161,54 @@ describe('ApiListTable', () => {
         it('shows "Out of sync" badge for NEED_REDEPLOY state', () => {
             renderTable({ apis: [makeApi({ deploymentState: 'NEED_REDEPLOY' })] });
             expect(screen.queryByText('Out of sync')).not.toBeNull();
+        });
+
+        // A federated API is never deployed to a gateway, so `ApiMapper` drops the computed
+        // deployment state for it (ApiMapper.java:152) — and the nullable property can reach the
+        // client either as an absent key or as an explicit JSON null.
+        const nullDeploymentState = null as unknown as ApiDeploymentState;
+
+        it.each<[string, Partial<ApiListItem>]>([
+            ['absent on a federated row', { originContext: federatedOrigin }],
+            ['null on a federated row', { originContext: federatedOrigin, deploymentState: nullDeploymentState }],
+            // The dash is keyed on the missing value, not on where the row came from — a guard on
+            // `originContext.origin` would leave this row claiming "In sync" for a state it never received.
+            ['absent on a natively-managed row', { originContext: { origin: 'MANAGEMENT' } }],
+        ])('shows the em dash and no "In sync" badge when the deployment state is %s', (_scenario, overrides) => {
+            renderTable({ apis: [makeApi(overrides)] });
+            const [, dataRow] = screen.getAllByRole('row');
+            const syncCell = cellUnderHeader(dataRow, 'Sync Status');
+            expect(syncCell.textContent).toBe('—');
+            expect(within(syncCell).queryByText('In sync')).toBeNull();
+        });
+
+        // Only a cast can reach the default branch, since the value is outside the ApiDeploymentState
+        // union — so nothing else would catch a refactor that restored the old "In sync" fallback.
+        it('shows the em dash when the deployment state is outside the known union', () => {
+            const fallbackWarning = jest.spyOn(console, 'warn').mockImplementation(() => {});
+            const unknownDeploymentState = 'ARCHIVED' as unknown as ApiDeploymentState;
+
+            renderTable({ apis: [makeApi({ originContext: federatedOrigin, deploymentState: unknownDeploymentState })] });
+
+            const [, dataRow] = screen.getAllByRole('row');
+            const syncCell = cellUnderHeader(dataRow, 'Sync Status');
+            expect(syncCell.textContent).toBe('—');
+            expect(within(syncCell).queryByText('In sync')).toBeNull();
+            fallbackWarning.mockRestore();
+        });
+
+        // Federated and natively-managed APIs now arrive in the same response, so the dash has to be
+        // decided per row: a guard hoisted to the column would blank every row once one lacked a state.
+        it('dashes only the row missing a deployment state when both kinds are listed together', () => {
+            renderTable({
+                apis: [
+                    makeApi({ id: 'federated', name: 'Orders API', originContext: federatedOrigin }),
+                    makeApi({ id: 'native', name: 'Payments API', originContext: { origin: 'MANAGEMENT' }, deploymentState: 'DEPLOYED' }),
+                ],
+            });
+            const [, federatedRow, nativeRow] = screen.getAllByRole('row');
+            expect(cellUnderHeader(federatedRow, 'Sync Status').textContent).toBe('—');
+            expect(cellUnderHeader(nativeRow, 'Sync Status').textContent).toBe('In sync');
         });
     });
 
@@ -187,7 +255,7 @@ describe('ApiListTable', () => {
         ])('holds %s in the cell under the Origin header', (_scenario, overrides, expectedIndicatorCount, expectedCellText) => {
             renderTable({ apis: [makeApi(overrides)] });
             const [, dataRow] = screen.getAllByRole('row');
-            const originCell = originCellOf(dataRow);
+            const originCell = cellUnderHeader(dataRow, 'Origin');
             expect(within(originCell).queryAllByTestId('api-origin-indicator')).toHaveLength(expectedIndicatorCount);
             expect(originCell.textContent).toBe(expectedCellText);
         });
@@ -260,15 +328,74 @@ describe('ApiListTable', () => {
         });
     });
 
-    it('renders access path when listener has an HTTP path', () => {
-        const api = makeApi({ listeners: [{ type: 'HTTP', paths: [{ path: '/my-api' }] }] });
-        renderTable({ apis: [api] });
-        expect(screen.queryByText('/my-api')).not.toBeNull();
+    describe('Access cell', () => {
+        it('renders access path when listener has an HTTP path', () => {
+            renderTable({ apis: [makeApi({ listeners: [{ type: 'HTTP', paths: [{ path: '/my-api' }] }] })] });
+            const [, dataRow] = screen.getAllByRole('row');
+            const accessCell = cellUnderHeader(dataRow, 'Access');
+            expect(accessCell.textContent).toBe('/my-api');
+            expect(accessCell.querySelector('.font-mono')).not.toBeNull();
+        });
+
+        it.each<[string, Partial<ApiListItem>]>([
+            ['absent', {}],
+            ['empty', { listeners: [] }],
+            // A naive `listeners?.length` guard would read a TCP-only API as having an access path.
+            ['carrying no HTTP entry', { listeners: [{ type: 'TCP', host: 'tcp.example.com', port: 4082 }] }],
+        ])('shows the em dash and no path badge when listeners are %s', (_scenario, overrides) => {
+            renderTable({ apis: [makeApi({ originContext: federatedOrigin, ...overrides })] });
+            const [, dataRow] = screen.getAllByRole('row');
+            const accessCell = cellUnderHeader(dataRow, 'Access');
+            expect(accessCell.textContent).toBe('—');
+            expect(accessCell.querySelector('.font-mono')).toBeNull();
+        });
     });
 
-    it('renders owner display name', () => {
-        const api = makeApi({ primaryOwner: { displayName: 'Jane Doe' } });
-        renderTable({ apis: [api] });
-        expect(screen.queryByText('Jane Doe')).not.toBeNull();
+    describe('Sharding Tags cell', () => {
+        it('renders the first tag and an "N more" badge when tags are present', () => {
+            renderTable({ apis: [makeApi({ tags: ['internal', 'edge'] })] });
+            const [, dataRow] = screen.getAllByRole('row');
+            const tagsCell = cellUnderHeader(dataRow, 'Sharding Tags');
+            expect(within(tagsCell).queryByText('edge')).not.toBeNull();
+            expect(within(tagsCell).queryByText('1 more')).not.toBeNull();
+        });
+
+        it.each<[string, Partial<ApiListItem>]>([
+            ['absent', {}],
+            ['empty', { tags: [] }],
+        ])('shows the em dash and no "N more" badge when tags are %s', (_scenario, overrides) => {
+            renderTable({ apis: [makeApi({ originContext: federatedOrigin, ...overrides })] });
+            const [, dataRow] = screen.getAllByRole('row');
+            const tagsCell = cellUnderHeader(dataRow, 'Sharding Tags');
+            expect(tagsCell.textContent).toBe('—');
+            expect(within(tagsCell).queryByText(/more$/)).toBeNull();
+        });
+    });
+
+    describe('Owner cell', () => {
+        it('renders owner display name', () => {
+            renderTable({ apis: [makeApi({ primaryOwner: { displayName: 'Jane Doe' } })] });
+            const [, dataRow] = screen.getAllByRole('row');
+            expect(cellUnderHeader(dataRow, 'Owner').textContent).toBe('Jane Doe');
+        });
+
+        it('keeps the owner of a federated row whose every other data column is empty', () => {
+            renderTable({
+                apis: [
+                    makeApi({ id: 'federated-unowned', name: 'Orders API', originContext: federatedOrigin }),
+                    makeApi({
+                        id: 'federated-owned',
+                        name: 'Billing API',
+                        originContext: federatedOrigin,
+                        primaryOwner: { displayName: 'Jane Doe' },
+                    }),
+                ],
+            });
+            const [, unownedRow, ownedRow] = screen.getAllByRole('row');
+            const emptyColumns = ['Runtime Status', 'Sync Status', 'Access', 'Sharding Tags'];
+            expect(emptyColumns.map(header => cellUnderHeader(ownedRow, header).textContent)).toEqual(['—', '—', '—', '—']);
+            expect(cellUnderHeader(unownedRow, 'Owner').textContent).toBe('—');
+            expect(cellUnderHeader(ownedRow, 'Owner').textContent).toBe('Jane Doe');
+        });
     });
 });
