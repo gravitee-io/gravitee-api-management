@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.impl.AbstractService.convert;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
@@ -390,18 +391,10 @@ public class GroupServiceImplTest {
         String username = "user-1";
 
         RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
-        RoleEntity apiProductPORole = RoleEntity.builder()
-            .id("api-product-po-role-id")
-            .name(SystemRole.PRIMARY_OWNER.name())
-            .scope(RoleScope.API_PRODUCT)
-            .build();
 
         when(
             roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
         ).thenReturn(Optional.of(apiPORole));
-        when(
-            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-        ).thenReturn(Optional.of(apiProductPORole));
 
         // Group IS a primary owner of some APIs
         MembershipEntity groupApiPOMembership = MembershipEntity.builder()
@@ -417,14 +410,6 @@ public class GroupServiceImplTest {
                 apiPORole.getId()
             )
         ).thenReturn(Set.of(groupApiPOMembership));
-        when(
-            membershipService.getMembershipsByMemberAndReferenceAndRole(
-                MembershipMemberType.GROUP,
-                groupId,
-                MembershipReferenceType.API_PRODUCT,
-                apiProductPORole.getId()
-            )
-        ).thenReturn(Set.of());
 
         // User HAS API PRIMARY_OWNER role in this group
         when(membershipService.getRoles(MembershipReferenceType.GROUP, groupId, MembershipMemberType.USER, username)).thenReturn(
@@ -598,5 +583,95 @@ public class GroupServiceImplTest {
 
         assertThat(group.getApiProductPrimaryOwner()).isNull();
         verify(groupRepository).update(group);
+    }
+
+    // assertGroupIsNotPrimaryOwner tests (APIM-15110): ownership, not assignment.
+
+    @Test
+    public void assertGroupIsNotPrimaryOwner_shouldDoNothing_whenGroupOwnsNoApis() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+
+        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiPORole));
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API,
+                apiPORole.getId()
+            )
+        ).thenReturn(Set.of());
+
+        assertThatCode(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API)).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void assertGroupIsNotPrimaryOwner_shouldThrow_whenGroupOwnsApis() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+
+        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiPORole));
+
+        MembershipEntity membership1 = MembershipEntity.builder()
+            .id("membership-1")
+            .referenceId("api-1")
+            .referenceType(MembershipReferenceType.API)
+            .build();
+        MembershipEntity membership2 = MembershipEntity.builder()
+            .id("membership-2")
+            .referenceId("api-2")
+            .referenceType(MembershipReferenceType.API)
+            .build();
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API,
+                apiPORole.getId()
+            )
+        ).thenReturn(Set.of(membership1, membership2));
+
+        assertThatThrownBy(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API)).isInstanceOf(
+            StillPrimaryOwnerException.class
+        );
+    }
+
+    @Test
+    public void assertGroupIsNotPrimaryOwner_shouldThrow_whenGroupOwnsApiProducts() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+
+        RoleEntity apiProductPORole = RoleEntity.builder()
+            .id("api-product-po-role-id")
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .scope(RoleScope.API_PRODUCT)
+            .build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiProductPORole));
+
+        MembershipEntity membership = MembershipEntity.builder()
+            .id("membership-1")
+            .referenceId("api-product-1")
+            .referenceType(MembershipReferenceType.API_PRODUCT)
+            .build();
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API_PRODUCT,
+                apiProductPORole.getId()
+            )
+        ).thenReturn(Set.of(membership));
+
+        assertThatThrownBy(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API_PRODUCT)).isInstanceOf(
+            StillApiProductPrimaryOwnerException.class
+        );
     }
 }

@@ -871,7 +871,7 @@ class HttpDynamicPropertiesServiceTest {
         // Without this, a race condition exists: the test scheduler can advance past the
         // next timer's scheduled time before the I/O thread has had a chance to schedule it.
         try {
-            Thread.sleep(50);
+            Thread.sleep(200);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
