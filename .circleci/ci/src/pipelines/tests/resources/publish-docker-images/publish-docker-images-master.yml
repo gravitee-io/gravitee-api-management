@@ -218,12 +218,14 @@ jobs:
       - run:
           name: Check Maven resolves from the feed
           command: |-
-            if ! mvn -B -q -s .gravitee.settings.xml \
+            if ! mvn -B -q -N -s .gravitee.settings.xml \
               org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get \
               -Dartifact=io.gravitee.canary:feed-canary:1.0.0:pom; then
               echo "Maven could not resolve the canary from the feed." >&2
-              echo "The token itself was accepted over HTTPS a step earlier, so what is left is the" >&2
-              echo "settings wiring: a <server> id that does not match the repository id, or" >&2
+              echo "If the step above reported the feed answering anything other than 200, this is that" >&2
+              echo "outage: the canary exists on the feed and nowhere else, so no fallback can serve it." >&2
+              echo "Otherwise the token was accepted and what is left is the settings wiring: a <server>" >&2
+              echo "id that does not match the repository id, or" >&2
               # Single quotes: the shell would try to expand this one, and a dot is not a valid
               # variable name — the message would come out as a bad substitution instead.
               echo '${env.AZURE_ARTIFACTS_PAT} not being interpolated.' >&2
