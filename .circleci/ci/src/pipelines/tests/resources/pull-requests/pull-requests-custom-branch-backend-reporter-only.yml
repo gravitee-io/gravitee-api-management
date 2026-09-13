@@ -92,18 +92,11 @@ jobs:
     resource_class: small
     steps:
       - checkout
-      - keeper/install
+      - keeper/env-export:
+          secret-url: keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml
+          var-name: MAVEN_SETTINGS
       - run:
-          name: Get the Maven settings
-          command: |-
-            ksm secret notation keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml > .gravitee.settings.xml
-
-            # An empty or truncated file would only surface later, in another job, as an unreadable
-            # settings or a 401 blamed on the credentials.
-            if ! grep -q '</settings>' .gravitee.settings.xml; then
-              echo "The Maven settings read from Keeper are empty or truncated." >&2
-              exit 1
-            fi
+          command: "echo $MAVEN_SETTINGS > .gravitee.settings.xml "
       - persist_to_workspace:
           root: .
           paths:
