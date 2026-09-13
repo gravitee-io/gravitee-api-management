@@ -16,7 +16,13 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkNodeExecutor } from '../../executors';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
-import { AzureArtifactsTokenCommand, PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, SyncFolderToS3Command } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  PrepareGpgCmd,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+  SyncFolderToS3Command,
+} from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 import { parse } from '../../utils';

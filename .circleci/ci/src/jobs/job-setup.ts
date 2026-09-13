@@ -52,11 +52,15 @@ fi`,
         // Once per pipeline, on the settings this job just wrote, rather than in every job that
         // runs Maven: the wiring is the same for all of them, since they all attach this one file.
         //
-        // dependency:get runs project-less, so its remote repositories come from the active
-        // profile in the settings — the part a raw HTTPS request never exercises: the <server> id
-        // matching the repository id, and ${env.AZURE_ARTIFACTS_PAT} actually being interpolated.
-        // A settings with a mismatched server id passes a curl check and falls back to Artifactory
-        // for good.
+        // dependency:get takes its remote repositories from the active profile in the settings —
+        // the part a raw HTTPS request never exercises: the <server> id matching the repository
+        // id, and ${env.AZURE_ARTIFACTS_PAT} actually being interpolated. A settings with a
+        // mismatched server id passes a curl check and falls back to Artifactory for good.
+        //
+        // -N because the goal runs from the checkout root: without it Maven loads the whole
+        // reactor — 120 POMs and their parents — before running the goal once on the root module.
+        // That is a round trip per POM on a cold cache, and a resolution failure in any of them
+        // would inherit the message below.
         //
         // The plugin GAV is pinned: an unpinned one resolves maven-metadata.xml first, a round
         // trip that proves nothing.
@@ -66,12 +70,14 @@ fi`,
         // the feed, so a feed that answers 401 leaves the build green. Once Artifactory is off
         // there is no fallback left to hide behind, a broken feed fails on its own, and the two
         // checks — along with io.gravitee.canary:feed-canary itself — can go.
-        command: `if ! mvn -B -q -s ${config.maven.settingsFile} \\
+        command: `if ! mvn -B -q -N -s ${config.maven.settingsFile} \\
   org.apache.maven.plugins:maven-dependency-plugin:${config.maven.dependencyPluginVersion}:get \\
   -Dartifact=io.gravitee.canary:feed-canary:1.0.0:pom; then
   echo "Maven could not resolve the canary from the feed." >&2
-  echo "The token itself was accepted over HTTPS a step earlier, so what is left is the" >&2
-  echo "settings wiring: a <server> id that does not match the repository id, or" >&2
+  echo "If the step above reported the feed answering anything other than 200, this is that" >&2
+  echo "outage: the canary exists on the feed and nowhere else, so no fallback can serve it." >&2
+  echo "Otherwise the token was accepted and what is left is the settings wiring: a <server>" >&2
+  echo "id that does not match the repository id, or" >&2
   # Single quotes: the shell would try to expand this one, and a dot is not a valid
   # variable name — the message would come out as a bad substitution instead.
   echo '\${env.AZURE_ARTIFACTS_PAT} not being interpolated.' >&2

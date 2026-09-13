@@ -15,7 +15,13 @@
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkNodeExecutor } from '../../executors';
-import { AzureArtifactsTokenCommand, InstallYarnCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  InstallYarnCommand,
+  NotifyOnFailureCommand,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+} from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
