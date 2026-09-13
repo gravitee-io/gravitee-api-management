@@ -103,6 +103,7 @@ const maven = {
   // Pinned: an unpinned plugin coordinate makes Maven resolve maven-metadata.xml first.
   dependencyPluginVersion: '3.8.1',
   azureFeedUrl: 'https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1',
+  azureSnapshotsFeedUrl: 'https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1',
 };
 
 const yarn = {
