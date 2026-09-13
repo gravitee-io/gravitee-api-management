@@ -29,4 +29,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PromotionMongoRepositoryCustom {
     Page<PromotionMongo> search(PromotionCriteria criteria, Sortable sortable, Pageable pageable);
+
+    /**
+     * Replaces the stored promotion, reporting whether one was there to replace. The answer comes from the write
+     * itself so that it cannot be given by a read, which may be served by a lagging secondary.
+     *
+     * @return false when no promotion carries that id
+     */
+    boolean replace(PromotionMongo promotion);
 }
