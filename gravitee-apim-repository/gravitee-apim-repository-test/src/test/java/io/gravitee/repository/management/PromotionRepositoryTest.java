@@ -110,6 +110,32 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(dbPromotion).isEqualTo(storedPromotion);
     }
 
+    // The promotion is fully populated on purpose: a bare one leaves api_definition null, and the JDBC update
+    // fails binding that parameter before it can report that no row matched.
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownPromotion() throws Exception {
+        final PromotionAuthor promotionAuthor = new PromotionAuthor();
+        promotionAuthor.setUserId("user#1");
+        promotionAuthor.setDisplayName("Gaetan Maisse");
+        promotionAuthor.setEmail("gm@gv.io");
+        promotionAuthor.setSource("internal");
+        promotionAuthor.setSourceId("internal#1");
+
+        final Promotion unknownPromotion = new Promotion();
+        unknownPromotion.setId("unknown");
+        unknownPromotion.setApiDefinition("{}");
+        unknownPromotion.setApiId("api#1");
+        unknownPromotion.setStatus(PromotionStatus.CREATED);
+        unknownPromotion.setSourceEnvCockpitId("env#cockpit-1");
+        unknownPromotion.setSourceEnvName("Demo");
+        unknownPromotion.setTargetEnvCockpitId("env#cockpit-2");
+        unknownPromotion.setTargetEnvName("Prod");
+        unknownPromotion.setCreatedAt(new Date());
+        unknownPromotion.setAuthor(promotionAuthor);
+
+        promotionRepository.update(unknownPromotion);
+    }
+
     @Test
     public void shouldDelete() throws Exception {
         String idOfPromotionToDelete = "promotion#to-delete";

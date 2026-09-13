@@ -74,6 +74,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -258,17 +259,33 @@ public class PromotionServiceImpl extends AbstractService implements PromotionSe
      * environment that starts it and by the Cockpit bridge that receives it, and when both share a database the
      * check can miss a row the other transaction has not committed yet, which surfaced as a raw primary key
      * violation. Treat the conflict as what it means - somebody else got there first - and update instead.
+     *
+     * The conflict is recognised from the exception alone: reading the row back to confirm it exists repeats the
+     * very lookup that already missed it. The UPDATE statement resolves against the committed row, but update()
+     * hands back what a read finds afterwards, and that read can miss the row just as the first one did - so
+     * return the promotion that was written instead of the one read back.
      */
     private Promotion createOrUpdateOnConflict(Promotion promotion) throws TechnicalException {
         try {
             return promotionRepository.create(promotion);
         } catch (Exception e) {
-            if (promotionRepository.findById(promotion.getId()).isEmpty()) {
+            if (!isDuplicateKey(e)) {
                 throw e;
             }
             LOGGER.debug("Promotion {} was created concurrently, updating it instead", promotion.getId());
-            return promotionRepository.update(promotion);
+            promotionRepository.update(promotion);
+            return promotion;
         }
+    }
+
+    /** The JDBC repositories wrap the conflict into a TechnicalException, the Mongo one lets it escape as is. */
+    private static boolean isDuplicateKey(Throwable throwable) {
+        for (Throwable cause = throwable; cause != null; cause = cause.getCause()) {
+            if (cause instanceof DuplicateKeyException) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
