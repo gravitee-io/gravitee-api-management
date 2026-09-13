@@ -1268,22 +1268,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void verifyUserCanBeDeletedFromGroup(ExecutionContext executionContext, String groupId, String username) {
-        RoleEntity apiPORole = getPrimaryOwnerRoleOrThrow(executionContext, RoleScope.API);
-        RoleEntity apiProductPORole = getPrimaryOwnerRoleOrThrow(executionContext, RoleScope.API_PRODUCT);
-
-        Set<MembershipEntity> groupApiPrimaryOwnerMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
-            MembershipMemberType.GROUP,
-            groupId,
-            MembershipReferenceType.API,
-            apiPORole.getId()
-        );
-        Set<MembershipEntity> groupApiProductPrimaryOwnerMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
-            MembershipMemberType.GROUP,
-            groupId,
-            MembershipReferenceType.API_PRODUCT,
-            apiProductPORole.getId()
-        );
-
         Set<RoleEntity> userRolesInGroup = membershipService.getRoles(
             MembershipReferenceType.GROUP,
             groupId,
@@ -1291,11 +1275,13 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             username
         );
 
-        if (!groupApiPrimaryOwnerMemberships.isEmpty() && userHasPrimaryOwnerRoleForScope(userRolesInGroup, RoleScope.API)) {
-            throw new StillPrimaryOwnerException(groupApiPrimaryOwnerMemberships.size(), ApiPrimaryOwnerMode.GROUP);
+        long ownedApiCount = countPrimaryOwnerMemberships(executionContext, groupId, RoleScope.API);
+        if (ownedApiCount > 0 && userHasPrimaryOwnerRoleForScope(userRolesInGroup, RoleScope.API)) {
+            throw new StillPrimaryOwnerException(ownedApiCount, ApiPrimaryOwnerMode.GROUP);
         }
-        if (!groupApiProductPrimaryOwnerMemberships.isEmpty() && userHasPrimaryOwnerRoleForScope(userRolesInGroup, RoleScope.API_PRODUCT)) {
-            throw new StillApiProductPrimaryOwnerException(groupApiProductPrimaryOwnerMemberships.size());
+        long ownedApiProductCount = countPrimaryOwnerMemberships(executionContext, groupId, RoleScope.API_PRODUCT);
+        if (ownedApiProductCount > 0 && userHasPrimaryOwnerRoleForScope(userRolesInGroup, RoleScope.API_PRODUCT)) {
+            throw new StillApiProductPrimaryOwnerException(ownedApiProductCount);
         }
     }
 
@@ -1310,13 +1296,22 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             .orElseThrow(() -> new TechnicalManagementException(scope.name() + " System Role 'PRIMARY_OWNER' not found."));
     }
 
-    /**
-     * Refuses to delete the group if it still holds the {@code PRIMARY_OWNER} role for the given
-     * scope on at least one reference (API or API Product), to prevent orphan PO memberships.
-     */
-    private void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+    @Override
+    public void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+        if (scope != RoleScope.API && scope != RoleScope.API_PRODUCT) {
+            throw new IllegalArgumentException("scope must be API or API_PRODUCT");
+        }
+        long count = countPrimaryOwnerMemberships(executionContext, groupId, scope);
+        if (count > 0) {
+            throw scope == RoleScope.API
+                ? new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP)
+                : new StillApiProductPrimaryOwnerException(count);
+        }
+    }
+
+    private long countPrimaryOwnerMemberships(ExecutionContext executionContext, String groupId, RoleScope scope) {
         RoleEntity poRole = getPrimaryOwnerRoleOrThrow(executionContext, scope);
-        long count = membershipService
+        return membershipService
             .getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.GROUP,
                 groupId,
@@ -1324,11 +1319,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 poRole.getId()
             )
             .size();
-        if (count > 0) {
-            throw scope == RoleScope.API
-                ? new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP)
-                : new StillApiProductPrimaryOwnerException(count);
-        }
     }
 
     private boolean userHasPrimaryOwnerRoleForScope(Set<RoleEntity> userRoles, RoleScope scope) {
