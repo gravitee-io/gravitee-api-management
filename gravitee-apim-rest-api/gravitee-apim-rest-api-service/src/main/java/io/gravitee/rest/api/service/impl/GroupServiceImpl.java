@@ -1317,8 +1317,18 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
      * scope on at least one reference (API or API Product), to prevent orphan PO memberships.
      */
     private void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+        long count = countPrimaryOwnerMemberships(executionContext, groupId, scope);
+        if (count > 0) {
+            throw scope == RoleScope.API
+                ? new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP)
+                : new StillApiProductPrimaryOwnerException(count);
+        }
+    }
+
+    @Override
+    public long countPrimaryOwnerMemberships(ExecutionContext executionContext, String groupId, RoleScope scope) {
         RoleEntity poRole = getPrimaryOwnerRoleOrThrow(executionContext, scope);
-        long count = membershipService
+        return membershipService
             .getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.GROUP,
                 groupId,
@@ -1326,11 +1336,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 poRole.getId()
             )
             .size();
-        if (count > 0) {
-            throw scope == RoleScope.API
-                ? new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP)
-                : new StillApiProductPrimaryOwnerException(count);
-        }
     }
 
     private boolean userHasPrimaryOwnerRoleForScope(Set<RoleEntity> userRoles, RoleScope scope) {

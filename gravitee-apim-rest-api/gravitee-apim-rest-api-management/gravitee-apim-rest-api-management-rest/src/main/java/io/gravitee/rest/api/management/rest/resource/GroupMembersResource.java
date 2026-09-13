@@ -30,7 +30,6 @@ import io.gravitee.rest.api.management.rest.model.PagedResult;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.alert.ApplicationAlertEventType;
 import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -284,15 +283,15 @@ public class GroupMembersResource extends AbstractResource {
                 if (apiRoleEntity != null && !apiRoleEntity.equals(previousApiRole)) {
                     String roleName = getRoleName(RoleScope.API, apiRoleEntity, groupEntity, GroupEntity::isLockApiRole, hasPermission);
 
-                    // Validate: prevent changing from PRIMARY_OWNER if group owns APIs
+                    // Block demotion only while the group still owns APIs.
                     if (
                         previousApiRole != null &&
                         previousApiRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
                         !roleName.equals(SystemRole.PRIMARY_OWNER.name())
                     ) {
-                        List<ApiEntity> groupApis = groupService.getApis(executionContext.getEnvironmentId(), group);
-                        if (!groupApis.isEmpty()) {
-                            throw new StillPrimaryOwnerException(groupApis.size(), ApiPrimaryOwnerMode.GROUP);
+                        long ownedApiCount = groupService.countPrimaryOwnerMemberships(executionContext, group, RoleScope.API);
+                        if (ownedApiCount > 0) {
+                            throw new StillPrimaryOwnerException(ownedApiCount, ApiPrimaryOwnerMode.GROUP);
                         }
                     }
 
@@ -326,15 +325,19 @@ public class GroupMembersResource extends AbstractResource {
                         hasPermission
                     );
 
-                    // Validate: prevent changing from PRIMARY_OWNER if a group owns API products
+                    // Block demotion only while the group still owns API products.
                     if (
                         previousApiProductRole != null &&
                         previousApiProductRole.getName().equals(SystemRole.PRIMARY_OWNER.name()) &&
                         !roleName.equals(SystemRole.PRIMARY_OWNER.name())
                     ) {
-                        List<ApiProductEntity> groupApiProducts = groupService.getApiProducts(executionContext.getEnvironmentId(), group);
-                        if (!groupApiProducts.isEmpty()) {
-                            throw new StillApiProductPrimaryOwnerException(groupApiProducts.size());
+                        long ownedApiProductCount = groupService.countPrimaryOwnerMemberships(
+                            executionContext,
+                            group,
+                            RoleScope.API_PRODUCT
+                        );
+                        if (ownedApiProductCount > 0) {
+                            throw new StillApiProductPrimaryOwnerException(ownedApiProductCount);
                         }
                     }
 

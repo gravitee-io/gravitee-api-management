@@ -599,4 +599,101 @@ public class GroupServiceImplTest {
         assertThat(group.getApiProductPrimaryOwner()).isNull();
         verify(groupRepository).update(group);
     }
+
+    // countPrimaryOwnerMemberships tests (APIM-15110): the count must reflect real PRIMARY_OWNER
+    // ownership (a GROUP membership on the API/API_PRODUCT reference with the PO role), not merely
+    // how many APIs/API Products the group is assigned/associated to.
+
+    @Test
+    public void countPrimaryOwnerMemberships_shouldReturnZero_whenGroupOwnsNoApis() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+
+        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiPORole));
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API,
+                apiPORole.getId()
+            )
+        ).thenReturn(Set.of());
+
+        long count = service.countPrimaryOwnerMemberships(executionContext, groupId, RoleScope.API);
+
+        assertThat(count).isZero();
+    }
+
+    @Test
+    public void countPrimaryOwnerMemberships_shouldCountOwnedApis_regardlessOfAssignment() {
+        // This is the exact APIM-15110 scenario: the group is the real PRIMARY_OWNER of 2 APIs.
+        // (Whether it is also *assigned to* other, unrelated APIs is irrelevant to this count —
+        // unlike the old, buggy getApis()-based check.)
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+
+        RoleEntity apiPORole = RoleEntity.builder().id("api-po-role-id").name(SystemRole.PRIMARY_OWNER.name()).scope(RoleScope.API).build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiPORole));
+
+        MembershipEntity membership1 = MembershipEntity.builder()
+            .id("membership-1")
+            .referenceId("api-1")
+            .referenceType(MembershipReferenceType.API)
+            .build();
+        MembershipEntity membership2 = MembershipEntity.builder()
+            .id("membership-2")
+            .referenceId("api-2")
+            .referenceType(MembershipReferenceType.API)
+            .build();
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API,
+                apiPORole.getId()
+            )
+        ).thenReturn(Set.of(membership1, membership2));
+
+        long count = service.countPrimaryOwnerMemberships(executionContext, groupId, RoleScope.API);
+
+        assertThat(count).isEqualTo(2);
+    }
+
+    @Test
+    public void countPrimaryOwnerMemberships_shouldCountOwnedApiProducts() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        String groupId = "group-1";
+
+        RoleEntity apiProductPORole = RoleEntity.builder()
+            .id("api-product-po-role-id")
+            .name(SystemRole.PRIMARY_OWNER.name())
+            .scope(RoleScope.API_PRODUCT)
+            .build();
+        when(
+            roleService.findByScopeAndName(RoleScope.API_PRODUCT, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+        ).thenReturn(Optional.of(apiProductPORole));
+
+        MembershipEntity membership = MembershipEntity.builder()
+            .id("membership-1")
+            .referenceId("api-product-1")
+            .referenceType(MembershipReferenceType.API_PRODUCT)
+            .build();
+        when(
+            membershipService.getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.API_PRODUCT,
+                apiProductPORole.getId()
+            )
+        ).thenReturn(Set.of(membership));
+
+        long count = service.countPrimaryOwnerMemberships(executionContext, groupId, RoleScope.API_PRODUCT);
+
+        assertThat(count).isEqualTo(1);
+    }
 }
