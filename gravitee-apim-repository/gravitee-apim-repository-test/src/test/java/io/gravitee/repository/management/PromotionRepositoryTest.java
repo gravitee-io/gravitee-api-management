@@ -110,6 +110,14 @@ public class PromotionRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(dbPromotion).isEqualTo(storedPromotion);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void shouldNotUpdateUnknownPromotion() throws Exception {
+        final Promotion unknownPromotion = new Promotion();
+        unknownPromotion.setId("unknown");
+
+        promotionRepository.update(unknownPromotion);
+    }
+
     @Test
     public void shouldDelete() throws Exception {
         String idOfPromotionToDelete = "promotion#to-delete";

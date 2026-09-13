@@ -94,4 +94,9 @@ public class PromotionMongoRepositoryImpl implements PromotionMongoRepositoryCus
 
         return new Page<>(promotions, pageable != null ? pageable.pageNumber() : 0, promotions.size(), total);
     }
+
+    @Override
+    public boolean replace(PromotionMongo promotion) {
+        return mongoTemplate.findAndReplace(Query.query(where("_id").is(promotion.getId())), promotion) != null;
+    }
 }
