@@ -804,6 +804,9 @@ jobs:
       - run:
           name: Release on Nexus
           command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots
+      - run:
+          name: Maven deploy to the Azure feed (releases)
+          command: mvn deploy --activate-profiles gio-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots -DaltDeploymentRepository=azure-artifacts-gravitee::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1
       - cmd-save-maven-job-cache:
           jobName: job-nexus-staging
   job-trigger-saas-docker-images:
