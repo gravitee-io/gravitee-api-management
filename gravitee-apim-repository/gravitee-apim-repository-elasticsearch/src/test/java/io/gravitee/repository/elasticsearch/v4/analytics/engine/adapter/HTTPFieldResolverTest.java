@@ -95,8 +95,11 @@ class HTTPFieldResolverTest {
             "GEO_IP_COUNTRY",
             "CONSUMER_IP",
             "LLM_PROXY_TOOL",
+            "LLM_PROXY_TOOL_REF",
             "MCP_PROXY_METHOD",
             "MCP_PROXY_TOOL",
+            "MCP_PROXY_TOOL_FINGERPRINT",
+            "MCP_PROXY_TOOL_CATALOG",
             "MCP_PROXY_RESOURCE",
             "MCP_PROXY_PROMPT",
             "MCP_PROXY_TOOL_PRICE_STATUS",
@@ -133,8 +136,11 @@ class HTTPFieldResolverTest {
             "GEO_IP_COUNTRY",
             "CONSUMER_IP",
             "LLM_PROXY_TOOL",
+            "LLM_PROXY_TOOL_REF",
             "MCP_PROXY_METHOD",
             "MCP_PROXY_TOOL",
+            "MCP_PROXY_TOOL_FINGERPRINT",
+            "MCP_PROXY_TOOL_CATALOG",
             "MCP_PROXY_RESOURCE",
             "MCP_PROXY_PROMPT",
             "MCP_PROXY_TOOL_PRICE_STATUS",
@@ -172,6 +178,37 @@ class HTTPFieldResolverTest {
             "additional-metrics.keyword_llm-proxy_tool-names"
         );
         assertThat(fieldResolver.fromFacet(Facet.LLM_PROXY_TOOL)).isEqualTo("additional-metrics.keyword_llm-proxy_tool-names");
+    }
+
+    /**
+     * The tool ref dimension reads the multi-valued refs field, not the names field beside it — the two
+     * carry the same tools and differ only in how they identify them, so a slip would go unnoticed until
+     * two tools shared a name.
+     */
+    @Test
+    void should_resolve_llm_proxy_tool_ref_to_the_multi_valued_tool_refs_field() {
+        assertThat(
+            fieldResolver.fromFilter(new Filter(Filter.Name.LLM_PROXY_TOOL_REF, Filter.Operator.EQ, "get_weather|abc123"))
+        ).isEqualTo("additional-metrics.keyword_llm-proxy_tool-refs");
+        assertThat(fieldResolver.fromFacet(Facet.LLM_PROXY_TOOL_REF)).isEqualTo("additional-metrics.keyword_llm-proxy_tool-refs");
+    }
+
+    /**
+     * The fingerprint reads the single-valued field of the tool a call ran; the catalog reads the
+     * multi-valued field of the tools a listing served. Neither is the {@code tools/call} name field.
+     */
+    @Test
+    void should_resolve_mcp_proxy_tool_fingerprint_and_catalog_to_their_own_fields() {
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_TOOL_FINGERPRINT, Filter.Operator.EQ, "abc123"))).isEqualTo(
+            "additional-metrics.keyword_mcp-proxy_tool-fingerprint"
+        );
+        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_TOOL_FINGERPRINT)).isEqualTo(
+            "additional-metrics.keyword_mcp-proxy_tool-fingerprint"
+        );
+        assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_TOOL_CATALOG, Filter.Operator.EQ, "search|abc123"))).isEqualTo(
+            "additional-metrics.keyword_mcp-proxy_tool-catalog"
+        );
+        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_TOOL_CATALOG)).isEqualTo("additional-metrics.keyword_mcp-proxy_tool-catalog");
     }
 
     @Test

@@ -2249,6 +2249,52 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(result.measures()).hasSize(1);
                 assertThat(result.measures().getFirst().measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
             }
+
+            /**
+             * The refs carry the same tools as the names, identified by definition: the three documents hold
+             * {@code ["get_weather|3f9a1c","search|7b2e44"]}, {@code ["get_weather|3f9a1c"]} and
+             * {@code ["search|c81d05","<unnamed>|0e6f92"]}. Two things follow and are both asserted: the two
+             * {@code search} exchanges that share a name land in separate buckets because their fingerprints
+             * differ, and the counts still total five over three requests — a bucket counts exchanges, and an
+             * exchange that ran two tools is in both.
+             */
+            @Test
+            void should_return_facets_by_llm_proxy_tool_ref_splitting_a_shared_name_by_fingerprint() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID));
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.LLM_PROXY_TOOL_REF));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
+                    .containsExactlyInAnyOrder(
+                        tuple("get_weather|3f9a1c", 2.0),
+                        tuple("search|7b2e44", 1.0),
+                        tuple("search|c81d05", 1.0),
+                        tuple("<unnamed>|0e6f92", 1.0)
+                    );
+            }
+
+            /** {@code EQ} on the multi-valued refs field means "contains", the same as on the names. */
+            @Test
+            void should_filter_by_llm_proxy_tool_ref() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filters = List.of(
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID)),
+                    new Filter(Filter.Name.LLM_PROXY_TOOL_REF, Filter.Operator.EQ, "get_weather|3f9a1c")
+                );
+
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(timeRange, filters, metrics));
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
+            }
         }
 
         @Nested
@@ -2364,6 +2410,65 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(measure.metric()).isEqualTo(Metric.HTTP_REQUESTS);
                 assertThat(measure.measures()).containsKey(Measure.COUNT);
                 assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
+            }
+
+            /**
+             * The fingerprint is stamped on a {@code tools/call} alone and is single-valued, so its buckets
+             * are the two calls, one each — the plain case the catalog test below is measured against.
+             */
+            @Test
+            void should_return_facets_by_mcp_proxy_tool_fingerprint() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.MCP_PROXY_TOOL_FINGERPRINT));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
+                    .containsExactlyInAnyOrder(tuple("7b2e44", 1.0), tuple("a4d1e8", 1.0));
+            }
+
+            /**
+             * Two documents carry a catalog, {@code ["search|7b2e44","fetch|a4d1e8"]} and {@code ["search|7b2e44"]},
+             * so the counts total three over two requests: a bucket counts the listings a tool was served in,
+             * never the tools served, and a listing of two tools is in both buckets. Asserted, as for the llm
+             * refs, because it is the property anything reading this facet has to state.
+             */
+            @Test
+            void should_return_facets_by_mcp_proxy_tool_catalog_counting_each_listing_in_every_tool_it_served() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.MCP_PROXY_TOOL_CATALOG));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
+                    .containsExactlyInAnyOrder(tuple("search|7b2e44", 2.0), tuple("fetch|a4d1e8", 1.0));
+            }
+
+            /** {@code EQ} on the multi-valued catalog means "served this tool". */
+            @Test
+            void should_filter_by_mcp_proxy_tool_catalog() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filters = List.of(
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID)),
+                    new Filter(Filter.Name.MCP_PROXY_TOOL_CATALOG, Filter.Operator.EQ, "search|7b2e44")
+                );
+
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(timeRange, filters, metrics));
+
+                assertThat(result).isNotNull();
+                assertThat(result.measures()).hasSize(1);
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
             }
         }
     }

@@ -55,8 +55,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
@@ -90,8 +93,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
@@ -133,8 +139,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
@@ -168,8 +177,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
@@ -1603,8 +1615,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
@@ -1638,8 +1653,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
@@ -1679,8 +1697,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT
@@ -1710,8 +1731,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT
@@ -1751,8 +1775,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT
@@ -1784,8 +1811,11 @@ spec:
               - LLM_PROXY_PROVIDER
               - LLM_PROXY_CONVERSATION
               - LLM_PROXY_TOOL
+              - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
+              - MCP_PROXY_TOOL_FINGERPRINT
+              - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT
@@ -2880,6 +2910,15 @@ spec:
           apis:
               - LLM
 
+        - name: LLM_PROXY_TOOL_REF
+          label: LLM Tool ref
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - LLM
+
         - name: MCP_PROXY_METHOD
           label: MCP Method
           signals:
@@ -2912,6 +2951,24 @@ spec:
 
         - name: MCP_PROXY_TOOL
           label: MCP Tool
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - MCP
+
+        - name: MCP_PROXY_TOOL_FINGERPRINT
+          label: MCP Tool fingerprint
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+          apis:
+              - MCP
+
+        - name: MCP_PROXY_TOOL_CATALOG
+          label: MCP Tool catalog
           type: KEYWORD
           operators:
               - EQ
@@ -3300,12 +3357,24 @@ spec:
           label: LLM Tool
           type: KEYWORD
 
+        - name: LLM_PROXY_TOOL_REF
+          label: LLM Tool ref
+          type: KEYWORD
+
         - name: MCP_PROXY_METHOD
           label: MCP Method
           type: KEYWORD
 
         - name: MCP_PROXY_TOOL
           label: MCP Tool
+          type: KEYWORD
+
+        - name: MCP_PROXY_TOOL_FINGERPRINT
+          label: MCP Tool fingerprint
+          type: KEYWORD
+
+        - name: MCP_PROXY_TOOL_CATALOG
+          label: MCP Tool catalog
           type: KEYWORD
 
         - name: MCP_PROXY_TOOL_PRICE_STATUS

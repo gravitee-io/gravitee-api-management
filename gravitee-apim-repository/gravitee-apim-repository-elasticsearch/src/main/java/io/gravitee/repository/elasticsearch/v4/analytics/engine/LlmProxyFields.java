@@ -48,12 +48,24 @@ public final class LlmProxyFields {
     /**
      * The tools whose results a request hands back — the batch the agent just ran.
      *
-     * <p>Multi-valued, and the only field here that is. A terms aggregation over it therefore counts
-     * <b>documents, not values</b>: a bucket reads "exchanges in which this tool ran", never "tool calls",
-     * and the buckets sum to more than the number of requests. Nothing recorded can correct that, so
+     * <p>Multi-valued, like {@link #TOOL_REFS} and nothing else here. A terms aggregation over it therefore
+     * counts <b>documents, not values</b>: a bucket reads "exchanges in which this tool ran", never "tool
+     * calls", and the buckets sum to more than the number of requests. Nothing recorded can correct that, so
      * anything surfacing this number says "exchanges".
      */
     public static final String TOOL_NAMES = PREFIX + "keyword_llm-proxy_tool-names";
+
+    /**
+     * The same tools as {@link #TOOL_NAMES}, identified rather than named: one {@code rawName|fingerprint}
+     * per distinct tool of an exchange, so two tools sharing a name but not a definition land in different
+     * buckets.
+     *
+     * <p>Multi-valued, with the same consequence as {@link #TOOL_NAMES}: a terms aggregation over it counts
+     * <b>documents, not values</b>. A bucket reads "exchanges in which this tool ran", never "tool calls",
+     * an exchange that ran three tools is in three buckets, and the buckets sum to more than the number of
+     * requests. Anything surfacing this number says "exchanges".
+     */
+    public static final String TOOL_REFS = PREFIX + "keyword_llm-proxy_tool-refs";
 
     public static final String MODEL = PREFIX + "keyword_llm-proxy_model";
     public static final String PROVIDER = PREFIX + "keyword_llm-proxy_provider";

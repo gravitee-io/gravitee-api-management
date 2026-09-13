@@ -150,7 +150,8 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                     FacetSpec.Name.LLM_PROXY_MODEL,
                     FacetSpec.Name.LLM_PROXY_PROVIDER,
                     FacetSpec.Name.LLM_PROXY_CONVERSATION,
-                    FacetSpec.Name.LLM_PROXY_TOOL
+                    FacetSpec.Name.LLM_PROXY_TOOL,
+                    FacetSpec.Name.LLM_PROXY_TOOL_REF
                 );
 
             assertThat(service.getFilters(metric))
@@ -159,7 +160,30 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                     FilterSpec.Name.LLM_PROXY_MODEL,
                     FilterSpec.Name.LLM_PROXY_PROVIDER,
                     FilterSpec.Name.LLM_PROXY_CONVERSATION,
-                    FilterSpec.Name.LLM_PROXY_TOOL
+                    FilterSpec.Name.LLM_PROXY_TOOL,
+                    FilterSpec.Name.LLM_PROXY_TOOL_REF
+                );
+        }
+
+        /** Same family, same reason, for the mcp tool dimensions the count and rate metrics carry. */
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = { "HTTP_REQUESTS", "HTTP_ERRORS", "HTTP_ERROR_RATE", "HTTP_SERVER_ERROR_RATE", "HTTP_REQUESTS_PER_SECOND" }
+        )
+        void should_offer_every_mcp_proxy_tool_dimension_to_the_whole_http_count_and_rate_family(MetricSpec.Name metric) {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            assertThat(service.getFacets(metric))
+                .extracting(FacetSpec::name)
+                .contains(FacetSpec.Name.MCP_PROXY_TOOL, FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT, FacetSpec.Name.MCP_PROXY_TOOL_CATALOG);
+
+            assertThat(service.getFilters(metric))
+                .extracting(FilterSpec::name)
+                .contains(
+                    FilterSpec.Name.MCP_PROXY_TOOL,
+                    FilterSpec.Name.MCP_PROXY_TOOL_FINGERPRINT,
+                    FilterSpec.Name.MCP_PROXY_TOOL_CATALOG
                 );
         }
     }

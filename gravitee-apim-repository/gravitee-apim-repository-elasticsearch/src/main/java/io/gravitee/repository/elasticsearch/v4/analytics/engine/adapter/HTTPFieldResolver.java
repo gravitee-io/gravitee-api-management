@@ -79,8 +79,14 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.LLM_PROXY_CONVERSATION -> LlmProxyFields.CONVERSATION_ID;
             case Filter.Name.LLM_PROXY_REQUEST_KIND -> LlmProxyFields.REQUEST_KIND;
             case Filter.Name.LLM_PROXY_TOOL -> LlmProxyFields.TOOL_NAMES;
+            case Filter.Name.LLM_PROXY_TOOL_REF -> LlmProxyFields.TOOL_REFS;
             case Filter.Name.MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case Filter.Name.MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
+            case Filter.Name.MCP_PROXY_TOOL_FINGERPRINT -> "additional-metrics.keyword_mcp-proxy_tool-fingerprint";
+            // Multi-valued (one servedName|fingerprint per tool a tools/list answered with): a terms
+            // aggregation over it counts documents, not values, so a bucket reads "listings that served
+            // this tool" and the buckets sum to more than the number of requests.
+            case Filter.Name.MCP_PROXY_TOOL_CATALOG -> "additional-metrics.keyword_mcp-proxy_tool-catalog";
             case Filter.Name.MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
             case Filter.Name.MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
             case Filter.Name.MCP_PROXY_TOOL_PRICE_STATUS -> "additional-metrics.keyword_mcp-proxy_tool-price";
@@ -130,8 +136,12 @@ public class HTTPFieldResolver implements FieldResolver {
             case LLM_PROXY_CONVERSATION -> LlmProxyFields.CONVERSATION_ID;
             case LLM_PROXY_REQUEST_KIND -> LlmProxyFields.REQUEST_KIND;
             case LLM_PROXY_TOOL -> LlmProxyFields.TOOL_NAMES;
+            case LLM_PROXY_TOOL_REF -> LlmProxyFields.TOOL_REFS;
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
+            case MCP_PROXY_TOOL_FINGERPRINT -> "additional-metrics.keyword_mcp-proxy_tool-fingerprint";
+            // Multi-valued, see the filter switch: buckets count listings, not tools served.
+            case MCP_PROXY_TOOL_CATALOG -> "additional-metrics.keyword_mcp-proxy_tool-catalog";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
             case MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
             case MCP_PROXY_TOOL_PRICE_STATUS -> "additional-metrics.keyword_mcp-proxy_tool-price";
