@@ -928,6 +928,11 @@ jobs:
       - run:
           name: Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)
           command: mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 8 -s .gravitee.settings.xml -U -P gio-artifactory-snapshot
+      - run:
+          name: Maven deploy to the Azure feed (snapshots)
+          command: |-
+            mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 8 -s .gravitee.settings.xml -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1 \
+              -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-publish-on-artifactory
