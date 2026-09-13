@@ -17,9 +17,9 @@ package io.gravitee.repository.mongodb.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryType;
 import jakarta.inject.Inject;
 import java.util.Map;

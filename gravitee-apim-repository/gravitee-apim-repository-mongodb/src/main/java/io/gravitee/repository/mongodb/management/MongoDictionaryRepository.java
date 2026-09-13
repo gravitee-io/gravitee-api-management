@@ -15,10 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.mongodb.management.internal.dictionary.DictionaryMongoRepository;

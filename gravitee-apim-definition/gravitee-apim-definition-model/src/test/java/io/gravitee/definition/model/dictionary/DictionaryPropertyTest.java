@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.definition.model.dictionary;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -88,5 +88,12 @@ class DictionaryPropertyTest {
         assertThatThrownBy(() -> mapper.readValue("{\"key\": null}", new TypeReference<Map<String, DictionaryProperty>>() {})).isInstanceOf(
             JsonProcessingException.class
         );
+    }
+
+    @Test
+    void should_not_leak_the_malformed_payload_content_in_the_exception_message() {
+        assertThatThrownBy(() -> mapper.readValue("{\"encrypted\":true,\"api-key\":\"super-secret-value\"}", DictionaryProperty.class))
+            .isInstanceOf(JsonMappingException.class)
+            .hasMessageNotContaining("super-secret-value");
     }
 }

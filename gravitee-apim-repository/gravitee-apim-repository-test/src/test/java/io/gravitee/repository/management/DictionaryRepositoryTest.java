@@ -18,8 +18,8 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.jupiter.api.Assertions.*;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryType;
 import java.util.*;
 import org.junit.jupiter.api.Assertions;

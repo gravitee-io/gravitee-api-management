@@ -19,12 +19,12 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 import static java.lang.String.format;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.repository.management.model.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;

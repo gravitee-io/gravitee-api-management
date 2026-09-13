@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import java.util.Date;
 import java.util.Map;
 import lombok.NoArgsConstructor;

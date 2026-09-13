@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.definition.model.dictionary;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -29,11 +29,20 @@ import java.io.IOException;
 
 /**
  * A single dictionary property value, carrying whether it is currently stored encrypted.
- * Dual-reads a legacy bare-string value (pre-encryption-support dictionaries) as
- * {@code encrypted=false}. Symmetrically, an unencrypted value serialises back to that same
- * bare string — not the typed object — so that nothing on the wire (event payloads in
- * particular) changes shape until a value is genuinely encrypted; a consumer that only
- * understands the legacy shape keeps working for as long as encryption itself doesn't exist.
+ *
+ * <p>This is the <em>single</em> definition of the dictionary-property wire contract, shared by
+ * everything that serialises or deserialises it: the Management API (persistence and the event
+ * payloads it publishes) and the gateway (reading those payloads, and redistributing a dictionary
+ * to peer nodes via cluster/distributed sync). It lives here rather than being redeclared per
+ * module because both ends must agree byte-for-byte — the gateway deserialises exactly what the
+ * Management API serialised, and its sync mappers swallow a deserialisation failure as a WARN,
+ * so any drift between two copies would silently stop dictionaries syncing rather than fail loudly.
+ *
+ * <p>Dual-reads a legacy bare-string value (written before dictionaries carried per-property
+ * encryption status) as {@code encrypted=false}. Symmetrically, an unencrypted value serialises
+ * back to that same bare string — not the typed object — so nothing on the wire changes shape
+ * until a value is genuinely encrypted, and a consumer that only understands the legacy shape
+ * keeps working for as long as encryption itself is unused.
  *
  * @author GraviteeSource Team
  */
@@ -63,8 +72,10 @@ public record DictionaryProperty(String value, boolean encrypted) {
             if (node.isTextual()) {
                 return new DictionaryProperty(node.asText(), false);
             }
+            // Deliberately does not echo the offending node: this value can be a secret, and the
+            // gateway's sync mappers log this exception.
             if (!node.hasNonNull("value")) {
-                throw JsonMappingException.from(p, "A dictionary property object must have a non-null 'value' field: " + node);
+                throw JsonMappingException.from(p, "A dictionary property object must have a non-null 'value' field");
             }
             String value = node.get("value").asText();
             boolean encrypted = node.hasNonNull("encrypted") && node.get("encrypted").asBoolean();
