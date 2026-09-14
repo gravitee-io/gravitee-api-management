@@ -18,70 +18,117 @@
 source "$(cd "$(dirname "$0")" && pwd)/_common.sh"
 
 # =============================================================================
-# Step 8: Create CircleCI scheduled triggers for the new branch
+# Step 8: Create the CircleCI scheduled pipelines for the new branch
 # =============================================================================
+#
+# Declared here rather than copied from another branch: a clone carries whatever the line it was
+# taken from happens to hold today, and nothing in the repository said what that was. Written out,
+# the hours are readable, reviewable, and the step works on a project with no schedules at all.
+#
+# The hours below are 4.12.x's, and each line shifts them by an offset of its own: two hours per
+# step, cycling over the four minors that are supported at a time, so no two supported lines — and
+# never master, which sits one hour after the base — start the same suite together. Cloning used to
+# spread the lines by accident; this spreads them on purpose.
+#
+# Every schedule is named "<Suite> - <branch>", and its description says the same thing in the same
+# words. One of master's predates the convention and reads `bridge_compatibility_tests_master`;
+# nothing here reproduces that.
 
 CIRCLECI_PROJECT_SLUG="gh/gravitee-io/gravitee-api-management"
-TRIGGER_NAMES=(
-    "Helm tests"
-    "Bridge Compatibility tests"
-    "Repository tests"
+
+# name | gio_action | base hour (UTC) | days
+SCHEDULES=(
+    "Bridge Compatibility tests|bridge_compatibility_tests|2|MON"
+    "Repository tests|repositories_tests|3|MON,TUE,WED,THU,FRI"
+    "Helm tests|helm_tests|21|WED,SUN"
+    "Nightly|nightly|23|MON,TUE,WED,THU,FRI"
 )
 
-echo "Creating CircleCI scheduled triggers for branch '${BRANCH_NAME}'..."
+# Even offsets only: master runs each suite at base + 1, and skipping the odd ones keeps a line off
+# master's hour. Four slots, which is how many lines are supported at a time.
+HOUR_OFFSET=$(( (MINOR % 4) * 2 ))
+
+echo "Creating CircleCI scheduled pipelines for branch '${BRANCH_NAME}'..."
 
 if [ -z "${CIRCLECI_TOKEN:-}" ]; then
-    echo "ERROR: CIRCLECI_TOKEN environment variable is not set."
+    echo "ERROR: CIRCLECI_TOKEN environment variable is not set." >&2
     exit 1
 fi
 
-# Fetch all existing schedules
-ALL_SCHEDULES=$(curl -s \
-    -H "Circle-Token: $CIRCLECI_TOKEN" \
-    "https://circleci.com/api/v2/project/${CIRCLECI_PROJECT_SLUG}/schedule")
+# Every page of the listing, validated. `curl -s` alone exits 0 on a 401 as on a 500, and the
+# idempotence guard below reads a failed listing as "nothing exists yet" — which is precisely when
+# it would create a second copy of all four schedules. The project carries seventeen of them today,
+# enough to page.
+fetch_schedules() {
+    local url="https://circleci.com/api/v2/project/${CIRCLECI_PROJECT_SLUG}/schedule"
+    local token="" page="" items="[]"
 
-for TRIGGER_NAME in "${TRIGGER_NAMES[@]}"; do
-    OLDEST_TRIGGER=$(echo "$ALL_SCHEDULES" | jq -r --arg name "$TRIGGER_NAME" '
-        .items
-        | map(select(.name | startswith($name) and (contains("master") | not)))
-        | sort_by(
-            .name
-            | capture("(?<major>[0-9]+)\\.(?<minor>[0-9]+)\\.x")
-            | (.major | tonumber) * 1000 + (.minor | tonumber)
-        )
-        | first
-    ')
+    while :; do
+        if ! page=$(curl -sS --fail -H "Circle-Token: $CIRCLECI_TOKEN" "${url}${token:+?page-token=${token}}"); then
+            echo "ERROR: could not list the project's schedules." >&2
+            exit 1
+        fi
+        if ! echo "$page" | jq -e '.items | type == "array"' > /dev/null; then
+            echo "ERROR: the schedule listing answered without items: $(echo "$page" | jq -c '.message // .')" >&2
+            exit 1
+        fi
 
-    if [ "$OLDEST_TRIGGER" = "null" ] || [ -z "$OLDEST_TRIGGER" ]; then
-        echo "WARNING: No existing trigger found for '${TRIGGER_NAME}'. Skipping."
+        items=$(jq -n --argjson acc "$items" --argjson page "$(echo "$page" | jq '.items')" '$acc + $page')
+        token=$(echo "$page" | jq -r '.next_page_token // empty')
+        [ -z "$token" ] && break
+    done
+
+    echo "$items"
+}
+
+ALL_SCHEDULES=$(fetch_schedules)
+
+for SCHEDULE in "${SCHEDULES[@]}"; do
+    IFS='|' read -r NAME ACTION BASE_HOUR DAYS <<< "$SCHEDULE"
+    HOUR=$(( (BASE_HOUR + HOUR_OFFSET) % 24 ))
+    TARGET_NAME="${NAME} - ${BRANCH_NAME}"
+
+    # Resuming the freeze from a step number is supported, and CircleCI accepts a second schedule
+    # under the same name — the branch would then run everything twice.
+    if echo "$ALL_SCHEDULES" | jq -e --arg name "$TARGET_NAME" 'any(.name == $name)' > /dev/null; then
+        echo "Schedule '${TARGET_NAME}' already exists. Leaving it alone."
         continue
     fi
 
-    NEW_TRIGGER=$(echo "$OLDEST_TRIGGER" | jq \
-        --arg name "${TRIGGER_NAME} - ${BRANCH_NAME}" \
+    PAYLOAD=$(jq -n \
+        --arg name "$TARGET_NAME" \
+        --arg label "$NAME" \
         --arg branch "$BRANCH_NAME" \
+        --arg action "$ACTION" \
+        --argjson hour "$HOUR" \
+        --arg days "$DAYS" \
         '{
             name: $name,
-            description: (.description // ""),
+            description: "\($label) for \($branch)",
             "attribution-actor": "system",
-            parameters: .parameters,
-            timetable: .timetable
-        } + {
-            parameters: (.parameters + { branch: $branch })
+            parameters: { branch: $branch, gio_action: $action },
+            timetable: {
+                "per-hour": 1,
+                "hours-of-day": [$hour],
+                "days-of-week": ($days | split(",")),
+                "months": ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"]
+            }
         }')
 
     RESPONSE=$(curl -s -X POST \
         -H "Circle-Token: $CIRCLECI_TOKEN" \
         -H "Content-Type: application/json" \
-        -d "$NEW_TRIGGER" \
+        -d "$PAYLOAD" \
         "https://circleci.com/api/v2/project/${CIRCLECI_PROJECT_SLUG}/schedule")
 
+    # Not a warning: a branch short of a schedule runs fewer tests than every other one, and nothing
+    # turns red to say so.
     if echo "$RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
-        echo "Created trigger: '${TRIGGER_NAME} - ${BRANCH_NAME}'"
+        echo "Created schedule: '${TARGET_NAME}' — ${ACTION}, ${HOUR}:00 UTC on ${DAYS}"
     else
-        echo "ERROR creating trigger '${TRIGGER_NAME} - ${BRANCH_NAME}': $(echo "$RESPONSE" | jq -r '.message // .')"
+        echo "ERROR creating schedule '${TARGET_NAME}': $(echo "$RESPONSE" | jq -r '.message // .')" >&2
         exit 1
     fi
 done
 
-echo "CircleCI scheduled triggers created."
+echo "CircleCI scheduled pipelines created."

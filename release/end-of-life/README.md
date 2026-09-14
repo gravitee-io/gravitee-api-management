@@ -121,19 +121,22 @@ entries when a minor is opened. GitOps step, done via PR (no dedicated script re
 
 ### Action 2 — Delete the CircleCI scheduled triggers
 
-**What.** Delete the **3 scheduled triggers** for version `N.E.x`.
+**What.** Delete **every scheduled trigger** carrying version `N.E.x` — four for a line cut after
+the freeze started declaring them, three for an older one.
 
 **Where.** CircleCI → **Project Settings → Project Setup → Pipelines** of the
 `gravitee-api-management` project.
 
-**Manual steps.** For **each** of the 3 `… - N.E.x` triggers:
+**Manual steps.** For **each** `… - N.E.x` trigger:
 expand the trigger (arrow) → **Trigger Details** panel → **trash** icon → type `DELETE` in the
 confirmation modal → **Delete trigger**.
 
-The 3 triggers (constant triad per version):
+The triggers, as [`08-create-circleci-triggers.sh`](../code-freeze/08-create-circleci-triggers.sh)
+declares them:
 - `Repository tests - N.E.x`
 - `Bridge Compatibility tests - N.E.x`
 - `Helm tests - N.E.x`
+- `Nightly - N.E.x` — only on lines cut after the freeze started creating it
 
 **Under the hood.** These triggers are **CircleCI Schedules** (API v2). The UI issues a
 `DELETE https://app.circleci.com/api/v2/schedule/{schedule-id}` (observed: `200 OK`).
@@ -142,20 +145,21 @@ The 3 triggers (constant triad per version):
 `gh/gravitee-io/gravitee-api-management`:
 1. List: `GET https://circleci.com/api/v2/project/{slug}/schedule` → returns `id` + `name`.
 2. Filter the schedules whose `name` ends with ` - N.E.x`.
-3. **Verify there are exactly 3**, display them, then `DELETE …/schedule/{id}` for each.
+3. **Display what matched** and check it against the list above, then `DELETE …/schedule/{id}` for each.
 
 **Values to parameterize.** `N.E.x` (**dots** form), as a **suffix** of the schedule name.
 
 **Watch‑outs.**
 - The “type `DELETE`” safeguard only exists in the UI. In the API, **add your own confirmation**
-  (display the 3 targeted names before deleting).
+  (display the targeted names before deleting).
 - Nothing to clean up in `.circleci/config.yml`: the target version is carried by the schedule’s
   **`branch` pipeline parameter**, not by the YAML.
 
 **Symmetry & scriptability.** Creation = existing script
-[`release/code-freeze/08-create-circleci-triggers.sh`](../code-freeze/08-create-circleci-triggers.sh)
-which clones the oldest trigger and overrides `name` + the `branch` parameter. **No symmetric deletion
-script today** → identified candidate (see grey areas §4).
+[`release/code-freeze/08-create-circleci-triggers.sh`](../code-freeze/08-create-circleci-triggers.sh),
+which creates them from a table it declares — **four** since a support line was given its own nightly,
+so this deletion covers four triggers, not three. **No symmetric deletion script today** → identified
+candidate (see grey areas §4).
 
 ---
 
@@ -418,7 +422,7 @@ the procedure.
 
 *(Items assumed as not settled — not to be confused with oversights.)*
 
-- **Symmetric CircleCI deletion script.** The **creation** of the 3 schedules is scripted
+- **Symmetric CircleCI deletion script.** The **creation** of the schedules is scripted
   (`08-create-circleci-triggers.sh`); the **deletion** is not. Natural candidate: a mirror script (list
   `GET …/schedule`, filter on the ` - N.E.x` suffix, loop the `DELETE`s).
 - **Check for a residual `event-metrics` template** on the ES side (the data stream has no template in
