@@ -31,6 +31,9 @@ for POM in "$POM_FILE" "$DISTRIBUTION_POM_FILE"; do
     rm -f "$POM.bak"
 done
 
+# The pin follows the revision, or master keeps assembling a version it no longer publishes.
+set_core_pin "${NEXT_REVISION}-SNAPSHOT"
+
 # portal-openapi.yaml: bump version
 sed -i.bak "s|version: \"${REVISION}-SNAPSHOT\"|version: \"${NEXT_REVISION}-SNAPSHOT\"|" "$PORTAL_OPENAPI"
 rm -f "$PORTAL_OPENAPI.bak"

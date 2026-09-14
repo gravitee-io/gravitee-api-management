@@ -37,8 +37,8 @@ as an argument, so the freeze releases whatever master currently says it is.
 |---|---|---|---|
 | 00 | `00-check-repos.sh` | Clones `cloud-apim` if absent | local |
 | 01 | `01-create-branch.sh` | Cuts `<major>.<minor>.x` off an up-to-date master | local |
-| 02 | `02-update-branch-version.sh` | Sets `-alpha.1` on both poms, the portal OpenAPI and the chart; commits; pushes the branch | branch |
-| 03 | `03-update-master-version.sh` | Bumps `<revision>` to the next minor on both poms, the portal OpenAPI and the chart; empties the chart's `artifacthub.io/changes`; swaps the oldest branch out of `.mergify.yml`; pushes master | master |
+| 02 | `02-update-branch-version.sh` | Sets `-alpha.1` on both poms, **pins the core the branch will publish**, updates the portal OpenAPI and the chart; commits; pushes the branch | branch |
+| 03 | `03-update-master-version.sh` | Bumps `<revision>` to the next minor on both poms, **moves the pin with it**, updates the portal OpenAPI and the chart; empties the chart's `artifacthub.io/changes`; swaps the oldest branch out of `.mergify.yml`; pushes master | master |
 | 04 | `04-create-github-label.sh` | `gh label create apply-on-<major>-<minor>-x` | GitHub |
 | 05 | `05-publish-helm-charts.sh` | `helm package` then `helm push` to `oci://graviteeio.azurecr.io/helm/` | Azure ACR |
 | 06 | `06-create-cloud-apim-env.sh` | Copies the previous environment, wires it into the three applicationsets, opens the pull request | cloud-apim |
@@ -54,30 +54,18 @@ update those versions in the APIM pom.
 Each of these is a gesture someone has to remember. They are listed with what happens when nobody
 does, because none of them fails loudly.
 
-### The core pin is never moved
+### The pin moves, but a fresh branch still cannot release
 
-Measured: `grep -rn "apim.core.version" release/code-freeze/` returns nothing but a comment. The only
-writer of that property anywhere is the pinning job of the core release lane.
+Each branch pins the core it publishes itself — `set_core_pin` in `_common.sh` writes it and reads it
+back, because a `sed` that matches nothing exits 0. So a freeze leaves the new branch on
+`<major>.<minor>.0-alpha.1-SNAPSHOT` and master on `<major>.<minor+1>.0-SNAPSHOT`, and neither
+assembles a core the other publishes.
 
-Each branch should pin the core it publishes itself: `<major>.<minor>.0-alpha.1-SNAPSHOT` on the new
-branch, `<major>.<minor+1>.0-SNAPSHOT` on master. Note that the pin is a whole coordinate, not the
-`<revision>` half of one — written `4.14.0` it would name a release nobody has published.
-
-That was harmless while the pin was inert. Since BX-393 the pin decides which core gets assembled,
-and master pins its own version as a `-SNAPSHOT` — which is what keeps master structurally
-unreleasable. Three things follow from nobody moving it:
-
-1. **The new branch cannot release.** `<major>.<minor>.x` inherits `<major>.<minor>.0-SNAPSHOT` as
-   its pin, and `assertPinIsReleasable` refuses a SNAPSHOT before the pipeline is even triggered —
-   the publishing lane refuses it again, through Maven, before anything is built. The branch's first
-   act therefore has to be a core release followed by merging the pinning pull request. The refusal
-   is loud and immediate; what nobody says is what to do about it.
-2. **Master's pin goes stale.** Step 03 moves `<revision>` to the next minor and leaves the pin
-   where it was, so distribution-only pull requests on master — which assemble the pin, not the
-   branch's core — build against a version master no longer publishes.
-3. **That version becomes a dead coordinate.** Master publishes `<major>.<minor+1>.0-SNAPSHOT`, the
-   branch publishes `<major>.<minor>.0-alpha.1-SNAPSHOT`, and nothing republishes the pinned one.
-   Both branches then rely on Nexus never purging a snapshot nobody produces any more.
+What that does not do is make the new line releasable. A release refuses a SNAPSHOT pin — locally,
+through `assertPinIsReleasable`, before the pipeline is even triggered, and again in the publishing
+lane through Maven. **The branch's first act therefore has to be a core release, followed by merging
+the pinning pull request the core lane opens on it.** The refusal is loud and immediate; what nobody
+says is what to do about it.
 
 ### Three schedules created, four needed
 
@@ -139,19 +127,21 @@ Both poms are edited with the root pom's values:
 
 Today both poms carry `<revision>4.13.0</revision>` and `<sha1 />`, so both substitutions match.
 They are listed because the whole point of the two reactors is that those numbers stop agreeing, and
-a `sed` that matches nothing exits 0.
+a `sed` that matches nothing exits 0. The pin is the one write that reads itself back; the others
+still do not.
 
 ### Nothing checks the result
 
-No step re-reads what the previous ones wrote. The closing summary prints what the scripts *meant*
-to do, computed from the same variables they used, not from the repository.
+Apart from the pin, no step re-reads what it wrote. The closing summary prints what the scripts
+*meant* to do, computed from the same variables they used, not from the repository.
 
 ## Checks after the freeze
 
 - [ ] `<major>.<minor>.x` exists on the remote, at `<revision>-alpha.1-SNAPSHOT` in **both** poms.
 - [ ] Master builds at `<major>.<minor+1>.0-SNAPSHOT` in **both** poms.
-- [ ] The distribution pom on the new branch pins a **released** core, not a SNAPSHOT.
-- [ ] Master's pin names a version master still publishes.
+- [ ] The new branch pins `<revision>-alpha.1-SNAPSHOT`, and master pins `<major>.<minor+1>.0-SNAPSHOT`.
+- [ ] Releasing the new line for real is understood to need a core release first, and its pinning
+      pull request merged.
 - [ ] `.mergify.yml` names the new branch, and **still names the line that has not been retired yet**.
 - [ ] The bridge compatibility matrix names the new line, on the branch and on master.
 - [ ] The `apply-on-<major>-<minor>-x` label exists.
