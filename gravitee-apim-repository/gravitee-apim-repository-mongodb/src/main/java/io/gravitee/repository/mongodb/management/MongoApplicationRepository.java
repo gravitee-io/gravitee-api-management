@@ -231,6 +231,11 @@ public class MongoApplicationRepository implements ApplicationRepository {
     }
 
     @Override
+    public Set<Application> findByMetadataEntriesForEnv(String key, Collection<String> values, String environmentId) {
+        return mapApplications(internalApplicationRepo.findByMetadataEntriesForEnv(key, values, environmentId));
+    }
+
+    @Override
     public Set<Application> findAll() throws TechnicalException {
         return internalApplicationRepo.findAll().stream().map(this::mapApplication).collect(Collectors.toSet());
     }

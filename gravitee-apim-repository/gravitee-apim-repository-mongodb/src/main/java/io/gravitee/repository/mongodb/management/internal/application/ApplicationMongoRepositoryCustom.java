@@ -40,4 +40,6 @@ public interface ApplicationMongoRepositoryCustom {
     boolean existsMetadataEntryForEnv(String key, String value, String environmentId);
 
     Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId);
+
+    Set<ApplicationMongo> findByMetadataEntriesForEnv(String key, Collection<String> values, String environmentId);
 }

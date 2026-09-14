@@ -649,6 +649,40 @@ public class JdbcApplicationRepository extends JdbcAbstractCrudRepository<Applic
         return ids.stream().findFirst();
     }
 
+    @Override
+    public Set<Application> findByMetadataEntriesForEnv(String key, Collection<String> values, String environmentId)
+        throws TechnicalException {
+        if (isEmpty(values)) {
+            return emptySet();
+        }
+        String sql =
+            "SELECT am.application_id FROM " +
+            APPLICATION_METADATA +
+            " am JOIN " +
+            tableName +
+            " a ON a.id = am.application_id " +
+            "WHERE am.k=? AND a.environment_id=? AND a.status=? AND am.v IN (" +
+            getOrm().buildInClause(values) +
+            ")";
+        List<String> ids;
+        try {
+            ids = jdbcTemplate.query(
+                sql,
+                (PreparedStatement ps) -> {
+                    ps.setString(1, key);
+                    ps.setString(2, environmentId);
+                    ps.setString(3, ApplicationStatus.ACTIVE.name());
+                    getOrm().setArguments(ps, values, 4);
+                },
+                (rs, rowNum) -> rs.getString(1)
+            );
+        } catch (final Exception ex) {
+            log.error("Failed to find applications by metadata entries:", ex);
+            throw new TechnicalException("Failed to find applications by metadata entries", ex);
+        }
+        return findByIds(ids);
+    }
+
     private String toSortDirection(Sortable sortable) {
         if (sortable != null) {
             return Order.DESC.equals(sortable.order()) ? "desc" : "asc";

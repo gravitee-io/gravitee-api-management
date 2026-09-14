@@ -15,11 +15,14 @@
  */
 package io.gravitee.repository.management;
 
+import static io.gravitee.repository.management.model.Application.METADATA_AGENT_ENTITY_ID;
+import static io.gravitee.repository.management.model.Application.METADATA_AGENT_IDENTITY_ID;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -46,6 +49,8 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
 
     public static final String APP_WITH_LONG_NAME =
         "12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012";
+
+    private static final String AGENTS_ENV = "AGENTS";
 
     @Override
     protected String getTestCasesPath() {
@@ -491,5 +496,104 @@ public class ApplicationRepositoryTest extends AbstractManagementRepositoryTest 
     public void should_find_no_application_for_a_metadata_entry_of_another_env_or_an_archived_one() {
         assertThat(applicationRepository.findIdByMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id", "DEFAULT")).isEmpty();
         assertThat(applicationRepository.findIdByMetadataEntryForEnv(METADATA_CLIENT_ID, "my-client-id-old", "PROD")).isEmpty();
+    }
+
+    @Test
+    public void should_find_the_active_applications_carrying_any_of_the_metadata_values_in_env() throws TechnicalException {
+        Set<Application> found = applicationRepository.findByMetadataEntriesForEnv(
+            METADATA_CLIENT_ID,
+            List.of("my-client-id", "unknown-client-id"),
+            "PROD"
+        );
+
+        assertThat(found).extracting(Application::getId).containsExactly("app-with-client-id");
+        assertThat(found.iterator().next().getMetadata()).containsEntry(METADATA_CLIENT_ID, "my-client-id");
+    }
+
+    @Test
+    public void should_find_every_application_carrying_the_same_metadata_value() throws TechnicalException {
+        Set<Application> found = applicationRepository.findByMetadataEntriesForEnv("type", List.of("Web"), "DEV");
+
+        assertThat(found)
+            .extracting(Application::getId)
+            .containsExactlyInAnyOrder(
+                "searched-app1",
+                "app-with-long-client-id",
+                "app-with-long-name",
+                "dbc12b15-e975-4fa1-812b-15e975bfa13c",
+                "74e34cc3-000f-492e-a34c-c3000f192e32"
+            );
+    }
+
+    @Test
+    public void should_find_no_application_for_metadata_values_of_another_env_or_an_archived_one() throws TechnicalException {
+        assertThat(applicationRepository.findByMetadataEntriesForEnv(METADATA_CLIENT_ID, List.of("my-client-id"), "DEFAULT")).isEmpty();
+        assertThat(applicationRepository.findByMetadataEntriesForEnv(METADATA_CLIENT_ID, List.of("my-client-id-old"), "PROD")).isEmpty();
+    }
+
+    @Test
+    public void should_find_no_application_for_no_metadata_values() throws TechnicalException {
+        assertThat(applicationRepository.findByMetadataEntriesForEnv(METADATA_CLIENT_ID, List.of(), "PROD")).isEmpty();
+    }
+
+    @Test
+    public void should_find_each_application_by_its_own_metadata_value_with_its_other_metadata() throws TechnicalException {
+        applicationRepository.create(agentApplication("agent-app-a", "agent.a", "identity-a"));
+        applicationRepository.create(agentApplication("agent-app-b", "agent.b", "identity-b"));
+
+        Set<Application> found = applicationRepository.findByMetadataEntriesForEnv(
+            METADATA_AGENT_ENTITY_ID,
+            List.of("agent.a", "agent.b", "agent.unknown"),
+            AGENTS_ENV
+        );
+
+        assertThat(found)
+            .extracting(Application::getId, application -> application.getMetadata().get(METADATA_AGENT_IDENTITY_ID))
+            .containsExactlyInAnyOrder(tuple("agent-app-a", "identity-a"), tuple("agent-app-b", "identity-b"));
+    }
+
+    @Test
+    public void should_find_applications_by_metadata_values_without_their_picture_and_background() throws TechnicalException {
+        Application application = agentApplication("agent-app-with-picture", "agent.pictured", "identity-pictured");
+        application.setPicture("data:image/png;base64,picture");
+        application.setBackground("data:image/png;base64,background");
+        applicationRepository.create(application);
+
+        Set<Application> found = applicationRepository.findByMetadataEntriesForEnv(
+            METADATA_AGENT_ENTITY_ID,
+            List.of("agent.pictured"),
+            AGENTS_ENV
+        );
+
+        assertThat(found)
+            .singleElement()
+            .satisfies(app -> {
+                assertThat(app.getPicture()).isNull();
+                assertThat(app.getBackground()).isNull();
+            });
+    }
+
+    @Test
+    public void should_ignore_null_metadata_values() throws TechnicalException {
+        Set<Application> found = applicationRepository.findByMetadataEntriesForEnv(
+            "client_certificate",
+            Arrays.asList(null, "ABCDE"),
+            "DEFAULT"
+        );
+
+        assertThat(found).extracting(Application::getId).containsExactly("app-with-certificate");
+    }
+
+    private static Application agentApplication(String id, String agentEntityId, String agentIdentityId) {
+        Application application = new Application();
+        application.setId(id);
+        application.setEnvironmentId(AGENTS_ENV);
+        application.setName(id);
+        application.setType(ApplicationType.SIMPLE);
+        application.setStatus(ApplicationStatus.ACTIVE);
+        application.setCreatedAt(new Date());
+        application.setUpdatedAt(new Date());
+        application.setMetadata(Map.of(METADATA_AGENT_ENTITY_ID, agentEntityId, METADATA_AGENT_IDENTITY_ID, agentIdentityId));
+        return application;
     }
 }

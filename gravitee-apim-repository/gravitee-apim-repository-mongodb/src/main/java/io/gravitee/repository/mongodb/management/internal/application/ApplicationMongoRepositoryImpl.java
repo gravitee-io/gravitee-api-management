@@ -31,6 +31,7 @@ import io.gravitee.repository.mongodb.utils.MongoQueries;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -148,6 +149,21 @@ public class ApplicationMongoRepositoryImpl implements ApplicationMongoRepositor
     public Optional<String> findIdByMetadataEntryForEnv(String key, String value, String environmentId) {
         var found = mongoTemplate.findOne(metadataEntryQuery(key, value, environmentId), ApplicationMongo.class);
         return Optional.ofNullable(found).map(ApplicationMongo::getId);
+    }
+
+    @Override
+    public Set<ApplicationMongo> findByMetadataEntriesForEnv(String key, Collection<String> values, String environmentId) {
+        // $in would match the applications not carrying the key at all for a null value
+        List<String> nonNullValues = isEmpty(values) ? List.of() : values.stream().filter(Objects::nonNull).toList();
+        if (nonNullValues.isEmpty()) {
+            return Set.of();
+        }
+        Query query = new Query();
+        query.addCriteria(Criteria.where("environmentId").is(environmentId));
+        query.addCriteria(Criteria.where("metadata." + key).in(nonNullValues));
+        query.addCriteria(Criteria.where("status").is(ApplicationStatus.ACTIVE.name()));
+        query.fields().exclude("picture").exclude("background");
+        return new LinkedHashSet<>(mongoTemplate.find(query, ApplicationMongo.class));
     }
 
     private static Query metadataEntryQuery(String key, String value, String environmentId) {
