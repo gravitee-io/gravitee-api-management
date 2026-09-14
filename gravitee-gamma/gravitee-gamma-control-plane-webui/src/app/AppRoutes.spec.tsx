@@ -18,7 +18,7 @@ import { MemoryRouter } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
 import { TEST_MANAGEMENT_BASE } from '../testing/factories';
-import { seedBootstrap, trackHandler } from '../testing/helpers';
+import { seedBootstrap, seedEnvironments, seedUser, trackHandler } from '../testing/helpers';
 
 function renderAt(path: string) {
     return render(
@@ -49,6 +49,18 @@ describe('AppRoutes', () => {
             renderAt('/sign-up');
 
             expect(await screen.findByRole('button', { name: 'Request account' })).toBeTruthy();
+        });
+    });
+
+    describe('/environments/:envHrid/my-account', () => {
+        it('should render My Account and the breadcrumb for a signed-in operator', async () => {
+            seedUser();
+            seedEnvironments();
+
+            renderAt('/environments/env-1/my-account');
+
+            expect(await screen.findByRole('heading', { name: 'My Account' })).toBeTruthy();
+            expect(screen.getAllByText('My Account').length).toBeGreaterThan(0);
         });
     });
 

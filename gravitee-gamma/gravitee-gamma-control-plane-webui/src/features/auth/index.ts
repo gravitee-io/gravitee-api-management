@@ -18,6 +18,8 @@ export {
     useIsAuthenticated,
     useLogin,
     useLogout,
+    useRefreshCurrentUser,
+    useAvatarCacheBust,
     useIdentityProviders,
     useLocalLoginEnabled,
     useRegistrationEnabled,

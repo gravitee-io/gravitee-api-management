@@ -27,6 +27,7 @@ import {
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
+import { MyAccountPage } from '../pages/my-account';
 import { TasksPage } from '../pages/tasks';
 import { ContentSkeleton } from '../shared/components/ContentSkeleton';
 import { RouteLayout } from '../shared/components/RouteLayout';
@@ -77,6 +78,7 @@ export function AppRoutes() {
                         <Route element={<RouteLayout />}>
                             <Route path="home" element={<HomePage modules={modules} loading={loading} error={error} onRetry={retry} />} />
                             <Route path="tasks" element={<TasksPage />} />
+                            <Route path="my-account" element={<MyAccountPage />} />
                         </Route>
                         {modules.map((m: GammaModule) => (
                             <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />

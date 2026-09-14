@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/** Sidebar / route keys for the host shell area (home, tasks, …). */
-export type HostNavKey = 'home' | 'tasks';
+/** Sidebar / route keys for the host shell area (home, tasks, my-account, …). */
+export type HostNavKey = 'home' | 'tasks' | 'my-account';
 
 export const HOME_NAV_KEY: HostNavKey = 'home';
 export const TASKS_NAV_KEY: HostNavKey = 'tasks';
+export const MY_ACCOUNT_NAV_KEY: HostNavKey = 'my-account';
 
 /** Labels for sidebar titles and breadcrumbs (single source of truth). */
 export const HOST_NAV_LABELS: Record<HostNavKey, string> = {
     home: 'Home',
     tasks: 'Tasks & Approvals',
+    'my-account': 'My Account',
 };
 
 /**
@@ -49,6 +51,11 @@ const HOST_NAV_AREAS: readonly HostNavArea[] = [
         navKey: TASKS_NAV_KEY,
         matches: sub => sub === TASKS_NAV_KEY || sub.startsWith(`${TASKS_NAV_KEY}/`),
         breadcrumbSegments: () => [{ label: HOST_NAV_LABELS.tasks }],
+    },
+    {
+        navKey: MY_ACCOUNT_NAV_KEY,
+        matches: sub => sub === MY_ACCOUNT_NAV_KEY || sub.startsWith(`${MY_ACCOUNT_NAV_KEY}/`),
+        breadcrumbSegments: () => [{ label: HOST_NAV_LABELS['my-account'] }],
     },
     {
         navKey: HOME_NAV_KEY,
@@ -117,5 +124,5 @@ export function resolveHostRoute(
 }
 
 export function isHostNavKey(key: string): key is HostNavKey {
-    return key === HOME_NAV_KEY || key === TASKS_NAV_KEY;
+    return key === HOME_NAV_KEY || key === TASKS_NAV_KEY || key === MY_ACCOUNT_NAV_KEY;
 }

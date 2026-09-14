@@ -94,6 +94,14 @@ describe('ShellLayout environment switching', () => {
         await waitFor(() => expect(renders.at(-1)?.pathname).toBe('/environments/env-2/tasks'));
     });
 
+    it('should keep my-account when switching environments', async () => {
+        renderShell('/environments/env-1/my-account');
+
+        await switchToEnvironment2();
+
+        await waitFor(() => expect(renders.at(-1)?.pathname).toBe('/environments/env-2/my-account'));
+    });
+
     it('should never render the new environment path while the store still holds the previous environment', async () => {
         renderShell('/environments/env-1/apim/apis/api-1/endpoints');
 

@@ -43,6 +43,27 @@ export const authHandlers = [
             ],
         }),
     ),
-    http.get(`${TEST_MANAGEMENT_BASE}/console`, () => HttpResponse.json({ reCaptcha: { enabled: false } })),
+    http.get(`${TEST_MANAGEMENT_BASE}/console`, () =>
+        HttpResponse.json({
+            reCaptcha: { enabled: false },
+            authentication: { externalAuth: { enabled: false }, externalAuthAccountDeletion: { enabled: true } },
+        }),
+    ),
     http.get(`${TEST_MANAGEMENT_BASE}/configuration/custom-user-fields`, () => HttpResponse.json([])),
+    http.put(`${TEST_MANAGEMENT_BASE}/user`, async ({ request }) => HttpResponse.json(await request.json())),
+    http.delete(`${TEST_MANAGEMENT_BASE}/user`, () => new HttpResponse(null, { status: 204 })),
+    http.get(`${TEST_MANAGEMENT_BASE}/user/tokens`, () => HttpResponse.json([])),
+    http.post(`${TEST_MANAGEMENT_BASE}/user/tokens`, async ({ request }) => {
+        const body = (await request.json()) as { name?: string };
+        return HttpResponse.json(
+            {
+                id: 'token-1',
+                name: body.name ?? 'token',
+                token: 'generated-token',
+                created_at: 1_700_000_000_000,
+            },
+            { status: 201 },
+        );
+    }),
+    http.delete(`${TEST_MANAGEMENT_BASE}/user/tokens/:tokenId`, () => new HttpResponse(null, { status: 204 })),
 ];

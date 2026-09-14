@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import {
     Alert,
     AlertDescription,
@@ -30,6 +29,8 @@ import {
 import { LockIcon, PlusIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { ClientRegistrationDeleteDialog } from '../features/client-registration/components/ClientRegistrationDeleteDialog';
 import { ClientRegistrationEmptyProviders } from '../features/client-registration/components/ClientRegistrationEmptyProviders';
