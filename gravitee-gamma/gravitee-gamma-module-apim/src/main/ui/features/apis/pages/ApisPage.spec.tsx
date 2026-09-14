@@ -64,6 +64,22 @@ function federatedRow(provider?: string) {
     };
 }
 
+const NATIVE_SORTABLE_ROW = {
+    id: 'native-1',
+    name: NATIVE_PROXY_NAME,
+    apiVersion: '1.0',
+    type: 'PROXY',
+    definitionVersion: 'V4',
+    state: 'STARTED',
+    listeners: [{ type: 'HTTP', paths: [{ path: '/payments' }] }],
+    tags: ['eu-west'],
+};
+
+// The federated row carries none of state/listeners/tags — the values the three sortable columns read.
+const FEDERATED_SORTABLE_ROW = federatedRow('solace');
+
+const MIXED_ROWS = [NATIVE_SORTABLE_ROW, FEDERATED_SORTABLE_ROW];
+
 function renderPage() {
     return render(
         <MemoryRouter>
@@ -176,5 +192,96 @@ describe('ApisPage', () => {
             expect(searchCall).not.toBeUndefined();
             expect(searchCall![0].page).toBe(1);
         });
+    });
+
+    function lastRequest() {
+        const calls = mockUseApiList.mock.calls;
+        return calls[calls.length - 1][0];
+    }
+
+    function lastRequestedSortBy() {
+        return lastRequest().sortBy;
+    }
+
+    function clickColumnHeader(title: string) {
+        fireEvent.click(screen.getByRole('button', { name: title }));
+    }
+
+    function expectBothRowsRendered() {
+        expect(screen.queryByText(NATIVE_PROXY_NAME)).not.toBeNull();
+        expect(screen.queryByText(FEDERATED_SORTABLE_ROW.name)).not.toBeNull();
+    }
+
+    it.each<[string, string, string]>([
+        ['Runtime Status', 'status', '-status'],
+        ['Access', 'paths', '-paths'],
+        ['Sharding Tags', 'tags_asc', '-tags_desc'],
+    ])('sorts by %s both ways with a federated row in the list', (columnTitle, ascending, descending) => {
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        clickColumnHeader(columnTitle);
+
+        expect(lastRequestedSortBy()).toBe(ascending);
+        expectBothRowsRendered();
+
+        clickColumnHeader(columnTitle);
+
+        expect(lastRequestedSortBy()).toBe(descending);
+        expectBothRowsRendered();
+    });
+
+    it('sorts by the newly clicked column instead of the one sorted before it', () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        clickColumnHeader('Runtime Status');
+        clickColumnHeader('Access');
+
+        expect(lastRequestedSortBy()).toBe('paths');
+        expectBothRowsRendered();
+    });
+
+    it('returns to page 1 when a column is sorted from a later page', () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 3, totalCount: 25 } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        fireEvent.click(screen.getByRole('button', { name: /next page/i }));
+        expect(lastRequest().page).toBe(2);
+
+        clickColumnHeader('Runtime Status');
+
+        expect(lastRequest().page).toBe(1);
+        expect(lastRequest().sortBy).toBe('status');
+        expectBothRowsRendered();
+    });
+
+    it('adds the sort to the outbound request without dropping the active search term', async () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        fireEvent.change(screen.getByPlaceholderText('Search APIs...'), { target: { value: 'payments' } });
+        await waitFor(() => expect(lastRequest().query).toBe('payments'));
+
+        clickColumnHeader('Runtime Status');
+
+        expect(lastRequest()).toEqual({ query: 'payments', page: 1, perPage: 10, sortBy: 'status' });
+        expectBothRowsRendered();
     });
 });

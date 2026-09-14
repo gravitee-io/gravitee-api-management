@@ -79,6 +79,18 @@ describe('useApiList', () => {
         expect(mockSearchApis).toHaveBeenCalledWith('env-1', { query: undefined }, 1, 10, 'name', true);
     });
 
+    it.each<[string, string, object, string]>([
+        ['while browsing, instead of the name default', '', { query: undefined }, 'status'],
+        ['while searching, instead of relevance order', 'my-api', { query: 'my-api' }, '-tags_desc'],
+    ])('forwards an explicit column sort %s', async (_case, query, expectedQueryArg, sortBy) => {
+        mockUseFederationEnabled.mockReturnValue({ enabled: true, isResolved: true });
+
+        renderHook(() => useApiList({ query, page: 1, perPage: 10, sortBy }), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
+        expect(mockSearchApis).toHaveBeenCalledWith('env-1', expectedQueryArg, 1, 10, sortBy, true);
+    });
+
     it('holds its search until the federation gate resolves', () => {
         mockUseFederationEnabled.mockReturnValue({ enabled: false, isResolved: false });
 
@@ -105,6 +117,20 @@ describe('useApiList', () => {
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(2));
         expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: undefined }, 1, 10, 'name', true);
+    });
+
+    it('searches again rather than serving the previous sort when the same column flips direction', async () => {
+        const wrapper = createWrapper();
+        const { rerender } = renderHook(({ sortBy }: { sortBy: string }) => useApiList({ query: '', page: 1, perPage: 10, sortBy }), {
+            wrapper,
+            initialProps: { sortBy: 'status' },
+        });
+        await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
+
+        rerender({ sortBy: '-status' });
+
+        await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(2));
+        expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: undefined }, 1, 10, '-status', false);
     });
 
     it('maps an empty query string to undefined in the request body and sorts by name', async () => {

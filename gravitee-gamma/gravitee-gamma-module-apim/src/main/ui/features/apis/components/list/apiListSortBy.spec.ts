@@ -25,6 +25,9 @@ describe('toApiListSortBy', () => {
         expect(toApiListSortBy([{ id: 'API Name', desc: false }])).toBe('name');
         expect(toApiListSortBy([{ id: 'API Name', desc: true }])).toBe('-name');
         expect(toApiListSortBy([{ id: 'access', desc: false }])).toBe('paths');
+        expect(toApiListSortBy([{ id: 'access', desc: true }])).toBe('-paths');
+        expect(toApiListSortBy([{ id: 'Runtime Status', desc: false }])).toBe('status');
+        expect(toApiListSortBy([{ id: 'Runtime Status', desc: true }])).toBe('-status');
     });
 
     it('maps the Sharding Tags column to the backend asymmetric values (tags_asc / -tags_desc)', () => {

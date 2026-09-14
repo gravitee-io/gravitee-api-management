@@ -67,4 +67,17 @@ describe('searchApis', () => {
         expect(url.searchParams.get('perPage')).toBe('25');
         expect(url.searchParams.get('sortBy')).toBe('name');
     });
+
+    it.each(['status', '-status', 'paths', '-paths', 'tags_asc', '-tags_desc'])(
+        'sends sortBy=%s verbatim while the federation gate widens the type filter',
+        async sortBy => {
+            const tracker = trackHandler('post', SEARCH_PATH, EMPTY_RESPONSE);
+
+            await searchApis('DEFAULT', {}, 1, 10, sortBy, true);
+
+            const url = new URL(tracker.lastCall!.url);
+            expect(url.searchParams.get('sortBy')).toBe(sortBy);
+            expect(tracker.lastCall?.body).toEqual({ apiTypes: PROXY_AND_FEDERATED });
+        },
+    );
 });
