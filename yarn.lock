@@ -7382,27 +7382,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ngx-formly/core@npm:6.3.12":
-  version: 6.3.12
-  resolution: "@ngx-formly/core@npm:6.3.12"
+"@ngx-formly/core@npm:8.0.0":
+  version: 8.0.0
+  resolution: "@ngx-formly/core@npm:8.0.0"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
-    "@angular/forms": ">=13.2.0"
+    "@angular/forms": ">=19.0.0"
     rxjs: ^6.5.3 || ^7.0.0
-  checksum: 10c0/c12c8aba938aa8c644e23a7b32aeca990e74603eb83246d35439b757d152d7655251b81e65ac30dbf1bf9e503afb7787e6b38fee59aeba4d93b0072cb7d32ffc
+  checksum: 10c0/b1356831ccba9bb51e9ce4499e15f468db344790b3e3f5e8e1c88e5cfea54e84e85c3720e394d141c4d5ed4a7df99762e94e8e8b72eefccb7354d049ee606c7c
   languageName: node
   linkType: hard
 
-"@ngx-formly/material@npm:6.3.12":
-  version: 6.3.12
-  resolution: "@ngx-formly/material@npm:6.3.12"
+"@ngx-formly/material@npm:8.0.0":
+  version: 8.0.0
+  resolution: "@ngx-formly/material@npm:8.0.0"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
-    "@angular/material": ">=13.0.0"
-    "@ngx-formly/core": 6.3.12
-  checksum: 10c0/569cb27b32b4ae145638d5896e25f08e67541f537e948bc2cb77b170b2436995dac6ab15d9e6c48fca369b98acb316858de3ca8b8d9cad0a063b739c038fa176
+    "@angular/material": ">=19.0.0"
+    "@ngx-formly/core": 8.0.0
+  checksum: 10c0/66a571b9b70ae069e50edfaf09d97098886361203d96476254e8c3260b8f6a04b6db5d8cf159e8fe0d07c06e7730f4a418a1b73c457acb8268b3a0f0562f2ccb
   languageName: node
   linkType: hard
 
@@ -21281,8 +21281,8 @@ __metadata:
     "@highcharts/map-collection": "npm:1.1.4"
     "@module-federation/enhanced": "npm:2.9.0"
     "@monaco-editor/react": "npm:4.7.0"
-    "@ngx-formly/core": "npm:6.3.12"
-    "@ngx-formly/material": "npm:6.3.12"
+    "@ngx-formly/core": "npm:8.0.0"
+    "@ngx-formly/material": "npm:8.0.0"
     "@nx/angular": "npm:22.7.9"
     "@nx/eslint": "npm:22.7.9"
     "@nx/jest": "npm:22.7.9"
