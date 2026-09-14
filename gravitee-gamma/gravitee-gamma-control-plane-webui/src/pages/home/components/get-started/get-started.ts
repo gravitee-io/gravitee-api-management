@@ -16,8 +16,8 @@
 import { PlugZapIcon, PuzzleIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
+import type { ModuleId } from '../../../../features/modules';
 import type { Accent } from '../accents';
-import type { ModuleId } from '../application-card/applications';
 
 export interface GetStartedStep {
     readonly title: string;
