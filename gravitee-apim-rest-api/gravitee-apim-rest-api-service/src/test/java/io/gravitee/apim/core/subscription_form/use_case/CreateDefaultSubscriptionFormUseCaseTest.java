@@ -66,6 +66,8 @@ class CreateDefaultSubscriptionFormUseCaseTest {
             .satisfies(created -> {
                 assertThat(created.getId()).isNotNull();
                 assertThat(created.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                assertThat(created.getName()).isEqualTo(CreateDefaultSubscriptionFormUseCase.DEFAULT_FORM_NAME);
+                assertThat(created.isDefaultForm()).isTrue();
                 assertThat(created.getGmdContent().value()).isEqualTo(defaultContent);
                 assertThat(created.isEnabled()).isFalse();
                 assertThat(created.getValidationConstraints().isEmpty()).isFalse();

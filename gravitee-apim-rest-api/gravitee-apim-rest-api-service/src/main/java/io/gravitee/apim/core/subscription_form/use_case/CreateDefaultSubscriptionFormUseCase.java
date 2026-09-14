@@ -27,8 +27,9 @@ import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Creates the default (disabled) subscription form for an environment when none exists.
- * Idempotent: no-op if a form is already present for the environment.
+ * Seeds the catalog of an environment that has no form yet with a disabled form named
+ * {@value #DEFAULT_FORM_NAME}, marked as the environment default. Idempotent: no-op once the
+ * environment holds any form.
  *
  * @author Gravitee.io Team
  */
@@ -37,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 public class CreateDefaultSubscriptionFormUseCase {
 
+    public static final String DEFAULT_FORM_NAME = "Default";
     private static final String DEFAULT_FORM_TEMPLATE_PATH = "templates/default-subscription-form.md";
 
     private final SubscriptionFormCrudService subscriptionFormCrudService;
@@ -44,7 +46,7 @@ public class CreateDefaultSubscriptionFormUseCase {
     private final SubscriptionFormSchemaGenerator schemaGenerator;
 
     public void execute(String environmentId) {
-        if (subscriptionFormQueryService.findDefaultForEnvironmentId(environmentId).isPresent()) {
+        if (!subscriptionFormQueryService.findAllByEnvironmentId(environmentId).isEmpty()) {
             return;
         }
 
@@ -54,8 +56,10 @@ public class CreateDefaultSubscriptionFormUseCase {
         var defaultForm = SubscriptionForm.builder()
             .id(null)
             .environmentId(environmentId)
+            .name(DEFAULT_FORM_NAME)
             .gmdContent(gmd)
             .enabled(false)
+            .defaultForm(true)
             .validationConstraints(constraints)
             .build();
 

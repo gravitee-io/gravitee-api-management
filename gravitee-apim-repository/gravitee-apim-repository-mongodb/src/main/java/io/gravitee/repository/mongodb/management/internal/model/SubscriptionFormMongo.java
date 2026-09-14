@@ -35,8 +35,10 @@ public class SubscriptionFormMongo {
     private String id;
 
     private String environmentId;
+    private String name;
     private String gmdContent;
     private boolean enabled;
+    private boolean defaultForm;
 
     @NonNull
     private String validationConstraints;

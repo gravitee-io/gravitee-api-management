@@ -16,32 +16,28 @@
 package io.gravitee.apim.core.subscription_form.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
-import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormDefinitionDomainService;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormDefaultDomainService;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
-import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Updates the name and definition of an existing subscription form.
- * This operation does NOT change the enabled or default state - use the dedicated use cases for that.
+ * Promotes a form to environment default, demoting the previous default. Idempotent when the form
+ * already is the default.
  *
  * @author Gravitee.io Team
  */
 @RequiredArgsConstructor
 @UseCase
-@CustomLog
-public class UpdateSubscriptionFormUseCase {
+public class SetDefaultSubscriptionFormUseCase {
 
-    private final SubscriptionFormCrudService subscriptionFormCrudService;
     private final SubscriptionFormQueryService subscriptionFormQueryService;
-    private final SubscriptionFormDefinitionDomainService definitionDomainService;
+    private final SubscriptionFormDefaultDomainService subscriptionFormDefaultDomainService;
 
     public Output execute(Input input) {
-        var existingForm = subscriptionFormQueryService
+        var form = subscriptionFormQueryService
             .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
             .orElseThrow(() ->
                 new SubscriptionFormNotFoundException(
@@ -49,17 +45,10 @@ public class UpdateSubscriptionFormUseCase {
                     input.subscriptionFormId().toString()
                 )
             );
-        definitionDomainService.validateName(input.environmentId(), input.name(), input.subscriptionFormId());
-        var definition = definitionDomainService.compile(input.gmdContent());
-
-        existingForm.rename(input.name().trim());
-        existingForm.update(definition.gmdContent(), definition.constraints());
-        var savedForm = subscriptionFormCrudService.update(existingForm);
-        log.info("Updated subscription form [{}] for environment [{}]", input.subscriptionFormId(), input.environmentId());
-        return new Output(savedForm);
+        return new Output(subscriptionFormDefaultDomainService.promote(form));
     }
 
-    public record Input(String environmentId, SubscriptionFormId subscriptionFormId, String name, String gmdContent) {}
+    public record Input(String environmentId, SubscriptionFormId subscriptionFormId) {}
 
     public record Output(SubscriptionForm subscriptionForm) {}
 }

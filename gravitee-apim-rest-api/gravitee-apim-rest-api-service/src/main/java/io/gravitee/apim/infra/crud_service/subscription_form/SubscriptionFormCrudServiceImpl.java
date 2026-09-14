@@ -17,9 +17,11 @@ package io.gravitee.apim.infra.crud_service.subscription_form;
 
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormConflictException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import org.springframework.context.annotation.Lazy;
@@ -46,8 +48,10 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             ? SubscriptionForm.builder()
                 .id(SubscriptionFormId.random())
                 .environmentId(subscriptionForm.getEnvironmentId())
+                .name(subscriptionForm.getName())
                 .gmdContent(subscriptionForm.getGmdContent())
                 .enabled(subscriptionForm.isEnabled())
+                .defaultForm(subscriptionForm.isDefaultForm())
                 .validationConstraints(subscriptionForm.getValidationConstraints())
                 .build()
             : subscriptionForm;
@@ -55,9 +59,9 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             var result = subscriptionFormRepository.create(subscriptionFormAdapter.toRepository(toCreate));
             return subscriptionFormAdapter.toEntity(result);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(
-                String.format("An error occurred while trying to create a SubscriptionForm for env: %s", toCreate.getEnvironmentId()),
-                e
+            throw toDomainException(
+                e,
+                String.format("An error occurred while trying to create a SubscriptionForm for env: %s", toCreate.getEnvironmentId())
             );
         }
     }
@@ -68,13 +72,24 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
             var result = subscriptionFormRepository.update(subscriptionFormAdapter.toRepository(subscriptionForm));
             return subscriptionFormAdapter.toEntity(result);
         } catch (TechnicalException e) {
-            throw new TechnicalDomainException(
+            throw toDomainException(
+                e,
                 String.format(
                     "An error occurred while trying to update a SubscriptionForm with id: %s",
                     subscriptionForm.getId().toString()
-                ),
-                e
+                )
             );
         }
+    }
+
+    /**
+     * A duplicate key is not a technical failure: the row collides with another form of its environment (a second
+     * default form, or a name already taken), which the caller reports as a conflict.
+     */
+    private static RuntimeException toDomainException(TechnicalException e, String message) {
+        if (e instanceof DuplicateKeyException) {
+            return new SubscriptionFormConflictException(e);
+        }
+        return new TechnicalDomainException(message, e);
     }
 }
