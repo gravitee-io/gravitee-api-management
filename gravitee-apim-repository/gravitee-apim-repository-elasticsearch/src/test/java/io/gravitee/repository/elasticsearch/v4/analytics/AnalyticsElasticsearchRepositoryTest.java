@@ -37,6 +37,7 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
+import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
@@ -75,6 +76,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.DoublePredicate;
@@ -1854,7 +1856,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var total = timeSeriesBuckets
                     .stream()
                     .map(bucket -> bucket.measures().get(Measure.COUNT))
-                    .filter(java.util.Objects::nonNull)
+                    .filter(Objects::nonNull)
                     .mapToLong(Number::longValue)
                     .sum();
                 assertThat(total).isPositive();
@@ -1863,6 +1865,27 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
         @Nested
         class MessageMeasures {
+
+            /** The API the message fixture attributes almost every document to. */
+            static final String MESSAGE_API = "f1608475-dd77-4603-a084-75dd775603e9";
+
+            /** The second API of the fixture, carrying the two {@code publish} documents. */
+            static final String PUBLISH_API = "4a6895d5-a1bc-4041-a895-d5a1bce041ae";
+
+            /** Sum of {@code count-increment} over the fixture's 24 message documents for those APIs. */
+            static final long MESSAGES_IN_FULL_WINDOW = 410L;
+
+            static long messagesOf(MeasuresResult result) {
+                return result
+                    .measures()
+                    .stream()
+                    .filter(measure -> measure.metric() == Metric.MESSAGES)
+                    .findFirst()
+                    .orElseThrow()
+                    .measures()
+                    .get(Measure.COUNT)
+                    .longValue();
+            }
 
             static MeasuresQuery buildQuery() {
                 var timeRange = buildTimeRange();
@@ -1880,6 +1903,15 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 return new MeasuresQuery(timeRange, List.of(filter), metrics);
             }
 
+            /**
+             * The fixture's 24 message documents for these two APIs carry a {@code count-increment} of
+             * 410 in total, and {@code MESSAGES}/{@code COUNT} sums that field.
+             *
+             * <p>Asserted as a number rather than as "not negative": the earlier form could not see
+             * magnitude at all — zero is not negative either — so it passed whether the query matched
+             * every document, a handful, or none. That is exactly the blindness this change needed the
+             * test not to have, since it alters which documents are matched.
+             */
             @Test
             void should_return_message_measures() {
                 var query = buildQuery();
@@ -1890,10 +1922,175 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var measures = result.measures();
                 assertThat(measures).hasSize(query.metrics().size());
 
-                for (var measure : measures) {
-                    assertThat(measure.measures().values()).hasSize(1);
-                    assertThat(measure.measures().values().iterator().next()).satisfies(n -> assertThat(n.doubleValue()).isNotNegative());
-                }
+                var messages = measures
+                    .stream()
+                    .filter(m -> m.metric() == Metric.MESSAGES)
+                    .findFirst()
+                    .orElseThrow();
+                assertThat(messages.measures().get(Measure.COUNT).longValue()).isEqualTo(MESSAGES_IN_FULL_WINDOW);
+            }
+
+            /**
+             * The join and the direct path agree over the whole window — which is the claim this change
+             * rests on, and which could not be made before: the fixture pointed only 2 of its 9 message
+             * {@code request-id}s at a connection document, so the joined path matched almost nothing
+             * and the two paths were indistinguishable whichever was broken.
+             *
+             * <p>Adding an {@code ENTRYPOINT} condition forces the join back on — the entrypoint lives
+             * only on the connection document — while selecting every connection the fixture holds for
+             * these APIs, so the selected message set is unchanged and only the path differs.
+             */
+            @Test
+            void should_return_the_same_total_whether_or_not_the_join_runs() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)));
+                var api = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MESSAGE_API, PUBLISH_API));
+                var everyEntrypoint = new Filter(
+                    Filter.Name.ENTRYPOINT,
+                    Filter.Operator.IN,
+                    List.of("http-post", "http-get", "websocket", "sse")
+                );
+
+                var direct = cut.searchMessageMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(api), metrics));
+                var joined = cut.searchMessageMeasures(
+                    QUERY_CONTEXT,
+                    new MeasuresQuery(buildTimeRange(), List.of(api, everyEntrypoint), metrics)
+                );
+
+                assertThat(messagesOf(direct)).isEqualTo(MESSAGES_IN_FULL_WINDOW);
+                assertThat(messagesOf(joined)).isEqualTo(MESSAGES_IN_FULL_WINDOW);
+            }
+
+            /**
+             * Pins the one behaviour this change does alter, which is not a filter restatement.
+             *
+             * <p>The join applied the query's time range to the <em>connection</em> document as well
+             * ({@code FilterAdapter#adaptForMessageConnexion} opens with it). Connection
+             * {@code 5fc3b3e5} opens at 06:54:30 and carries three messages at 06:55:39, 06:56:44 and
+             * 06:57:44 worth 31 messages between them. Queried from 06:55:00 the connection falls
+             * outside the window while its messages do not: the join dropped all 31, the direct path
+             * keeps them.
+             *
+             * <p>A stream opened before the window and still running is the normal case for SSE,
+             * WebSocket and {@code http-get} against a short dashboard window, so this is the
+             * difference operators will actually see. Adding the entrypoint condition restores the
+             * join, and with it the old number — which is also why a board can look inconsistent:
+             * adding a connection-side filter lowers the count for a reason unrelated to that filter.
+             */
+            @Test
+            void should_count_messages_whose_connection_opened_before_the_window() {
+                var from = NOW.plus(Duration.ofHours(6)).plus(Duration.ofMinutes(55));
+                var window = new io.gravitee.repository.analytics.engine.api.query.TimeRange(from, TOMORROW);
+                var metrics = List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)));
+                var api = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MESSAGE_API, PUBLISH_API));
+                var everyEntrypoint = new Filter(
+                    Filter.Name.ENTRYPOINT,
+                    Filter.Operator.IN,
+                    List.of("http-post", "http-get", "websocket", "sse")
+                );
+
+                var direct = cut.searchMessageMeasures(QUERY_CONTEXT, new MeasuresQuery(window, List.of(api), metrics));
+                var joined = cut.searchMessageMeasures(QUERY_CONTEXT, new MeasuresQuery(window, List.of(api, everyEntrypoint), metrics));
+
+                assertThat(messagesOf(direct)).isEqualTo(405L);
+                assertThat(messagesOf(joined)).isEqualTo(374L);
+            }
+        }
+
+        /**
+         * {@code searchMessageFacets} had no call site anywhere in the repository, so the skip added by
+         * this change was never executed under test. The expected splits come from the fixture: 308
+         * subscribe against 102 publish, and a perfect 205/205 across the two legs — the gateway writes
+         * one document per leg, which is why an unscoped message count reads double.
+         */
+        @Nested
+        class MessageFacets {
+
+            private static FacetsQuery query(Facet facet, List<Filter> filters) {
+                return new FacetsQuery(
+                    buildTimeRange(),
+                    filters,
+                    List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+                    List.of(facet)
+                );
+            }
+
+            private static Filter api() {
+                return new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MessageMeasures.MESSAGE_API, MessageMeasures.PUBLISH_API));
+            }
+
+            @Test
+            void should_split_messages_by_operation() {
+                var result = cut.searchMessageFacets(QUERY_CONTEXT, query(Facet.MESSAGE_OPERATION_TYPE, List.of(api())));
+
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                    .containsExactlyInAnyOrder(tuple("subscribe", 308L), tuple("publish", 102L));
+            }
+
+            @Test
+            void should_split_messages_by_leg() {
+                var result = cut.searchMessageFacets(QUERY_CONTEXT, query(Facet.MESSAGE_CONNECTOR_TYPE, List.of(api())));
+
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                    .containsExactlyInAnyOrder(tuple("entrypoint", 205L), tuple("endpoint", 205L));
+            }
+
+            /** Same selection through the joined path, so the skip cannot quietly change a breakdown. */
+            @Test
+            void should_split_the_same_way_when_the_join_runs() {
+                var everyEntrypoint = new Filter(
+                    Filter.Name.ENTRYPOINT,
+                    Filter.Operator.IN,
+                    List.of("http-post", "http-get", "websocket", "sse")
+                );
+
+                var result = cut.searchMessageFacets(QUERY_CONTEXT, query(Facet.MESSAGE_OPERATION_TYPE, List.of(api(), everyEntrypoint)));
+
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
+                    .containsExactlyInAnyOrder(tuple("subscribe", 308L), tuple("publish", 102L));
+            }
+        }
+
+        /**
+         * {@code searchMessageTimeSeries} had no call site either. The buckets span the window with
+         * empty intervals included, so the contract asserted here is the total across them, which must
+         * match what the measures query reports for the same window.
+         */
+        @Nested
+        class MessageTimeSeries {
+
+            @Test
+            void should_bucket_messages_over_time_and_total_the_full_window() {
+                var api = new Filter(
+                    Filter.Name.API,
+                    Filter.Operator.IN,
+                    List.of(MessageMeasures.MESSAGE_API, MessageMeasures.PUBLISH_API)
+                );
+                var query = new TimeSeriesQuery(
+                    buildTimeRange(),
+                    List.of(api),
+                    Duration.ofHours(1).toMillis(),
+                    List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+                    List.of()
+                );
+
+                var result = cut.searchMessageTimeSeries(QUERY_CONTEXT, query);
+
+                assertThat(result.metrics()).hasSize(1);
+                var buckets = result.metrics().getFirst().buckets();
+                assertThat(buckets).isNotEmpty();
+
+                var total = buckets
+                    .stream()
+                    .map(bucket -> bucket.measures().get(Measure.COUNT))
+                    .filter(Objects::nonNull)
+                    .mapToLong(Number::longValue)
+                    .sum();
+
+                assertThat(total).isEqualTo(MessageMeasures.MESSAGES_IN_FULL_WINDOW);
             }
         }
 

@@ -137,6 +137,29 @@ class MessageFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(filters).contains("request-id").contains("req-1").contains("req-2");
     }
 
+    /**
+     * The no-join overload. See {@link MessageMeasuresQueryAdapterTest#should_emit_no_request_id_clause_when_the_join_is_skipped()}
+     * for why an absent clause and an empty one must not be spelled the same way.
+     */
+    @Test
+    void should_emit_no_request_id_clause_when_the_join_is_skipped() throws JsonProcessingException {
+        var apiFilter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID));
+        var query = new FacetsQuery(
+            buildTimeRange(),
+            List.of(apiFilter),
+            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+            List.of(Facet.MESSAGE_OPERATION_TYPE),
+            null,
+            List.of()
+        );
+
+        var json = JSON.readTree(adapter.adapt(query));
+
+        var filters = json.at("/query/bool/filter").toString();
+        assertThat(filters).doesNotContain("request-id");
+        assertThat(filters).contains("api-id").contains(API_ID);
+    }
+
     @Test
     void should_leave_elasticsearch_its_default_size_when_no_limit_is_asked_for() throws JsonProcessingException {
         var json = JSON.readTree(adapter.adapt(query(List.of(Facet.MESSAGE_CONNECTOR_ID), null), Set.of("req-1")));
