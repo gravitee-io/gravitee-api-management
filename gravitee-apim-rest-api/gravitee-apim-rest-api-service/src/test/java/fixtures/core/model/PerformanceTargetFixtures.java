@@ -30,6 +30,7 @@ public class PerformanceTargetFixtures {
 
     public static final String ENVIRONMENT_ID = "environment-id";
     public static final String A2A_API_ID = "a2a-api";
+    public static final String LATENCY_RULE_ID = "latency-rule";
 
     public static final Supplier<PerformanceTarget.PerformanceTargetBuilder> BASE = () ->
         PerformanceTarget.builder()
@@ -53,6 +54,7 @@ public class PerformanceTargetFixtures {
 
     public static PerformanceTarget.Rule aLatencyRule() {
         return PerformanceTarget.Rule.builder()
+            .id(LATENCY_RULE_ID)
             .metric(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME)
             .measure(MetricSpec.Measure.P95)
             .operator(PerformanceTarget.Operator.LTE)
@@ -80,6 +82,7 @@ public class PerformanceTargetFixtures {
             .rules(
                 List.of(
                     new PerformanceTargetEvaluation.RuleResult(
+                        LATENCY_RULE_ID,
                         MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
                         MetricSpec.Measure.P95,
                         PerformanceTarget.Operator.LTE,

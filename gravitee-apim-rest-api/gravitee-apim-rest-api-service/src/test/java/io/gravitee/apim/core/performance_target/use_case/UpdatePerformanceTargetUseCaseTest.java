@@ -16,15 +16,19 @@
 package io.gravitee.apim.core.performance_target.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PerformanceTargetFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PerformanceTargetCrudServiceInMemory;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
 import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService.State;
 import io.gravitee.apim.core.performance_target.domain_service.ValidatePerformanceTargetDomainService;
+import io.gravitee.apim.core.performance_target.exception.InvalidPerformanceTargetException;
+import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.infra.domain_service.analytics_engine.definition.AnalyticsDefinitionYAMLQueryService;
 import java.time.Duration;
 import java.time.Instant;
@@ -74,5 +78,53 @@ class UpdatePerformanceTargetUseCaseTest {
             .extracting(t -> t.interval())
             .isEqualTo(Duration.ofMinutes(1));
         assertThat(scheduleState.current(TARGET_ID)).contains(State.FRESH);
+    }
+
+    @Test
+    void should_keep_the_id_of_a_rule_whose_threshold_is_retuned() {
+        var retuned = PerformanceTargetFixtures.aLatencyRule().toBuilder().threshold(1500).build();
+        var redefined = PerformanceTargetFixtures.aTarget(TARGET_ID).toBuilder().rules(List.of(retuned)).build();
+
+        var output = useCase.execute(
+            new UpdatePerformanceTargetUseCase.Input(PerformanceTargetFixtures.ENVIRONMENT_ID, TARGET_ID, redefined)
+        );
+
+        assertThat(output.target().rules()).containsExactly(retuned);
+    }
+
+    @Test
+    void should_keep_the_identity_of_an_unchanged_rule_sent_without_id_and_identify_a_new_one() {
+        var unchanged = PerformanceTargetFixtures.aLatencyRule().toBuilder().id(null).build();
+        var added = PerformanceTarget.Rule.builder()
+            .metric(MetricSpec.Name.HTTP_ERROR_RATE)
+            .measure(MetricSpec.Measure.PERCENTAGE)
+            .operator(PerformanceTarget.Operator.LTE)
+            .threshold(5)
+            .build();
+        var redefined = PerformanceTargetFixtures.aTarget(TARGET_ID).toBuilder().rules(List.of(unchanged, added)).build();
+
+        var output = useCase.execute(
+            new UpdatePerformanceTargetUseCase.Input(PerformanceTargetFixtures.ENVIRONMENT_ID, TARGET_ID, redefined)
+        );
+
+        assertThat(output.target().rules())
+            .extracting(PerformanceTarget.Rule::id)
+            .satisfies(ids -> {
+                assertThat(ids.getFirst()).isEqualTo(PerformanceTargetFixtures.LATENCY_RULE_ID);
+                assertThat(ids.getLast()).isNotBlank().isNotEqualTo(PerformanceTargetFixtures.LATENCY_RULE_ID);
+            });
+    }
+
+    @Test
+    void should_reject_a_rule_naming_an_id_the_target_does_not_have() {
+        var stranger = PerformanceTargetFixtures.aLatencyRule().toBuilder().id("stranger").build();
+        var redefined = PerformanceTargetFixtures.aTarget(TARGET_ID).toBuilder().rules(List.of(stranger)).build();
+
+        assertThatThrownBy(() ->
+            useCase.execute(new UpdatePerformanceTargetUseCase.Input(PerformanceTargetFixtures.ENVIRONMENT_ID, TARGET_ID, redefined))
+        )
+            .isInstanceOf(InvalidPerformanceTargetException.class)
+            .hasMessage("Unknown rule id: stranger");
+        assertThat(targetCrudService.storage()).singleElement().isEqualTo(PerformanceTargetFixtures.aTarget(TARGET_ID));
     }
 }

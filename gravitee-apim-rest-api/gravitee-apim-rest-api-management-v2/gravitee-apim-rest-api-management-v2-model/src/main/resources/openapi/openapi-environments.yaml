@@ -2332,6 +2332,12 @@ components:
         One expectation: a measure of a metric of the analytics definition compared to a threshold, e.g.
         `HTTP_GATEWAY_RESPONSE_TIME P95 LTE 2000`.
       properties:
+        id:
+          type: string
+          description: |-
+            A stable identity for the rule, assigned on creation and kept across edits so that a retuned threshold
+            reads as the same rule. Send it back when updating a target to keep a rule's identity; a rule sent
+            without one is a new rule unless an identical stored rule has no other claimant.
         metric:
           type: string
           description: A metric name of the analytics definition, e.g. `HTTP_GATEWAY_RESPONSE_TIME`
@@ -2479,6 +2485,9 @@ components:
       type: object
       description: The outcome of one rule over the evaluated window
       properties:
+        id:
+          type: string
+          description: The id of the rule this is the outcome of; absent on evaluations stored before rules had ids
         metric:
           type: string
         measure:

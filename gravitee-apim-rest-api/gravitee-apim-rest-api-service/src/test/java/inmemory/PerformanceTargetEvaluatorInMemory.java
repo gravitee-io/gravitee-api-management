@@ -47,6 +47,7 @@ public class PerformanceTargetEvaluatorInMemory implements PerformanceTargetEval
                     .stream()
                     .map(rule ->
                         new PerformanceTargetEvaluation.RuleResult(
+                            rule.id(),
                             rule.metric(),
                             rule.measure(),
                             rule.operator(),

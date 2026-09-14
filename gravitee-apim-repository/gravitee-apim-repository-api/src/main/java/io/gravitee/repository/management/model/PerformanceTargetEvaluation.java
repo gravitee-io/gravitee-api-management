@@ -62,6 +62,7 @@ public final class PerformanceTargetEvaluation {
     }
 
     public record RuleResult(
+        String id,
         String metric,
         String measure,
         String operator,

@@ -71,8 +71,17 @@ public class PerformanceTargetRepositoryTest extends AbstractManagementRepositor
                     .minSampleSize(20)
                     .rules(
                         List.of(
-                            new PerformanceTarget.Rule("HTTP_GATEWAY_RESPONSE_TIME", "P95", "LTE", 2000, List.of(), List.of()),
                             new PerformanceTarget.Rule(
+                                "rule-1-latency",
+                                "HTTP_GATEWAY_RESPONSE_TIME",
+                                "P95",
+                                "LTE",
+                                2000,
+                                List.of(),
+                                List.of()
+                            ),
+                            new PerformanceTarget.Rule(
+                                "rule-1-errors",
                                 "HTTP_ERROR_RATE",
                                 "PERCENTAGE",
                                 "LTE",
@@ -102,7 +111,7 @@ public class PerformanceTargetRepositoryTest extends AbstractManagementRepositor
             .toBuilder()
             .apiIds(List.of("api-1", "api-9"))
             .minSampleSize(30)
-            .rules(List.of(new PerformanceTarget.Rule("HTTP_ERRORS", "COUNT", "LT", 10, List.of(), List.of())))
+            .rules(List.of(new PerformanceTarget.Rule("rule-1-count", "HTTP_ERRORS", "COUNT", "LT", 10, List.of(), List.of())))
             .updatedAt(new Date(1712660289000L))
             .build();
 
@@ -237,8 +246,17 @@ public class PerformanceTargetRepositoryTest extends AbstractManagementRepositor
             .minSampleSize(20)
             .rules(
                 List.of(
-                    new PerformanceTarget.Rule("HTTP_GATEWAY_RESPONSE_TIME", "P95", "LTE", 2000, List.of("A2A_PROXY"), List.of()),
                     new PerformanceTarget.Rule(
+                        "agent-rule-latency",
+                        "HTTP_GATEWAY_RESPONSE_TIME",
+                        "P95",
+                        "LTE",
+                        2000,
+                        List.of("A2A_PROXY"),
+                        List.of()
+                    ),
+                    new PerformanceTarget.Rule(
+                        "agent-rule-cost",
                         "LLM_PROMPT_TOKEN_TOTAL_COST",
                         "AVG",
                         "LTE",

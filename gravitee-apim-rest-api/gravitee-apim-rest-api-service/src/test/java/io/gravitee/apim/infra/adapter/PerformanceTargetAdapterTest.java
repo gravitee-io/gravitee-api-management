@@ -42,6 +42,7 @@ class PerformanceTargetAdapterTest {
         .rules(
             List.of(
                 PerformanceTarget.Rule.builder()
+                    .id("latency-rule")
                     .metric(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME)
                     .measure(MetricSpec.Measure.P95)
                     .operator(PerformanceTarget.Operator.LTE)
@@ -73,6 +74,7 @@ class PerformanceTargetAdapterTest {
             .first()
             .isEqualTo(
                 new io.gravitee.repository.management.model.PerformanceTarget.Rule(
+                    "latency-rule",
                     "HTTP_GATEWAY_RESPONSE_TIME",
                     "P95",
                     "LTE",

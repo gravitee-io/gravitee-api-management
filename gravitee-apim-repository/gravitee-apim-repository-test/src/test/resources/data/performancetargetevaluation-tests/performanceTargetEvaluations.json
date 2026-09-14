@@ -32,6 +32,7 @@
         "status": "BREACH",
         "rules": [
             {
+                "id": "rule-1-latency",
                 "metric": "HTTP_GATEWAY_RESPONSE_TIME",
                 "measure": "P95",
                 "operator": "LTE",
@@ -43,6 +44,7 @@
                 "status": "BREACH"
             },
             {
+                "id": "rule-1-errors",
                 "metric": "HTTP_ERROR_RATE",
                 "measure": "PERCENTAGE",
                 "operator": "LTE",

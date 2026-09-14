@@ -75,6 +75,7 @@ class PerformanceTargetEvaluationTest {
 
     private static PerformanceTargetEvaluation.RuleResult aRuleResult(PerformanceTargetEvaluation.Status status) {
         return new PerformanceTargetEvaluation.RuleResult(
+            "latency-rule",
             MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
             MetricSpec.Measure.P95,
             PerformanceTarget.Operator.LTE,

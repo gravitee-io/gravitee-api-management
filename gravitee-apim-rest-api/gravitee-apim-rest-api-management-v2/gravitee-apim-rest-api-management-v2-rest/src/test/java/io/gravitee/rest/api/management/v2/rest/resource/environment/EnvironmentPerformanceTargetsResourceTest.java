@@ -137,7 +137,7 @@ class EnvironmentPerformanceTargetsResourceTest extends AbstractResourceTest {
                         .windowSeconds(900L)
                         .intervalSeconds(300L)
                         .minSampleSize(20)
-                        .rules(List.of(aLatencyRule()))
+                        .rules(List.of(aLatencyRule().id("generated-id")))
                         .createdAt(NOW.atOffset(ZoneOffset.UTC))
                         .updatedAt(NOW.atOffset(ZoneOffset.UTC))
                 );
