@@ -32,7 +32,7 @@ import { useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
-import { HOME_ICON, MODULE_ICONS } from '../../features/modules';
+import { HOME_ICON, MODULE_ICONS, findModuleProduct, orderByCatalog } from '../../features/modules';
 import { PendingTasksBadge } from '../../pages/tasks';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
@@ -50,25 +50,18 @@ function moduleIcon(moduleId: string): ReactNode {
     return Icon ? <Icon className="size-5" /> : <Globe size={20} />;
 }
 
-const MODULE_DESCRIPTIONS: Record<string, { label: string; description: string }> = {
-    aim: { label: 'Agent Management', description: 'Govern AI agents, MCPs, and LLMs' },
-    apim: { label: 'API Management', description: 'Design, deploy, and govern HTTP APIs' },
-    platform: { label: 'Platform Management', description: 'Apps, subscriptions, and usage' },
-    portals: { label: 'Developer Portals', description: 'Design and manage developer portal experiences' },
-    authz: { label: 'Authorization Management', description: 'Fine-grained authorization policies' },
-    esm: { label: 'Event Stream Management', description: 'Manage Kafka clusters, services, and event mesh' },
-    edge: { label: 'Edge Management', description: 'Monitor and manage Edge Daemons' },
-};
-
 function buildAppDefinitions(modules: readonly GammaModule[]) {
     return [
         hostAppDefinition,
-        ...modules.map(m => ({
-            key: m.id,
-            label: MODULE_DESCRIPTIONS[m.id]?.label ?? m.name,
-            description: MODULE_DESCRIPTIONS[m.id]?.description ?? m.name,
-            icon: moduleIcon(m.id),
-        })),
+        ...orderByCatalog(modules).map(m => {
+            const product = findModuleProduct(m.id);
+            return {
+                key: m.id,
+                label: product?.label ?? m.name,
+                description: product?.tagline ?? m.name,
+                icon: moduleIcon(m.id),
+            };
+        }),
     ];
 }
 

@@ -113,6 +113,25 @@ describe('HomePage', () => {
         expect(screen.queryByText('Coming soon')).toBeNull();
     });
 
+    it('should render the application cards in the same product order as the app switcher, whatever order the modules arrive in', () => {
+        renderHome([EDGE_MODULE, ...[...ALL_MODULES].reverse()]);
+
+        const appsSection = screen.getByRole('region', { name: /applications/i });
+        expect(
+            within(appsSection)
+                .getAllByRole('heading', { level: 3 })
+                .map(heading => heading.textContent),
+        ).toEqual([
+            'Agent Management',
+            'API Management',
+            'Event Stream Management',
+            'Authorization Management',
+            'Developer Portals',
+            'Edge Management',
+            'Platform Management',
+        ]);
+    });
+
     it('should render an "Upgrade to access" CTA instead of a link when aim is missing from /modules', async () => {
         renderHome(ALL_MODULES.filter(m => m.id !== 'aim'));
 

@@ -131,3 +131,46 @@ describe('ShellLayout environment switching', () => {
         await waitFor(() => expect(useEnvironmentStore.getState().currentEnvironment?.id).toBe('env-2-id'));
     });
 });
+
+describe('ShellLayout app switcher', () => {
+    beforeEach(() => {
+        resetAllStores();
+        seedBootstrap();
+        seedEnvironments();
+    });
+
+    it('should list the products in catalog order, whatever order the backend returns the modules in', async () => {
+        const backendOrder: GammaModule[] = ['edge', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(id => ({
+            id,
+            name: `${id} plugin`,
+            version: '1.0.0',
+            remoteName: id,
+            exposedModule: 'Module',
+        }));
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={backendOrder} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const items = await screen.findAllByRole('menuitem');
+        expect(items.map(item => item.textContent)).toEqual(
+            [
+                'Home',
+                'Agent Management',
+                'API Management',
+                'Event Stream Management',
+                'Authorization Management',
+                'Developer Portals',
+                'Edge Management',
+                'Platform Management',
+            ].map(label => expect.stringMatching(`^${label}`)),
+        );
+    });
+});
