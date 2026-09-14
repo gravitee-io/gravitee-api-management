@@ -40,7 +40,9 @@
         [selectedFormId]="selectedForm()?.id ?? null"
         [canUpdate]="canUpdate()"
         (selectForm)="selectForm($event)"
+        [canDelete]="canDelete()"
         (toggleEnabled)="onEnabledToggle($event)"
+        (deleteForm)="deleteForm($event)"
       />
     </div>
   </section>

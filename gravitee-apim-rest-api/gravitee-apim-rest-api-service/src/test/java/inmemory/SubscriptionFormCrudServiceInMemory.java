@@ -62,6 +62,11 @@ public class SubscriptionFormCrudServiceInMemory implements SubscriptionFormCrud
     }
 
     @Override
+    public void delete(SubscriptionForm subscriptionForm) {
+        storage.removeIf(form -> form.getId().equals(subscriptionForm.getId()));
+    }
+
+    @Override
     public void initWith(List<SubscriptionForm> items) {
         storage.addAll(items);
     }
