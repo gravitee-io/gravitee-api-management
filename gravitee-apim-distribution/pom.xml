@@ -241,9 +241,9 @@
     <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
     <gravitee-reactor-native-kafka.version>7.1.0</gravitee-reactor-native-kafka.version>
-    <gravitee-reactor-mcp-proxy.version>4.1.0-beta.2</gravitee-reactor-mcp-proxy.version>
-    <gravitee-reactor-llm-proxy.version>5.0.0-beta.2</gravitee-reactor-llm-proxy.version>
-    <gravitee-reactor-a2a-proxy.version>2.1.1</gravitee-reactor-a2a-proxy.version>
+    <gravitee-reactor-mcp-proxy.version>4.1.0-beta.3</gravitee-reactor-mcp-proxy.version>
+    <gravitee-reactor-llm-proxy.version>5.0.0-beta.4</gravitee-reactor-llm-proxy.version>
+    <gravitee-reactor-a2a-proxy.version>2.2.0-beta.1</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>1.2.0</gravitee-reactor-authz.version>
     <gravitee-reactor-edge.version>2.0.0-alpha.2</gravitee-reactor-edge.version>
     <gravitee-resource-ai-vector-store-redis.version>2.0.0</gravitee-resource-ai-vector-store-redis.version>
@@ -284,8 +284,8 @@
     <gravitee-reactor-agent.version>1.0.0-agent-gateway-SNAPSHOT</gravitee-reactor-agent.version>
 
     <!-- Authz plugins -->
-    <gravitee-service-authz-pdp.version>2.1.1</gravitee-service-authz-pdp.version>
-    <gravitee-policy-authz-pep.version>1.4.0</gravitee-policy-authz-pep.version>
+    <gravitee-service-authz-pdp.version>3.1.0-beta.1</gravitee-service-authz-pdp.version>
+    <gravitee-policy-authz-pep.version>1.6.0</gravitee-policy-authz-pep.version>
     <gravitee-policy-authz-pdp-authzen.version>1.2.0</gravitee-policy-authz-pdp-authzen.version>
     </properties>
 
