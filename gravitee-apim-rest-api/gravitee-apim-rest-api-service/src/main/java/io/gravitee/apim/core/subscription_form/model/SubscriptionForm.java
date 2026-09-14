@@ -80,18 +80,4 @@ public class SubscriptionForm {
     public void disable() {
         this.enabled = false;
     }
-
-    /**
-     * Makes this form the environment default (mutates in place).
-     */
-    public void markAsDefault() {
-        this.defaultForm = true;
-    }
-
-    /**
-     * Withdraws the environment default role from this form (mutates in place).
-     */
-    public void unmarkAsDefault() {
-        this.defaultForm = false;
-    }
 }

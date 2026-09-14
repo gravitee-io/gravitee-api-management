@@ -287,45 +287,4 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
         }
     }
-
-    @Nested
-    class SetDefaultSubscriptionForm {
-
-        @Test
-        void should_promote_the_form_and_demote_the_previous_default() {
-            var previousDefault = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENVIRONMENT).build();
-            var partnerForm = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-                .id(SubscriptionFormId.random())
-                .environmentId(ENVIRONMENT)
-                .name("Partners")
-                .defaultForm(false)
-                .build();
-            subscriptionFormQueryService.initWith(List.of(previousDefault, partnerForm));
-            subscriptionFormCrudService.initWith(List.of(previousDefault, partnerForm));
-
-            var response = rootTarget.path(partnerForm.getId().toString()).path("_default").request().post(Entity.json(""));
-
-            assertThat(response)
-                .hasStatus(HttpStatusCode.OK_200)
-                .asEntity(SubscriptionForm.class)
-                .satisfies(result -> assertThat(result.getDefaultForm()).isTrue());
-            assertThat(previousDefault.isDefaultForm()).isFalse();
-        }
-
-        @Test
-        void should_return_404_when_form_not_found() {
-            var response = rootTarget.path(UNKNOWN_ID).path("_default").request().post(Entity.json(""));
-
-            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
-        }
-
-        @Test
-        void should_return_403_if_incorrect_permissions() {
-            var form = givenAForm(false, false);
-
-            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.UPDATE, () ->
-                rootTarget.path(form.getId().toString()).path("_default").request().post(Entity.json(""))
-            );
-        }
-    }
 }

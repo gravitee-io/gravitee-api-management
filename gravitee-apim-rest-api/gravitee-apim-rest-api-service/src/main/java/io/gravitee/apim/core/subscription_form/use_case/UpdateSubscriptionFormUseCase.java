@@ -27,7 +27,8 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Updates the name and definition of an existing subscription form.
- * This operation does NOT change the enabled or default state - use the dedicated use cases for that.
+ * This operation does NOT change the enabled or default state: the enabled state has its own use cases, and the
+ * default form is the one seeded for the environment.
  *
  * @author Gravitee.io Team
  */

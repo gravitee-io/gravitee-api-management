@@ -20,7 +20,6 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.use_case.DisableSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.EnableSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormUseCase;
-import io.gravitee.apim.core.subscription_form.use_case.SetDefaultSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.UpdateSubscriptionFormUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionFormMapper;
@@ -69,9 +68,6 @@ public class SubscriptionFormResource extends AbstractResource {
     @Inject
     private DisableSubscriptionFormUseCase disableSubscriptionFormUseCase;
 
-    @Inject
-    private SetDefaultSubscriptionFormUseCase setDefaultSubscriptionFormUseCase;
-
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
@@ -116,17 +112,6 @@ public class SubscriptionFormResource extends AbstractResource {
     public Response disableSubscriptionForm() {
         var output = disableSubscriptionFormUseCase.execute(
             new DisableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
-        );
-        return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
-    }
-
-    @POST
-    @Path("/_default")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
-    public Response setDefaultSubscriptionForm() {
-        var output = setDefaultSubscriptionFormUseCase.execute(
-            new SetDefaultSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
         );
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }

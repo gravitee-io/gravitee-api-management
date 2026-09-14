@@ -1508,8 +1508,8 @@ paths:
         Update the name and definition of a subscription form. The form content is defined using
         Gravitee Markdown (GMD) syntax with form components.
 
-        Note: This operation does NOT change the enabled or default state. Use the _enable, _disable
-        and _default endpoints for that.
+        Note: This operation does NOT change the enabled or default state. Use the _enable and _disable
+        endpoints for the enabled state; the default form is the one seeded for the environment.
 
         User must have the ENVIRONMENT_METADATA[UPDATE] permission.
       operationId: updateSubscriptionForm
@@ -1606,42 +1606,6 @@ paths:
       responses:
         "200":
           description: Subscription form disabled successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SubscriptionForm"
-        "404":
-          description: No subscription form exists with this ID
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        default:
-          $ref: "#/components/responses/Error"
-  /subscription-forms/{subscriptionFormId}/_default:
-    post:
-      tags:
-        - Subscription Forms
-      summary: Make a subscription form the environment default
-      description: |-
-        Promote the subscription form to environment default: it is used for every API without a
-        dedicated form. The previous default form is demoted.
-
-        This operation is idempotent - promoting the current default returns success.
-
-        User must have the ENVIRONMENT_METADATA[UPDATE] permission.
-      operationId: setDefaultSubscriptionForm
-      parameters:
-        - name: subscriptionFormId
-          in: path
-          required: true
-          description: The unique ID of the subscription form
-          schema:
-            type: string
-            format: uuid
-      responses:
-        "200":
-          description: Subscription form is now the environment default
           content:
             application/json:
               schema:
