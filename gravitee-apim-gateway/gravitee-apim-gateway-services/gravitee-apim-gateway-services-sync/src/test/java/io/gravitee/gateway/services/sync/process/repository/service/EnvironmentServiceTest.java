@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -141,5 +142,26 @@ class EnvironmentServiceTest {
         when(environmentRepository.findById(ENV_ID)).thenThrow(new TechnicalException("bridge 502"));
 
         assertThatThrownBy(() -> cut.fill(ENV_ID, reactableApi)).isInstanceOf(SyncException.class);
+    }
+
+    @Test
+    void should_return_the_organization_of_an_environment() throws TechnicalException {
+        when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.of(environment()));
+
+        assertThat(cut.organizationIdOf(ENV_ID)).isEqualTo(ORG_ID);
+    }
+
+    @Test
+    void should_return_no_organization_for_an_unknown_environment() throws TechnicalException {
+        when(environmentRepository.findById(ENV_ID)).thenReturn(Optional.empty());
+
+        assertThat(cut.organizationIdOf(ENV_ID)).isNull();
+    }
+
+    @Test
+    void should_return_no_organization_without_an_environment() {
+        assertThat(cut.organizationIdOf(null)).isNull();
+
+        verifyNoInteractions(environmentRepository, organizationRepository);
     }
 }
