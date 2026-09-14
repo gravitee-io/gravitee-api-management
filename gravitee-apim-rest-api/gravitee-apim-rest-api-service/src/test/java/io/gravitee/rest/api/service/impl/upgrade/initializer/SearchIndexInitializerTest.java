@@ -20,18 +20,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.repository.ApiFixtures;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainService;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.search.model.IndexableApiProduct;
+import io.gravitee.apim.infra.query_service.api.ApiQueryServiceImpl;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -43,8 +47,10 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.User;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.UserMetadataService;
@@ -52,6 +58,9 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
+import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
+import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
+import io.gravitee.rest.api.service.impl.search.lucene.transformer.IndexableApiDocumentTransformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
@@ -63,17 +72,29 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.store.ByteBuffersDirectory;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class SearchIndexInitializerTest {
 
     @Mock
@@ -194,6 +215,125 @@ public class SearchIndexInitializerTest {
             initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor()).forEach(CompletableFuture::join);
 
             verify(searchEngineService, times(2)).index(any(ExecutionContext.class), any(Indexable.class), anyBoolean(), anyBoolean());
+        }
+    }
+
+    @Nested
+    class RunApisIndexationAsyncOverAnUnreadableAgentCard {
+
+        private static final String INTEGRATION_ID = "int-a";
+
+        private IndexWriter indexWriter;
+        private ApiQueryService apiSearch;
+
+        @BeforeEach
+        void openTheIndexTheRebuildWritesInto() throws Exception {
+            indexWriter = new IndexWriter(new ByteBuffersDirectory(), new IndexWriterConfig(new StandardAnalyzer()));
+            apiSearch = new ApiQueryServiceImpl(apiRepository, new ApiDocumentSearcher(indexWriter));
+
+            var indexer = new SearchEngineIndexer();
+            ReflectionTestUtils.setField(indexer, "writer", indexWriter);
+            doAnswer(invocation -> {
+                var indexable = invocation.getArgument(1, IndexableApi.class);
+                return indexer.index(new IndexableApiDocumentTransformer().transform(indexable), true);
+            })
+                .when(searchEngineService)
+                .index(any(ExecutionContext.class), any(Indexable.class), anyBoolean(), anyBoolean());
+        }
+
+        @AfterEach
+        void closeTheIndex() throws Exception {
+            indexWriter.close();
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("searchesOverTheRebuiltIndex")
+        void should_index_the_readable_agent_of_a_rebuild_that_met_an_unreadable_one_first(String caseName, String query) throws Exception {
+            givenAnAgentOfAcmeRoboticsBehindAnUnreadableOne();
+            givenTheRepositoryHydratesTheApisTheIndexReturns();
+
+            whenTheRebuildRunsToTheEndDespiteAFailingRow();
+
+            var page = apiSearch.searchByIntegrationId(INTEGRATION_ID, null, query, new PageableImpl(1, 10));
+            assertThat(page.getContent())
+                .extracting(api -> api.getId())
+                .containsExactly("api-ok");
+        }
+
+        private static Stream<Arguments> searchesOverTheRebuiltIndex() {
+            return Stream.of(
+                Arguments.of("the readable agent answers a search for the organization its card carries", "acme"),
+                Arguments.of("nothing of the unreadable agent answers a search narrowed by its integration alone", null)
+            );
+        }
+
+        @Test
+        void should_fail_the_indexation_of_the_unreadable_agent_alone_and_index_the_readable_one() throws Exception {
+            givenAnAgentOfAcmeRoboticsBehindAnUnreadableOne();
+
+            var futures = whenTheRebuildRunsToTheEndDespiteAFailingRow();
+
+            assertThat(futures).filteredOn(CompletableFuture::isCompletedExceptionally).hasSize(1);
+            verify(searchEngineService, never()).index(
+                any(ExecutionContext.class),
+                argThat(indexable -> "api-broken".equals(indexable.getId())),
+                anyBoolean(),
+                anyBoolean()
+            );
+            verify(searchEngineService, times(1)).index(
+                any(ExecutionContext.class),
+                argThat(indexable -> "api-ok".equals(indexable.getId())),
+                anyBoolean(),
+                anyBoolean()
+            );
+        }
+
+        private List<CompletableFuture<?>> whenTheRebuildRunsToTheEndDespiteAFailingRow() throws Exception {
+            var futures = initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor());
+            futures.forEach(future -> future.exceptionally(throwable -> null).join());
+            return futures;
+        }
+
+        private void givenAnAgentOfAcmeRoboticsBehindAnUnreadableOne() {
+            givenExistingAgents(
+                anAgentRow("api-broken", "not-an-agent-card"),
+                anAgentRow(
+                    "api-ok",
+                    """
+                    {"name":"Task Management","description":"handles tasks","provider":{"organization":"Acme Robotics","url":"https://example.net"}}"""
+                )
+            );
+        }
+
+        private void givenExistingAgents(Api... apis) {
+            when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(apis));
+            when(apiIndexerDomainService.toIndexableApi(any(Indexer.IndexationContext.class), any())).thenAnswer(invocation ->
+                new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList())
+            );
+        }
+
+        private void givenTheRepositoryHydratesTheApisTheIndexReturns() {
+            when(apiRepository.search(any(ApiCriteria.class), any(), any(), any())).thenAnswer(invocation -> {
+                var selectedIds = invocation.getArgument(0, ApiCriteria.class).getIds();
+                var rows = selectedIds
+                    .stream()
+                    .map(id -> Api.builder().id(id).build())
+                    .toList();
+                return new Page<>(rows, 1, rows.size(), rows.size());
+            });
+        }
+
+        private Api anAgentRow(String apiId, String definition) {
+            return ApiFixtures.aFederatedApi()
+                .toBuilder()
+                .id(apiId)
+                .environmentId("env1")
+                .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                .definition(definition)
+                .origin("integration")
+                .integrationId(INTEGRATION_ID)
+                .visibility(Visibility.PUBLIC)
+                .build();
         }
     }
 

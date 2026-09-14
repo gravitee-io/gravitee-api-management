@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.query_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.assertArg;
 import static org.mockito.Mockito.mock;
@@ -39,12 +40,15 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
 import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.IndexableApiDocumentTransformer;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Stream;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -61,6 +65,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiQueryServiceImplTest {
@@ -258,8 +263,7 @@ class ApiQueryServiceImplTest {
         private static final String INTEGRATION_ID = "int-a";
         private static final String THE_LABEL_EVERY_SEEDED_API_CARRIES = "label-1";
         private static final List<String> EVERY_SEEDED_API = List.of("api-v2", "api-v4", "api-fed", "api-agent", "api-null-version");
-        private static final String A_STORED_AGENT_CARD = """
-            {"id":"api-agent","name":"Task Management","description":"handles tasks","provider":{"organization":"Acme Robotics","url":"https://example.net"}}""";
+        private static final String A_STORED_AGENT_CARD = aStoredAgentCardOf("Acme Robotics");
 
         @ParameterizedTest(name = "{0}")
         @MethodSource("integrationIdRequests")
@@ -506,6 +510,103 @@ class ApiQueryServiceImplTest {
             assertThat(page.getContent()).singleElement().extracting(Api::getApiDefinitionValue).isNull();
         }
 
+        @Test
+        void should_match_the_provider_organization_of_an_agent_card_read_back_from_the_row_it_was_stored_on() throws IOException {
+            // Given an agent ingested before this change, its card held as json on its repository row
+            givenIndexedApis(anAgentRebuiltFromItsStoredRow("api-agent", "Acme Robotics"));
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the integration is searched for the organization that stored card carries
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, "acme", new PageableImpl(1, 10));
+
+            // Then the agent comes back, its card having survived the conversion the boot time rebuild puts the row through
+            assertThat(page.getContent()).extracting(Api::getId).containsExactly("api-agent");
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("reIngestedOrganizationQueries")
+        void should_match_each_agent_by_the_organization_its_latest_card_carries(String caseName, String query, List<String> expectedApiIds)
+            throws TechnicalException {
+            // Given an agent indexed as Acme Robotics then again as Globex after a re-ingestion, and a second agent of Initech
+            givenTheIndexerWrites(anAgentRebuiltFromItsStoredRow("api-other", "Initech"));
+            givenTheIndexerWrites(anAgentRebuiltFromItsStoredRow("api-agent", "Acme Robotics"));
+            givenTheIndexerWrites(anAgentRebuiltFromItsStoredRow("api-agent", "Globex"));
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the integration is searched for the row's organization
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, query, new PageableImpl(1, 10));
+
+            // Then the second write replaced the document of the agent it carried and left the other agent's standing
+            assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrderElementsOf(expectedApiIds);
+        }
+
+        @Test
+        void should_not_return_a_freshly_ingested_agent_whose_indexation_has_not_been_applied_yet() {
+            // Given an agent the repository would hydrate on request, nothing of it having reached the index yet
+            givenTheRepositoryHoldsAnAgentRow("api-agent");
+
+            // When the integration is searched for the organization that agent's card carries
+            var page = service.searchByIntegrationId(INTEGRATION_ID, null, "acme", new PageableImpl(1, 10));
+
+            // Then it is absent, the index alone deciding what the result holds with no repository scan filling it in
+            assertThat(page.getContent()).isEmpty();
+        }
+
+        @Test
+        void should_return_a_freshly_ingested_agent_once_its_indexation_has_been_applied() throws TechnicalException {
+            // Given the same agent, its indexation now applied
+            givenTheRepositoryHoldsAnAgentRow("api-agent");
+            givenTheIndexerWrites(anAgentRebuiltFromItsStoredRow("api-agent", "Acme Robotics"));
+
+            // Then the search that held nothing before the indexation returns it, within a deadline generous enough for it to land
+            await()
+                .atMost(Duration.ofSeconds(10))
+                .untilAsserted(() ->
+                    assertThat(service.searchByIntegrationId(INTEGRATION_ID, null, "acme", new PageableImpl(1, 10)).getContent())
+                        .extracting(Api::getId)
+                        .containsExactly("api-agent")
+                );
+        }
+
+        private void givenTheRepositoryHoldsAnAgentRow(String apiId) {
+            var row = fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id(apiId).build();
+            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(List.of(row), 1, 1, 1));
+        }
+
+        private static Stream<Arguments> reIngestedOrganizationQueries() {
+            return Stream.of(
+                Arguments.of("the organization the re-ingested card carries matches", "globex", List.of("api-agent")),
+                Arguments.of("the organization carried before the re-ingestion no longer matches", "acme", List.of()),
+                Arguments.of("the organization of the agent the re-ingestion left alone still matches", "initech", List.of("api-other"))
+            );
+        }
+
+        private void givenTheIndexerWrites(Api api) throws TechnicalException {
+            var indexer = new SearchEngineIndexer();
+            ReflectionTestUtils.setField(indexer, "writer", indexWriter);
+            indexer.index(new IndexableApiDocumentTransformer().transform(IndexableApi.builder().api(api).build()), true);
+        }
+
+        private Api anAgentRebuiltFromItsStoredRow(String apiId, String organization) {
+            var row = fixtures.repository.ApiFixtures.aFederatedApi()
+                .toBuilder()
+                .id(apiId)
+                .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+                .definition(aStoredAgentCardOf(organization))
+                .origin("integration")
+                .integrationId(INTEGRATION_ID)
+                .visibility(Visibility.PUBLIC)
+                .build();
+            return ApiAdapter.INSTANCE.toCoreModel(row);
+        }
+
+        private static String aStoredAgentCardOf(String organization) {
+            return """
+            {"name":"Task Management","description":"handles tasks","provider":{"organization":"%s","url":"https://example.net"}}""".formatted(
+                    organization
+                );
+        }
+
         private void givenTheRepositoryHydratesAStoredAgentCard() {
             var row = fixtures.repository.ApiFixtures.aFederatedApi()
                 .toBuilder()
@@ -513,7 +614,11 @@ class ApiQueryServiceImplTest {
                 .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
                 .definition(A_STORED_AGENT_CARD)
                 .build();
-            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(List.of(row), 0, 1, 1));
+            when(apiRepository.search(any(), any(), any(), any())).thenAnswer(invocation -> {
+                var fieldFilter = invocation.getArgument(3, io.gravitee.repository.management.api.search.ApiFieldFilter.class);
+                var hydratedRow = fieldFilter.isDefinitionExcluded() ? row.toBuilder().definition(null).build() : row;
+                return new Page<>(List.of(hydratedRow), 0, 1, 1);
+            });
         }
 
         private static Stream<Arguments> punctuationQueries() {

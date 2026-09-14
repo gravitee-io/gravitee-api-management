@@ -16,11 +16,13 @@
 package io.gravitee.apim.infra.adapter;
 
 import static assertions.CoreAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.edge.EdgeApi;
@@ -36,17 +38,22 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.context.OriginContext;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiAdapterTest {
@@ -244,6 +251,40 @@ class ApiAdapterTest {
 
             assertThat(api.getApiDefinitionValue()).isInstanceOf(EdgeApi.class);
             assertThat(((EdgeApi) api.getApiDefinitionValue()).getType()).isEqualTo(ApiType.EDGE);
+        }
+
+        @Test
+        void should_convert_from_federated_agent_repository_to_core_model() {
+            var repository = apiFederatedAgent().build();
+
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+
+            assertThat(api.getApiDefinitionValue()).isInstanceOf(FederatedAgent.class);
+            assertThat(((FederatedAgent) api.getApiDefinitionValue()).getProvider().organization()).isEqualTo("Acme Robotics");
+        }
+
+        @Test
+        void should_throw_when_federated_agent_definition_cannot_be_deserialized() {
+            var repository = apiFederatedAgent().definition("not-json").build();
+
+            assertThatThrownBy(() -> ApiAdapter.INSTANCE.toCoreModel(repository))
+                .isInstanceOf(RuntimeException.class)
+                .hasCauseInstanceOf(IOException.class);
+        }
+
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("rowsYieldingNoDefinition")
+        void should_yield_a_null_definition(String caseName, Api repository) {
+            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
+
+            assertThat(api.getApiDefinitionValue()).isNull();
+        }
+
+        private static Stream<Arguments> rowsYieldingNoDefinition() {
+            return Stream.of(
+                Arguments.of("an agent row read without its definition column", apiFederatedAgent().definition(null).build()),
+                Arguments.of("a v4 row whose definition cannot be read", apiV4().definition("not-json").build())
+            );
         }
 
         @Test
@@ -562,7 +603,7 @@ class ApiAdapterTest {
         }
     }
 
-    private Api.ApiBuilder apiV4() {
+    private static Api.ApiBuilder apiV4() {
         return Api.builder()
             .id("my-id")
             .environmentId("env-id")
@@ -591,6 +632,28 @@ class ApiAdapterTest {
             .disableMembershipNotifications(true)
             .apiLifecycleState(ApiLifecycleState.PUBLISHED)
             .background("my-background");
+    }
+
+    private static Api.ApiBuilder apiFederatedAgent() {
+        return Api.builder()
+            .id("my-id")
+            .environmentId("env-id")
+            .crossId("cross-id")
+            .name("api-name")
+            .description("api-description")
+            .version("1.0.0")
+            .origin("integration")
+            .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+            .definition(
+                """
+                {"name": "api-name", "description": "api-description", "url": "https://example.net/agent", "version": "1.0.0", "definitionVersion": "FEDERATED_AGENT", "provider": {"organization": "Acme Robotics", "url": "https://example.net"}, "capabilities": {"streaming": true}, "skills": [], "defaultInputModes": ["text"], "defaultOutputModes": ["text"]}
+                """
+            )
+            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+            .visibility(Visibility.PUBLIC)
+            .lifecycleState(LifecycleState.STARTED)
+            .apiLifecycleState(ApiLifecycleState.PUBLISHED);
     }
 
     private Api.ApiBuilder apiV2() {
