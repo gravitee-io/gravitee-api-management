@@ -167,12 +167,7 @@ public class PerformanceTargetNotificationDispatcher {
      */
     public void notifyApiSubject(Environment environment, Api api, List<PerformanceTargetRuleTransition> transitions) {
         var executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
-        var subject = new PerformanceTargetNotificationTemplateDataFactory.Subject(
-            "API",
-            api.getName(),
-            api.getId(),
-            templateData.apiTargetsUrl(environment, api.getId())
-        );
+        var subject = templateData.apiSubject(environment, api);
         byKind(transitions).forEach((kind, changes) -> {
             var hook = PerformanceTargetHook.of(kind);
             var params = new HashMap<>(templateDataFetcher.fetchData(environment.getOrganizationId(), apiContext(hook, api.getId())));

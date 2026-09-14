@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.PerformanceTargetFixtures;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.environment.model.Environment;
@@ -147,15 +148,38 @@ class PerformanceTargetNotificationTemplateDataFactoryTest {
 
         var withoutHrid = Environment.builder().id("env-id").organizationId(ORGANIZATION_ID).hrids(List.of()).build();
 
-        assertThat(factory.apiTargetsUrl(environment, "api-1")).isEqualTo(
-            "https://gamma.example.com/environments/dev/apim/apis/api-1/targets"
-        );
+        var api = ApiFixtures.aProxyApiV4().toBuilder().id("api-1").name("orders").build();
+        var subject = factory.apiSubject(environment, api);
+        assertThat(subject.kind()).isEqualTo("API");
+        assertThat(subject.name()).isEqualTo("orders");
+        assertThat(subject.reference()).isEqualTo("api-1");
+        assertThat(subject.url()).isEqualTo("https://gamma.example.com/environments/dev/apim/apis/api-1/targets");
         assertThat(factory.targetsUrl(withoutHrid, "aim/catalog/agents/a-1/targets")).isEqualTo(
             "https://gamma.example.com/environments/env-id/aim/catalog/agents/a-1/targets"
         );
 
         when(installationAccess.getGammaUrl(ORGANIZATION_ID)).thenReturn(null);
-        assertThat(factory.apiTargetsUrl(environment, "api-1")).isNull();
+        assertThat(factory.apiSubject(environment, api).url()).isNull();
+    }
+
+    @Test
+    void should_introduce_llm_mcp_and_a2a_proxies_by_their_kind_and_link_to_the_aim_pages() {
+        var environment = Environment.builder().id("env-id").organizationId(ORGANIZATION_ID).hrids(List.of("dev")).build();
+        when(installationAccess.getGammaUrl(ORGANIZATION_ID)).thenReturn("https://gamma.example.com");
+
+        var llm = factory.apiSubject(environment, ApiFixtures.aLLMProxyApiV4().toBuilder().id("llm-1").build());
+        var mcp = factory.apiSubject(environment, ApiFixtures.aMCPProxyApiV4().toBuilder().id("mcp-1").build());
+        var a2a = factory.apiSubject(environment, ApiFixtures.anA2AProxyApiV4().toBuilder().id("a2a-1").build());
+        var v2 = factory.apiSubject(environment, ApiFixtures.aProxyApiV2().toBuilder().id("v2-1").build());
+
+        assertThat(llm.kind()).isEqualTo("LLM proxy");
+        assertThat(llm.url()).isEqualTo("https://gamma.example.com/environments/dev/aim/llm-proxy/llm-1/targets");
+        assertThat(mcp.kind()).isEqualTo("MCP proxy");
+        assertThat(mcp.url()).isEqualTo("https://gamma.example.com/environments/dev/aim/mcp-proxy/mcp-1/targets");
+        assertThat(a2a.kind()).isEqualTo("A2A proxy");
+        assertThat(a2a.url()).isEqualTo("https://gamma.example.com/environments/dev/aim/agent-runtime/a2a-1/targets");
+        assertThat(v2.kind()).isEqualTo("API");
+        assertThat(v2.url()).isEqualTo("https://gamma.example.com/environments/dev/apim/apis/v2-1/targets");
     }
 
     private static String labelOf(MetricSpec.Name metric) {
