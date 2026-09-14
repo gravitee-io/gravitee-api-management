@@ -15,7 +15,7 @@
  */
 import { Component, Input, OnChanges, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import Processor from 'asciidoctor';
+import { convert } from '@asciidoctor/core';
 
 @Component({
   selector: 'app-page-asciidoc',
@@ -30,9 +30,10 @@ export class PageAsciidocComponent implements OnChanges {
 
   constructor(private domSanitizer: DomSanitizer) {}
 
-  ngOnChanges(): void {
-    const processor = Processor();
-    const content = processor.convert(this.content ?? '', { attributes: { showtitle: true } }) as string;
+  // asciidoctor 4 drops the processor factory in favour of module-level functions, and `convert`
+  // became asynchronous.
+  async ngOnChanges(): Promise<void> {
+    const content = (await convert(this.content ?? '', { attributes: { showtitle: true } })) as string;
     const parser = new DOMParser();
     const document = parser.parseFromString(content, 'text/html');
     this.asciidoc = this.domSanitizer.bypassSecurityTrustHtml(document.body.outerHTML);

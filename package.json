@@ -18,7 +18,7 @@
         "@angular/platform-browser-dynamic": "20.3.16",
         "@angular/router": "20.3.16",
         "@angular/upgrade": "20.3.16",
-        "@asciidoctor/core": "3.0.4",
+        "@asciidoctor/core": "4.0.11",
         "@asyncapi/react-component": "3.1.8",
         "@asyncapi/web-component": "3.1.8",
         "@danielmoncada/angular-datetime-picker": "20.0.1",
@@ -40,10 +40,10 @@
         "@gravitee/graphene-charts": "3.19.0",
         "@gravitee/graphene-core": "3.19.0",
         "@gravitee/graphene-policy-studio": "3.19.0",
-        "@gravitee/ui-analytics": "17.8.0",
-        "@gravitee/ui-components": "4.5.2",
-        "@gravitee/ui-particles-angular": "17.8.0",
-        "@gravitee/ui-policy-studio-angular": "17.8.0",
+        "@gravitee/ui-analytics": "18.0.0",
+        "@gravitee/ui-components": "5.0.0",
+        "@gravitee/ui-particles-angular": "18.0.0",
+        "@gravitee/ui-policy-studio-angular": "18.0.0",
         "@highcharts/map-collection": "1.1.4",
         "@monaco-editor/react": "4.7.0",
         "@ngx-formly/core": "6.3.12",
@@ -76,8 +76,7 @@
         "angular-timeline": "1.7.0",
         "angular-ui-tree": "2.22.6",
         "angular-ui-validate": "1.2.3",
-        "asciidoctor": "3.0.4",
-        "asciidoctor-highlight.js": "0.4.0",
+        "asciidoctor": "4.0.11",
         "chart.js": "4.3.0",
         "chartjs-adapter-date-fns": "3.0.0",
         "codemirror": "5.65.20",
@@ -129,6 +128,7 @@
         "zustand": "5.0.12"
     },
     "devDependencies": {
+        "@angular-builders/custom-webpack": "20.0.0",
         "@angular-devkit/architect": "0.2003.14",
         "@angular-devkit/build-angular": "20.3.14",
         "@angular-devkit/core": "20.3.14",
@@ -142,7 +142,7 @@
         "@eslint/eslintrc": "3.3.7",
         "@eslint/js": "9.39.5",
         "@gravitee/gamma-modules-sdk": "1.2.1",
-        "@gravitee/ui-schematics": "17.8.0",
+        "@gravitee/ui-schematics": "18.0.0",
         "@module-federation/enhanced": "2.9.0",
         "@nx/angular": "22.7.9",
         "@nx/eslint": "22.7.9",
@@ -274,6 +274,8 @@
     },
     "packageManager": "yarn@4.1.1",
     "resolutions": {
-        "nwsapi": "2.2.25"
+        "nwsapi": "2.2.25",
+        "@angular-builders/custom-webpack/@angular-devkit/build-angular": "20.3.14",
+        "@angular-builders/custom-webpack/webpack": "5.107.2"
     }
 }
