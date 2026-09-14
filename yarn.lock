@@ -10162,19 +10162,19 @@ __metadata:
   linkType: hard
 
 "@redocly/openapi-core@npm:^1.4.0":
-  version: 1.34.15
-  resolution: "@redocly/openapi-core@npm:1.34.15"
+  version: 1.34.20
+  resolution: "@redocly/openapi-core@npm:1.34.20"
   dependencies:
     "@redocly/ajv": "npm:8.11.2"
     "@redocly/config": "npm:0.22.0"
     colorette: "npm:1.4.0"
     https-proxy-agent: "npm:7.0.6"
     js-levenshtein: "npm:1.1.6"
-    js-yaml: "npm:4.1.1"
+    js-yaml: "npm:4.3.2"
     minimatch: "npm:5.1.9"
     pluralize: "npm:8.0.0"
     yaml-ast-parser: "npm:0.0.43"
-  checksum: 10c0/d156c13ccc2b14c46382f8f3f0d08feab2553ac9bf963531111ae30cd15bd93b708f78b8742dcf36144355d1068a39d7107e1aae8912c7fedb1186cd990eae22
+  checksum: 10c0/bfa94c0a258cc39a1915c9c5a57039c1aae8757ef7d57ec2909ec60bb35bb2f1e39f4fab2ed382dea3f9ffb981c8c33887bc09759bf46a5b40466c6650556314
   languageName: node
   linkType: hard
 
@@ -13039,7 +13039,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/user-event@npm:^14.6.3":
+"@testing-library/user-event@npm:14.6.7, @testing-library/user-event@npm:^14.6.3":
   version: 14.6.7
   resolution: "@testing-library/user-event@npm:14.6.7"
   peerDependencies:
@@ -18664,7 +18664,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:3.4.15, dompurify@npm:^3.4.13":
+"dompurify@npm:3.4.15, dompurify@npm:^3.0.6, dompurify@npm:^3.4.13":
   version: 3.4.15
   resolution: "dompurify@npm:3.4.15"
   dependencies:
@@ -18695,7 +18695,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^3.0.6, dompurify@npm:^3.3.1":
+"dompurify@npm:^3.3.1":
   version: 3.4.7
   resolution: "dompurify@npm:3.4.7"
   dependencies:
@@ -21213,9 +21213,9 @@ __metadata:
   linkType: hard
 
 "graphql@npm:^16.12.0":
-  version: 16.14.0
-  resolution: "graphql@npm:16.14.0"
-  checksum: 10c0/baaa368fcfeb7bf2cdf94b9f31bf916e97eaa9e7e82148a7046f31cbd49b760b38190f22393b024cbdd9ca0f4f46287515de0136b6a0cc164074b36ad7b50618
+  version: 16.14.2
+  resolution: "graphql@npm:16.14.2"
+  checksum: 10c0/a95a96961eaff55cc9fe9d31fae6f33499ac988b972d07ea5085024cb1333f515b902f376e7393a5489aa82200a8aff3eb96580e4d1b69d702ed19b6eb1ce97a
   languageName: node
   linkType: hard
 
@@ -21305,6 +21305,7 @@ __metadata:
     "@testing-library/dom": "npm:10.4.1"
     "@testing-library/jest-dom": "npm:7.0.1"
     "@testing-library/react": "npm:16.3.3"
+    "@testing-library/user-event": "npm:14.6.7"
     "@toast-ui/editor": "npm:3.2.2"
     "@toast-ui/editor-plugin-code-syntax-highlight": "npm:3.1.0"
     "@types/angular": "npm:1.8.9"
@@ -23909,14 +23910,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:4.1.1":
-  version: 4.1.1
-  resolution: "js-yaml@npm:4.1.1"
+"js-yaml@npm:4.3.2, js-yaml@npm:^4.2.0, js-yaml@npm:^4.3.1, js-yaml@npm:^4.3.2":
+  version: 4.3.2
+  resolution: "js-yaml@npm:4.3.2"
   dependencies:
     argparse: "npm:^2.0.1"
   bin:
     js-yaml: bin/js-yaml.js
-  checksum: 10c0/561c7d7088c40a9bb53cc75becbfb1df6ae49b34b5e6e5a81744b14ae8667ec564ad2527709d1a6e7d5e5fa6d483aa0f373a50ad98d42fde368ec4a190d4fae7
+  checksum: 10c0/dedd34c2e8fef1d504687f1bc94ed0ee1311a1f78770fa2800352c6d59c635ccf555009d74e9afe529ae62199da2b1ccef30e53dc84dcd8d2d8187c22574bc97
   languageName: node
   linkType: hard
 
@@ -23962,17 +23963,6 @@ __metadata:
   bin:
     js-yaml: bin/js-yaml.js
   checksum: 10c0/1916456c118746603b067d74bbcbb0445d9a1d5e474ad4ae775e7b20525bed902e01d9d97dd0c81fcd8d4f596162309d0eb057f4aa38f3e9647f14075e9dea45
-  languageName: node
-  linkType: hard
-
-"js-yaml@npm:^4.2.0, js-yaml@npm:^4.3.1, js-yaml@npm:^4.3.2":
-  version: 4.3.2
-  resolution: "js-yaml@npm:4.3.2"
-  dependencies:
-    argparse: "npm:^2.0.1"
-  bin:
-    js-yaml: bin/js-yaml.js
-  checksum: 10c0/dedd34c2e8fef1d504687f1bc94ed0ee1311a1f78770fa2800352c6d59c635ccf555009d74e9afe529ae62199da2b1ccef30e53dc84dcd8d2d8187c22574bc97
   languageName: node
   linkType: hard
 
@@ -27476,7 +27466,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"openapi-sampler@npm:^1.2.1, openapi-sampler@npm:^1.5.0":
+"openapi-sampler@npm:^1.2.1":
   version: 1.7.4
   resolution: "openapi-sampler@npm:1.7.4"
   dependencies:
@@ -27484,6 +27474,17 @@ __metadata:
     fast-xml-parser: "npm:^5.5.1"
     json-pointer: "npm:0.6.2"
   checksum: 10c0/43e27226e5e53e504a98a68ef7cb6d9f15c4e4ad8a28f7078a3adb6b67f4f13c53440f443bf5cf1af0277494fd74704101c2b5455d36e280be05bc008fec7224
+  languageName: node
+  linkType: hard
+
+"openapi-sampler@npm:^1.5.0":
+  version: 1.7.5
+  resolution: "openapi-sampler@npm:1.7.5"
+  dependencies:
+    "@types/json-schema": "npm:^7.0.7"
+    fast-xml-parser: "npm:^5.5.1"
+    json-pointer: "npm:0.6.2"
+  checksum: 10c0/7fa3cf47f92e3e059db729703da724fc4a17a19bfc3031a5f54f07a41e583602d65a7128d64f494144b2e5dc534243d7da8ae7f11ca9611bcb6e8cebce01591a
   languageName: node
   linkType: hard
 
@@ -33403,16 +33404,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^5.2.0":
-  version: 5.7.0
-  resolution: "type-fest@npm:5.7.0"
-  dependencies:
-    tagged-tag: "npm:^1.0.0"
-  checksum: 10c0/f71ed17b753649421e419db8cc2e140f930333a1467b1d9cca2e0e4052900fd442f2360bae73f3a6bf9340d949ac46d9a1598c709b4c8089272e7624df9c8716
-  languageName: node
-  linkType: hard
-
-"type-fest@npm:^5.8.0":
+"type-fest@npm:^5.2.0, type-fest@npm:^5.8.0":
   version: 5.9.0
   resolution: "type-fest@npm:5.9.0"
   dependencies:
