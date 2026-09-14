@@ -18,6 +18,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import type { CurrentUser, SocialIdentityProvider } from './auth.types';
+import { normalizeCurrentUser } from './normalizeCurrentUser';
 import { managementApi } from '../../shared/api/api-client';
 import { useBootstrapStore } from '../../shared/config/bootstrap.store';
 import { useEnvironmentStore } from '../environment/environment.store';
@@ -25,6 +26,9 @@ import { useEnvironmentStore } from '../environment/environment.store';
 const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
 
 const oidcManagers: Record<string, UserManager> = {};
+
+/** Bumped on logout so in-flight GET /user cannot write the store after sign-out. */
+let sessionEpoch = 0;
 
 function getOrCreateUserManager(provider: SocialIdentityProvider): UserManager {
     if (oidcManagers[provider.id]) return oidcManagers[provider.id];
@@ -68,10 +72,13 @@ interface AuthState {
     loading: boolean;
     initialized: boolean;
     oauthRedirectUrl: string | null;
+    avatarCacheBust: number;
     initialize: () => Promise<void>;
     login: (username: string, password: string) => Promise<void>;
     loginWithProvider: (providerId: string, redirectUrl: string) => Promise<void>;
     logout: () => Promise<void>;
+    refreshCurrentUser: () => Promise<CurrentUser>;
+    applySessionUser: (user: CurrentUser) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -81,6 +88,7 @@ export const useAuthStore = create<AuthState>()(
             loading: false,
             initialized: false,
             oauthRedirectUrl: null,
+            avatarCacheBust: 0,
 
             initialize: async () => {
                 if (get().initialized) return;
@@ -94,13 +102,13 @@ export const useAuthStore = create<AuthState>()(
                     if (provider) {
                         const manager = getOrCreateUserManager(provider);
                         const oidcUser = await manager.signinRedirectCallback();
-                        const user = await managementApi.get<CurrentUser>('/user');
+                        const user = normalizeCurrentUser(await managementApi.get<unknown>('/user'));
                         const redirectUrl = (oidcUser.state as string) ?? '/';
                         set({ user, loading: false, initialized: true, oauthRedirectUrl: redirectUrl });
                         return;
                     }
 
-                    const user = await managementApi.get<CurrentUser>('/user');
+                    const user = normalizeCurrentUser(await managementApi.get<unknown>('/user'));
                     set({ user, loading: false, initialized: true });
                 } catch {
                     set({ user: null, loading: false, initialized: true });
@@ -112,7 +120,7 @@ export const useAuthStore = create<AuthState>()(
                 await managementApi.post<void>('/user/login', undefined, {
                     Authorization: `Basic ${btoa(`${username}:${password}`)}`,
                 });
-                const user = await managementApi.get<CurrentUser>('/user');
+                const user = normalizeCurrentUser(await managementApi.get<unknown>('/user'));
                 set({ user });
                 const config = useBootstrapStore.getState().config!;
                 void useEnvironmentStore.getState().initialize(config.organizationId);
@@ -128,6 +136,7 @@ export const useAuthStore = create<AuthState>()(
             },
 
             logout: async () => {
+                sessionEpoch += 1;
                 await managementApi.post<void>('/user/logout').catch(() => {});
 
                 const providerIdSelected = localStorage.getItem(USER_PROVIDER_ID_SELECTED);
@@ -141,8 +150,25 @@ export const useAuthStore = create<AuthState>()(
 
                 localStorage.removeItem(USER_PROVIDER_ID_SELECTED);
                 localStorage.removeItem('XSRF-TOKEN');
-                set({ user: null });
+                set({ user: null, avatarCacheBust: 0 });
                 useEnvironmentStore.getState().reset();
+            },
+
+            refreshCurrentUser: async () => {
+                const epoch = sessionEpoch;
+                const user = normalizeCurrentUser(await managementApi.get<unknown>('/user'));
+                if (epoch !== sessionEpoch) {
+                    throw new Error('Signed out');
+                }
+                set({ user, avatarCacheBust: Date.now() });
+                return user;
+            },
+
+            applySessionUser: user => {
+                if (get().user === null) {
+                    return;
+                }
+                set({ user, avatarCacheBust: Date.now() });
             },
         }),
         { name: 'auth' },

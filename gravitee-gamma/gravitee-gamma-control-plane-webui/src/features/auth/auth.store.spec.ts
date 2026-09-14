@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 import { waitFor } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 
 import { useAuthStore } from './auth.store';
 import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE, buildUser } from '../../testing/factories';
 import { respondWithError, trackHandler } from '../../testing/helpers';
+import { server } from '../../testing/server';
 import { useEnvironmentStore } from '../environment/environment.store';
 
 describe('authStore', () => {
@@ -72,6 +74,38 @@ describe('authStore', () => {
             expect(envTracker.callCount).toBe(1);
         });
         expect(useEnvironmentStore.getState().environments).toEqual(TEST_ENVIRONMENTS);
+    });
+
+    it('should refresh the current user and bump the avatar cache', async () => {
+        useAuthStore.setState({ user: buildUser(), avatarCacheBust: 1 });
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/user`, buildUser({ displayName: 'Ada Lovelace', firstname: 'Ada' }));
+
+        const user = await useAuthStore.getState().refreshCurrentUser();
+
+        expect(user.displayName).toBe('Ada Lovelace');
+        expect(useAuthStore.getState().user?.displayName).toBe('Ada Lovelace');
+        expect(useAuthStore.getState().avatarCacheBust).toBeGreaterThan(1);
+    });
+
+    it('should not restore the user if refresh finishes after logout', async () => {
+        useAuthStore.setState({ user: buildUser(), initialized: true });
+        let releaseGet: (() => void) | undefined;
+        const gate = new Promise<void>(resolve => {
+            releaseGet = resolve;
+        });
+        server.use(
+            http.get(`${TEST_MANAGEMENT_BASE}/user`, async () => {
+                await gate;
+                return HttpResponse.json(buildUser({ displayName: 'Stale' }));
+            }),
+        );
+
+        const refresh = useAuthStore.getState().refreshCurrentUser();
+        await useAuthStore.getState().logout();
+        releaseGet?.();
+
+        await expect(refresh).rejects.toThrow(/signed out/i);
+        expect(useAuthStore.getState().user).toBeNull();
     });
 
     it('should clear user and reset environment state on logout', async () => {

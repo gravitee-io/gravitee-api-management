@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    AppContextBar,
-    AppLayout,
-    AppSidebar,
-    ContentHeader,
-    LayoutSlotsProvider,
-    TopNavUser,
-    useLayoutSlots,
-} from '@gravitee/graphene-core';
+import { AppContextBar, AppLayout, AppSidebar, ContentHeader, LayoutSlotsProvider, useLayoutSlots } from '@gravitee/graphene-core';
 import { Globe } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Suspense, useCallback, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { ContentSkeleton } from './ContentSkeleton';
-import { useLogout, useUser } from '../../features/auth';
+import { UserMenu } from './UserMenu';
+import { useAvatarCacheBust, useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
-import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
+import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
 import { HOME_ICON, MODULE_ICONS, findModuleProduct, orderByCatalog } from '../../features/modules';
+import { currentUserAvatarUrl } from '../../pages/my-account/myAccount.mapping';
 import { PendingTasksBadge } from '../../pages/tasks';
+import { useBootstrapStore } from '../config/bootstrap.store';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
@@ -88,6 +83,8 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
     const envHrid = useEnvHrid();
     const { pathname } = useLocation();
     const { slots } = useLayoutSlots();
+    const cacheBust = useAvatarCacheBust();
+    const config = useBootstrapStore(s => s.config);
 
     const environments = useEnvironmentStore(s => s.environments);
 
@@ -159,7 +156,17 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                         user ? (
                             <div className="flex items-center gap-3">
                                 <PendingTasksBadge />
-                                <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} />
+                                <UserMenu
+                                    name={user.displayName}
+                                    email={user.email}
+                                    avatarSrc={
+                                        user.id && config
+                                            ? currentUserAvatarUrl(config.managementBaseURL, config.organizationId, user.id, cacheBust)
+                                            : undefined
+                                    }
+                                    onMyAccount={() => navigate(`/environments/${envHrid}/my-account`)}
+                                    onSignOut={handleSignOut}
+                                />
                             </div>
                         ) : undefined
                     }

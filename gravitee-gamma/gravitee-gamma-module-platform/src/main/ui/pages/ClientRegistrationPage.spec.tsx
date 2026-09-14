@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { ClientRegistrationPage } from './ClientRegistrationPage';
 import { useDeleteClientRegistrationProvider } from '../features/client-registration/hooks/useClientRegistrationMutations';

@@ -39,10 +39,15 @@ export const TEST_MANAGEMENT_V2_ORGANIZATION_BASE = `${TEST_CONFIG.managementBas
 
 export function buildUser(overrides: Partial<CurrentUser> = {}): CurrentUser {
     return {
+        id: 'user-1',
         displayName: 'Test User',
         email: 'test@gravitee.io',
         firstname: 'Test',
         lastname: 'User',
+        source: 'gravitee',
+        primaryOwner: false,
+        customFields: {},
+        groupsByEnvironment: {},
         ...overrides,
     };
 }
