@@ -8125,6 +8125,8 @@ components:
                 - UNPUBLISH_AUTHZ_PDP
                 - PUBLISH_AUTHZ_SCHEMA
                 - UNPUBLISH_AUTHZ_SCHEMA
+                - PUBLISH_CREDENTIAL
+                - UNPUBLISH_CREDENTIAL
 
         # Documentation pages
         AccessControl:
