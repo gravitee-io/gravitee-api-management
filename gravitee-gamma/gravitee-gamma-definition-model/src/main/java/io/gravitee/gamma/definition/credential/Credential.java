@@ -36,6 +36,10 @@ import lombok.ToString;
  * {@code api.properties.encryption.secret}, the key both the management API and the gateway
  * already hold, so the secret is never in clear text in the events table. The gateway keeps it
  * encrypted and decrypts only when a request asks for it.
+ *
+ * <p>Once decrypted, the secret is a JSON object of text fields, e.g.
+ * {@code {"clientId": "...", "clientSecret": "..."}}. A lookup returns one field by name; fields that are not
+ * text, such as a list of scopes, cannot be looked up.
  */
 @Data
 @NoArgsConstructor
