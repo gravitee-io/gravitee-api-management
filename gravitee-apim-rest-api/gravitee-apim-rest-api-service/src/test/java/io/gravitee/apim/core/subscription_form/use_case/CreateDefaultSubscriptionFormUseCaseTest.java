@@ -22,6 +22,7 @@ import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormTemplateDomainService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.net.URL;
@@ -48,7 +49,12 @@ class CreateDefaultSubscriptionFormUseCaseTest {
     void setUp() {
         crudService.reset();
         queryService.reset();
-        useCase = new CreateDefaultSubscriptionFormUseCase(crudService, queryService, schemaGenerator);
+        useCase = new CreateDefaultSubscriptionFormUseCase(
+            crudService,
+            queryService,
+            schemaGenerator,
+            new SubscriptionFormTemplateDomainService()
+        );
     }
 
     @Test

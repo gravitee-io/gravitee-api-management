@@ -16,10 +16,12 @@
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
 import io.gravitee.apim.core.subscription_form.use_case.CreateSubscriptionFormUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormTemplateUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.ListSubscriptionFormsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.SubscriptionFormMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateSubscriptionForm;
+import io.gravitee.rest.api.management.v2.rest.model.SubscriptionFormTemplate;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -58,6 +60,9 @@ public class SubscriptionFormsResource extends AbstractResource {
     @Inject
     private CreateSubscriptionFormUseCase createSubscriptionFormUseCase;
 
+    @Inject
+    private GetSubscriptionFormTemplateUseCase getSubscriptionFormTemplateUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
@@ -77,6 +82,15 @@ public class SubscriptionFormsResource extends AbstractResource {
         return Response.created(this.getLocationHeader(output.subscriptionForm().getId().toString()))
             .entity(mapper.toResponse(output.subscriptionForm()))
             .build();
+    }
+
+    @GET
+    @Path("/_template")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
+    public Response getSubscriptionFormTemplate() {
+        var output = getSubscriptionFormTemplateUseCase.execute();
+        return Response.ok(new SubscriptionFormTemplate().gmdContent(output.gmdContent())).build();
     }
 
     @Path("{subscriptionFormId}")

@@ -1446,6 +1446,26 @@ paths:
                 $ref: "#/components/schemas/Error"
         default:
           $ref: "#/components/responses/Error"
+  /subscription-forms/_template:
+    get:
+      tags:
+        - Subscription Forms
+      summary: Get the subscription form template
+      description: |-
+        The Gravitee Markdown definition a new subscription form starts from: the same template the
+        environment default form is seeded with.
+
+        User must have the ENVIRONMENT_METADATA[READ] permission.
+      operationId: getSubscriptionFormTemplate
+      responses:
+        "200":
+          description: The template definition
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubscriptionFormTemplate"
+        default:
+          $ref: "#/components/responses/Error"
   /subscription-forms/{subscriptionFormId}:
     parameters:
       - name: subscriptionFormId
@@ -3334,6 +3354,15 @@ components:
         - gmdContent
         - enabled
         - defaultForm
+    SubscriptionFormTemplate:
+      type: object
+      description: The Gravitee Markdown definition a new subscription form starts from
+      properties:
+        gmdContent:
+          type: string
+          description: Gravitee Markdown (GMD) content of the template
+      required:
+        - gmdContent
     CreateSubscriptionForm:
       type: object
       description: Payload for adding a subscription form to the environment catalog
