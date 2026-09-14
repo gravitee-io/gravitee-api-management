@@ -44,6 +44,7 @@ import {
     API_PROXY_NAV_GROUPS,
     ApiDetailSidebarNav,
     withApiScoreEnabled,
+    withFederatedRestrictions,
     withMetadataPermission,
     withResponseTemplatesPermission,
     withTcpRestrictions,
@@ -56,6 +57,7 @@ import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
 import { hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
+import { isFederatedApi } from '../../utils/federatedApi';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
@@ -280,12 +282,15 @@ export function ApiDetailLayout() {
     });
 
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
-    const navGroups = withResponseTemplatesPermission(
-        withApiScoreEnabled(
-            withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata),
-            apiScoreEnabled,
+    const navGroups = withFederatedRestrictions(
+        withResponseTemplatesPermission(
+            withApiScoreEnabled(
+                withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata),
+                apiScoreEnabled,
+            ),
+            showResponseTemplates,
         ),
-        showResponseTemplates,
+        isFederatedApi(api),
     );
 
     useLayoutConfig(

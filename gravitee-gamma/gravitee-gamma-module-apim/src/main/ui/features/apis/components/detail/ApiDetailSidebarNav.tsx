@@ -172,6 +172,30 @@ export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners
     }));
 }
 
+/** A federated API has no gateway definition, no policy flow and no deployment of its own. */
+const FEDERATED_OMITTED_PATHS = new Set([
+    'overview',
+    'properties',
+    'resources',
+    'cors',
+    'entrypoints',
+    'endpoints',
+    'reporter-settings',
+    'policy-studio',
+    'alerts',
+    'deployment',
+]);
+
+export function withFederatedRestrictions(groups: DetailNavGroup[], isFederated: boolean): DetailNavGroup[] {
+    if (!isFederated) return groups;
+    return groups
+        .map(group => ({
+            ...group,
+            items: group.items.filter(item => !FEDERATED_OMITTED_PATHS.has(item.path)),
+        }))
+        .filter(group => group.items.length > 0);
+}
+
 export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata: boolean): DetailNavGroup[] {
     if (canReadMetadata) return groups;
     return groups.map(group => ({

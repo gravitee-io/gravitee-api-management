@@ -126,6 +126,7 @@ import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
+import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 
 const mockUseEnvironment = useEnvironment as jest.Mock;
@@ -468,6 +469,111 @@ describe('ApiDetailSidebarNav in the detail layout', () => {
 
         for (const role of NAV_ITEM_ROLES) {
             expect(screen.queryAllByRole(role)).toHaveLength(0);
+        }
+    });
+});
+
+// ─── Sidebar navigation — federated APIs ──────────────────────────────────────
+
+// Labels, not paths: the label is what a user sees, and a nav rendering the right hrefs with the wrong rows
+// would still pass a path-based assertion.
+const FEDERATED_HIDDEN_LABELS = [
+    'Overview',
+    'API Properties',
+    'Resources',
+    'CORS',
+    'Entrypoints',
+    'Endpoints',
+    'Reporter Settings',
+    'Policy Studio',
+    'Alerts',
+    'Deployment',
+];
+
+const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Gateway', 'Design', 'Operations'];
+
+const FEDERATED_KEPT_LINKS: [label: string, path: string][] = [
+    ['General', 'general'],
+    ['Notifications', 'notifications'],
+    ['Plans', 'plans'],
+    ['Consumers', 'consumers'],
+    ['Broadcasts', 'broadcasts'],
+    ['User Permissions', 'user-permissions'],
+    ['Audit Logs', 'audit-logs'],
+];
+
+const API_BASE_PATH = '/apis/abc-123';
+
+describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
+    beforeEach(() => {
+        (useApiPermissions as jest.Mock).mockReturnValue({ permissionsReady: true });
+        (useApiScoreEnabled as jest.Mock).mockReturnValue({ enabled: true, isFetched: true });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        (useApiPermissions as jest.Mock).mockReturnValue({ permissionsReady: false });
+        (useApiScoreEnabled as jest.Mock).mockReturnValue({ enabled: true, isFetched: true });
+    });
+
+    function renderSidebarForApiOfDefinitionVersion(definitionVersion: string) {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'My API', definitionVersion },
+            isLoading: false,
+            isError: false,
+        });
+        renderLayout();
+        renderSidebar();
+    }
+
+    function renderSidebarForFederatedApi() {
+        renderSidebarForApiOfDefinitionVersion('FEDERATED');
+    }
+
+    it('drops the sections a federated API has no backing data for, along with the group headings they empty', () => {
+        renderSidebarForFederatedApi();
+
+        for (const label of FEDERATED_HIDDEN_LABELS) {
+            expect(screen.queryByText(label)).not.toBeInTheDocument();
+        }
+        for (const heading of FEDERATED_EMPTIED_GROUP_HEADINGS) {
+            expect(screen.queryByText(heading)).not.toBeInTheDocument();
+        }
+    });
+
+    it('keeps the sections a federated API does have backing data for as navigable links', () => {
+        renderSidebarForFederatedApi();
+
+        for (const [label, path] of FEDERATED_KEPT_LINKS) {
+            expect(screen.getByRole('link', { name: new RegExp(`^${label}$`, 'i') })).toHaveAttribute('href', `${API_BASE_PATH}/${path}`);
+        }
+    });
+
+    it('keeps API Score as a navigable link when the environment has API Score enabled', () => {
+        renderSidebarForFederatedApi();
+
+        expect(screen.getByRole('link', { name: /^api score$/i })).toHaveAttribute('href', `${API_BASE_PATH}/api-score`);
+    });
+
+    it('shows no API Score row of any kind when the environment has API Score disabled', () => {
+        (useApiScoreEnabled as jest.Mock).mockReturnValue({ enabled: false, isFetched: true });
+        renderSidebarForFederatedApi();
+
+        expect(screen.queryByRole('link', { name: /^api score$/i })).not.toBeInTheDocument();
+        expect(screen.queryByText('API Score')).not.toBeInTheDocument();
+    });
+
+    // These are the only cases that state a definition version explicitly — every other sidebar case leaves the
+    // field off entirely — so a federated marker broadened to match any API that names a version, or broadened
+    // to anything-but-'V4', is caught here and nowhere else.
+    it.each(['V4', 'V4_NATIVE'])('keeps every section for a %s API, which is not federated', definitionVersion => {
+        renderSidebarForApiOfDefinitionVersion(definitionVersion);
+
+        for (const label of FEDERATED_HIDDEN_LABELS) {
+            expect(screen.getByText(label)).toBeInTheDocument();
+        }
+        for (const heading of FEDERATED_EMPTIED_GROUP_HEADINGS) {
+            expect(screen.getByText(heading)).toBeInTheDocument();
         }
     });
 });

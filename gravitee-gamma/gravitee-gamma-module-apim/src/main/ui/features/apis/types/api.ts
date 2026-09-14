@@ -352,7 +352,7 @@ export interface ApiDetailDto {
     deploymentState?: ApiDeploymentState;
     type?: ApiType;
     apiVersion?: string;
-    definitionVersion?: 'V4' | 'V4_NATIVE';
+    definitionVersion?: 'V4' | 'V4_NATIVE' | 'FEDERATED';
     lifecycleState?: ApiLifecycleState;
     visibility?: ApiVisibility;
     tags?: string[];

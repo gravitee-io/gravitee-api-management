@@ -21,6 +21,7 @@ import {
     API_PROXY_NAV_GROUPS,
     ApiDetailSidebarNav,
     withApiScoreEnabled,
+    withFederatedRestrictions,
     withMetadataPermission,
     withResponseTemplatesPermission,
     withTcpRestrictions,
@@ -176,6 +177,89 @@ describe('withTcpRestrictions', () => {
     it('keeps Failover and Health Check Dashboard in the Endpoints children for non-TCP APIs', () => {
         const endpoints = GROUPS.find(g => g.label === 'Gateway')!.items.find(i => i.path === 'endpoints')!;
         expect(endpoints.children!.map(c => c.path)).toEqual(['list', 'failover', 'health-check-dashboard']);
+    });
+});
+
+// ─── Federated restrictions ───────────────────────────────────────────────────
+
+// Spelled out here rather than imported from the production set: a test that reads the implementation's own
+// set passes no matter what the set contains.
+const FEDERATED_HIDDEN_PATHS = [
+    'overview',
+    'properties',
+    'resources',
+    'cors',
+    'entrypoints',
+    'endpoints',
+    'reporter-settings',
+    'policy-studio',
+    'alerts',
+    'deployment',
+];
+
+const FEDERATED_KEPT_PATHS = ['general', 'notifications', 'plans', 'consumers', 'broadcasts', 'user-permissions', 'audit-logs'];
+
+// Snapshotted at module load, and by value rather than by reference: API_PROXY_NAV_GROUPS is one structure shared
+// by every call, so a filter that pruned or re-shaped it in place would leave any expected value read later —
+// even one read at the top of a test — already carrying the damage the test is meant to catch.
+const SHIPPED_PATHS = GROUPS.flatMap(group => group.items.map(item => item.path));
+const SHIPPED_API_SCORE_ITEM = { ...GROUPS.find(group => group.label === 'General')!.items.find(item => item.path === 'api-score')! };
+
+describe('withFederatedRestrictions', () => {
+    it('returns the groups unchanged when the API is not federated', () => {
+        expect(withFederatedRestrictions(GROUPS, false)).toBe(GROUPS);
+    });
+
+    it('omits the gateway-definition, policy-flow and deployment items for a federated API', () => {
+        const restricted = withFederatedRestrictions(GROUPS, true);
+        const allPaths = restricted.flatMap(group => group.items.map(item => item.path));
+
+        for (const path of FEDERATED_HIDDEN_PATHS) {
+            expect(allPaths).not.toContain(path);
+        }
+    });
+
+    it('keeps the items a federated API does have backing data for', () => {
+        const restricted = withFederatedRestrictions(GROUPS, true);
+        const allPaths = restricted.flatMap(group => group.items.map(item => item.path));
+
+        for (const path of FEDERATED_KEPT_PATHS) {
+            expect(allPaths).toContain(path);
+        }
+    });
+
+    it('leaves no orphaned child routes behind once their parent items are dropped', () => {
+        const restricted = withFederatedRestrictions(GROUPS, true);
+
+        expect(restricted.flatMap(group => group.items).flatMap(item => item.children ?? [])).toEqual([]);
+    });
+
+    it('keeps API Score exactly as the shipped nav declares it', () => {
+        const restricted = withFederatedRestrictions(GROUPS, true);
+
+        expect(restricted.flatMap(group => group.items).find(item => item.path === 'api-score')).toEqual(SHIPPED_API_SCORE_ITEM);
+    });
+
+    it('removes only the omitted paths, leaving every other shipped item in place', () => {
+        const restricted = withFederatedRestrictions(GROUPS, true);
+
+        expect(restricted.flatMap(group => group.items.map(item => item.path))).toEqual(
+            SHIPPED_PATHS.filter(path => !FEDERATED_HIDDEN_PATHS.includes(path)),
+        );
+    });
+
+    it('keeps exactly the groups that still have items, dropping the ones the omitted items leave empty', () => {
+        const restricted = withFederatedRestrictions(GROUPS, true);
+
+        expect(restricted.map(group => group.label)).toEqual(['General', 'Consumer Access', 'Security', 'Monitoring']);
+    });
+
+    it('leaves the shipped nav intact, so the next natively-managed API still gets every item', () => {
+        // API_PROXY_NAV_GROUPS is one module-level structure shared by every render: a filter that pruned it in
+        // place would strip these items from every API opened after a federated one, for the rest of the session.
+        withFederatedRestrictions(GROUPS, true);
+
+        expect(withFederatedRestrictions(GROUPS, false).flatMap(group => group.items.map(item => item.path))).toEqual(SHIPPED_PATHS);
     });
 });
 
