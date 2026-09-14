@@ -85,11 +85,7 @@ public class RedisRateLimitRepository implements RateLimitRepository<RateLimit> 
                     })
                     .onFailure(t -> {
                         logOperationFailure(t);
-                        // Timeouts are not connection failures; notifying would force unnecessary reconnects
-                        // (RxJava timeout previously sat outside this Vert.x chain and never notified).
-                        if (!(t instanceof RedisOperationTimeoutException)) {
-                            redisClient.notifyConnectionFailure(t);
-                        }
+                        redisClient.notifyConnectionFailure(t);
                     })
                     .onComplete(asyncResultHandler)
         ).map(response -> {
