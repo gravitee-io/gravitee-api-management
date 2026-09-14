@@ -122,7 +122,11 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
             return null;
         }
         Map<String, String> result = new HashMap<>(properties.size());
-        properties.forEach((key, property) -> result.put(key, property.getValue()));
+        properties.forEach((key, property) -> {
+            if (property != null) {
+                result.put(key, property.getValue());
+            }
+        });
         return result;
     }
 
@@ -132,7 +136,7 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         }
         Set<String> result = new HashSet<>();
         properties.forEach((key, property) -> {
-            if (property.isEncrypted()) {
+            if (property != null && property.isEncrypted()) {
                 result.add(key);
             }
         });

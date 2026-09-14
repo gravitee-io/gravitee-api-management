@@ -61,6 +61,7 @@ class DictionaryServiceImpl_FindTest {
         DictionaryEntity result = dictionaryService.findById(GraviteeContext.getExecutionContext(), "dictionary-id");
 
         assertThat(result.getProperties()).containsExactlyEntriesOf(Map.of("valid", "value"));
+        assertThat(result.getEncryptedPropertyKeys()).isEmpty();
     }
 
     @Test

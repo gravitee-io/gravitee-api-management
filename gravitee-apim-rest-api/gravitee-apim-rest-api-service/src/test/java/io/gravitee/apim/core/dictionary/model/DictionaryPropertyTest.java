@@ -15,21 +15,16 @@
  */
 package io.gravitee.apim.core.dictionary.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@ToString(onlyExplicitlyIncluded = true)
-public class DictionaryProperty {
+import org.junit.jupiter.api.Test;
 
-    private String value;
+class DictionaryPropertyTest {
 
-    @ToString.Include
-    private boolean encrypted;
+    @Test
+    void should_redact_the_value_from_to_string() {
+        String result = DictionaryProperty.builder().value("super-secret").encrypted(true).build().toString();
+
+        assertThat(result).doesNotContain("super-secret").contains("encrypted=true");
+    }
 }

@@ -56,10 +56,10 @@ public interface DictionaryMapper {
     Dictionary toDictionary(DictionarySpec spec);
 
     default Map<String, DictionaryProperty> mapManualProperties(DictionarySpec spec) {
-        if (spec.getManual() == null || spec.getManual().getProperties() == null) {
+        if (spec.getManual() == null) {
             return null;
         }
-        Map<String, String> plain = spec.getManual().getProperties();
+        Map<String, String> plain = spec.getManual().getProperties() == null ? Map.of() : spec.getManual().getProperties();
         Map<String, String> encrypted = spec.getManual().getEncryptedProperties();
         if (encrypted != null) {
             for (String key : encrypted.keySet()) {
