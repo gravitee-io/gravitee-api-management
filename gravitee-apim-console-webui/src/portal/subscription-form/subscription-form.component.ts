@@ -22,7 +22,6 @@ import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
 import { catchError, filter, startWith, switchMap, tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,26 +29,17 @@ import { MatInputModule } from '@angular/material/input';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { SubscriptionFormListComponent } from './subscription-form-list/subscription-form-list.component';
+import { MappedApi, SubscriptionFormApisComponent } from './subscription-form-apis/subscription-form-apis.component';
 
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
-import {
-  GioApiSelectDialogComponent,
-  GioApiSelectDialogData,
-  GioApiSelectDialogResult,
-} from '../../shared/components/gio-api-select-dialog/gio-api-select-dialog.component';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { Api, SubscriptionForm } from '../../entities/management-api-v2';
 import { SubscriptionFormService } from '../../services-ngx/subscription-form.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
-
-interface SelectedApi {
-  id: string;
-  name: string;
-}
 
 @Component({
   selector: 'subscription-form',
@@ -58,12 +48,12 @@ interface SelectedApi {
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
-    MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     GioPermissionModule,
     GmdFormEditorComponent,
+    SubscriptionFormApisComponent,
     SubscriptionFormListComponent,
   ],
   templateUrl: './subscription-form.component.html',
@@ -114,7 +104,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   readonly contentControl = new FormControl<string>('', { nonNullable: true });
 
   /** APIs the edited form is dedicated to; the name is the id until the API search resolves it. */
-  readonly selectedApis = signal<SelectedApi[]>([]);
+  readonly selectedApis = signal<MappedApi[]>([]);
 
   private readonly initialName = signal('');
   private readonly initialContent = signal('');
@@ -141,6 +131,23 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
   readonly selectedFormIsDefault = computed(() => this.selectedForm()?.defaultForm ?? false);
+
+  /** The catalog as listed, the edited form counting its APIs as currently selected rather than as last saved. */
+  readonly listedForms = computed<SubscriptionForm[]>(() => {
+    const editedId = this.selectedFormId();
+    const apiIds = this.selectedApis().map(api => api.id);
+    return this.forms().map(form => (form.id === editedId ? { ...form, apiIds } : form));
+  });
+
+  /** Name of the form every API mapped outside the edited form belongs to, by API id. */
+  readonly apisMappedElsewhere = computed<Record<string, string>>(() => {
+    const editedId = this.selectedFormId();
+    return Object.fromEntries(
+      this.forms()
+        .filter(form => form.id !== editedId)
+        .flatMap(form => form.apiIds.map(apiId => [apiId, form.name])),
+    );
+  });
 
   readonly saveButtonLabel = computed(() => (this.isCreating() ? 'Create' : 'Save'));
 
@@ -248,30 +255,15 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
-  addApi(): void {
-    this.matDialog
-      .open<GioApiSelectDialogComponent, GioApiSelectDialogData, GioApiSelectDialogResult>(GioApiSelectDialogComponent, {
-        width: GIO_DIALOG_WIDTH.MEDIUM,
-        data: { title: 'Add an API to this subscription form' },
-        role: 'dialog',
-        id: 'addApiDialog',
-      })
-      .afterClosed()
-      .pipe(
-        filter((api): api is Api => !!api?.id),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe(api => {
-        if (this.selectedApis().some(selected => selected.id === api.id)) return;
-        this.selectedApis.update(apis => [...apis, { id: api.id, name: api.name }]);
-      });
+  toggleApi(api: MappedApi): void {
+    this.selectedApis.update(apis =>
+      apis.some(selected => selected.id === api.id) ? apis.filter(selected => selected.id !== api.id) : [...apis, api],
+    );
   }
 
-  removeApi(apiId: string): void {
-    this.selectedApis.update(apis => apis.filter(api => api.id !== apiId));
-  }
-
-  onEnabledToggle(form: SubscriptionForm): void {
+  onEnabledToggle(listedForm: SubscriptionForm): void {
+    // The list shows the edited form with its unsaved mapping; who loses the form depends on the saved one.
+    const form = this.forms().find(saved => saved.id === listedForm.id) ?? listedForm;
     const enabling = !form.enabled;
     const action = enabling ? 'Show' : 'Hide';
     const data: GioConfirmDialogData = {

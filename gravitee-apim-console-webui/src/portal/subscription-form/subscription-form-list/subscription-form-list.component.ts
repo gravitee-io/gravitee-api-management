@@ -39,7 +39,7 @@ export class SubscriptionFormListComponent {
   readonly selectForm = output<SubscriptionForm>();
   readonly toggleEnabled = output<SubscriptionForm>();
 
-  readonly displayedColumns = ['name', 'apis', 'enabled'];
+  readonly displayedColumns = ['name', 'enabled'];
   readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
 
   private readonly searchTerm = computed(() => this.filters().searchTerm?.trim().toLowerCase() ?? '');
@@ -56,6 +56,11 @@ export class SubscriptionFormListComponent {
     const start = (index - 1) * size;
     return this.filteredForms().slice(start, start + size);
   });
+
+  apiCountLabel(form: SubscriptionForm): string {
+    const count = form.apiIds.length;
+    return `${count} API${count === 1 ? '' : 's'}`;
+  }
 
   onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.filters.set(filters);

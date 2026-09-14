@@ -29,14 +29,9 @@
         <span>{{ form.name }}</span>
         @if (form.defaultForm) {
           <span class="gio-badge-primary default-badge" [attr.data-testid]="'default-badge-' + form.id">Default</span>
+        } @else {
+          <span class="gio-badge-neutral api-count" [attr.data-testid]="'api-count-' + form.id">{{ apiCountLabel(form) }}</span>
         }
-      </td>
-    </ng-container>
-
-    <ng-container matColumnDef="apis">
-      <th mat-header-cell *matHeaderCellDef>APIs</th>
-      <td mat-cell *matCellDef="let form" [attr.data-testid]="'api-count-' + form.id">
-        {{ form.defaultForm ? 'All other APIs' : form.apiIds.length }}
       </td>
     </ng-container>
 

@@ -24,6 +24,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 import { SubscriptionFormComponent } from './subscription-form.component';
 
@@ -89,6 +90,19 @@ describe('SubscriptionFormComponent', () => {
   function expectGet(form: SubscriptionForm): void {
     const req = httpTestingController.expectOne({ method: 'GET', url: `${baseUrl}/${form.id}` });
     req.flush(form);
+    fixture.detectChanges();
+  }
+
+  /** Answers every pending API search: the name lookup of the mapped APIs and the page of the mapping table. */
+  function expectApiSearches(apis: { id: string; name: string; apiVersion?: string }[] = []): void {
+    const known = apis.map(api => ({ apiVersion: '1.0', ...api, definitionVersion: 'V4' }));
+    httpTestingController
+      .match(request => request.method === 'POST' && request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`)
+      .forEach(req => {
+        const ids: string[] | undefined = req.request.body?.ids;
+        const data = ids ? known.filter(api => ids.includes(api.id)) : known;
+        req.flush({ data, pagination: { totalCount: data.length } });
+      });
     fixture.detectChanges();
   }
 
@@ -176,6 +190,8 @@ describe('SubscriptionFormComponent', () => {
       fixture.componentInstance.nameControl.setValue('New Form');
       fixture.detectChanges();
       expect(await saveButton.isDisabled()).toBe(false);
+      // The mapping section of a form under edition loads a page of APIs.
+      expectApiSearches();
     });
 
     it('should keep Save disabled until both name and content are provided when the template is unavailable', async () => {
@@ -201,6 +217,8 @@ describe('SubscriptionFormComponent', () => {
       fixture.componentInstance.contentControl.setValue('New content');
       fixture.detectChanges();
       expect(await saveButton.isDisabled()).toBe(false);
+      // The mapping section of a form under edition loads a page of APIs.
+      expectApiSearches();
     });
 
     it('should create the form, select it and refresh the list', async () => {
@@ -230,6 +248,8 @@ describe('SubscriptionFormComponent', () => {
       expectList([created]);
       expectGet(created);
       expect(fixture.componentInstance.selectedForm()?.id).toBe('new-form');
+      // The mapping section of a form under edition loads a page of APIs.
+      expectApiSearches();
     });
 
     it('should show the backend error when the name is already used', async () => {
@@ -257,6 +277,8 @@ describe('SubscriptionFormComponent', () => {
         );
 
       expect(snackBarService.error).toHaveBeenCalledWith("A subscription form named 'Default' already exists in this environment.");
+      // The mapping section of a form under edition loads a page of APIs.
+      expectApiSearches();
     });
   });
 
@@ -299,6 +321,8 @@ describe('SubscriptionFormComponent', () => {
 
       expectGet(formB);
       expect(fixture.componentInstance.nameControl.value).toBe('Form B');
+      // The mapping section of a form under edition loads a page of APIs.
+      expectApiSearches();
     });
 
     it('should prompt to discard unsaved changes before switching selection', async () => {
@@ -320,6 +344,8 @@ describe('SubscriptionFormComponent', () => {
 
       expectGet(formB);
       expect(fixture.componentInstance.nameControl.value).toBe('Form B');
+      // The mapping section of a form under edition loads a page of APIs.
+      expectApiSearches();
     });
   });
 
@@ -367,10 +393,7 @@ describe('SubscriptionFormComponent', () => {
       const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', enabled: true, defaultForm: false, apiIds: ['api-1', 'api-2'] });
       expectList([form]);
       expectGet(form);
-      httpTestingController
-        .expectOne(request => request.method === 'POST' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`))
-        .flush({ data: [] });
-      fixture.detectChanges();
+      expectApiSearches();
 
       const toggle = await harnessLoader.getHarness(MatSlideToggleHarness.with({ selector: '[data-testid=enable-toggle-form-a]' }));
       await toggle.toggle();
@@ -394,50 +417,83 @@ describe('SubscriptionFormComponent', () => {
     });
   });
 
-  describe('dedicated APIs', () => {
-    function expectApiSearch(ids: string[], apis: { id: string; name: string }[]): void {
-      const req = httpTestingController.expectOne(
-        request => request.method === 'POST' && request.url.startsWith(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`),
-      );
-      expect(req.request.body).toEqual({ ids });
-      req.flush({ data: apis.map(api => ({ ...api, definitionVersion: 'V4' })) });
-      fixture.detectChanges();
+  describe('mapped APIs', () => {
+    const weather = { id: 'api-weather', name: 'Weather API' };
+    const payments = { id: 'api-payments', name: 'Payments API' };
+
+    function checkbox(apiId: string): Promise<MatCheckboxHarness> {
+      return harnessLoader.getHarness(MatCheckboxHarness.with({ selector: `[data-testid=api-checkbox-${apiId}]` }));
     }
 
-    it('should list the APIs a form is dedicated to and resolve their names', async () => {
+    function apiCount(formId: string): string {
+      return fixture.debugElement.query(By.css(`[data-testid=api-count-${formId}]`)).nativeElement.textContent.trim();
+    }
+
+    it('should show the APIs a form is mapped to under the editor, with their names', async () => {
       await init(true);
-      const form = fakeSubscriptionForm({ id: 'form-a', defaultForm: false, apiIds: ['api-1'] });
+      const form = fakeSubscriptionForm({ id: 'form-a', defaultForm: false, apiIds: ['api-weather'] });
       expectList([form]);
       expectGet(form);
-      expectApiSearch(['api-1'], [{ id: 'api-1', name: 'Weather API' }]);
+      expectApiSearches([weather, payments]);
 
-      expect(fixture.debugElement.query(By.css('[data-testid=api-count-form-a]')).nativeElement.textContent.trim()).toBe('1');
-      expect(fixture.debugElement.query(By.css('[data-testid=api-chip-api-1]')).nativeElement.textContent).toContain('Weather API');
+      expect(fixture.debugElement.query(By.css('[data-testid=api-chip-api-weather]')).nativeElement.textContent).toContain('Weather API');
+      expect(await (await checkbox('api-weather')).isChecked()).toBe(true);
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
     });
 
-    it('should send the dedicated APIs on save and consider their change as unsaved', async () => {
+    it('should count a mapping change in the forms list right away, and send it on save', async () => {
       await init(true);
-      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', gmdContent: 'Content', defaultForm: false, apiIds: ['api-1'] });
+      const form = fakeSubscriptionForm({
+        id: 'form-a',
+        name: 'Form A',
+        gmdContent: 'Content',
+        defaultForm: false,
+        apiIds: ['api-weather'],
+      });
       expectList([form]);
       expectGet(form);
-      expectApiSearch(['api-1'], [{ id: 'api-1', name: 'Weather API' }]);
+      expectApiSearches([weather, payments]);
+      expect(apiCount('form-a')).toBe('1 API');
 
-      fixture.componentInstance.removeApi('api-1');
-      fixture.componentInstance.selectedApis.update(apis => [...apis, { id: 'api-2', name: 'Payments API' }]);
+      await (await checkbox('api-payments')).check();
       fixture.detectChanges();
+
+      expect(apiCount('form-a')).toBe('2 APIs');
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
 
       const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
-      expect(await saveButton.isDisabled()).toBe(false);
       await saveButton.click();
 
       const updateReq = httpTestingController.expectOne({ method: 'PUT', url: `${baseUrl}/form-a` });
-      expect(updateReq.request.body).toEqual({ name: 'Form A', gmdContent: 'Content', apiIds: ['api-2'] });
-      const updated = { ...form, apiIds: ['api-2'] };
+      expect(updateReq.request.body).toEqual({ name: 'Form A', gmdContent: 'Content', apiIds: ['api-weather', 'api-payments'] });
+      const updated = { ...form, apiIds: ['api-weather', 'api-payments'] };
       updateReq.flush(updated);
       expectList([updated]);
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
+    });
+
+    it('should not let an API be mapped when another form already has it', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', defaultForm: false, apiIds: [] });
+      const partners = fakeSubscriptionForm({ id: 'form-b', name: 'Partners', defaultForm: false, apiIds: ['api-payments'] });
+      expectList([form, partners]);
+      expectGet(form);
+      expectApiSearches([weather, payments]);
+
+      expect(await (await checkbox('api-payments')).isDisabled()).toBe(true);
+      expect(await (await checkbox('api-weather')).isDisabled()).toBe(false);
+    });
+
+    it('should say that the default form covers every API without a dedicated form instead of mapping APIs', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', defaultForm: true });
+      expectList([form]);
+      expectGet(form);
+
+      expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-apis]'))).toBeFalsy();
+      expect(fixture.debugElement.query(By.css('[data-testid=default-form-apis]')).nativeElement.textContent).toContain(
+        'Used for every API without a dedicated form',
+      );
     });
   });
 });
