@@ -15,7 +15,7 @@
  */
 
 import { Component, Input, OnInit } from '@angular/core';
-import { HighchartsChartModule } from 'highcharts-angular';
+import { HighchartsChartComponent } from 'highcharts-angular';
 import * as Highcharts from 'highcharts';
 import { round } from 'lodash';
 
@@ -48,7 +48,7 @@ export const defineBarColors = (code: string | number) => {
   templateUrl: './gio-chart-bar.component.html',
   styleUrls: ['./gio-chart-bar.component.scss'],
   standalone: true,
-  imports: [HighchartsChartModule],
+  imports: [HighchartsChartComponent],
 })
 export class GioChartBarComponent extends GioChartAbstractComponent implements OnInit {
   @Input()

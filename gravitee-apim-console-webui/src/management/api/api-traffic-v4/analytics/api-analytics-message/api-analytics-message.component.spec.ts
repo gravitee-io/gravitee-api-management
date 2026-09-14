@@ -25,7 +25,7 @@ import { OwlNativeDateTimeModule } from '@danielmoncada/angular-datetime-picker'
 import { ApiAnalyticsMessageComponent } from './api-analytics-message.component';
 import { ApiAnalyticsMessageHarness } from './api-analytics-message.component.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule, provideHighchartsTesting } from '../../../../../shared/testing';
 import { ApiV4, ConnectorPlugin, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeAnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount.fixture';
 import { AnalyticsRequestsCount } from '../../../../../entities/management-api-v2/analytics/analyticsRequestsCount';
@@ -51,6 +51,7 @@ describe('ApiAnalyticsMessageComponent', () => {
     TestBed.configureTestingModule({
       imports: [ApiAnalyticsMessageComponent, OwlNativeDateTimeModule, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
+        provideHighchartsTesting(),
         {
           provide: ActivatedRoute,
           useValue: {

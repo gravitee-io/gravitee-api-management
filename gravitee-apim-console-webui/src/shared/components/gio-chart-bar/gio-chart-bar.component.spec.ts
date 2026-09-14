@@ -22,6 +22,8 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { GioChartBarComponent } from './gio-chart-bar.component';
 import { GioChartBarHarness } from './gio-chart-bar.harness';
 
+import { provideHighchartsTesting } from '../../testing';
+
 describe('GioChartBarComponent', () => {
   let fixture: ComponentFixture<GioChartBarComponent>;
   let loader: HarnessLoader;
@@ -29,7 +31,7 @@ describe('GioChartBarComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioChartBarComponent],
-      providers: [],
+      providers: [provideHighchartsTesting()],
     });
     fixture = TestBed.createComponent(GioChartBarComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);

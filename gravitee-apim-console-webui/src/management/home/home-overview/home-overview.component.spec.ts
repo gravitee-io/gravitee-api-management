@@ -25,7 +25,7 @@ import { HomeOverviewHarness } from './home-overview.harness';
 
 import { HomeModule } from '../home.module';
 import { HomeService } from '../../../services-ngx/home.service';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule, provideHighchartsTesting } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { fakeV4AnalyticsResponseStatus, fakeV4AnalyticsResponseTime } from '../../../entities/analytics/analytics.fixture';
 import { AnalyticsDefinitionVersion } from '../../../entities/analytics/analytics';
@@ -38,7 +38,7 @@ describe('HomeOverviewComponent', () => {
   const init = async (permissions: string[] = ['environment-platform-r']) => {
     await TestBed.configureTestingModule({
       imports: [HomeModule, OwlNativeDateTimeModule, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
-      providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
+      providers: [provideHighchartsTesting(), { provide: GioTestingPermissionProvider, useValue: permissions }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(HomeOverviewComponent);

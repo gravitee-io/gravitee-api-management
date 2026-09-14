@@ -5089,10 +5089,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@highcharts/map-collection@npm:1.1.4":
-  version: 1.1.4
-  resolution: "@highcharts/map-collection@npm:1.1.4"
-  checksum: 10c0/38db56fdb5c2c9085c9ca29e8568ab83d7132035f9855636f9d6833588b59b429734bd95d2ed149aa5765ecae87c1f5000b7b0dc5e38c6720ca8391b25d49973
+"@highcharts/map-collection@npm:2.3.3":
+  version: 2.3.3
+  resolution: "@highcharts/map-collection@npm:2.3.3"
+  checksum: 10c0/ef45ae8920628e408c34be2a01cbeb19567cd2b06415fbdfb9d66798fbf76ddabd5d2d5db7d4787614f707b39b226638a7ffca55f0d075dd93c0d14c9c0f8d23
   languageName: node
   linkType: hard
 
@@ -21278,7 +21278,7 @@ __metadata:
     "@gravitee/ui-particles-angular": "npm:18.0.0"
     "@gravitee/ui-policy-studio-angular": "npm:18.0.0"
     "@gravitee/ui-schematics": "npm:18.0.0"
-    "@highcharts/map-collection": "npm:1.1.4"
+    "@highcharts/map-collection": "npm:2.3.3"
     "@module-federation/enhanced": "npm:2.9.0"
     "@monaco-editor/react": "npm:4.7.0"
     "@ngx-formly/core": "npm:8.0.0"
@@ -21369,8 +21369,8 @@ __metadata:
     eslint-plugin-storybook: "npm:10.6.0"
     eslint-plugin-unused-imports: "npm:4.4.1"
     globals: "npm:17.12.0"
-    highcharts: "npm:9.3.3"
-    highcharts-angular: "npm:3.1.2"
+    highcharts: "npm:13.0.2"
+    highcharts-angular: "npm:5.4.1"
     highlight.js: "npm:11.11.1"
     html-loader: "npm:5.1.0"
     jdenticon: "npm:3.3.0"
@@ -21633,23 +21633,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"highcharts-angular@npm:3.1.2":
-  version: 3.1.2
-  resolution: "highcharts-angular@npm:3.1.2"
+"highcharts-angular@npm:5.4.1":
+  version: 5.4.1
+  resolution: "highcharts-angular@npm:5.4.1"
   dependencies:
     tslib: "npm:^2.0.0"
   peerDependencies:
-    "@angular/common": ">=11.0.0"
-    "@angular/core": ">=11.0.0"
-    highcharts: ">=9.0.0"
-  checksum: 10c0/0f5e1b11ca33500c52016b1eba208bf5a00eb9f5d6b918b221c3540311588fa888abdc531e1a46fff33d3f6f87e2cd5f315fa0c36b14c383017d939eb4d732fe
+    "@angular/common": ">=19.0.0"
+    "@angular/core": ">=19.0.0"
+    highcharts: ">=12.2.0"
+  checksum: 10c0/631186f8407a4a19e809875ea011c253795947fd571a1d66cd219b78f93f0c66f78a26df1af31b416c348e23f6b62a325460cb4fc338ebf35a4ac0e2e412724e
   languageName: node
   linkType: hard
 
-"highcharts@npm:9.3.3":
-  version: 9.3.3
-  resolution: "highcharts@npm:9.3.3"
-  checksum: 10c0/971219d08c782d77bb7eee03ce9f4f6ad2c9ab711e8bfb3cd64de588fd0ffa8126bc165a5b55ecc1729f355172c7c2ba8bf815e2ea10916dc9e13d89303d488a
+"highcharts@npm:13.0.2":
+  version: 13.0.2
+  resolution: "highcharts@npm:13.0.2"
+  peerDependencies:
+    jspdf: ^4.1.0
+    svg2pdf.js: ^2.7.0
+  peerDependenciesMeta:
+    jspdf:
+      optional: true
+    svg2pdf.js:
+      optional: true
+  checksum: 10c0/44209429c54227cfdd98a160199648a5fafb35ea93a59d0143cd270f0c89d45f9e508b92c8606f56cee0a4baa60591873907ee3e57f030627f84db76ab255c77
   languageName: node
   linkType: hard
 

@@ -26,7 +26,7 @@ import { of } from 'rxjs';
 import { ApiAnalyticsNativeHarness } from './api-analytics-native.component.harness';
 import { ApiAnalyticsNativeComponent } from './api-analytics-native.component';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule, provideHighchartsTesting } from '../../../../../shared/testing';
 import { ApiV4, fakeNativeKafkaApiV4, fakePagedResult, fakePlanV4, PlanV4 } from '../../../../../entities/management-api-v2';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
@@ -46,6 +46,7 @@ describe('ApiAnalyticsNativeComponent', () => {
     TestBed.configureTestingModule({
       imports: [ApiAnalyticsNativeComponent, OwlNativeDateTimeModule, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
+        provideHighchartsTesting(),
         {
           provide: ActivatedRoute,
           useValue: {

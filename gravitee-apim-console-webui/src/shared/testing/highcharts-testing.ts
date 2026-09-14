@@ -13,15 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
-import { HighchartsChartComponent } from 'highcharts-angular';
-import { CommonModule } from '@angular/common';
+import { EnvironmentProviders } from '@angular/core';
+import { provideHighcharts } from 'highcharts-angular';
+import * as Highcharts from 'highcharts';
 
-import { GioChartLineComponent } from './gio-chart-line.component';
-
-@NgModule({
-  imports: [HighchartsChartComponent, CommonModule],
-  declarations: [GioChartLineComponent],
-  exports: [GioChartLineComponent],
-})
-export class GioChartLineModule {}
+/**
+ * highcharts-angular 5 reads its Highcharts instance from an environment provider, declared once in
+ * `AppModule`. Specs rendering a `<highcharts-chart>` need the same provider; handing over the
+ * already imported instance also keeps Jest away from the ESM build the library loads by default.
+ */
+export const provideHighchartsTesting = (): EnvironmentProviders => provideHighcharts({ instance: () => Promise.resolve(Highcharts) });

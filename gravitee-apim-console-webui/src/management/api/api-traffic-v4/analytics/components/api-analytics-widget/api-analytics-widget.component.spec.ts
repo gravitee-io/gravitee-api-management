@@ -22,7 +22,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { ApiAnalyticsWidgetComponent, ApiAnalyticsWidgetConfig } from './api-analytics-widget.component';
 import { ApiAnalyticsWidgetHarness } from './api-analytics-widget.harness';
 
-import { GioTestingModule } from '../../../../../../shared/testing';
+import { GioTestingModule, provideHighchartsTesting } from '../../../../../../shared/testing';
 import { GioChartLineData, GioChartLineOptions } from '../../../../../../shared/components/gio-chart-line/gio-chart-line.component';
 import { MultiStatsWidgetData } from '../../../../../../shared/components/analytics-multi-stats/analytics-multi-stats.component';
 
@@ -44,6 +44,7 @@ describe('ApiAnalyticsWidgetComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [GioTestingModule],
+      providers: [provideHighchartsTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestComponent);
