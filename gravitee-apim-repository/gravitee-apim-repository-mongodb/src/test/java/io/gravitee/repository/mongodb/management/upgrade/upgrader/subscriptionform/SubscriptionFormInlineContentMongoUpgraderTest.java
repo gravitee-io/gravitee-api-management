@@ -85,7 +85,12 @@ public class SubscriptionFormInlineContentMongoUpgraderTest extends AbstractMana
     private void givenAFormPointingAt(String formId, String contentId) {
         mongoTemplate
             .getCollection(formsCollection)
-            .insertOne(new Document("_id", formId).append(GMD_CONTENT, null).append(PORTAL_PAGE_CONTENT_ID, contentId));
+            .insertOne(aForm(formId).append(GMD_CONTENT, null).append(PORTAL_PAGE_CONTENT_ID, contentId));
+    }
+
+    // Every form of the collection is scoped to an environment and named, as the unique index on both requires.
+    private static Document aForm(String formId) {
+        return new Document("_id", formId).append("environmentId", "env-" + formId).append("name", formId).append("normalizedName", formId);
     }
 
     private Document findForm(String id) {
@@ -119,7 +124,7 @@ public class SubscriptionFormInlineContentMongoUpgraderTest extends AbstractMana
 
     @Test
     public void upgrade_should_leave_a_form_that_was_never_migrated_untouched() throws Exception {
-        mongoTemplate.getCollection(formsCollection).insertOne(new Document("_id", "form-inline").append(GMD_CONTENT, DEFINITION));
+        mongoTemplate.getCollection(formsCollection).insertOne(aForm("form-inline").append(GMD_CONTENT, DEFINITION));
 
         boolean result = upgrader.upgrade();
 
