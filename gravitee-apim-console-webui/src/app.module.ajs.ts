@@ -289,7 +289,7 @@ require('angular-ui-tree');
 
 require('angular-gridster');
 require('angular-scroll');
-require('diff/dist/diff.min.js');
+require('diff/dist/diff.js');
 require('angular-loading-bar');
 
 // Highcharts

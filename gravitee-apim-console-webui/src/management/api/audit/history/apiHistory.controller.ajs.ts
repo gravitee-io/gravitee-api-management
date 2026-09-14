@@ -27,7 +27,7 @@ import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const copy = require('clipboard-copy');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const JsDiff = require('diff/dist/diff.min.js');
+const JsDiff = require('diff/dist/diff.js');
 
 const propertyProviders = [
   {
