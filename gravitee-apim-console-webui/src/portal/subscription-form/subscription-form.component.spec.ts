@@ -593,6 +593,56 @@ describe('SubscriptionFormComponent', () => {
     });
   });
 
+  describe('delete', () => {
+    it('should delete a form from its row after confirmation, keeping the form under edition', async () => {
+      await init(true);
+      const firstForm = fakeSubscriptionForm({ id: 'form-a', name: 'Form A' });
+      const otherForm = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', apiIds: ['api-1'] });
+      expectList([firstForm, otherForm]);
+      expectGet(firstForm);
+      expectApiSearches();
+
+      await (await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=delete-form-button-form-b]' }))).click();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(await (await dialog.host()).text()).toContain('The API it was dedicated to will have no subscription form.');
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /Delete/ }))).click();
+
+      httpTestingController
+        .expectOne({ method: 'DELETE', url: `${baseUrl}/form-b` })
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form B" has been deleted.');
+      expectList([firstForm]);
+      expect(fixture.componentInstance.selectedForm()?.id).toBe('form-a');
+    });
+
+    it('should select the first remaining form when the deleted form was the one under edition', async () => {
+      await init(true);
+      const firstForm = fakeSubscriptionForm({ id: 'form-a', name: 'Form A' });
+      const otherForm = fakeSubscriptionForm({ id: 'form-b', name: 'Form B' });
+      expectList([firstForm, otherForm]);
+      expectGet(firstForm);
+      expectApiSearches();
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+      expectGet(otherForm);
+      expectApiSearches();
+
+      await (await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=delete-form-button-form-b]' }))).click();
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /Delete/ }))).click();
+      httpTestingController
+        .expectOne({ method: 'DELETE', url: `${baseUrl}/form-b` })
+        .flush(null, { status: 204, statusText: 'No Content' });
+
+      expectList([firstForm]);
+      expectGet(firstForm);
+      expectApiSearches();
+      expect(fixture.componentInstance.selectedForm()?.id).toBe('form-a');
+    });
+  });
+
   describe('mapped APIs', () => {
     const weather = { id: 'api-weather', name: 'Weather API' };
     const payments = { id: 'api-payments', name: 'Payments API' };
