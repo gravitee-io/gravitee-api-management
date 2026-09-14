@@ -4668,9 +4668,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-charts@npm:3.19.0":
-  version: 3.19.0
-  resolution: "@gravitee/graphene-charts@npm:3.19.0"
+"@gravitee/graphene-charts@npm:3.20.0":
+  version: 3.20.0
+  resolution: "@gravitee/graphene-charts@npm:3.20.0"
   dependencies:
     "@dagrejs/dagre": "npm:3.0.0"
     d3-array: "npm:3.2.4"
@@ -4690,7 +4690,7 @@ __metadata:
       optional: true
     tailwindcss:
       optional: true
-  checksum: 10c0/18961ac65b3af1ed98083e466b5e1d1e81cd660a27d2e03c415428397155b987b93a4bedbc3fb43fd8fc1903d0b6803498bcd678c591879023fc6115574abd40
+  checksum: 10c0/df1ae45f71ff263f7a7bd5b939d322ab03d2a2ac9c5bd3faaeaed4e372053b4fa7e0a45f1e6dca2c7dd87d05d9068027c7fd307cadda14c03d374093daded6ce
   languageName: node
   linkType: hard
 
@@ -4771,9 +4771,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-policy-studio@npm:3.19.0":
-  version: 3.19.0
-  resolution: "@gravitee/graphene-policy-studio@npm:3.19.0"
+"@gravitee/graphene-policy-studio@npm:3.20.0":
+  version: 3.20.0
+  resolution: "@gravitee/graphene-policy-studio@npm:3.20.0"
   dependencies:
     "@asciidoctor/core": "npm:3.0.4"
     "@dnd-kit/core": "npm:6.3.1"
@@ -4796,7 +4796,7 @@ __metadata:
   peerDependenciesMeta:
     tailwindcss:
       optional: true
-  checksum: 10c0/8bf204e7e044e6226be881bd1af9efd66f3a8630f016dbdc5d2817b74adfef67c55527e6aed399c212d9450af6325af6dc6e07b608dc622a2a8d22e64f109de0
+  checksum: 10c0/9daf912e589783eb5339c67225be329ca194f21ebb76570a63521b3a772efdce681640776fb2b1586cde85fccbc175f208eb1a0320485673229f07ce1ad9bd39
   languageName: node
   linkType: hard
 
@@ -21903,9 +21903,9 @@ __metadata:
     "@fontsource/roboto": "npm:5.2.5"
     "@gravitee/gamma-lib-observability": "npm:3.3.0-beta.5"
     "@gravitee/gamma-modules-sdk": "npm:1.2.0"
-    "@gravitee/graphene-charts": "npm:3.19.0"
+    "@gravitee/graphene-charts": "npm:3.20.0"
     "@gravitee/graphene-core": "npm:3.20.0"
-    "@gravitee/graphene-policy-studio": "npm:3.19.0"
+    "@gravitee/graphene-policy-studio": "npm:3.20.0"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.5.2"
     "@gravitee/ui-particles-angular": "npm:17.8.0"
