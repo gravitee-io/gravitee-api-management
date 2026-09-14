@@ -109,7 +109,7 @@ class ScheduledPerformanceTargetEvaluationServiceTest {
     @Test
     void should_evaluate_the_due_targets_with_the_configured_schedule() {
         givenPrimaryNode(true);
-        when(useCase.execute(any())).thenReturn(new EvaluateDuePerformanceTargetsUseCase.Output(3, List.of()));
+        when(useCase.execute(any())).thenReturn(new EvaluateDuePerformanceTargetsUseCase.Output(3, List.of(), List.of()));
 
         service.run();
 

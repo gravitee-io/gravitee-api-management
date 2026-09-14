@@ -19,21 +19,27 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetCrudService;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetEvaluationCrudService;
 import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetTransitionDomainService;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetEvaluatedTooRecentlyException;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetNotificationPolicy;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetRuleTransition;
 import io.gravitee.apim.core.performance_target.query_service.PerformanceTargetEvaluationQueryService;
 import io.gravitee.apim.core.performance_target.service_provider.PerformanceTargetEvaluator;
+import io.gravitee.apim.core.performance_target.service_provider.PerformanceTargetTransitionPublisher;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Duration;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 /**
  * Evaluates a target on demand and stores the result as its latest evaluation, through the same evaluator as the
  * scheduler, then prunes the history beyond {@link PerformanceTargetEvaluation#HISTORY_RETENTION}. A target is
  * evaluated at most once per {@link #MIN_DELAY_BETWEEN_EVALUATIONS}, whoever triggered the previous run, so a UI
- * refresh cannot turn into a query storm.
+ * refresh cannot turn into a query storm. The rules whose verdict changed with this evaluation are published for
+ * the owners to be told, as the scheduler does.
  */
 @RequiredArgsConstructor
 @UseCase
@@ -46,14 +52,19 @@ public class EvaluatePerformanceTargetUseCase {
     private final PerformanceTargetEvaluationCrudService performanceTargetEvaluationCrudService;
     private final PerformanceTargetEvaluator performanceTargetEvaluator;
     private final PerformanceTargetScheduleStateDomainService scheduleState;
+    private final PerformanceTargetTransitionDomainService transitions;
+    private final PerformanceTargetTransitionPublisher transitionPublisher;
+    private final PerformanceTargetNotificationPolicy notificationPolicy;
 
     public Output execute(Input input) {
         var target = performanceTargetCrudService.get(input.environmentId(), input.targetId());
 
         var now = TimeProvider.instantNow();
-        performanceTargetEvaluationQueryService
-            .findByTargetId(target.id(), new PageableImpl(1, 1))
-            .getContent()
+        // As deep as a transition needs to look back: the latest evaluation, which also guards the rate, comes first.
+        var history = performanceTargetEvaluationQueryService
+            .findByTargetId(target.id(), new PageableImpl(1, notificationPolicy.notEvaluableAfter()))
+            .getContent();
+        history
             .stream()
             .findFirst()
             .map(latest -> Duration.between(now, latest.evaluatedAt().plus(MIN_DELAY_BETWEEN_EVALUATIONS)))
@@ -67,10 +78,17 @@ public class EvaluatePerformanceTargetUseCase {
         performanceTargetEvaluationCrudService.pruneHistory(target.id(), PerformanceTargetEvaluation.HISTORY_RETENTION);
         // The scheduler judges a backoff on the latest evaluations it knows of; this one counts as much as its own.
         scheduleState.record(target.id(), stored);
-        return new Output(stored);
+        var changed = transitions.detect(target, stored, history, notificationPolicy);
+        if (!changed.isEmpty()) {
+            transitionPublisher.publish(changed);
+        }
+        return new Output(stored, changed);
     }
 
     public record Input(String environmentId, String targetId) {}
 
-    public record Output(PerformanceTargetEvaluation evaluation) {}
+    /**
+     * @param transitions the rules whose verdict changed with this evaluation
+     */
+    public record Output(PerformanceTargetEvaluation evaluation, List<PerformanceTargetRuleTransition> transitions) {}
 }

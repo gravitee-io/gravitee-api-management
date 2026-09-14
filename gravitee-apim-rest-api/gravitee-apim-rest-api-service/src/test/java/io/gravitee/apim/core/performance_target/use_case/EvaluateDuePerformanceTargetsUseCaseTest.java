@@ -24,9 +24,13 @@ import inmemory.PerformanceTargetEvaluationCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationQueryServiceInMemory;
 import inmemory.PerformanceTargetEvaluatorInMemory;
 import inmemory.PerformanceTargetQueryServiceInMemory;
+import inmemory.PerformanceTargetTransitionPublisherInMemory;
 import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetTransitionDomainService;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetNotificationPolicy;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetRuleTransition;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetSchedule;
 import io.gravitee.common.utils.TimeProvider;
 import java.time.Clock;
@@ -56,6 +60,8 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
     );
     PerformanceTargetEvaluatorInMemory evaluator = new PerformanceTargetEvaluatorInMemory();
     PerformanceTargetScheduleStateDomainService scheduleState = new PerformanceTargetScheduleStateDomainService();
+    PerformanceTargetTransitionPublisherInMemory transitionPublisher = new PerformanceTargetTransitionPublisherInMemory();
+    PerformanceTargetNotificationPolicy notificationPolicy = new PerformanceTargetNotificationPolicy(3);
 
     EvaluateDuePerformanceTargetsUseCase useCase = newUseCase(evaluator, scheduleState);
 
@@ -63,6 +69,102 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
     void tearDown() {
         TimeProvider.reset();
         Stream.of(targetCrudService, evaluationCrudService).forEach(InMemoryAlternative::reset);
+        transitionPublisher.reset();
+    }
+
+    @Test
+    void should_publish_the_rules_that_changed_verdict_in_the_tick_as_one_run() {
+        var a = aTarget("a");
+        var b = aTarget("b");
+        targetCrudService.initWith(List.of(a, b));
+        evaluationCrudService.initWith(
+            List.of(
+                PerformanceTargetFixtures.anEvaluation("old-a", "a", PerformanceTargetEvaluation.Status.PASS, T0),
+                PerformanceTargetFixtures.anEvaluation("old-b", "b", PerformanceTargetEvaluation.Status.PASS, T0)
+            )
+        );
+        evaluator.status(PerformanceTargetEvaluation.Status.BREACH);
+
+        // every tick of the slot after the stored evaluations: each target becomes due at its own phase
+        var outputs = IntStream.rangeClosed(0, (int) INTERVAL.dividedBy(TICK))
+            .mapToObj(i -> tick(T0.plus(INTERVAL).plus(TICK.multipliedBy(i))))
+            .filter(output -> !output.transitions().isEmpty())
+            .toList();
+
+        assertThat(outputs)
+            .flatExtracting(EvaluateDuePerformanceTargetsUseCase.Output::transitions)
+            .extracting(t -> t.target().id(), PerformanceTargetRuleTransition::kind)
+            .containsExactlyInAnyOrder(
+                org.assertj.core.groups.Tuple.tuple("a", PerformanceTargetRuleTransition.Kind.RULE_MISSED),
+                org.assertj.core.groups.Tuple.tuple("b", PerformanceTargetRuleTransition.Kind.RULE_MISSED)
+            );
+        assertThat(transitionPublisher.runs()).containsExactlyElementsOf(
+            outputs.stream().map(EvaluateDuePerformanceTargetsUseCase.Output::transitions).toList()
+        );
+    }
+
+    @Test
+    void should_publish_nothing_for_targets_evaluated_for_the_first_time_or_whose_verdict_stands() {
+        var steady = aTarget("steady");
+        targetCrudService.initWith(List.of(aTarget("fresh"), steady));
+        evaluationCrudService.initWith(
+            List.of(PerformanceTargetFixtures.anEvaluation("old", "steady", PerformanceTargetEvaluation.Status.PASS, T0))
+        );
+
+        var output = tick(slotBoundaryAfter(steady, T0.plus(INTERVAL)));
+
+        assertThat(output.evaluations()).hasSize(2);
+        assertThat(output.transitions()).isEmpty();
+        assertThat(transitionPublisher.runs()).isEmpty();
+    }
+
+    @Test
+    void should_report_a_slot_once_when_two_nodes_store_it() {
+        var target = aTarget("a");
+        targetCrudService.initWith(List.of(target));
+        evaluationCrudService.initWith(
+            List.of(PerformanceTargetFixtures.anEvaluation("old", "a", PerformanceTargetEvaluation.Status.PASS, T0))
+        );
+        evaluator.status(PerformanceTargetEvaluation.Status.BREACH);
+        var boundary = slotBoundaryAfter(target, T0.plus(INTERVAL));
+        var otherNode = newUseCase(evaluator);
+
+        var first = useCase.execute(input(boundary));
+        var second = otherNode.execute(input(boundary.plusSeconds(1)));
+
+        assertThat(first.transitions())
+            .extracting(PerformanceTargetRuleTransition::kind)
+            .containsExactly(PerformanceTargetRuleTransition.Kind.RULE_MISSED);
+        assertThat(second.transitions()).isEmpty();
+        assertThat(transitionPublisher.runs()).hasSize(1);
+    }
+
+    @Test
+    void should_read_the_history_behind_a_not_evaluable_latest_evaluation_to_report_it_once() {
+        var target = aTarget("a");
+        targetCrudService.initWith(List.of(target));
+        evaluationCrudService.initWith(
+            List.of(
+                PerformanceTargetFixtures.anEvaluation("pass", "a", PerformanceTargetEvaluation.Status.PASS, T0),
+                PerformanceTargetFixtures.anEvaluation("ne-1", "a", PerformanceTargetEvaluation.Status.NOT_EVALUABLE, T0.plus(INTERVAL)),
+                PerformanceTargetFixtures.anEvaluation(
+                    "ne-2",
+                    "a",
+                    PerformanceTargetEvaluation.Status.NOT_EVALUABLE,
+                    T0.plus(INTERVAL.multipliedBy(2))
+                )
+            )
+        );
+        evaluator.status(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+
+        var thirdAt = slotBoundaryAfter(target, T0.plus(INTERVAL.multipliedBy(3)));
+        var third = tick(thirdAt);
+        var fourth = tick(dueInSlotAfter(target, thirdAt));
+
+        assertThat(third.transitions())
+            .extracting(PerformanceTargetRuleTransition::kind)
+            .containsExactly(PerformanceTargetRuleTransition.Kind.RULE_NOT_EVALUABLE);
+        assertThat(fourth.transitions()).isEmpty();
     }
 
     @Test
@@ -345,7 +447,10 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
             evaluationQueryService,
             evaluationCrudService,
             evaluator,
-            scheduleState
+            scheduleState,
+            new PerformanceTargetTransitionDomainService(),
+            transitionPublisher,
+            notificationPolicy
         );
         var clicked = lastScheduled.plus(INTERVAL.multipliedBy(2)).plusSeconds(30);
         input(clicked);
@@ -403,7 +508,10 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
             evaluationQueryService,
             evaluationCrudService,
             evaluator,
-            new PerformanceTargetScheduleStateDomainService()
+            new PerformanceTargetScheduleStateDomainService(),
+            new PerformanceTargetTransitionDomainService(),
+            transitionPublisher,
+            notificationPolicy
         );
         var clicked = lastScheduled.plus(INTERVAL.multipliedBy(2)).plusSeconds(30);
         input(clicked);
@@ -446,7 +554,10 @@ class EvaluateDuePerformanceTargetsUseCaseTest {
             evaluationQueryService,
             evaluationCrudService,
             evaluator,
-            scheduleState
+            scheduleState,
+            new PerformanceTargetTransitionDomainService(),
+            transitionPublisher,
+            notificationPolicy
         );
     }
 

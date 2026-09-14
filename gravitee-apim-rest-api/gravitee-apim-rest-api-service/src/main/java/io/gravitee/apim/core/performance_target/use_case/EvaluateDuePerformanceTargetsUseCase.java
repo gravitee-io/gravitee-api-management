@@ -25,12 +25,16 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.performance_target.crud_service.PerformanceTargetEvaluationCrudService;
 import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
 import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService.State;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetTransitionDomainService;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetNotificationPolicy;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetRuleTransition;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetSchedule;
 import io.gravitee.apim.core.performance_target.query_service.PerformanceTargetEvaluationQueryService;
 import io.gravitee.apim.core.performance_target.query_service.PerformanceTargetQueryService;
 import io.gravitee.apim.core.performance_target.service_provider.PerformanceTargetEvaluator;
+import io.gravitee.apim.core.performance_target.service_provider.PerformanceTargetTransitionPublisher;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -52,6 +56,10 @@ import lombok.RequiredArgsConstructor;
  * once. Every tick then reconciles that memory with the store, one query per environment, so an on-demand evaluation
  * or an update served by another node counts here too. A target the evaluator leaves out is still counted as
  * attempted: it is retried at its next slot, not at every tick.
+ *
+ * <p>The rules whose verdict changed are detected on the evaluations this node stored, against the history read from
+ * the store, and published once per tick: the node that stores a slot's evaluation is the one that reports it, so two
+ * nodes evaluating the same slot report it once.
  */
 @RequiredArgsConstructor
 @UseCase
@@ -62,6 +70,9 @@ public class EvaluateDuePerformanceTargetsUseCase {
     private final PerformanceTargetEvaluationCrudService performanceTargetEvaluationCrudService;
     private final PerformanceTargetEvaluator performanceTargetEvaluator;
     private final PerformanceTargetScheduleStateDomainService scheduleState;
+    private final PerformanceTargetTransitionDomainService transitions;
+    private final PerformanceTargetTransitionPublisher transitionPublisher;
+    private final PerformanceTargetNotificationPolicy notificationPolicy;
 
     public Output execute(Input input) {
         var schedule = input.schedule();
@@ -79,7 +90,7 @@ public class EvaluateDuePerformanceTargetsUseCase {
             })
             .toList();
         if (due.isEmpty()) {
-            return new Output(targets.size(), List.of());
+            return new Output(targets.size(), List.of(), List.of());
         }
 
         var evaluationsByTarget = performanceTargetEvaluator
@@ -87,6 +98,7 @@ public class EvaluateDuePerformanceTargetsUseCase {
             .stream()
             .collect(toMap(PerformanceTargetEvaluation::targetId, identity()));
         var stored = new ArrayList<PerformanceTargetEvaluation>();
+        var changed = new ArrayList<PerformanceTargetRuleTransition>();
         for (var target : due) {
             var previous = scheduleState.current(target.id()).orElse(State.FRESH);
             var evaluation = evaluationsByTarget.get(target.id());
@@ -96,15 +108,42 @@ public class EvaluateDuePerformanceTargetsUseCase {
             }
             var slotStart = schedule.slotStart(target, previous.consecutiveNotEvaluable(), now);
             var latest = evaluation.toBuilder().id(evaluationId(target, slotStart)).latest(true).build();
+            var history = historyOf(target, storedLatest.get(target.id()));
             performanceTargetEvaluationCrudService
                 .createIfAbsent(latest)
                 .ifPresent(created -> {
                     performanceTargetEvaluationCrudService.pruneHistory(target.id(), schedule.retention());
                     stored.add(created);
+                    changed.addAll(transitions.detect(target, created, history, notificationPolicy));
                 });
             scheduleState.record(target.id(), latest);
         }
-        return new Output(targets.size(), stored);
+        if (!changed.isEmpty()) {
+            transitionPublisher.publish(changed);
+        }
+        return new Output(targets.size(), stored, changed);
+    }
+
+    /**
+     * What a transition of the target's rules is judged against: its latest stored evaluation is enough when every
+     * rule in it could be evaluated; a not-evaluable rule needs the last {@code notEvaluableAfter} evaluations, to tell
+     * a pending empty window from a state already reported. A target without a stored latest evaluation has no
+     * history to read.
+     */
+    private List<PerformanceTargetEvaluation> historyOf(PerformanceTarget target, PerformanceTargetEvaluation storedLatest) {
+        if (storedLatest == null) {
+            return List.of();
+        }
+        var notEvaluable = storedLatest
+            .rules()
+            .stream()
+            .anyMatch(rule -> rule.status() == PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+        if (!notEvaluable || notificationPolicy.notEvaluableAfter() == 1) {
+            return List.of(storedLatest);
+        }
+        return performanceTargetEvaluationQueryService
+            .findByTargetId(target.id(), new PageableImpl(1, notificationPolicy.notEvaluableAfter()))
+            .getContent();
     }
 
     /**
@@ -155,6 +194,7 @@ public class EvaluateDuePerformanceTargetsUseCase {
     /**
      * @param targets     how many targets exist, due or not
      * @param evaluations the evaluations stored by this tick
+     * @param transitions the rules whose verdict changed with the evaluations stored by this tick
      */
-    public record Output(int targets, List<PerformanceTargetEvaluation> evaluations) {}
+    public record Output(int targets, List<PerformanceTargetEvaluation> evaluations, List<PerformanceTargetRuleTransition> transitions) {}
 }
