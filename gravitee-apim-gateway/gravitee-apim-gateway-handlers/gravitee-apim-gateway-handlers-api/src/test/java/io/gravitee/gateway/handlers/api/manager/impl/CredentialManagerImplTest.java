@@ -24,6 +24,10 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.handlers.api.manager.DeployedCredential;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -175,6 +179,42 @@ class CredentialManagerImplTest {
             manager.undeploy("env-1", "unknown");
 
             assertThat(manager.get("env-1", "unknown")).isEmpty();
+        }
+    }
+
+    @Nested
+    class ConcurrencyTest {
+
+        @Test
+        void should_not_lose_a_deployed_credential_while_another_one_in_the_same_environment_is_undeployed() throws Exception {
+            ExecutorService executor = Executors.newFixedThreadPool(2);
+            try {
+                for (int round = 0; round < 50_000; round++) {
+                    String undeployed = "undeployed-" + round;
+                    String deployed = "deployed-" + round;
+                    manager.deploy(credential(undeployed, "env-1", "secret", 1L));
+                    CountDownLatch start = new CountDownLatch(1);
+
+                    Future<?> undeploy = executor.submit(() -> {
+                        start.await();
+                        manager.undeploy("env-1", undeployed);
+                        return null;
+                    });
+                    Future<?> deploy = executor.submit(() -> {
+                        start.await();
+                        manager.deploy(credential(deployed, "env-1", "secret", 1L));
+                        return null;
+                    });
+                    start.countDown();
+                    undeploy.get();
+                    deploy.get();
+
+                    assertThat(manager.get("env-1", deployed)).as("round %d", round).isPresent();
+                    manager.undeploy("env-1", deployed);
+                }
+            } finally {
+                executor.shutdownNow();
+            }
         }
     }
 

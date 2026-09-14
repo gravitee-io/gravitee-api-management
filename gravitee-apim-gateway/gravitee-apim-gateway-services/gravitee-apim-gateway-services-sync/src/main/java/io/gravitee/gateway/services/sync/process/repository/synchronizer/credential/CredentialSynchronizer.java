@@ -28,6 +28,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.Set;
@@ -107,9 +108,16 @@ public class CredentialSynchronizer implements RepositorySynchronizer {
     }
 
     private Flowable<CredentialDeployable> prepareForDeployment(final Flowable<Event> eventsByType) {
-        return eventsByType
-            .flatMapMaybe(credentialMapper::toDeploy)
-            .map(deployable -> deployable.organizationId(environmentService.organizationIdOf(deployable.environmentId())));
+        return eventsByType.flatMapMaybe(credentialMapper::toDeploy).flatMapMaybe(this::withOrganization);
+    }
+
+    private Maybe<CredentialDeployable> withOrganization(final CredentialDeployable deployable) {
+        String organizationId = environmentService.organizationIdOf(deployable.environmentId());
+        if (organizationId == null) {
+            log.warn("Skipping credential [{}]: its environment [{}] could not be found", deployable.id(), deployable.environmentId());
+            return Maybe.empty();
+        }
+        return Maybe.just(deployable.organizationId(organizationId));
     }
 
     private Flowable<CredentialDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {

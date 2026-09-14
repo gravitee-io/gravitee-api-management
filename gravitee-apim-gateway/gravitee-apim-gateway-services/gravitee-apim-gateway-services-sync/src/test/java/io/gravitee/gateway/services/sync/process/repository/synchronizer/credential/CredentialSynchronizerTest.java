@@ -171,6 +171,25 @@ class CredentialSynchronizerTest {
         verify(deployer, times(2)).deploy(any());
     }
 
+    @Test
+    void should_skip_a_credential_whose_environment_cannot_be_found() throws InterruptedException {
+        when(environmentService.organizationIdOf("env-unknown")).thenReturn(null);
+        Event unknownEnvironment = event(
+            "evt-unknown",
+            EventType.PUBLISH_CREDENTIAL,
+            "{\"id\":\"credential-unknown\",\"environmentId\":\"env-unknown\",\"encryptedSecret\":\"ciphertext\"}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(
+            Flowable.just(List.of(unknownEnvironment, publishEvent("credential-1")))
+        );
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1", "env-unknown")).test().await().assertComplete();
+
+        ArgumentCaptor<CredentialDeployable> captor = ArgumentCaptor.forClass(CredentialDeployable.class);
+        verify(deployer, times(1)).deploy(captor.capture());
+        assertThat(captor.getValue().id()).isEqualTo("credential-1");
+    }
+
     private static Event publishEvent(String credentialId) {
         return event(
             "evt-" + credentialId,

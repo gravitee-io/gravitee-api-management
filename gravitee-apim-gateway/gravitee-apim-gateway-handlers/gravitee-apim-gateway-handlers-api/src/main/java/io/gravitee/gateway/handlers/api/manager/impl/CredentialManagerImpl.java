@@ -47,9 +47,15 @@ public class CredentialManagerImpl implements CredentialManager {
             return;
         }
 
-        credentialsByEnvironment
-            .computeIfAbsent(credential.environmentId(), environmentId -> new ConcurrentHashMap<>())
-            .merge(credential.id(), credential, (existing, incoming) -> incoming.updatedAt() >= existing.updatedAt() ? incoming : existing);
+        // One atomic step per environment: remove() drops an environment's map once it is empty, so creating the map and
+        // writing into it separately could write into a map that has just been dropped.
+        credentialsByEnvironment.compute(credential.environmentId(), (environmentId, credentials) -> {
+            Map<String, DeployedCredential> environmentCredentials = credentials != null ? credentials : new ConcurrentHashMap<>();
+            environmentCredentials.merge(credential.id(), credential, (existing, incoming) ->
+                incoming.updatedAt() >= existing.updatedAt() ? incoming : existing
+            );
+            return environmentCredentials;
+        });
         log.debug("Credential [{}] deployed in environment [{}]", credential.id(), credential.environmentId());
     }
 
