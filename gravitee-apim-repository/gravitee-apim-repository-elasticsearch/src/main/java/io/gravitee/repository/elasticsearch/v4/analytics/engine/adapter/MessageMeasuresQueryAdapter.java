@@ -59,13 +59,21 @@ public class MessageMeasuresQueryAdapter {
     private final BoolQueryAdapter queryAdapter = new BoolQueryAdapter(filterAdapter);
 
     public String adapt(MeasuresQuery query, Set<String> requestIDs) {
-        return json(query, requestIDs).toString();
-    }
-
-    private JsonObject json(MeasuresQuery query, Set<String> requestIDs) {
         var boolQuery = queryAdapter.messageFilter(query);
         MessageFacetsQueryAdapter.MessageRequestIdFilter.restrictTo(boolQuery, requestIDs);
+        return json(query, boolQuery).toString();
+    }
 
+    /**
+     * Without the connection join: every filter of the query reads a field the message documents
+     * carry, so there is no request-id set to narrow by. Distinct from passing an empty set, which
+     * says the join ran and matched nothing.
+     */
+    public String adapt(MeasuresQuery query) {
+        return json(query, queryAdapter.messageFilter(query)).toString();
+    }
+
+    private JsonObject json(MeasuresQuery query, JsonObject boolQuery) {
         return new JsonObject().put("size", 0).put("query", JsonObject.of("bool", boolQuery)).put("aggs", adaptMetrics(query.metrics()));
     }
 
