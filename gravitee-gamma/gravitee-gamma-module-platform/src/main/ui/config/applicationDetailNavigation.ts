@@ -31,25 +31,34 @@ export interface ApplicationDetailNavGroup {
     items: ApplicationDetailNavItem[];
 }
 
-/** Single source of truth for application detail sidebar labels, paths, and nested routes. */
+/**
+ * Single source of truth for application detail sidebar labels, paths, and nested routes.
+ *
+ * An Application is not an API object, so it does not carry the canonical API-detail groups (Design,
+ * Consumers, Operations mean nothing here) — but it follows the same vocabulary (FOUND-304): the
+ * entity's own settings page is `Settings`, `User Permissions` lives in `General` rather than in a
+ * `Security` group of its own, and no group is named after its only item.
+ *
+ * `Access` rather than `Consumers` for the subscriptions: an application *is* a consumer, so its
+ * subscriptions are what it reaches, not who reaches it.
+ */
 export const APPLICATION_NAV_GROUPS: ApplicationDetailNavGroup[] = [
     {
         label: 'General',
         items: [
             { path: 'overview', label: 'Overview', icon: LayoutDashboardIcon, permissions: ['application-definition-r'] },
-            { path: 'general', label: 'General', icon: SlidersHorizontalIcon, permissions: ['application-definition-r'] },
+            { path: 'general', label: 'Settings', icon: SlidersHorizontalIcon, permissions: ['application-definition-r'] },
+            { path: 'user-permissions', label: 'User Permissions', icon: ShieldCheckIcon, permissions: ['application-member-r'] },
         ],
     },
     {
-        label: 'Security',
-        items: [{ path: 'user-permissions', label: 'User Permissions', icon: ShieldCheckIcon, permissions: ['application-member-r'] }],
-    },
-    {
-        label: 'Subscriptions',
+        label: 'Access',
         items: [{ path: 'subscriptions', label: 'Subscriptions', icon: PlugIcon, permissions: ['application-subscription-r'] }],
     },
     {
-        label: 'Settings',
+        // A notification is what the application reports to you, not a setting you tune — same place
+        // as on every API detail page.
+        label: 'Monitoring',
         items: [
             {
                 path: 'notifications',
