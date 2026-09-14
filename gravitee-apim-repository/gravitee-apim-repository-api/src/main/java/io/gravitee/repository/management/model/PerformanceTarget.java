@@ -54,7 +54,15 @@ public final class PerformanceTarget {
     private Date createdAt;
     private Date updatedAt;
 
-    public record Rule(String metric, String measure, String operator, double threshold, List<String> apiTypes, List<Filter> filters) {}
+    public record Rule(
+        String id,
+        String metric,
+        String measure,
+        String operator,
+        double threshold,
+        List<String> apiTypes,
+        List<Filter> filters
+    ) {}
 
     public record Filter(String name, String operator, Object value) {}
 }

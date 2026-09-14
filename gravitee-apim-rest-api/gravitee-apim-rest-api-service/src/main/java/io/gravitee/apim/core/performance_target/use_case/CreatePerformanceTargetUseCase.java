@@ -22,6 +22,7 @@ import io.gravitee.apim.core.performance_target.domain_service.ValidatePerforman
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -40,13 +41,14 @@ public class CreatePerformanceTargetUseCase {
             .environmentId(input.auditInfo().environmentId())
             .createdAt(now)
             .updatedAt(now)
-            .build();
+            .build()
+            .identifyRules(List.of(), UuidString::generateRandom);
         validatePerformanceTargetDomainService.validate(target);
         return new Output(performanceTargetCrudService.create(target));
     }
 
     /**
-     * @param target the target to create; its id, environment and timestamps are set by the use case
+     * @param target the target to create; its id, environment, timestamps and rule ids are set by the use case
      */
     public record Input(PerformanceTarget target, AuditInfo auditInfo) {}
 

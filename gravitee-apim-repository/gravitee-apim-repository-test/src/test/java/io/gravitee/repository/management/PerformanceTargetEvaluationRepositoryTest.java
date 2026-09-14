@@ -90,6 +90,7 @@ public class PerformanceTargetEvaluationRepositoryTest extends AbstractManagemen
                     .rules(
                         List.of(
                             new PerformanceTargetEvaluation.RuleResult(
+                                "rule-1-latency",
                                 "HTTP_GATEWAY_RESPONSE_TIME",
                                 "P95",
                                 "LTE",
@@ -101,6 +102,7 @@ public class PerformanceTargetEvaluationRepositoryTest extends AbstractManagemen
                                 Status.BREACH
                             ),
                             new PerformanceTargetEvaluation.RuleResult(
+                                "rule-1-errors",
                                 "HTTP_ERROR_RATE",
                                 "PERCENTAGE",
                                 "LTE",
@@ -298,6 +300,7 @@ public class PerformanceTargetEvaluationRepositoryTest extends AbstractManagemen
             .rules(
                 List.of(
                     new PerformanceTargetEvaluation.RuleResult(
+                        "rule-latency",
                         "HTTP_GATEWAY_RESPONSE_TIME",
                         "P95",
                         "LTE",

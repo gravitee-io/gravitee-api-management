@@ -16,10 +16,13 @@
 package io.gravitee.apim.core.performance_target.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.apim.core.performance_target.exception.InvalidPerformanceTargetException;
 import io.gravitee.definition.model.v4.ApiType;
 import java.time.Duration;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -80,6 +83,7 @@ class PerformanceTargetTest {
 
             assertThat(result).isEqualTo(
                 new PerformanceTargetEvaluation.RuleResult(
+                    rule.id(),
                     MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
                     MetricSpec.Measure.P95,
                     PerformanceTarget.Operator.LTE,
@@ -156,6 +160,89 @@ class PerformanceTargetTest {
             boolean expected
         ) {
             assertThat(operator.holds(observed, threshold)).isEqualTo(expected);
+        }
+    }
+
+    @Nested
+    class IdentifyRules {
+
+        private final PerformanceTarget.Rule latency = aRule(Set.of()).toBuilder().id("latency").build();
+        private final PerformanceTarget.Rule errors = PerformanceTarget.Rule.builder()
+            .id("errors")
+            .metric(MetricSpec.Name.HTTP_ERROR_RATE)
+            .measure(MetricSpec.Measure.PERCENTAGE)
+            .operator(PerformanceTarget.Operator.LTE)
+            .threshold(5)
+            .build();
+        private final Iterator<String> newIds = List.of("new-1", "new-2").iterator();
+
+        @Test
+        void should_give_every_rule_a_new_id_when_nothing_is_known() {
+            var identified = withRules(latency.toBuilder().id(null).build(), errors.toBuilder().id(null).build()).identifyRules(
+                List.of(),
+                newIds::next
+            );
+
+            assertThat(identified.rules()).extracting(PerformanceTarget.Rule::id).containsExactly("new-1", "new-2");
+        }
+
+        @Test
+        void should_keep_the_id_of_a_known_rule_whose_threshold_changed() {
+            var retuned = latency.toBuilder().threshold(1500).build();
+
+            var identified = withRules(retuned).identifyRules(List.of(latency, errors), newIds::next);
+
+            assertThat(identified.rules()).containsExactly(retuned);
+        }
+
+        @Test
+        void should_reuse_the_id_of_an_identical_known_rule_for_a_rule_sent_without_one() {
+            var identified = withRules(errors.toBuilder().id(null).build(), latency.toBuilder().id(null).build()).identifyRules(
+                List.of(latency, errors),
+                newIds::next
+            );
+
+            assertThat(identified.rules()).extracting(PerformanceTarget.Rule::id).containsExactly("errors", "latency");
+        }
+
+        @Test
+        void should_not_reuse_an_id_another_rule_claims() {
+            var identified = withRules(latency, latency.toBuilder().id(null).build()).identifyRules(List.of(latency), newIds::next);
+
+            assertThat(identified.rules()).extracting(PerformanceTarget.Rule::id).containsExactly("latency", "new-1");
+        }
+
+        @Test
+        void should_give_a_new_id_to_a_rule_matching_no_known_rule() {
+            var identified = withRules(latency, errors.toBuilder().id(null).build()).identifyRules(List.of(latency), newIds::next);
+
+            assertThat(identified.rules()).extracting(PerformanceTarget.Rule::id).containsExactly("latency", "new-1");
+        }
+
+        @Test
+        void should_reject_a_rule_naming_an_id_no_known_rule_has() {
+            var target = withRules(latency, errors.toBuilder().id("stranger").build());
+
+            assertThatThrownBy(() -> target.identifyRules(List.of(latency, errors), newIds::next))
+                .isInstanceOf(InvalidPerformanceTargetException.class)
+                .hasMessage("Unknown rule id: stranger")
+                .extracting(e -> ((InvalidPerformanceTargetException) e).getParameters())
+                .isEqualTo(Map.of(InvalidPerformanceTargetException.RULE_INDEX_PARAMETER, "1"));
+        }
+
+        @Test
+        void should_reject_two_rules_claiming_the_same_id() {
+            var target = withRules(latency, latency.toBuilder().threshold(1500).build());
+
+            assertThatThrownBy(() -> target.identifyRules(List.of(latency), newIds::next))
+                .isInstanceOf(InvalidPerformanceTargetException.class)
+                .hasMessage("Duplicate rule id: latency")
+                .extracting(e -> ((InvalidPerformanceTargetException) e).getParameters())
+                .isEqualTo(Map.of(InvalidPerformanceTargetException.RULE_INDEX_PARAMETER, "1"));
+        }
+
+        private PerformanceTarget withRules(PerformanceTarget.Rule... rules) {
+            return target.toBuilder().rules(List.of(rules)).build();
         }
     }
 

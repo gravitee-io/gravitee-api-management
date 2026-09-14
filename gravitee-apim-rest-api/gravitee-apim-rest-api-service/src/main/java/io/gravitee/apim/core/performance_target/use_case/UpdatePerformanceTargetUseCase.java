@@ -21,6 +21,7 @@ import io.gravitee.apim.core.performance_target.domain_service.PerformanceTarget
 import io.gravitee.apim.core.performance_target.domain_service.ValidatePerformanceTargetDomainService;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.service.common.UuidString;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -32,8 +33,8 @@ public class UpdatePerformanceTargetUseCase {
     private final PerformanceTargetScheduleStateDomainService scheduleState;
 
     public Output execute(Input input) {
-        var updated = performanceTargetCrudService
-            .get(input.environmentId(), input.targetId())
+        var stored = performanceTargetCrudService.get(input.environmentId(), input.targetId());
+        var updated = stored
             .toBuilder()
             .subject(input.target().subject())
             .window(input.target().window())
@@ -41,16 +42,18 @@ public class UpdatePerformanceTargetUseCase {
             .minSampleSize(input.target().minSampleSize())
             .rules(input.target().rules())
             .updatedAt(TimeProvider.now())
-            .build();
+            .build()
+            .identifyRules(stored.rules(), UuidString::generateRandom);
         validatePerformanceTargetDomainService.validate(updated);
-        var stored = performanceTargetCrudService.update(updated);
+        var saved = performanceTargetCrudService.update(updated);
         // A redefined target is a new declaration: it is due at the next tick, whatever backoff the old one had earned.
-        scheduleState.reset(stored.id());
-        return new Output(stored);
+        scheduleState.reset(saved.id());
+        return new Output(saved);
     }
 
     /**
-     * @param target the new subject, schedule and rules; id, environment and creation date are kept from the stored target
+     * @param target the new subject, schedule and rules; id, environment and creation date are kept from the stored
+     *               target, and so is the id of every rule that names one (see {@link PerformanceTarget#identifyRules})
      */
     public record Input(String environmentId, String targetId, PerformanceTarget target) {}
 

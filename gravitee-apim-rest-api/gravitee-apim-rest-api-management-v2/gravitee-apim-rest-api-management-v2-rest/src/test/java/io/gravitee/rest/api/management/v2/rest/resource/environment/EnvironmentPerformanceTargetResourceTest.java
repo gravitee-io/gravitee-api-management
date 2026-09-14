@@ -319,6 +319,7 @@ class EnvironmentPerformanceTargetResourceTest extends AbstractResourceTest {
                         .rules(
                             List.of(
                                 new PerformanceTargetRuleResult()
+                                    .id(PerformanceTargetFixtures.LATENCY_RULE_ID)
                                     .metric("HTTP_GATEWAY_RESPONSE_TIME")
                                     .measure("P95")
                                     .operator(PerformanceTargetOperator.LTE)
@@ -479,6 +480,7 @@ class EnvironmentPerformanceTargetResourceTest extends AbstractResourceTest {
 
     private static PerformanceTargetRule aLatencyRule() {
         return new PerformanceTargetRule()
+            .id(PerformanceTargetFixtures.LATENCY_RULE_ID)
             .metric("HTTP_GATEWAY_RESPONSE_TIME")
             .measure("P95")
             .operator(PerformanceTargetOperator.LTE)

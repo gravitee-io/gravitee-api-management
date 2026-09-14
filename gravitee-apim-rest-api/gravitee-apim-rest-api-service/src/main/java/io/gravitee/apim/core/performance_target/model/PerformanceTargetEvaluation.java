@@ -60,8 +60,12 @@ public record PerformanceTargetEvaluation(
         }
     }
 
+    /**
+     * @param id the id of the rule this is the outcome of; {@code null} for evaluations stored before rules had ids
+     */
     @Builder(toBuilder = true)
     public record RuleResult(
+        String id,
         MetricSpec.Name metric,
         MetricSpec.Measure measure,
         PerformanceTarget.Operator operator,

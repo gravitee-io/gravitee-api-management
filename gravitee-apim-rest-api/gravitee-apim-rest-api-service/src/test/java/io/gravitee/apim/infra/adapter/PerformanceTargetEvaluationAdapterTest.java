@@ -37,6 +37,7 @@ class PerformanceTargetEvaluationAdapterTest {
         .rules(
             List.of(
                 PerformanceTargetEvaluation.RuleResult.builder()
+                    .id("latency-rule")
                     .metric(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME)
                     .measure(MetricSpec.Measure.P95)
                     .operator(PerformanceTarget.Operator.LTE)
@@ -70,6 +71,7 @@ class PerformanceTargetEvaluationAdapterTest {
         assertThat(repository.getStatus()).isEqualTo(io.gravitee.repository.management.model.PerformanceTargetEvaluation.Status.BREACH);
         assertThat(repository.getRules()).containsExactly(
             new io.gravitee.repository.management.model.PerformanceTargetEvaluation.RuleResult(
+                "latency-rule",
                 "HTTP_GATEWAY_RESPONSE_TIME",
                 "P95",
                 "LTE",
@@ -81,6 +83,7 @@ class PerformanceTargetEvaluationAdapterTest {
                 io.gravitee.repository.management.model.PerformanceTargetEvaluation.Status.BREACH
             ),
             new io.gravitee.repository.management.model.PerformanceTargetEvaluation.RuleResult(
+                null,
                 "LLM_PROMPT_TOKEN_TOTAL_COST",
                 "AVG",
                 "LTE",

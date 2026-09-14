@@ -83,12 +83,14 @@ class PerformanceTargetEvaluatorImplTest {
         .apiTypes(Set.of(ApiType.A2A_PROXY))
         .build();
     private static final PerformanceTarget.Rule ERROR_RATE = PerformanceTarget.Rule.builder()
+        .id("error-rate-rule")
         .metric(MetricSpec.Name.HTTP_ERROR_RATE)
         .measure(MetricSpec.Measure.PERCENTAGE)
         .operator(PerformanceTarget.Operator.LTE)
         .threshold(5)
         .build();
     private static final PerformanceTarget.Rule LLM_COST = PerformanceTarget.Rule.builder()
+        .id("llm-cost-rule")
         .metric(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST)
         .measure(MetricSpec.Measure.AVG)
         .operator(PerformanceTarget.Operator.LTE)
@@ -175,6 +177,7 @@ class PerformanceTargetEvaluatorImplTest {
                 .rules(
                     List.of(
                         new PerformanceTargetEvaluation.RuleResult(
+                            PerformanceTargetFixtures.LATENCY_RULE_ID,
                             MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME,
                             MetricSpec.Measure.P95,
                             PerformanceTarget.Operator.LTE,
@@ -185,6 +188,7 @@ class PerformanceTargetEvaluatorImplTest {
                             BREACH
                         ),
                         new PerformanceTargetEvaluation.RuleResult(
+                            "error-rate-rule",
                             MetricSpec.Name.HTTP_ERROR_RATE,
                             MetricSpec.Measure.PERCENTAGE,
                             PerformanceTarget.Operator.LTE,
@@ -195,6 +199,7 @@ class PerformanceTargetEvaluatorImplTest {
                             PASS
                         ),
                         new PerformanceTargetEvaluation.RuleResult(
+                            "llm-cost-rule",
                             MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
                             MetricSpec.Measure.AVG,
                             PerformanceTarget.Operator.LTE,
