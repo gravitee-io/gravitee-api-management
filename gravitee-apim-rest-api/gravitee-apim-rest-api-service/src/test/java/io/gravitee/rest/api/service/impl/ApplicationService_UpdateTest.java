@@ -1135,6 +1135,69 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void should_delete_all_duplicates_when_certificate_removed_from_incoming() throws TechnicalException {
+        // Scenario: two existing rows share the same fingerprint (legacy data),
+        // incoming list is empty → both must be deleted.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(TlsSettings.builder().clientCertificates(java.util.List.of()).build());
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        String sharedFingerprint = "fp:shared-pem";
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate dup1 =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "dup-cert-1",
+                null,
+                APPLICATION_ID,
+                "cert-dup-1",
+                null,
+                null,
+                java.util.Date.from(Instant.now().minus(2, ChronoUnit.HOURS)),
+                new java.util.Date(),
+                "shared-pem",
+                null,
+                null,
+                null,
+                sharedFingerprint,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate dup2 =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "dup-cert-2",
+                null,
+                APPLICATION_ID,
+                "cert-dup-2",
+                null,
+                null,
+                java.util.Date.from(Instant.now().minus(1, ChronoUnit.HOURS)),
+                new java.util.Date(),
+                "shared-pem",
+                null,
+                null,
+                null,
+                sharedFingerprint,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.List.of(dup1, dup2));
+
+        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(clientCertificateCrudService).delete("dup-cert-1");
+        verify(clientCertificateCrudService).delete("dup-cert-2");
+        verify(clientCertificateCrudService, never()).create(any(), any());
+    }
+
+    @Test
     public void should_not_sync_certificates_on_update() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
