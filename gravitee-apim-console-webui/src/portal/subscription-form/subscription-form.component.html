@@ -36,7 +36,7 @@
 
     <div class="sections-panel__tree__container">
       <subscription-form-list
-        [forms]="forms()"
+        [forms]="listedForms()"
         [selectedFormId]="selectedForm()?.id ?? null"
         [canUpdate]="canUpdate()"
         (selectForm)="selectForm($event)"
@@ -83,6 +83,16 @@
 
     @if (hasSelection()) {
       <gmd-form-editor [formControl]="contentControl" />
+      @if (selectedFormIsDefault()) {
+        <p class="editor-panel__default-apis" data-testid="default-form-apis">Used for every API without a dedicated form.</p>
+      } @else {
+        <subscription-form-apis
+          [selectedApis]="selectedApis()"
+          [mappedElsewhere]="apisMappedElsewhere()"
+          [canUpdate]="canUpdate()"
+          (apiToggled)="toggleApi($event)"
+        />
+      }
     } @else {
       <div class="empty-editor">
         <mat-card appearance="outlined" class="empty-state">

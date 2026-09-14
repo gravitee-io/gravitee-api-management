@@ -57,6 +57,11 @@ export class SubscriptionFormListComponent {
     return this.filteredForms().slice(start, start + size);
   });
 
+  apiCountLabel(form: SubscriptionForm): string {
+    const count = form.apiIds.length;
+    return `${count} API${count === 1 ? '' : 's'}`;
+  }
+
   onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.filters.set(filters);
   }

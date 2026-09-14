@@ -29,12 +29,14 @@ import { MatInputModule } from '@angular/material/input';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { SubscriptionFormListComponent } from './subscription-form-list/subscription-form-list.component';
+import { MappedApi, SubscriptionFormApisComponent } from './subscription-form-apis/subscription-form-apis.component';
 
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { SubscriptionForm } from '../../entities/management-api-v2';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
+import { Api, SubscriptionForm } from '../../entities/management-api-v2';
 import { SubscriptionFormService } from '../../services-ngx/subscription-form.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -51,6 +53,7 @@ import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/cont
     MatInputModule,
     GioPermissionModule,
     GmdFormEditorComponent,
+    SubscriptionFormApisComponent,
     SubscriptionFormListComponent,
   ],
   templateUrl: './subscription-form.component.html',
@@ -60,6 +63,7 @@ import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/cont
 export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly snackbarService = inject(SnackBarService);
   private readonly subscriptionFormService = inject(SubscriptionFormService);
+  private readonly apiService = inject(ApiV2Service);
   private readonly gioPermissionService = inject(GioPermissionService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly matDialog = inject(MatDialog);
@@ -99,8 +103,12 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   readonly nameControl = new FormControl<string>('', { nonNullable: true, validators: [Validators.required] });
   readonly contentControl = new FormControl<string>('', { nonNullable: true });
 
+  /** APIs the edited form is dedicated to; the name is the id until the API search resolves it. */
+  readonly selectedApis = signal<MappedApi[]>([]);
+
   private readonly initialName = signal('');
   private readonly initialContent = signal('');
+  private readonly initialApiIds = signal<string[]>([]);
 
   // Keyed purely on the selected id (not on the wider `forms` list) so an unrelated row's toggle
   // refreshing the list never clobbers in-progress edits open in this panel.
@@ -121,6 +129,25 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
 
   private readonly nameValue = toSignal(this.nameControl.valueChanges.pipe(startWith(this.nameControl.value)));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
+
+  readonly selectedFormIsDefault = computed(() => this.selectedForm()?.defaultForm ?? false);
+
+  /** The catalog as listed, the edited form counting its APIs as currently selected rather than as last saved. */
+  readonly listedForms = computed<SubscriptionForm[]>(() => {
+    const editedId = this.selectedFormId();
+    const apiIds = this.selectedApis().map(api => api.id);
+    return this.forms().map(form => (form.id === editedId ? { ...form, apiIds } : form));
+  });
+
+  /** Name of the form every API mapped outside the edited form belongs to, by API id. */
+  readonly apisMappedElsewhere = computed<Record<string, string>>(() => {
+    const editedId = this.selectedFormId();
+    return Object.fromEntries(
+      this.forms()
+        .filter(form => form.id !== editedId)
+        .flatMap(form => form.apiIds.map(apiId => [apiId, form.name])),
+    );
+  });
 
   readonly saveButtonLabel = computed(() => (this.isCreating() ? 'Create' : 'Save'));
 
@@ -148,6 +175,8 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       untracked(() => {
         this.initialName.set('');
         this.initialContent.set('');
+        this.initialApiIds.set([]);
+        this.selectedApis.set([]);
         this.nameControl.reset('', { emitEvent: true });
         this.contentControl.reset('', { emitEvent: true });
       });
@@ -156,10 +185,14 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     const form = this.selectedFormDetail();
     if (!form) return;
     untracked(() => {
+      const apiIds = form.apiIds ?? [];
       this.initialName.set(form.name);
       this.initialContent.set(form.gmdContent || '');
+      this.initialApiIds.set(apiIds);
+      this.selectedApis.set(apiIds.map(id => ({ id, name: id })));
       this.nameControl.reset(form.name, { emitEvent: true });
       this.contentControl.reset(form.gmdContent || '', { emitEvent: true });
+      this.resolveApiNames(apiIds);
     });
   });
 
@@ -186,7 +219,12 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     if (this.selectedFormId() === null) return false;
     const currentName = (this.nameValue() ?? '').trim();
     const currentContent = normalizeContent(this.contentValue());
-    return currentName !== this.initialName().trim() || currentContent !== normalizeContent(this.initialContent());
+    const currentApiIds = this.selectedApis().map(api => api.id);
+    return (
+      currentName !== this.initialName().trim() ||
+      currentContent !== normalizeContent(this.initialContent()) ||
+      !sameIds(currentApiIds, this.initialApiIds())
+    );
   }
 
   selectForm(form: SubscriptionForm): void {
@@ -217,14 +255,22 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
-  onEnabledToggle(form: SubscriptionForm): void {
+  toggleApi(api: MappedApi): void {
+    this.selectedApis.update(apis =>
+      apis.some(selected => selected.id === api.id) ? apis.filter(selected => selected.id !== api.id) : [...apis, api],
+    );
+  }
+
+  onEnabledToggle(listedForm: SubscriptionForm): void {
+    // The list shows the edited form with its unsaved mapping; who loses the form depends on the saved one.
+    const form = this.forms().find(saved => saved.id === listedForm.id) ?? listedForm;
     const enabling = !form.enabled;
     const action = enabling ? 'Show' : 'Hide';
     const data: GioConfirmDialogData = {
       title: `${action} subscription form?`,
       content: enabling
         ? `"${form.name}" will be shown to API consumers in the Developer Portal when subscribing to the APIs it applies to.`
-        : `"${form.name}" will no longer be shown to API consumers in the Developer Portal. You can show it again at any time.`,
+        : `"${form.name}" will no longer be shown to API consumers in the Developer Portal. ${disableImpact(form)}`,
       confirmButton: action,
     };
 
@@ -291,14 +337,30 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       .subscribe(() => action());
   }
 
+  private resolveApiNames(apiIds: string[]): void {
+    if (apiIds.length === 0) return;
+    this.apiService
+      .search({ ids: apiIds }, undefined, 1, apiIds.length, false)
+      .pipe(
+        catchError(() => of({ data: [] as Api[] })),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        const names = new Map((response.data ?? []).map(api => [api.id, api.name]));
+        this.selectedApis.update(apis => apis.map(api => ({ id: api.id, name: names.get(api.id) ?? api.name })));
+      });
+  }
+
   private createForm(): Observable<unknown> {
     const name = this.nameControl.value.trim();
     const gmdContent = this.contentControl.value;
-    return this.subscriptionFormService.create({ name, gmdContent }).pipe(
+    const apiIds = this.selectedApis().map(api => api.id);
+    return this.subscriptionFormService.create({ name, gmdContent, apiIds }).pipe(
       tap(created => {
         this.snackbarService.success('Subscription form created successfully.');
         this.initialName.set(created.name);
         this.initialContent.set(created.gmdContent);
+        this.initialApiIds.set(created.apiIds ?? []);
         this.selectedFormId.set(created.id);
         this.refreshList.next();
       }),
@@ -312,11 +374,13 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   private updateForm(form: SubscriptionForm): Observable<unknown> {
     const name = this.nameControl.value.trim();
     const gmdContent = this.contentControl.value;
-    return this.subscriptionFormService.update(form.id, { name, gmdContent }).pipe(
+    const apiIds = this.selectedApis().map(api => api.id);
+    return this.subscriptionFormService.update(form.id, { name, gmdContent, apiIds }).pipe(
       tap(updated => {
         this.snackbarService.success('Subscription form updated successfully.');
         this.initialName.set(updated.name);
         this.initialContent.set(updated.gmdContent);
+        this.initialApiIds.set(updated.apiIds ?? []);
         this.refreshList.next();
       }),
       catchError(({ error }) => {
@@ -339,4 +403,20 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       }),
     );
   }
+}
+
+function sameIds(left: string[], right: string[]): boolean {
+  const rightIds = new Set(right);
+  return left.length === right.length && left.every(id => rightIds.has(id));
+}
+
+/** A disabled form is not replaced by the default one: say who loses their form. */
+function disableImpact(form: SubscriptionForm): string {
+  if (form.defaultForm) {
+    return 'Every API without a dedicated form will have no subscription form until it is shown again.';
+  }
+  if (form.apiIds.length === 0) {
+    return 'It is not dedicated to any API yet, so no consumer is affected.';
+  }
+  return `The ${form.apiIds.length} API${form.apiIds.length > 1 ? 's' : ''} it is dedicated to will have no subscription form until it is shown again.`;
 }

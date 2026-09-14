@@ -18,13 +18,16 @@ package io.gravitee.apim.core.subscription_form.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.SubscriptionFormFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormDefinitionDomainService;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormApiAlreadyMappedException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNameAlreadyExistsException;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
@@ -42,16 +45,19 @@ class CreateSubscriptionFormUseCaseTest {
 
     private final SubscriptionFormCrudServiceInMemory crudService = new SubscriptionFormCrudServiceInMemory();
     private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private CreateSubscriptionFormUseCase useCase;
 
     @BeforeEach
     void setUp() {
         crudService.reset();
         queryService.reset();
+        apiCrudService.reset();
         var definitionDomainService = new SubscriptionFormDefinitionDomainService(
             new GraviteeMarkdownValidator(),
             new SubscriptionFormSchemaGeneratorImpl(),
-            queryService
+            queryService,
+            apiCrudService
         );
         useCase = new CreateSubscriptionFormUseCase(crudService, definitionDomainService);
     }
@@ -69,6 +75,26 @@ class CreateSubscriptionFormUseCaseTest {
         assertThat(created.isDefaultForm()).isFalse();
         assertThat(created.getValidationConstraints().byFieldKey()).containsOnlyKeys("company");
         assertThat(crudService.storage()).containsExactly(created);
+    }
+
+    @Test
+    void should_create_a_form_dedicated_to_apis() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT_ID).build()));
+
+        var result = useCase.execute(new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "Partners", GMD, List.of("api-1", "api-1")));
+
+        assertThat(result.subscriptionForm().getApiIds()).containsExactly("api-1");
+    }
+
+    @Test
+    void should_throw_when_an_api_is_already_mapped_to_another_form() {
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id("api-1").environmentId(ENVIRONMENT_ID).build()));
+        queryService.initWith(List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-1")).build()));
+
+        var input = new CreateSubscriptionFormUseCase.Input(ENVIRONMENT_ID, "Partners", GMD, List.of("api-1"));
+
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormApiAlreadyMappedException.class);
+        assertThat(crudService.storage()).isEmpty();
     }
 
     @Test

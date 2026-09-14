@@ -29,6 +29,7 @@ import inmemory.SubscriptionFormElResolverInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormResolutionDomainService;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
@@ -40,6 +41,7 @@ import io.gravitee.rest.api.model.NewSubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
 import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
@@ -85,7 +87,7 @@ public class SubscriptionValidationServiceImplTest {
         cut = new SubscriptionValidationServiceImpl(
             entrypointConnectorPluginService,
             subscriptionMetadataSanitizer,
-            subscriptionFormQueryService,
+            new SubscriptionFormResolutionDomainService(subscriptionFormQueryService),
             new SubscriptionFormElResolverInMemory()
         );
         lenient()
@@ -291,6 +293,34 @@ public class SubscriptionValidationServiceImplTest {
                 List.of(
                     SubscriptionFormFixtures.aSubscriptionFormBuilder()
                         .enabled(true)
+                        .validationConstraints(required_email_constraints())
+                        .gmdContent(GraviteeMarkdown.of("<p/>"))
+                        .build()
+                )
+            );
+
+            var subscription = new NewSubscriptionEntity();
+            subscription.setSubscriptionFormMetadataValidationRequired(true);
+            subscription.setMetadata(Map.of());
+
+            assertThatThrownBy(() -> cut.validateAndSanitize(planEntity, subscription)).isInstanceOf(
+                SubscriptionFormValidationException.class
+            );
+        }
+
+        @Test
+        void should_validate_against_the_form_dedicated_to_the_api_of_the_plan() {
+            planEntity.setReferenceType(GenericPlanEntity.ReferenceType.API);
+            planEntity.setReferenceId("api-1");
+            subscriptionFormQueryService.initWith(
+                List.of(
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder().enabled(true).gmdContent(GraviteeMarkdown.of("<p/>")).build(),
+                    SubscriptionFormFixtures.aSubscriptionFormBuilder()
+                        .id(SubscriptionFormId.random())
+                        .name("Dedicated")
+                        .defaultForm(false)
+                        .enabled(true)
+                        .apiIds(List.of("api-1"))
                         .validationConstraints(required_email_constraints())
                         .gmdContent(GraviteeMarkdown.of("<p/>"))
                         .build()

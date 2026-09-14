@@ -69,6 +69,32 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
+    public void shouldLoadApiIdsWithTheForm() throws Exception {
+        Optional<SubscriptionForm> optional = subscriptionFormRepository.findById("sub-form-partner");
+
+        assertThat(optional).isPresent();
+        assertThat(optional.get().getApiIds()).containsExactly("api-partner-1", "api-partner-2");
+        assertThat(subscriptionFormRepository.findById("sub-form-find-by-id"))
+            .get()
+            .extracting(SubscriptionForm::getApiIds)
+            .isEqualTo(List.of());
+    }
+
+    @Test
+    public void shouldFindByEnvironmentIdAndApiId() throws Exception {
+        Optional<SubscriptionForm> optional = subscriptionFormRepository.findByEnvironmentIdAndApiId("env-1", "api-partner-2");
+
+        assertThat(optional).isPresent();
+        assertThat(optional.get().getId()).isEqualTo("sub-form-partner");
+    }
+
+    @Test
+    public void shouldNotFindByEnvironmentIdAndApiIdWhenNotMapped() throws Exception {
+        assertThat(subscriptionFormRepository.findByEnvironmentIdAndApiId("env-1", "unknown-api")).isNotPresent();
+        assertThat(subscriptionFormRepository.findByEnvironmentIdAndApiId("other-env", "api-partner-1")).isNotPresent();
+    }
+
+    @Test
     public void shouldFindDefaultByEnvironmentId() throws Exception {
         Optional<SubscriptionForm> optional = subscriptionFormRepository.findDefaultByEnvironmentId("env-1");
 
@@ -112,6 +138,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
             .environmentId("env-new")
             .name("New form")
             .gmdContent("<gmd-card><gmd-input name=\"field\" label=\"Field\" fieldKey=\"field\"/></gmd-card>")
+            .apiIds(List.of("api-new-1"))
             .enabled(false)
             .validationConstraints("{\"field\":[]}")
             .build();
@@ -128,6 +155,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         SubscriptionForm saved = optional.get();
         assertThat(saved.getEnvironmentId()).isEqualTo("env-new");
         assertThat(saved.getName()).isEqualTo("New form");
+        assertThat(saved.getApiIds()).containsExactly("api-new-1");
         assertThat(saved.isDefaultForm()).isFalse();
         assertThat(saved.getGmdContent()).contains("gmd-input");
         assertThat(saved.isEnabled()).isFalse();
@@ -146,6 +174,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
             .toBuilder()
             .name("Renamed")
             .gmdContent("<gmd-card><gmd-input name=\"updated\" label=\"Updated\" fieldKey=\"updated\"/></gmd-card>")
+            .apiIds(List.of("api-updated"))
             .enabled(true)
             .validationConstraints("{\"updated\":[]}")
             .build();
@@ -153,6 +182,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         SubscriptionForm result = subscriptionFormRepository.update(updated);
 
         assertThat(result.getName()).isEqualTo("Renamed");
+        assertThat(result.getApiIds()).containsExactly("api-updated");
         assertThat(result.getGmdContent()).contains("updated");
         assertThat(result.isEnabled()).isTrue();
         assertThat(result.getValidationConstraints()).contains("updated");
@@ -160,6 +190,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         Optional<SubscriptionForm> reloaded = subscriptionFormRepository.findById("sub-form-update");
         assertThat(reloaded).isPresent();
         assertThat(reloaded.get().getGmdContent()).contains("updated");
+        assertThat(reloaded.get().getApiIds()).containsExactly("api-updated");
         assertThat(reloaded.get().isEnabled()).isTrue();
         assertThat(reloaded.get().getValidationConstraints()).contains("updated");
     }
@@ -259,6 +290,35 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         assertThat(created.getName()).isEqualTo("Partner onboarding");
         assertThat(subscriptionFormRepository.findById("sub-form-same-name-other-env")).isPresent();
+    }
+
+    @Test
+    public void shouldRejectAnApiAlreadyMappedToAnotherForm() throws Exception {
+        SubscriptionForm competing = SubscriptionForm.builder()
+            .id("sub-form-competing")
+            .environmentId("env-1")
+            .name("Competing")
+            .apiIds(List.of("api-partner-1"))
+            .gmdContent("<gmd-card><gmd-input name=\"field\" label=\"Field\"/></gmd-card>")
+            .enabled(false)
+            .defaultForm(false)
+            .validationConstraints("{}")
+            .build();
+
+        assertThatThrownBy(() -> subscriptionFormRepository.create(competing)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-competing")).isNotPresent();
+    }
+
+    @Test
+    public void shouldRejectMappingAnApiAlreadyMappedToAnotherForm() throws Exception {
+        SubscriptionForm defaultForm = subscriptionFormRepository.findById("sub-form-find-by-id").orElseThrow();
+        SubscriptionForm remapped = defaultForm.toBuilder().apiIds(List.of("api-partner-1")).build();
+
+        assertThatThrownBy(() -> subscriptionFormRepository.update(remapped)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-find-by-id"))
+            .get()
+            .extracting(SubscriptionForm::getApiIds)
+            .isEqualTo(List.of());
     }
 
     @Test

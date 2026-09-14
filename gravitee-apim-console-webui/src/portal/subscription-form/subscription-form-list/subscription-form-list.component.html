@@ -29,6 +29,8 @@
         <span>{{ form.name }}</span>
         @if (form.defaultForm) {
           <span class="gio-badge-primary default-badge" [attr.data-testid]="'default-badge-' + form.id">Default</span>
+        } @else {
+          <span class="gio-badge-neutral api-count" [attr.data-testid]="'api-count-' + form.id">{{ apiCountLabel(form) }}</span>
         }
       </td>
     </ng-container>
