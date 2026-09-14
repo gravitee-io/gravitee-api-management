@@ -19,7 +19,7 @@ import { RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
 import { ApplicationCard, type CardMetrics } from './components/application-card/ApplicationCard';
-import { APPLICATIONS, buildModulePath, type ModuleId } from './components/application-card/applications';
+import { APPLICATIONS, buildModulePath } from './components/application-card/applications';
 import { GET_STARTED_STEPS } from './components/get-started/get-started';
 import { GetStartedCard } from './components/get-started/GetStartedCard';
 import {
@@ -34,7 +34,7 @@ import {
 import { useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { useEnvHrid } from '../../features/environment/environment.utils';
-import type { GammaModule } from '../../features/modules';
+import type { GammaModule, ModuleId } from '../../features/modules';
 
 function pluralize(count: number | null, singular: string, plural: string): string {
     return count === 1 ? singular : plural;
