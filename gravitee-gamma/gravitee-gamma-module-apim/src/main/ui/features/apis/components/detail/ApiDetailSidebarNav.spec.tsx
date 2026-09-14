@@ -161,13 +161,14 @@ describe('withObservabilityLinks', () => {
         expect(withObservabilityLinks(GROUPS, {})).toBe(GROUPS);
     });
 
-    it('opens each entry in a new tab, on the given href', () => {
+    it('opens each entry in a new tab, announcing the change of context', () => {
         renderNav(`${BASE}/overview`, withObservabilityLinks(GROUPS, OBSERVABILITY_LINKS));
-        const dashboard = screen.getByRole('link', { name: /^dashboard$/i });
+        // The external-link icon is decorative, so the accessible name carries the warning instead.
+        const dashboard = screen.getByRole('link', { name: 'Dashboard (opens in a new tab)' });
         expect(dashboard).toHaveAttribute('href', OBSERVABILITY_LINKS.dashboardHref);
         expect(dashboard).toHaveAttribute('target', '_blank');
         expect(dashboard).toHaveAttribute('rel', 'noopener noreferrer');
-        expect(screen.getByRole('link', { name: /^logs$/i })).toHaveAttribute('href', OBSERVABILITY_LINKS.logsHref);
+        expect(screen.getByRole('link', { name: 'Logs (opens in a new tab)' })).toHaveAttribute('href', OBSERVABILITY_LINKS.logsHref);
     });
 });
 
