@@ -58,6 +58,14 @@ describe('SubscriptionFormListComponent', () => {
     expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-partner]')).classes['selected']).toBe(true);
   });
 
+  it('should name the visibility column after what API consumers see', async () => {
+    await init([defaultForm]);
+
+    const table = await harnessLoader.getHarness(MatTableHarness);
+    const headerRows = await table.getHeaderRows();
+    expect(await headerRows[0].getCellTextByIndex()).toEqual(['Name', 'Visible']);
+  });
+
   it('should show an empty row when there is no form', async () => {
     await init([]);
 

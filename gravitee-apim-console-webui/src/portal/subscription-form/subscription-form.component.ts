@@ -26,7 +26,6 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { SubscriptionFormListComponent } from './subscription-form-list/subscription-form-list.component';
@@ -50,7 +49,6 @@ import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/cont
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatTooltipModule,
     GioPermissionModule,
     GmdFormEditorComponent,
     SubscriptionFormListComponent,
@@ -123,9 +121,6 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
 
   private readonly nameValue = toSignal(this.nameControl.valueChanges.pipe(startWith(this.nameControl.value)));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
-
-  readonly selectedFormEnabled = computed(() => this.selectedForm()?.enabled ?? false);
-  readonly selectedFormIsDefault = computed(() => this.selectedForm()?.defaultForm ?? false);
 
   readonly saveButtonLabel = computed(() => (this.isCreating() ? 'Create' : 'Save'));
 
@@ -224,46 +219,18 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
 
   onEnabledToggle(form: SubscriptionForm): void {
     const enabling = !form.enabled;
-    const action = enabling ? 'Enable' : 'Disable';
+    const action = enabling ? 'Show' : 'Hide';
     const data: GioConfirmDialogData = {
       title: `${action} subscription form?`,
       content: enabling
-        ? `This action will enable "${form.name}". API consumers will see it in the Developer Portal when subscribing to the APIs it applies to.`
-        : `This action will disable "${form.name}". It will no longer be shown to API consumers in the Developer Portal, but you can enable it again at any time.`,
+        ? `"${form.name}" will be shown to API consumers in the Developer Portal when subscribing to the APIs it applies to.`
+        : `"${form.name}" will no longer be shown to API consumers in the Developer Portal. You can show it again at any time.`,
       confirmButton: action,
     };
 
     this.confirm(data)
       .pipe(
         switchMap(() => this.toggleEnabled(form, enabling)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe();
-  }
-
-  setAsDefault(): void {
-    const form = this.selectedForm();
-    if (!form || form.defaultForm) return;
-    const data: GioConfirmDialogData = {
-      title: 'Set as default subscription form?',
-      content: `"${form.name}" will be used for every API without a dedicated subscription form. The current default form will no longer be.`,
-      confirmButton: 'Set as default',
-    };
-
-    this.confirm(data)
-      .pipe(
-        switchMap(() =>
-          this.subscriptionFormService.setDefault(form.id).pipe(
-            tap(() => {
-              this.snackbarService.success(`Subscription form "${form.name}" is now the default.`);
-              this.refreshList.next();
-            }),
-            catchError(({ error }) => {
-              this.snackbarService.error(error?.message ?? 'Failed to set the subscription form as default.');
-              return EMPTY;
-            }),
-          ),
-        ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
@@ -363,11 +330,11 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     const request$ = enabled ? this.subscriptionFormService.enable(form.id) : this.subscriptionFormService.disable(form.id);
     return request$.pipe(
       tap(() => {
-        this.snackbarService.success(`Subscription form "${form.name}" has been ${enabled ? 'enabled' : 'disabled'} successfully.`);
+        this.snackbarService.success(`Subscription form "${form.name}" is now ${enabled ? 'visible to' : 'hidden from'} API consumers.`);
         this.refreshList.next();
       }),
       catchError(({ error }) => {
-        this.snackbarService.error(error?.message ?? `Failed to ${enabled ? 'enable' : 'disable'} subscription form.`);
+        this.snackbarService.error(error?.message ?? `Failed to ${enabled ? 'show' : 'hide'} the subscription form.`);
         return EMPTY;
       }),
     );

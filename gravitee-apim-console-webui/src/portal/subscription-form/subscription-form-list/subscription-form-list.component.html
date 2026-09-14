@@ -34,12 +34,12 @@
     </ng-container>
 
     <ng-container matColumnDef="enabled">
-      <th mat-header-cell *matHeaderCellDef>Enabled</th>
+      <th mat-header-cell *matHeaderCellDef>Visible</th>
       <td mat-cell *matCellDef="let form">
         <mat-slide-toggle
           [checked]="form.enabled"
           [disabled]="!canUpdate()"
-          [attr.aria-label]="'Enabled — ' + form.name"
+          [attr.aria-label]="'Visible — ' + form.name"
           [attr.data-testid]="'enable-toggle-' + form.id"
           (click)="$event.stopPropagation()"
           (keydown)="$event.stopPropagation()"

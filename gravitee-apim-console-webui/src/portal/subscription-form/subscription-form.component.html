@@ -65,31 +65,9 @@
               data-testid="subscription-form-name-input"
             />
           </mat-form-field>
-
-          @if (!isCreating()) {
-            <div class="panel-header__title__badges">
-              <span [class]="selectedFormEnabled() ? 'gio-badge-success' : 'gio-badge-warning'">
-                {{ selectedFormEnabled() ? 'Enabled' : 'Disabled' }}
-              </span>
-              @if (selectedFormIsDefault()) {
-                <span class="gio-badge-primary">Default</span>
-              }
-            </div>
-          }
         </div>
       }
       <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-metadata-u'] }">
-        @if (hasSelection() && !isCreating() && !selectedFormIsDefault()) {
-          <button
-            mat-stroked-button
-            type="button"
-            data-testid="subscription-form-set-default-button"
-            [matTooltip]="'Use this form for every API without a dedicated form'"
-            (click)="setAsDefault()"
-          >
-            Set as default
-          </button>
-        }
         <button
           mat-flat-button
           color="primary"

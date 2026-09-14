@@ -334,12 +334,12 @@ describe('SubscriptionFormComponent', () => {
       await toggle.toggle();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
-      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Enable/ }));
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Show/ }));
       await confirmButton.click();
 
       httpTestingController.expectOne({ method: 'POST', url: `${baseUrl}/form-a/_enable` }).flush({ ...form, enabled: true });
 
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" has been enabled successfully.');
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" is now visible to API consumers.');
       expectList([{ ...form, enabled: true }]);
     });
 
@@ -353,12 +353,12 @@ describe('SubscriptionFormComponent', () => {
       await toggle.toggle();
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
-      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Disable/ }));
+      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Hide/ }));
       await confirmButton.click();
 
       httpTestingController.expectOne({ method: 'POST', url: `${baseUrl}/form-a/_disable` }).flush({ ...form, enabled: false });
 
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" has been disabled successfully.');
+      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form A" is now hidden from API consumers.');
       expectList([{ ...form, enabled: false }]);
     });
 
@@ -373,48 +373,6 @@ describe('SubscriptionFormComponent', () => {
 
       const dialog = await rootLoader.getHarness(MatDialogHarness);
       await dialog.close();
-    });
-  });
-
-  describe('default form', () => {
-    it('should hide the set-as-default button on the current default form', async () => {
-      await init(true);
-      const form = fakeSubscriptionForm({ id: 'form-a', defaultForm: true });
-      expectList([form]);
-      expectGet(form);
-
-      await expect(
-        harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-set-default-button]' })),
-      ).rejects.toThrow();
-    });
-
-    it('should set the selected form as default after confirmation and refresh the list', async () => {
-      await init(true);
-      const defaultForm = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', defaultForm: true });
-      const otherForm = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', defaultForm: false });
-      expectList([defaultForm, otherForm]);
-      expectGet(defaultForm);
-
-      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
-      fixture.detectChanges();
-      expectGet(otherForm);
-
-      const setDefaultButton = await harnessLoader.getHarness(
-        MatButtonHarness.with({ selector: '[data-testid=subscription-form-set-default-button]' }),
-      );
-      await setDefaultButton.click();
-
-      const dialog = await rootLoader.getHarness(MatDialogHarness);
-      const confirmButton = await dialog.getHarness(MatButtonHarness.with({ text: /Set as default/ }));
-      await confirmButton.click();
-
-      httpTestingController.expectOne({ method: 'POST', url: `${baseUrl}/form-b/_default` }).flush({ ...otherForm, defaultForm: true });
-
-      expect(snackBarService.success).toHaveBeenCalledWith('Subscription form "Form B" is now the default.');
-      expectList([
-        { ...defaultForm, defaultForm: false },
-        { ...otherForm, defaultForm: true },
-      ]);
     });
   });
 });

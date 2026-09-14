@@ -47,11 +47,6 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
     &__field {
       width: 280px;
     }
-
-    &__badges {
-      display: flex;
-      gap: 4px;
-    }
   }
 
   &__actions {
