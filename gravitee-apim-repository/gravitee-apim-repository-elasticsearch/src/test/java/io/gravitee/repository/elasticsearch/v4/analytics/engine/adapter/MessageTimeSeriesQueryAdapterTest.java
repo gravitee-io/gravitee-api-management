@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import java.util.List;
@@ -72,5 +73,29 @@ class MessageTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var filters = json.at("/query/bool/filter").toString();
         assertThat(filters).contains("request-id").contains("req-1").contains("req-2");
+    }
+
+    /**
+     * The no-join overload. See {@link MessageMeasuresQueryAdapterTest#should_emit_no_request_id_clause_when_the_join_is_skipped()}
+     * for why an absent clause and an empty one must not be spelled the same way.
+     */
+    @Test
+    void should_emit_no_request_id_clause_when_the_join_is_skipped() throws JsonProcessingException {
+        var apiFilter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID));
+        var query = new TimeSeriesQuery(
+            buildTimeRange(),
+            List.of(apiFilter),
+            60_000L,
+            List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT))),
+            List.of(),
+            null,
+            List.of()
+        );
+
+        var json = JSON.readTree(adapter.adapt(query));
+
+        var filters = json.at("/query/bool/filter").toString();
+        assertThat(filters).doesNotContain("request-id");
+        assertThat(filters).contains("api-id").contains(API_ID);
     }
 }

@@ -50,6 +50,57 @@ class FilterAdapterTest {
         return new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO));
     }
 
+    /**
+     * Decides whether a message query still needs its connection phase. Getting this wrong in one
+     * direction returns wrong numbers, in the other it keeps a ceiling the query could have avoided.
+     */
+    @Nested
+    class MessageJoinSkipping {
+
+        private final FilterAdapter messageFilterAdapter = new FilterAdapter(new MessageFieldResolver());
+
+        private MeasuresQuery queryWith(Filter... filters) {
+            return new MeasuresQuery(
+                buildTimeRange(),
+                List.of(filters),
+                List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)))
+            );
+        }
+
+        @Test
+        void should_skip_the_join_when_every_filter_reads_a_message_field() {
+            var query = queryWith(
+                new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)),
+                new Filter(Filter.Name.MESSAGE_OPERATION_TYPE, Filter.Operator.EQ, "publish")
+            );
+
+            assertThat(messageFilterAdapter.isFullyAppliedOnMessages(query)).isTrue();
+        }
+
+        @Test
+        void should_skip_the_join_when_nothing_is_filtered() {
+            assertThat(messageFilterAdapter.isFullyAppliedOnMessages(queryWith())).isTrue();
+        }
+
+        /**
+         * Plan, application and entrypoint live on the connection document and nowhere else, so the
+         * request-id join is the only way to apply them.
+         */
+        @Test
+        void should_keep_the_join_for_a_connection_only_dimension() {
+            for (var name : List.of(Filter.Name.PLAN, Filter.Name.APPLICATION, Filter.Name.ENTRYPOINT)) {
+                var query = queryWith(
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)),
+                    new Filter(name, Filter.Operator.EQ, "whatever")
+                );
+
+                assertThat(messageFilterAdapter.isFullyAppliedOnMessages(query))
+                    .as("filter %s lives on the connection document", name)
+                    .isFalse();
+            }
+        }
+    }
+
     @Nested
     class StandardFilters {
 

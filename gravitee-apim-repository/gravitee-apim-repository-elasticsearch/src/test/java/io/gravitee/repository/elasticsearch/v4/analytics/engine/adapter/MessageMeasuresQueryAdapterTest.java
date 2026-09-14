@@ -228,6 +228,29 @@ class MessageMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
      * tree: the query now also carries a {@code terms} on {@code api-id}, and a loose lookup would
      * silently assert against whichever one came first.
      */
+    /**
+     * The overload used when every filter reads a message field: no join ran, so there is no
+     * request-id set and no clause narrowing by one. Distinct from {@code adapt(query, Set.of())},
+     * just above, which says the join ran and matched nothing and must therefore match nothing here
+     * too. Dropping the clause in that case would silently widen the query to every message in the
+     * window, which is exactly the failure these two tests exist to keep apart.
+     *
+     * <p>The query's own filters must survive: skipping the join removes the request-id restriction,
+     * never the restriction the caller asked for.
+     */
+    @Test
+    void should_emit_no_request_id_clause_when_the_join_is_skipped() throws JsonProcessingException {
+        var query = new MeasuresQuery(buildTimeRange(), buildFilters(), buildMessageMetrics());
+
+        var jsonQuery = JSON.readTree(adapter.adapt(query));
+
+        assertThat(requestIdTerms(jsonQuery)).isNull();
+        assertThat(jsonQuery.at("/query/bool/filter").toString()).contains("api-id");
+        // The aggregations are the ones the joined overload builds: skipping the join changes what is
+        // selected, never what is measured.
+        assertThat(jsonQuery.at("/aggs/MESSAGE_GATEWAY_LATENCY#P95/percentiles/percents/0").asDouble()).isEqualTo(95.0);
+    }
+
     private com.fasterxml.jackson.databind.JsonNode requestIdTerms(com.fasterxml.jackson.databind.JsonNode jsonQuery) {
         for (var clause : jsonQuery.at("/query/bool/filter")) {
             var terms = clause.at("/terms/request-id");

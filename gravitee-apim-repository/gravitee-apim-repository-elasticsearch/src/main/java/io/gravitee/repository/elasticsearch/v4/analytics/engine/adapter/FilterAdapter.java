@@ -251,6 +251,43 @@ public class FilterAdapter {
         return MESSAGE_FILTER_NAMES.contains(filter.name());
     }
 
+    /**
+     * Whether every filter of this query reads a field the message documents carry themselves.
+     *
+     * <p>When it does, the connection phase of the message join has nothing left to contribute: it
+     * would resolve request ids only to re-express a restriction the message query already applies.
+     * Skipping it also removes the ceiling that phase carries — the ids are collected 10k at a time,
+     * up to a thousand pages, into a single {@code terms} clause, and Elasticsearch refuses the whole
+     * search past {@code index.max_terms_count} (65,536 by default).
+     *
+     * <p>A query naming a dimension that lives only on the connection document — plan, application,
+     * entrypoint — still needs the join, and keeps it.
+     *
+     * <p><strong>The connection phase was never purely a filter restatement, and skipping it changes
+     * what is counted.</strong> {@link #adaptForMessageConnexion(Query)} opens with the query's time
+     * range, so the join also required the connection document to exist <em>and</em> to fall inside
+     * the window, while the message phase applies its own window to the message timestamp. Two
+     * classes of message become visible once the join is skipped:
+     *
+     * <ul>
+     *   <li><em>Straddling connections</em> — a stream opened before {@code from} and still running.
+     *       For SSE, WebSocket or {@code http-get} against a short dashboard window that is the
+     *       normal case, not an edge case.</li>
+     *   <li><em>Orphaned messages</em> — no connection document at all: sampling, retention, index
+     *       rollover.</li>
+     * </ul>
+     *
+     * <p>Both were silently dropped before and are counted now. This is held to be a correction
+     * rather than a regression — a message that flowed inside the window did flow inside the window,
+     * whatever became of the document describing its connection — but it does move the numbers
+     * operators read, and it makes a board internally inconsistent in one direction: adding a plan
+     * filter restores the join, so the count drops for a reason unrelated to the plan. Pinned by
+     * {@code AnalyticsElasticsearchRepositoryTest}'s straddling-connection case.
+     */
+    public boolean isFullyAppliedOnMessages(Query query) {
+        return query.filters().stream().allMatch(this::shouldAdaptForMessage);
+    }
+
     public boolean shouldAdaptForMessageConnexion(Filter filter) {
         return HTTP_FILTER_NAMES.contains(filter.name());
     }

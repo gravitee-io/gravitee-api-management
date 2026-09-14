@@ -56,6 +56,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final NativeFacetsQueryAdapter nativeFacetsQueryAdapter = new NativeFacetsQueryAdapter();
     private final HTTPTimeSeriesQueryAdapter httpTimeSeriesQueryAdapter = new HTTPTimeSeriesQueryAdapter();
     private final NativeTimeSeriesQueryAdapter nativeTimeSeriesQueryAdapter = new NativeTimeSeriesQueryAdapter();
+    private final FilterAdapter messageFilterAdapter = new FilterAdapter(new MessageFieldResolver());
     private final MeasuresResponseAdapter measuresResponseAdapter = new MeasuresResponseAdapter();
     private final FacetsResponseAdapter facetsResponseAdapter = new FacetsResponseAdapter();
     private final TimeSeriesResponseAdapter timeSeriesResponseAdapter = new TimeSeriesResponseAdapter();
@@ -428,13 +429,25 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     public MeasuresResult searchMessageMeasures(QueryContext queryContext, MeasuresQuery query) {
         var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+
+        // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
+        // skipping it changes in the counted set.
+        if (messageFilterAdapter.isFullyAppliedOnMessages(query)) {
+            var unjoined = messageMeasuresQueryAdapter.adapt(query);
+            log.debug("Message - unjoined Measures query: {}", unjoined);
+            return client
+                .search(messageIndex, null, unjoined)
+                .map(response -> measuresResponseAdapter.adapt(response, query))
+                .blockingGet();
+        }
+
         var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
 
         if (httpConnectionRequestIDs.isEmpty()) {
             return measuresResponseAdapter.empty(query);
         }
 
-        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
         var messageQuery = messageMeasuresQueryAdapter.adapt(query, httpConnectionRequestIDs);
 
         log.debug("Message - Measures query: {}", messageQuery);
@@ -449,13 +462,25 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     public FacetsResult searchMessageFacets(QueryContext queryContext, FacetsQuery query) {
         var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+
+        // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
+        // skipping it changes in the counted set.
+        if (messageFilterAdapter.isFullyAppliedOnMessages(query)) {
+            var unjoined = messageFacetsQueryAdapter.adapt(query);
+            log.debug("Message - unjoined Facets query: {}", unjoined);
+            return client
+                .search(messageIndex, null, unjoined)
+                .map(response -> facetsResponseAdapter.adapt(response, query))
+                .blockingGet();
+        }
+
         var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
 
         if (httpConnectionRequestIDs.isEmpty()) {
             return facetsResponseAdapter.empty(query);
         }
 
-        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
         var messageQuery = messageFacetsQueryAdapter.adapt(query, httpConnectionRequestIDs);
 
         log.debug("Message - Facets query: {}", messageQuery);
@@ -470,13 +495,25 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     public TimeSeriesResult searchMessageTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
         var httpIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
 
+        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
+
+        // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
+        // skipping it changes in the counted set.
+        if (messageFilterAdapter.isFullyAppliedOnMessages(query)) {
+            var unjoined = messageTimeSeriesQueryAdapter.adapt(query);
+            log.debug("Message - unjoined Time series query: {}", unjoined);
+            return client
+                .search(messageIndex, null, unjoined)
+                .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+                .blockingGet();
+        }
+
         var httpConnectionRequestIDs = searchMessageConnectionRequestIDs(query, httpIndex);
 
         if (httpConnectionRequestIDs.isEmpty()) {
             return timeSeriesResponseAdapter.empty(query);
         }
 
-        var messageIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_MESSAGE_METRICS, clusters);
         var messageQuery = messageTimeSeriesQueryAdapter.adapt(query, httpConnectionRequestIDs);
 
         log.debug("Message - Time series query: {}", messageQuery);
