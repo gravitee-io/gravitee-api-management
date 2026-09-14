@@ -1,0 +1,26 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+:host {
+  display: block;
+}
+
+table {
+  width: 100%;
+}
+
+tr[mat-row] {
+  cursor: pointer;
+
+  &:hover {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-smoke-palette, lighter60);
+  }
+
+  &.selected {
+    background-color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, lighter20);
+  }
+}
+
+.default-badge {
+  margin-left: 8px;
+}
