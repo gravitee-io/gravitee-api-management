@@ -164,6 +164,22 @@ jest.mock('../features/api-score/pages/ApiScoreDashboardPage', () => ({
     ApiScoreDashboardPage: () => <div data-testid="api-score-dashboard-page" />,
 }));
 
+jest.mock('../features/api-score/pages/ApiScoreRulesetsPage', () => ({
+    ApiScoreRulesetsPage: () => <div data-testid="api-score-rulesets-page" />,
+}));
+
+jest.mock('../features/api-score/pages/ImportApiScoreRulesetPage', () => ({
+    ImportApiScoreRulesetPage: () => <div data-testid="import-api-score-ruleset-page" />,
+}));
+
+jest.mock('../features/api-score/pages/ImportScoringFunctionPage', () => ({
+    ImportScoringFunctionPage: () => <div data-testid="import-scoring-function-page" />,
+}));
+
+jest.mock('../features/api-score/pages/EditApiScoreRulesetPage', () => ({
+    EditApiScoreRulesetPage: () => <div data-testid="edit-api-score-ruleset-page" />,
+}));
+
 jest.mock('../pages/UsersPage', () => ({
     UsersPage: () => <div data-testid="users-page" />,
 }));
@@ -660,6 +676,38 @@ describe('AppRoutes', () => {
 
         expect(screen.getByTestId('api-score-rulesets-page')).not.toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets');
+        expect(screen.getByRole('link', { name: 'Overview' })).not.toBeNull();
+    });
+
+    it('opens ruleset import outside the Overview/Rulesets tabs', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets/import');
+
+        expect(screen.getByTestId('import-api-score-ruleset-page')).not.toBeNull();
+        expect(screen.queryByTestId('api-score-rulesets-page')).toBeNull();
+        expect(screen.queryByRole('link', { name: 'Rulesets & Functions' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets/import');
+    });
+
+    it('opens function import outside the Overview/Rulesets tabs', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets/import-function');
+
+        expect(screen.getByTestId('import-scoring-function-page')).not.toBeNull();
+        expect(screen.queryByRole('link', { name: 'Overview' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets/import-function');
+    });
+
+    it('opens ruleset edit outside the Overview/Rulesets tabs', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets/rs-1/edit');
+
+        expect(screen.getByTestId('edit-api-score-ruleset-page')).not.toBeNull();
+        expect(screen.queryByRole('link', { name: 'Rulesets & Functions' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets/rs-1/edit');
     });
 
     it('redirects a direct API Score URL visit to Applications when scoring is disabled', () => {

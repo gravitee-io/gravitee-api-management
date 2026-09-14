@@ -18,4 +18,7 @@ export const environmentScoringKeys = {
     all: ['environment-scoring'] as const,
     overview: (envId: string) => [...environmentScoringKeys.all, 'overview', envId] as const,
     apis: (envId: string, page: number, perPage: number) => [...environmentScoringKeys.all, 'apis', envId, page, perPage] as const,
+    rulesets: (envId: string) => [...environmentScoringKeys.all, 'rulesets', envId] as const,
+    ruleset: (envId: string, rulesetId: string) => [...environmentScoringKeys.all, 'ruleset', envId, rulesetId] as const,
+    functions: (envId: string) => [...environmentScoringKeys.all, 'functions', envId] as const,
 } as const;

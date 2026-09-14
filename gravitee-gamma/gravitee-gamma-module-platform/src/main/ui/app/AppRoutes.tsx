@@ -55,6 +55,9 @@ import { ApiScoreLayout } from '../features/api-score/components/ApiScoreLayout'
 import { useApiScoreEnabled } from '../features/api-score/hooks/useApiScoreEnabled';
 import { ApiScoreDashboardPage } from '../features/api-score/pages/ApiScoreDashboardPage';
 import { ApiScoreRulesetsPage } from '../features/api-score/pages/ApiScoreRulesetsPage';
+import { EditApiScoreRulesetPage } from '../features/api-score/pages/EditApiScoreRulesetPage';
+import { ImportApiScoreRulesetPage } from '../features/api-score/pages/ImportApiScoreRulesetPage';
+import { ImportScoringFunctionPage } from '../features/api-score/pages/ImportScoringFunctionPage';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
@@ -807,6 +810,9 @@ export function AppRoutes() {
                                     <Route index element={<ApiScoreDashboardPage />} />
                                     <Route path="rulesets" element={<ApiScoreRulesetsPage />} />
                                 </Route>
+                                <Route path="rulesets/import" element={<ImportApiScoreRulesetPage />} />
+                                <Route path="rulesets/import-function" element={<ImportScoringFunctionPage />} />
+                                <Route path="rulesets/:rulesetId/edit" element={<EditApiScoreRulesetPage />} />
                             </Route>
                             <Route
                                 path="api-health-check"
