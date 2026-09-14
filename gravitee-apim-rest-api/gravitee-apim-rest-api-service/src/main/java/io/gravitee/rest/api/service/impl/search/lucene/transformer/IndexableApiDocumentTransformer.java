@@ -112,7 +112,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
         }
         if (api.getApiDefinitionValue() instanceof FederatedAgent agent && agent.getProvider() != null) {
-            LuceneTransformerUtils.appendProviderOrganization(doc, agent.getProvider().organization());
+            LuceneTransformerUtils.appendProviderOrganization(doc, agent.getProvider().organization(), api.getId());
         }
         if (primaryOwner != null) {
             doc.add(new StringField(FIELD_OWNER, primaryOwner.displayName(), Field.Store.NO));

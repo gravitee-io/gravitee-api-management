@@ -175,7 +175,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         }
 
         if (api instanceof FederatedApiAgentEntity agentEntity && agentEntity.getProvider() != null) {
-            LuceneTransformerUtils.appendProviderOrganization(doc, agentEntity.getProvider().organization());
+            LuceneTransformerUtils.appendProviderOrganization(doc, agentEntity.getProvider().organization(), api.getId());
         }
 
         PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();

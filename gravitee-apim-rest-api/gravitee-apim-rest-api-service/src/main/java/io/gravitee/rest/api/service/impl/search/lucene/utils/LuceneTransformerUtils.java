@@ -59,8 +59,9 @@ public final class LuceneTransformerUtils {
         }
     }
 
-    public static void appendProviderOrganization(Document doc, String organization) {
+    public static void appendProviderOrganization(Document doc, String organization, String apiId) {
         if (isBlank(organization)) {
+            log.warn("Api {} has an agent provider with no organization; indexing it without a provider organization term", apiId);
             return;
         }
         doc.add(new StringField(FIELD_PROVIDER_ORGANIZATION_LOWERCASE, organization.toLowerCase(), Field.Store.NO));
