@@ -24,10 +24,14 @@ import inmemory.PerformanceTargetCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationCrudServiceInMemory;
 import inmemory.PerformanceTargetEvaluationQueryServiceInMemory;
 import inmemory.PerformanceTargetEvaluatorInMemory;
+import inmemory.PerformanceTargetTransitionPublisherInMemory;
 import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetScheduleStateDomainService;
+import io.gravitee.apim.core.performance_target.domain_service.PerformanceTargetTransitionDomainService;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetEvaluatedTooRecentlyException;
 import io.gravitee.apim.core.performance_target.exception.PerformanceTargetNotFoundException;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetEvaluation;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetNotificationPolicy;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetRuleTransition;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
@@ -39,6 +43,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class EvaluatePerformanceTargetUseCaseTest {
@@ -54,13 +59,18 @@ class EvaluatePerformanceTargetUseCaseTest {
     );
 
     PerformanceTargetScheduleStateDomainService scheduleState = new PerformanceTargetScheduleStateDomainService();
+    PerformanceTargetEvaluatorInMemory evaluator = new PerformanceTargetEvaluatorInMemory();
+    PerformanceTargetTransitionPublisherInMemory transitionPublisher = new PerformanceTargetTransitionPublisherInMemory();
 
     EvaluatePerformanceTargetUseCase useCase = new EvaluatePerformanceTargetUseCase(
         targetCrudService,
         evaluationQueryService,
         evaluationCrudService,
-        new PerformanceTargetEvaluatorInMemory(),
-        scheduleState
+        evaluator,
+        scheduleState,
+        new PerformanceTargetTransitionDomainService(),
+        transitionPublisher,
+        new PerformanceTargetNotificationPolicy(3)
     );
 
     @BeforeEach
@@ -148,6 +158,117 @@ class EvaluatePerformanceTargetUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(new EvaluatePerformanceTargetUseCase.Input("other-environment", TARGET_ID))).isInstanceOf(
             PerformanceTargetNotFoundException.class
         );
+    }
+
+    @Nested
+    class Transitions {
+
+        @Test
+        void should_publish_nothing_on_the_first_evaluation_of_a_target() {
+            evaluator.status(PerformanceTargetEvaluation.Status.BREACH);
+
+            var output = useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+            assertThat(output.transitions()).isEmpty();
+            assertThat(transitionPublisher.runs()).isEmpty();
+        }
+
+        @Test
+        void should_publish_a_rule_going_from_met_to_missed_once() {
+            givenHistory(PerformanceTargetEvaluation.Status.PASS);
+            evaluator.status(PerformanceTargetEvaluation.Status.BREACH);
+
+            var output = useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+            assertThat(output.transitions())
+                .singleElement()
+                .satisfies(transition -> {
+                    assertThat(transition.kind()).isEqualTo(PerformanceTargetRuleTransition.Kind.RULE_MISSED);
+                    assertThat(transition.rule().id()).isEqualTo(PerformanceTargetFixtures.LATENCY_RULE_ID);
+                    assertThat(transition.evaluation()).isEqualTo(output.evaluation());
+                });
+            assertThat(transitionPublisher.runs()).containsExactly(output.transitions());
+        }
+
+        @Test
+        void should_publish_nothing_while_the_verdict_stands() {
+            givenHistory(PerformanceTargetEvaluation.Status.BREACH);
+            evaluator.status(PerformanceTargetEvaluation.Status.BREACH);
+
+            var output = useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+            assertThat(output.transitions()).isEmpty();
+            assertThat(transitionPublisher.runs()).isEmpty();
+        }
+
+        @Test
+        void should_publish_a_recovery() {
+            givenHistory(PerformanceTargetEvaluation.Status.BREACH);
+            evaluator.status(PerformanceTargetEvaluation.Status.PASS);
+
+            var output = useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+            assertThat(output.transitions())
+                .extracting(PerformanceTargetRuleTransition::kind)
+                .containsExactly(PerformanceTargetRuleTransition.Kind.RULE_RECOVERED);
+        }
+
+        @Test
+        void should_publish_not_evaluable_only_at_the_configured_number_of_consecutive_windows() {
+            givenHistory(
+                PerformanceTargetEvaluation.Status.NOT_EVALUABLE,
+                PerformanceTargetEvaluation.Status.NOT_EVALUABLE,
+                PerformanceTargetEvaluation.Status.PASS
+            );
+            evaluator.status(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+
+            var output = useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+            assertThat(output.transitions())
+                .extracting(PerformanceTargetRuleTransition::kind)
+                .containsExactly(PerformanceTargetRuleTransition.Kind.RULE_NOT_EVALUABLE);
+        }
+
+        @Test
+        void should_publish_nothing_for_an_empty_window_before_the_configured_number() {
+            givenHistory(PerformanceTargetEvaluation.Status.NOT_EVALUABLE, PerformanceTargetEvaluation.Status.PASS);
+            evaluator.status(PerformanceTargetEvaluation.Status.NOT_EVALUABLE);
+
+            var output = useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+            assertThat(output.transitions()).isEmpty();
+        }
+
+        @Test
+        void should_publish_evaluable_again_when_traffic_is_back_on_a_reported_not_evaluable_rule() {
+            givenHistory(
+                PerformanceTargetEvaluation.Status.NOT_EVALUABLE,
+                PerformanceTargetEvaluation.Status.NOT_EVALUABLE,
+                PerformanceTargetEvaluation.Status.NOT_EVALUABLE
+            );
+            evaluator.status(PerformanceTargetEvaluation.Status.PASS);
+
+            var output = useCase.execute(new EvaluatePerformanceTargetUseCase.Input(ENVIRONMENT_ID, TARGET_ID));
+
+            assertThat(output.transitions())
+                .extracting(PerformanceTargetRuleTransition::kind)
+                .containsExactly(PerformanceTargetRuleTransition.Kind.RULE_EVALUABLE_AGAIN);
+        }
+
+        /** Stored evaluations, most recent first, each an interval apart and old enough not to rate-limit this run. */
+        private void givenHistory(PerformanceTargetEvaluation.Status... statuses) {
+            var history = IntStream.range(0, statuses.length)
+                .mapToObj(i ->
+                    PerformanceTargetFixtures.anEvaluation(
+                        "history-" + i,
+                        TARGET_ID,
+                        statuses[i],
+                        NOW.minus(Duration.ofMinutes(5L * (i + 1)))
+                    )
+                )
+                .toList();
+            evaluationCrudService.initWith(history);
+        }
     }
 
     private void givenLatestEvaluationAt(Instant evaluatedAt) {

@@ -130,11 +130,12 @@ public class ScheduledPerformanceTargetEvaluationService extends AbstractService
                     .filter(evaluation -> evaluation.status() == PerformanceTargetEvaluation.Status.BREACH)
                     .count();
                 log.info(
-                    "Performance targets evaluation #{}: {} of {} target(s) evaluated, {} missed",
+                    "Performance targets evaluation #{}: {} of {} target(s) evaluated, {} missed, {} rule(s) changed verdict",
                     run,
                     output.evaluations().size(),
                     output.targets(),
-                    missed
+                    missed,
+                    output.transitions().size()
                 );
             }
         } catch (Exception e) {
