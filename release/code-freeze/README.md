@@ -18,7 +18,7 @@ version's life is [`../end-of-life/README.md`](../end-of-life/README.md).
 | `apply-on-<major>-<minor>-x` | the GitHub label Mergify backports on |
 | `apim-<revision>-alpha.1.tgz` | the Helm chart, on the private OCI registry |
 | `<major>-<minor>-x` | the dev environment, through a pull request on `cloud-apim` |
-| 3 CircleCI schedules | Helm tests, Bridge Compatibility tests, Repository tests — the nightly is missing, see below |
+| 4 CircleCI schedules | Helm tests, Bridge Compatibility tests, Repository tests, and the nightly |
 
 Everything is derived from **the root pom's `<revision>`**, read by `_common.sh`. Nothing is passed
 as an argument, so the freeze releases whatever master currently says it is.
@@ -43,7 +43,7 @@ as an argument, so the freeze releases whatever master currently says it is.
 | 05 | `05-publish-helm-charts.sh` | `helm package` then `helm push` to `oci://graviteeio.azurecr.io/helm/` | Azure ACR |
 | 06 | `06-create-cloud-apim-env.sh` | Copies the previous environment, wires it into the three applicationsets, opens the pull request | cloud-apim |
 | 07 | `07-update-google-oauth.sh` | **Manual.** Prints the origins and redirect URIs to add, then waits on Enter | Google Cloud Console |
-| 08 | `08-create-circleci-triggers.sh` | Clones the oldest schedule of each of three names onto the new branch | CircleCI |
+| 08 | `08-create-circleci-triggers.sh` | Creates the branch's four scheduled pipelines, from the table it declares | CircleCI |
 
 Then, from the script's own closing summary, three things nobody has scripted: update the plugins
 that depend on the APIM BOM, release each library and plugin from alpha to its official version, and
@@ -67,19 +67,36 @@ lane through Maven. **The branch's first act therefore has to be a core release,
 the pinning pull request the core lane opens on it.** The refusal is loud and immediate; what nobody
 says is what to do about it.
 
-### Three schedules created, four needed
+### The schedules are declared, not copied
 
-A support branch runs four scheduled pipelines: Helm tests, Repository tests, Bridge Compatibility
-tests and the **nightly**. Step 08 creates the first three. The two remaining scheduled actions
-`config.yml` declares — `integration_tests` and `run_e2e_tests` — are triggered on demand, not
-scheduled; the nightly already carries the e2e jobs (`workflow-nightly.ts`).
+Until now a support line carried three scheduled pipelines and the nightly ran on master alone, so
+every supported version went without the suites the nightly carries — the e2e ones among them. The
+freeze now creates four, from a table at the top of step 08:
 
-So a freshly cut branch has no nightly until someone notices, and nothing makes them notice: a
-missing schedule turns no job red, the pipeline simply never runs.
+| Schedule | Action | Base hour (UTC) | Days |
+|---|---|---|---|
+| Bridge Compatibility tests | `bridge_compatibility_tests` | 02 | MON |
+| Repository tests | `repositories_tests` | 03 | MON–FRI |
+| Helm tests | `helm_tests` | 21 | WED, SUN |
+| Nightly | `nightly` | 23 | MON–FRI |
 
-Two smaller things in the same script: it clones **the oldest** schedule of each name, so the new
-branch inherits the parameters of the least recently touched line; and re-running it creates
-duplicates rather than recognising what it already made.
+Those are 4.12.x's hours, and each line shifts them by an offset of its own — two hours per step,
+cycling over the four minors supported at a time. So `4.13.x` runs its bridge suite at 04 rather
+than at 02, and no two supported lines start the same suite together.
+
+**Master sits one hour after the base**, on every suite: bridge at 03 against 02, repository at 04
+against 03, helm at 22 against 21, the nightly at 00 against 23. Taking only even offsets is what
+keeps a line off master's hour, so the two never start the same suite at once. Worth preserving if
+these hours are ever changed.
+
+The step used to clone the oldest schedule of each name, which meant a new branch inherited whatever
+the least recently touched line happened to carry, and nothing in the repository said what that was.
+Declared, the hours are reviewable and the step works on a project that has no schedules at all.
+
+Every schedule the step creates is named `<Suite> - <branch>`, and its description says the same in
+the same words. One of master's predates that convention and reads `bridge_compatibility_tests_master`;
+it is left where it is — nothing depends on a schedule's name — but nothing here reproduces it, so a
+listing sorted by name keeps the lines together.
 
 ### The bridge compatibility matrix is not adapted
 
@@ -148,6 +165,6 @@ Apart from the pin, no step re-reads what it wrote. The closing summary prints w
 - [ ] The chart is on the OCI registry under `apim-<revision>-alpha.1.tgz`.
 - [ ] The `cloud-apim` pull request is open, and merged once reviewed.
 - [ ] The Google OAuth client carries the four redirect URIs and two origins of the new environment.
-- [ ] The new branch's four schedules exist — nightly included — and none was duplicated.
+- [ ] The new branch's four schedules exist, at the hours step 08 declares, and none is duplicated.
 - [ ] A release from the new branch is possible — `yarn prepare_distribution_release --version=… --dry-run`
       passes its preconditions.
