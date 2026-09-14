@@ -101,4 +101,56 @@ set_core_pin() {
     echo "Pinned core ${version}"
 }
 
+# A line keeps its backports until the first release of the new minor ships — opening 4.13 does not
+# retire 4.9, releasing 4.13.0 does. So the freeze only adds; the removal belongs to the end-of-life
+# runbook, which that release triggers.
+add_mergify_rule() {
+    local branch="$1"
+    local label="$2"
+
+    if grep -q "label=${label}" "$MERGIFY_FILE"; then
+        echo "Mergify already backports to ${branch}."
+        return
+    fi
+
+    # The rule is appended at the end of the file, which puts it inside `pull_request_rules` only
+    # while that is the last root key. Checked before writing, because greping afterwards for the
+    # text just written passes whatever the rule ended up under.
+    local last_key
+    last_key=$(grep -E '^[A-Za-z_][A-Za-z0-9_-]*:' "$MERGIFY_FILE" | tail -1)
+    if [ "$last_key" != "pull_request_rules:" ]; then
+        echo "ERROR: the last root key of $MERGIFY_FILE is '${last_key}', not 'pull_request_rules:'." >&2
+        echo "       Appending the rule would file it under that key. Add it by hand." >&2
+        exit 1
+    fi
+
+    cat >> "$MERGIFY_FILE" <<EOF
+    - name: Apply commits on \`${branch}\`
+      conditions:
+          - label=${label}
+      actions:
+          backport:
+              branches:
+                  - ${branch}
+              assignees:
+                  - "{{ author }}"
+              body: |
+                  This is an automatic copy of pull request #{{number}} done by [Mergify](https://mergify.com).
+
+                  ----
+
+                  {{ body }}
+
+                  ----
+                  {{ cherry_pick_error }}
+              title: "[${branch}] {{ title }}"
+EOF
+
+    if ! grep -q "label=${label}" "$MERGIFY_FILE" || ! grep -q "title: \"\[${branch}\]" "$MERGIFY_FILE"; then
+        echo "ERROR: the Mergify rule for ${branch} was not appended to $MERGIFY_FILE." >&2
+        exit 1
+    fi
+    echo "Mergify: backporting to ${branch} on ${label}"
+}
+
 echo "Code freeze context: version=${FULL_VERSION} branch=${BRANCH_NAME}"
