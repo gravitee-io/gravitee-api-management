@@ -180,7 +180,7 @@ class PerformanceTargetNotificationDispatcherTest {
                 params.capture()
             );
             var data = (PerformanceTargetNotificationTemplateData) params.getValue().get(PARAM_PERFORMANCE_TARGET);
-            assertThat(data.getSubjectKind()).isEqualTo("API");
+            assertThat(data.getSubjectKind()).isEqualTo("A2A proxy");
             assertThat(data.getSubjectName()).isEqualTo("my-api");
             assertThat(data.getRules())
                 .extracting(PerformanceTargetNotificationTemplateData.RuleChange::getTargetId)
@@ -199,7 +199,7 @@ class PerformanceTargetNotificationDispatcherTest {
         }
 
         @Test
-        void should_link_to_the_api_targets_page_of_the_gamma_console() throws Exception {
+        void should_link_to_the_targets_page_of_the_subject_in_the_gamma_console() throws Exception {
             when(installationAccess.getGammaUrl(ORGANIZATION_ID)).thenReturn("https://gamma.example.com/");
             when(portalConfigs.findByReferenceAndHook(anyString(), any(), anyString())).thenAnswer(invocation -> {
                 var config = new PortalNotificationConfig();
@@ -212,7 +212,9 @@ class PerformanceTargetNotificationDispatcherTest {
             var params = ArgumentCaptor.forClass(Map.class);
             verify(portalNotificationService).create(any(), any(), anyList(), params.capture());
             var data = (PerformanceTargetNotificationTemplateData) params.getValue().get(PARAM_PERFORMANCE_TARGET);
-            assertThat(data.getSubjectUrl()).isEqualTo("https://gamma.example.com/environments/dev/apim/apis/" + api.getId() + "/targets");
+            assertThat(data.getSubjectUrl()).isEqualTo(
+                "https://gamma.example.com/environments/dev/aim/agent-runtime/" + api.getId() + "/targets"
+            );
         }
 
         private static GenericNotificationConfig genericConfig(String notifier, String config) {

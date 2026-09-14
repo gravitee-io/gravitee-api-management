@@ -7,7 +7,7 @@
 			<h3>Hi,</h3>
 			<p>
 				<#if performanceTarget.rules?size == 1>A performance target<#else>${performanceTarget.rules?size} performance targets</#if>
-				of the ${performanceTarget.subjectKind?lower_case} <b><code>${performanceTarget.subjectName}</code></b> can be evaluated
+				of the ${performanceTarget.subjectKind} <b><code>${performanceTarget.subjectName}</code></b> can be evaluated
 				again: traffic is back, and the target is met. Since ${performanceTarget.changedAtText}.
 			</p>
 			<table style="margin: 20px auto; border-collapse: collapse; text-align: left;">

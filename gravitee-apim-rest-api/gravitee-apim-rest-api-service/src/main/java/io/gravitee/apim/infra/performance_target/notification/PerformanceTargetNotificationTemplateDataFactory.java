@@ -17,11 +17,13 @@ package io.gravitee.apim.infra.performance_target.notification;
 
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsDefinitionQueryService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.notification.model.PerformanceTargetNotificationTemplateData;
 import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.apim.core.performance_target.model.PerformanceTargetRuleTransition;
+import io.gravitee.definition.model.v4.ApiType;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
@@ -77,9 +79,40 @@ public class PerformanceTargetNotificationTemplateDataFactory {
             .build();
     }
 
-    /** The Targets page of an API in the Gamma console, or {@code null} when no Gamma URL is configured. */
-    public String apiTargetsUrl(Environment environment, String apiId) {
-        return targetsUrl(environment, "apim/apis/" + apiId + "/targets");
+    /**
+     * An API as a report introduces it, by the kind of API it is: a plain API lives in the Gamma APIM pages, an LLM,
+     * MCP or A2A proxy in the AIM module's pages, and the deep link follows.
+     */
+    public Subject apiSubject(Environment environment, Api api) {
+        var kind = ApiKind.of(api.getType());
+        return new Subject(kind.label, api.getName(), api.getId(), targetsUrl(environment, kind.pages + "/" + api.getId() + "/targets"));
+    }
+
+    private enum ApiKind {
+        API("API", "apim/apis"),
+        LLM_PROXY("LLM proxy", "aim/llm-proxy"),
+        MCP_PROXY("MCP proxy", "aim/mcp-proxy"),
+        A2A_PROXY("A2A proxy", "aim/agent-runtime");
+
+        private final String label;
+        private final String pages;
+
+        ApiKind(String label, String pages) {
+            this.label = label;
+            this.pages = pages;
+        }
+
+        static ApiKind of(ApiType type) {
+            if (type == null) {
+                return API;
+            }
+            return switch (type) {
+                case LLM_PROXY -> LLM_PROXY;
+                case MCP_PROXY -> MCP_PROXY;
+                case A2A_PROXY -> A2A_PROXY;
+                default -> API;
+            };
+        }
     }
 
     /**

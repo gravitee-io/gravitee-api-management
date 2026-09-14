@@ -6,7 +6,7 @@
 		<div style="margin-top: 50px; color: #424e5a;">
 			<h3>Hi,</h3>
 			<p>
-				The ${performanceTarget.subjectKind?lower_case} <b><code>${performanceTarget.subjectName}</code></b> meets
+				The ${performanceTarget.subjectKind} <b><code>${performanceTarget.subjectName}</code></b> meets
 				<#if performanceTarget.rules?size == 1>a performance target<#else>${performanceTarget.rules?size} performance targets</#if>
 				again since ${performanceTarget.changedAtText}.
 			</p>
