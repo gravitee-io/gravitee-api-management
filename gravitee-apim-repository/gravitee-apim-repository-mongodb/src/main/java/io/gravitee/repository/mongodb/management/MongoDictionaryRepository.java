@@ -123,9 +123,11 @@ public class MongoDictionaryRepository implements DictionaryRepository {
                 final Map<String, DictionaryPropertyMongo> properties = new HashMap<>(dictionary.getProperties().size());
                 dictionary
                     .getProperties()
-                    .forEach((key, value) ->
-                        properties.put(computeMongoDBCompliantKey(key), new DictionaryPropertyMongo(value.value(), value.encrypted()))
-                    );
+                    .forEach((key, value) -> {
+                        if (value != null) {
+                            properties.put(computeMongoDBCompliantKey(key), new DictionaryPropertyMongo(value.value(), value.encrypted()));
+                        }
+                    });
                 dictionaryMongo.setProperties(properties);
             }
 

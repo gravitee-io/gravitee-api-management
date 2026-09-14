@@ -49,6 +49,11 @@ import java.io.IOException;
 @JsonSerialize(using = DictionaryProperty.Serializer.class)
 @JsonDeserialize(using = DictionaryProperty.Deserializer.class)
 public record DictionaryProperty(String value, boolean encrypted) {
+    @Override
+    public String toString() {
+        return "DictionaryProperty[value=<redacted>, encrypted=" + encrypted + "]";
+    }
+
     static class Serializer extends JsonSerializer<DictionaryProperty> {
 
         @Override

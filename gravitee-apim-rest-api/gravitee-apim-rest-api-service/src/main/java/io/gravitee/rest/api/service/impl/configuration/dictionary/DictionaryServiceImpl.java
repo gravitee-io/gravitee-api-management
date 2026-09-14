@@ -504,7 +504,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return null;
         }
         Map<String, String> result = new HashMap<>(typed.size());
-        typed.forEach((key, property) -> result.put(key, property.value()));
+        typed.forEach((key, property) -> {
+            if (property != null) {
+                result.put(key, property.value());
+            }
+        });
         return result;
     }
 

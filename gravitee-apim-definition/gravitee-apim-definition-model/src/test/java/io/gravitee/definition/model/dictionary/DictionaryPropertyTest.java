@@ -96,4 +96,11 @@ class DictionaryPropertyTest {
             .isInstanceOf(JsonMappingException.class)
             .hasMessageNotContaining("super-secret-value");
     }
+
+    @Test
+    void should_redact_the_value_from_to_string() {
+        String result = new DictionaryProperty("super-secret", true).toString();
+
+        assertThat(result).doesNotContain("super-secret").contains("value=<redacted>").contains("encrypted=true");
+    }
 }
