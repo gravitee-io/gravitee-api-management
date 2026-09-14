@@ -156,6 +156,9 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
             MembershipReferenceType.API,
             apiId
         );
+        if (primaryOwnerUserId == null) {
+            return;
+        }
         try {
             Optional<PortalNotificationConfig> notification = portalNotificationConfigRepository.findById(
                 primaryOwnerUserId,
@@ -223,6 +226,9 @@ public class PortalNotificationConfigServiceImpl extends AbstractService impleme
                 MembershipReferenceType.API,
                 referenceId
             );
+            if (primaryOwnerUserId == null) {
+                return Set.of();
+            }
 
             var poNotif = portalNotificationConfigRepository.findById(primaryOwnerUserId, referenceType, referenceId);
 

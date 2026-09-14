@@ -121,7 +121,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -1518,19 +1517,15 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     @Override
     public String getPrimaryOwnerUserId(String organizationId, MembershipReferenceType referenceType, String referenceId) {
         MembershipEntity primaryOwner = getPrimaryOwner(organizationId, referenceType, referenceId);
+        if (primaryOwner == null) {
+            return null;
+        }
         String primaryOwnerId = primaryOwner.getMemberId();
         if (primaryOwner.getMemberType() == MembershipMemberType.GROUP) {
             Function<GroupEntity, String> poExtractor = referenceType == MembershipReferenceType.API_PRODUCT
                 ? GroupEntity::getApiProductPrimaryOwner
                 : GroupEntity::getApiPrimaryOwner;
-            primaryOwnerId = groupService
-                .findByIds(Set.of(primaryOwnerId))
-                .stream()
-                .findFirst()
-                .map(poExtractor)
-                .orElseThrow(() ->
-                    new NoSuchElementException("Can't find PrimaryOwner for " + referenceType + " group " + primaryOwner.getMemberId())
-                );
+            primaryOwnerId = groupService.findByIds(Set.of(primaryOwnerId)).stream().findFirst().map(poExtractor).orElse(null);
         }
 
         return primaryOwnerId;

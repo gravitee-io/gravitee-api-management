@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import org.assertj.core.util.Sets;
 import org.junit.jupiter.api.BeforeEach;
@@ -148,6 +149,26 @@ public class PortalNotificationConfigService_FindByIdTest {
         verify(portalNotificationConfigRepository, times(1)).findById("user", NotificationReferenceType.APPLICATION, "123");
         verify(membershipService, never()).getPrimaryOwnerUserId(anyString(), any(MembershipReferenceType.class), anyString());
         verify(groupService, never()).findByUser(anyString());
+    }
+
+    @Test
+    public void shouldReturnEmptyGroupHooksWhenPrimaryOwnerUserIdIsNull() throws TechnicalException {
+        var cfg = PortalNotificationConfig.builder()
+            .referenceType(NotificationReferenceType.API)
+            .referenceId("123")
+            .user("user")
+            .hooks(List.of("A"))
+            .groups(Set.of("group-id"))
+            .build();
+
+        when(portalNotificationConfigRepository.findById("user", NotificationReferenceType.API, "123")).thenReturn(of(cfg));
+
+        when(membershipService.getPrimaryOwnerUserId(anyString(), eq(MembershipReferenceType.API), eq("123"))).thenReturn(null);
+
+        var entity = underTest.findById("user", NotificationReferenceType.API, "123");
+
+        assertNotNull(entity);
+        assertEquals(Set.of(), entity.getGroupHooks(), "groupHooks should be empty when PO user id is null");
     }
 
     @Test
