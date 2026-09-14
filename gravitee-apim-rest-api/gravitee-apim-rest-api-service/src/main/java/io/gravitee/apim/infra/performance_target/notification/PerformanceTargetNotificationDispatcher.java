@@ -59,6 +59,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -93,6 +94,7 @@ public class PerformanceTargetNotificationDispatcher {
     private final DeliveryRetrier retrier;
     private final int deliveryAttempts;
 
+    @Autowired
     public PerformanceTargetNotificationDispatcher(
         PortalNotificationConfigRepository portalNotificationConfigRepository,
         GenericNotificationConfigRepository genericNotificationConfigRepository,

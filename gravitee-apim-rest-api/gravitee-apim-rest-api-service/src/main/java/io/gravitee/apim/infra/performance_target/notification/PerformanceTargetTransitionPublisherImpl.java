@@ -33,6 +33,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -53,6 +54,7 @@ public class PerformanceTargetTransitionPublisherImpl implements PerformanceTarg
     private final EventManager eventManager;
     private final Executor worker;
 
+    @Autowired
     public PerformanceTargetTransitionPublisherImpl(
         EnvironmentCrudService environmentCrudService,
         ApiCrudService apiCrudService,
