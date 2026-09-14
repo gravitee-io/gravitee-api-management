@@ -48,9 +48,7 @@ class AimCatalogQueryServiceImplTest {
         var queryService = new AimCatalogQueryServiceImpl(applicationContext);
         var aimCatalog = mock(AimCatalogQueryService.class);
         var agent = agentCard();
-        when(applicationContext.getBeansOfType(AimCatalogQueryService.class)).thenReturn(
-            Map.of("self", queryService, "aim", aimCatalog)
-        );
+        when(applicationContext.getBeansOfType(AimCatalogQueryService.class)).thenReturn(Map.of("self", queryService, "aim", aimCatalog));
         when(aimCatalog.findById("env", "agent-id")).thenReturn(Optional.of(agent));
 
         assertThat(queryService.findById("env", "agent-id")).contains(agent);

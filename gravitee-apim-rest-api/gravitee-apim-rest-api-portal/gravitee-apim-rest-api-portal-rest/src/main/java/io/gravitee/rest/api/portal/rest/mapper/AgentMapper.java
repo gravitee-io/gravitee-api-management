@@ -27,6 +27,13 @@ public interface AgentMapper {
     AgentCard map(PortalAgentCard agent);
 
     default AgentCard.KindEnum map(String kind) {
-        return kind == null ? AgentCard.KindEnum.AGENT : AgentCard.KindEnum.fromValue(kind);
+        if (kind == null) {
+            return AgentCard.KindEnum.AGENT;
+        }
+        try {
+            return AgentCard.KindEnum.fromValue(kind);
+        } catch (IllegalArgumentException e) {
+            return AgentCard.KindEnum.AGENT;
+        }
     }
 }

@@ -115,7 +115,9 @@ public class PortalNavigationItemsQueryServiceInMemory
                             criteria.getApiProductIds().contains(apiProduct.getApiProductId()))) &&
                     (criteria.getAgentIds() == null ||
                         criteria.getAgentIds().isEmpty() ||
-                        (item instanceof PortalNavigationAgent agent && criteria.getAgentIds().contains(agent.getAgentId()))) &&
+                        (item instanceof PortalNavigationAgent agent &&
+                            agent.getAgentId() != null &&
+                            criteria.getAgentIds().contains(agent.getAgentId()))) &&
                     (criteria.getUseAutoFetch() == null || criteria.getUseAutoFetch() == usesAutoFetch(item)) &&
                     (criteria.getCategoryId() == null ||
                         (item instanceof PortalNavigationApi api && api.getCategoryIds().contains(criteria.getCategoryId())))

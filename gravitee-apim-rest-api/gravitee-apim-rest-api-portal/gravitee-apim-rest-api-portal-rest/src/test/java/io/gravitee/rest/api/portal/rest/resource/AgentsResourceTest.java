@@ -18,12 +18,17 @@ package io.gravitee.rest.api.portal.rest.resource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.AimCatalogQueryServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.agent.model.PortalAgentCard;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.portal.rest.model.AgentCard;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
@@ -44,11 +49,15 @@ class AgentsResourceTest extends AbstractResourceTest {
 
     private static final String ENVIRONMENT_ID = "DEFAULT";
     private static final String AGENT_ID = "catalog-agent-id";
+    private static final String API_ID = "a2a-proxy-api-id";
     private static final Instant CREATED_AT = Instant.parse("2026-04-20T10:00:00Z");
     private static final Instant UPDATED_AT = Instant.parse("2026-04-22T11:00:00Z");
 
     @Autowired
     private AimCatalogQueryServiceInMemory aimCatalogQueryService;
+
+    @Autowired
+    private ApiCrudServiceInMemory apiCrudService;
 
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
@@ -67,12 +76,14 @@ class AgentsResourceTest extends AbstractResourceTest {
     void tearDown() {
         GraviteeContext.cleanContext();
         aimCatalogQueryService.reset();
+        apiCrudService.reset();
         navigationItemsQueryService.reset();
     }
 
     @Test
     void should_return_agent_card_when_exposed_in_navigation() {
         navigationItemsQueryService.initWith(List.of(publicAgentNavigationItem()));
+        apiCrudService.initWith(List.of(a2aProxyApi()));
         aimCatalogQueryService.initWith(List.of(agentCard()));
 
         Response response = target(AGENT_ID).request().get();
@@ -83,7 +94,9 @@ class AgentsResourceTest extends AbstractResourceTest {
         assertThat(result.getKind()).isEqualTo(AgentCard.KindEnum.AGENT);
         assertThat(result.getEntityId()).isEqualTo("agent.weather-agent");
         assertThat(result.getDefinition().getName()).isEqualTo("Weather Agent");
-        assertThat(result.getDefinition().getSkills()).extracting(skill -> skill.getName()).containsExactly("Forecast");
+        assertThat(result.getDefinition().getSkills())
+            .extracting(skill -> skill.getName())
+            .containsExactly("Forecast");
         assertThat(result.getMetadata()).containsEntry("protocol", "A2A");
         assertThat(result.getCreationDate()).isEqualTo(OffsetDateTime.ofInstant(CREATED_AT, ZoneOffset.UTC));
         assertThat(result.getUpdateDate()).isEqualTo(OffsetDateTime.ofInstant(UPDATED_AT, ZoneOffset.UTC));
@@ -98,6 +111,20 @@ class AgentsResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
 
+    private static Api a2aProxyApi() {
+        return Api.builder()
+            .id(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .type(ApiType.A2A_PROXY)
+            .apiDefinitionHttpV4(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .id(API_ID)
+                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path("/a2a/weather").build())).build()))
+                    .build()
+            )
+            .build();
+    }
+
     private static PortalNavigationAgent publicAgentNavigationItem() {
         return PortalNavigationAgent.builder()
             .id(PortalNavigationItemId.of("00000000-0000-0000-0000-000000000201"))
@@ -107,7 +134,7 @@ class AgentsResourceTest extends AbstractResourceTest {
             .segment("weather-agent")
             .area(PortalArea.TOP_NAVBAR)
             .order(0)
-            .apiId("a2a-proxy-api-id")
+            .apiId(API_ID)
             .agentId(AGENT_ID)
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
@@ -137,7 +164,17 @@ class AgentsResourceTest extends AbstractResourceTest {
                 new PortalAgentCard.Capabilities(true, false, true),
                 List.of("text"),
                 List.of("text"),
-                List.of(new PortalAgentCard.Skill("skill-forecast", "Forecast", "Tell the weather", List.of("weather"), List.of(), List.of(), List.of()))
+                List.of(
+                    new PortalAgentCard.Skill(
+                        "skill-forecast",
+                        "Forecast",
+                        "Tell the weather",
+                        List.of("weather"),
+                        List.of(),
+                        List.of(),
+                        List.of()
+                    )
+                )
             )
         );
     }

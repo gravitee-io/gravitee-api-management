@@ -39,6 +39,35 @@ public record PortalAgentCard(
         metadata = metadata == null ? Map.of() : Map.copyOf(metadata);
     }
 
+    public PortalAgentCard withDefinitionUrl(String url) {
+        var def = definition();
+        return new PortalAgentCard(
+            id,
+            kind,
+            entityId,
+            slug,
+            sourceId,
+            sourceKind,
+            environmentId,
+            organizationId,
+            creationDate,
+            updateDate,
+            metadata,
+            new Definition(
+                def.name(),
+                def.description(),
+                url,
+                def.provider(),
+                def.version(),
+                def.documentationUrl(),
+                def.capabilities(),
+                def.defaultInputModes(),
+                def.defaultOutputModes(),
+                def.skills()
+            )
+        );
+    }
+
     public record Definition(
         String name,
         String description,
