@@ -19,6 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { By } from '@angular/platform-browser';
 
 import { SubscriptionFormListComponent } from './subscription-form-list.component';
@@ -35,7 +36,7 @@ describe('SubscriptionFormListComponent', () => {
   const defaultForm = fakeSubscriptionForm({ id: 'form-default', name: 'Default', enabled: true, defaultForm: true });
   const partnerForm = fakeSubscriptionForm({ id: 'form-partner', name: 'Partners', enabled: false, defaultForm: false });
 
-  const init = async (forms: SubscriptionForm[], canUpdate = true, selectedFormId: string | null = null) => {
+  const init = async (forms: SubscriptionForm[], canUpdate = true, selectedFormId: string | null = null, canDelete = true) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, SubscriptionFormListComponent],
     }).compileComponents();
@@ -44,6 +45,7 @@ describe('SubscriptionFormListComponent', () => {
     fixture.componentRef.setInput('forms', forms);
     fixture.componentRef.setInput('canUpdate', canUpdate);
     fixture.componentRef.setInput('selectedFormId', selectedFormId);
+    fixture.componentRef.setInput('canDelete', canDelete);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
   };
@@ -63,7 +65,7 @@ describe('SubscriptionFormListComponent', () => {
 
     const table = await harnessLoader.getHarness(MatTableHarness);
     const headerRows = await table.getHeaderRows();
-    expect(await headerRows[0].getCellTextByIndex()).toEqual(['Name', 'Visible']);
+    expect(await headerRows[0].getCellTextByIndex()).toEqual(['Name', 'Visible', '']);
   });
 
   it('should count the APIs each dedicated form is mapped to next to its name', async () => {
@@ -138,5 +140,25 @@ describe('SubscriptionFormListComponent', () => {
     expect(await table.getRows().then(rows => rows.length)).toBe(1);
     expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-partner]'))).toBeTruthy();
     expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-default]'))).toBeFalsy();
+  });
+
+  it('should offer to delete every form but the default one', async () => {
+    await init([defaultForm, partnerForm]);
+    const deleted: SubscriptionForm[] = [];
+    const selected: SubscriptionForm[] = [];
+    fixture.componentInstance.deleteForm.subscribe(form => deleted.push(form));
+    fixture.componentInstance.selectForm.subscribe(form => selected.push(form));
+
+    expect(fixture.debugElement.query(By.css('[data-testid=delete-form-button-form-default]'))).toBeFalsy();
+    await (await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=delete-form-button-form-partner]' }))).click();
+
+    expect(deleted).toEqual([partnerForm]);
+    expect(selected).toEqual([]);
+  });
+
+  it('should not offer to delete without the delete permission', async () => {
+    await init([defaultForm, partnerForm], true, null, false);
+
+    expect(fixture.debugElement.query(By.css('[data-testid=delete-form-button-form-partner]'))).toBeFalsy();
   });
 });

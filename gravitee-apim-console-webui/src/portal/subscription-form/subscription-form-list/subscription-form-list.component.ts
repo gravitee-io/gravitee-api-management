@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { Component, computed, input, output, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTableModule } from '@angular/material/table';
 
@@ -27,7 +29,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
  */
 @Component({
   selector: 'subscription-form-list',
-  imports: [MatTableModule, MatSlideToggleModule, GioTableWrapperModule],
+  imports: [MatButtonModule, MatIconModule, MatTableModule, MatSlideToggleModule, GioTableWrapperModule],
   templateUrl: './subscription-form-list.component.html',
   styleUrl: './subscription-form-list.component.scss',
 })
@@ -35,11 +37,13 @@ export class SubscriptionFormListComponent {
   readonly forms = input.required<SubscriptionForm[]>();
   readonly selectedFormId = input<string | null>(null);
   readonly canUpdate = input(false);
+  readonly canDelete = input(false);
 
   readonly selectForm = output<SubscriptionForm>();
   readonly toggleEnabled = output<SubscriptionForm>();
+  readonly deleteForm = output<SubscriptionForm>();
 
-  readonly displayedColumns = ['name', 'enabled'];
+  readonly displayedColumns = computed(() => (this.canDelete() ? ['name', 'enabled', 'delete'] : ['name', 'enabled']));
   readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
 
   private readonly searchTerm = computed(() => this.filters().searchTerm?.trim().toLowerCase() ?? '');

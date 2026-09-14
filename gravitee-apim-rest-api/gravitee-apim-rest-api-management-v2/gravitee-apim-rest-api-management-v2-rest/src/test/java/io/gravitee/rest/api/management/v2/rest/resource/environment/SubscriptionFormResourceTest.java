@@ -297,4 +297,51 @@ class SubscriptionFormResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
         }
     }
+
+    @Nested
+    class DeleteSubscriptionForm {
+
+        @Test
+        void should_delete_a_non_default_form() {
+            var form = givenAForm(false, false);
+
+            var response = rootTarget.path(form.getId().toString()).request().delete();
+
+            assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);
+            assertThat(subscriptionFormCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_return_409_when_deleting_the_default_form() {
+            var form = givenAForm(false, true);
+
+            var response = rootTarget.path(form.getId().toString()).request().delete();
+
+            assertThat(response).hasStatus(HttpStatusCode.CONFLICT_409);
+            assertThat(subscriptionFormCrudService.storage()).hasSize(1);
+        }
+
+        @Test
+        void should_return_404_when_form_not_found() {
+            var response = rootTarget.path(UNKNOWN_ID).request().delete();
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_404_when_the_id_is_not_an_identifier() {
+            var response = rootTarget.path(MALFORMED_ID).request().delete();
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            var form = givenAForm(false, false);
+
+            shouldReturn403(RolePermission.ENVIRONMENT_METADATA, ENVIRONMENT, RolePermissionAction.DELETE, () ->
+                rootTarget.path(form.getId().toString()).request().delete()
+            );
+        }
+    }
 }
