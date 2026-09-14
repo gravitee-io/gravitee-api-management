@@ -1659,8 +1659,6 @@ components:
             must not also appear in `properties`.
           additionalProperties:
             type: string
-      required:
-        - properties
     DynamicDictionarySpec:
       description: A dynamic dictionary populated from an external provider on a schedule.
       type: object

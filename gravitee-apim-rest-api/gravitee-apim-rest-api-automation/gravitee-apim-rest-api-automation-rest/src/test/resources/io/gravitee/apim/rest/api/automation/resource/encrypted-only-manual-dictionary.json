@@ -1,0 +1,13 @@
+{
+  "hrid": "encrypted-only-dict",
+  "name": "Encrypted-only Dictionary",
+  "description": "A dictionary containing only encrypted properties",
+  "type": "MANUAL",
+  "deployed": false,
+  "manual": {
+    "properties": null,
+    "encryptedProperties": {
+      "secret-key": "cipher"
+    }
+  }
+}

@@ -75,6 +75,24 @@ class DictionaryAutomationDomainServiceLegacyWrapperTest {
     }
 
     @Test
+    void should_skip_null_property_when_creating_a_legacy_dictionary() {
+        Map<String, DictionaryProperty> properties = mixedProperties();
+        properties.put("invalid", null);
+        Dictionary dictionary = Dictionary.builder().name("My Dictionary").type(DictionaryType.MANUAL).properties(properties).build();
+
+        wrapper.create(GraviteeContext.getExecutionContext(), dictionary);
+
+        verify(dictionaryService).create(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                (NewDictionaryEntity entity) ->
+                    entity.getProperties().equals(Map.of("plain-key", "plain-value", "secret-key", "cipher")) &&
+                    entity.getEncryptedPropertyKeys().equals(Set.of("secret-key"))
+            )
+        );
+    }
+
+    @Test
     void should_flatten_properties_and_populate_encrypted_keys_on_update() {
         Dictionary dictionary = Dictionary.builder()
             .name("My Dictionary")

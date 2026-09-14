@@ -65,6 +65,20 @@ class DictionaryMapperTest {
     }
 
     @Test
+    void should_map_encrypted_properties_when_plain_properties_are_null() {
+        ManualDictionarySpec manual = new ManualDictionarySpec();
+        manual.setProperties(null);
+        manual.setEncryptedProperties(Map.of("secret-key", "cipher"));
+        DictionarySpec spec = new DictionarySpec().type(DictionaryType.MANUAL).manual(manual);
+
+        var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
+
+        assertThat(dictionary.getProperties())
+            .containsOnlyKeys("secret-key")
+            .containsEntry("secret-key", new DictionaryProperty("cipher", true));
+    }
+
+    @Test
     void should_fail_loudly_when_a_key_appears_in_both_properties_and_encrypted_properties() {
         DictionarySpec spec = new DictionarySpec()
             .type(DictionaryType.MANUAL)

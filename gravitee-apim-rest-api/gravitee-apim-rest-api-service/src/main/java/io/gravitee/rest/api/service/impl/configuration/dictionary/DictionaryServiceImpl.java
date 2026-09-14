@@ -535,7 +535,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         return typed
             .entrySet()
             .stream()
-            .filter(entry -> entry.getValue().encrypted())
+            .filter(entry -> entry.getValue() != null && entry.getValue().encrypted())
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
     }
