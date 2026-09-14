@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as fs from 'fs';
+import * as path from 'path';
 import { isBlank } from './string';
 import { CircleCIEnvironment } from '../pipelines';
 
@@ -81,6 +82,27 @@ export function computeApimVersion(environment: CircleCIEnvironment): string {
   const pomXml = fs.readFileSync(environment.apimVersionPath, 'utf8');
   const { revision, sha1, changelist } = parsePomXml(pomXml);
   return `${revision}${sha1}${changelist}`;
+}
+
+/**
+ * The core version the distribution assembles, read from the pom beside the root one.
+ *
+ * The two reactors release apart, so this is the number the core's artefacts carry — `4.13.1` under
+ * a product `4.13.4` — and anything fetching them by version needs it rather than the product's.
+ * Read here, at generation time, because the tag is checked out; the release itself refuses a pin
+ * it cannot assemble, through Maven, before it builds anything.
+ */
+export function corePin(environment: CircleCIEnvironment): string {
+  const distributionPom = `${path.dirname(environment.apimVersionPath)}/gravitee-apim-distribution/pom.xml`;
+  if (!fs.existsSync(distributionPom)) {
+    throw new Error('corePin - No file at specified path: ' + distributionPom);
+  }
+
+  const pin = fs.readFileSync(distributionPom, 'utf8').match(/<apim\.core\.version>(.*?)<\/apim\.core\.version>/);
+  if (pin === null || isBlank(pin[1])) {
+    throw new Error('corePin - No <apim.core.version> in ' + distributionPom);
+  }
+  return pin[1];
 }
 
 function parsePomXml(pomXml: string) {
