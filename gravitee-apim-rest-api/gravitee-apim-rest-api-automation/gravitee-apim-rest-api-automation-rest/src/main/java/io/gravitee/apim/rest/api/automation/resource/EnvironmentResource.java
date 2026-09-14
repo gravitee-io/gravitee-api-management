@@ -63,6 +63,11 @@ public class EnvironmentResource {
         return resourceContext.getResource(PortalThemesResource.class);
     }
 
+    @Path("/subscription-forms")
+    public SubscriptionFormsResource getSubscriptionFormsResource() {
+        return resourceContext.getResource(SubscriptionFormsResource.class);
+    }
+
     /**
      * Gamma modules, addressed by their plugin id (e.g. {@code /aim}). Literal siblings above always win the
      * match; an unknown segment answers 404 with the module named.

@@ -122,7 +122,7 @@ const portalRoutes: Routes = [
         canDeactivate: [HasUnsavedChangesGuard],
         data: {
           permissions: {
-            anyOf: ['environment-metadata-r', 'environment-metadata-u'],
+            anyOf: ['environment-subscription_form-r', 'environment-subscription_form-u'],
           },
         },
       },

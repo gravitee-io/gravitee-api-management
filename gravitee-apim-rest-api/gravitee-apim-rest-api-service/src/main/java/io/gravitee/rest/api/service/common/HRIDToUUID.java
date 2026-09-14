@@ -79,6 +79,10 @@ public final class HRIDToUUID {
         return new TopLevelBuilder();
     }
 
+    public static TopLevelBuilder subscriptionForm() {
+        return new TopLevelBuilder();
+    }
+
     public static SubResourceBuilder plan() {
         return new SubResourceBuilder();
     }
