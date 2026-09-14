@@ -81,7 +81,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
      * Default Notifier IDs
      */
     public static final String DEFAULT_EMAIL_NOTIFIER_ID = "default-email";
-    private static final String DEFAULT_WEBHOOK_NOTIFIER_ID = "default-webhook";
+    public static final String DEFAULT_WEBHOOK_NOTIFIER_ID = "default-webhook";
 
     private static final io.gravitee.rest.api.model.NotifierEntity DEFAULT_EMAIL_NOTIFIER;
 

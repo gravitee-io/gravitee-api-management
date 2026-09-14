@@ -20,9 +20,11 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApiProductHook;
 import io.gravitee.rest.api.service.notification.HookScope;
+import io.gravitee.rest.api.service.notification.PerformanceTargetHook;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.Builder;
 import lombok.Data;
 
@@ -62,12 +64,15 @@ public class NotificationConfig {
     }
 
     private static NotificationConfig defaultMailNotificationConfigFor(String referenceType, String referenceId, String recipientConfig) {
-        return defaultMailNotificationConfigFor(
-            referenceType,
-            referenceId,
-            recipientConfig,
-            Arrays.stream(ApiHook.values()).map(Enum::name).sorted().toList()
-        );
+        return defaultMailNotificationConfigFor(referenceType, referenceId, recipientConfig, defaultApiHooks());
+    }
+
+    /** Every hook an API's notification settings offer: its lifecycle hooks and its performance target hooks. */
+    public static List<String> defaultApiHooks() {
+        return Stream.concat(Arrays.stream(ApiHook.values()), Arrays.stream(PerformanceTargetHook.values()))
+            .map(Enum::name)
+            .sorted()
+            .toList();
     }
 
     private static NotificationConfig defaultMailNotificationConfigFor(

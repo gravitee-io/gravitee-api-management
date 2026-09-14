@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.notification;
 
+import io.gravitee.apim.core.notification.model.PerformanceTargetNotificationTemplateData;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -50,10 +51,16 @@ public class NotificationParamsBuilder {
     public static final String REGISTRATION_PATH = "/#!/_sign-up-confirm/";
     public static final String RESET_PASSWORD_PATH = "/#!/_reset-password/";
     public static final String GAMMA_RESET_PASSWORD_PATH = "/reset-password";
+    public static final String PARAM_PERFORMANCE_TARGET = "performanceTarget";
     private final Map<String, Object> params = new HashMap<>();
 
     public Map<String, Object> build() {
         return params;
+    }
+
+    public NotificationParamsBuilder performanceTarget(PerformanceTargetNotificationTemplateData data) {
+        this.params.put(PARAM_PERFORMANCE_TARGET, data);
+        return this;
     }
 
     public NotificationParamsBuilder application(ApplicationEntity app) {

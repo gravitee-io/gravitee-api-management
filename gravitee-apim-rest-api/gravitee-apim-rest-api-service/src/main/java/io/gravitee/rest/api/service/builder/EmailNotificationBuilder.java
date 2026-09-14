@@ -120,6 +120,26 @@ public class EmailNotificationBuilder {
         API_REVIEW_OK(ApiHook.REVIEW_OK, "reviewOk.html", "API review accepted"),
         API_API_DEPRECATED(ApiHook.API_DEPRECATED, "apiDeprecated.html", "API deprecated"),
         API_PLANS_DATA_FIXED(ApiHook.MESSAGE, "apiPlansDataFixed.html", "API plans data have been fixed"),
+        PERFORMANCE_TARGET_RULE_MISSED(
+            PerformanceTargetHook.RULE_MISSED,
+            "performanceTargetRuleMissed.html",
+            "[${performanceTarget.subjectName}] Performance target missed"
+        ),
+        PERFORMANCE_TARGET_RULE_RECOVERED(
+            PerformanceTargetHook.RULE_RECOVERED,
+            "performanceTargetRuleRecovered.html",
+            "[${performanceTarget.subjectName}] Performance target met again"
+        ),
+        PERFORMANCE_TARGET_RULE_NOT_EVALUABLE(
+            PerformanceTargetHook.RULE_NOT_EVALUABLE,
+            "performanceTargetRuleNotEvaluable.html",
+            "[${performanceTarget.subjectName}] Performance target no longer evaluable"
+        ),
+        PERFORMANCE_TARGET_RULE_EVALUABLE_AGAIN(
+            PerformanceTargetHook.RULE_EVALUABLE_AGAIN,
+            "performanceTargetRuleEvaluableAgain.html",
+            "[${performanceTarget.subjectName}] Performance target evaluable again"
+        ),
         API_PRODUCT_APIKEY_REVOKED(
             ApiProductHook.APIKEY_REVOKED,
             "apiKeyRevoked.html",
