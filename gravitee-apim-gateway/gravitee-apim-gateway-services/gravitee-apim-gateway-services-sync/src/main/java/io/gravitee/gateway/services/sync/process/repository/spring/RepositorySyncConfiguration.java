@@ -74,6 +74,8 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.A
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzScopePlacement;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.GammaEnabledCondition;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.cluster.ClusterSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.debug.DebugSynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionarySynchronizer;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseSynchronizer;
@@ -288,6 +290,32 @@ public class RepositorySyncConfiguration {
             apiKeyFetcher,
             subscriptionService,
             apiKeyMapper,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public CredentialMapper credentialMapper(ObjectMapper objectMapper) {
+        return new CredentialMapper(objectMapper);
+    }
+
+    @Bean
+    @Conditional(GammaEnabledCondition.class)
+    public CredentialSynchronizer credentialSynchronizer(
+        LatestEventFetcher eventsFetcher,
+        CredentialMapper credentialMapper,
+        EnvironmentService environmentService,
+        DeployerFactory deployerFactory,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
+    ) {
+        return new CredentialSynchronizer(
+            eventsFetcher,
+            credentialMapper,
+            environmentService,
             deployerFactory,
             syncFetcherExecutor,
             syncDeployerExecutor
