@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.environment;
 
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.use_case.DisableSubscriptionFormUseCase;
 import io.gravitee.apim.core.subscription_form.use_case.EnableSubscriptionFormUseCase;
@@ -76,7 +77,7 @@ public class SubscriptionFormResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.READ }) })
     public Response getSubscriptionForm() {
         var output = getSubscriptionFormUseCase.execute(
-            new GetSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), SubscriptionFormId.of(subscriptionFormId))
+            new GetSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
         );
         return Response.ok(mapper.toResponse(output)).build();
     }
@@ -89,7 +90,7 @@ public class SubscriptionFormResource extends AbstractResource {
         var output = updateSubscriptionFormUseCase.execute(
             new UpdateSubscriptionFormUseCase.Input(
                 GraviteeContext.getCurrentEnvironment(),
-                SubscriptionFormId.of(subscriptionFormId),
+                subscriptionFormId(),
                 request.getName(),
                 request.getGmdContent()
             )
@@ -103,7 +104,7 @@ public class SubscriptionFormResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response enableSubscriptionForm() {
         var output = enableSubscriptionFormUseCase.execute(
-            new EnableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), SubscriptionFormId.of(subscriptionFormId))
+            new EnableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
         );
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }
@@ -114,7 +115,7 @@ public class SubscriptionFormResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response disableSubscriptionForm() {
         var output = disableSubscriptionFormUseCase.execute(
-            new DisableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), SubscriptionFormId.of(subscriptionFormId))
+            new DisableSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
         );
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
     }
@@ -125,8 +126,23 @@ public class SubscriptionFormResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_METADATA, acls = { RolePermissionAction.UPDATE }) })
     public Response setDefaultSubscriptionForm() {
         var output = setDefaultSubscriptionFormUseCase.execute(
-            new SetDefaultSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), SubscriptionFormId.of(subscriptionFormId))
+            new SetDefaultSubscriptionFormUseCase.Input(GraviteeContext.getCurrentEnvironment(), subscriptionFormId())
         );
         return Response.ok(mapper.toResponse(output.subscriptionForm())).build();
+    }
+
+    /**
+     * The path segment is a form id only when it parses as one: anything else names no form of the environment,
+     * and is answered like any other unknown id rather than as a server error.
+     */
+    private SubscriptionFormId subscriptionFormId() {
+        try {
+            return SubscriptionFormId.of(subscriptionFormId);
+        } catch (IllegalArgumentException e) {
+            throw new SubscriptionFormNotFoundException(
+                "Subscription form not found with id [ " + subscriptionFormId + " ]",
+                subscriptionFormId
+            );
+        }
     }
 }
