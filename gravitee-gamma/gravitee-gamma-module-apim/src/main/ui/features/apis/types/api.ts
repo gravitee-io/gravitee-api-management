@@ -173,7 +173,7 @@ export interface ApiListItem {
     apiVersion: string;
     description?: string;
     type: ApiType;
-    definitionVersion: 'V4' | 'V2';
+    definitionVersion: 'V4' | 'V2' | 'FEDERATED';
     state?: ApiState;
     deploymentState?: ApiDeploymentState;
     lifecycleState?: ApiLifecycleState;
@@ -352,7 +352,7 @@ export interface ApiDetailDto {
     deploymentState?: ApiDeploymentState;
     type?: ApiType;
     apiVersion?: string;
-    definitionVersion?: 'V4' | 'V4_NATIVE' | 'FEDERATED';
+    definitionVersion?: 'V4' | 'V4_NATIVE' | 'FEDERATED' | 'FEDERATED_AGENT';
     lifecycleState?: ApiLifecycleState;
     visibility?: ApiVisibility;
     tags?: string[];

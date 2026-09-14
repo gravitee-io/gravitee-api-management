@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDetailDto } from '../types';
+import type { ApiDetailDto, ApiListItem } from '../types';
 
 export function isFederatedApi(api: ApiDetailDto | null | undefined): boolean {
     return api?.definitionVersion === 'FEDERATED';
+}
+
+export function isFederatedAgentApi(api: ApiDetailDto | null | undefined): boolean {
+    return api?.definitionVersion === 'FEDERATED_AGENT';
+}
+
+// Keyed on the row's own `definitionVersion` rather than on `originContext.origin`, which a
+// FEDERATED_AGENT row also carries as INTEGRATION and which therefore cannot tell the two apart.
+export function isFederatedApiListItem(api: ApiListItem): boolean {
+    return api.definitionVersion === 'FEDERATED';
 }

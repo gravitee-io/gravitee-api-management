@@ -82,11 +82,35 @@ describe('ApiListTable', () => {
         expect(screen.queryByText('My Service')).not.toBeNull();
     });
 
-    it('navigates to the overview page on row click', () => {
+    it('navigates to the overview page on a natively-managed row click', () => {
         const api = makeApi();
         renderTable({ apis: [api] });
         fireEvent.click(screen.getByText('Test API'));
         expect(mockNavigate).toHaveBeenCalledWith('api-1/overview');
+    });
+
+    it('navigates to the general page on a federated row click', () => {
+        renderTable({ apis: [makeApi({ id: 'federated-1', name: 'Orders API', definitionVersion: 'FEDERATED' })] });
+        fireEvent.click(screen.getByText('Orders API'));
+        expect(mockNavigate).toHaveBeenCalledWith('federated-1/general');
+        expect(mockNavigate).not.toHaveBeenCalledWith('federated-1/overview');
+    });
+
+    // Both kinds arrive in the same response, so the landing route has to be decided per row: a predicate
+    // hoisted out of the cell would still satisfy every single-row case above while sending a whole
+    // mixed list to one route.
+    it('sends each row to the landing route of its own kind when both kinds are listed together', () => {
+        renderTable({
+            apis: [
+                makeApi({ id: 'native', name: 'Payments API' }),
+                makeApi({ id: 'federated-1', name: 'Orders API', definitionVersion: 'FEDERATED' }),
+            ],
+        });
+
+        fireEvent.click(screen.getByText('Payments API'));
+        fireEvent.click(screen.getByText('Orders API'));
+
+        expect(mockNavigate.mock.calls).toEqual([['native/overview'], ['federated-1/general']]);
     });
 
     it('renders the API actions button for each row', () => {
@@ -110,6 +134,98 @@ describe('ApiListTable', () => {
         await waitFor(() => expect(screen.queryByText('View Details')).not.toBeNull());
         expect(screen.queryByText('Edit Configuration')).not.toBeNull();
         expect(screen.queryByText('View Analytics')).not.toBeNull();
+    });
+
+    it('offers a natively-managed row all three shipped actions and nothing else', async () => {
+        const user = userEvent.setup();
+        renderTable({ apis: [makeApi()] });
+        await user.click(screen.getByRole('button', { name: 'API actions' }));
+        await waitFor(() => expect(screen.getAllByRole('menuitem')).toHaveLength(3));
+        expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual([
+            'View Details',
+            'Edit Configuration',
+            'View Analytics',
+        ]);
+    });
+
+    it('offers a federated row only the two actions a federated API has backing data for', async () => {
+        const user = userEvent.setup();
+        renderTable({ apis: [makeApi({ id: 'federated-1', name: 'Orders API', definitionVersion: 'FEDERATED' })] });
+        await user.click(screen.getByRole('button', { name: 'API actions' }));
+        // The item count is asserted rather than just the two expected labels, since a menu that still
+        // rendered "View Analytics" would satisfy a presence-only check on the other two.
+        await waitFor(() => expect(screen.getAllByRole('menuitem')).toHaveLength(2));
+        expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['View Details', 'Edit Configuration']);
+        expect(screen.queryByText('View Analytics')).toBeNull();
+    });
+
+    it('navigates "View Details" to the overview page for a natively-managed row', async () => {
+        const user = userEvent.setup();
+        renderTable({ apis: [makeApi()] });
+        await user.click(screen.getByRole('button', { name: 'API actions' }));
+        await user.click(await screen.findByText('View Details'));
+        expect(mockNavigate).toHaveBeenCalledWith('api-1/overview');
+    });
+
+    it('navigates "View Details" to the general page for a federated row', async () => {
+        const user = userEvent.setup();
+        renderTable({ apis: [makeApi({ id: 'federated-1', name: 'Orders API', definitionVersion: 'FEDERATED' })] });
+        await user.click(screen.getByRole('button', { name: 'API actions' }));
+        await user.click(await screen.findByText('View Details'));
+        expect(mockNavigate).toHaveBeenCalledWith('federated-1/general');
+        expect(mockNavigate).not.toHaveBeenCalledWith('federated-1/overview');
+    });
+
+    // "Edit Configuration" goes to General for every row, unlike "View Details" — so a handler rewired
+    // through the landing helper when the menu took the whole row instead of an id would send a
+    // natively-managed row here to `overview`, and every other case in this file would stay green.
+    it('navigates "Edit Configuration" to the general page for both row kinds', async () => {
+        const user = userEvent.setup();
+        renderTable({
+            apis: [
+                makeApi({ id: 'native', name: 'Payments API' }),
+                makeApi({ id: 'federated-1', name: 'Orders API', definitionVersion: 'FEDERATED' }),
+            ],
+        });
+        const [nativeTrigger, federatedTrigger] = screen.getAllByRole('button', { name: 'API actions' });
+
+        await user.click(nativeTrigger);
+        await user.click(await screen.findByText('Edit Configuration'));
+        // Radix keeps the open menu modal, so the second trigger is unreachable until the first closes.
+        await waitFor(() => expect(screen.queryAllByRole('menuitem')).toHaveLength(0));
+        await user.click(federatedTrigger);
+        await user.click(await screen.findByText('Edit Configuration'));
+
+        expect(mockNavigate.mock.calls).toEqual([['native/general'], ['federated-1/general']]);
+    });
+
+    it('offers each row the actions of its own kind when both kinds are listed together', async () => {
+        const user = userEvent.setup();
+        renderTable({
+            apis: [
+                makeApi({ id: 'native', name: 'Payments API' }),
+                makeApi({ id: 'federated-1', name: 'Orders API', definitionVersion: 'FEDERATED' }),
+            ],
+        });
+        const [nativeTrigger, federatedTrigger] = screen.getAllByRole('button', { name: 'API actions' });
+
+        await user.click(nativeTrigger);
+        await waitFor(() =>
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual([
+                'View Details',
+                'Edit Configuration',
+                'View Analytics',
+            ]),
+        );
+
+        // Radix keeps the open menu modal, so the second trigger is unreachable until the first closes.
+        await user.keyboard('{Escape}');
+        await waitFor(() => expect(screen.queryAllByRole('menuitem')).toHaveLength(0));
+
+        await user.click(federatedTrigger);
+        await waitFor(() =>
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['View Details', 'Edit Configuration']),
+        );
     });
 
     it('navigates "View Analytics" to the API-filtered observability dashboard', async () => {

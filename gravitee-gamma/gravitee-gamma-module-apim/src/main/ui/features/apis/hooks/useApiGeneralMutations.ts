@@ -34,7 +34,7 @@ import {
     updateApiPicture,
 } from '../services/apis';
 import type { ApiDetailDto, ApiImportSubmission, DuplicateApiOptions } from '../types';
-import { apiDetailKeys } from '../utils/queryKeys';
+import { apiDetailKeys, apiListKeys } from '../utils/queryKeys';
 
 interface ApiGeneralSideEffects {
     onDeleteSuccess?: () => void;
@@ -72,7 +72,10 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
 
     const deleteMutation = useMutation({
         mutationFn: () => deleteApi(env!.id, apiId!),
-        onSuccess: () => sideEffectsRef.current.onDeleteSuccess?.(),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: apiListKeys.all });
+            sideEffectsRef.current.onDeleteSuccess?.();
+        },
     });
 
     const duplicateMutation = useMutation({

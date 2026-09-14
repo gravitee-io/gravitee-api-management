@@ -33,6 +33,7 @@ import { ShardingTagsCell } from '../../../../shared/components/ShardingTagsCell
 import type { ApiDeploymentState, ApiListItem, ApiListOriginContext, ApiState } from '../../types';
 import { buildApiAnalyticsPath } from '../../utils/analyticsDeepLink';
 import { getApiAccessPath } from '../../utils/apiAccess';
+import { isFederatedApiListItem } from '../../utils/federatedApi';
 import { federatedProviderLabel } from '../../utils/federatedProviderLabels';
 import { ApiAvatar } from '../ApiAvatar';
 
@@ -114,9 +115,14 @@ function OriginIndicator({ originContext }: { originContext: ApiListOriginContex
     );
 }
 
+// A federated API's detail nav has no Overview section, so its detail page opens on General instead.
+function apiDetailLandingPath(api: ApiListItem): string {
+    return isFederatedApiListItem(api) ? `${api.id}/general` : `${api.id}/overview`;
+}
+
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
 
-function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (path: string) => void }) {
+function ApiActionsMenu({ api, onNavigate }: { api: ApiListItem; onNavigate: (path: string) => void }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -125,9 +131,12 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-auto min-w-48">
-                <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/overview`)}>View Details</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/general`)}>Edit Configuration</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onNavigate(buildApiAnalyticsPath(apiId))}>View Analytics</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onNavigate(apiDetailLandingPath(api))}>View Details</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onNavigate(`${api.id}/general`)}>Edit Configuration</DropdownMenuItem>
+                {/* A federated API never runs on a gateway, so the analytics dashboard has no data to show for it. */}
+                {!isFederatedApiListItem(api) && (
+                    <DropdownMenuItem onSelect={() => onNavigate(buildApiAnalyticsPath(api.id))}>View Analytics</DropdownMenuItem>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -152,7 +161,7 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
                             type="button"
                             className="text-left font-medium hover:underline"
                             title={truncated ? name : undefined}
-                            onClick={() => navigate(`${api.id}/overview`)}
+                            onClick={() => navigate(apiDetailLandingPath(api))}
                         >
                             {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
                         </button>
@@ -217,7 +226,7 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             enableHiding: false,
             cell: ({ row }: ColCell<ApiListItem>) => (
                 <div className="flex justify-end">
-                    <ApiActionsMenu apiId={row.original.id} onNavigate={navigate} />
+                    <ApiActionsMenu api={row.original} onNavigate={navigate} />
                 </div>
             ),
         },

@@ -136,6 +136,9 @@ jest.mock('../../../utils/queryKeys', () => ({
         all: ['api-detail'],
         detail: (envId: string, apiId: string) => ['api-detail', envId, apiId],
     },
+    apiListKeys: {
+        all: ['api-list'],
+    },
     envCategoryKeys: {
         all: ['env-categories'],
         list: (envId: string) => ['env-categories', envId],
@@ -154,6 +157,8 @@ jest.mock('../../../services/apiProxy', () => ({
 jest.mock('../../../services/policyStudioService', () => ({
     listPolicies: jest.fn(() => Promise.resolve([])),
 }));
+
+import { toast } from '@gravitee/graphene-core';
 
 import { ApiGeneralPage } from './ApiGeneralPage';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
@@ -181,12 +186,22 @@ const STUB_API = {
     updatedAt: '2025-06-01T00:00:00Z',
 };
 
+// A federated API carries no runtime `state`, so only `lifecycleState` can block its delete.
+const FEDERATED_API = {
+    ...STUB_API,
+    id: 'federated-api-1',
+    name: 'Federated Orders API',
+    definitionVersion: 'FEDERATED',
+    state: undefined,
+    listeners: undefined,
+    lifecycleState: 'CREATED',
+};
+
 function makeClient() {
     return new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
 }
 
-function renderPage(apiId = 'api-1') {
-    const client = makeClient();
+function renderPage(apiId = 'api-1', client = makeClient()) {
     return render(
         <QueryClientProvider client={client}>
             <MemoryRouter initialEntries={[`/apis/${apiId}/general`]}>
@@ -337,6 +352,41 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(screen.getByRole('button', { name: /delete permanently/i }));
         await waitFor(() => expect(apiServices.deleteApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
         await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    });
+
+    it('deletes a federated API and invalidates the API Proxies list cache', async () => {
+        mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
+        const client = makeClient();
+        const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
+        renderPage('federated-api-1', client);
+
+        const deleteButton = screen.getByRole('button', { name: /delete this api/i });
+        expect(deleteButton).not.toBeDisabled();
+
+        fireEvent.click(deleteButton);
+        fireEvent.change(screen.getByPlaceholderText('Federated Orders API'), { target: { value: 'Federated Orders API' } });
+        fireEvent.click(screen.getByRole('button', { name: /delete permanently/i }));
+
+        await waitFor(() => expect(apiServices.deleteApi).toHaveBeenCalledWith('DEFAULT', 'federated-api-1'));
+        await waitFor(() => expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-list'] }));
+    });
+
+    // The refused API is still in the list, so evicting the list here would cost a refetch that changes
+    // nothing — and an invalidation moved out of onSuccess onto the click or onSettled would look
+    // identical to the case above, which only ever sees a delete that resolved.
+    it('leaves the API Proxies list cache alone when the delete request is refused', async () => {
+        mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
+        jest.spyOn(apiServices, 'deleteApi').mockRejectedValue(new Error('Delete refused'));
+        const client = makeClient();
+        const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
+        renderPage('federated-api-1', client);
+
+        fireEvent.click(screen.getByRole('button', { name: /delete this api/i }));
+        fireEvent.change(screen.getByPlaceholderText('Federated Orders API'), { target: { value: 'Federated Orders API' } });
+        fireEvent.click(screen.getByRole('button', { name: /delete permanently/i }));
+
+        await waitFor(() => expect(toast.error).toHaveBeenCalled());
+        expect(invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ['api-list'] });
     });
 
     it('disables Delete button when API is running', () => {

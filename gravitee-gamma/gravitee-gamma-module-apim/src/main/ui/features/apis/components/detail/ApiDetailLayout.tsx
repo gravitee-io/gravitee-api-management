@@ -57,7 +57,7 @@ import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
 import { hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
-import { isFederatedApi } from '../../utils/federatedApi';
+import { isFederatedAgentApi, isFederatedApi } from '../../utils/federatedApi';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
@@ -258,6 +258,7 @@ export function ApiDetailLayout() {
     const env = useEnvironment();
     const basePath = useDetailBasePath('apis', apiId);
     const { data: api, isLoading, isError } = useApiDetail(apiId);
+    const isAgent = isFederatedAgentApi(api);
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
@@ -298,8 +299,10 @@ export function ApiDetailLayout() {
             viewMode: 'context',
             contextExpanded,
             contextSidebar: (
-                <ContextSidebar header={<ApiInfoHeader api={api ?? null} isLoading={isLoading} />}>
-                    {isError ? null : <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />}
+                <ContextSidebar header={<ApiInfoHeader api={isAgent ? null : (api ?? null)} isLoading={isLoading} />}>
+                    {isError || isAgent ? null : (
+                        <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />
+                    )}
                 </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
@@ -335,6 +338,14 @@ export function ApiDetailLayout() {
         );
     }
 
+    if (isAgent) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <p className="text-sm text-muted-foreground">This API type is not available in API Proxies.</p>
+            </div>
+        );
+    }
+
     return (
         <ApiDetailContext.Provider value={{ api: api ?? null, isLoading, permissionsReady }}>
             <Outlet />
@@ -351,5 +362,13 @@ export function ApiDetailLayout() {
 export function ApiDetailIndexRedirect() {
     const { apiId } = useParams<{ apiId: string }>();
     const basePath = useDetailBasePath('apis', apiId);
-    return <Navigate to={`${basePath}/overview`} replace />;
+    const { data: api, isPending } = useApiDetail(apiId);
+
+    // A `replace` redirect cannot be undone once it has fired, so redirecting before the API is known
+    // would strand a federated API on `overview` — a route its nav does not contain. `isPending`, not
+    // `isLoading`: the query is disabled until the environment resolves, and a disabled query reports
+    // `isLoading: false` with no data.
+    if (isPending) return null;
+
+    return <Navigate to={`${basePath}/${isFederatedApi(api) ? 'general' : 'overview'}`} replace />;
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ApimApiError } from '@gravitee/gamma-ui-shared/api';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { ApisPage } from './ApisPage';
@@ -39,7 +39,14 @@ const FEDERATED_API_NAME = 'Federated Orders';
 
 const API_ROWS = [
     { id: 'native-1', name: NATIVE_PROXY_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' },
-    { id: 'federated-1', name: FEDERATED_API_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' },
+    {
+        id: 'federated-1',
+        name: FEDERATED_API_NAME,
+        apiVersion: '1.0',
+        type: 'PROXY',
+        definitionVersion: 'FEDERATED',
+        originContext: { origin: 'INTEGRATION', provider: 'solace' },
+    },
 ];
 
 const FEDERATED_PROVIDERS = [
@@ -80,12 +87,20 @@ const FEDERATED_SORTABLE_ROW = federatedRow('solace');
 
 const MIXED_ROWS = [NATIVE_SORTABLE_ROW, FEDERATED_SORTABLE_ROW];
 
-function renderPage() {
-    return render(
+function pageTree() {
+    return (
         <MemoryRouter>
             <ApisPage />
-        </MemoryRouter>,
+        </MemoryRouter>
     );
+}
+
+function renderPage() {
+    return render(pageTree());
+}
+
+function tableRowContaining(name: string) {
+    return screen.getAllByRole('row').find(row => within(row).queryByText(name) !== null);
 }
 
 describe('ApisPage', () => {
@@ -105,6 +120,46 @@ describe('ApisPage', () => {
 
         expect(screen.queryByText('Why add an API proxy?')).not.toBeNull();
         expect(screen.queryByPlaceholderText('Search APIs...')).toBeNull();
+    });
+
+    it('shows the table and not the empty landing when every API in the environment is federated', () => {
+        const rows = [federatedRow('solace'), federatedRow('apigee')];
+        mockUseApiList.mockReturnValue({
+            data: { data: rows, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: rows.length } },
+            isLoading: false,
+            isFetching: false,
+            isPlaceholderData: false,
+        });
+        renderPage();
+
+        rows.forEach(row => expect(tableRowContaining(row.name)).not.toBeUndefined());
+        // The landing's own heading, not its Create New Proxy button — the table view renders that same
+        // button, so its absence would not tell the two views apart.
+        expect(screen.queryByText('Why add an API proxy?')).toBeNull();
+    });
+
+    it('leaves a deleted API in no table row once the list query answers without it', () => {
+        const deleted = federatedRow('solace');
+        const kept = federatedRow('apigee');
+        mockUseApiList.mockReturnValue({
+            data: { data: [kept, deleted], pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 2 } },
+            isLoading: false,
+            isFetching: false,
+            isPlaceholderData: false,
+        });
+        const { rerender } = renderPage();
+        expect(tableRowContaining(deleted.name)).not.toBeUndefined();
+
+        mockUseApiList.mockReturnValue({
+            data: { data: [kept], pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 } },
+            isLoading: false,
+            isFetching: false,
+            isPlaceholderData: false,
+        });
+        rerender(pageTree());
+
+        expect(tableRowContaining(deleted.name)).toBeUndefined();
+        expect(tableRowContaining(kept.name)).not.toBeUndefined();
     });
 
     it('renders an API row of either kind when the search succeeds', () => {

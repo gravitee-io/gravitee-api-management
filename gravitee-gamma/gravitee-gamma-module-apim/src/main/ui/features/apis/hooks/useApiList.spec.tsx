@@ -15,12 +15,13 @@
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 import { useApiList } from './useApiList';
 import { useFederationEnabled } from '../../license/useFederationEnabled';
 import { searchApis } from '../services/apiList';
+import { apiListKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -40,8 +41,11 @@ const MOCK_RESPONSE = {
     pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 },
 };
 
-function createWrapper() {
-    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+function makeQueryClient() {
+    return new QueryClient({ defaultOptions: { queries: { retry: false } } });
+}
+
+function createWrapper(queryClient = makeQueryClient()) {
     return function Wrapper({ children }: { children: ReactNode }) {
         return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     };
@@ -131,6 +135,25 @@ describe('useApiList', () => {
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(2));
         expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: undefined }, 1, 10, '-status', false);
+    });
+
+    it('searches again when the API list cache is invalidated at its root, whatever this page was built from', async () => {
+        // The root key is what the API delete mutation invalidates, and the delete's own test mocks the
+        // key module away — so nothing else proves this query sits under that root. Every argument is off
+        // its default on purpose: the root has to reach a page cached under any query, sort, or gate state.
+        mockUseFederationEnabled.mockReturnValue({ enabled: true, isResolved: true });
+        const queryClient = makeQueryClient();
+        renderHook(() => useApiList({ query: 'orders', page: 3, perPage: 25, sortBy: '-status' }), {
+            wrapper: createWrapper(queryClient),
+        });
+        await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
+
+        await act(async () => {
+            await queryClient.invalidateQueries({ queryKey: apiListKeys.all });
+        });
+
+        await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(2));
+        expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: 'orders' }, 3, 25, '-status', true);
     });
 
     it('maps an empty query string to undefined in the request body and sorts by name', async () => {

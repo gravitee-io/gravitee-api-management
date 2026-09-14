@@ -139,7 +139,7 @@ function layoutTree(apiId: string) {
         <MemoryRouter initialEntries={[`/apis/${apiId}/overview`]}>
             <Routes>
                 <Route path="apis/:apiId" element={<ApiDetailLayout />}>
-                    <Route path="overview" element={<div />} />
+                    <Route path="overview" element={<div data-testid="api-detail-outlet" />} />
                 </Route>
             </Routes>
         </MemoryRouter>
@@ -189,7 +189,25 @@ describe('useApiBasePath', () => {
 
 // ─── ApiDetailIndexRedirect ───────────────────────────────────────────────────
 
+function renderIndexRedirect() {
+    return render(
+        <MemoryRouter initialEntries={['/apis/abc-123']}>
+            <Routes>
+                <Route path="apis/:apiId" element={<ApiDetailLayout />}>
+                    <Route index element={<ApiDetailIndexRedirect />} />
+                    <Route path="overview" element={<div data-testid="overview-page" />} />
+                    <Route path="general" element={<div data-testid="general-page" />} />
+                </Route>
+            </Routes>
+        </MemoryRouter>,
+    );
+}
+
 describe('ApiDetailIndexRedirect', () => {
+    // Keeps each case's branch decided by its own mock: the two shipped cases read the module-level
+    // default, which the explicitly-mocked cases would otherwise leave overwritten.
+    afterEach(() => (useApiDetail as jest.Mock).mockReturnValue({ data: null, isLoading: false }));
+
     it('redirects the index route to overview', () => {
         render(
             <MemoryRouter initialEntries={['/apis/abc-123']}>
@@ -216,6 +234,41 @@ describe('ApiDetailIndexRedirect', () => {
             </MemoryRouter>,
         );
         expect(screen.getByTestId('overview-page')).toBeInTheDocument();
+    });
+
+    it('lands a federated API on general, the route its nav kept, rather than on overview', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'Federated Orders', definitionVersion: 'FEDERATED' },
+            isLoading: false,
+            isPending: false,
+        });
+        renderIndexRedirect();
+
+        expect(screen.getByTestId('general-page')).toBeInTheDocument();
+        expect(screen.queryByTestId('overview-page')).not.toBeInTheDocument();
+    });
+
+    it('lands a V4 API on overview, which stays its shipped landing route', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'Payments Proxy', definitionVersion: 'V4' },
+            isLoading: false,
+            isPending: false,
+        });
+        renderIndexRedirect();
+
+        expect(screen.getByTestId('overview-page')).toBeInTheDocument();
+        expect(screen.queryByTestId('general-page')).not.toBeInTheDocument();
+    });
+
+    it('redirects nowhere while the detail query has produced no result, even when it reports no loading', () => {
+        // The window this guards is a query that is disabled rather than in flight — the first render of a
+        // host-mounted deep link, before the environment resolves — which reports isLoading: false with no
+        // data. A replace redirect fired there cannot be undone once the definition version arrives.
+        (useApiDetail as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isPending: true });
+        renderIndexRedirect();
+
+        expect(screen.queryByTestId('overview-page')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('general-page')).not.toBeInTheDocument();
     });
 });
 
@@ -416,6 +469,17 @@ describe('ApiInfoHeader', () => {
         renderSidebar();
         expect(screen.getByText('Payment Gateway')).toBeInTheDocument();
     });
+
+    it('renders the API name for a federated API, whose detail page stays reachable', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'Payment Gateway', definitionVersion: 'FEDERATED' },
+            isLoading: false,
+            isError: false,
+        });
+        renderLayout();
+        renderSidebar();
+        expect(screen.getByText('Payment Gateway')).toBeInTheDocument();
+    });
 });
 
 // ─── Sidebar navigation ───────────────────────────────────────────────────────
@@ -575,5 +639,71 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
         for (const heading of FEDERATED_EMPTIED_GROUP_HEADINGS) {
             expect(screen.getByText(heading)).toBeInTheDocument();
         }
+    });
+});
+
+// ─── Federated agent APIs ─────────────────────────────────────────────────────
+
+describe('ApiDetailLayout — federated agent API', () => {
+    const AGENT_NAME = 'Fraud Detection Agent';
+
+    beforeEach(() => {
+        (useApiPermissions as jest.Mock).mockReturnValue({ permissionsReady: true });
+        // A SUCCESSFUL fetch, not a failure: GET /apis/{id} answers 200 for a federated agent, so the
+        // shipped isError branch never fires and only a definition-version check can close this route.
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: AGENT_NAME, definitionVersion: 'FEDERATED_AGENT' },
+            isLoading: false,
+            isError: false,
+        });
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        (useApiPermissions as jest.Mock).mockReturnValue({ permissionsReady: false });
+    });
+
+    it('renders no detail page for an id that resolves to a federated agent', () => {
+        renderLayout();
+        renderSidebar();
+
+        expect(screen.queryByTestId('api-detail-outlet')).not.toBeInTheDocument();
+        for (const role of NAV_ITEM_ROLES) {
+            expect(screen.queryAllByRole(role)).toHaveLength(0);
+        }
+        expect(screen.queryByText(AGENT_NAME)).not.toBeInTheDocument();
+        // Pinned as an exact string, not a pattern: the copy is what tells the user why the page is blank,
+        // and an empty or reworded message is indistinguishable from the blocked page working correctly.
+        expect(screen.getByText('This API type is not available in API Proxies.')).toBeInTheDocument();
+        // The load-failure copy would be a false statement about a request that succeeded.
+        expect(screen.queryByText(/failed to load api/i)).not.toBeInTheDocument();
+    });
+
+    // The counterpart the blocked case needs: nothing else asserts the routed page renders at all, so an
+    // agent block widened to every federated API — or to every API — would look exactly like this one working.
+    it('still renders the routed detail page for a federated API, which is not an agent', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'Federated Orders', definitionVersion: 'FEDERATED' },
+            isLoading: false,
+            isError: false,
+        });
+        renderLayout();
+
+        expect(screen.getByTestId('api-detail-outlet')).toBeInTheDocument();
+        expect(screen.queryByText('This API type is not available in API Proxies.')).not.toBeInTheDocument();
+    });
+
+    it('shows the load-failure copy rather than the unsupported-type copy when the agent detail request fails', () => {
+        // A failed refetch keeps the last successful payload, so both the agent marker and isError are
+        // true at once — and a load failure is the more specific thing to tell the user about.
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: AGENT_NAME, definitionVersion: 'FEDERATED_AGENT' },
+            isLoading: false,
+            isError: true,
+        });
+        renderLayout();
+
+        expect(screen.getByText('Failed to load API. It may have been deleted or you may not have access.')).toBeInTheDocument();
+        expect(screen.queryByText('This API type is not available in API Proxies.')).not.toBeInTheDocument();
     });
 });
