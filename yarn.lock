@@ -4694,9 +4694,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:3.19.1-feat-aiam-662-app-switcher-pinned-app.cad9dc9":
-  version: 3.19.1-feat-aiam-662-app-switcher-pinned-app.cad9dc9
-  resolution: "@gravitee/graphene-core@npm:3.19.1-feat-aiam-662-app-switcher-pinned-app.cad9dc9"
+"@gravitee/graphene-core@npm:3.20.0":
+  version: 3.20.0
+  resolution: "@gravitee/graphene-core@npm:3.20.0"
   dependencies:
     "@base-ui/react": "npm:1.4.1"
     "@tailwindcss/cli": "npm:4.3.0"
@@ -4719,7 +4719,6 @@ __metadata:
     vaul: "npm:1.1.2"
   peerDependencies:
     "@fontsource/dm-sans": ">=5.0.0"
-    "@gravitee/graphene-core": 3.19.1-feat-aiam-662-app-switcher-pinned-app.cad9dc9
     "@monaco-editor/react": ^4.7.0
     "@tanstack/react-table": ^8.0.0
     "@testing-library/dom": ">=10.0.0"
@@ -4768,7 +4767,7 @@ __metadata:
   bin:
     graphene-check-classes: scripts/check-classes.mjs
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/41c538228d69874790bfeac50e4a6f5669896c56fe7b0eb307761cdcf322b003f126d087b9756948a86473c63a5183bc487d3617d9245d6f86d9df48aac174ff
+  checksum: 10c0/61f38cb8bbb7a57d2535bb8d9663e60058217cc1a9ba10d0f73f29d99b3bedc1aaf0cd15226d890b50518a007803501c59d9fe001b6fe2d0a9c5f288ba7dd0a0
   languageName: node
   linkType: hard
 
@@ -21905,7 +21904,7 @@ __metadata:
     "@gravitee/gamma-lib-observability": "npm:3.3.0-beta.5"
     "@gravitee/gamma-modules-sdk": "npm:1.2.0"
     "@gravitee/graphene-charts": "npm:3.19.0"
-    "@gravitee/graphene-core": "npm:3.19.1-feat-aiam-662-app-switcher-pinned-app.cad9dc9"
+    "@gravitee/graphene-core": "npm:3.20.0"
     "@gravitee/graphene-policy-studio": "npm:3.19.0"
     "@gravitee/ui-analytics": "npm:17.8.0"
     "@gravitee/ui-components": "npm:4.5.2"
