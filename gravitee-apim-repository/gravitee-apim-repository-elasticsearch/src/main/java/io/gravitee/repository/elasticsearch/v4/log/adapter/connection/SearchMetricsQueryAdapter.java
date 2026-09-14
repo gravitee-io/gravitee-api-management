@@ -95,6 +95,8 @@ public class SearchMetricsQueryAdapter {
 
         addLlmProxyProvidersFilter(filter, mustFilterList);
 
+        addLlmProxyToolsFilter(filter, mustFilterList);
+
         addMcpProxyToolsFilter(filter, mustFilterList);
 
         addMcpProxyResourcesFilter(filter, mustFilterList);
@@ -251,6 +253,12 @@ public class SearchMetricsQueryAdapter {
     private static void addLlmProxyProvidersFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
         if (!CollectionUtils.isEmpty(filter.getLlmProxyProviders())) {
             mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.LLM_PROXY_PROVIDER, filter.getLlmProxyProviders()));
+        }
+    }
+
+    private static void addLlmProxyToolsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        if (!CollectionUtils.isEmpty(filter.getLlmProxyTools())) {
+            mustFilterList.add(buildV4Terms(RequestV2MetricsV4Fields.LLM_PROXY_TOOL, filter.getLlmProxyTools()));
         }
     }
 

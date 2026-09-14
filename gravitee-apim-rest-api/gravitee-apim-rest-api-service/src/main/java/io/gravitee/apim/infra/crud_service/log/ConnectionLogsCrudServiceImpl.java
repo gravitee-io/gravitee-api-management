@@ -225,6 +225,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .errorKeys(searchLogsFilters.errorKeys())
             .llmProxyModels(searchLogsFilters.llmProxyModels())
             .llmProxyProviders(searchLogsFilters.llmProxyProviders())
+            .llmProxyTools(searchLogsFilters.llmProxyTools())
             .mcpProxyTools(searchLogsFilters.mcpProxyTools())
             .mcpProxyResources(searchLogsFilters.mcpProxyResources())
             .mcpProxyPrompts(searchLogsFilters.mcpProxyPrompts())

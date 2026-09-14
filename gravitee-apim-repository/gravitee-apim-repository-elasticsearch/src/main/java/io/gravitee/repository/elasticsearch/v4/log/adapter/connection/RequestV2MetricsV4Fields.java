@@ -62,6 +62,8 @@ public class RequestV2MetricsV4Fields {
     public static final Field MCP_METHOD = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_method");
     public static final Field LLM_PROXY_MODEL = new Field(ADDITIONAL_METRICS + ".keyword_llm-proxy_model");
     public static final Field LLM_PROXY_PROVIDER = new Field(ADDITIONAL_METRICS + ".keyword_llm-proxy_provider");
+    /** Multi-valued: one entry per tool the agent ran against its previous request, so a terms query reads "contains". */
+    public static final Field LLM_PROXY_TOOL = new Field(ADDITIONAL_METRICS + ".keyword_llm-proxy_tool-names");
     public static final Field MCP_PROXY_TOOL = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_tools/call");
     public static final Field MCP_PROXY_RESOURCE = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_resources/read");
     public static final Field MCP_PROXY_PROMPT = new Field(ADDITIONAL_METRICS + ".keyword_mcp-proxy_prompts/get");

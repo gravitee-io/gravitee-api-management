@@ -389,6 +389,16 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
+        void should_translate_llm_proxy_tool() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("LLM_PROXY_TOOL", FilterOperator.IN, List.of("get_weather", "search")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().llmProxyTools()).containsExactlyInAnyOrder("get_weather", "search");
+        }
+
+        @Test
         void should_translate_mcp_proxy_tool() {
             stubEmptySearchResult();
             var query = queryWith(new FilterCondition("MCP_PROXY_TOOL", FilterOperator.IN, List.of("tool-1")));

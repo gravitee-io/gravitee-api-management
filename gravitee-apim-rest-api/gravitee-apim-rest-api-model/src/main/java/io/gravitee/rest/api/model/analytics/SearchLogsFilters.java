@@ -42,6 +42,7 @@ public record SearchLogsFilters(
     Set<String> apiProductIds,
     Set<String> llmProxyModels,
     Set<String> llmProxyProviders,
+    Set<String> llmProxyTools,
     Set<String> mcpProxyTools,
     Set<String> mcpProxyResources,
     Set<String> mcpProxyPrompts,

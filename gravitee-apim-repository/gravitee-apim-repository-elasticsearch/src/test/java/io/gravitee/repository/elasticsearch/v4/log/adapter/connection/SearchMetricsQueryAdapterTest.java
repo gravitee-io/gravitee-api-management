@@ -981,6 +981,15 @@ class SearchMetricsQueryAdapterTest {
         }
 
         @Test
+        void should_add_llm_proxy_tool_terms_filter() {
+            var query = MetricsQuery.builder()
+                .filter(MetricsQuery.Filter.builder().llmProxyTools(Set.of("get_weather", "search")).build())
+                .build();
+
+            assertThat(hasTermsOn(query, RequestV2MetricsV4Fields.LLM_PROXY_TOOL.v4Metrics())).isTrue();
+        }
+
+        @Test
         void should_add_mcp_proxy_tool_terms_filter() {
             var query = MetricsQuery.builder().filter(MetricsQuery.Filter.builder().mcpProxyTools(Set.of("tool-a")).build()).build();
 

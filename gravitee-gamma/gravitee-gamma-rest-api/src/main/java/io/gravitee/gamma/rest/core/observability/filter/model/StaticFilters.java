@@ -168,13 +168,14 @@ public enum StaticFilters {
         Set.of(ApiType.LLM)
     ),
     /**
-     * A tool the agent ran and handed the result back for. Analytics only: the field it filters on is
-     * multi-valued, and the log search has no {@code llmProxyTools} criterion to carry it.
+     * A tool the agent ran and handed the result back for. The field is multi-valued, so on the log search
+     * it reads "contains": a request matches when any of the tools it carries is among the values.
      */
-    LLM_PROXY_TOOL("LLM Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.LLM)),
+    LLM_PROXY_TOOL("LLM Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
     /**
      * The same tool, identified rather than named: one {@code rawName|fingerprint} per distinct tool of
-     * an exchange. Analytics only, for the same reason as {@link #LLM_PROXY_TOOL}.
+     * an exchange. Analytics only: the field it filters on is multi-valued, and the log search has no
+     * criterion to carry it.
      */
     LLM_PROXY_TOOL_REF("LLM Tool ref", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.LLM)),
 

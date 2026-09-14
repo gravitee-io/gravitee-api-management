@@ -487,6 +487,8 @@ class ConnectionLogsCrudServiceImplTest {
                     .methods(Set.of(HttpMethod.GET))
                     .statuses(Set.of(3))
                     .errorKeys(Set.of("GATEWAY_OAUTH2_ACCESS_DENIED"))
+                    .llmProxyTools(Set.of("get_weather"))
+                    .mcpProxyTools(Set.of("search"))
                     .tenants(Set.of("tenant-1"))
                     .build(),
                 new PageableImpl(1, 20)
@@ -517,6 +519,8 @@ class ConnectionLogsCrudServiceImplTest {
                             .methods(Set.of(HttpMethod.GET))
                             .statuses(Set.of(3))
                             .errorKeys(Set.of("GATEWAY_OAUTH2_ACCESS_DENIED"))
+                            .llmProxyTools(Set.of("get_weather"))
+                            .mcpProxyTools(Set.of("search"))
                             .tenants(Set.of("tenant-1"))
                             .build()
                     )
