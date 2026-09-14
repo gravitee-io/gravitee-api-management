@@ -38,7 +38,7 @@ as an argument, so the freeze releases whatever master currently says it is.
 | 00 | `00-check-repos.sh` | Clones `cloud-apim` if absent | local |
 | 01 | `01-create-branch.sh` | Cuts `<major>.<minor>.x` off an up-to-date master | local |
 | 02 | `02-update-branch-version.sh` | Sets `-alpha.1` on both poms, **pins the core the branch will publish**, updates the portal OpenAPI and the chart; commits; pushes the branch | branch |
-| 03 | `03-update-master-version.sh` | Bumps `<revision>` to the next minor on both poms, **moves the pin with it**, updates the portal OpenAPI and the chart; empties the chart's `artifacthub.io/changes`; swaps the oldest branch out of `.mergify.yml`; pushes master | master |
+| 03 | `03-update-master-version.sh` | Bumps `<revision>` to the next minor on both poms, **moves the pin with it**, updates the portal OpenAPI and the chart; empties the chart's `artifacthub.io/changes`; adds the new line's Mergify backport rule; pushes master | master |
 | 04 | `04-create-github-label.sh` | `gh label create apply-on-<major>-<minor>-x` | GitHub |
 | 05 | `05-publish-helm-charts.sh` | `helm package` then `helm push` to `oci://graviteeio.azurecr.io/helm/` | Azure ACR |
 | 06 | `06-create-cloud-apim-env.sh` | Copies the previous environment, wires it into the three applicationsets, opens the pull request | cloud-apim |
@@ -119,16 +119,16 @@ The one case it refuses to guess is a line with fewer than three previous minors
 which versions of the previous major a `5.0` should keep talking to is not something a version number
 answers. It stops the config generation and says so.
 
-### One end-of-life gesture, done too early
+### Mergify gains a line here, and loses one elsewhere
 
-A line leaves support when the **first release of the new minor ships**, not when its branch is cut —
-opening 4.13 retires 4.9, once 4.13.0 is out. Step 03 does not wait: it substitutes the oldest branch
-in `.mergify.yml` for the new one, and its own sort names `4.9.x` today.
+A line leaves support when the **first release of the new minor ships**, not when its branch is cut:
+opening 4.13 retires 4.9, once 4.13.0 is out. The freeze used to substitute the oldest branch for the
+new one in `.mergify.yml`, which retired it weeks early — a fix meant for it then had no backport rule
+and had to be carried by hand, with nothing to say so.
 
-From the day the branch is cut, then, Mergify no longer backports to a line that is still supported
-for the whole alpha phase, and a fix meant for it has to be carried by hand — with nothing to say so.
-The gesture belongs to [the end-of-life runbook](../end-of-life/README.md), which the first release
-of the new minor triggers.
+The freeze now only adds, so the file carries five lines for as long as the alpha lasts. Removing the
+one that retires belongs to [the end-of-life runbook](../end-of-life/README.md), which the first
+release of the new minor triggers.
 
 ### No deletion counterpart
 

@@ -438,7 +438,7 @@ This EOL procedure is its **counterpart** at closing time. Contact points:
 | Topic | Creation (code‑freeze) | Closing (this runbook) |
 |---|---|---|
 | GitHub label | `04-create-github-label.sh` (`gh label create`) | Action 5 (`gh label delete`) |
-| Mergify rule | `03-update-master-version.sh` (substitution in `.mergify.yml`) | Action 6 (block removal) |
+| Mergify rule | `03-update-master-version.sh` (a rule **added** for the new line) | Action 6 (block removal) |
 | CircleCI triggers | `08-create-circleci-triggers.sh` (clone + `POST /schedule`) | Action 2 (`DELETE /schedule/{id}`) |
 | `dots → dashes` name derivation | `_common.sh` (source of truth) | reused everywhere (`N.E.x` → `N-E-x`) |
 

@@ -57,17 +57,8 @@ awk '
   }
 ' "$HELM_CHART" > "${HELM_CHART}.tmp" && mv "${HELM_CHART}.tmp" "$HELM_CHART"
 
-# .mergify.yml: replace the oldest branch with the newly created branch
-OLDEST_BRANCH=$(grep -oE '[0-9]+\.[0-9]+\.x' "$MERGIFY_FILE" | sort -t. -k1,1n -k2,2n | head -1)
-OLDEST_LABEL=$(echo "$OLDEST_BRANCH" | sed 's/\./-/g')
-NEW_LABEL="${MAJOR}-${MINOR}-x"
-
-echo "Replacing oldest mergify branch '${OLDEST_BRANCH}' with '${BRANCH_NAME}'..."
-
-sed -i.bak "s|${OLDEST_BRANCH}|${BRANCH_NAME}|g" "$MERGIFY_FILE"
-rm -f "$MERGIFY_FILE.bak"
-sed -i.bak "s|${OLDEST_LABEL}|${NEW_LABEL}|g" "$MERGIFY_FILE"
-rm -f "$MERGIFY_FILE.bak"
+# .mergify.yml: the new line gets its backport rule; no line loses one here.
+add_mergify_rule "${BRANCH_NAME}" "${BRANCH_LABEL}"
 
 # Commit
 git -C "$REPO_ROOT" add pom.xml \
