@@ -26,8 +26,8 @@ import lombok.Getter;
  * <p>The form content is defined using Gravitee Markdown (GMD) syntax with
  * form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.</p>
  *
- * <p>Currently, forms are scoped to the environment level (one form per environment).
- * Future versions may support per-API or per-plan forms.</p>
+ * <p>An environment holds a catalog of named forms. A form only applies to the APIs it is dedicated to: an API
+ * without one has no subscription form.</p>
  *
  * <p>Mutation (update, enable, disable) is done via instance methods that modify internal state,
  * similar to {@link io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent}.</p>
@@ -41,16 +41,27 @@ public class SubscriptionForm {
     private final SubscriptionFormId id;
     private final String environmentId;
 
+    /** Display name, unique within the environment. */
+    private String name;
+
     private GraviteeMarkdown gmdContent;
     private boolean enabled;
+
     private SubscriptionFormFieldConstraints validationConstraints;
 
     /**
-     * Updates this form (mutates in place).
+     * Updates the definition of this form (mutates in place).
      */
     public void update(GraviteeMarkdown gmdContent, SubscriptionFormFieldConstraints constraints) {
         this.gmdContent = gmdContent;
         this.validationConstraints = constraints;
+    }
+
+    /**
+     * Renames this form (mutates in place).
+     */
+    public void rename(String name) {
+        this.name = name;
     }
 
     /**

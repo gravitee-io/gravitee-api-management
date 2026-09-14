@@ -85,7 +85,10 @@ public class Index {
                     );
                 }
                 if (partialFilterExpression != null) {
-                    doc.append("partialFilterExpression", partialFilterExpression);
+                    doc.append(
+                        "partialFilterExpression",
+                        Document.parse(partialFilterExpression.toBsonDocument().toJson())
+                    );
                 }
                 return doc;
             }

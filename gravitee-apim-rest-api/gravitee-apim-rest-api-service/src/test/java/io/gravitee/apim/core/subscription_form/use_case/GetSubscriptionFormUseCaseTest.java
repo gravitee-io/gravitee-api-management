@@ -21,80 +21,69 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.SubscriptionFormElResolverInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
+import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
-class GetSubscriptionFormForEnvironmentUseCaseTest {
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
+class GetSubscriptionFormUseCaseTest {
 
     private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
     private final SubscriptionFormElResolverInMemory elResolver = new SubscriptionFormElResolverInMemory();
-    private final SubscriptionFormSchemaGeneratorImpl schemaGenerator = new SubscriptionFormSchemaGeneratorImpl();
-    private GetSubscriptionFormForEnvironmentUseCase useCase;
+    private GetSubscriptionFormUseCase useCase;
 
     @BeforeEach
     void setUp() {
         queryService.reset();
         elResolver.reset();
-        useCase = new GetSubscriptionFormForEnvironmentUseCase(queryService, schemaGenerator, elResolver);
+        useCase = new GetSubscriptionFormUseCase(queryService, new SubscriptionFormSchemaGeneratorImpl(), elResolver);
     }
 
     @Test
-    void should_return_subscription_form_for_environment() {
-        // Given
-        SubscriptionForm expectedForm = SubscriptionFormFixtures.aSubscriptionForm();
-        queryService.initWith(List.of(expectedForm));
+    void should_return_the_form_whether_enabled_or_not() {
+        var disabledForm = SubscriptionFormFixtures.aSubscriptionForm();
+        queryService.initWith(List.of(disabledForm));
 
-        // When
-        var result = useCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(expectedForm.getEnvironmentId()).build()
-        );
+        var result = useCase.execute(new GetSubscriptionFormUseCase.Input(disabledForm.getEnvironmentId(), disabledForm.getId()));
 
-        // Then
-        assertThat(result.subscriptionForm()).isEqualTo(expectedForm);
+        assertThat(result.subscriptionForm()).isEqualTo(disabledForm);
         assertThat(result.resolvedOptions()).isEmpty();
     }
 
     @Test
-    void should_return_disabled_form_for_console_form_builder() {
-        SubscriptionForm disabledForm = SubscriptionFormFixtures.aSubscriptionForm();
-        queryService.initWith(List.of(disabledForm));
+    void should_throw_when_the_form_belongs_to_another_environment() {
+        var form = SubscriptionFormFixtures.aSubscriptionForm();
+        queryService.initWith(List.of(form));
 
-        var result = useCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(disabledForm.getEnvironmentId()).build()
-        );
+        var input = new GetSubscriptionFormUseCase.Input("other-env", form.getId());
 
-        assertThat(result.subscriptionForm()).isEqualTo(disabledForm);
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(SubscriptionFormNotFoundException.class)
+            .hasMessageContaining(form.getId().toString());
     }
 
     @Test
-    void should_throw_exception_when_subscription_form_not_found() {
-        var input = GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId("unknown-environment").build();
-        assertThatThrownBy(() -> useCase.execute(input))
-            .isInstanceOf(SubscriptionFormNotFoundException.class)
-            .hasMessageContaining("unknown-environment");
+    void should_throw_when_the_form_does_not_exist() {
+        var input = new GetSubscriptionFormUseCase.Input(SubscriptionFormFixtures.ENVIRONMENT_ID, SubscriptionFormId.random());
+
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(SubscriptionFormNotFoundException.class);
     }
 
     @Test
     void should_return_fallback_options_when_no_resolved_options_configured() {
-        // Given a form with an EL select field
         var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .gmdContent(
-                io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown.of(
-                    "<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"
-                )
-            )
+            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
             .build();
         queryService.initWith(List.of(form));
 
-        var result = useCase.execute(
-            GetSubscriptionFormForEnvironmentUseCase.Input.builder().environmentId(form.getEnvironmentId()).build()
-        );
+        var result = useCase.execute(new GetSubscriptionFormUseCase.Input(form.getEnvironmentId(), form.getId()));
 
-        // Then fallback options from the expression are returned
         assertThat(result.resolvedOptions()).containsEntry("env", List.of("Prod", "Test"));
     }
 }

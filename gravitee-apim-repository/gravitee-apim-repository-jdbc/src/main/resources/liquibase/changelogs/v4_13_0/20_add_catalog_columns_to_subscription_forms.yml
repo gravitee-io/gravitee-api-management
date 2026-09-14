@@ -1,0 +1,59 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_20_add_catalog_columns_to_subscription_forms
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: name
+                  type: nvarchar(255)
+                  # Every environment had exactly one form so far, applied to all its APIs: it keeps that role under this name.
+                  defaultValue: Global Default Form
+                  constraints:
+                    nullable: false
+
+  # An environment now holds several forms: drop the one-form-per-environment constraint.
+  # PostgreSQL: dropUniqueConstraint with uniqueConstraintExists works.
+  - changeSet:
+      id: 4.13.0_20_drop_subscription_forms_environment_unique_constraint
+      author: GraviteeSource Team
+      dbms: postgresql
+      preConditions:
+        - onFail: MARK_RAN
+        - uniqueConstraintExists:
+            constraintName: uc_${gravitee_prefix}subscription_forms_environment_id
+            tableName: ${gravitee_prefix}subscription_forms
+      changes:
+        - dropUniqueConstraint:
+            constraintName: uc_${gravitee_prefix}subscription_forms_environment_id
+            tableName: ${gravitee_prefix}subscription_forms
+
+  # MySQL and MariaDB implement unique constraints as unique indexes; uniqueConstraintExists does not detect them.
+  - changeSet:
+      id: 4.13.0_20_drop_subscription_forms_environment_unique_index_mysql
+      author: GraviteeSource Team
+      dbms: mysql, mariadb
+      preConditions:
+        - onFail: MARK_RAN
+        - indexExists:
+            indexName: uc_${gravitee_prefix}subscription_forms_environment_id
+            tableName: ${gravitee_prefix}subscription_forms
+      changes:
+        - sql:
+            sql: ALTER TABLE `${gravitee_prefix}subscription_forms` DROP INDEX `uc_${gravitee_prefix}subscription_forms_environment_id`
+
+  # SQL Server: Liquibase dropUniqueConstraint does not reliably drop the constraint; use explicit SQL.
+  - changeSet:
+      id: 4.13.0_20_drop_subscription_forms_environment_unique_constraint_mssql
+      author: GraviteeSource Team
+      dbms: mssql
+      preConditions:
+        - onFail: MARK_RAN
+        - sqlCheck:
+            expectedResult: 1
+            sql: SELECT COUNT(*) FROM sys.key_constraints WHERE name = 'uc_${gravitee_prefix}subscription_forms_environment_id' AND parent_object_id = OBJECT_ID('${gravitee_prefix}subscription_forms')
+      changes:
+        - sql:
+            sql: ALTER TABLE ${gravitee_prefix}subscription_forms DROP CONSTRAINT uc_${gravitee_prefix}subscription_forms_environment_id

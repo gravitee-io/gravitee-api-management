@@ -16,27 +16,18 @@
 package io.gravitee.apim.core.subscription_form.use_case;
 
 import io.gravitee.apim.core.UseCase;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
-import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
-import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
-import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSubmissionValidator;
-import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormDefinitionDomainService;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
-import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormValidationException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
-import io.gravitee.apim.core.subscription_form.model.SubscriptionFormSchema;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
-import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Use case for updating the subscription form for an environment.
- * The subscription form must already exist (created by the DefaultSubscriptionFormUpgrader on system startup).
- * This operation does NOT change the enabled state - use Enable/Disable use cases for that.
+ * Updates the name and definition of an existing subscription form.
+ * This operation does NOT change the enabled state, which has its own use cases.
  *
  * @author Gravitee.io Team
  */
@@ -47,12 +38,9 @@ public class UpdateSubscriptionFormUseCase {
 
     private final SubscriptionFormCrudService subscriptionFormCrudService;
     private final SubscriptionFormQueryService subscriptionFormQueryService;
-    private final GraviteeMarkdownValidator graviteeMarkdownValidator;
-    private final SubscriptionFormSchemaGenerator schemaGenerator;
+    private final SubscriptionFormDefinitionDomainService definitionDomainService;
 
     public Output execute(Input input) {
-        graviteeMarkdownValidator.validateNotEmpty(GraviteeMarkdown.of(input.gmdContent()));
-
         var existingForm = subscriptionFormQueryService
             .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
             .orElseThrow(() ->
@@ -61,28 +49,17 @@ public class UpdateSubscriptionFormUseCase {
                     input.subscriptionFormId().toString()
                 )
             );
+        definitionDomainService.validateName(input.environmentId(), input.name(), input.subscriptionFormId());
+        var definition = definitionDomainService.compile(input.gmdContent());
 
-        var gmd = GraviteeMarkdown.of(input.gmdContent());
-        SubscriptionFormSchema schema = schemaGenerator.generate(gmd);
-        validateFieldCount(schema);
-        var constraints = SubscriptionFormConstraintsFactory.fromSchema(schema);
-        existingForm.update(gmd, constraints);
+        existingForm.rename(input.name().trim());
+        existingForm.update(definition.gmdContent(), definition.constraints());
         var savedForm = subscriptionFormCrudService.update(existingForm);
-
         log.info("Updated subscription form [{}] for environment [{}]", input.subscriptionFormId(), input.environmentId());
-
         return new Output(savedForm);
     }
 
-    private void validateFieldCount(SubscriptionFormSchema schema) {
-        if (schema != null && schema.fields().size() > SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT) {
-            throw new SubscriptionFormDefinitionValidationException(
-                "Subscription form must not exceed " + SubscriptionFormSubmissionValidator.MAX_METADATA_COUNT + " fields"
-            );
-        }
-    }
-
-    public record Input(String environmentId, SubscriptionFormId subscriptionFormId, String gmdContent) {}
+    public record Input(String environmentId, SubscriptionFormId subscriptionFormId, String name, String gmdContent) {}
 
     public record Output(SubscriptionForm subscriptionForm) {}
 }

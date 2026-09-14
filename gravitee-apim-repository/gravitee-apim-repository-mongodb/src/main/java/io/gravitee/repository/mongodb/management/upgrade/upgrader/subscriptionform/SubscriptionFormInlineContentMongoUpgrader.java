@@ -28,8 +28,7 @@ import org.springframework.stereotype.Component;
  * Brings the subscription form definition back into the form document and drops the page content it had
  * been moved to, for the environments that already booted on 4.13.0-SNAPSHOT. Mirrors the JDBC changeset
  * {@code 4.13.0_19_store_subscription_form_definition_inline_again}, down to deleting a form whose
- * definition cannot be recovered so that {@code DefaultSubscriptionFormUpgrader} (order 714) reseeds the
- * environment during the same startup. Forms that were never migrated carry their definition inline
+ * definition cannot be recovered. Forms that were never migrated carry their definition inline
  * already and are left alone.
  *
  * @author GraviteeSource Team
@@ -80,11 +79,7 @@ public class SubscriptionFormInlineContentMongoUpgrader extends MongoUpgrader {
             var definition = pageContent == null ? null : pageContent.getString(CONTENT);
             if (definition == null) {
                 if (forms.deleteOne(stillToRestore).getDeletedCount() > 0) {
-                    log.warn(
-                        "Subscription form [{}] has no definition left in its page content [{}]: deleted it, the environment gets a default form back",
-                        formId,
-                        contentId
-                    );
+                    log.warn("Subscription form [{}] has no definition left in its page content [{}]: deleted it", formId, contentId);
                 }
                 continue;
             }

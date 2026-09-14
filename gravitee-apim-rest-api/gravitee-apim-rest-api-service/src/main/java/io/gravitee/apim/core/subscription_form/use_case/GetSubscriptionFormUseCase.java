@@ -20,26 +20,22 @@ import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormEl
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNotFoundException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
 import java.util.List;
 import java.util.Map;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Use case for getting the subscription form for an environment without an API context
- * (e.g. Console Form Builder). The form is returned whether it is enabled or not so the Console
- * can edit the setting. EL expressions in option-bearing fields are resolved without API metadata
- * and fall back to configured options when resolution fails.
- *
- * <p>For the portal subscription flow with a concrete API, use
- * {@link GetSubscriptionFormForApiPortalUseCase}.</p>
+ * Loads one form of the catalog for the Console form builder, whether it is enabled or not.
+ * EL expressions in option-bearing fields are resolved without API metadata and fall back to the
+ * configured options when resolution fails.
  *
  * @author Gravitee.io Team
  */
 @RequiredArgsConstructor
 @UseCase
-public class GetSubscriptionFormForEnvironmentUseCase {
+public class GetSubscriptionFormUseCase {
 
     private final SubscriptionFormQueryService subscriptionFormQueryService;
     private final SubscriptionFormSchemaGenerator schemaGenerator;
@@ -47,17 +43,18 @@ public class GetSubscriptionFormForEnvironmentUseCase {
 
     public Output execute(Input input) {
         var subscriptionForm = subscriptionFormQueryService
-            .findDefaultForEnvironmentId(input.environmentId())
-            .orElseThrow(() -> new SubscriptionFormNotFoundException(input.environmentId()));
-
+            .findByIdAndEnvironmentId(input.environmentId(), input.subscriptionFormId())
+            .orElseThrow(() ->
+                new SubscriptionFormNotFoundException(
+                    "Subscription form not found with id [ " + input.subscriptionFormId() + " ]",
+                    input.subscriptionFormId().toString()
+                )
+            );
         var schema = schemaGenerator.generate(subscriptionForm.getGmdContent());
-        var resolvedOptions = elResolver.resolveSchemaOptions(schema);
-
-        return new Output(subscriptionForm, resolvedOptions);
+        return new Output(subscriptionForm, elResolver.resolveSchemaOptions(schema));
     }
 
-    @Builder
-    public record Input(String environmentId) {}
+    public record Input(String environmentId, SubscriptionFormId subscriptionFormId) {}
 
     public record Output(SubscriptionForm subscriptionForm, Map<String, List<String>> resolvedOptions) {}
 }

@@ -18,7 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
-import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormForEnvironmentUseCase;
+import io.gravitee.apim.core.subscription_form.use_case.GetSubscriptionFormUseCase;
+import java.util.List;
 import java.util.UUID;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -34,31 +35,19 @@ import org.mapstruct.factory.Mappers;
 public interface SubscriptionFormMapper {
     SubscriptionFormMapper INSTANCE = Mappers.getMapper(SubscriptionFormMapper.class);
 
-    /**
-     * Converts domain entity to OpenAPI DTO.
-     *
-     * @param entity domain entity
-     * @return OpenAPI DTO
-     */
     @Mapping(target = "id", expression = "java(mapId(entity.getId()))")
     @Mapping(target = "gmdContent", source = "gmdContent", qualifiedByName = "graviteeMarkdownToString")
     @Mapping(target = "resolvedOptions", ignore = true)
     io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm toResponse(SubscriptionForm entity);
 
-    default io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm toResponse(
-        GetSubscriptionFormForEnvironmentUseCase.Output output
-    ) {
+    List<io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm> toResponse(List<SubscriptionForm> entities);
+
+    default io.gravitee.rest.api.management.v2.rest.model.SubscriptionForm toResponse(GetSubscriptionFormUseCase.Output output) {
         var model = toResponse(output.subscriptionForm());
         model.setResolvedOptions(output.resolvedOptions().isEmpty() ? null : output.resolvedOptions());
         return model;
     }
 
-    /**
-     * Converts SubscriptionFormId to UUID.
-     *
-     * @param id subscription form ID
-     * @return UUID
-     */
     default UUID mapId(SubscriptionFormId id) {
         return id != null ? UUID.fromString(id.toString()) : null;
     }
