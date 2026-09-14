@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { computeApimVersion, isLatestRelease, nextDevelopmentVersion, parse, supportLineOf, validateGraviteeioVersion } from '../versions';
+import {
+  computeApimVersion,
+  corePin,
+  isLatestRelease,
+  nextDevelopmentVersion,
+  parse,
+  supportLineOf,
+  validateGraviteeioVersion,
+} from '../versions';
+import { CircleCIEnvironment } from '../../pipelines';
 
 describe('version', function () {
   describe('parse', function () {
@@ -84,6 +93,37 @@ describe('version', function () {
       } catch (e) {
         expect(e).toStrictEqual(new Error('computeApiVersion - No file at specified path: ./path/to/non-existing/file'));
       }
+    });
+  });
+
+  describe('corePin', () => {
+    const releaseOf = (apimVersionPath: string): CircleCIEnvironment => ({
+      action: 'distribution_release',
+      baseBranch: 'master',
+      branch: 'master',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '4.2.0',
+      isDryRun: false,
+      apimVersionPath,
+    });
+
+    it('should read the core the distribution pins, beside the root pom', () => {
+      expect(corePin(releaseOf('./src/utils/tests/resources/pinned/pom.xml'))).toStrictEqual('4.1.7');
+    });
+
+    it('should refuse a distribution pom that pins nothing', () => {
+      expect(() => corePin(releaseOf('./src/utils/tests/resources/unpinned/pom.xml'))).toThrow(
+        'corePin - No <apim.core.version> in ./src/utils/tests/resources/unpinned/gravitee-apim-distribution/pom.xml',
+      );
+    });
+
+    it('should refuse a missing distribution pom', () => {
+      expect(() => corePin(releaseOf('./src/utils/tests/resources/pom.xml'))).toThrow(
+        'corePin - No file at specified path: ./src/utils/tests/resources/gravitee-apim-distribution/pom.xml',
+      );
     });
   });
 

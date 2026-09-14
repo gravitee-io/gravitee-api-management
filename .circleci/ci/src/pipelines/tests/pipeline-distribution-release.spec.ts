@@ -83,6 +83,26 @@ describe('Distribution release tests', () => {
     },
   );
 
+  // The specs live in the core's jars, the site publishes them under the product's number. Sent one
+  // version, the docs pipeline polls Maven Central for a jar that will never exist.
+  it('should send the docs site the pin to fetch and the release to publish under', () => {
+    const generated = generateDistributionReleaseConfig({
+      action: 'distribution_release',
+      sha1: '784ff35ca',
+      changedFiles: [],
+      buildNum: '1234',
+      buildId: '1234',
+      graviteeioVersion: '4.2.3',
+      tag: '4.2.3',
+      branch: '',
+      baseBranch: '4.2.x',
+      isDryRun: false,
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-snapshot.xml',
+    }).stringify();
+
+    expect(generated).toContain('"version":"4.2.3", "core_version":"4.2.0"');
+  });
+
   it('should derive the support line, since a tag build carries no branch', () => {
     const result = generateDistributionReleaseConfig({
       action: 'distribution_release',
