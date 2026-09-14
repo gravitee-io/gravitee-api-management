@@ -20,11 +20,11 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.DICT
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dictionary;
-import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
