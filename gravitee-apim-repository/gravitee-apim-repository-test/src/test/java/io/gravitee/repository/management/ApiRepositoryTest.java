@@ -64,6 +64,8 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     private static final String FEDERATED_API_BACKGROUND = "data:image/png;base64,federated-api-background";
     private static final String PAGED_INTEGRATION_ID = "paged-integration-id";
     private static final long PAGED_INTEGRATION_API_COUNT = 7L;
+    private static final String TIED_UPDATE_INTEGRATION_ID = "tied-update-integration-id";
+    private static final long TIED_UPDATE_INTEGRATION_API_COUNT = 2L;
 
     @Override
     protected String getTestCasesPath() {
@@ -698,6 +700,20 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
                 PAGED_INTEGRATION_API_COUNT
             ),
             Arguments.of(
+                "two rows sharing an update time put the lower id on the earlier page",
+                new ApiCriteria.Builder().integrationId(TIED_UPDATE_INTEGRATION_ID).build(),
+                new PageableBuilder().pageNumber(0).pageSize(1).build(),
+                List.of("tied-api-1"),
+                TIED_UPDATE_INTEGRATION_API_COUNT
+            ),
+            Arguments.of(
+                "the page after the tie holds the higher id, so neither tied row is repeated nor skipped",
+                new ApiCriteria.Builder().integrationId(TIED_UPDATE_INTEGRATION_ID).build(),
+                new PageableBuilder().pageNumber(1).pageSize(1).build(),
+                List.of("tied-api-2"),
+                TIED_UPDATE_INTEGRATION_API_COUNT
+            ),
+            Arguments.of(
                 "an explicit id set comes back by update time, never in the order the ids were asked for",
                 new ApiCriteria.Builder().ids(List.of("paged-api-a", "paged-api-b", "paged-api-c", "paged-api-d")).build(),
                 new PageableBuilder().pageNumber(0).pageSize(10).build(),
@@ -838,7 +854,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
-        assertEquals(21, apis.size());
+        assertEquals(23, apis.size());
     }
 
     @Test

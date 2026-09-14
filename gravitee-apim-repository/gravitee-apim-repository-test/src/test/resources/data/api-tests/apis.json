@@ -354,5 +354,37 @@
         "apiLifecycleState": "CREATED",
         "disableMembershipNotifications": false,
         "integrationId": "paged-integration-id"
+    },
+    {
+        "id": "tied-api-2",
+        "environmentId": "DEFAULT-PAGED",
+        "origin": "integration",
+        "name": "tied agent 2",
+        "description": "agent seeded ahead of the lower id it shares an update time with",
+        "definitionVersion": "FEDERATED_AGENT",
+        "version": "v1",
+        "definition": "{\"id\":\"tied-api-2\",\"name\":\"tied agent 2\",\"definitionVersion\":\"FEDERATED_AGENT\"}",
+        "visibility": "PRIVATE",
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000008000,
+        "apiLifecycleState": "CREATED",
+        "disableMembershipNotifications": false,
+        "integrationId": "tied-update-integration-id"
+    },
+    {
+        "id": "tied-api-1",
+        "environmentId": "DEFAULT-PAGED",
+        "origin": "integration",
+        "name": "tied agent 1",
+        "description": "agent seeded with the same update time as tied-api-2",
+        "definitionVersion": "FEDERATED_AGENT",
+        "version": "v1",
+        "definition": "{\"id\":\"tied-api-1\",\"name\":\"tied agent 1\",\"definitionVersion\":\"FEDERATED_AGENT\"}",
+        "visibility": "PRIVATE",
+        "createdAt": 1700000000000,
+        "updatedAt": 1700000008000,
+        "apiLifecycleState": "CREATED",
+        "disableMembershipNotifications": false,
+        "integrationId": "tied-update-integration-id"
     }
 ]
