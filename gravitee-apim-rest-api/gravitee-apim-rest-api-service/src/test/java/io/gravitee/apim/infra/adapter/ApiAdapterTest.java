@@ -305,6 +305,9 @@ class ApiAdapterTest {
             assertThat(apiWithKubernetesContext).hasOriginContext(
                 new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED)
             );
+
+            var apiWithIntegrationContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("integration").integrationId("int-a").build());
+            assertThat(apiWithIntegrationContext).hasOriginContext(new OriginContext.Integration("int-a", null, null));
         }
     }
 
