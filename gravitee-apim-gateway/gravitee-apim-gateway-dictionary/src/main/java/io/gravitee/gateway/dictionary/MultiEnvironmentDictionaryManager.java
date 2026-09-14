@@ -62,9 +62,6 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
             int propertyCount = dictionary.getProperties().size();
             log.info("Dictionary {} has been deployed with {} properties", dictionary, propertyCount);
             dictionaries.get(environmentId).put(key, dictionary);
-            // EL only ever sees plaintext key/value pairs, hence the flattening below. Gateway-side
-            // decryption is not implemented: an encrypted value is flattened as its ciphertext and
-            // resolves through EL that way. The decrypt hook belongs exactly here.
             Map<String, String> flattenedProperties = new HashMap<>((propertyCount * 4) / 3 + 1);
             for (Map.Entry<String, DictionaryProperty> entry : dictionary.getProperties().entrySet()) {
                 DictionaryProperty property = entry.getValue();
