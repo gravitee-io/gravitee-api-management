@@ -427,3 +427,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_13_0/19_store_subscription_form_definition_inline_again.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/20_add_catalog_columns_to_subscription_forms.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/21_add_normalized_name_to_subscription_forms.yml

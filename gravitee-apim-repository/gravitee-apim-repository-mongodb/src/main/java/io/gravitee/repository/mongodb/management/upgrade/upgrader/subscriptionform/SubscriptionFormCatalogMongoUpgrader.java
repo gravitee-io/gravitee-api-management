@@ -23,7 +23,8 @@ import org.springframework.stereotype.Component;
 /**
  * Backfills the catalog fields on subscription form documents that predate them: every existing
  * form was the only one of its environment, so it becomes the environment default, named "Default".
- * Mirrors the JDBC changeset {@code 4.13.0_19_add_catalog_columns_to_subscription_forms}.
+ * Mirrors the JDBC changesets {@code 4.13.0_19_add_catalog_columns_to_subscription_forms} and
+ * {@code 4.13.0_20_add_normalized_name_to_subscription_forms}.
  */
 @Component
 public class SubscriptionFormCatalogMongoUpgrader extends MongoUpgrader {
@@ -40,8 +41,9 @@ public class SubscriptionFormCatalogMongoUpgrader extends MongoUpgrader {
     public boolean upgrade() {
         var collection = this.getCollection("subscription_forms");
         var nameResult = collection.updateMany(Filters.exists("name", false), Updates.set("name", "Default"));
+        var normalizedNameResult = collection.updateMany(Filters.exists("normalizedName", false), Updates.set("normalizedName", "default"));
         var defaultResult = collection.updateMany(Filters.exists("defaultForm", false), Updates.set("defaultForm", true));
-        return nameResult.wasAcknowledged() && defaultResult.wasAcknowledged();
+        return nameResult.wasAcknowledged() && normalizedNameResult.wasAcknowledged() && defaultResult.wasAcknowledged();
     }
 
     @Override
