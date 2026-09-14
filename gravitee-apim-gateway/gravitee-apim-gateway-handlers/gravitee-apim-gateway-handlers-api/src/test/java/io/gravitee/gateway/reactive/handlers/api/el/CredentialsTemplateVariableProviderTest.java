@@ -17,7 +17,6 @@ package io.gravitee.gateway.reactive.handlers.api.el;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.el.TemplateEngine;
@@ -26,97 +25,63 @@ import io.gravitee.gateway.handlers.api.manager.CredentialResolutionException;
 import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.secrets.api.el.FieldKind;
 import io.gravitee.secrets.api.el.SecretFieldAccessControl;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.env.MockEnvironment;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CredentialsTemplateVariableProviderTest {
 
-    private static final String ALLOW_LIST_ENTRY =
-        "method io.gravitee.gateway.reactive.handlers.api.el.EvaluatedCredentialsMethods get java.lang.String java.lang.String io.gravitee.secrets.api.el.SecretFieldAccessControl";
     private static final String EXPRESSION = "{#credentials.get('credential-1', 'clientSecret', #secret_field_access_control_var)}";
     private static final SecretFieldAccessControl SECRET_FIELD = new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
 
     @Mock
     private CredentialResolver credentialResolver;
 
-    @AfterEach
-    void restoreBuiltInAllowList() {
+    @BeforeEach
+    void builtInAllowListOnly() {
         SecuredResolver.initialize(null);
     }
 
-    @Nested
-    class WithTheAllowListEntry {
+    @Test
+    void should_resolve_a_credential_field_in_a_secret_field() {
+        when(credentialResolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
 
-        @BeforeEach
-        void allowCredentials() {
-            SecuredResolver.initialize(new MockEnvironment().withProperty("el.whitelist.list[0]", ALLOW_LIST_ENTRY));
-        }
-
-        @Test
-        void should_resolve_a_credential_field_in_a_secret_field() {
-            when(credentialResolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
-
-            engine("env-1", SECRET_FIELD).eval(EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertValue("s3cr3t");
-        }
-
-        @Test
-        void should_resolve_a_credential_field_inside_a_larger_value() {
-            when(credentialResolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
-
-            engine("env-1", SECRET_FIELD)
-                .eval("Bearer " + EXPRESSION, String.class)
-                .test()
-                .awaitDone(5, SECONDS)
-                .assertValue("Bearer s3cr3t");
-        }
-
-        @Test
-        void should_resolve_in_the_environment_of_the_api() {
-            when(credentialResolver.resolve("env-2", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
-
-            engine("env-2", SECRET_FIELD).eval(EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertComplete();
-
-            verify(credentialResolver).resolve("env-2", "credential-1", "clientSecret", SECRET_FIELD);
-        }
-
-        @Test
-        void should_fail_when_the_resolution_is_refused() {
-            when(credentialResolver.resolve("env-1", "credential-1", "clientSecret", null)).thenThrow(
-                new CredentialResolutionException("Credential [credential-1] can only be resolved in a secret field")
-            );
-
-            engine("env-1", null)
-                .eval(EXPRESSION, String.class)
-                .test()
-                .awaitDone(5, SECONDS)
-                .assertError(error -> causedBy(error, CredentialResolutionException.class));
-        }
+        engine("env-1", SECRET_FIELD).eval(EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertValue("s3cr3t");
     }
 
-    @Nested
-    class WithoutTheAllowListEntry {
+    @Test
+    void should_resolve_a_credential_field_inside_a_larger_value() {
+        when(credentialResolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
 
-        @BeforeEach
-        void builtInAllowListOnly() {
-            SecuredResolver.initialize(null);
-        }
+        engine("env-1", SECRET_FIELD).eval("Bearer " + EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertValue("Bearer s3cr3t");
+    }
 
-        @Test
-        void should_not_call_the_resolver() {
-            engine("env-1", SECRET_FIELD).eval(EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertError(Throwable.class);
+    @Test
+    void should_resolve_in_the_environment_of_the_api() {
+        when(credentialResolver.resolve("env-2", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
 
-            verifyNoInteractions(credentialResolver);
-        }
+        engine("env-2", SECRET_FIELD).eval(EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertComplete();
+
+        verify(credentialResolver).resolve("env-2", "credential-1", "clientSecret", SECRET_FIELD);
+    }
+
+    @Test
+    void should_fail_when_the_resolution_is_refused() {
+        when(credentialResolver.resolve("env-1", "credential-1", "clientSecret", null)).thenThrow(
+            new CredentialResolutionException("Credential [credential-1] can only be resolved in a secret field")
+        );
+
+        engine("env-1", null)
+            .eval(EXPRESSION, String.class)
+            .test()
+            .awaitDone(5, SECONDS)
+            .assertError(error -> causedBy(error, CredentialResolutionException.class));
     }
 
     private TemplateEngine engine(String environmentId, SecretFieldAccessControl accessControl) {
