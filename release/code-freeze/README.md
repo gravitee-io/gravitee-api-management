@@ -98,24 +98,26 @@ the same words. One of master's predates that convention and reads `bridge_compa
 it is left where it is — nothing depends on a schedule's name — but nothing here reproduces it, so a
 listing sorted by name keeps the lines together.
 
-### The bridge compatibility matrix is not adapted
+### The bridge compatibility matrix takes care of itself
 
-A server is tested against **itself and the three previous minors**. The matrix is a literal list in
-`workflow-bridge-compatibility-tests.ts`, and each branch carries its own copy of it, so a freeze has
-two of them to adapt:
+A server keeps talking to four client lines — its own and the three before it — and each line is
+tested on two clients: its first release, and its last. What "last" means depends on the line: a
+supported one still moves, so its tip is `<line>.x-latest` on our registry; a retired one stopped, so
+its last is the public `graviteeio@<line>` tag. A line retires when the fourth release after it
+ships, which makes the supported set the four most recent lines to have published a `.0`.
 
-| | on `<major>.<minor>.x` | on master |
-|---|---|---|
-| itself | `master-latest` becomes `<major>.<minor>.x-latest` | stays `master-latest` |
-| the new line | — | add `<major>.<minor>.x-latest` |
-| the line that falls out | — | drop the oldest `…-latest` and `graviteeio@…` pair |
+That list used to be written out by hand, one copy per branch: two files to edit at every freeze, and
+five more every time a line retired. It could not be scripted either — the linter reflows the array as
+soon as its length changes, so the next freeze's substitutions would find nothing to match.
 
-The branch's copy therefore needs one substitution, master's a shift. `graviteeio@<major>.<minor>.0`
-joins master's list only when that version is actually released — at the freeze it does not exist
-yet.
+`bridgeClientTags` derives it from the version in the tree and the tags the repository carries. **A
+freeze has nothing to do here, neither has the release that follows it, nor the retirement it
+triggers.** The derivation is checked against the four lists master and the support branches carry
+today — reproduce them, or the rule is wrong.
 
-Creating the schedule, which step 08 does, is not enough on its own: the job would run against a
-matrix that ignores the line just opened.
+The one case it refuses to guess is a line with fewer than three previous minors in its own major:
+which versions of the previous major a `5.0` should keep talking to is not something a version number
+answers. It stops the config generation and says so.
 
 ### One end-of-life gesture, done too early
 
