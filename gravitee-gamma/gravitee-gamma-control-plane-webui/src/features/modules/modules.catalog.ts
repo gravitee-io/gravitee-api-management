@@ -33,6 +33,7 @@ export const MODULE_CATALOG = [
     { id: 'apim', label: 'API Management', tagline: 'Design, deploy, and govern HTTP APIs' },
     { id: 'esm', label: 'Event Stream Management', tagline: 'Manage Kafka clusters, services, and event mesh' },
     { id: 'authz', label: 'Authorization Management', tagline: 'Fine-grained authorization policies' },
+    { id: 'act', label: 'Guardian Agent', tagline: 'Build, equip, and watch the agents that guard your platform' },
     { id: 'portals', label: 'Developer Portals', tagline: 'Design and manage developer portal experiences' },
     { id: 'edge', label: 'Edge Management', tagline: 'Monitor and manage Edge Daemons' },
     { id: 'platform', label: 'Platform Management', tagline: 'Apps, subscriptions, and usage' },

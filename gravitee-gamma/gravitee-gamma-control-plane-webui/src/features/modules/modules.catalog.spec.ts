@@ -22,9 +22,9 @@ function moduleWithId(id: string): GammaModule {
 
 describe('orderByCatalog', () => {
     it('should order known modules by product priority, whatever order the backend returns them in', () => {
-        const backendOrder = ['edge', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(moduleWithId);
+        const backendOrder = ['edge', 'act', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(moduleWithId);
 
-        expect(orderByCatalog(backendOrder).map(m => m.id)).toEqual(['aim', 'apim', 'esm', 'authz', 'portals', 'edge', 'platform']);
+        expect(orderByCatalog(backendOrder).map(m => m.id)).toEqual(['aim', 'apim', 'esm', 'authz', 'act', 'portals', 'edge', 'platform']);
     });
 
     it('should keep modules missing from the catalog, after the known ones, sorted by id', () => {
@@ -38,6 +38,7 @@ describe('getModuleLabel', () => {
     it('should return the product label of every catalog module', () => {
         expect(getModuleLabel('edge')).toBe('Edge Management');
         expect(getModuleLabel('apim')).toBe('API Management');
+        expect(getModuleLabel('act')).toBe('Guardian Agent');
     });
 
     it('should fall back to the backend name, then to the id, for a module missing from the catalog', () => {
