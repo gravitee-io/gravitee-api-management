@@ -245,25 +245,26 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             .stream()
             .filter(entry -> entry.getValue() != null)
             .toList();
-        if (!entries.isEmpty()) {
-            jdbcTemplate.batchUpdate(
-                "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v, encrypted ) values ( ?, ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, dictionary.getId());
-                        ps.setString(2, entries.get(i).getKey());
-                        ps.setString(3, entries.get(i).getValue().value());
-                        ps.setBoolean(4, entries.get(i).getValue().encrypted());
-                    }
-
-                    @Override
-                    public int getBatchSize() {
-                        return entries.size();
-                    }
-                }
-            );
+        if (entries.isEmpty()) {
+            return;
         }
+        jdbcTemplate.batchUpdate(
+            "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v, encrypted ) values ( ?, ?, ?, ? )",
+            new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, dictionary.getId());
+                    ps.setString(2, entries.get(i).getKey());
+                    ps.setString(3, entries.get(i).getValue().value());
+                    ps.setBoolean(4, entries.get(i).getValue().encrypted());
+                }
+
+                @Override
+                public int getBatchSize() {
+                    return entries.size();
+                }
+            }
+        );
     }
 
     @Override
