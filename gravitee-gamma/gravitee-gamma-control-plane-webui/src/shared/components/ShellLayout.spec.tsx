@@ -140,7 +140,7 @@ describe('ShellLayout app switcher', () => {
     });
 
     it('should list the products in catalog order, whatever order the backend returns the modules in', async () => {
-        const backendOrder: GammaModule[] = ['edge', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(id => ({
+        const backendOrder: GammaModule[] = ['edge', 'act', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(id => ({
             id,
             name: `${id} plugin`,
             version: '1.0.0',
@@ -167,6 +167,7 @@ describe('ShellLayout app switcher', () => {
                 'API Management',
                 'Event Stream Management',
                 'Authorization Management',
+                'Guardian Agent',
                 'Developer Portals',
                 'Edge Management',
                 'Platform Management',

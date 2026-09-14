@@ -78,6 +78,18 @@ const CARD_CONTENT: Record<ModuleId, CardContent> = {
             ],
         },
     },
+    act: {
+        description: 'Build the agents that guard your platform, give them the tools and sandboxes they need, and watch what they do.',
+        accent: 'highlight',
+        emptyState: { cta: 'Open Guardian Agent', ctaPath: '' },
+        upgrade: {
+            features: [
+                'Build agents that act as guardrails for your other agents',
+                'Give guardian agents the tools and sandboxes they need',
+                'Watch every action your guardian agents take',
+            ],
+        },
+    },
     esm: {
         description: 'Register Kafka clusters, expose governed Kafka services, and federate them into an event mesh.',
         accent: 'muted',

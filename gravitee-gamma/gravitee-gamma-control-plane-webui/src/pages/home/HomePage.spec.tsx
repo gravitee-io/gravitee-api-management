@@ -45,6 +45,14 @@ const EDGE_MODULE: GammaModule = {
     exposedModule: 'App',
 };
 
+const ACT_MODULE: GammaModule = {
+    id: 'act',
+    name: 'Guardian Agent Module',
+    version: '1.0.0',
+    remoteName: 'gravitee_gamma_module_act',
+    exposedModule: 'App',
+};
+
 function renderHome(modules: readonly GammaModule[]) {
     return render(
         <MemoryRouter initialEntries={['/environments/env-1/home']}>
@@ -114,7 +122,7 @@ describe('HomePage', () => {
     });
 
     it('should render the application cards in the same product order as the app switcher, whatever order the modules arrive in', () => {
-        renderHome([EDGE_MODULE, ...[...ALL_MODULES].reverse()]);
+        renderHome([ACT_MODULE, EDGE_MODULE, ...[...ALL_MODULES].reverse()]);
 
         const appsSection = screen.getByRole('region', { name: /applications/i });
         expect(
@@ -126,10 +134,30 @@ describe('HomePage', () => {
             'API Management',
             'Event Stream Management',
             'Authorization Management',
+            'Guardian Agent',
             'Developer Portals',
             'Edge Management',
             'Platform Management',
         ]);
+    });
+
+    it('should link the Guardian Agent card to its module when the act module is deployed', () => {
+        renderHome([...ALL_MODULES, ACT_MODULE]);
+
+        const heading = screen.getByRole('heading', { level: 3, name: 'Guardian Agent' });
+        expect(heading.closest('a')?.getAttribute('href')).toBe('/environments/env-1/act');
+    });
+
+    it('should lock the Guardian Agent card, with its description, when the act module is not deployed', () => {
+        renderHome(ALL_MODULES);
+
+        const card = screen.getByRole('group', { name: 'Guardian Agent' });
+        expect(
+            within(card).getByText(
+                'Build the agents that guard your platform, give them the tools and sandboxes they need, and watch what they do.',
+            ),
+        ).toBeTruthy();
+        expect(within(card).getByRole('button', { name: /upgrade to access/i })).toBeTruthy();
     });
 
     it('should render an "Upgrade to access" CTA instead of a link when aim is missing from /modules', async () => {
