@@ -21,6 +21,7 @@ export function fakeSubscriptionForm(attributes?: Partial<SubscriptionForm>): Su
     name: 'Global Default Form',
     gmdContent: '# Subscription Form\n\n<gmd-input name="name" label="Name" fieldKey="name" required="true"></gmd-input>',
     enabled: false,
+    apiIds: [],
   };
 
   return {
