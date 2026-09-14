@@ -733,12 +733,11 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         Map<CreateClientCertificate, String> incomingFingerprints = incoming
             .stream()
             .collect(Collectors.toMap(cert -> cert, cert -> fingerprint(cert.certificate())));
-        // Create new certificates (incoming fingerprints not in existing) or update existing ones
+        Set<String> matchedIds = new HashSet<>();
         for (CreateClientCertificate incomingCert : incoming) {
             String incomingFingerprint = incomingFingerprints.get(incomingCert);
             ClientCertificate existingCert = existingByFingerprint.get(incomingFingerprint);
             if (existingCert == null) {
-                // Create new certificate
                 var certToCreate = new ClientCertificate(
                     incomingCert.name(),
                     incomingCert.certificate(),
@@ -746,22 +745,20 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     incomingCert.endsAt()
                 );
                 clientCertificateCrudService.create(applicationId, validateAndEnrich(certToCreate, executionContext, applicationId));
-            } else if (hasChanges(incomingCert, existingCert)) {
-                // Update existing certificate only if there are changes (name, startsAt, endsAt)
-                clientCertificateCrudService.update(
-                    existingCert.id(),
-                    new ClientCertificate(incomingCert.name(), incomingCert.startsAt(), incomingCert.endsAt())
-                );
+            } else {
+                matchedIds.add(existingCert.id());
+                if (hasChanges(incomingCert, existingCert)) {
+                    clientCertificateCrudService.update(
+                        existingCert.id(),
+                        new ClientCertificate(incomingCert.name(), incomingCert.startsAt(), incomingCert.endsAt())
+                    );
+                }
             }
         }
 
-        // Delete certificates that are no longer in the incoming list
-        var newFingerprints = new HashSet<>(incomingFingerprints.values());
-        for (var entry : existingByFingerprint.entrySet()) {
-            var fingerprint = entry.getKey();
-            var clientCertificate = entry.getValue();
-            if (!newFingerprints.contains(fingerprint)) {
-                clientCertificateCrudService.delete(clientCertificate.id());
+        for (ClientCertificate cert : existing) {
+            if (!matchedIds.contains(cert.id())) {
+                clientCertificateCrudService.delete(cert.id());
             }
         }
 
