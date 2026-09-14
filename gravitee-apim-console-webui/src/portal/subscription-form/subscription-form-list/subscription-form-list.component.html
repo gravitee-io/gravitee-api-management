@@ -45,10 +45,26 @@
       </td>
     </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <ng-container matColumnDef="delete">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let form" class="delete-cell">
+        <button
+          mat-icon-button
+          type="button"
+          [attr.aria-label]="'Delete ' + form.name"
+          [attr.data-testid]="'delete-form-button-' + form.id"
+          (click)="$event.stopPropagation(); deleteForm.emit(form)"
+          (keydown)="$event.stopPropagation()"
+        >
+          <mat-icon svgIcon="gio:trash"></mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
     <tr
       mat-row
-      *matRowDef="let form; columns: displayedColumns"
+      *matRowDef="let form; columns: displayedColumns()"
       role="button"
       tabindex="0"
       [class.selected]="form.id === selectedFormId()"
@@ -58,7 +74,7 @@
     ></tr>
 
     <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns().length">
         <span data-testid="subscription-form-empty">
           @if (searching()) {
             No subscription form matches your search.
