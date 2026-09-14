@@ -54,6 +54,15 @@ class RedisDistributedEventRepositoryRetryTest {
     }
 
     @Test
+    void should_classify_readonly_as_retryable() {
+        assertThat(
+            RedisDistributedEventRepository.isRetryableWriteFailure(
+                new RuntimeException("READONLY You can't write against a read only replica.")
+            )
+        ).isTrue();
+    }
+
+    @Test
     void should_classify_timeout_reconnect_window_and_queue_saturation_as_retryable() {
         assertThat(RedisDistributedEventRepository.isRetryableWriteFailure(new TimeoutException())).isTrue();
         assertThat(
