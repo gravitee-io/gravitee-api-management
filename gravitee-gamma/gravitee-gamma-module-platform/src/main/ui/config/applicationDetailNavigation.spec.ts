@@ -39,9 +39,21 @@ describe('applicationDetailNavigation permissions', () => {
     const hasDefinitionRead = (permissions: string[]) => permissions.includes('application-definition-r');
     const hasMemberRead = (permissions: string[]) => permissions.includes('application-member-r');
 
-    it('labels the notifications tab Notifications', () => {
-        const settings = APPLICATION_NAV_GROUPS.find(group => group.label === 'Settings');
-        expect(settings?.items.find(item => item.path === 'notifications')?.label).toBe('Notifications');
+    // An Application is not an API object, so it skips the canonical API groups — but it follows the
+    // same vocabulary (FOUND-304): no `Security` group of its own, no group named after its only item,
+    // and the entity's own settings page is called Settings.
+    it('groups the sidebar as General / Access / Monitoring', () => {
+        expect(APPLICATION_NAV_GROUPS.map(group => group.label)).toEqual(['General', 'Access', 'Monitoring']);
+    });
+
+    it('keeps User Permissions in General and names the settings page Settings', () => {
+        const general = APPLICATION_NAV_GROUPS.find(group => group.label === 'General');
+        expect(general?.items.map(item => item.label)).toEqual(['Overview', 'Settings', 'User Permissions']);
+    });
+
+    it('labels the notifications tab Notifications, under Monitoring', () => {
+        const monitoring = APPLICATION_NAV_GROUPS.find(group => group.label === 'Monitoring');
+        expect(monitoring?.items.find(item => item.path === 'notifications')?.label).toBe('Notifications');
     });
 
     it('maps general tab to application-definition-r', () => {
@@ -56,6 +68,7 @@ describe('applicationDetailNavigation permissions', () => {
         const filtered = filterApplicationDetailNavGroups(APPLICATION_NAV_GROUPS, hasDefinitionRead);
         expect(filtered.map(g => g.label)).toEqual(['General']);
         expect(filtered[0].items.map(i => i.path)).toEqual(['overview', 'general']);
+        // `user-permissions` now shares the General group but keeps its own application-member-r gate.
     });
 
     it('returns first accessible path for the user', () => {
