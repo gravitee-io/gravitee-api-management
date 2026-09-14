@@ -1,0 +1,7 @@
+title: |
+  [${performanceTarget.subjectName}] Performance target missed
+message: |
+  The ${performanceTarget.subjectKind?lower_case} "${performanceTarget.subjectName}" is missing <#if performanceTarget.rules?size == 1>a performance target<#else>${performanceTarget.rules?size} performance targets</#if> since ${performanceTarget.changedAtText}:
+  <#list performanceTarget.rules as rule>
+  - ${rule.description}: observed ${rule.observedText} over ${rule.windowText} (${rule.sampleCount} samples)
+  </#list>

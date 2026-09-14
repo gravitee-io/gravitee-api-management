@@ -67,6 +67,7 @@ import io.gravitee.rest.api.service.exceptions.ApiAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.Hook;
+import io.gravitee.rest.api.service.notification.PerformanceTargetHook;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -97,6 +98,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 /**
@@ -488,9 +490,11 @@ public class ApisResource extends AbstractResource {
     @Operation(summary = "Get the list of available hooks")
     @Produces(MediaType.APPLICATION_JSON)
     public Hook[] getApiHooks() {
-        return Arrays.stream(ApiHook.values())
-            .filter(h -> !h.isHidden())
-            .toArray(Hook[]::new);
+        // Performance target hooks are configured on the API's own notification settings, beside its lifecycle hooks.
+        return Stream.concat(
+            Arrays.stream(ApiHook.values()).filter(h -> !h.isHidden()),
+            Arrays.stream(PerformanceTargetHook.values())
+        ).toArray(Hook[]::new);
     }
 
     @POST

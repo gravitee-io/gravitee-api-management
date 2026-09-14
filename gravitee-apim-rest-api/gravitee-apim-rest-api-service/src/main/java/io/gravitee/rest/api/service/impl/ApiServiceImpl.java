@@ -50,6 +50,7 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.notification.model.config.NotificationConfig;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
@@ -722,7 +723,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             notificationConfigEntity.setName("Default Mail Notifications");
             notificationConfigEntity.setReferenceType(HookScope.API.name());
             notificationConfigEntity.setReferenceId(createdApi.getId());
-            notificationConfigEntity.setHooks(Arrays.stream(ApiHook.values()).map(Enum::name).collect(toList()));
+            notificationConfigEntity.setHooks(NotificationConfig.defaultApiHooks());
             notificationConfigEntity.setNotifier(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID);
             notificationConfigEntity.setConfig(emailMetadataValue);
             genericNotificationConfigService.create(notificationConfigEntity);

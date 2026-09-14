@@ -19,11 +19,13 @@ import static io.gravitee.rest.api.service.notification.NotificationParamsBuilde
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_API_PRODUCT;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_APPLICATION;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_OWNER;
+import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_PERFORMANCE_TARGET;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_PLAN;
 import static io.gravitee.rest.api.service.notification.NotificationParamsBuilder.PARAM_SUBSCRIPTION;
 
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
+import io.gravitee.apim.core.notification.model.PerformanceTargetNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
@@ -97,6 +99,8 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
         );
 
         addJsonObject(params, PARAM_OWNER, content, "owner", PrimaryOwnerEntity.class, PrimaryOwnerNotificationTemplateData.class);
+
+        addJsonObject(params, PARAM_PERFORMANCE_TARGET, content, "performanceTarget", PerformanceTargetNotificationTemplateData.class);
 
         addJsonObject(
             params,
@@ -202,6 +206,9 @@ public class WebhookNotifierServiceImpl implements WebhookNotifierService {
             jsonObject.put("id", apiProduct.getId());
             jsonObject.put("name", apiProduct.getName());
             jsonObject.put("version", apiProduct.getVersion());
+        } else if (dataType == PerformanceTargetNotificationTemplateData.class) {
+            // The whole report: a webhook consumer wants every rule that changed, not a summary of it.
+            jsonObject.mergeIn(JsonObject.mapFrom(object));
         }
     }
 }

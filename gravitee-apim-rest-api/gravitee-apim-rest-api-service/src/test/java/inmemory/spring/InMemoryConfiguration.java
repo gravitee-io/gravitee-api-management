@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.event.query_service.EventLatestQueryService;
 import io.gravitee.apim.core.integration.service_provider.A2aAgentFetcher;
 import io.gravitee.apim.core.newtai.service_provider.NewtAIProvider;
+import io.gravitee.apim.core.performance_target.model.PerformanceTargetNotificationPolicy;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationProperties;
 import io.gravitee.apim.core.portal_category.domain_service.PortalCategoryDomainService;
 import io.gravitee.apim.core.portal_page.crud_service.PortalPageContentCrudService;
@@ -671,5 +672,15 @@ public class InMemoryConfiguration {
     @Bean
     public PerformanceTargetEvaluatorInMemory performanceTargetEvaluator() {
         return new PerformanceTargetEvaluatorInMemory();
+    }
+
+    @Bean
+    public PerformanceTargetTransitionPublisherInMemory performanceTargetTransitionPublisher() {
+        return new PerformanceTargetTransitionPublisherInMemory();
+    }
+
+    @Bean
+    public PerformanceTargetNotificationPolicy performanceTargetNotificationPolicy() {
+        return PerformanceTargetNotificationPolicy.DEFAULT;
     }
 }

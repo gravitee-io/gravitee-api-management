@@ -1,0 +1,40 @@
+<html>
+	<body style="text-align: center;">
+		<header>
+			<#include "header.html" />
+		</header>
+		<div style="margin-top: 50px; color: #424e5a;">
+			<h3>Hi,</h3>
+			<p>
+				The ${performanceTarget.subjectKind?lower_case} <b><code>${performanceTarget.subjectName}</code></b> is missing
+				<#if performanceTarget.rules?size == 1>a performance target<#else>${performanceTarget.rules?size} performance targets</#if>
+				since ${performanceTarget.changedAtText}.
+			</p>
+			<table style="margin: 20px auto; border-collapse: collapse; text-align: left;">
+				<thead>
+					<tr style="border-bottom: 1px solid #c9c4d0;">
+						<th style="padding: 6px 12px;">Rule</th>
+						<th style="padding: 6px 12px;">Observed</th>
+						<th style="padding: 6px 12px;">Threshold</th>
+						<th style="padding: 6px 12px;">Window</th>
+					</tr>
+				</thead>
+				<tbody>
+					<#list performanceTarget.rules as rule>
+					<tr>
+						<td style="padding: 6px 12px;">${rule.description}</td>
+						<td style="padding: 6px 12px; color: #b00020;"><b>${rule.observedText}</b> (${rule.sampleCount} samples)</td>
+						<td style="padding: 6px 12px;">${rule.thresholdText}</td>
+						<td style="padding: 6px 12px;">${rule.windowText}, evaluated every ${rule.intervalText}</td>
+					</tr>
+					</#list>
+				</tbody>
+			</table>
+			<#if performanceTarget.subjectUrl?has_content>
+			<p>
+				<a href="${performanceTarget.subjectUrl}">Open the Targets page</a>
+			</p>
+			</#if>
+		</div>
+	</body>
+</html>

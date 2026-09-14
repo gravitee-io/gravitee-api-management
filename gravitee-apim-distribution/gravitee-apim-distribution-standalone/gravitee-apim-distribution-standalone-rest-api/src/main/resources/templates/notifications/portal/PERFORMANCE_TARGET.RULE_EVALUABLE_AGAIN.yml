@@ -1,0 +1,7 @@
+title: |
+  [${performanceTarget.subjectName}] Performance target evaluable again
+message: |
+  <#if performanceTarget.rules?size == 1>A performance target<#else>${performanceTarget.rules?size} performance targets</#if> of the ${performanceTarget.subjectKind?lower_case} "${performanceTarget.subjectName}" can be evaluated again and is met. Since ${performanceTarget.changedAtText}:
+  <#list performanceTarget.rules as rule>
+  - ${rule.description}: observed ${rule.observedText} over ${rule.windowText} (${rule.sampleCount} samples)
+  </#list>

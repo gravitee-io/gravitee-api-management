@@ -58,6 +58,7 @@ import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
+import io.gravitee.rest.api.service.notification.PerformanceTargetHook;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.v4.mapper.NotificationTemplateMapper;
 import java.io.File;
@@ -139,6 +140,7 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         Collections.addAll(allHooks, ApplicationHook.values());
         Collections.addAll(allHooks, ActionHook.values());
         Collections.addAll(allHooks, AlertHook.values());
+        Collections.addAll(allHooks, PerformanceTargetHook.values());
 
         this.fromFilesNotificationTemplateEntities = allHooks
             .stream()

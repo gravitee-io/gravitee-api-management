@@ -1,0 +1,7 @@
+title: |
+  [${performanceTarget.subjectName}] Performance target no longer evaluable
+message: |
+  <#if performanceTarget.rules?size == 1>A performance target<#else>${performanceTarget.rules?size} performance targets</#if> of the ${performanceTarget.subjectKind?lower_case} "${performanceTarget.subjectName}" can no longer be evaluated, the last windows held too little traffic. Since ${performanceTarget.changedAtText}:
+  <#list performanceTarget.rules as rule>
+  - ${rule.description}: ${rule.sampleCount} samples over ${rule.windowText}
+  </#list>

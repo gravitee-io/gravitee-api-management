@@ -25,7 +25,8 @@ public enum HookScope {
     PORTAL(true),
     TEMPLATES_FOR_ACTION(false),
     TEMPLATES_FOR_ALERT(false),
-    API_PRODUCT(true);
+    API_PRODUCT(true),
+    PERFORMANCE_TARGET(true);
 
     private boolean hasPortalNotification;
 

@@ -469,6 +469,16 @@ services:
       cap: 60
     # Evaluations kept per target, 288 being 24 hours of history at the default 5 minute interval.
     retention: 288
+    # Notifications sent when a rule of a target changes state (missed, recovered, not evaluable, evaluable again),
+    # through the subject's notification settings: the API's for an API target, the module's for an agent target.
+    notifications:
+      # Consecutive windows a rule must stay not evaluable before its owners are told; a single empty window is not news.
+      not-evaluable-after: 3
+      # Evaluation runs waiting to be notified; beyond it a run's notifications are dropped with a warning rather than
+      # holding the evaluation back.
+      queue: 1000
+      # Attempts at delivering a webhook or Slack notification before giving up on it.
+      delivery-attempts: 3
 
   # Subscription service
   subscription:
