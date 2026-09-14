@@ -31,12 +31,6 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 POM_FILE="$REPO_ROOT/pom.xml"
 # The distribution carries its own <revision>/<sha1>/<changelist> since it left the product
 # reactor, and the two no longer have to agree. What it assembles is its own apim.core.version.
-#
-# These scripts do NOT touch that pin, and they need to: a branch cut from master inherits master's
-# SNAPSHOT pin and cannot release until a core is released and its pinning pull request merged,
-# while master keeps pinning a version it stops publishing as soon as <revision> moves on.
-# Until BX-383 lands, both are gestures someone has to remember.
-# https://gravitee.atlassian.net/browse/BX-383
 DISTRIBUTION_POM_FILE="$REPO_ROOT/gravitee-apim-distribution/pom.xml"
 PARENT_DIR="$(dirname "$REPO_ROOT")"
 
@@ -86,5 +80,25 @@ CLOUD_APIM_REPO="$PARENT_DIR/cloud-apim"
 
 GITHUB_REPO="gravitee-io/gravitee-api-management"
 BRANCH_LABEL="apply-on-${MAJOR}-${MINOR}-x"
+
+# Each branch pins the core it publishes itself, so the pin follows the version being written: a
+# branch that keeps master's pin cannot release — a SNAPSHOT core is refused — and master that keeps
+# the branch's pin assembles a version it no longer publishes.
+#
+# Verified after writing, because a sed that matches nothing exits 0: the pin would silently stay
+# where it was, and the freeze would report success.
+set_core_pin() {
+    local version="$1"
+
+    sed -i.bak "s|<apim.core.version>.*</apim.core.version>|<apim.core.version>${version}</apim.core.version>|" "$DISTRIBUTION_POM_FILE"
+    rm -f "$DISTRIBUTION_POM_FILE.bak"
+
+    if ! grep -q "<apim.core.version>${version}</apim.core.version>" "$DISTRIBUTION_POM_FILE"; then
+        echo "ERROR: apim.core.version was not set to ${version} in $DISTRIBUTION_POM_FILE." >&2
+        echo "       It currently reads: $(grep -o '<apim.core.version>[^<]*</apim.core.version>' "$DISTRIBUTION_POM_FILE" || echo 'nothing')" >&2
+        exit 1
+    fi
+    echo "Pinned core ${version}"
+}
 
 echo "Code freeze context: version=${FULL_VERSION} branch=${BRANCH_NAME}"

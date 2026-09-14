@@ -30,6 +30,10 @@ for POM in "$POM_FILE" "$DISTRIBUTION_POM_FILE"; do
     rm -f "$POM.bak"
 done
 
+# The pin follows: the branch assembles the core it publishes itself until a real one is released
+# and its pinning pull request merged.
+set_core_pin "${ALPHA_VERSION_SNAPSHOT}"
+
 # portal-openapi.yaml: update version string
 sed -i.bak "s|version: \"${REVISION}-SNAPSHOT\"|version: \"${ALPHA_VERSION_SNAPSHOT}\"|" "$PORTAL_OPENAPI"
 rm -f "$PORTAL_OPENAPI.bak"
