@@ -107,6 +107,13 @@ jest.mock('@gravitee/graphene-core', () => {
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
+// The deep-link helpers reach @gravitee/gamma-lib-observability, whose charting bundle does not load
+// under jsdom. This suite is about the layout, not about how a deep link is encoded.
+jest.mock('../../utils/analyticsDeepLink', () => ({
+    buildApiDashboardHref: () => '/env/observe/dashboards/http-proxy-overview',
+    buildApiLogsHref: () => '/env/observe/logs',
+}));
+
 jest.mock('./ApiDetailSidebarNav', () => ({
     API_PROXY_NAV_GROUPS: [],
     ApiDetailSidebarNav: () => <div />,
@@ -114,6 +121,7 @@ jest.mock('./ApiDetailSidebarNav', () => ({
     withMetadataPermission: (groups: unknown[]) => groups,
     withResponseTemplatesPermission: (groups: unknown[]) => groups,
     withApiScoreEnabled: (groups: unknown[]) => groups,
+    withObservabilityLinks: (groups: unknown[]) => groups,
 }));
 
 import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';
