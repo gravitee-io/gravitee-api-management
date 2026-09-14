@@ -35,7 +35,8 @@ class ChartDirective {
       link: function (scope, element, attributes, controller) {
         Highcharts.setOptions({
           time: {
-            useUTC: false,
+            // Highcharts 12 deprecated useUTC: `false` is now an undefined timezone.
+            timezone: undefined,
           },
         });
 

@@ -23,6 +23,7 @@ import { GioApiResponseStatusModule } from './gio-api-response-status.module';
 import { ApiResponseStatusData, GioApiResponseStatusComponent } from './gio-api-response-status.component';
 
 import { GioChartPieHarness } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.harness';
+import { provideHighchartsTesting } from '../../../../shared/testing';
 
 describe('GioApiResponseStatusComponent', () => {
   const data: ApiResponseStatusData = {
@@ -63,6 +64,7 @@ describe('GioApiResponseStatusComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioApiResponseStatusModule],
+      providers: [provideHighchartsTesting()],
     });
   });
 

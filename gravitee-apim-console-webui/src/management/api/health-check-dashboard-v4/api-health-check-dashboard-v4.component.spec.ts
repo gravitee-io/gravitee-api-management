@@ -25,7 +25,7 @@ import { ApiHealthCheckDashboardV4Component } from './api-health-check-dashboard
 import { ApiHealthCheckDashboardV4Harness } from './api-health-check-dashboard-v4.harness';
 import { ApiHealthCheckDashboardV4Module } from './api-health-check-dashboard-v4.module';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule, provideHighchartsTesting } from '../../../shared/testing';
 import {
   fakeApiHealthAvailability,
   fakeApiHealthAverageResponseTime,
@@ -45,6 +45,7 @@ describe('ApiHealthCheckDashboardV4Component', () => {
     await TestBed.configureTestingModule({
       imports: [ApiHealthCheckDashboardV4Module, NoopAnimationsModule, GioTestingModule],
       providers: [
+        provideHighchartsTesting(),
         {
           provide: ActivatedRoute,
           useValue: {

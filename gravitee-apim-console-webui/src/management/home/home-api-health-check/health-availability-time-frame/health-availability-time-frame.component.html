@@ -19,7 +19,6 @@
   <ng-container *ngIf="chartOptions$ | async as chartOptions">
     <highcharts-chart
       *ngIf="chartOptions && option?.data && option.data.length > 0; else noData"
-      [Highcharts]="Highcharts"
       [options]="chartOptions"
       class="health-availability-time-frame__chart"
     ></highcharts-chart>

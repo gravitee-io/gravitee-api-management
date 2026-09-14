@@ -57,7 +57,8 @@ export class GioChartLineComponent extends GioChartAbstractComponent implements 
 
     this.chartOptions = {
       credits: { enabled: false },
-      time: { useUTC: false },
+      // Highcharts 12 deprecated useUTC: `false` is now an undefined timezone, i.e. the local one.
+      time: { timezone: undefined },
       chart: {
         plotBackgroundColor: '#F7F7F8',
         type: this.options?.useSharpCorners ? 'line' : 'spline',

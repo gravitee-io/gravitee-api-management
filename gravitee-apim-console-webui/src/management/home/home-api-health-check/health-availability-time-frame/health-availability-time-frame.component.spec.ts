@@ -22,6 +22,8 @@ import { HealthAvailabilityTimeFrameModule } from './health-availability-time-fr
 import { HealthAvailabilityTimeFrameComponent } from './health-availability-time-frame.component';
 import { HealthAvailabilityTimeFrameHarness } from './health-availability-time-frame.harness';
 
+import { provideHighchartsTesting } from '../../../../shared/testing';
+
 describe('HealthAvailabilityTimeFrameComponent', () => {
   let fixture: ComponentFixture<HealthAvailabilityTimeFrameComponent>;
   let pieChartHarness: HealthAvailabilityTimeFrameHarness;
@@ -29,7 +31,7 @@ describe('HealthAvailabilityTimeFrameComponent', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, HealthAvailabilityTimeFrameModule],
-      providers: [],
+      providers: [provideHighchartsTesting()],
     });
     fixture = TestBed.createComponent(HealthAvailabilityTimeFrameComponent);
     pieChartHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, HealthAvailabilityTimeFrameHarness);

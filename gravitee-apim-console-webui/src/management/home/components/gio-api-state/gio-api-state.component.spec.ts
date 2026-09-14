@@ -23,6 +23,7 @@ import { GioApiStateModule } from './gio-api-state.module';
 import { ApiStateData, GioApiStateComponent } from './gio-api-state.component';
 
 import { GioChartPieHarness } from '../../../../shared/components/gio-chart-pie/gio-chart-pie.harness';
+import { provideHighchartsTesting } from '../../../../shared/testing';
 
 describe('GioApiStateComponent', () => {
   const data: ApiStateData = {
@@ -38,6 +39,7 @@ describe('GioApiStateComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioApiStateModule],
+      providers: [provideHighchartsTesting()],
     });
   });
 
