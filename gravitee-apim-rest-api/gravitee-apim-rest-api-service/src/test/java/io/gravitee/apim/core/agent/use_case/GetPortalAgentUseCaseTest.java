@@ -19,13 +19,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.AimCatalogQueryServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
+import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.agent.exception.PortalAgentNotFoundException;
 import io.gravitee.apim.core.agent.model.PortalAgentCard;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal_page.domain_service.PortalAgentAccessDomainService;
@@ -33,6 +37,9 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisib
 import io.gravitee.apim.core.portal_page.model.PortalNavigationAgent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalVisibility;
+import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -47,11 +54,14 @@ class GetPortalAgentUseCaseTest {
     private static final String ENVIRONMENT_ID = PortalNavigationItemFixtures.ENV_ID;
     private static final String AGENT_ID = "catalog-agent-id";
     private static final String API_ID = "a2a-proxy-api-id";
+    private static final String GATEWAY_HOST = "gateway.example.com";
+    private static final String API_CONTEXT_PATH = "/a2a/weather";
     private static final String USER_ID = "user-id";
     private static final Instant CREATED_AT = Instant.parse("2026-04-20T10:00:00Z");
     private static final Instant UPDATED_AT = Instant.parse("2026-04-22T11:00:00Z");
 
     private AimCatalogQueryServiceInMemory aimCatalogQueryService;
+    private ApiCrudServiceInMemory apiCrudService;
     private MembershipQueryServiceInMemory membershipQueryService;
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private GetPortalAgentUseCase useCase;
@@ -59,8 +69,16 @@ class GetPortalAgentUseCaseTest {
     @BeforeEach
     void setUp() {
         aimCatalogQueryService = new AimCatalogQueryServiceInMemory();
+        apiCrudService = new ApiCrudServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory();
         navigationItemsQueryService = new PortalNavigationItemsQueryServiceInMemory();
+
+        var accessPointQueryService = new AccessPointQueryServiceInMemory() {
+            @Override
+            public List<AccessPoint> getGatewayAccessPoints(String environmentId) {
+                return List.of(AccessPoint.builder().host(GATEWAY_HOST).secured(true).target(AccessPoint.Target.GATEWAY).build());
+            }
+        };
 
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
             membershipQueryService,
@@ -73,7 +91,9 @@ class GetPortalAgentUseCaseTest {
         );
         useCase = new GetPortalAgentUseCase(
             new PortalAgentAccessDomainService(navigationItemsQueryService, apiVisibilityDomainService),
-            aimCatalogQueryService
+            aimCatalogQueryService,
+            apiCrudService,
+            accessPointQueryService
         );
     }
 
@@ -87,6 +107,7 @@ class GetPortalAgentUseCaseTest {
         assertThat(result.id()).isEqualTo(AGENT_ID);
         assertThat(result.kind()).isEqualTo(PortalAgentCard.KIND_AGENT);
         assertThat(result.definition().name()).isEqualTo("Weather Agent");
+        assertThat(result.definition().url()).isEqualTo("https://" + GATEWAY_HOST + API_CONTEXT_PATH);
         assertThat(result.definition().skills()).extracting(PortalAgentCard.Skill::name).containsExactly("Forecast");
         assertThat(result.metadata()).containsEntry("protocol", "A2A");
     }
@@ -96,6 +117,7 @@ class GetPortalAgentUseCaseTest {
         var navigationItem = publicAgentNavigationItem();
         navigationItem.setVisibility(PortalVisibility.PRIVATE);
         navigationItemsQueryService.initWith(List.of(navigationItem));
+        apiCrudService.initWith(List.of(a2aProxyApi()));
         membershipQueryService.initWith(List.of(apiMembership(USER_ID)));
         aimCatalogQueryService.initWith(List.of(agentCard()));
 
@@ -158,6 +180,7 @@ class GetPortalAgentUseCaseTest {
 
     private void givenPublicAgent() {
         navigationItemsQueryService.initWith(List.of(publicAgentNavigationItem()));
+        apiCrudService.initWith(List.of(a2aProxyApi()));
     }
 
     private static GetPortalAgentUseCase.Input input(String userId) {
@@ -165,7 +188,7 @@ class GetPortalAgentUseCaseTest {
     }
 
     private static PortalNavigationAgent publicAgentNavigationItem() {
-        return PortalNavigationItemFixtures.anAgent("nav-agent-id", "Weather Agent", null, API_ID)
+        return PortalNavigationItemFixtures.anAgent("00000000-0000-0000-0000-000000000301", "Weather Agent", null, API_ID)
             .toBuilder()
             .agentId(AGENT_ID)
             .build();
@@ -178,6 +201,20 @@ class GetPortalAgentUseCaseTest {
             .memberType(Membership.Type.USER)
             .referenceType(Membership.ReferenceType.API)
             .referenceId(API_ID)
+            .build();
+    }
+
+    private static Api a2aProxyApi() {
+        return Api.builder()
+            .id(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .type(ApiType.A2A_PROXY)
+            .apiDefinitionHttpV4(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .id(API_ID)
+                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(API_CONTEXT_PATH).build())).build()))
+                    .build()
+            )
             .build();
     }
 
@@ -208,7 +245,17 @@ class GetPortalAgentUseCaseTest {
                 new PortalAgentCard.Capabilities(true, false, true),
                 List.of("text"),
                 List.of("text"),
-                List.of(new PortalAgentCard.Skill("skill-forecast", "Forecast", "Tell the weather", List.of("weather"), List.of(), List.of(), List.of()))
+                List.of(
+                    new PortalAgentCard.Skill(
+                        "skill-forecast",
+                        "Forecast",
+                        "Tell the weather",
+                        List.of("weather"),
+                        List.of(),
+                        List.of(),
+                        List.of()
+                    )
+                )
             )
         );
     }
