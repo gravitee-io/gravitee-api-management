@@ -19,6 +19,7 @@
         "polyfills": ["zone.js", "@angular/localize/init"],
         "tsConfig": "gravitee-apim-portal-webui-next/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
+        "externalDependencies": ["node:fs", "node:fs/promises", "node:path", "node:async_hooks"],
         "assets": [
           "gravitee-apim-portal-webui-next/src/assets",
           {
