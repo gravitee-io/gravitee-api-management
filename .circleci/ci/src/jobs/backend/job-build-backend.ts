@@ -28,14 +28,17 @@ export class BuildBackendJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Build project',
         command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true ${mavenParallelism('large')} -Dbundle=dev -P all-modules,integration-tests-modules -DwithJavadoc`,

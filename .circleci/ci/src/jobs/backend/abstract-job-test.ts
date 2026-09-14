@@ -49,6 +49,7 @@ export abstract class AbstractTestJob {
         new commands.cache.Restore({
           keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
         }),
+        new reusable.ReusedCommand(azureArtifactsTokenCmd),
         testStep,
         new commands.Run({
           name: 'Save test results',
