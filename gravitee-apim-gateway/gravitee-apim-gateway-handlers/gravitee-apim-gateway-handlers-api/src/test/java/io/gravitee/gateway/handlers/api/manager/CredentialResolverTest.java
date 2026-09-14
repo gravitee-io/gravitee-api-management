@@ -17,6 +17,10 @@ package io.gravitee.gateway.handlers.api.manager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -138,6 +142,18 @@ class CredentialResolverTest {
                 .isInstanceOf(CredentialResolutionException.class)
                 .hasMessage("Unable to read credential [credential-1]")
                 .hasNoCause();
+        }
+
+        @Test
+        void should_decrypt_again_on_every_resolution() throws Exception {
+            DataEncryptor spiedEncryptor = spy(dataEncryptor);
+            resolver = new CredentialResolver(credentialManager, spiedEncryptor, new ObjectMapper());
+            deploy("{\"clientSecret\": \"s3cr3t\"}");
+
+            resolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD);
+            resolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD);
+
+            verify(spiedEncryptor, times(2)).decrypt(anyString());
         }
 
         @Test
