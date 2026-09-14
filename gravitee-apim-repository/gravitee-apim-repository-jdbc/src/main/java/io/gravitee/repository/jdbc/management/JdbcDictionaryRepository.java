@@ -34,7 +34,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -236,8 +235,17 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + DICTIONARY_PROPERTY + " where dictionary_id = ?", dictionary.getId());
         }
-        if (dictionary.getProperties() != null && !dictionary.getProperties().isEmpty()) {
-            List<Map.Entry<String, DictionaryProperty>> entries = new ArrayList<>(dictionary.getProperties().entrySet());
+        if (dictionary.getProperties() == null) {
+            return;
+        }
+        // A malformed persisted entry can be null; drop it rather than dereference it, as MongoDictionaryRepository does.
+        List<Map.Entry<String, DictionaryProperty>> entries = dictionary
+            .getProperties()
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null)
+            .toList();
+        if (!entries.isEmpty()) {
             jdbcTemplate.batchUpdate(
                 "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v, encrypted ) values ( ?, ?, ?, ? )",
                 new BatchPreparedStatementSetter() {

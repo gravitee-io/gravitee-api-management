@@ -21,7 +21,7 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.convert.WritingConverter;
 
 /**
- * Mirrors {@code io.gravitee.repository.management.model.DictionaryProperty.Serializer}: an
+ * Mirrors {@code io.gravitee.definition.model.dictionary.DictionaryProperty.Serializer}: an
  * unencrypted property writes back as the bare string it always was, so a dictionary saved
  * through this code doesn't change its on-disk Mongo shape until a value is genuinely encrypted.
  *

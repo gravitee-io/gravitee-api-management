@@ -16,7 +16,7 @@
 package io.gravitee.repository.mongodb.management.internal.model;
 
 /**
- * Mirrors {@code io.gravitee.repository.management.model.DictionaryProperty} — a plain
+ * Mirrors {@code io.gravitee.definition.model.dictionary.DictionaryProperty} — a plain
  * record embedded inside the mutable {@code @Document} class {@link DictionaryMongo},
  * the same pattern already used by {@link IntegrationMongo}'s nested {@code A2aWellKnownUrl}.
  *
