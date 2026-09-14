@@ -15,9 +15,13 @@
  */
 package io.gravitee.gateway.handlers.api.spring;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.handlers.api.manager.CredentialManager;
+import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.gateway.handlers.api.manager.impl.CredentialManagerImpl;
 import io.gravitee.node.api.license.LicenseManager;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,5 +31,13 @@ public class CredentialConfiguration {
     @Bean
     public CredentialManager credentialManager(LicenseManager licenseManager) {
         return new CredentialManagerImpl(licenseManager);
+    }
+
+    @Bean
+    public CredentialResolver credentialResolver(
+        CredentialManager credentialManager,
+        @Qualifier("apiPropertiesEncryptor") DataEncryptor dataEncryptor
+    ) {
+        return new CredentialResolver(credentialManager, dataEncryptor, new ObjectMapper());
     }
 }

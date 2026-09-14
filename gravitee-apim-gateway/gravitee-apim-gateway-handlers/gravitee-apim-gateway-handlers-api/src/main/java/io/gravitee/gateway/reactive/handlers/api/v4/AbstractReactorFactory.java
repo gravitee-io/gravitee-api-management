@@ -24,11 +24,13 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
+import io.gravitee.gateway.reactive.handlers.api.el.CredentialsTemplateVariableProvider;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -159,6 +161,12 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
         final List<TemplateVariableProvider> templateVariableProviders = new ArrayList<>();
         templateVariableProviders.add(dictionaryManager.createTemplateVariableProvider(reactableApi.getEnvironmentId()));
         templateVariableProviders.add(new ApiTemplateVariableProvider(reactableApi));
+        Stream.of(BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, CredentialResolver.class))
+            .findFirst()
+            .map(name -> applicationContext.getBean(name, CredentialResolver.class))
+            .ifPresent(credentialResolver ->
+                templateVariableProviders.add(new CredentialsTemplateVariableProvider(reactableApi.getEnvironmentId(), credentialResolver))
+            );
         List<TemplateVariableProvider> list = Stream.of(
             BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class)
         )
