@@ -47,6 +47,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -175,6 +176,15 @@ class ApiDocumentTransformerTest {
         api.setDefinitionVersion(DefinitionVersion.V4);
         api.setType(ApiType.NATIVE);
         api.setVisibility(Visibility.PUBLIC);
+
+        Document doc = cut.transform(api);
+        assertThat(doc.get("id")).isEqualTo(api.getId());
+        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_KAFKA");
+    }
+
+    @Test
+    void transform_native_api_entity_verify_api_type() {
+        var api = NativeApiEntity.builder().id("api-uuid").definitionVersion(DefinitionVersion.V4).visibility(Visibility.PUBLIC).build();
 
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());

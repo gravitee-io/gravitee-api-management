@@ -27,6 +27,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.CustomLog;
@@ -80,6 +81,9 @@ public final class LuceneTransformerUtils {
         if (api instanceof ApiEntity) {
             return generateApiType((ApiEntity) api);
         }
+        if (api instanceof NativeApiEntity nativeApi) {
+            return generateApiType(nativeApi);
+        }
 
         return api.getDefinitionVersion().name();
     }
@@ -93,6 +97,10 @@ public final class LuceneTransformerUtils {
                 .stream()
                 .anyMatch(listener -> listener.getType() == ListenerType.TCP);
         return generateApiType(api.getDefinitionVersion(), api.getType(), isTcpApi);
+    }
+
+    private static String generateApiType(NativeApiEntity api) {
+        return generateApiType(api.getDefinitionVersion(), ApiType.NATIVE, false);
     }
 
     private static String generateApiType(DefinitionVersion definitionVersion, ApiType apiType, boolean isTcpApi) {
