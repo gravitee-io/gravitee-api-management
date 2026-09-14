@@ -296,6 +296,21 @@ class ApiQueryServiceImplTest {
             verifyNoInteractions(apiRepository);
         }
 
+        @ParameterizedTest(name = "{0}")
+        @MethodSource("matchedAndUnmatchedSearches")
+        void should_report_the_same_page_number_whether_or_not_the_index_matched(String caseName, String searchedIntegrationId)
+            throws IOException {
+            // Given a single indexed api owned by one integration, the repository answering with the page it was handed
+            givenIndexedApis(anApiOwnedByIntegration("api-1", INTEGRATION_ID));
+            givenTheRepositoryHydratesTheSelectedApis();
+
+            // When the row's integration is searched for the same first page
+            var page = service.searchByIntegrationId(searchedIntegrationId, null, null, new PageableImpl(1, 10));
+
+            // Then the page number is the zero based one the repository numbers a first page with, whatever the index matched
+            assertThat(page.getPageNumber()).isZero();
+        }
+
         @Test
         void should_fail_rather_than_report_an_empty_integration_when_the_index_is_unreachable() throws TechnicalException {
             // Given a search index that cannot be read
@@ -818,6 +833,10 @@ class ApiQueryServiceImplTest {
             );
         }
 
+        private static Stream<Arguments> matchedAndUnmatchedSearches() {
+            return Stream.of(Arguments.of("the index matched an api", INTEGRATION_ID), Arguments.of("the index matched no api", "int-b"));
+        }
+
         private void givenIndexedApis(Api... apis) throws IOException {
             var transformer = new IndexableApiDocumentTransformer();
             for (Api api : apis) {
@@ -878,7 +897,8 @@ class ApiQueryServiceImplTest {
                     .stream()
                     .map(id -> fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id(id).build())
                     .toList();
-                return new Page<>(rows, 1, rows.size(), rows.size());
+                var requestedPage = invocation.getArgument(2, io.gravitee.repository.management.api.search.Pageable.class);
+                return new Page<>(rows, requestedPage.pageNumber(), rows.size(), rows.size());
             });
         }
     }

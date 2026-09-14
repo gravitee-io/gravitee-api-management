@@ -99,7 +99,7 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
     ) {
         var matchedIds = searchIndexedApiIds(integrationId, definitionVersions, query);
         if (matchedIds.isEmpty()) {
-            return new Page<>(List.of(), pageable.getPageNumber(), 0, 0);
+            return new Page<>(List.of(), convert(pageable).pageNumber(), 0, 0);
         }
 
         return hydrate(new ApiCriteria.Builder().ids(matchedIds).build(), pageable);
