@@ -283,6 +283,10 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
                                         href={item.externalHref}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        // The icon is decorative, so the change of context has to be said out loud
+                                        // (WCAG 3.2.5). An explicit label rather than an `sr-only` span: the
+                                        // accessible-name computation concatenates text nodes without a separator.
+                                        aria-label={`${item.label} (opens in a new tab)`}
                                         className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                                     >
                                         <Icon className="size-4 shrink-0" aria-hidden />
