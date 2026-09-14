@@ -253,7 +253,7 @@ commands:
 jobs:
   job-setup:
     docker:
-      - image: cimg/openjdk:25.0.3
+      - image: cimg/openjdk:21.0.9
     resource_class: small
     steps:
       - checkout
