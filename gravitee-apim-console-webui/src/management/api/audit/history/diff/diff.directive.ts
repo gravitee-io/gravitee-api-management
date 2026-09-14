@@ -15,7 +15,7 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const JsDiff = require('diff/dist/diff.min.js');
+const JsDiff = require('diff/dist/diff.js');
 
 const DiffDirective: ng.IDirective = {
   restrict: 'AE',
