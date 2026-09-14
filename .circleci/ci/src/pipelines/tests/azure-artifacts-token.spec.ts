@@ -16,7 +16,7 @@
 import { parse } from 'yaml';
 import { generatePullRequestsConfig } from '../pipeline-pull-requests';
 import { generateRepositoriesTestsConfig } from '../pipeline-repositories-tests';
-import { generateIntegrationTestsConfig } from '../pipeline-integration-tests';
+import { generateFullReleaseConfig } from '../pipeline-full-release';
 import { config } from '../../config';
 
 /**
@@ -75,12 +75,15 @@ describe('Azure Artifacts token', () => {
         changedFiles: [],
         graviteeioVersion: '4.2.0',
       }),
-      'integration-tests': generateIntegrationTestsConfig({
+      // The release lane: it carries the publishing jobs, and no pull-request
+      // configuration ever generates them.
+      'full-release': generateFullReleaseConfig({
         ...baseEnvironment,
-        action: 'integration_tests',
+        action: 'full_release',
         apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
         changedFiles: [],
         graviteeioVersion: '4.2.0',
+        dockerTagAsLatest: false,
       }),
     };
 
@@ -142,7 +145,8 @@ describe('Azure Artifacts token', () => {
         'repositories-tests/job-mongo-test-container',
         'repositories-tests/job-elastic-test-container',
         'repositories-tests/job-redis-test-container',
-        'integration-tests/job-test-integration',
+        'full-release/job-backend-build-and-publish-on-download-website',
+        'full-release/job-nexus-staging',
       ]),
     );
   });
