@@ -95,6 +95,10 @@ const jobContext = ['cicd-orchestrator'];
 
 const maven = {
   settingsFile: '.gravitee.settings.xml',
+  // Pinned: an unpinned plugin coordinate makes Maven resolve maven-metadata.xml first.
+  dependencyPluginVersion: '3.8.1',
+  azureFeedUrl: 'https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1',
+  azureSnapshotsFeedUrl: 'https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1',
 };
 
 const yarn = {
@@ -141,7 +145,7 @@ const secrets = {
   graviteeLicense: 'keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64',
   graviteePackageCloudToken: 'keeper://8CG6HxY5gYsl-85eJKuIoA/field/password',
   jiraToken: 'keeper://hfnQD5TEfxzwRXUKhJhM-A/field/password',
-  mavenSettings: 'keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml',
+  mavenSettings: 'keeper://7CgijuGiFDSLynRJt1Dm9w/custom_field/xml_azure',
   slackAccessToken: 'keeper://ZOz4db245GNaETVwmPBk8w/field/password',
   sonarToken: 'keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password',
 };
