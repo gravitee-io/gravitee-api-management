@@ -186,6 +186,30 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                     FilterSpec.Name.MCP_PROXY_TOOL_CATALOG
                 );
         }
+
+        /**
+         * Grouping or filtering by the tool name is where two tools sharing a name get conflated — tool cost
+         * and value above all — so wherever the name is offered, the identity is offered beside it. A metric
+         * accepting one and rejecting the other reads as a broken widget, not as a catalog gap.
+         */
+        @Test
+        void should_offer_the_mcp_tool_identity_wherever_the_mcp_tool_name_is_offered() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            Arrays.stream(MetricSpec.Name.values()).forEach(metric -> {
+                var facets = service.getFacets(metric).stream().map(FacetSpec::name).toList();
+                if (facets.contains(FacetSpec.Name.MCP_PROXY_TOOL)) {
+                    assertThat(facets).as("facets of %s", metric).contains(FacetSpec.Name.MCP_PROXY_TOOL_CATALOG);
+                }
+
+                var filters = service.getFilters(metric).stream().map(FilterSpec::name).toList();
+                if (filters.contains(FilterSpec.Name.MCP_PROXY_TOOL)) {
+                    assertThat(filters)
+                        .as("filters of %s", metric)
+                        .contains(FilterSpec.Name.MCP_PROXY_TOOL_FINGERPRINT, FilterSpec.Name.MCP_PROXY_TOOL_CATALOG);
+                }
+            });
+        }
     }
 
     @Nested
