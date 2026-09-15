@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useNavigate, type NavigateFunction } from 'react-router-dom';
 
@@ -172,5 +172,24 @@ describe('ShellLayout app switcher', () => {
                 'Platform Management',
             ].map(label => expect.stringMatching(`^${label}`)),
         );
+    });
+
+    it('should set Home apart from the products, on a compact row without its description', async () => {
+        const modules: GammaModule[] = [{ id: 'apim', name: 'apim plugin', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' }];
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const menu = await screen.findByRole('menu');
+        expect(within(menu).getByRole('separator')).toBeTruthy();
+        expect(within(menu).queryByText('Overview and quick actions')).toBeNull();
     });
 });
