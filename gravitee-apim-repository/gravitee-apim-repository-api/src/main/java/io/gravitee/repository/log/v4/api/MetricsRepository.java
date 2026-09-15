@@ -65,4 +65,11 @@ public interface MetricsRepository {
      * so the query pins both the family and the settled phase — see {@link DecisionLogQuery}.
      */
     LogResponse<DecisionLog> searchDecisionLogs(QueryContext queryContext, DecisionLogQuery query) throws AnalyticsException;
+
+    /**
+     * Reads one decision record by its event id, scoped to an api. Each record of a decision carries its
+     * own event id — an asynchronous decision has one for the request and one for the resolution — so this
+     * reads a record, whatever phase it is in, and never collapses the two.
+     */
+    Optional<DecisionLog> findDecisionLog(QueryContext queryContext, String apiId, String eventId) throws AnalyticsException;
 }
