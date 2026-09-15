@@ -2315,6 +2315,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(result.values()).containsExactly("get_weather|v1:3f9a1c2b8d4e7f01");
                 assertThat(result.totalCount()).isEqualTo(1);
             }
+
+            /** Nobody types a fingerprint: the name alone has to find every definition carrying it. */
+            @Test
+            void should_list_the_llm_proxy_tool_ref_values_starting_with_the_search() {
+                var query = FilterValuesQuery.builder()
+                    .esFieldName("additional-metrics.keyword_llm-proxy_tool-refs")
+                    .size(10)
+                    .searchPattern("search")
+                    .build();
+
+                var result = cut.searchFilterValues(QUERY_CONTEXT, query);
+
+                assertThat(result.values()).containsExactlyInAnyOrder("search|v1:7b2e44a90c1d5e36", "search|v1:c81d05f37a2b9e64");
+                assertThat(result.totalCount()).isEqualTo(2);
+            }
         }
 
         @Nested

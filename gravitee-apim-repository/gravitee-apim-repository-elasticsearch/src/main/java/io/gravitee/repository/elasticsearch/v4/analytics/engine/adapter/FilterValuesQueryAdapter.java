@@ -35,9 +35,10 @@ public class FilterValuesQueryAdapter {
 
         var searching = query.searchPattern() != null && !query.searchPattern().isBlank();
         if (searching) {
-            // Exact match on the keyword field (case-insensitive); avoids costly leading/trailing wildcards.
-            var termValue = JsonObject.of("value", query.searchPattern(), "case_insensitive", true);
-            boolFilter.add(JsonObject.of("term", JsonObject.of(query.esFieldName(), termValue)));
+            // Prefix match on the keyword field (case-insensitive): a fingerprint or a name|fingerprint value is
+            // never typed whole, and a prefix still avoids the cost of a leading wildcard.
+            var prefixValue = JsonObject.of("value", query.searchPattern(), "case_insensitive", true);
+            boolFilter.add(JsonObject.of("prefix", JsonObject.of(query.esFieldName(), prefixValue)));
         }
 
         if (query.apiIds() != null) {
@@ -62,7 +63,7 @@ public class FilterValuesQueryAdapter {
                 "size",
                 query.size(),
                 "include",
-                caseInsensitiveRegex(query.searchPattern())
+                caseInsensitiveRegex(query.searchPattern()) + ".*"
             );
             root.put("aggs", JsonObject.of("filter_values", JsonObject.of("terms", terms)));
             return root.encode();
