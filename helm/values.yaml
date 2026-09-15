@@ -1144,7 +1144,9 @@ api:
     type: elasticsearch # or none
 
   # OpenTelemetry traces reader (used by the gamma APIM tracing resource). Disabled by default; set type to
-  # "elasticsearch" to wire the ES-backed TracingRepository. Configuration is independent from `analytics.*` —
+  # "elasticsearch" to wire the ES-backed TracingRepository. `none` is still rendered into gravitee.yml — the
+  # scope is optional, so a missing type loads no repository at all and the trace explorer answers 500 instead
+  # of empty results. An empty or unset value is rendered as `none`. Configuration is independent from `analytics.*` —
   # tracing can target a different ES cluster (or no analytics at all). The Elasticsearch endpoint chosen must be
   # the same one the OTel collector / OTLP endpoint writes traces to.
   otelTraces:
@@ -1182,7 +1184,9 @@ api:
   # OpenTelemetry logs reader (backs the gamma APIM tracing resource alongside otelTraces). Reads the same
   # data stream the OTel collector writes span events to AND the one gravitee-reporter-otel writes captured
   # request/response payloads to. Disabled by default; set type to "elasticsearch" to wire the ES-backed
-  # OtelLogRepository. Independent from `analytics.*` and `otelTraces.*` — no fallback across scopes.
+  # OtelLogRepository. Like `otelTraces`, `none` is still rendered into gravitee.yml (an empty or unset value
+  # too), because a missing type loads no repository and the trace detail answers 500 instead of empty results.
+  # Independent from `analytics.*` and `otelTraces.*` — no fallback across scopes.
   otelLogs:
     type: none # or elasticsearch
     elasticsearch:

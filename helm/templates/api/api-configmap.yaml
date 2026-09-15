@@ -129,11 +129,10 @@ data:
         {{- else if (eq .Values.api.analytics.type "none") }}
         type: none
         {{- end }}
-
-      {{- if ne .Values.api.otelTraces.type "none" }}
+      {{- $otelTracesType := (.Values.api.otelTraces).type | default "none" }}
       otel-traces:
-        type: {{ .Values.api.otelTraces.type }}
-        {{- if (eq .Values.api.otelTraces.type "elasticsearch") }}
+        type: {{ $otelTracesType }}
+        {{- if (eq $otelTracesType "elasticsearch") }}
         elasticsearch:
           {{- with .Values.api.otelTraces.elasticsearch.endpoints }}
           endpoints:
@@ -165,12 +164,10 @@ data:
           {{- end }}
           index: {{ .Values.api.otelTraces.elasticsearch.index }}
         {{- end }}
-      {{- end }}
-
-      {{- if ne .Values.api.otelLogs.type "none" }}
+      {{- $otelLogsType := (.Values.api.otelLogs).type | default "none" }}
       otel-logs:
-        type: {{ .Values.api.otelLogs.type }}
-        {{- if (eq .Values.api.otelLogs.type "elasticsearch") }}
+        type: {{ $otelLogsType }}
+        {{- if (eq $otelLogsType "elasticsearch") }}
         elasticsearch:
           {{- with .Values.api.otelLogs.elasticsearch.endpoints }}
           endpoints:
@@ -202,7 +199,6 @@ data:
           {{- end }}
           index: {{ .Values.api.otelLogs.elasticsearch.index }}
         {{- end }}
-      {{- end }}
 
     # Secret Manager configuration
     {{- if .Values.secrets }}
