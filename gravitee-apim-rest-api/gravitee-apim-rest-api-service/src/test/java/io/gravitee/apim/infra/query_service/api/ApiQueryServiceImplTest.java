@@ -115,7 +115,7 @@ class ApiQueryServiceImplTest {
             // Given the repository holds a single api of the searched integration
             var pageable = new PageableImpl(1, 5);
             var expectedApis = List.of(fixtures.repository.ApiFixtures.aFederatedApi());
-            var page = new Page<>(expectedApis, pageable.getPageNumber(), expectedApis.size(), expectedApis.size());
+            var page = new Page<>(expectedApis, 0, expectedApis.size(), expectedApis.size());
             when(apiRepository.search(any(), any(), any(), any())).thenReturn(page);
 
             // When that integration is asked for the apis it owns
@@ -124,7 +124,7 @@ class ApiQueryServiceImplTest {
             // Then the repository page comes back as core models, keeping the page number and the counts it carried
             SoftAssertions.assertSoftly(softly -> {
                 softly.assertThat(responsePage).isNotNull();
-                softly.assertThat(responsePage.getPageNumber()).isEqualTo(1);
+                softly.assertThat(responsePage.getPageNumber()).isZero();
                 softly.assertThat(responsePage.getPageElements()).isEqualTo(1);
                 softly.assertThat(responsePage.getTotalElements()).isEqualTo(1);
                 softly.assertThat(responsePage.getContent().get(0).getId()).isEqualTo("api-id");
