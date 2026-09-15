@@ -236,6 +236,56 @@ public class ClientRegistrationService_UpdateTest {
     }
 
     @Test
+    public void should_prefer_the_application_software_id_over_the_provider_one_on_update()
+        throws TechnicalException, JsonProcessingException {
+        UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setAdditionalClientMetadata(Map.of("software_id", "APP_TEMPLATE"));
+
+        ApplicationSettings applicationSettings = new ApplicationSettings();
+        applicationSettings.setOauth(oAuthClientSettings);
+        updateApplicationEntity.setSettings(applicationSettings);
+
+        ClientRegistrationResponse existingPayload = new ClientRegistrationResponse();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setRegistrationAccessToken("registrationAccessToken");
+        existingPayload.setRegistrationClientUri("http://localhost:" + wireMockServer.port() + "/registration");
+
+        wireMockServer.stubFor(
+            put(urlEqualTo("/registration")).willReturn(
+                aResponse().withBody("{\"client_id\": \"clientId\",\"client_secret\": \"clientSecret\"}")
+            )
+        );
+
+        ClientRegistrationProvider provider = new ClientRegistrationProvider();
+        provider.setId(existingPayload.getId());
+        provider.setName("name");
+        provider.setSoftwareId("PROVIDER_TEMPLATE");
+        provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(provider));
+
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
+        );
+
+        clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            new ObjectMapper().writeValueAsString(existingPayload),
+            updateApplicationEntity,
+            null
+        );
+
+        wireMockServer.verify(
+            putRequestedFor(urlEqualTo("/registration")).withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE")))
+        );
+    }
+
+    @Test
     public void shouldUpdateProviderWithTrustStoreAndOrKeyStore() throws TechnicalException {
         UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
         providerPayload.setName("name");
