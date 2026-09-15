@@ -27,10 +27,12 @@ public class CredentialsTemplateVariableProvider implements TemplateVariableProv
     static final String CREDENTIALS_VARIABLE = "credentials";
 
     private final String environmentId;
+    private final String apiId;
     private final CredentialResolver credentialResolver;
 
-    public CredentialsTemplateVariableProvider(String environmentId, CredentialResolver credentialResolver) {
+    public CredentialsTemplateVariableProvider(String environmentId, String apiId, CredentialResolver credentialResolver) {
         this.environmentId = environmentId;
+        this.apiId = apiId;
         this.credentialResolver = credentialResolver;
     }
 
@@ -38,7 +40,7 @@ public class CredentialsTemplateVariableProvider implements TemplateVariableProv
     public void provide(TemplateContext templateContext) {
         templateContext.setDeferredFunctionHolderVariable(
             CREDENTIALS_VARIABLE,
-            new EvaluatedCredentialsMethods(environmentId, credentialResolver)
+            new EvaluatedCredentialsMethods(environmentId, apiId, credentialResolver)
         );
     }
 }

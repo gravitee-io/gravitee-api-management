@@ -165,7 +165,9 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
             .findFirst()
             .map(name -> applicationContext.getBean(name, CredentialResolver.class))
             .ifPresent(credentialResolver ->
-                templateVariableProviders.add(new CredentialsTemplateVariableProvider(reactableApi.getEnvironmentId(), credentialResolver))
+                templateVariableProviders.add(
+                    new CredentialsTemplateVariableProvider(reactableApi.getEnvironmentId(), reactableApi.getId(), credentialResolver)
+                )
             );
         List<TemplateVariableProvider> list = Stream.of(
             BeanFactoryUtils.beanNamesForTypeIncludingAncestors(applicationContext, TemplateVariableProviderFactory.class)

@@ -21,7 +21,7 @@ import io.gravitee.secrets.api.el.SecretFieldAccessControl;
 import io.reactivex.rxjava3.core.Single;
 
 /**
- * The {@code #credentials} EL variable, bound to the environment of one API:
+ * The {@code #credentials} EL variable, bound to one API and its environment:
  * {@code {#credentials.get('<credential id>', '<field>', #secret_field_access_control_var)}}.
  *
  * <p>The third argument is the marker a plugin sets while it evaluates a secret field; the resolution is refused
@@ -31,14 +31,16 @@ import io.reactivex.rxjava3.core.Single;
 public final class EvaluatedCredentialsMethods implements DeferredFunctionHolder {
 
     private final String environmentId;
+    private final String apiId;
     private final CredentialResolver credentialResolver;
 
-    public EvaluatedCredentialsMethods(String environmentId, CredentialResolver credentialResolver) {
+    public EvaluatedCredentialsMethods(String environmentId, String apiId, CredentialResolver credentialResolver) {
         this.environmentId = environmentId;
+        this.apiId = apiId;
         this.credentialResolver = credentialResolver;
     }
 
     public Single<String> get(String credentialId, String field, SecretFieldAccessControl accessControl) {
-        return Single.fromCallable(() -> credentialResolver.resolve(environmentId, credentialId, field, accessControl));
+        return Single.fromCallable(() -> credentialResolver.resolve(environmentId, apiId, credentialId, field, accessControl));
     }
 }
