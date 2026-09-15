@@ -283,6 +283,7 @@ class ApiDocumentTransformerTest {
 
         Document doc = cut.transform(api);
 
+        assertThat(doc.get(FIELD_ID)).isEqualTo("api-agent");
         assertThat(doc.get(FIELD_PROVIDER_ORGANIZATION_LOWERCASE)).isEqualTo(expectedTerm);
     }
 
