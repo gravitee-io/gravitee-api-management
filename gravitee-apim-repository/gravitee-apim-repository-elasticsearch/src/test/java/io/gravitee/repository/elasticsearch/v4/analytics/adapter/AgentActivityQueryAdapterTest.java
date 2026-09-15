@@ -153,17 +153,18 @@ class AgentActivityQueryAdapterTest {
     class AdaptDecisions {
 
         @Test
-        void should_build_terms_query_on_kebab_request_id() {
+        void should_build_terms_query_on_request_ids() {
             var query = new AgentActivityQuery("api-a2a", Collections.<String>emptyList(), "actor-1", 0L, 0L, 0, 25);
             var result = AgentActivityQueryAdapter.adaptDecisions(query, Set.of("req-1", "req-2"));
-            assertThatJson(result).inPath("$.query.bool.must").isArray().hasSize(2);
+            assertThatJson(result).inPath("$.query.bool.must").isArray().hasSize(1);
             assertThatJson(result).inPath("$.query.bool.must[0].terms['request-id']").isArray().contains("req-1", "req-2");
         }
 
         @Test
-        void should_omit_actor_id_term_when_null() {
-            var query = new AgentActivityQuery("api-a2a", Collections.<String>emptyList(), null, 0L, 0L, 0, 25);
+        void should_join_by_request_id_only_even_when_actor_is_set() {
+            var query = new AgentActivityQuery("api-a2a", Collections.<String>emptyList(), "actor-1", 0L, 0L, 0, 25);
             var result = AgentActivityQueryAdapter.adaptDecisions(query, Set.of("req-1"));
+            assertThat(result).doesNotContain("actor-id", "actorId");
             assertThatJson(result).isEqualTo(
                 "{" +
                     "\"size\": 5," +
@@ -179,8 +180,8 @@ class AgentActivityQueryAdapterTest {
         }
 
         @Test
-        void should_omit_actor_id_term_when_empty() {
-            var query = new AgentActivityQuery("api-a2a", Collections.<String>emptyList(), "", 0L, 0L, 0, 25);
+        void should_omit_actor_id_term_when_null() {
+            var query = new AgentActivityQuery("api-a2a", Collections.<String>emptyList(), null, 0L, 0L, 0, 25);
             var result = AgentActivityQueryAdapter.adaptDecisions(query, Set.of("req-1"));
             assertThatJson(result).inPath("$.query.bool.must").isArray().hasSize(1);
         }
