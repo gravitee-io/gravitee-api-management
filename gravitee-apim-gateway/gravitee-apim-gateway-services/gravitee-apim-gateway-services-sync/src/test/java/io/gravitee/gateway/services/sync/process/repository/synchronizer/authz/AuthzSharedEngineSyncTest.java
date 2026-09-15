@@ -82,6 +82,7 @@ class AuthzSharedEngineSyncTest {
     private AuthzPolicySynchronizer policySynchronizer;
     private FakeEngine engine;
     private final List<String> provisionOps = Collections.synchronizedList(new ArrayList<>());
+    private volatile boolean provisionRelayFails;
     private MessageConsumer<JsonObject> provisionConsumer;
     private MessageConsumer<JsonObject> engineConsumer;
 
@@ -97,6 +98,10 @@ class AuthzSharedEngineSyncTest {
         provisionConsumer = vertx
             .eventBus()
             .consumer(AuthzPdpSynchronizer.PROVISION_ADDRESS, message -> {
+                if (provisionRelayFails) {
+                    message.fail(500, "pdp unreachable");
+                    return;
+                }
                 JsonObject body = message.body();
                 provisionOps.add(body.getString("op") + ":" + body.getString("targetPdpId"));
                 message.reply(new JsonObject().put("ok", true));
@@ -161,6 +166,36 @@ class AuthzSharedEngineSyncTest {
 
         assertThat(provisionOps).containsExactly("evict:stock");
         assertThat(hostedScopes.hostedFor(ENV)).isEmpty();
+    }
+
+    @Test
+    void a_suppressed_evict_whose_provision_relay_fails_still_lets_the_cascade_clear_the_reused_engine() throws InterruptedException {
+        stubPolicyFetch(policyPublish("pol-1", 100L, "stock@us"));
+
+        // 1. This node hosts stock@us alone, and the shared engine holds its policy.
+        stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "us"));
+        runPdpCycle(-1L);
+        assertThat(engine.served()).containsExactly("pol-1");
+
+        // 2. A re-tag arrives as one batch: the delete of stock@us next to the create of stock@eu. The create
+        //    reuses the engine, so the evict is suppressed and the engine stays up. The create's relay fails.
+        provisionRelayFails = true;
+        stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "us"), pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "eu"));
+        runPdpCycle(1L);
+
+        // 3. Same cycle, the cascade moves the policy off stock@us. The engine is alive and still holds the
+        //    document, so the removal has to reach it.
+        stubPolicyFetch(policyPublish("pol-1", 300L, "default"));
+        runPolicyCycle(2L);
+
+        // 4. The pending provision confirms and stock@eu is hydrated. Hydration only ever adds, and the
+        //    policy no longer targets this engine, so a document left behind now is left behind for good.
+        provisionRelayFails = false;
+        stubPdpFetch();
+        runPdpCycle(3L);
+
+        assertThat(hostedScopes.hostedFor(ENV)).containsExactly("stock@eu");
+        assertThat(engine.served()).isEmpty();
     }
 
     // ---------------------------------------------------------------------
