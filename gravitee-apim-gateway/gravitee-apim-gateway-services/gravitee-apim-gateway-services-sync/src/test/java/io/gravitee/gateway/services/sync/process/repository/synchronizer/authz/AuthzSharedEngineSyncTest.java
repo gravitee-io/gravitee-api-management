@@ -186,6 +186,7 @@ class AuthzSharedEngineSyncTest {
         // 3. Same cycle, the cascade moves the policy off stock@us. The engine is alive and still holds the
         //    document, so the removal has to reach it.
         stubPolicyFetch(policyPublish("pol-1", 300L, "default"));
+        engine.ops().clear();
         runPolicyCycle(2L);
 
         // 4. The pending provision confirms and stock@eu is hydrated. Hydration only ever adds, and the
@@ -195,6 +196,9 @@ class AuthzSharedEngineSyncTest {
         runPdpCycle(3L);
 
         assertThat(hostedScopes.hostedFor(ENV)).containsExactly("stock@eu");
+        // The op, not only the served set: the served set alone cannot tell a removal that routed from one
+        // the serves() gate dropped.
+        assertThat(engine.ops()).contains("removePolicy:pol-1");
         assertThat(engine.served()).isEmpty();
     }
 
