@@ -233,8 +233,7 @@ public class SearchIndexInitializerTest {
         }
 
         private SearchEngineServiceImpl aSearchEngineWritingInto(IndexWriter writer) {
-            var indexer = new SearchEngineIndexer();
-            ReflectionTestUtils.setField(indexer, "writer", writer);
+            var indexer = new SearchEngineIndexer(writer);
 
             var searchEngine = new SearchEngineServiceImpl();
             ReflectionTestUtils.setField(searchEngine, "indexer", indexer);

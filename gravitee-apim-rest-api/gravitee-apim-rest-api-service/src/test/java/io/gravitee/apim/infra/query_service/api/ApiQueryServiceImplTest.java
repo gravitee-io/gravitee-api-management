@@ -65,7 +65,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiQueryServiceImplTest {
@@ -597,8 +596,7 @@ class ApiQueryServiceImplTest {
         }
 
         private void givenTheIndexerWrites(Api api) throws TechnicalException {
-            var indexer = new SearchEngineIndexer();
-            ReflectionTestUtils.setField(indexer, "writer", indexWriter);
+            var indexer = new SearchEngineIndexer(indexWriter);
             indexer.index(new IndexableApiDocumentTransformer().transform(IndexableApi.builder().api(api).build()), true);
         }
 

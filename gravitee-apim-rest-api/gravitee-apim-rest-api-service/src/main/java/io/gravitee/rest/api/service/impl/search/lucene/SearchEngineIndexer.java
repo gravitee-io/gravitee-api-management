@@ -24,7 +24,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -36,8 +35,11 @@ public class SearchEngineIndexer {
     private static final String ID_FIELD = "id";
     private static final String TYPE_FIELD = "type";
 
-    @Autowired
-    private IndexWriter writer;
+    private final IndexWriter writer;
+
+    public SearchEngineIndexer(IndexWriter writer) {
+        this.writer = writer;
+    }
 
     public long index(Document document, boolean commit) throws TechnicalException {
         log.debug("Updating a document into the Lucene index");
