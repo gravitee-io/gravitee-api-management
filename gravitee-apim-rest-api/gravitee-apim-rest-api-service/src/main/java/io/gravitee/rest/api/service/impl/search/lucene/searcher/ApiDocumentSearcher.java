@@ -166,7 +166,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
      */
     public SearchResult searchByIntegrationId(String integrationId, List<DefinitionVersion> definitionVersions, String query)
         throws TechnicalException {
-        BooleanQuery.Builder apiQuery = new BooleanQuery.Builder()
+        var apiQuery = new BooleanQuery.Builder()
             .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER)
             .add(new TermQuery(new Term(FIELD_INTEGRATION_ID, integrationId)), BooleanClause.Occur.FILTER);
 
@@ -183,7 +183,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     private static BooleanQuery anyFreeTextFieldContaining(String query) {
         String containedTerm = '*' + escapeWildcardMetacharacters(query).toLowerCase() + '*';
-        BooleanQuery.Builder anyField = new BooleanQuery.Builder();
+        var anyField = new BooleanQuery.Builder();
         FREE_TEXT_SEARCH_FIELDS.forEach(field ->
             anyField.add(new WildcardQuery(new Term(field, containedTerm)), BooleanClause.Occur.SHOULD)
         );
@@ -201,7 +201,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     private static BooleanQuery anyOfDefinitionVersions(List<DefinitionVersion> definitionVersions) {
-        BooleanQuery.Builder anyVersion = new BooleanQuery.Builder();
+        var anyVersion = new BooleanQuery.Builder();
         definitionVersions.forEach(definitionVersion ->
             anyVersion.add(new TermQuery(new Term(FIELD_DEFINITION_VERSION, definitionVersion.getLabel())), BooleanClause.Occur.SHOULD)
         );
