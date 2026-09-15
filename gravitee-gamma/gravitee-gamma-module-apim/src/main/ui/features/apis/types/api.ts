@@ -149,6 +149,19 @@ export interface DuplicateApiOptions {
     version: string;
     filteredFields?: DuplicateFilteredField[];
 }
+
+export interface PromotionTarget {
+    id: string;
+    name: string;
+    description?: string;
+}
+
+export type PromotionStatus = 'CREATED' | 'TO_BE_VALIDATED' | 'ACCEPTED' | 'REJECTED' | 'ERROR';
+
+export interface Promotion {
+    status: PromotionStatus;
+    targetEnvCockpitId: string;
+}
 export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE' | 'MCP_PROXY' | 'LLM_PROXY';
 
 export interface ApiListListener {

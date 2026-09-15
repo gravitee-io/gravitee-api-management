@@ -35,6 +35,9 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 }));
 
 jest.mock('@gravitee/graphene-core', () => ({
+    Alert: ({ children }: { children?: ReactNode }) => <div role="alert">{children}</div>,
+    AlertTitle: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
+    AlertDescription: ({ children }: { children?: ReactNode }) => <p>{children}</p>,
     Badge: ({ children, className }: { children?: ReactNode; className?: string }) => <span className={className}>{children}</span>,
     Checkbox: ({
         checked,
@@ -103,6 +106,19 @@ jest.mock('@gravitee/graphene-core', () => ({
         disabled?: boolean;
     }) => <input id={id} value={value} onChange={onChange} placeholder={placeholder} disabled={disabled} />,
     Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
+    Select: ({ value, onValueChange, children }: { value?: string; onValueChange?: (v: string) => void; children: ReactNode }) => (
+        <select aria-label="Environment" value={value} onChange={e => onValueChange?.(e.target.value)}>
+            {children}
+        </select>
+    ),
+    SelectContent: ({ children }: { children?: ReactNode }) => <>{children}</>,
+    SelectItem: ({ value, disabled, children }: { value: string; disabled?: boolean; children: ReactNode }) => (
+        <option value={value} disabled={disabled}>
+            {children}
+        </option>
+    ),
+    SelectTrigger: ({ children }: { children?: ReactNode }) => <>{children}</>,
+    SelectValue: () => null,
     Separator: () => <hr />,
     Skeleton: () => <div data-testid="skeleton" />,
     Switch: ({ checked, onCheckedChange, disabled }: { checked?: boolean; onCheckedChange?: (v: boolean) => void; disabled?: boolean }) => (
@@ -140,6 +156,11 @@ jest.mock('../../../utils/queryKeys', () => ({
         all: ['env-categories'],
         list: (envId: string) => ['env-categories', envId],
     },
+    apiPromotionKeys: {
+        all: ['api-promotion'],
+        targets: (envId: string) => ['api-promotion', 'targets', envId],
+        pending: (apiId: string) => ['api-promotion', 'pending', apiId],
+    },
 }));
 
 jest.mock('../../../hooks/useEnvCategories', () => ({
@@ -156,8 +177,12 @@ jest.mock('../../../services/policyStudioService', () => ({
 }));
 
 import { ApiGeneralPage } from './ApiGeneralPage';
+import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import * as apiServices from '../../../services/apis';
+
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- graphene-core is mocked above
+const { toast } = jest.requireMock<{ toast: { success: jest.Mock } }>('@gravitee/graphene-core');
 
 const mockUseEnvironment = useEnvironment as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
@@ -213,6 +238,8 @@ describe('ApiGeneralPage', () => {
         jest.spyOn(apiServices, 'startApi').mockResolvedValue(undefined);
         jest.spyOn(apiServices, 'stopApi').mockResolvedValue(undefined);
         jest.spyOn(apiServices, 'deleteApi').mockResolvedValue(undefined);
+        jest.spyOn(apiServices, 'getPromotionTargets').mockResolvedValue([]);
+        jest.spyOn(apiServices, 'getPendingPromotions').mockResolvedValue([]);
     });
 
     beforeAll(() => {
@@ -369,10 +396,98 @@ describe('ApiGeneralPage', () => {
         expect(screen.getByRole('button', { name: /promote/i })).toBeInTheDocument();
     });
 
-    it('enables Import but keeps Promote disabled until fully implemented', () => {
+    it('enables both Import and Promote for an eligible API', () => {
         renderPage();
         expect(screen.getByRole('button', { name: /import/i })).not.toBeDisabled();
+        expect(screen.getByRole('button', { name: /promote/i })).not.toBeDisabled();
+    });
+
+    it('disables Promote for a DEPRECATED API', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, lifecycleState: 'DEPRECATED' },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage();
         expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
+    });
+
+    it('disables Promote for a Kubernetes-managed API', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, definitionContext: { origin: 'KUBERNETES' } },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage();
+        expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
+    });
+
+    it('promotes the API to the selected target and shows a success toast', async () => {
+        jest.spyOn(apiServices, 'getPromotionTargets').mockResolvedValue([
+            { id: 'env#1', name: 'Production' },
+            { id: 'env#2', name: 'Staging' },
+        ]);
+        const promoteSpy = jest.spyOn(apiServices, 'promoteApi').mockResolvedValue(undefined);
+        renderPage();
+
+        fireEvent.click(screen.getByRole('button', { name: /^promote$/i }));
+        const dialog = await screen.findByRole('dialog');
+        const select = await within(dialog).findByLabelText('Environment');
+        await waitFor(() => expect(within(select).getByRole('option', { name: 'Production' }).selected).toBe(true));
+
+        fireEvent.change(select, { target: { value: within(select).getByRole('option', { name: 'Staging' }).getAttribute('value') } });
+        fireEvent.click(within(dialog).getByRole('button', { name: /^promote$/i }));
+
+        await waitFor(() =>
+            expect(promoteSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', { targetEnvCockpitId: 'env#2', targetEnvName: 'Staging' }),
+        );
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect(toast.success).toHaveBeenCalledWith('Promotion requested', expect.anything());
+    });
+
+    it('shows a "connect to Gravitee Cloud" state when the installation is not accepted', async () => {
+        jest.spyOn(apiServices, 'getPromotionTargets').mockRejectedValue(
+            new ApimApiError(412, 'Installation not accepted', {
+                technicalCode: 'installation.notAccepted',
+                parameters: { cockpitURL: 'https://cockpit.gravitee.io/link' },
+            }),
+        );
+        renderPage();
+
+        fireEvent.click(screen.getByRole('button', { name: /^promote$/i }));
+        const dialog = await screen.findByRole('dialog');
+
+        expect(await within(dialog).findByText(/meet gravitee cloud/i)).toBeInTheDocument();
+        expect(within(dialog).getByRole('link', { name: /gravitee cloud/i })).toHaveAttribute('href', 'https://cockpit.gravitee.io/link');
+    });
+
+    it('shows an empty-state and disables Promote when there are no eligible destination environments', async () => {
+        jest.spyOn(apiServices, 'getPromotionTargets').mockResolvedValue([]);
+        renderPage();
+
+        fireEvent.click(screen.getByRole('button', { name: /^promote$/i }));
+        const dialog = await screen.findByRole('dialog');
+
+        expect(await within(dialog).findByText(/no environment is available/i)).toBeInTheDocument();
+        expect(within(dialog).getByRole('button', { name: /^promote$/i })).toBeDisabled();
+    });
+
+    it('disables a destination that already has a pending promotion for this API', async () => {
+        jest.spyOn(apiServices, 'getPromotionTargets').mockResolvedValue([
+            { id: 'env#1', name: 'Production' },
+            { id: 'env#2', name: 'Staging' },
+        ]);
+        jest.spyOn(apiServices, 'getPendingPromotions').mockResolvedValue([{ status: 'CREATED', targetEnvCockpitId: 'env#1' }]);
+        renderPage();
+
+        fireEvent.click(screen.getByRole('button', { name: /^promote$/i }));
+        const dialog = await screen.findByRole('dialog');
+
+        const select = await within(dialog).findByLabelText('Environment');
+        const pendingOption = within(select).getByRole('option', { name: /production \(pending\)/i });
+        expect(pendingOption).toBeDisabled();
+        // Non-pending target is selected by default, not the pending one.
+        await waitFor(() => expect(within(select).getByRole('option', { name: 'Staging' }).selected).toBe(true));
     });
 
     it('calls exportApiDefinition with unchecked exclude options from the export dialog', async () => {
