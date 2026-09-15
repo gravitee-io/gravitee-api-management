@@ -1718,6 +1718,8 @@ spec:
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_TOOL_CATALOG
+              - MCP_PROXY_TOOL_PRICE_STATUS
+              - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT
@@ -1752,6 +1754,8 @@ spec:
               - MCP_PROXY_TOOL
               - MCP_PROXY_TOOL_FINGERPRINT
               - MCP_PROXY_TOOL_CATALOG
+              - MCP_PROXY_TOOL_PRICE_STATUS
+              - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT
@@ -1795,6 +1799,8 @@ spec:
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
               - MCP_PROXY_TOOL_CATALOG
+              - MCP_PROXY_TOOL_PRICE_STATUS
+              - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT
@@ -1831,6 +1837,8 @@ spec:
               - MCP_PROXY_TOOL
               - MCP_PROXY_TOOL_FINGERPRINT
               - MCP_PROXY_TOOL_CATALOG
+              - MCP_PROXY_TOOL_PRICE_STATUS
+              - MCP_PROXY_TOOL_BILLED
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
               - API_PRODUCT

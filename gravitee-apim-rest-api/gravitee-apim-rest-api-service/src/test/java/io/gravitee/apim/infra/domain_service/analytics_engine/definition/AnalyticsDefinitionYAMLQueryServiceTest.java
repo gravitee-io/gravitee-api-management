@@ -176,14 +176,21 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
 
             assertThat(service.getFacets(metric))
                 .extracting(FacetSpec::name)
-                .contains(FacetSpec.Name.MCP_PROXY_TOOL, FacetSpec.Name.MCP_PROXY_TOOL_CATALOG);
+                .contains(
+                    FacetSpec.Name.MCP_PROXY_TOOL,
+                    FacetSpec.Name.MCP_PROXY_TOOL_CATALOG,
+                    FacetSpec.Name.MCP_PROXY_TOOL_PRICE_STATUS,
+                    FacetSpec.Name.MCP_PROXY_TOOL_BILLED
+                );
 
             assertThat(service.getFilters(metric))
                 .extracting(FilterSpec::name)
                 .contains(
                     FilterSpec.Name.MCP_PROXY_TOOL,
                     FilterSpec.Name.MCP_PROXY_TOOL_FINGERPRINT,
-                    FilterSpec.Name.MCP_PROXY_TOOL_CATALOG
+                    FilterSpec.Name.MCP_PROXY_TOOL_CATALOG,
+                    FilterSpec.Name.MCP_PROXY_TOOL_PRICE_STATUS,
+                    FilterSpec.Name.MCP_PROXY_TOOL_BILLED
                 );
         }
 
