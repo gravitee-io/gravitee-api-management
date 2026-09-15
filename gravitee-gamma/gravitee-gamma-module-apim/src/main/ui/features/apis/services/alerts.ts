@@ -30,52 +30,73 @@ import type {
 
 // ─── Condition converters ──────────────────────────────────────────────────────
 
+function withDefaultOperator(c: AlertFormCondition): AlertFormCondition {
+    if (c.type === 'STRING') {
+        return { ...c, operator: c.operator ?? 'EQUALS' };
+    }
+    if (c.type === 'THRESHOLD' || c.type === 'COMPARE' || c.type === 'AGGREGATION') {
+        return { ...c, operator: c.operator ?? 'GT' };
+    }
+    return c;
+}
+
 export function formConditionToApi(c: AlertFormCondition): AlertApiCondition {
-    if (c.type === 'RATE') {
-        const isStr = isStringMetric(c.property ?? '');
+    const condition = withDefaultOperator(c);
+    if (condition.type === 'RATE') {
+        const isStr = isStringMetric(condition.property ?? '');
         const comparison: AlertApiCondition = isStr
-            ? { type: 'STRING', property: c.property, operator: c.operator as AlertStringOperator, pattern: c.pattern }
-            : { type: 'THRESHOLD', property: c.property, operator: c.operator as AlertOperator, threshold: c.threshold };
+            ? {
+                  type: 'STRING',
+                  property: condition.property,
+                  operator: (condition.operator as AlertStringOperator) ?? 'EQUALS',
+                  pattern: condition.pattern,
+              }
+            : {
+                  type: 'THRESHOLD',
+                  property: condition.property,
+                  operator: (condition.operator as AlertOperator) ?? 'GT',
+                  threshold: condition.threshold,
+              };
         return {
             type: 'RATE',
-            operator: c.rateOperator,
-            threshold: c.rateThreshold,
+            operator: condition.rateOperator,
+            threshold: condition.rateThreshold,
             comparison,
-            duration: c.duration,
-            timeUnit: c.timeUnit,
+            duration: condition.duration,
+            timeUnit: condition.timeUnit,
         };
     }
-    if (c.type === 'AGGREGATION') {
+    if (condition.type === 'AGGREGATION') {
         return {
             type: 'AGGREGATION',
-            property: c.property,
-            function: c.aggregationFunction,
-            operator: c.operator as AlertOperator,
-            threshold: c.threshold,
-            duration: c.duration,
-            timeUnit: c.timeUnit,
+            property: condition.property,
+            function: condition.aggregationFunction,
+            operator: condition.operator as AlertOperator,
+            threshold: condition.threshold,
+            duration: condition.duration,
+            timeUnit: condition.timeUnit,
         };
     }
-    if (c.type === 'THRESHOLD_RANGE') {
+    if (condition.type === 'THRESHOLD_RANGE') {
         return {
             type: 'THRESHOLD_RANGE',
-            property: c.property,
+            property: condition.property,
             operatorLow: 'INCLUSIVE',
-            thresholdLow: c.thresholdLow,
+            thresholdLow: condition.thresholdLow,
             operatorHigh: 'EXCLUSIVE',
-            thresholdHigh: c.thresholdHigh,
+            thresholdHigh: condition.thresholdHigh,
         };
     }
     return {
-        type: c.type,
-        property: c.property,
-        operator: c.operator,
-        threshold: c.threshold,
-        pattern: c.pattern,
-        property2: c.property2,
-        multiplier: c.multiplier,
-        duration: c.duration,
-        timeUnit: c.timeUnit,
+        type: condition.type,
+        property: condition.property,
+        operator: condition.operator,
+        threshold: condition.threshold,
+        pattern: condition.pattern,
+        property2: condition.property2,
+        multiplier: condition.multiplier,
+        duration: condition.duration,
+        timeUnit: condition.timeUnit,
     };
 }
 

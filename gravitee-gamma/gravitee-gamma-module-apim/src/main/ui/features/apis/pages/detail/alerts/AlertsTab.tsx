@@ -333,6 +333,7 @@ export function AlertsTab({
                         <div>
                             <CardTitle className="text-base">Filters</CardTitle>
                             <CardDescription>Filters to apply condition only on a subset of events</CardDescription>
+                            {errors.filters ? <p className="mt-1 text-xs text-destructive">{errors.filters}</p> : null}
                         </div>
                         {selectedRule && canEdit && (
                             <Button variant="outline" size="sm" onClick={addFilter}>

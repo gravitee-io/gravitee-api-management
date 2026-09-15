@@ -45,6 +45,7 @@ import type {
     AlertRuleId,
     AlertSeverity,
 } from '../../../types';
+import { defaultFilterCondition, isAlertConditionComplete } from '../../../utils/alertConditionComplete';
 import { apiAlertKeys } from '../../../utils/queryKeys';
 
 function getDefaultCondition(ruleId: AlertRuleId): AlertFormCondition[] {
@@ -200,6 +201,9 @@ export function useAlertForm(): UseAlertFormReturn {
         if (!name.trim()) errs.name = 'Name is required.';
         else if (name.length < 3) errs.name = 'Name has to be at least 3 characters long.';
         else if (name.length > 50) errs.name = 'Name length must not exceed 50 characters.';
+        if (filters.some(c => !isAlertConditionComplete(c))) {
+            errs.filters = 'Fill in the required filter fields.';
+        }
         setErrors(errs);
         return Object.keys(errs).length === 0;
     };
@@ -231,7 +235,8 @@ export function useAlertForm(): UseAlertFormReturn {
     );
 
     const addFilter = () => {
-        setFilters(prev => [...prev, { type: 'THRESHOLD', property: API_METRICS[0].key }]);
+        const defaultProperty = API_METRICS[0]?.key ?? 'response.response_time';
+        setFilters(prev => [...prev, defaultFilterCondition(defaultProperty)]);
         markDirty();
     };
     const updateFilter = useCallback(

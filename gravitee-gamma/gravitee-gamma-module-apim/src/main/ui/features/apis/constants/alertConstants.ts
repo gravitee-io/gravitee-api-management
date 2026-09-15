@@ -166,6 +166,11 @@ export function getConditionTypesForMetric(metricKey: string, metrics: AlertMetr
     return metrics.find(m => m.key === metricKey)?.conditionTypes ?? ['THRESHOLD'];
 }
 
+/** Classic compare `property2` list: other COMPARE metrics, not the left-hand property. */
+export function getCompareTargetMetrics(metrics: AlertMetricDefinition[], property: string): AlertMetricDefinition[] {
+    return metrics.filter(m => m.conditionTypes.includes('COMPARE') && m.key !== property);
+}
+
 export function isStringMetric(metricKey: string): boolean {
     const m = API_METRICS.find(met => met.key === metricKey);
     return !!m && m.conditionTypes.includes('STRING') && !m.conditionTypes.includes('THRESHOLD');
