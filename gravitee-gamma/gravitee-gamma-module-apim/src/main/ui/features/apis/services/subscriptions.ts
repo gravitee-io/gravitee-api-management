@@ -181,6 +181,55 @@ export async function listApiPlans(envId: string, ctx: SubscriptionContext): Pro
     return apimFetchJsonV2<PlanPage>(envId, `${entityBase(ctx)}/plans${buildQuery({ statuses: 'PUBLISHED', perPage: 100 })}`);
 }
 
+interface ApiSubscriberEntry {
+    id: string;
+    name?: string;
+}
+
+interface ApiSubscribersPage {
+    data?: ApiSubscriberEntry[];
+    pagination?: { totalCount?: number };
+}
+
+/** Applications subscribed to an API (Classic `getSubscribers`). */
+export async function listApiSubscribers(
+    envId: string,
+    apiId: string,
+    options?: { page?: number; perPage?: number; name?: string },
+): Promise<ApiSubscribersPage> {
+    const q = buildQuery({
+        page: options?.page ?? 1,
+        perPage: options?.perPage ?? 100,
+        name: options?.name,
+    });
+    return apimFetchJsonV2<ApiSubscribersPage>(envId, `/apis/${encodeURIComponent(apiId)}/subscribers${q}`);
+}
+
+/** Fetches every subscriber page for alert filter pickers. */
+export async function listAllApiSubscribers(envId: string, apiId: string): Promise<ApiSubscriberEntry[]> {
+    const perPage = 100;
+    const all: ApiSubscriberEntry[] = [];
+    let page = 1;
+    let totalCount: number | undefined;
+    while (page <= 100) {
+        const response = await listApiSubscribers(envId, apiId, { page, perPage });
+        const batch = response.data ?? [];
+        all.push(...batch);
+        totalCount = response.pagination?.totalCount ?? totalCount;
+        if (batch.length === 0) {
+            break;
+        }
+        if (totalCount !== undefined && all.length >= totalCount) {
+            break;
+        }
+        if (batch.length < perPage) {
+            break;
+        }
+        page += 1;
+    }
+    return all;
+}
+
 interface V1ApplicationEntry {
     id: string;
     name: string;

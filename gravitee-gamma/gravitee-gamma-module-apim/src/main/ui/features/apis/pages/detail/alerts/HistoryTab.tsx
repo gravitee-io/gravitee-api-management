@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 import {
+    Button,
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
+    DataTablePagination,
     Table,
     TableBody,
     TableCell,
@@ -36,15 +38,41 @@ import type { AlertHistoryPage } from '../../../types';
 
 export interface HistoryTabProps {
     historyPage: AlertHistoryPage | undefined;
+    onRefresh?: () => void;
+    isRefreshing?: boolean;
+    page?: number;
+    pageSize?: number;
+    onPageChange?: (page: number) => void;
+    onPageSizeChange?: (pageSize: number) => void;
 }
 
-export function HistoryTab({ historyPage }: HistoryTabProps) {
+const HISTORY_PAGE_SIZE_OPTIONS = [10, 25, 50, 75, 100];
+
+export function HistoryTab({
+    historyPage,
+    onRefresh,
+    isRefreshing = false,
+    page = 1,
+    pageSize = 10,
+    onPageChange,
+    onPageSizeChange,
+}: HistoryTabProps) {
+    const totalCount = historyPage?.totalElements ?? 0;
     return (
         <div className="mt-6">
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-base">History</CardTitle>
-                    <CardDescription>Events history for this alert</CardDescription>
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <CardTitle className="text-base">History</CardTitle>
+                            <CardDescription>Events history for this alert</CardDescription>
+                        </div>
+                        {onRefresh && (
+                            <Button type="button" variant="outline" size="sm" disabled={isRefreshing} onClick={onRefresh}>
+                                {isRefreshing ? 'Refreshing…' : 'Refresh'}
+                            </Button>
+                        )}
+                    </div>
                 </CardHeader>
                 <CardContent>
                     {historyPage && historyPage.content.length > 0 ? (
@@ -77,6 +105,18 @@ export function HistoryTab({ historyPage }: HistoryTabProps) {
                         </TooltipProvider>
                     ) : (
                         <div className="py-8 text-center text-sm text-muted-foreground">No data to display.</div>
+                    )}
+                    {onPageChange && onPageSizeChange && totalCount > 0 && (
+                        <div className="mt-4">
+                            <DataTablePagination
+                                page={page}
+                                pageSize={pageSize}
+                                totalCount={totalCount}
+                                pageSizeOptions={HISTORY_PAGE_SIZE_OPTIONS}
+                                onPageChange={onPageChange}
+                                onPageSizeChange={onPageSizeChange}
+                            />
+                        </div>
                     )}
                 </CardContent>
             </Card>
