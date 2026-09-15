@@ -60,7 +60,8 @@ public class DatabaseHydrator {
             "v4-message-log",
             "v4-message-metrics",
             "event-metrics",
-            "authz-decisions"
+            "authz-decisions",
+            "decisions"
         );
         createTemplate(indexTypes).andThen(Single.defer(() -> client.bulk(prepareData(indexTypes), true))).ignoreElement().blockingAwait();
     }
