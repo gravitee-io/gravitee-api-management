@@ -20,7 +20,8 @@ public enum PortalNavigationItemType {
     FOLDER,
     LINK,
     API,
-    API_PRODUCT;
+    API_PRODUCT,
+    SUBSCRIPTION_FORM;
 
     public boolean isContainer() {
         return this == FOLDER || this == API || this == API_PRODUCT;

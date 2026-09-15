@@ -338,6 +338,28 @@ class PortalNavigationItemAdapterTest {
         }
 
         @Test
+        void should_map_subscription_form_to_entity() {
+            // Given
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aSubscriptionForm(
+                "550e8400-e29b-41d4-a716-446655440060",
+                "550e8400-e29b-41d4-a716-446655440061"
+            );
+
+            // When
+            var entity = adapter.toEntity(repositoryItem);
+
+            // Then
+            assertThat(entity).isInstanceOf(PortalNavigationSubscriptionForm.class);
+            var subscriptionForm = (PortalNavigationSubscriptionForm) entity;
+            assertThat(subscriptionForm.getId()).isEqualTo(PortalNavigationItemId.of("550e8400-e29b-41d4-a716-446655440060"));
+            assertThat(subscriptionForm.getArea()).isEqualTo(PortalArea.SUBSCRIPTION_FORM);
+            assertThat(subscriptionForm.getPortalPageContentId()).isEqualTo(PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440061"));
+            assertThat(subscriptionForm.getValidationConstraints()).isEqualTo(
+                io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints.empty()
+            );
+        }
+
+        @Test
         void should_throw_when_link_configuration_is_missing() {
             // Given
             var repositoryItem = PortalNavigationItemsRepositoryFixtures.aLink("550e8400-e29b-41d4-a716-446655440008", "link", null, null);
@@ -496,6 +518,57 @@ class PortalNavigationItemAdapterTest {
 
             // Then
             assertThat(repositoryItem.getCategoryIds()).containsExactly(categoryId.toString());
+        }
+
+        @Test
+        void should_map_subscription_form_to_repository() {
+            // Given
+            var entity = PortalNavigationItemFixtures.aSubscriptionForm(
+                "550e8400-e29b-41d4-a716-446655440062",
+                PortalPageContentId.of("550e8400-e29b-41d4-a716-446655440063")
+            );
+
+            // When
+            var repositoryItem = adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity);
+
+            // Then
+            assertThat(repositoryItem.getId()).isEqualTo("550e8400-e29b-41d4-a716-446655440062");
+            assertThat(repositoryItem.getType()).isEqualTo(PortalNavigationItem.Type.SUBSCRIPTION_FORM);
+            assertThat(repositoryItem.getArea()).isEqualTo(PortalNavigationItem.Area.SUBSCRIPTION_FORM);
+            assertThat(repositoryItem.getConfiguration()).isEqualTo(
+                "{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440063\",\"validationConstraints\":{}}"
+            );
+            assertThat(repositoryItem.isPublished()).isTrue();
+            assertThat(repositoryItem.getVisibility()).isEqualTo(PortalNavigationItem.Visibility.PUBLIC);
+        }
+
+        @Test
+        void should_round_trip_subscription_form_validation_constraints_through_repository() {
+            // Given
+            var constraints = new io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints(
+                java.util.Map.of(
+                    "email",
+                    java.util.List.of(
+                        new io.gravitee.apim.core.subscription_form.model.Constraint.Required(),
+                        new io.gravitee.apim.core.subscription_form.model.Constraint.MinLength(3)
+                    )
+                )
+            );
+            var entity = PortalNavigationItemFixtures.aSubscriptionForm(
+                "550e8400-e29b-41d4-a716-446655440064",
+                PortalPageContentId.random()
+            )
+                .toBuilder()
+                .validationConstraints(constraints)
+                .build();
+
+            // When
+            var roundTripped = adapter.toEntity(
+                adapter.toRepository((io.gravitee.apim.core.portal_page.model.PortalNavigationItem) entity)
+            );
+
+            // Then
+            assertThat(((PortalNavigationSubscriptionForm) roundTripped).getValidationConstraints()).isEqualTo(constraints);
         }
 
         @Test

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 
 /**
@@ -43,6 +44,7 @@ public class TypeConsistencyRule implements UpdatePortalNavigationItemValidation
             case PortalNavigationLink ignored -> PortalNavigationItemType.LINK;
             case PortalNavigationApi ignored -> PortalNavigationItemType.API;
             case PortalNavigationApiProduct ignored -> PortalNavigationItemType.API_PRODUCT;
+            case PortalNavigationSubscriptionForm ignored -> PortalNavigationItemType.SUBSCRIPTION_FORM;
         };
         if (existingType != toUpdate.getType()) {
             throw InvalidPortalNavigationItemDataException.typeMismatch(toUpdate.getType().toString(), existingType.toString());

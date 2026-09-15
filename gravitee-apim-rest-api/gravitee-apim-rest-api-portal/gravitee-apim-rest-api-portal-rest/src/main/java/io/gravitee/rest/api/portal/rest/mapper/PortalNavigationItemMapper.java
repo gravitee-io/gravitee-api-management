@@ -28,6 +28,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.RedocConfiguration;
@@ -42,6 +43,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -49,6 +52,15 @@ public interface PortalNavigationItemMapper {
     PortalNavigationItemMapper INSTANCE = Mappers.getMapper(PortalNavigationItemMapper.class);
 
     PortalArea map(io.gravitee.rest.api.portal.rest.model.PortalArea area);
+
+    /**
+     * SUBSCRIPTION_FORM is never browsable through this listing (a distinct, single, management-only
+     * area, not part of the HOMEPAGE/TOP_NAVBAR navigation tree this portal-rest surface serves) - a
+     * value here would mean a caller queried the wrong area, so this fails loudly instead of silently
+     * producing an unmappable REST value.
+     */
+    @ValueMapping(source = "SUBSCRIPTION_FORM", target = MappingConstants.THROW_EXCEPTION)
+    io.gravitee.rest.api.portal.rest.model.PortalArea map(PortalArea area);
 
     default List<io.gravitee.rest.api.portal.rest.model.PortalNavigationItem> map(@Nonnull List<PortalNavigationItem> items) {
         return items.stream().map(this::getBasePortalNavigationItem).toList();
@@ -61,6 +73,9 @@ public interface PortalNavigationItemMapper {
             case PortalNavigationPage page -> map(page);
             case PortalNavigationApi api -> map(api);
             case PortalNavigationApiProduct apiProduct -> map(apiProduct);
+            case PortalNavigationSubscriptionForm subscriptionForm -> throw new IllegalStateException(
+                "SUBSCRIPTION_FORM navigation items are never exposed through the portal navigation listing"
+            );
         };
         var wrappedItem = new io.gravitee.rest.api.portal.rest.model.PortalNavigationItem();
         wrappedItem.setActualInstance(baseItem);

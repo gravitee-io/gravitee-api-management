@@ -28,9 +28,11 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormFieldConstraints;
 import java.util.List;
 
 public class PortalNavigationItemFixtures {
@@ -162,6 +164,22 @@ public class PortalNavigationItemFixtures {
             .published(true)
             .visibility(PortalVisibility.PUBLIC)
             .parentId(parentId)
+            .build();
+    }
+
+    public static PortalNavigationSubscriptionForm aSubscriptionForm(String id, PortalPageContentId contentId) {
+        return PortalNavigationSubscriptionForm.builder()
+            .id(PortalNavigationItemId.of(id))
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("Subscription Form")
+            .segment(PortalNavigationItem.slugify("Subscription Form").value())
+            .area(PortalArea.SUBSCRIPTION_FORM)
+            .order(0)
+            .portalPageContentId(contentId)
+            .validationConstraints(SubscriptionFormFieldConstraints.empty())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
             .build();
     }
 

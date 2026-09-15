@@ -68,4 +68,21 @@ class PortalNavigationItemIdTest {
             PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "other-api-id", contentId)
         );
     }
+
+    @Test
+    void forSubscriptionFormDefault_is_deterministic_for_the_same_environment() {
+        var first = PortalNavigationItemId.forSubscriptionFormDefault(AUDIT_INFO);
+        var second = PortalNavigationItemId.forSubscriptionFormDefault(AUDIT_INFO);
+
+        assertThat(first).isEqualTo(second);
+    }
+
+    @Test
+    void forSubscriptionFormDefault_differs_per_environment() {
+        var otherEnvAudit = AuditInfo.builder().organizationId("organization-id").environmentId("other-environment-id").build();
+
+        assertThat(PortalNavigationItemId.forSubscriptionFormDefault(AUDIT_INFO)).isNotEqualTo(
+            PortalNavigationItemId.forSubscriptionFormDefault(otherEnvAudit)
+        );
+    }
 }
