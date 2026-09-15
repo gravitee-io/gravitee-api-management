@@ -15,12 +15,8 @@
  */
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
 
-import { MODULE_ICONS } from '../../../../features/modules';
+import { MODULE_CATALOG, MODULE_ICONS, type ModuleId } from '../../../../features/modules';
 import type { Accent } from '../accents';
-
-/** Plugin ids of modules we render a card for. Must match `plugin.properties#id` of
- *  the corresponding Gamma module (`gravitee-gamma-module-<id>`). */
-export type ModuleId = 'aim' | 'apim' | 'platform' | 'portals' | 'authz' | 'esm' | 'edge';
 
 export interface Application {
     readonly title: string;
@@ -49,17 +45,17 @@ export interface Application {
  */
 export const REQUEST_ENTERPRISE_LICENSE_URL = 'https://gravitee.io/self-hosted-trial';
 
-/**
- * Static catalog of application cards. Each entry references the backend plugin id
- * directly — same source the app switcher consumes from `GET /organizations/{orgId}/modules`.
- * Cards whose `moduleId` is absent from that response render without a link or "Open →" CTA.
- */
-export const APPLICATIONS: readonly Application[] = [
-    {
-        title: 'Agent Management',
+type CardContent = Omit<Application, 'title' | 'moduleId' | 'Icon'>;
+
+/** Keyed by module id so that adding a product to the catalog fails to compile until it has a card. */
+const CARD_CONTENT: Record<ModuleId, CardContent> = {
+    apim: {
+        description: 'Design, deploy, and manage your HTTP APIs with full lifecycle governance.',
+        accent: 'primary',
+        emptyState: { cta: 'Create your first API', ctaPath: 'apis/new' },
+    },
+    aim: {
         description: 'Discover, secure, build, and observe AI agents, MCP servers, and LLM integrations.',
-        moduleId: 'aim',
-        Icon: MODULE_ICONS['aim'],
         accent: 'highlight',
         emptyState: { cta: 'Add Integration', ctaPath: '' },
         upgrade: {
@@ -70,35 +66,8 @@ export const APPLICATIONS: readonly Application[] = [
             ],
         },
     },
-    {
-        title: 'API Management',
-        description: 'Design, deploy, and manage your HTTP APIs with full lifecycle governance.',
-        moduleId: 'apim',
-        Icon: MODULE_ICONS['apim'],
-        accent: 'primary',
-        emptyState: { cta: 'Create your first API', ctaPath: 'apis/new' },
-    },
-    {
-        title: 'Platform Management',
-        description: 'Manage applications, subscribe to APIs, and monitor consumption from a single dashboard.',
-        moduleId: 'platform',
-        Icon: MODULE_ICONS['platform'],
-        accent: 'accent',
-        emptyState: { cta: 'Register an application', ctaPath: 'applications/new' },
-    },
-    {
-        title: 'Developer Portals',
-        description: 'Design and manage developer portal experiences.',
-        moduleId: 'portals',
-        Icon: MODULE_ICONS['portals'],
-        accent: 'primary',
-        emptyState: { cta: 'Open Developer Portals', ctaPath: '' },
-    },
-    {
-        title: 'Authorization Management',
+    authz: {
         description: 'Define fine-grained authorization rules, relationship tuples, and scopes across the platform.',
-        moduleId: 'authz',
-        Icon: MODULE_ICONS['authz'],
         accent: 'success',
         emptyState: { cta: 'Create your first policy', ctaPath: 'policies/new' },
         upgrade: {
@@ -109,11 +78,20 @@ export const APPLICATIONS: readonly Application[] = [
             ],
         },
     },
-    {
-        title: 'Event Stream Management',
+    act: {
+        description: 'Build the agents that guard your platform, give them the tools and sandboxes they need, and watch what they do.',
+        accent: 'highlight',
+        emptyState: { cta: 'Open Guardian Agent', ctaPath: '' },
+        upgrade: {
+            features: [
+                'Build agents that act as guardrails for your other agents',
+                'Give guardian agents the tools and sandboxes they need',
+                'Watch every action your guardian agents take',
+            ],
+        },
+    },
+    esm: {
         description: 'Register Kafka clusters, expose governed Kafka services, and federate them into an event mesh.',
-        moduleId: 'esm',
-        Icon: MODULE_ICONS['esm'],
         accent: 'muted',
         emptyState: { cta: 'Register a cluster', ctaPath: 'clusters' },
         upgrade: {
@@ -124,11 +102,18 @@ export const APPLICATIONS: readonly Application[] = [
             ],
         },
     },
-    {
-        title: 'Edge Management',
+    portals: {
+        description: 'Design and manage developer portal experiences.',
+        accent: 'primary',
+        emptyState: { cta: 'Open Developer Portals', ctaPath: '' },
+    },
+    platform: {
+        description: 'Manage applications, subscribe to APIs, and monitor consumption from a single dashboard.',
+        accent: 'accent',
+        emptyState: { cta: 'Register an application', ctaPath: 'applications/new' },
+    },
+    edge: {
         description: 'Monitor and manage your fleet of Edge Daemon agents.',
-        moduleId: 'edge',
-        Icon: MODULE_ICONS['edge'],
         accent: 'highlight',
         emptyState: { cta: 'Open Edge Management', ctaPath: '' },
         upgrade: {
@@ -139,7 +124,18 @@ export const APPLICATIONS: readonly Application[] = [
             ],
         },
     },
-];
+};
+
+/**
+ * One card per catalog product, in catalog order — the same order as the app switcher.
+ * A license-gated card whose `moduleId` is absent from `GET /organizations/{orgId}/modules` renders locked.
+ */
+export const APPLICATIONS: readonly Application[] = MODULE_CATALOG.map(product => ({
+    title: product.label,
+    moduleId: product.id,
+    Icon: MODULE_ICONS[product.id],
+    ...CARD_CONTENT[product.id],
+}));
 
 export function buildModulePath(envHrid: string, moduleId: ModuleId): string {
     return `/environments/${envHrid}/${moduleId}`;

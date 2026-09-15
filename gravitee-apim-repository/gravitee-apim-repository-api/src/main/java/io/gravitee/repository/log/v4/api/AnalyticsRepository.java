@@ -122,4 +122,10 @@ public interface AnalyticsRepository {
     TimeSeriesResult searchHumanApprovalTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
 
     FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query);
+
+    /**
+     * Searches this agent's activity across {@code v4-metrics} and {@code decisions} indices,
+     * grouped by {@code conversation-id} when the header was present, otherwise by hop.
+     */
+    AgentActivityResult searchAgentActivity(QueryContext queryContext, AgentActivityQuery query);
 }

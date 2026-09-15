@@ -15,6 +15,7 @@
  */
 package fakes;
 
+import io.gravitee.apim.core.analytics.model.AgentActivityResult;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
@@ -63,6 +64,7 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     public StatsAnalytics statsAnalytics;
     public ApiMetricsDetail apiMetricsDetail;
     public EventAnalytics eventAnalytics;
+    public AgentActivityResult agentActivityResult;
 
     @Override
     public Optional<RequestsCount> searchRequestsCount(ExecutionContext executionContext, String apiId, Instant from, Instant to) {
@@ -176,5 +178,10 @@ public class FakeAnalyticsQueryService implements AnalyticsQueryService {
     @Override
     public Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, HistogramQuery query) {
         return Optional.ofNullable(eventAnalytics);
+    }
+
+    @Override
+    public AgentActivityResult searchAgentActivity(ExecutionContext executionContext, AgentActivityQuery query) {
+        return agentActivityResult != null ? agentActivityResult : new AgentActivityResult(List.of(), 0, query.page(), query.size());
     }
 }

@@ -241,15 +241,16 @@
     <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
     <gravitee-reactor-native-kafka.version>7.1.0</gravitee-reactor-native-kafka.version>
-    <gravitee-reactor-mcp-proxy.version>4.1.0-beta.2</gravitee-reactor-mcp-proxy.version>
-    <gravitee-reactor-llm-proxy.version>5.0.0-beta.2</gravitee-reactor-llm-proxy.version>
-    <gravitee-reactor-a2a-proxy.version>2.1.1</gravitee-reactor-a2a-proxy.version>
+    <gravitee-reactor-mcp-proxy.version>4.1.0-beta.3</gravitee-reactor-mcp-proxy.version>
+    <gravitee-reactor-llm-proxy.version>5.0.0-beta.4</gravitee-reactor-llm-proxy.version>
+    <gravitee-reactor-a2a-proxy.version>2.2.0-beta.1</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>1.2.0</gravitee-reactor-authz.version>
     <gravitee-reactor-edge.version>2.0.0-alpha.2</gravitee-reactor-edge.version>
     <gravitee-resource-ai-vector-store-redis.version>2.0.0</gravitee-resource-ai-vector-store-redis.version>
     <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
     <gravitee-resource-ai-model-text-embedding.version>2.0.0</gravitee-resource-ai-model-text-embedding.version>
     <gravitee-policy-ai-semantic-caching.version>2.0.0</gravitee-policy-ai-semantic-caching.version>
+    <gravitee-policy-ai-guardian.version>1.0.0-beta.1</gravitee-policy-ai-guardian.version>
     <gravitee-apim-repository-bridge.version>9.0.0</gravitee-apim-repository-bridge.version>
     <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
     <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
@@ -272,10 +273,11 @@
     <gravitee-policy-pii-filtering.version>2.2.0</gravitee-policy-pii-filtering.version>
     <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
     <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
+    <gravitee-resource-guardian-agent-gas.version>1.0.0-beta.3</gravitee-resource-guardian-agent-gas.version>
 
     <!-- Gamma plugins -->
     <gravitee-gamma-module-act.version>1.0.0-guardian-agent-SNAPSHOT</gravitee-gamma-module-act.version>
-    <gravitee-gamma-module-aim.version>4.3.0-beta.36</gravitee-gamma-module-aim.version>
+    <gravitee-gamma-module-aim.version>4.3.0-beta.50</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>1.16.0</gravitee-gamma-module-authz.version>
     <gravitee-gamma-module-edge.version>2.0.0-alpha.12</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.5.0-alpha.6</gravitee-gamma-module-esm.version>
@@ -284,8 +286,8 @@
     <gravitee-reactor-agent.version>1.0.0-agent-gateway-SNAPSHOT</gravitee-reactor-agent.version>
 
     <!-- Authz plugins -->
-    <gravitee-service-authz-pdp.version>2.1.1</gravitee-service-authz-pdp.version>
-    <gravitee-policy-authz-pep.version>1.4.0</gravitee-policy-authz-pep.version>
+    <gravitee-service-authz-pdp.version>3.1.0-beta.1</gravitee-service-authz-pdp.version>
+    <gravitee-policy-authz-pep.version>1.6.0</gravitee-policy-authz-pep.version>
     <gravitee-policy-authz-pdp-authzen.version>1.2.0</gravitee-policy-authz-pdp-authzen.version>
     </properties>
 

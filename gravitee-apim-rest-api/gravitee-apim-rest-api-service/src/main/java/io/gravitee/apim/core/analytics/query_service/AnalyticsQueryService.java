@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.analytics.query_service;
 
+import io.gravitee.apim.core.analytics.model.AgentActivityResult;
 import io.gravitee.apim.core.analytics.model.Aggregation;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.EventAnalytics;
@@ -109,6 +110,10 @@ public interface AnalyticsQueryService {
     Optional<ApiMetricsDetail> findApiMetricsDetail(ExecutionContext executionContext, String apiId, String requestId);
 
     Optional<EventAnalytics> searchEventAnalytics(ExecutionContext executionContext, HistogramQuery query);
+
+    AgentActivityResult searchAgentActivity(ExecutionContext executionContext, AgentActivityQuery query);
+
+    record AgentActivityQuery(String a2aApiId, List<String> applicationIds, String actorId, Long from, Long to, int page, int size) {}
 
     record CountQuery(SearchTermId searchTermId, Instant from, Instant to, Optional<String> query) {}
 

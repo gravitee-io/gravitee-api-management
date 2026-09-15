@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useNavigate, type NavigateFunction } from 'react-router-dom';
 
@@ -129,5 +129,68 @@ describe('ShellLayout environment switching', () => {
         await switchToEnvironment2();
 
         await waitFor(() => expect(useEnvironmentStore.getState().currentEnvironment?.id).toBe('env-2-id'));
+    });
+});
+
+describe('ShellLayout app switcher', () => {
+    beforeEach(() => {
+        resetAllStores();
+        seedBootstrap();
+        seedEnvironments();
+    });
+
+    it('should list the products in catalog order, whatever order the backend returns the modules in', async () => {
+        const backendOrder: GammaModule[] = ['edge', 'act', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(id => ({
+            id,
+            name: `${id} plugin`,
+            version: '1.0.0',
+            remoteName: id,
+            exposedModule: 'Module',
+        }));
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={backendOrder} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const items = await screen.findAllByRole('menuitem');
+        expect(items.map(item => item.textContent)).toEqual(
+            [
+                'Home',
+                'Agent Management',
+                'API Management',
+                'Event Stream Management',
+                'Authorization Management',
+                'Guardian Agent',
+                'Developer Portals',
+                'Edge Management',
+                'Platform Management',
+            ].map(label => expect.stringMatching(`^${label}`)),
+        );
+    });
+
+    it('should set Home apart from the products, on a compact row without its description', async () => {
+        const modules: GammaModule[] = [{ id: 'apim', name: 'apim plugin', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' }];
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const menu = await screen.findByRole('menu');
+        expect(within(menu).getByRole('separator')).toBeTruthy();
+        expect(within(menu).queryByText('Overview and quick actions')).toBeNull();
     });
 });
