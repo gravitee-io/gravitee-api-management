@@ -2413,24 +2413,21 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
             }
 
-            /**
-             * The fingerprint is stamped on a {@code tools/call} alone and is single-valued, so its buckets
-             * are the two calls, one each — the plain case the catalog test below is measured against.
-             */
+            /** The fingerprint is stamped on a {@code tools/call} alone, so filtering by it counts that one call. */
             @Test
-            void should_return_facets_by_mcp_proxy_tool_fingerprint() {
+            void should_filter_by_mcp_proxy_tool_fingerprint() {
                 var timeRange = buildTimeRange();
                 var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
-                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
-                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.MCP_PROXY_TOOL_FINGERPRINT));
+                var filters = List.of(
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID)),
+                    new Filter(Filter.Name.MCP_PROXY_TOOL_FINGERPRINT, Filter.Operator.EQ, "v1:7b2e44a90c1d5e36")
+                );
 
-                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+                var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(timeRange, filters, metrics));
 
                 assertThat(result).isNotNull();
-                assertThat(result.metrics()).hasSize(1);
-                assertThat(result.metrics().getFirst().buckets())
-                    .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
-                    .containsExactlyInAnyOrder(tuple("v1:7b2e44a90c1d5e36", 1.0), tuple("v1:a4d1e80b6c3f2a97", 1.0));
+                assertThat(result.measures()).hasSize(1);
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).doubleValue()).isEqualTo(1.0);
             }
 
             /**

@@ -176,7 +176,7 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
 
             assertThat(service.getFacets(metric))
                 .extracting(FacetSpec::name)
-                .contains(FacetSpec.Name.MCP_PROXY_TOOL, FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT, FacetSpec.Name.MCP_PROXY_TOOL_CATALOG);
+                .contains(FacetSpec.Name.MCP_PROXY_TOOL, FacetSpec.Name.MCP_PROXY_TOOL_CATALOG);
 
             assertThat(service.getFilters(metric))
                 .extracting(FilterSpec::name)

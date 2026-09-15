@@ -139,7 +139,6 @@ class HTTPFieldResolverTest {
             "LLM_PROXY_TOOL_REF",
             "MCP_PROXY_METHOD",
             "MCP_PROXY_TOOL",
-            "MCP_PROXY_TOOL_FINGERPRINT",
             "MCP_PROXY_TOOL_CATALOG",
             "MCP_PROXY_RESOURCE",
             "MCP_PROXY_PROMPT",
@@ -200,9 +199,6 @@ class HTTPFieldResolverTest {
     @Test
     void should_resolve_mcp_proxy_tool_fingerprint_and_catalog_to_their_own_fields() {
         assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_TOOL_FINGERPRINT, Filter.Operator.EQ, "abc123"))).isEqualTo(
-            "additional-metrics.keyword_mcp-proxy_tool-fingerprint"
-        );
-        assertThat(fieldResolver.fromFacet(Facet.MCP_PROXY_TOOL_FINGERPRINT)).isEqualTo(
             "additional-metrics.keyword_mcp-proxy_tool-fingerprint"
         );
         assertThat(fieldResolver.fromFilter(new Filter(Filter.Name.MCP_PROXY_TOOL_CATALOG, Filter.Operator.EQ, "search|abc123"))).isEqualTo(

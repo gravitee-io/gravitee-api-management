@@ -139,7 +139,6 @@ public class HTTPFieldResolver implements FieldResolver {
             case LLM_PROXY_TOOL_REF -> LlmProxyFields.TOOL_REFS;
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
-            case MCP_PROXY_TOOL_FINGERPRINT -> "additional-metrics.keyword_mcp-proxy_tool-fingerprint";
             // Multi-valued, see the filter switch: buckets count listings, not tools served.
             case MCP_PROXY_TOOL_CATALOG -> "additional-metrics.keyword_mcp-proxy_tool-catalog";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";

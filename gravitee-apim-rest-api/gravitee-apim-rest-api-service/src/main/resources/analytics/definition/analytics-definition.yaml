@@ -58,7 +58,6 @@ spec:
               - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
-              - MCP_PROXY_TOOL_FINGERPRINT
               - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
@@ -142,7 +141,6 @@ spec:
               - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
-              - MCP_PROXY_TOOL_FINGERPRINT
               - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
@@ -1618,7 +1616,6 @@ spec:
               - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
-              - MCP_PROXY_TOOL_FINGERPRINT
               - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_TOOL_PRICE_STATUS
               - MCP_PROXY_TOOL_BILLED
@@ -1700,7 +1697,6 @@ spec:
               - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
-              - MCP_PROXY_TOOL_FINGERPRINT
               - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
@@ -1778,7 +1774,6 @@ spec:
               - LLM_PROXY_TOOL_REF
               - MCP_PROXY_METHOD
               - MCP_PROXY_TOOL
-              - MCP_PROXY_TOOL_FINGERPRINT
               - MCP_PROXY_TOOL_CATALOG
               - MCP_PROXY_RESOURCE
               - MCP_PROXY_PROMPT
@@ -3367,10 +3362,6 @@ spec:
 
         - name: MCP_PROXY_TOOL
           label: MCP Tool
-          type: KEYWORD
-
-        - name: MCP_PROXY_TOOL_FINGERPRINT
-          label: MCP Tool fingerprint
           type: KEYWORD
 
         - name: MCP_PROXY_TOOL_CATALOG
