@@ -202,6 +202,26 @@ class AuthzSharedEngineSyncTest {
         assertThat(engine.served()).isEmpty();
     }
 
+    @Test
+    void an_abandoned_provision_that_absorbed_an_evict_does_not_leave_the_deleted_replica_hosted() throws InterruptedException {
+        stubPdpFetch(pdpEvent("pdp-us", EventType.PUBLISH_AUTHZ_PDP, "us"));
+        runPdpCycle(-1L);
+
+        // The same re-tag batch, but this time the relay never recovers.
+        provisionRelayFails = true;
+        stubPdpFetch(pdpEvent("pdp-us", EventType.UNPUBLISH_AUTHZ_PDP, "us"), pdpEvent("pdp-eu", EventType.PUBLISH_AUTHZ_PDP, "eu"));
+        runPdpCycle(1L);
+
+        // Re-drive past the attempt cap. The provision that absorbed the evict is the only thing that can
+        // ever drop stock@us, so abandoning it has to drop the scope too.
+        stubPdpFetch();
+        for (long cycle = 2; cycle < 16; cycle++) {
+            runPdpCycle(cycle);
+        }
+
+        assertThat(hostedScopes.hostedFor(ENV)).isEmpty();
+    }
+
     // ---------------------------------------------------------------------
     // Wiring
     // ---------------------------------------------------------------------
