@@ -105,6 +105,63 @@ export function corePin(environment: CircleCIEnvironment): string {
   return pin[1];
 }
 
+/** A server keeps talking to four client lines: its own and the three before it. */
+const BRIDGE_CLIENT_LINES = 4;
+
+/** The lines that have shipped their first release, most recent first; the four newest are the supported ones. */
+const releasedLines = (tags: string[]): string[] => {
+  const lines = tags.filter((tag) => /^\d+\.\d+\.0$/.test(tag)).map((tag) => tag.split('.').slice(0, 2).join('.'));
+  return [...new Set(lines)].sort((a, b) => {
+    const [aMajor, aMinor] = a.split('.').map(Number);
+    const [bMajor, bMinor] = b.split('.').map(Number);
+    return bMajor - aMajor || bMinor - aMinor;
+  });
+};
+
+/**
+ * Every image a bridge compatibility run tests the server against.
+ *
+ * Four client lines — its own and the three before it — and two clients per line: the line's first
+ * release, and its last. What "last" means depends on whether the line is still supported: a
+ * supported one keeps moving, and its tip lives on the registry as `<line>.x-latest`; a retired one
+ * stopped, and its last is the public `graviteeio@<line>` tag. A line a freeze has just cut has
+ * neither — only its branch tip. Master is the exception, having no release of its own to name.
+ *
+ * The list used to be written out by hand, once per branch, which made it two files to edit at every
+ * code freeze and five more at every retirement — and the linter reflows the array as soon as its
+ * length changes, so no script could edit it twice. Derived, it follows a release on its own.
+ *
+ * @param environment the pipeline's environment, carrying the branch and the released tags
+ */
+export function bridgeClientTags(environment: CircleCIEnvironment): string[] {
+  if (environment.releasedTags === undefined) {
+    throw new Error('bridgeClientTags - the released tags are missing; index.ts reads them for this action only');
+  }
+
+  const { major, minor } = parse(computeApimVersion(environment)).version;
+  if (Number(minor) < BRIDGE_CLIENT_LINES - 1) {
+    throw new Error(
+      `bridgeClientTags - ${major}.${minor} has fewer than three previous minors in its own major, and which versions of the previous major it should keep talking to is not something a version number answers. List them here.`,
+    );
+  }
+
+  const released = releasedLines(environment.releasedTags);
+  const supported = released.slice(0, BRIDGE_CLIENT_LINES);
+
+  return Array.from({ length: BRIDGE_CLIENT_LINES }, (_, index) => `${major}.${Number(minor) - index}`).flatMap((line, index) => {
+    if (index === 0 && environment.branch === 'master') {
+      return ['master-latest'];
+    }
+    // Between a freeze and the first release of the line it cut, that line has a branch and nothing
+    // else: no first release to test against, and a `graviteeio@` tag that does not exist yet.
+    if (!released.includes(line)) {
+      return [`${line}.x-latest`];
+    }
+    const last = supported.includes(line) ? `${line}.x-latest` : `graviteeio@${line}`;
+    return [last, `graviteeio@${line}.0`];
+  });
+}
+
 function parsePomXml(pomXml: string) {
   const revisionMatch = pomXml.match(/<revision>(.*?)<\/revision>/);
   const sha1Match = pomXml.match(/<sha1>(.*?)<\/sha1>/);

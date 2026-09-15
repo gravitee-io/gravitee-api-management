@@ -82,6 +82,14 @@ const dockerTagAsLatest =
     : remoteTags().then((tags) => isLatestRelease(distributionReleaseVersion, tags));
 
 /**
+ * Which versions have been released, for the bridge compatibility matrix: it tests the server against
+ * the minors before it, and a line that has a branch but no release yet contributes its branch tip
+ * alone. Left undefined everywhere else, so a workflow that starts needing it says so instead of
+ * quietly reading an empty list.
+ */
+const releasedTags = action === 'bridge_compatibility_tests' ? remoteTags() : Promise.resolve(undefined);
+
+/**
  * The pipeline generation is available according to different conditions:
  *     - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
  *     - if we are working on a branch with changes committed on the base branch
@@ -91,9 +99,9 @@ const changed =
     ? Promise.resolve([])
     : changedFiles(diffRef(GIT_COMMON_COMMIT_HASH, GIT_BASE_BRANCH));
 
-Promise.all([changed, dockerTagAsLatest])
+Promise.all([changed, dockerTagAsLatest, releasedTags])
   .then(
-    ([changes, tagAsLatest]) =>
+    ([changes, tagAsLatest, tags]) =>
       ({
         baseBranch: GIT_BASE_BRANCH,
         branch: CIRCLE_BRANCH,
@@ -110,6 +118,7 @@ Promise.all([changed, dockerTagAsLatest])
         changedFiles: changes,
         apimVersionPath: APIM_VERSION_PATH ?? '/home/circleci/project/pom.xml',
         dockerTagAsLatest: tagAsLatest,
+        releasedTags: tags,
       }) as CircleCIEnvironment,
   )
   .then((environment: CircleCIEnvironment) => buildCIPipeline(environment))
