@@ -33,6 +33,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -111,7 +113,11 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
     }
 
     private static String scopeKey(AuthzPdpProvisionDeployable deployable) {
-        return deployable.environmentId() + ":" + routingScope(deployable.targetPdpId(), deployable.tag());
+        return scopeKey(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
+    }
+
+    private static String scopeKey(String environmentId, String routingScope) {
+        return environmentId + ":" + routingScope;
     }
 
     public AuthzPdpSynchronizer(
@@ -234,6 +240,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             .toList();
         Set<String> liveEngineKeys = deploys.stream().map(AuthzPdpSynchronizer::engineKey).collect(Collectors.toSet());
         Set<String> liveScopeKeys = deploys.stream().map(AuthzPdpSynchronizer::scopeKey).collect(Collectors.toSet());
+        Map<String, Set<String>> absorbedByEngine = new HashMap<>();
         List<AuthzPdpProvisionDeployable> relayed = new ArrayList<>();
         for (AuthzPdpProvisionDeployable d : deployables) {
             if (d.syncAction() == SyncAction.UNDEPLOY && liveEngineKeys.contains(engineKey(d))) {
@@ -243,13 +250,33 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     d.targetPdpId()
                 );
                 if (!liveScopeKeys.contains(scopeKey(d))) {
-                    dropScopeLocally(d.environmentId(), routingScope(d.targetPdpId(), d.tag()), scopeKey(d));
+                    absorbedByEngine.computeIfAbsent(engineKey(d), k -> new HashSet<>()).add(routingScope(d.targetPdpId(), d.tag()));
                 }
                 continue;
             }
             relayed.add(d);
         }
-        return Flowable.fromIterable(relayed);
+        // Hand the suppressed scopes to the deploys that absorbed them rather than dropping them here. The
+        // engine is still up, so until one of those deploys confirms, serves() must keep routing the control
+        // plane's removals for these scopes — otherwise a failed relay leaves the engine holding documents
+        // the cascade has already moved elsewhere, and hydration, which only ever adds, never takes them back.
+        return Flowable.fromIterable(
+            relayed
+                .stream()
+                .map(d -> withAbsorbedScopes(d, absorbedByEngine))
+                .toList()
+        );
+    }
+
+    private static AuthzPdpProvisionDeployable withAbsorbedScopes(
+        AuthzPdpProvisionDeployable deployable,
+        Map<String, Set<String>> absorbedByEngine
+    ) {
+        Set<String> absorbed = absorbedByEngine.get(engineKey(deployable));
+        if (deployable.syncAction() != SyncAction.DEPLOY || absorbed == null) {
+            return deployable;
+        }
+        return deployable.toBuilder().absorbedScopes(absorbed).build();
     }
 
     private Flowable<AuthzPdpProvisionDeployable> tagGate(AuthzPdpProvisionDeployable deployable) {
@@ -324,6 +351,9 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingProvisionAttempts.remove(rk);
                     pendingEvicts.remove(rk);
                     hostedScopes.markHosted(deployable.environmentId(), scope);
+                    // Only the reply proves the engine is reachable, so this is where the evicts this batch
+                    // suppressed on its behalf are finally applied to the node's bookkeeping.
+                    dropAbsorbedScopes(deployable);
                     if (firstProvision) {
                         provisionedScopes.add(deployable);
                     }
@@ -356,6 +386,12 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                 }
                 return Completable.complete();
             });
+    }
+
+    private void dropAbsorbedScopes(AuthzPdpProvisionDeployable deployable) {
+        for (String absorbed : deployable.absorbedScopes()) {
+            dropScopeLocally(deployable.environmentId(), absorbed, scopeKey(deployable.environmentId(), absorbed));
+        }
     }
 
     /**
