@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.application.domain_service.ValidateApplicationCRDDomainService;
@@ -29,11 +30,13 @@ import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class ApplicationsResourceTest extends AbstractResourceTest {
 
@@ -69,6 +72,21 @@ class ApplicationsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                 soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 soft.assertThat(state.getHrid()).isEqualTo("application-hrid");
+            });
+        }
+
+        @Test
+        void should_pass_additional_client_metadata_of_oauth_settings_to_the_use_case() {
+            expectEntity("application-with-oauth-metadata.json");
+
+            var input = ArgumentCaptor.forClass(ImportApplicationCRDUseCase.Input.class);
+            verify(importApplicationCRDUseCase).execute(input.capture());
+
+            var oauth = input.getValue().crd().getSettings().getOauth();
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(oauth.getAdditionalClientMetadata()).containsExactly(Map.entry("software_id", "template-app-id"));
+                soft.assertThat(oauth.getApplicationType()).isEqualTo("web");
+                soft.assertThat(oauth.getGrantTypes()).containsExactly("authorization_code");
             });
         }
 
