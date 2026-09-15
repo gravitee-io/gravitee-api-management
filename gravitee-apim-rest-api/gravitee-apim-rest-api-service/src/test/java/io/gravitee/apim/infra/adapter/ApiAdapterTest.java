@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.core.model.ApiFixtures;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.federation.FederatedAgent;
@@ -38,6 +39,7 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -308,6 +310,59 @@ class ApiAdapterTest {
 
             var apiWithIntegrationContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("integration").integrationId("int-a").build());
             assertThat(apiWithIntegrationContext).hasOriginContext(new OriginContext.Integration("int-a", null, null));
+        }
+    }
+
+    @Nested
+    class RepositoryToFederatedAgentEntity {
+
+        @Test
+        void should_map_provider_and_capabilities_when_converting_to_federated_agent_entity() {
+            var agent = anAgent()
+                .provider(new FederatedAgent.Provider("Acme Robotics", "https://example.net"))
+                .capabilities(Map.of("streaming", true, "pushNotifications", false))
+                .build();
+
+            var entity = toFederatedAgentEntity(agent);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(entity.getProvider().organization()).isEqualTo("Acme Robotics");
+                soft.assertThat(entity.getProvider().url()).isEqualTo("https://example.net");
+                soft.assertThat(entity.getCapabilities()).containsExactly("streaming");
+            });
+        }
+
+        @Test
+        void should_map_a_null_provider_when_the_agent_carries_none() {
+            var agent = anAgent().provider(null).capabilities(Map.of("streaming", true)).build();
+
+            var entity = toFederatedAgentEntity(agent);
+
+            assertThat(entity.getProvider()).isNull();
+        }
+
+        @Test
+        void should_map_null_capabilities_when_there_is_no_agent() {
+            var entity = toFederatedAgentEntity(null);
+
+            assertThat(entity.getCapabilities()).isNull();
+        }
+
+        private static FederatedAgent.FederatedAgentBuilder anAgent() {
+            return FederatedAgent.builder()
+                .name("api-name")
+                .description("api-description")
+                .url("https://example.net/agent")
+                .version("1.0.0");
+        }
+
+        private static FederatedApiAgentEntity toFederatedAgentEntity(FederatedAgent agent) {
+            return ApiAdapter.INSTANCE.toFederatedAgentEntity(
+                apiFederatedAgent().build(),
+                agent,
+                PrimaryOwnerEntity.builder().id("primary-owner-id").build(),
+                new OriginContext.Integration("int-a")
+            );
         }
     }
 
