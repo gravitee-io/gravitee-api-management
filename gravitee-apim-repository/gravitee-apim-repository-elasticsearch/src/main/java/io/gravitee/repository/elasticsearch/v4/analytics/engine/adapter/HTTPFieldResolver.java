@@ -96,6 +96,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case Filter.Name.EDGE_CLIENT -> "client-identifier";
             case Filter.Name.EDGE_TYPE -> "additional-metrics.keyword_edge_type";
             case Filter.Name.EDGE_VERSION -> "additional-metrics.keyword_edge_version";
+            case Filter.Name.EDGE_OS -> "additional-metrics.keyword_edge_os";
             case Filter.Name.EDGE_MODEL -> "additional-metrics.keyword_edge_model";
             case Filter.Name.EDGE_TOOL -> "additional-metrics.keyword_edge_tool";
             case Filter.Name.API_PRODUCT -> "api-product-id";
@@ -151,6 +152,7 @@ public class HTTPFieldResolver implements FieldResolver {
             case EDGE_CLIENT -> "client-identifier";
             case EDGE_TYPE -> "additional-metrics.keyword_edge_type";
             case EDGE_VERSION -> "additional-metrics.keyword_edge_version";
+            case EDGE_OS -> "additional-metrics.keyword_edge_os";
             case EDGE_MODEL -> "additional-metrics.keyword_edge_model";
             case EDGE_TOOL -> "additional-metrics.keyword_edge_tool";
             case API_PRODUCT -> "api-product-id";

@@ -1890,12 +1890,14 @@ spec:
               - API
               - EDGE_CLIENT
               - EDGE_VERSION
+              - EDGE_OS
           filters:
               - API
               - API_TYPE
               - EDGE_CLIENT
               - EDGE_TYPE
               - EDGE_VERSION
+              - EDGE_OS
 
         - name: EDGE_TOKENS_IN
           label: Edge Tokens In
@@ -3051,6 +3053,13 @@ spec:
               - EQ
               - IN
 
+        - name: EDGE_OS
+          label: Edge OS
+          type: KEYWORD
+          operators:
+              - EQ
+              - IN
+
         - name: ERROR_KEY
           label: Error Key
           signals:
@@ -3435,6 +3444,10 @@ spec:
 
         - name: EDGE_CLIENT
           label: Edge Client
+          type: KEYWORD
+
+        - name: EDGE_OS
+          label: Edge OS
           type: KEYWORD
 
         - name: API_PRODUCT

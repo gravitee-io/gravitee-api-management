@@ -62,6 +62,7 @@ public enum Facet {
     EDGE_CLIENT,
     EDGE_TYPE,
     EDGE_VERSION,
+    EDGE_OS,
     EDGE_MODEL,
     EDGE_TOOL,
     NATIVE_CONNECTION_STATUS,
