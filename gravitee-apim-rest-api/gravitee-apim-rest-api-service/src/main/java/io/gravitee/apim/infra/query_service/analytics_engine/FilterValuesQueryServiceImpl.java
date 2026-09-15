@@ -125,6 +125,7 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case EDGE_PROCESS -> "additional-metrics.keyword_edge_process";
             case EDGE_CLIENT -> "client-identifier";
             case EDGE_TYPE -> "additional-metrics.keyword_edge_type";
+            case EDGE_OS -> "additional-metrics.keyword_edge_os";
             case MESSAGE_CONNECTOR_TYPE -> "connector-type";
             // Composed from the shared keys rather than spelled out: a rename there would otherwise leave this
             // switch on a stale path, and the values dropdown would quietly return an empty page.

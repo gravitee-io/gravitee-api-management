@@ -136,6 +136,7 @@ public class FilterAdapter {
         Filter.Name.EDGE_PROCESS,
         Filter.Name.EDGE_CLIENT,
         Filter.Name.EDGE_VERSION,
+        Filter.Name.EDGE_OS,
         Filter.Name.EDGE_MODEL,
         Filter.Name.EDGE_TOOL
     );

@@ -107,6 +107,7 @@ public record FilterSpec(
         EDGE_CLIENT,
         EDGE_TYPE,
         EDGE_VERSION,
+        EDGE_OS,
         EDGE_MODEL,
         EDGE_TOOL,
         API_TYPE,
