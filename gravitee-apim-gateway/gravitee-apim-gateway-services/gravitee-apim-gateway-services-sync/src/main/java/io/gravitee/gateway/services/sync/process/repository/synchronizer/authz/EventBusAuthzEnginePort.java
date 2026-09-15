@@ -260,7 +260,7 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
                 continue;
             }
             String address = addressFor(environmentId, scope);
-            if (appliedOnAnotherScope(environmentId, address, scopes, docId)) {
+            if (appliedOnAnotherScope(environmentId, scope, scopes, docId)) {
                 // Another scope keeps the document on this shared engine.
                 revisions.forget(environmentId, scope, docId);
                 continue;
@@ -279,11 +279,14 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         return Completable.merge(sends);
     }
 
-    private boolean appliedOnAnotherScope(String environmentId, String address, Set<String> removedScopes, String docId) {
+    // The engine a routing scope lands on is its base (addressFor strips the tag), so the scopes sharing an
+    // engine with it are exactly its hostedByBase bucket — no need to scan every environment's scopes and
+    // compare addresses.
+    private boolean appliedOnAnotherScope(String environmentId, String scope, Set<String> removedScopes, String docId) {
         return hostedScopes
-            .hostedFor(environmentId)
+            .hostedOnEngine(environmentId, scope)
             .stream()
-            .filter(other -> !removedScopes.contains(other) && addressFor(environmentId, other).equals(address))
+            .filter(other -> !removedScopes.contains(other))
             .anyMatch(other -> revisions.isApplied(environmentId, other, docId));
     }
 
