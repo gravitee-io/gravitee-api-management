@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.search.lucene.transformer;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ALLOW_IN_API_PRODUCTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_API_TYPE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_NAME_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_PROVIDER_ORGANIZATION_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_STATUS_SORTED;
@@ -59,8 +60,8 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.apache.lucene.document.Document;
@@ -86,6 +87,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiDocumentTransformerTest {
+
+    private static final BytesRef SORT_KEY_OF_STARTED = pinnedSortKey("0066006700530065006700580056000000010001000100010001000100010000");
+
+    private static final BytesRef SORT_KEY_OF_ALPHA_BETA_GAMMA_WITHOUT_SPECIAL_CHARS = pinnedSortKey(
+        "0053005f0063005b00530054005800670053005a005300600060005300000001000100010001000100010001000100010077000100010001000100010000"
+    );
 
     @InjectMocks
     ApiDocumentTransformer cut = new ApiDocumentTransformer(new ApiServiceImpl());
@@ -243,30 +250,34 @@ class ApiDocumentTransformerTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("statuses")
-    void should_index_the_status_and_its_sort_key(String caseName, GenericApiEntity api, String expectedStatus) {
+    void should_index_the_status_and_its_sort_key(String caseName, GenericApiEntity api, String expectedStatus, BytesRef expectedSortKey) {
         Document doc = cut.transform(api);
 
         assertThat(doc.get(FIELD_STATUS)).isEqualTo(expectedStatus);
         assertThat(doc.getFields(FIELD_STATUS_SORTED))
             .extracting(IndexableField::binaryValue)
-            .containsExactlyElementsOf(expectedStatusSortKeys(expectedStatus));
+            .containsExactlyElementsOf(expectedSortKey == null ? List.of() : List.of(expectedSortKey));
     }
 
-    private static List<BytesRef> expectedStatusSortKeys(String expectedStatus) {
-        return expectedStatus == null ? List.of() : List.of(englishSecondaryCollationKey(expectedStatus));
+    @Test
+    void should_strip_special_characters_before_building_the_name_sort_key() {
+        var api = v4Api(ApiType.PROXY);
+        api.setName("Alpha-Beta (Gamma)");
+
+        Document doc = cut.transform(api);
+
+        assertThat(doc.getField(FIELD_NAME_SORTED).binaryValue()).isEqualTo(SORT_KEY_OF_ALPHA_BETA_GAMMA_WITHOUT_SPECIAL_CHARS);
     }
 
-    private static BytesRef englishSecondaryCollationKey(String value) {
-        Collator collator = Collator.getInstance(Locale.ENGLISH);
-        collator.setStrength(Collator.SECONDARY);
-        return new BytesRef(collator.getCollationKey(value).toByteArray());
+    private static BytesRef pinnedSortKey(String hex) {
+        return new BytesRef(HexFormat.of().parseHex(hex));
     }
 
     private static Stream<Arguments> statuses() {
         return Stream.of(
-            Arguments.of("a non federated api indexes its status", startedV4Api(), "STARTED"),
-            Arguments.of("a federated api carries no status term", federatedApi(), null),
-            Arguments.of("a federated agent carries no status term", federatedAgent(), null)
+            Arguments.of("a non federated api indexes its status", startedV4Api(), "STARTED", SORT_KEY_OF_STARTED),
+            Arguments.of("a federated api carries no status term", federatedApi(), null, null),
+            Arguments.of("a federated agent carries no status term", federatedAgent(), null, null)
         );
     }
 
