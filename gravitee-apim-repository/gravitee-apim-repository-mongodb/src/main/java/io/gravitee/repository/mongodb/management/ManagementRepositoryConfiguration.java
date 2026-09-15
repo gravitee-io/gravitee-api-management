@@ -22,6 +22,8 @@ import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.encryption.EncryptionConfiguration;
 import io.gravitee.repository.mongodb.management.converters.BsonUndefinedToNullReadingConverter;
+import io.gravitee.repository.mongodb.management.converters.DictionaryPropertyWritingConverter;
+import io.gravitee.repository.mongodb.management.converters.LegacyDictionaryPropertyReadingConverter;
 import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,6 +43,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.ReactiveMongoOperations;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 /**
@@ -65,6 +68,27 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
     @Bean
     public BsonUndefinedToNullReadingConverter bsonUndefinedToNullReadingConverter() {
         return new BsonUndefinedToNullReadingConverter();
+    }
+
+    @Bean
+    public LegacyDictionaryPropertyReadingConverter legacyDictionaryPropertyReadingConverter() {
+        return new LegacyDictionaryPropertyReadingConverter();
+    }
+
+    @Bean
+    public DictionaryPropertyWritingConverter dictionaryPropertyWritingConverter() {
+        return new DictionaryPropertyWritingConverter();
+    }
+
+    @Override
+    protected void configureConverters(MongoCustomConversions.MongoConverterConfigurationAdapter adapter) {
+        super.configureConverters(adapter);
+        // AbstractMongoClientConfiguration never scans the context for @ReadingConverter/@WritingConverter
+        // beans on its own — declaring one with @Bean alone does not register it with MongoCustomConversions.
+        // Every custom Converter bean in this class must also be added here explicitly.
+        adapter.registerConverter(bsonUndefinedToNullReadingConverter());
+        adapter.registerConverter(legacyDictionaryPropertyReadingConverter());
+        adapter.registerConverter(dictionaryPropertyWritingConverter());
     }
 
     @Bean(name = "managementMongo")

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import java.util.Date;
 import java.util.Map;
 import lombok.NoArgsConstructor;
@@ -85,7 +86,7 @@ public class Dictionary {
     /**
      * For {@code DictionaryType.MANUAL} dictionary;
      */
-    private Map<String, String> properties;
+    private Map<String, DictionaryProperty> properties;
 
     /**
      * For {@code DictionaryType.DYNAMIC} dictionary;
@@ -177,11 +178,11 @@ public class Dictionary {
         this.trigger = trigger;
     }
 
-    public Map<String, String> getProperties() {
+    public Map<String, DictionaryProperty> getProperties() {
         return properties;
     }
 
-    public void setProperties(Map<String, String> properties) {
+    public void setProperties(Map<String, DictionaryProperty> properties) {
         this.properties = properties;
     }
 
