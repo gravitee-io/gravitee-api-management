@@ -341,6 +341,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         Set<String> llmProxyModels = new HashSet<>();
         Set<String> llmProxyProviders = new HashSet<>();
         Set<String> llmProxyTools = new HashSet<>();
+        Set<String> llmProxyRequestKinds = new HashSet<>();
         Set<String> mcpProxyTools = new HashSet<>();
         Set<String> mcpProxyResources = new HashSet<>();
         Set<String> mcpProxyPrompts = new HashSet<>();
@@ -383,6 +384,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 case "LLM_PROXY_MODEL" -> llmProxyModels.addAll(values);
                 case "LLM_PROXY_PROVIDER" -> llmProxyProviders.addAll(values);
                 case "LLM_PROXY_TOOL" -> llmProxyTools.addAll(values);
+                case "LLM_PROXY_REQUEST_KIND" -> llmProxyRequestKinds.addAll(values);
                 case "MCP_PROXY_TOOL" -> mcpProxyTools.addAll(values);
                 case "MCP_PROXY_RESOURCE" -> mcpProxyResources.addAll(values);
                 case "MCP_PROXY_PROMPT" -> mcpProxyPrompts.addAll(values);
@@ -435,6 +437,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.llmProxyModels(llmProxyModels);
         builder.llmProxyProviders(llmProxyProviders);
         builder.llmProxyTools(llmProxyTools);
+        builder.llmProxyRequestKinds(llmProxyRequestKinds);
         builder.mcpProxyTools(mcpProxyTools);
         builder.mcpProxyResources(mcpProxyResources);
         builder.mcpProxyPrompts(mcpProxyPrompts);

@@ -57,6 +57,7 @@ public class MetricsQuery {
         private Set<String> llmProxyModels;
         private Set<String> llmProxyProviders;
         private Set<String> llmProxyTools;
+        private Set<String> llmProxyRequestKinds;
         private Set<String> mcpProxyTools;
         private Set<String> mcpProxyResources;
         private Set<String> mcpProxyPrompts;
