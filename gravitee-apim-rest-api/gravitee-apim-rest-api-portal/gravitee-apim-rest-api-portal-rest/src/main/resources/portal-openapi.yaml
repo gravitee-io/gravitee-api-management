@@ -797,19 +797,22 @@ paths:
         get:
             tags:
                 - Portal
-            summary: Get the subscription form for an API.
+            summary: Get the resolved dynamic options for an API's subscription form.
             description: |
-              Returns the subscription form content when the form exists and is enabled for the environment.
+              Returns the subscription form's resolved dynamic option lists when the form exists and
+              is enabled for the environment. The form content itself is fetched separately via the
+              generic portal navigation item content endpoint (area 'SUBSCRIPTION_FORM').
               EL expressions in option-bearing fields are resolved against the API's metadata.
               If resolution fails, fallback values are returned instead.
-              Returns 404 when no subscription form exists for the environment or when the form is disabled.
+              Returns 404 when no subscription form exists for the environment, when the form is
+              disabled, or when the API is not visible to the caller.
             operationId: getApiSubscriptionForm
             security:
                 - BasicAuth: []
                 - CookieAuth: []
             responses:
                 200:
-                    description: The subscription form content with resolved options.
+                    description: The subscription form's resolved dynamic options.
                     content:
                         application/json:
                             schema:
@@ -4107,7 +4110,7 @@ paths:
             operationId: getPortalNavigationItemContentById
             description: |
                 Get a specific portal navigation item's content by its ID.
-                Only portal navigation items of type 'PAGE' have content.
+                Only portal navigation items of type 'PAGE' or 'SUBSCRIPTION_FORM' have content.
             security:
                 - {}
                 - BasicAuth: []
@@ -4116,7 +4119,7 @@ paths:
                 200:
                     $ref: "#/components/responses/PortalNavigationItemContentSuccess"
                 400:
-                    description: The portal navigation item is not of type 'PAGE'.
+                    description: The portal navigation item is not of type 'PAGE' or 'SUBSCRIPTION_FORM'.
                     content:
                         application/json:
                             schema:
@@ -4803,21 +4806,11 @@ components:
                     $ref: "#/components/schemas/Links"
         SubscriptionForm:
             type: object
-            description: Subscription form returned to API consumers when the form is enabled.
-            required:
-                - gmdContent
+            description: |-
+              Resolved dynamic options for the subscription form, returned to API consumers when the
+              form is enabled. Form content itself is fetched separately via the generic portal
+              navigation item content endpoint (area 'SUBSCRIPTION_FORM').
             properties:
-                gmdContent:
-                    type: string
-                    description: |-
-                      Gravitee Markdown (GMD) content defining the form.
-                      Supports form components like gmd-input, gmd-textarea, gmd-select, gmd-checkbox, gmd-radio.
-                      Option-bearing fields may contain Gravitee EL expressions (e.g. {#api.metadata['key']}:fallback1,fallback2).
-                    example: |-
-                      # Subscription Information
-
-                      <gmd-input name="consumer_company_name" label="Company Name" required="true"/>
-                      <gmd-textarea name="consumer_use_case" label="Use Case" required="true"/>
                 resolvedOptions:
                     type: object
                     description: |-
@@ -8615,6 +8608,7 @@ components:
                     LINK: "#/components/schemas/PortalNavigationLink"
                     API: "#/components/schemas/PortalNavigationApi"
                     API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+                    SUBSCRIPTION_FORM: "#/components/schemas/PortalNavigationSubscriptionForm"
         PortalNavigationPage:
             allOf:
                 - $ref: "#/components/schemas/BasePortalNavigationItem"
@@ -8663,6 +8657,15 @@ components:
                     type: string
                     format: uuid
               required: [ apiProductId ]
+        PortalNavigationSubscriptionForm:
+            description: Portal navigation item of type SUBSCRIPTION_FORM
+            allOf:
+                - $ref: "#/components/schemas/BasePortalNavigationItem"
+                - properties:
+                      portalPageContentId:
+                          type: string
+                          description: The UUID of the portal page content backing this subscription form. Always GRAVITEE_MARKDOWN.
+                  required: [portalPageContentId]
         PortalNavigationItem:
             oneOf:
                 - $ref: "#/components/schemas/PortalNavigationPage"
@@ -8670,6 +8673,7 @@ components:
                 - $ref: "#/components/schemas/PortalNavigationLink"
                 - $ref: "#/components/schemas/PortalNavigationApi"
                 - $ref: "#/components/schemas/PortalNavigationApiProduct"
+                - $ref: "#/components/schemas/PortalNavigationSubscriptionForm"
             discriminator:
                 propertyName: type
                 mapping:
@@ -8678,6 +8682,7 @@ components:
                     LINK: "#/components/schemas/PortalNavigationLink"
                     API: "#/components/schemas/PortalNavigationApi"
                     API_PRODUCT: "#/components/schemas/PortalNavigationApiProduct"
+                    SUBSCRIPTION_FORM: "#/components/schemas/PortalNavigationSubscriptionForm"
 
         PortalPageContent:
             type: object

@@ -26,6 +26,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
@@ -57,6 +58,7 @@ import io.gravitee.apim.core.portal_page.exception.PortalPageContentTemplateExce
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.RenderedPageContent;
@@ -375,6 +377,32 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(input))
             .isInstanceOf(PortalNavigationItemNotFoundException.class)
             .hasMessage("Portal navigation item not found");
+    }
+
+    @Test
+    void should_return_raw_content_for_subscription_form_without_templating() {
+        var contentId = PortalPageContentId.random();
+        var formId = "00000000-0000-0000-0000-000000000095";
+        var rawContent = "<gmd-select fieldkey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>";
+        var form = PortalNavigationItemFixtures.aSubscriptionForm(formId, contentId);
+        var formContent = PortalPageContentFixtures.aGraviteeMarkdownPageContent(contentId, ORGANIZATION_ID, ENVIRONMENT_ID, rawContent);
+
+        pageContentQueryService.initWith(List.of(formContent));
+        navigationItemsQueryService.initWith(List.of(form));
+
+        var output = useCase.execute(
+            new GetPortalPageContentByNavigationIdUseCase.Input(
+                formId,
+                ORGANIZATION_ID,
+                ENVIRONMENT_ID,
+                PortalNavigationItemViewerContext.forPortal(true)
+            )
+        );
+
+        assertThat(output.renderedContent().type()).isEqualTo(PortalPageContentType.GRAVITEE_MARKDOWN);
+        assertThat(output.renderedContent().value()).isEqualTo(rawContent);
+        assertThat(output.portalNavigationItem()).isInstanceOf(PortalNavigationSubscriptionForm.class);
+        verifyNoInteractions(portalNavigationTemplatingService);
     }
 
     @Test

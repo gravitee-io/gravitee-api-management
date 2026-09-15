@@ -20,7 +20,6 @@ import { ConfigService } from './config.service';
 import { PortalService } from './portal.service';
 import { ApiInformation } from '../entities/api/api-information';
 import { PortalPage } from '../entities/portal/portal-page';
-import { SubscriptionForm } from '../entities/portal/subscription-form';
 
 describe('PortalService', () => {
   let service: PortalService;
@@ -95,33 +94,67 @@ describe('PortalService', () => {
     req.flush({ pages: mockPages });
   });
 
-  it('should GET subscription form for an API id', () => {
+  it('should compose subscription form from navigation item content and resolved options', () => {
     const apiId = 'api-123';
-    const mockForm: SubscriptionForm = {
-      gmdContent: '<gmd-select fieldkey="country" options="France,Spain"></gmd-select>',
-      resolvedOptions: {
-        country: ['France', 'Spain'],
-      },
-    };
+    const navigationItemId = 'nav-item-1';
+    const gmdContent = '<gmd-select fieldkey="country" options="France,Spain"></gmd-select>';
+    const resolvedOptions = { country: ['France', 'Spain'] };
 
     service.getSubscriptionForm(apiId).subscribe(form => {
-      expect(form).toEqual(mockForm);
+      expect(form).toEqual({ gmdContent, resolvedOptions });
     });
 
-    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
-    expect(req.request.method).toBe('GET');
-    req.flush(mockForm);
+    const listReq = httpMock.expectOne(`${baseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`);
+    expect(listReq.request.method).toBe('GET');
+    listReq.flush([{ id: navigationItemId }]);
+
+    const contentReq = httpMock.expectOne(`${baseURL}/portal-navigation-items/${navigationItemId}/content`);
+    expect(contentReq.request.method).toBe('GET');
+    contentReq.flush({ type: 'GRAVITEE_MARKDOWN', content: gmdContent });
+
+    const optionsReq = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
+    expect(optionsReq.request.method).toBe('GET');
+    optionsReq.flush({ resolvedOptions });
   });
 
-  it('should return null when subscription form endpoint responds 404', () => {
-    const apiId = 'api-404';
+  it('should return null when no SUBSCRIPTION_FORM navigation item exists', () => {
+    const apiId = 'api-no-form';
 
     service.getSubscriptionForm(apiId).subscribe(form => {
       expect(form).toBeNull();
     });
 
-    const req = httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`);
-    expect(req.request.method).toBe('GET');
-    req.flush(null, { status: 404, statusText: 'Not Found' });
+    const listReq = httpMock.expectOne(`${baseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`);
+    listReq.flush([]);
+  });
+
+  it('should return null when the navigation item content call responds 404', () => {
+    const apiId = 'api-123';
+    const navigationItemId = 'nav-item-1';
+
+    service.getSubscriptionForm(apiId).subscribe(form => {
+      expect(form).toBeNull();
+    });
+
+    httpMock.expectOne(`${baseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`).flush([{ id: navigationItemId }]);
+    httpMock
+      .expectOne(`${baseURL}/portal-navigation-items/${navigationItemId}/content`)
+      .flush(null, { status: 404, statusText: 'Not Found' });
+    httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`).flush({ resolvedOptions: {} });
+  });
+
+  it('should return null when the resolved-options call responds 404', () => {
+    const apiId = 'api-404';
+    const navigationItemId = 'nav-item-1';
+
+    service.getSubscriptionForm(apiId).subscribe(form => {
+      expect(form).toBeNull();
+    });
+
+    httpMock.expectOne(`${baseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`).flush([{ id: navigationItemId }]);
+    httpMock
+      .expectOne(`${baseURL}/portal-navigation-items/${navigationItemId}/content`)
+      .flush({ type: 'GRAVITEE_MARKDOWN', content: 'hello' });
+    httpMock.expectOne(`${baseURL}/apis/${apiId}/subscription-form`).flush(null, { status: 404, statusText: 'Not Found' });
   });
 });

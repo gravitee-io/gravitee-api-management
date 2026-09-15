@@ -27,12 +27,13 @@
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, map, of } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { ApiInformation } from '../entities/api/api-information';
+import { PortalNavigationItem, PortalNavigationItemContent } from '../entities/portal/portal-navigation-item';
 import { PortalPage } from '../entities/portal/portal-page';
-import { SubscriptionForm } from '../entities/portal/subscription-form';
+import { ResolvedSubscriptionFormOptions, SubscriptionForm } from '../entities/portal/subscription-form';
 
 @Injectable({
   providedIn: 'root',
@@ -59,8 +60,63 @@ export class PortalService {
       .pipe(map(resp => resp?.pages ?? []));
   }
 
+  /**
+   * Composes the subscription form from two independent calls:
+   * - form content, via the generic portal navigation item content endpoint (area SUBSCRIPTION_FORM),
+   *   shared with the Console navigation-item editor;
+   * - resolved dynamic options for `apiId`, via the API-scoped subscription-form endpoint, which also
+   *   enforces that `apiId` is visible to the caller.
+   * Emits `null` when the environment has no subscription form, or when either call is unavailable
+   * (404) — matching this method's pre-existing single-endpoint 404 semantics.
+   */
   public getSubscriptionForm(apiId: string): Observable<SubscriptionForm | null> {
-    return this.http.get<SubscriptionForm>(`${this.configService.baseURL}/apis/${apiId}/subscription-form`).pipe(
+    return this.getSubscriptionFormNavigationItemId().pipe(
+      switchMap(navigationItemId => {
+        if (!navigationItemId) {
+          return of(null);
+        }
+
+        return forkJoin({
+          content: this.getPortalNavigationItemContent(navigationItemId),
+          resolvedOptions: this.getSubscriptionFormResolvedOptions(apiId),
+        }).pipe(
+          map(({ content, resolvedOptions }) => {
+            if (!content || !resolvedOptions) {
+              return null;
+            }
+
+            return {
+              gmdContent: content.content,
+              resolvedOptions: resolvedOptions.resolvedOptions,
+            };
+          }),
+        );
+      }),
+    );
+  }
+
+  private getSubscriptionFormNavigationItemId(): Observable<string | null> {
+    const params = new HttpParams().set('area', 'SUBSCRIPTION_FORM');
+    return this.http
+      .get<PortalNavigationItem[]>(`${this.configService.baseURL}/portal-navigation-items`, { params })
+      .pipe(map(items => items[0]?.id ?? null));
+  }
+
+  private getPortalNavigationItemContent(navigationItemId: string): Observable<PortalNavigationItemContent | null> {
+    return this.http
+      .get<PortalNavigationItemContent>(`${this.configService.baseURL}/portal-navigation-items/${navigationItemId}/content`)
+      .pipe(
+        catchError(err => {
+          if (err.status === 404) {
+            return of(null);
+          }
+          throw err;
+        }),
+      );
+  }
+
+  private getSubscriptionFormResolvedOptions(apiId: string): Observable<ResolvedSubscriptionFormOptions | null> {
+    return this.http.get<ResolvedSubscriptionFormOptions>(`${this.configService.baseURL}/apis/${apiId}/subscription-form`).pipe(
       catchError(err => {
         if (err.status === 404) {
           return of(null);
