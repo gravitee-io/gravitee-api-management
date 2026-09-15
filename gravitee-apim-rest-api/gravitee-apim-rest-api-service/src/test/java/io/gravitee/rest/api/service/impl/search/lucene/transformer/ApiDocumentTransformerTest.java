@@ -60,6 +60,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.apache.lucene.document.Document;
@@ -246,7 +247,19 @@ class ApiDocumentTransformerTest {
         Document doc = cut.transform(api);
 
         assertThat(doc.get(FIELD_STATUS)).isEqualTo(expectedStatus);
-        assertThat(doc.getFields(FIELD_STATUS_SORTED)).hasSize(expectedStatus == null ? 0 : 1);
+        assertThat(doc.getFields(FIELD_STATUS_SORTED))
+            .extracting(IndexableField::binaryValue)
+            .containsExactlyElementsOf(expectedStatusSortKeys(expectedStatus));
+    }
+
+    private static List<BytesRef> expectedStatusSortKeys(String expectedStatus) {
+        return expectedStatus == null ? List.of() : List.of(englishSecondaryCollationKey(expectedStatus));
+    }
+
+    private static BytesRef englishSecondaryCollationKey(String value) {
+        Collator collator = Collator.getInstance(Locale.ENGLISH);
+        collator.setStrength(Collator.SECONDARY);
+        return new BytesRef(collator.getCollationKey(value).toByteArray());
     }
 
     private static Stream<Arguments> statuses() {
