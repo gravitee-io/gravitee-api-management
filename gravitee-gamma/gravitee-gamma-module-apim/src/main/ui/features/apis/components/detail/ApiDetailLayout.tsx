@@ -45,6 +45,7 @@ import {
     ApiDetailSidebarNav,
     withApiScoreEnabled,
     withMetadataPermission,
+    withObservabilityLinks,
     withResponseTemplatesPermission,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
@@ -55,6 +56,7 @@ import { useApiPermissions } from '../../hooks/useApiPermissions';
 import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
+import { buildApiDashboardHref, buildApiLogsHref } from '../../utils/analyticsDeepLink';
 import { hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
@@ -280,12 +282,17 @@ export function ApiDetailLayout() {
     });
 
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
-    const navGroups = withResponseTemplatesPermission(
-        withApiScoreEnabled(
-            withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata),
-            apiScoreEnabled,
+    // The observability section hangs off the module root, one level above `/apis/:apiId`.
+    const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
+    const navGroups = withTcpRestrictions(
+        withObservabilityLinks(
+            withResponseTemplatesPermission(
+                withApiScoreEnabled(withMetadataPermission(API_PROXY_NAV_GROUPS, canReadMetadata), apiScoreEnabled),
+                showResponseTemplates,
+            ),
+            apiId ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) } : {},
         ),
-        showResponseTemplates,
+        hasTcpListeners(api),
     );
 
     useLayoutConfig(
@@ -299,7 +306,7 @@ export function ApiDetailLayout() {
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
             breadcrumbs: [
-                { label: 'API Proxies', href: `${basePath.slice(0, basePath.lastIndexOf('/apis/'))}${'/apis'}` },
+                { label: 'API Proxies', href: `${moduleRoot}/apis` },
                 { label: api?.name ? (api.name.length > 40 ? `${api.name.slice(0, 40).trimEnd()}…` : api.name) : 'Loading…' },
             ],
             banner: showDeployBanner ? (

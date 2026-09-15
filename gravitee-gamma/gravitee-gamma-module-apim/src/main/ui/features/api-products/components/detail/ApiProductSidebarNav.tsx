@@ -38,29 +38,31 @@ interface NavGroup {
     items: NavItem[];
 }
 
+/**
+ * An API Product is not an API, but it borrows the canonical API-detail vocabulary (FOUND-304) so a
+ * user moving between the two reads the same words for the same thing: Settings, Subscriptions,
+ * Sharding Tags, and User Permissions in General rather than in a group of its own.
+ */
 const API_PRODUCT_NAV_GROUPS: NavGroup[] = [
     {
         label: 'General',
         items: [
             { path: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
-            { path: 'general', label: 'General', icon: SlidersHorizontalIcon },
+            { path: 'general', label: 'Settings', icon: SlidersHorizontalIcon },
+            { path: 'user-permissions', label: 'User Permissions', icon: UsersIcon },
             { path: 'apis', label: 'APIs', icon: BoxesIcon },
         ],
     },
     {
-        label: 'Consumer Access',
+        label: 'Consumers',
         items: [
             { path: 'plans', label: 'Plans', icon: ShieldIcon },
-            { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon, end: false },
+            { path: 'consumers', label: 'Subscriptions', icon: UsersRoundIcon, end: false },
         ],
     },
     {
-        label: 'Security',
-        items: [{ path: 'user-permissions', label: 'User Permissions', icon: UsersIcon }],
-    },
-    {
         label: 'Operations',
-        items: [{ path: 'deployment/configuration', label: 'Deployment', icon: RocketIcon, end: false }],
+        items: [{ path: 'deployment/configuration', label: 'Sharding Tags', icon: RocketIcon, end: false }],
     },
 ];
 

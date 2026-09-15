@@ -16,10 +16,11 @@
 import { cn, Skeleton, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
 import {
     ActivityIcon,
+    AlignLeftIcon,
     BellIcon,
-    ChevronDownIcon,
-    ChevronRightIcon,
+    ClockIcon,
     DatabaseIcon,
+    ExternalLinkIcon,
     FlaskConicalIcon,
     GlobeIcon,
     LayoutDashboardIcon,
@@ -27,6 +28,7 @@ import {
     LockIcon,
     MessageSquareIcon,
     NetworkIcon,
+    RefreshCwIcon,
     RocketIcon,
     ScrollTextIcon,
     ServerIcon,
@@ -35,26 +37,17 @@ import {
     ShieldIcon,
     SlidersHorizontalIcon,
     SparklesIcon,
+    TriangleAlertIcon,
     UsersIcon,
     UsersRoundIcon,
     WorkflowIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
-import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 const DEFAULT_COMING_SOON_REASON = 'Coming soon';
-
-export interface DetailNavChild {
-    path: string;
-    label: string;
-    /** When true, renders as a non-navigable item with a lab icon and tooltip instead of a link. */
-    comingSoon?: boolean;
-    /** Tooltip text for a `comingSoon` item. Defaults to "Coming soon". */
-    comingSoonReason?: string;
-}
 
 export interface DetailNavItem {
     path: string;
@@ -62,7 +55,12 @@ export interface DetailNavItem {
     icon: ComponentType<{ className?: string }>;
     /** When false, matches any sub-path (prefix match). Defaults to true (exact match). */
     end?: boolean;
-    children?: DetailNavChild[];
+    /**
+     * Absolute link target outside the detail's own routes. Rendered as a plain anchor opening in a
+     * new tab: the Observability group sends the user to a section that keeps its own time range and
+     * filters, and coming back should restore the API page rather than replace it.
+     */
+    externalHref?: string;
     /** When true, renders as a non-navigable item with a lab icon and tooltip instead of a link. */
     comingSoon?: boolean;
     /** Tooltip text for a `comingSoon` item. Defaults to "Coming soon". */
@@ -76,76 +74,66 @@ export interface DetailNavGroup {
 
 // ─── Nav structure ────────────────────────────────────────────────────────────
 
+/**
+ * Canonical Gamma API-detail navigation (FOUND-304): General / Design / Consumers / Monitoring /
+ * Observability / Operations, in that order, with the same labels every other API object type — an
+ * LLM proxy, a Kafka Service, a Message API — uses for the same page.
+ *
+ * Observability is not here: its two entries are deep links whose targets depend on the API, so
+ * {@link withObservabilityLinks} inserts the group at render time.
+ */
 export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     {
         label: 'General',
         items: [
             { path: 'overview', label: 'Overview', icon: LayoutDashboardIcon },
-            { path: 'general', label: 'General', icon: SlidersHorizontalIcon },
-            { path: 'properties', label: 'API Properties', icon: SettingsIcon },
-            { path: 'resources', label: 'Resources', icon: ServerIcon },
-            { path: 'notifications', label: 'Notifications', icon: BellIcon },
-            { path: 'api-score', label: 'API Score', icon: SparklesIcon },
-            { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, end: false },
-            { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
+            { path: 'general', label: 'Settings', icon: SlidersHorizontalIcon },
+            { path: 'user-permissions', label: 'User Permissions', icon: UsersIcon },
+            { path: 'authorization', label: 'Authorization', icon: LockIcon, comingSoon: true },
             { path: 'metadata', label: 'Metadata', icon: DatabaseIcon },
         ],
     },
     {
-        label: 'Gateway',
+        // Canonical order: how a request enters (Entrypoints), what happens to it (Policy Studio),
+        // where it goes (Endpoints), then the settings that qualify those three.
+        label: 'Design',
         items: [
             { path: 'entrypoints', label: 'Entrypoints', icon: GlobeIcon },
-            {
-                path: 'endpoints',
-                label: 'Endpoints',
-                icon: NetworkIcon,
-                children: [
-                    { path: 'list', label: 'Endpoints' },
-                    { path: 'failover', label: 'Failover' },
-                    { path: 'health-check-dashboard', label: 'Health Check Dashboard' },
-                ],
-            },
-            { path: 'reporter-settings', label: 'Reporter Settings', icon: ListIcon },
+            { path: 'policy-studio', label: 'Policy Studio', icon: WorkflowIcon },
+            { path: 'endpoints/list', label: 'Endpoints', icon: NetworkIcon },
+            { path: 'endpoints/failover', label: 'Failover', icon: RefreshCwIcon },
+            { path: 'response-templates', label: 'Response Templates', icon: ScrollTextIcon, end: false },
+            { path: 'resources', label: 'Resources', icon: ServerIcon },
+            { path: 'properties', label: 'API Properties', icon: SettingsIcon },
+            { path: 'cors', label: 'CORS', icon: ShieldCheckIcon },
         ],
     },
     {
-        label: 'Design',
-        items: [{ path: 'policy-studio', label: 'Policy Studio', icon: WorkflowIcon }],
-    },
-    {
-        label: 'Consumer Access',
+        label: 'Consumers',
         items: [
             { path: 'plans', label: 'Plans', icon: ShieldIcon },
-            { path: 'consumers', label: 'Consumers', icon: UsersRoundIcon, end: false },
+            { path: 'consumers', label: 'Subscriptions', icon: UsersRoundIcon, end: false },
             { path: 'broadcasts', label: 'Broadcasts', icon: MessageSquareIcon },
-        ],
-    },
-    {
-        label: 'Security',
-        items: [
-            { path: 'authorization', label: 'Authorization', icon: LockIcon, comingSoon: true },
-            { path: 'user-permissions', label: 'User Permissions', icon: UsersIcon },
         ],
     },
     {
         label: 'Monitoring',
         items: [
-            { path: 'alerts', label: 'Alerts', icon: ActivityIcon },
+            { path: 'notifications', label: 'Notifications', icon: BellIcon },
+            { path: 'alerts', label: 'Alerts', icon: TriangleAlertIcon },
             { path: 'audit-logs', label: 'Audit Logs', icon: ScrollTextIcon },
+            { path: 'endpoints/health-check-dashboard', label: 'Health Check Dashboard', icon: ActivityIcon },
+            { path: 'api-score', label: 'API Score', icon: SparklesIcon },
         ],
     },
     {
+        // Flat: choosing where this API runs, reading what changed, and what it reports are three
+        // unrelated jobs, not tabs of one page.
         label: 'Operations',
         items: [
-            {
-                path: 'deployment',
-                label: 'Deployment',
-                icon: RocketIcon,
-                children: [
-                    { path: 'configuration', label: 'Configuration' },
-                    { path: 'history', label: 'History' },
-                ],
-            },
+            { path: 'deployment/configuration', label: 'Sharding Tags', icon: RocketIcon },
+            { path: 'deployment/history', label: 'Deployment History', icon: ClockIcon },
+            { path: 'reporter-settings', label: 'Reporter Settings', icon: ListIcon },
         ],
     },
 ];
@@ -154,22 +142,41 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
 const TCP_UNSUPPORTED_PATHS = new Set(['policy-studio', 'cors', 'response-templates']);
 const TCP_UNSUPPORTED_REASON = 'Coming soon for V4 APIs';
 
-/** Classic console never adds these menu entries for TCP APIs at all — omitted, not just disabled. */
-const TCP_OMITTED_CHILD_PATHS = new Set(['failover', 'health-check-dashboard']);
+/**
+ * Classic console never adds these menu entries for TCP APIs at all — omitted, not just disabled.
+ * The observability deep links join them: the console disables API Traffic and Logs for TCP too.
+ */
+const TCP_OMITTED_PATHS = new Set(['endpoints/failover', 'endpoints/health-check-dashboard', 'observe-dashboard', 'observe-logs']);
 
-/** Overlays `comingSoon` on the items TCP Proxy APIs don't support, and omits child routes that don't exist for TCP — matching classic console. */
+/** Overlays `comingSoon` on the items TCP Proxy APIs don't support, and omits the entries that don't exist for TCP — matching classic console. */
 export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners: boolean): DetailNavGroup[] {
     if (!apiHasTcpListeners) return groups;
-    return groups.map(group => ({
-        ...group,
-        items: group.items.map(item => {
-            const disabled = TCP_UNSUPPORTED_PATHS.has(item.path)
-                ? { ...item, comingSoon: true, comingSoonReason: TCP_UNSUPPORTED_REASON }
-                : item;
-            if (!disabled.children) return disabled;
-            return { ...disabled, children: disabled.children.filter(child => !TCP_OMITTED_CHILD_PATHS.has(child.path)) };
-        }),
-    }));
+    return dropEmptyGroups(
+        groups.map(group => ({
+            ...group,
+            items: group.items
+                .filter(item => !TCP_OMITTED_PATHS.has(item.path))
+                .map(item =>
+                    TCP_UNSUPPORTED_PATHS.has(item.path) ? { ...item, comingSoon: true, comingSoonReason: TCP_UNSUPPORTED_REASON } : item,
+                ),
+        })),
+    );
+}
+
+/** Deep links into the Observability section, pre-filtered on this API. Sits between Monitoring and Operations. */
+export function withObservabilityLinks(groups: DetailNavGroup[], links: { dashboardHref?: string; logsHref?: string }): DetailNavGroup[] {
+    const items: DetailNavItem[] = [
+        ...(links.dashboardHref
+            ? [{ path: 'observe-dashboard', label: 'Dashboard', icon: LayoutDashboardIcon, externalHref: links.dashboardHref }]
+            : []),
+        ...(links.logsHref ? [{ path: 'observe-logs', label: 'Logs', icon: AlignLeftIcon, externalHref: links.logsHref }] : []),
+    ];
+    if (items.length === 0) return groups;
+    return groups.flatMap(group => (group.label === 'Monitoring' ? [group, { label: 'Observability', items }] : [group]));
+}
+
+function dropEmptyGroups(groups: DetailNavGroup[]): DetailNavGroup[] {
+    return groups.filter(group => group.items.length > 0);
 }
 
 export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata: boolean): DetailNavGroup[] {
@@ -229,76 +236,6 @@ function ComingSoonRow({ icon: Icon, label, reason, indented }: ComingSoonRowPro
     );
 }
 
-// ─── Collapsible item ─────────────────────────────────────────────────────────
-
-interface CollapsibleNavItemProps {
-    item: DetailNavItem & { children: DetailNavChild[] };
-    basePath: string;
-}
-
-function CollapsibleNavItem({ item, basePath }: CollapsibleNavItemProps) {
-    const { pathname } = useLocation();
-    const parentPath = `${basePath}/${item.path}`;
-    const isActive = pathname.startsWith(`${parentPath}/`) || pathname === parentPath;
-    const [collapsed, setCollapsed] = useState(!isActive);
-    const [prevIsActive, setPrevIsActive] = useState(isActive);
-    if (prevIsActive !== isActive) {
-        setPrevIsActive(isActive);
-        if (isActive && collapsed) setCollapsed(false);
-    }
-    const open = !collapsed;
-    const Icon = item.icon;
-
-    return (
-        <div>
-            <button
-                type="button"
-                onClick={() => setCollapsed(c => !c)}
-                className={cn(
-                    'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
-                    isActive ? 'text-foreground font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                )}
-            >
-                <Icon className="size-4 shrink-0" aria-hidden />
-                <span className="flex-1 text-left">{item.label}</span>
-                {open ? (
-                    <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                ) : (
-                    <ChevronRightIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                )}
-            </button>
-            {open && (
-                <div className="ml-4 border-l border-border pl-2 space-y-0.5">
-                    {item.children.map(child =>
-                        child.comingSoon ? (
-                            <ComingSoonRow
-                                key={child.path}
-                                label={child.label}
-                                reason={child.comingSoonReason ?? DEFAULT_COMING_SOON_REASON}
-                                indented
-                            />
-                        ) : (
-                            <NavLink
-                                end
-                                key={child.path}
-                                to={`${parentPath}/${child.path}`}
-                                className={({ isActive: active }) =>
-                                    cn(
-                                        'flex w-full items-center rounded-lg px-3 py-1.5 text-sm transition-colors',
-                                        active ? 'bg-accent text-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                                    )
-                                }
-                            >
-                                {child.label}
-                            </NavLink>
-                        ),
-                    )}
-                </div>
-            )}
-        </div>
-    );
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface ApiDetailSidebarNavProps {
@@ -338,16 +275,26 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
                                     />
                                 );
                             }
-                            if (item.children && item.children.length > 0) {
+                            const Icon = item.icon;
+                            if (item.externalHref) {
                                 return (
-                                    <CollapsibleNavItem
+                                    <a
                                         key={item.path}
-                                        item={item as DetailNavItem & { children: DetailNavChild[] }}
-                                        basePath={basePath}
-                                    />
+                                        href={item.externalHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        // The icon is decorative, so the change of context has to be said out loud
+                                        // (WCAG 3.2.5). An explicit label rather than an `sr-only` span: the
+                                        // accessible-name computation concatenates text nodes without a separator.
+                                        aria-label={`${item.label} (opens in a new tab)`}
+                                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                                    >
+                                        <Icon className="size-4 shrink-0" aria-hidden />
+                                        {item.label}
+                                        <ExternalLinkIcon className="ml-auto size-3.5 shrink-0" aria-hidden />
+                                    </a>
                                 );
                             }
-                            const Icon = item.icon;
                             return (
                                 <NavLink
                                     end={item.end !== false}

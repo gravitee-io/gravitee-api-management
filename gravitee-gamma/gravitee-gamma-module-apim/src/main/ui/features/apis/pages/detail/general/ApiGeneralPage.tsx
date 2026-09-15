@@ -274,7 +274,7 @@ export function ApiGeneralPage() {
             {/* ── Page Header ─────────────────────────────────────────────── */}
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">General</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
                     <p className="text-sm text-muted-foreground">Manage name, version, metadata, and lifecycle for this API.</p>
                 </div>
                 {isDirty && !isReadOnly && (
