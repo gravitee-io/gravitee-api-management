@@ -1855,6 +1855,7 @@ spec:
           unit: NUMBER
           measures:
               - COUNT
+              - SUM
           facets:
               - API
               - APPLICATION
