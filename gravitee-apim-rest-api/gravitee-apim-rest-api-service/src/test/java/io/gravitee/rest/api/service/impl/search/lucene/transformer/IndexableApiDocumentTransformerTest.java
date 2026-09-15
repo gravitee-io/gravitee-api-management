@@ -151,29 +151,24 @@ public class IndexableApiDocumentTransformerTest {
         );
     }
 
-    @Test
-    void should_not_index_api_type_for_a_legacy_api_without_definition_version() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("fieldsNotIndexedForALegacyApiWithoutDefinitionVersion")
+    void should_not_index_the_v2_field_set_for_a_legacy_api_without_definition_version(String caseName, String field) {
         // Given a legacy api whose definition version was never stored
         var indexable = new IndexableApi(aLegacyApiWithoutDefinitionVersion(), PRIMARY_OWNER, Map.of(), Set.of());
 
         // When it is transformed for the boot-time index rebuild
         var result = cut.transform(indexable);
 
-        // Then the V2 fallback that gave it a definition version term left it with no api type term
-        assertThat(result.getFields(FIELD_API_TYPE)).isEmpty();
+        // Then the V2 fallback that gave it a definition version term left it outside the V2 branch and its terms
+        assertThat(result.getFields(field)).isEmpty();
     }
 
-    @Test
-    void should_not_index_the_v2_field_set_for_a_legacy_api_without_definition_version() {
-        // Given a legacy api whose definition version was never stored
-        var indexable = new IndexableApi(aLegacyApiWithoutDefinitionVersion(), PRIMARY_OWNER, Map.of(), Set.of());
-
-        // When it is transformed for the boot-time index rebuild
-        var result = cut.transform(indexable);
-
-        // Then the V2 fallback that gave it a definition version term left it outside the V2 branch and its health
-        // check term
-        assertThat(result.getFields(FIELD_HAS_HEALTH_CHECK)).isEmpty();
+    private static Stream<Arguments> fieldsNotIndexedForALegacyApiWithoutDefinitionVersion() {
+        return Stream.of(
+            Arguments.of("the api type is not indexed", FIELD_API_TYPE),
+            Arguments.of("the health check flag is not indexed", FIELD_HAS_HEALTH_CHECK)
+        );
     }
 
     private static Api aLegacyApiWithoutDefinitionVersion() {
