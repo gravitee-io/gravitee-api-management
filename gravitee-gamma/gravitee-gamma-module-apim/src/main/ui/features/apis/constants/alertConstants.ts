@@ -17,21 +17,27 @@ import type {
     AlertAggregationFunction,
     AlertConditionType,
     AlertDampeningMode,
-    AlertNotificationChannel,
     AlertOperator,
     AlertRuleId,
     AlertStringOperator,
     AlertTimeUnit,
 } from '../types';
+import { GATEWAY_ERROR_KEY_OPTIONS } from './gatewayErrorKeys';
 
-// ─── Rule definitions ──────────────────────────────────────────────────────────
+export type AlertRuleCategory = 'API metrics' | 'Health-check';
 
 export interface AlertRuleDefinition {
     id: AlertRuleId;
     source: string;
     type: string;
     description: string;
-    category: 'API metrics' | 'Health-check';
+    category: AlertRuleCategory;
+}
+
+export const API_ALERT_RULE_CATEGORY_ORDER: AlertRuleCategory[] = ['API metrics', 'Health-check'];
+
+export function getAlertRuleCategoriesForApi(): AlertRuleCategory[] {
+    return API_ALERT_RULE_CATEGORY_ORDER;
 }
 
 export const ALERT_RULES: AlertRuleDefinition[] = [
@@ -72,13 +78,31 @@ export const ALERT_RULES: AlertRuleDefinition[] = [
     },
 ];
 
-// ─── Metric definitions ────────────────────────────────────────────────────────
+export interface AlertMetricValueOption {
+    value: string;
+    label: string;
+}
+
+export type AlertMetricValueSource = 'tenants' | 'applications' | 'plans' | 'empty';
 
 export interface AlertMetricDefinition {
     key: string;
     label: string;
     conditionTypes: AlertConditionType[];
+    /** Classic `Metrics.supportPropertyProjection` — group-by Aggregation properties. */
+    supportPropertyProjection?: boolean;
+    /** Classic static `Metrics.loader` tuples. */
+    valueOptions?: AlertMetricValueOption[];
+    /** Classic async / empty loaders. `empty` still shows Value for EQUALS. */
+    valueSource?: AlertMetricValueSource;
 }
+
+export const HEALTHCHECK_STATUS_VALUES: AlertMetricValueOption[] = [
+    { value: 'DOWN', label: 'Down' },
+    { value: 'TRANSITIONALLY_DOWN', label: 'Transitionally down' },
+    { value: 'TRANSITIONALLY_UP', label: 'Transitionally up' },
+    { value: 'UP', label: 'Up' },
+];
 
 export const API_METRICS: AlertMetricDefinition[] = [
     { key: 'response.response_time', label: 'Response Time (ms)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
@@ -87,13 +111,25 @@ export const API_METRICS: AlertMetricDefinition[] = [
         label: 'Upstream Response Time (ms)',
         conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'],
     },
-    { key: 'response.status', label: 'Status Code', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'] },
+    { key: 'response.status', label: 'Status Code', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE'], supportPropertyProjection: true },
     { key: 'request.content_length', label: 'Request Content-Length', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
     { key: 'response.content_length', label: 'Response Content-Length', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
-    { key: 'error.key', label: 'Error Key', conditionTypes: ['STRING'] },
-    { key: 'tenant', label: 'Tenant', conditionTypes: ['STRING'] },
-    { key: 'application', label: 'Application', conditionTypes: ['STRING'] },
-    { key: 'plan', label: 'Plan', conditionTypes: ['STRING'] },
+    {
+        key: 'error.key',
+        label: 'Error Key',
+        conditionTypes: ['STRING'],
+        supportPropertyProjection: true,
+        valueOptions: GATEWAY_ERROR_KEY_OPTIONS,
+    },
+    { key: 'tenant', label: 'Tenant', conditionTypes: ['STRING'], supportPropertyProjection: true, valueSource: 'tenants' },
+    {
+        key: 'application',
+        label: 'Application',
+        conditionTypes: ['STRING'],
+        supportPropertyProjection: true,
+        valueSource: 'applications',
+    },
+    { key: 'plan', label: 'Plan', conditionTypes: ['STRING'], supportPropertyProjection: true, valueSource: 'plans' },
 ];
 
 export const AGGREGATION_METRICS: AlertMetricDefinition[] = [
@@ -107,7 +143,16 @@ export const AGGREGATION_METRICS: AlertMetricDefinition[] = [
     { key: 'response.content_length', label: 'Response Content-Length', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
 ];
 
-// ─── Operators ────────────────────────────────────────────────────────────────
+/** Classic `HealthcheckMetrics` — API health-check filters. */
+export const HEALTHCHECK_METRICS: AlertMetricDefinition[] = [
+    { key: 'status.old', label: 'Old Status', conditionTypes: ['STRING'], valueOptions: HEALTHCHECK_STATUS_VALUES },
+    { key: 'status.new', label: 'New Status', conditionTypes: ['STRING'], valueOptions: HEALTHCHECK_STATUS_VALUES },
+    { key: 'endpoint.name', label: 'Endpoint name', conditionTypes: ['STRING'], supportPropertyProjection: true },
+    { key: 'response_time', label: 'Response Time (ms)', conditionTypes: ['THRESHOLD', 'THRESHOLD_RANGE', 'COMPARE'] },
+    { key: 'tenant', label: 'Tenant', conditionTypes: ['STRING'], valueSource: 'tenants' },
+];
+
+const ALL_KNOWN_METRICS: AlertMetricDefinition[] = [...API_METRICS, ...HEALTHCHECK_METRICS];
 
 export const ALERT_OPERATORS: { value: AlertOperator; label: string }[] = [
     { value: 'LT', label: 'less than' },
@@ -142,8 +187,6 @@ export const TIME_UNITS: { value: AlertTimeUnit; label: string }[] = [
     { value: 'HOURS', label: 'Hours' },
 ];
 
-// ─── Dampening ────────────────────────────────────────────────────────────────
-
 export const DAMPENING_MODES: { value: AlertDampeningMode; label: string }[] = [
     { value: 'STRICT_COUNT', label: 'N consecutive true evaluations' },
     { value: 'RELAXED_COUNT', label: 'N true evaluations out of M total evaluations' },
@@ -151,28 +194,62 @@ export const DAMPENING_MODES: { value: AlertDampeningMode; label: string }[] = [
     { value: 'STRICT_TIME', label: 'Only true evaluations for at least T time' },
 ];
 
-// ─── Notification channels ────────────────────────────────────────────────────
-
-export const NOTIFICATION_CHANNELS: { value: AlertNotificationChannel; label: string }[] = [
-    { value: 'email-notifier', label: 'E-mail' },
-    { value: 'slack-notifier', label: 'Slack' },
-    { value: 'default-email', label: 'System e-mail' },
-    { value: 'webhook-notifier', label: 'Webhook' },
-];
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 export function getConditionTypesForMetric(metricKey: string, metrics: AlertMetricDefinition[]): AlertConditionType[] {
-    return metrics.find(m => m.key === metricKey)?.conditionTypes ?? ['THRESHOLD'];
+    return metrics.find(m => m.key === metricKey)?.conditionTypes ?? [];
+}
+
+/** Classic compare `property2` list: other COMPARE metrics, not the left-hand property. */
+export function getCompareTargetMetrics(metrics: AlertMetricDefinition[], property: string): AlertMetricDefinition[] {
+    return metrics.filter(m => m.conditionTypes.includes('COMPARE') && m.key !== property);
 }
 
 export function isStringMetric(metricKey: string): boolean {
-    const m = API_METRICS.find(met => met.key === metricKey);
+    const m = ALL_KNOWN_METRICS.find(met => met.key === metricKey);
     return !!m && m.conditionTypes.includes('STRING') && !m.conditionTypes.includes('THRESHOLD');
 }
 
-export function getMetricsForRuleId(ruleId: AlertRuleId): AlertMetricDefinition[] {
-    return ruleId === 'REQUEST@METRICS_AGGREGATION' ? AGGREGATION_METRICS : API_METRICS;
+export function ruleSupportsProjections(ruleId: AlertRuleId): boolean {
+    return (
+        ruleId === 'REQUEST@METRICS_AGGREGATION' ||
+        ruleId === 'REQUEST@METRICS_RATE' ||
+        ruleId === 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED'
+    );
+}
+
+/** Classic projection metrics (`supportPropertyProjection`), not the aggregation function metric. */
+export function getProjectionMetricsForRuleId(ruleId: AlertRuleId): AlertMetricDefinition[] {
+    if (!ruleSupportsProjections(ruleId)) {
+        return [];
+    }
+    if (ruleId === 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED') {
+        return HEALTHCHECK_METRICS.filter(m => m.supportPropertyProjection);
+    }
+    return API_METRICS.filter(m => m.supportPropertyProjection);
+}
+
+export function getMetricsForRuleId(ruleId: AlertRuleId | undefined): AlertMetricDefinition[] {
+    if (!ruleId) {
+        return [];
+    }
+    if (ruleId === 'REQUEST@METRICS_AGGREGATION') {
+        return AGGREGATION_METRICS;
+    }
+    if (ruleId === 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED') {
+        return HEALTHCHECK_METRICS;
+    }
+    return API_METRICS;
+}
+
+/** Classic filter metrics follow the trigger source, not the condition metric subset. */
+export function getFilterMetricsForRuleId(ruleId: AlertRuleId): AlertMetricDefinition[] {
+    switch (ruleIdToSourceType(ruleId).source) {
+        case 'REQUEST':
+            return API_METRICS;
+        case 'ENDPOINT_HEALTH_CHECK':
+            return HEALTHCHECK_METRICS;
+        default:
+            return [];
+    }
 }
 
 export function ruleIdToSourceType(ruleId: AlertRuleId): { source: string; type: string } {
@@ -180,6 +257,16 @@ export function ruleIdToSourceType(ruleId: AlertRuleId): { source: string; type:
     return { source: ruleId.slice(0, atIdx), type: ruleId.slice(atIdx + 1) };
 }
 
-export function sourceTypeToRuleId(source: string, type: string): AlertRuleId {
-    return ALERT_RULES.find(r => r.id === `${source}@${type}`)?.id ?? 'REQUEST@METRICS_SIMPLE_CONDITION';
+export function sourceTypeToRuleId(source: string, type: string): AlertRuleId | undefined {
+    return ALERT_RULES.find(r => r.id === `${source}@${type}`)?.id;
+}
+
+export function getAlertRuleLabel(source: string, type: string): string {
+    const ruleId = `${source}@${type}`;
+    return ALERT_RULES.find(rule => rule.id === ruleId)?.description ?? `${source} / ${type}`;
+}
+
+/** Rules with no configurable condition fields (status-change). */
+export function isInfoOnlyRule(ruleId: AlertRuleId): boolean {
+    return ruleId === 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED';
 }

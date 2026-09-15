@@ -45,6 +45,7 @@ import {
     ApiDetailSidebarNav,
     FEDERATED_ALLOWED_PATHS,
     withApiScoreEnabled,
+    withApiAlertPermission,
     withFederatedRestrictions,
     withMetadataPermission,
     withObservabilityLinks,
@@ -63,6 +64,7 @@ import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { useAskForReviewDialog } from '../../hooks/useAskForReviewDialog';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
+import { API_ALERT_PAGE_PERMISSIONS } from '../../utils/alertPermissions';
 import { buildApiDashboardHref, buildApiLogsHref } from '../../utils/analyticsDeepLink';
 import { getApiProxyTypeLabel, hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
 import { isForbiddenError } from '../../utils/apiRequestError';
@@ -306,6 +308,7 @@ export function ApiDetailLayout() {
     const isApiReviewer = useHasPermission({ anyOf: ['api-reviews-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
     const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
+    const canAccessAlerts = useHasPermission({ anyOf: [...API_ALERT_PAGE_PERMISSIONS] });
     const showResponseTemplates = Boolean(api) && canReadResponseTemplates && supportsResponseTemplates(api);
     const { enabled: apiScoreEnabled } = useApiScoreEnabled();
     const { enabled: apiReviewEnabled } = useApiReviewEnabled();
@@ -364,15 +367,20 @@ export function ApiDetailLayout() {
     // The observability section hangs off the module root, one level above `/apis/:apiId`.
     const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
     const navGroups = withFederatedRestrictions(
-        withMetadataPermission(
-            withTcpRestrictions(
-                withObservabilityLinks(
-                    withResponseTemplatesPermission(withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled), showResponseTemplates),
-                    apiId ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) } : {},
+        withApiAlertPermission(
+            withMetadataPermission(
+                withTcpRestrictions(
+                    withObservabilityLinks(
+                        withResponseTemplatesPermission(withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled), showResponseTemplates),
+                        apiId
+                            ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) }
+                            : {},
+                    ),
+                    hasTcpListeners(api),
                 ),
-                hasTcpListeners(api),
+                canReadMetadata,
             ),
-            canReadMetadata,
+            canAccessAlerts,
         ),
         isFederatedApi(api),
     );
@@ -425,6 +433,7 @@ export function ApiDetailLayout() {
             canReadMetadata,
             showResponseTemplates,
             apiScoreEnabled,
+            canAccessAlerts,
         ],
     );
 
