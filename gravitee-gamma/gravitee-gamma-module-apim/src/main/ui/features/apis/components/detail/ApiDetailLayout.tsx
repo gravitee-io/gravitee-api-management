@@ -44,11 +44,13 @@ import {
     API_PROXY_NAV_GROUPS,
     ApiDetailSidebarNav,
     withApiScoreEnabled,
+    withApiAlertPermission,
     withMetadataPermission,
     withObservabilityLinks,
     withResponseTemplatesPermission,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
+import { API_ALERT_PAGE_PERMISSIONS } from '../../utils/alertPermissions';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
@@ -262,6 +264,7 @@ export function ApiDetailLayout() {
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
     const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
+    const canAccessAlerts = useHasPermission({ anyOf: [...API_ALERT_PAGE_PERMISSIONS] });
     const showResponseTemplates = Boolean(api) && canReadResponseTemplates && supportsResponseTemplates(api);
     const { enabled: apiScoreEnabled } = useApiScoreEnabled();
     const queryClient = useQueryClient();
@@ -284,15 +287,18 @@ export function ApiDetailLayout() {
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
     // The observability section hangs off the module root, one level above `/apis/:apiId`.
     const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
-    const navGroups = withMetadataPermission(
-        withTcpRestrictions(
-            withObservabilityLinks(
-                withResponseTemplatesPermission(withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled), showResponseTemplates),
-                apiId ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) } : {},
+    const navGroups = withApiAlertPermission(
+        withMetadataPermission(
+            withTcpRestrictions(
+                withObservabilityLinks(
+                    withResponseTemplatesPermission(withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled), showResponseTemplates),
+                    apiId ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) } : {},
+                ),
+                hasTcpListeners(api),
             ),
-            hasTcpListeners(api),
+            canReadMetadata,
         ),
-        canReadMetadata,
+        canAccessAlerts,
     );
 
     useLayoutConfig(
@@ -325,6 +331,7 @@ export function ApiDetailLayout() {
             canReadMetadata,
             showResponseTemplates,
             apiScoreEnabled,
+            canAccessAlerts,
         ],
     );
 

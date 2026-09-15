@@ -32,6 +32,10 @@ import {
     TableHead,
     TableHeader,
     TableRow,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
 } from '@gravitee/graphene-core';
 import {
     ActivityIcon,
@@ -47,9 +51,22 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { ALERT_RULES } from '../../../constants/alertConstants';
 import { deleteAlertTrigger, listAlerts, updateAlertTrigger, alertTriggerToFormData } from '../../../services/alerts';
 import type { AlertTrigger } from '../../../types';
+import {
+    formatAlertCounters,
+    formatAlertCountersTooltip,
+    formatLastAlertAt,
+    formatLastAlertMessage,
+} from '../../../utils/alertListFormat';
+import {
+    API_ALERT_CREATE_PERMISSION,
+    API_ALERT_DELETE_PERMISSION,
+    API_ALERT_PAGE_PERMISSIONS,
+    API_ALERT_UPDATE_PERMISSION,
+} from '../../../utils/alertPermissions';
 import { apiAlertKeys } from '../../../utils/queryKeys';
 
 const CAPABILITIES = [
@@ -80,6 +97,24 @@ function SeverityBadge({ severity }: { severity: AlertTrigger['severity'] }) {
 function getRuleLabel(source: string, type: string): string {
     const ruleId = `${source}@${type}`;
     return ALERT_RULES.find(r => r.id === ruleId)?.description ?? `${source} / ${type}`;
+}
+
+function AlertCountersCell({ counters }: Readonly<{ counters: AlertTrigger['counters'] }>) {
+    const label = formatAlertCounters(counters);
+    const tooltip = formatAlertCountersTooltip(counters);
+
+    if (!tooltip) {
+        return <span className="text-sm text-muted-foreground">{label}</span>;
+    }
+
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <span className="text-sm text-muted-foreground">{label}</span>
+            </TooltipTrigger>
+            <TooltipContent>{tooltip}</TooltipContent>
+        </Tooltip>
+    );
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
@@ -174,17 +209,21 @@ export function ApiAlertsPage() {
     const navigate = useNavigate();
     const env = useEnvironment();
     const queryClient = useQueryClient();
+    const { permissionsReady } = useApiDetailContext();
 
-    const canEdit = useHasPermission({ anyOf: ['api-definition-u'] });
-
+    const canRead = useHasPermission({ anyOf: [...API_ALERT_PAGE_PERMISSIONS] });
+    const canCreate = useHasPermission({ anyOf: [API_ALERT_CREATE_PERMISSION] });
+    const canUpdate = useHasPermission({ anyOf: [API_ALERT_UPDATE_PERMISSION] });
+    const canDelete = useHasPermission({ anyOf: [API_ALERT_DELETE_PERMISSION] });
+    const showActions = canUpdate || canDelete;
     const {
         data: alerts,
         isLoading,
         isError,
     } = useQuery({
         queryKey: apiAlertKeys.list(env?.id ?? '', apiId ?? ''),
-        queryFn: () => listAlerts(env?.id ?? '', apiId!),
-        enabled: !!apiId,
+        queryFn: () => listAlerts(env?.id ?? '', apiId!, true),
+        enabled: !!apiId && permissionsReady && canRead,
     });
 
     const deleteMutation = useMutation({
@@ -203,6 +242,19 @@ export function ApiAlertsPage() {
     const handleAdd = () => navigate('new');
     const handleEdit = (alertId: string) => navigate(alertId);
 
+    if (!permissionsReady) {
+        return null;
+    }
+
+    if (!canRead) {
+        return (
+            <div className="space-y-6">
+                <h1 className="text-2xl font-semibold tracking-tight">Runtime Alerts</h1>
+                <p className="text-sm text-muted-foreground">You don&apos;t have permission to view runtime alerts.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -211,7 +263,7 @@ export function ApiAlertsPage() {
                     <p className="text-sm text-muted-foreground">Set up alerting conditions for the Gateway.</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                    {canEdit && (
+                    {canCreate && (
                         <Button type="button" size="sm" onClick={handleAdd}>
                             <PlusIcon className="size-4" aria-hidden="true" />
                             Add alert
@@ -244,19 +296,23 @@ export function ApiAlertsPage() {
             {/* Alerts table */}
             {!isLoading && !isError && alerts && alerts.length > 0 && (
                 <div className="rounded-lg border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Name</TableHead>
-                                <TableHead>Rule</TableHead>
-                                <TableHead>Severity</TableHead>
-                                <TableHead>Enabled</TableHead>
-                                {canEdit && <TableHead className="w-12 text-right">Actions</TableHead>}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {alerts.map(alert => (
-                                <TableRow key={alert.id} className="cursor-pointer" onClick={() => handleEdit(alert.id!)}>
+                    <TooltipProvider delayDuration={200}>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Rule</TableHead>
+                                    <TableHead>Last 5m / 1h / 1d / 1M</TableHead>
+                                    <TableHead>Last alert</TableHead>
+                                    <TableHead>Last message</TableHead>
+                                    <TableHead>Severity</TableHead>
+                                    <TableHead>Enabled</TableHead>
+                                    {showActions && <TableHead className="w-12 text-right">Actions</TableHead>}
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {alerts.map(alert => (
+                                    <TableRow key={alert.id} className="cursor-pointer" onClick={() => handleEdit(alert.id!)}>
                                     <TableCell>
                                         <div>
                                             <p className="text-sm font-medium">{alert.name}</p>
@@ -269,17 +325,28 @@ export function ApiAlertsPage() {
                                         <span className="text-sm text-muted-foreground">{getRuleLabel(alert.source, alert.type)}</span>
                                     </TableCell>
                                     <TableCell>
+                                        <AlertCountersCell counters={alert.counters} />
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="text-sm text-muted-foreground">{formatLastAlertAt(alert.last_alert_at)}</span>
+                                    </TableCell>
+                                    <TableCell>
+                                        <span className="text-sm text-muted-foreground line-clamp-1">
+                                            {formatLastAlertMessage(alert.last_alert_message)}
+                                        </span>
+                                    </TableCell>
+                                    <TableCell>
                                         <SeverityBadge severity={alert.severity} />
                                     </TableCell>
                                     <TableCell>
                                         <Switch
                                             checked={alert.enabled}
-                                            disabled={!canEdit || toggleMutation.isPending}
+                                            disabled={!canUpdate || toggleMutation.isPending}
                                             onClick={e => e.stopPropagation()}
                                             onCheckedChange={() => toggleMutation.mutate(alert)}
                                         />
                                     </TableCell>
-                                    {canEdit && (
+                                    {showActions && (
                                         <TableCell onClick={e => e.stopPropagation()}>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -288,22 +355,27 @@ export function ApiAlertsPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleEdit(alert.id!)}>Edit</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        className="text-destructive focus:text-destructive"
-                                                        onSelect={() => deleteMutation.mutate(alert.id!)}
-                                                    >
-                                                        Delete
-                                                    </DropdownMenuItem>
+                                                    {canUpdate && (
+                                                        <DropdownMenuItem onSelect={() => handleEdit(alert.id!)}>Edit</DropdownMenuItem>
+                                                    )}
+                                                    {canUpdate && canDelete && <DropdownMenuSeparator />}
+                                                    {canDelete && (
+                                                        <DropdownMenuItem
+                                                            className="text-destructive focus:text-destructive"
+                                                            onSelect={() => deleteMutation.mutate(alert.id!)}
+                                                        >
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
                                     )}
                                 </TableRow>
                             ))}
-                        </TableBody>
-                    </Table>
+                            </TableBody>
+                        </Table>
+                    </TooltipProvider>
                 </div>
             )}
         </div>

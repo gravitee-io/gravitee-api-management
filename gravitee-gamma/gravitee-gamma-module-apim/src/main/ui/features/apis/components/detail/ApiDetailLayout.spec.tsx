@@ -121,6 +121,7 @@ jest.mock('./ApiDetailSidebarNav', () => ({
     withMetadataPermission: (groups: unknown[]) => groups,
     withResponseTemplatesPermission: (groups: unknown[]) => groups,
     withApiScoreEnabled: (groups: unknown[]) => groups,
+    withApiAlertPermission: (groups: unknown[]) => groups,
     withObservabilityLinks: (groups: unknown[]) => groups,
 }));
 

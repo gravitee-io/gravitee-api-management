@@ -23,16 +23,29 @@ export type AlertRuleId =
     | 'REQUEST@METRICS_RATE'
     | 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED';
 
-export type AlertConditionType = 'STRING' | 'THRESHOLD' | 'THRESHOLD_RANGE' | 'COMPARE' | 'AGGREGATION' | 'RATE' | 'MISSING_DATA';
+export type AlertConditionType =
+    | 'STRING'
+    | 'STRING_COMPARE'
+    | 'THRESHOLD'
+    | 'THRESHOLD_RANGE'
+    | 'COMPARE'
+    | 'AGGREGATION'
+    | 'RATE'
+    | 'MISSING_DATA';
+
+export type AlertComparisonType = 'STRING' | 'THRESHOLD' | 'THRESHOLD_RANGE' | 'COMPARE';
 
 export type AlertOperator = 'LT' | 'LTE' | 'GTE' | 'GT';
 export type AlertStringOperator = 'EQUALS' | 'NOT_EQUALS' | 'STARTS_WITH' | 'ENDS_WITH' | 'CONTAINS' | 'MATCHES';
 export type AlertAggregationFunction = 'COUNT' | 'AVG' | 'MIN' | 'MAX' | 'P50' | 'P90' | 'P95' | 'P99';
 export type AlertTimeUnit = 'SECONDS' | 'MINUTES' | 'HOURS';
 export type AlertDampeningMode = 'STRICT_COUNT' | 'RELAXED_COUNT' | 'RELAXED_TIME' | 'STRICT_TIME';
-export type AlertNotificationChannel = 'email-notifier' | 'slack-notifier' | 'default-email' | 'webhook-notifier';
 
-/** Denormalized condition used as form state — flat for easy React updates. */
+export interface AlertPropertyProjection {
+    type: 'PROPERTY';
+    property: string;
+}
+
 export interface AlertFormCondition {
     type: AlertConditionType;
     property?: string;
@@ -41,27 +54,29 @@ export interface AlertFormCondition {
     thresholdLow?: number;
     thresholdHigh?: number;
     pattern?: string;
+    ignoreCase?: boolean;
     property2?: string;
     multiplier?: number;
     duration?: number;
     timeUnit?: AlertTimeUnit;
     aggregationFunction?: AlertAggregationFunction;
-    /** RATE only — operator for the comparison (inner) condition */
+    /** Classic rate `conditions[0].comparison.type`. */
+    comparisonType?: AlertComparisonType;
     rateOperator?: AlertOperator;
-    /** RATE only — rate percentage threshold (0-100) */
     rateThreshold?: number;
+    projections?: unknown[];
 }
 
-/** Simplified notification shape used in form state. */
 export interface AlertFormNotification {
-    channel: AlertNotificationChannel;
-    target: string;
+    type: string;
+    configuration: Record<string, unknown>;
 }
 
-/** Timeframe used in form state. */
 export interface AlertFormTimeframe {
     days: number[];
+    /** Seconds since midnight — classic API `beginHour`. */
     startHour: number;
+    /** Seconds since midnight — classic API `endHour`. */
     endHour: number;
 }
 
@@ -73,32 +88,32 @@ export interface AlertDampening {
     timeUnit?: AlertTimeUnit;
 }
 
-/** The raw API shape for a condition (sent to / received from the server). */
 export interface AlertApiCondition {
     type: AlertConditionType;
     property?: string;
-    operator?: AlertOperator | AlertStringOperator;
+    /** THRESHOLD / STRING / AGGREGATION / RATE; THRESHOLD_RANGE uses classic `BETWEEN`. */
+    operator?: AlertOperator | AlertStringOperator | 'BETWEEN';
     threshold?: number;
     thresholdLow?: number;
     thresholdHigh?: number;
     operatorLow?: 'INCLUSIVE' | 'EXCLUSIVE';
     operatorHigh?: 'INCLUSIVE' | 'EXCLUSIVE';
     pattern?: string;
+    ignoreCase?: boolean;
     property2?: string;
     multiplier?: number;
     duration?: number;
     timeUnit?: AlertTimeUnit;
     function?: AlertAggregationFunction;
     comparison?: AlertApiCondition;
+    projections?: unknown[];
 }
 
-/** API notification payload shape. */
 export interface AlertApiNotification {
     type: string;
-    configuration?: Record<string, unknown>;
+    configuration?: Record<string, unknown> | string;
 }
 
-/** API notification period shape. */
 export interface AlertApiPeriod {
     days: number[];
     beginHour: number;
@@ -106,7 +121,6 @@ export interface AlertApiPeriod {
     zoneId?: string;
 }
 
-/** Full alert trigger entity returned by the API. */
 export interface AlertTrigger {
     id?: string;
     name: string;
@@ -115,11 +129,16 @@ export interface AlertTrigger {
     enabled: boolean;
     source: string;
     type: string;
+    reference_type?: string;
+    reference_id?: string;
     conditions?: AlertApiCondition[];
     filters?: AlertApiCondition[];
     notifications?: AlertApiNotification[];
     notificationPeriods?: AlertApiPeriod[];
     dampening?: AlertDampening;
+    projections?: unknown[];
+    template?: boolean;
+    event_rules?: unknown[];
     counters?: Record<string, number>;
     last_alert_at?: string | null;
     last_alert_message?: string | null;
@@ -135,4 +154,9 @@ export interface AlertHistoryEvent {
 export interface AlertHistoryPage {
     content: AlertHistoryEvent[];
     totalElements: number;
+}
+
+export interface AlertStatus {
+    available_plugins: number;
+    enabled: boolean;
 }

@@ -201,6 +201,14 @@ export function withApiScoreEnabled(groups: DetailNavGroup[], apiScoreEnabled: b
     }));
 }
 
+export function withApiAlertPermission(groups: DetailNavGroup[], canAccessAlerts: boolean): DetailNavGroup[] {
+    if (canAccessAlerts) return groups;
+    return groups.map(group => ({
+        ...group,
+        items: group.items.filter(item => item.path !== 'alerts'),
+    }));
+}
+
 // ─── "Coming soon" row ────────────────────────────────────────────────────────
 
 interface ComingSoonRowProps {
