@@ -66,13 +66,13 @@ import org.springframework.stereotype.Service;
 
 /**
  * Sends one performance target report per channel: a console notification, one email to every recipient, one POST per
- * webhook, one Slack message per incoming webhook. For an API subject the recipients and channels are the API's own
- * notification settings, read the way {@link NotifierServiceImpl} reads them for any other hook; a module owning
- * another kind of subject (an agent) hands its recipients over itself.
+ * webhook. For an API subject the recipients and channels are the API's own notification settings, read the way
+ * {@link NotifierServiceImpl} reads them for any other hook; a module owning another kind of subject (an agent) hands
+ * its recipients over itself.
  *
  * <p>Recipients are resolved and templates rendered once per subject and event, not per rule: the report lists every
- * rule that changed. Posting to a webhook or a Slack address is retried, with backoff, up to the configured number
- * of attempts; emails and console notifications are handed to APIM's own asynchronous senders and are not.
+ * rule that changed. Posting to a webhook is retried, with backoff, up to the configured number of attempts; emails
+ * and console notifications are handed to APIM's own asynchronous senders and are not.
  */
 @Service
 @CustomLog
@@ -203,8 +203,7 @@ public class PerformanceTargetNotificationDispatcher {
                 genericConfigs
                     .stream()
                     .filter(config -> NotifierServiceImpl.DEFAULT_WEBHOOK_NOTIFIER_ID.equals(config.getNotifier()))
-                    .toList(),
-                List.of()
+                    .toList()
             );
             notify(executionContext, hook, params, recipients);
         } catch (TechnicalException e) {
@@ -229,13 +228,30 @@ public class PerformanceTargetNotificationDispatcher {
                 emailNotifierService.trigger(executionContext, hook, params, allowed);
             }
         }
-        recipients
-            .webhooks()
-            .forEach(config -> deliver("webhook " + config.getConfig(), 1, () -> webhookNotifierService.trigger(hook, config, params)));
-        if (!recipients.slackWebhookUrls().isEmpty()) {
+        recipients.webhooks().forEach(config -> deliverTo(executionContext, hook, params, config));
+    }
+
+    /**
+     * A webhook takes the report as JSON, the payload every other hook posts. Slack is the exception its own product
+     * makes: an incoming webhook refuses that payload, so the address gives itself away and takes the console text.
+     */
+    private void deliverTo(
+        ExecutionContext executionContext,
+        PerformanceTargetHook hook,
+        Map<String, Object> params,
+        GenericNotificationConfig config
+    ) {
+        var url = config.getConfig();
+        if (isSlackIncomingWebhook(url)) {
             var body = slackBody(executionContext.getOrganizationId(), hook, params);
-            recipients.slackWebhookUrls().forEach(url -> deliver("Slack " + url, 1, () -> postSlack(url, body)));
+            deliver("webhook " + url, 1, () -> postSlack(url, body));
+        } else {
+            deliver("webhook " + url, 1, () -> webhookNotifierService.trigger(hook, config, params));
         }
+    }
+
+    private static boolean isSlackIncomingWebhook(String url) {
+        return url != null && url.startsWith("https://hooks.slack.com/");
     }
 
     /**
@@ -322,17 +338,11 @@ public class PerformanceTargetNotificationDispatcher {
      *
      * @param emails addresses, or templates resolving to addresses over the notification params
      */
-    public record Recipients(
-        List<String> consoleUserIds,
-        List<String> emails,
-        List<GenericNotificationConfig> webhooks,
-        List<String> slackWebhookUrls
-    ) {
+    public record Recipients(List<String> consoleUserIds, List<String> emails, List<GenericNotificationConfig> webhooks) {
         public Recipients {
             consoleUserIds = consoleUserIds == null ? List.of() : List.copyOf(consoleUserIds);
             emails = emails == null ? List.of() : List.copyOf(emails);
             webhooks = webhooks == null ? List.of() : List.copyOf(webhooks);
-            slackWebhookUrls = slackWebhookUrls == null ? List.of() : List.copyOf(slackWebhookUrls);
         }
 
         public static GenericNotificationConfig webhook(String url) {
