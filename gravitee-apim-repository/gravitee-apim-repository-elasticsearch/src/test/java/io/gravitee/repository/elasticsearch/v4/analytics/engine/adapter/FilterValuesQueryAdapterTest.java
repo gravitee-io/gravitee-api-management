@@ -103,6 +103,25 @@ class FilterValuesQueryAdapterTest {
         assertThat(term.getBoolean("case_insensitive")).isTrue();
     }
 
+    /**
+     * On a multi-valued field the document filter alone would also list every other value of the matching
+     * documents, and a composite terms source takes no include, so a search aggregates plain terms instead.
+     */
+    @Test
+    void should_aggregate_only_the_values_matching_the_search_pattern() {
+        var query = FilterValuesQuery.builder().esFieldName("tool-refs").size(10).searchPattern("Search|v1:ab").build();
+
+        var result = new JsonObject(adapter.adapt(query));
+        var aggs = result.getJsonObject("aggs");
+
+        assertThat(aggs.getJsonObject("total_count")).isNull();
+        assertThat(aggs.getJsonObject("filter_values").getJsonObject("composite")).isNull();
+        var terms = aggs.getJsonObject("filter_values").getJsonObject("terms");
+        assertThat(terms.getString("field")).isEqualTo("tool-refs");
+        assertThat(terms.getInteger("size")).isEqualTo(10);
+        assertThat(terms.getString("include")).isEqualTo("[sS][eE][aA][rR][cC][hH]\\|[vV]1:[aA][bB]");
+    }
+
     @Test
     void should_combine_time_range_and_search_pattern() {
         var query = FilterValuesQuery.builder()

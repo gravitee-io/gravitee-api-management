@@ -47,6 +47,7 @@ import io.gravitee.repository.log.v4.model.analytics.ApiMetricsDetailQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
 import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
+import io.gravitee.repository.log.v4.model.analytics.FilterValuesQuery;
 import io.gravitee.repository.log.v4.model.analytics.GroupByQuery;
 import io.gravitee.repository.log.v4.model.analytics.HistogramAggregate;
 import io.gravitee.repository.log.v4.model.analytics.HistogramQuery;
@@ -2295,6 +2296,24 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(result).isNotNull();
                 assertThat(result.measures()).hasSize(1);
                 assertThat(result.measures().getFirst().measures().get(Measure.COUNT).doubleValue()).isEqualTo(2.0);
+            }
+
+            /**
+             * llm-001 carries {@code search|v1:7b2e44a90c1d5e36} beside the searched ref, so a search that only
+             * narrowed the documents would list it too.
+             */
+            @Test
+            void should_list_only_the_llm_proxy_tool_ref_values_matching_the_search() {
+                var query = FilterValuesQuery.builder()
+                    .esFieldName("additional-metrics.keyword_llm-proxy_tool-refs")
+                    .size(10)
+                    .searchPattern("GET_WEATHER|v1:3F9A1C2B8D4E7F01")
+                    .build();
+
+                var result = cut.searchFilterValues(QUERY_CONTEXT, query);
+
+                assertThat(result.values()).containsExactly("get_weather|v1:3f9a1c2b8d4e7f01");
+                assertThat(result.totalCount()).isEqualTo(1);
             }
         }
 

@@ -118,6 +118,24 @@ class FilterValuesResponseAdapterTest {
         assertThat(result.totalCount()).isZero();
     }
 
+    @Test
+    void should_extract_values_and_count_them_from_terms_buckets() {
+        var agg = new Aggregation();
+        agg.setBuckets(new java.util.ArrayList<>());
+        agg.getBuckets().add(MAPPER.createObjectNode().put("key", "search|v1:ab").put("doc_count", 2));
+        agg.getBuckets().add(MAPPER.createObjectNode().put("key", "search|v1:cd").put("doc_count", 1));
+        var aggregations = new HashMap<String, Aggregation>();
+        aggregations.put("filter_values", agg);
+        var response = new SearchResponse();
+        response.setAggregations(aggregations);
+
+        var result = adapter.adapt(response);
+
+        assertThat(result.values()).containsExactly("search|v1:ab", "search|v1:cd");
+        assertThat(result.afterKey()).isNull();
+        assertThat(result.totalCount()).isEqualTo(2);
+    }
+
     private SearchResponse buildSearchResponse(String[] values, ObjectNode afterKeyNode, long totalCount) {
         ArrayNode bucketsArray = MAPPER.createArrayNode();
         for (String value : values) {
