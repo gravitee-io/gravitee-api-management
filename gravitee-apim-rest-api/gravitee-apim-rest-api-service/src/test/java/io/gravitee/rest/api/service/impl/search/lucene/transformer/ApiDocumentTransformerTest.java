@@ -47,6 +47,7 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
+import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.nativeapi.NativeApiEntity;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.lang.reflect.Field;
@@ -130,95 +131,61 @@ class ApiDocumentTransformerTest {
         assertThat(doc.get(FIELD_ID)).isEqualTo(api.getId());
     }
 
-    @Test
-    void transform_api_entity_v4_message_verify_api_type() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("apiTypes")
+    void should_index_the_api_type_term(String caseName, GenericApiEntity api, String expectedApiType) {
+        Document doc = cut.transform(api);
+
+        assertThat(doc.get(FIELD_ID)).isEqualTo(api.getId());
+        assertThat(doc.get(FIELD_VISIBILITY)).isEqualTo("PUBLIC");
+        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo(expectedApiType);
+    }
+
+    private static Stream<Arguments> apiTypes() {
+        return Stream.of(
+            Arguments.of("a v4 message api", v4Api(ApiType.MESSAGE), "V4_MESSAGE"),
+            Arguments.of("a v4 llm proxy api", v4Api(ApiType.LLM_PROXY), "V4_LLM_PROXY"),
+            Arguments.of("a v4 mcp proxy api", v4Api(ApiType.MCP_PROXY), "V4_MCP_PROXY"),
+            Arguments.of("a v4 native api", v4Api(ApiType.NATIVE), "V4_KAFKA"),
+            Arguments.of("a native api entity", nativeApi(), "V4_KAFKA"),
+            Arguments.of("a v4 proxy api listening on tcp", v4ProxyApi(TcpListener.builder().build()), "V4_TCP_PROXY"),
+            Arguments.of("a v4 proxy api listening on http", v4ProxyApi(HttpListener.builder().paths(List.of()).build()), "V4_HTTP_PROXY"),
+            Arguments.of("a federated api", federatedApi(), "FEDERATED"),
+            Arguments.of("a v2 api", v2Api(), "V2")
+        );
+    }
+
+    private static io.gravitee.rest.api.model.v4.api.ApiEntity v4Api(ApiType type) {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");
         api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.MESSAGE);
+        api.setType(type);
         api.setVisibility(Visibility.PUBLIC);
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_MESSAGE");
+        return api;
     }
 
-    @Test
-    void transform_api_entity_v4_llm_proxy_verify_api_type() {
+    private static io.gravitee.rest.api.model.v4.api.ApiEntity v4ProxyApi(Listener listener) {
+        var api = v4Api(ApiType.PROXY);
+        api.setListeners(List.of(listener));
+        return api;
+    }
+
+    private static NativeApiEntity nativeApi() {
+        return NativeApiEntity.builder().id("api-uuid").definitionVersion(DefinitionVersion.V4).visibility(Visibility.PUBLIC).build();
+    }
+
+    private static io.gravitee.rest.api.model.v4.api.ApiEntity federatedApi() {
         var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         api.setId("api-uuid");
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.LLM_PROXY);
-        api.setVisibility(Visibility.PUBLIC);
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_LLM_PROXY");
-    }
-
-    @Test
-    void transform_api_entity_v4_mcp_proxy_verify_api_type() {
-        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
-        api.setId("api-uuid");
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.MCP_PROXY);
-        api.setVisibility(Visibility.PUBLIC);
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_MCP_PROXY");
-    }
-
-    @Test
-    void transform_api_entity_v4_native_verify_api_type() {
-        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
-        api.setId("api-uuid");
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.NATIVE);
-        api.setVisibility(Visibility.PUBLIC);
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_KAFKA");
-    }
-
-    @Test
-    void transform_native_api_entity_verify_api_type() {
-        var api = NativeApiEntity.builder().id("api-uuid").definitionVersion(DefinitionVersion.V4).visibility(Visibility.PUBLIC).build();
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_KAFKA");
-    }
-
-    @Test
-    void transform_api_entity_v4_tcp_proxy_verify_api_type() {
-        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
-        api.setId("api-uuid");
-        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setDefinitionVersion(DefinitionVersion.FEDERATED);
         api.setType(ApiType.PROXY);
         api.setVisibility(Visibility.PUBLIC);
-        List<Listener> listeners = List.of(TcpListener.builder().build());
-        api.setListeners(listeners);
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_TCP_PROXY");
+        api.setListeners(List.of(HttpListener.builder().paths(List.of()).build()));
+        return api;
     }
 
-    @Test
-    void transform_api_entity_v4_http_proxy_verify_api_type() {
-        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
-        api.setId("api-uuid");
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.PROXY);
-        api.setVisibility(Visibility.PUBLIC);
-        List<Listener> listeners = List.of(HttpListener.builder().paths(List.of()).build());
-        api.setListeners(listeners);
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V4_HTTP_PROXY");
+    private static ApiEntity v2Api() {
+        return ApiEntity.builder().id("api-uuid").name("API 1").graviteeDefinitionVersion("2.0.0").visibility(Visibility.PUBLIC).build();
     }
 
     @Test
@@ -273,47 +240,31 @@ class ApiDocumentTransformerTest {
         assertThat(doc.get(FIELD_ALLOW_IN_API_PRODUCTS)).isEqualTo("false");
     }
 
-    @Test
-    void transform_api_entity_federated_verify_api_type() {
-        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
-        api.setId("api-uuid");
-        api.setDefinitionVersion(DefinitionVersion.FEDERATED);
-        api.setType(ApiType.PROXY);
-        List<Listener> listeners = List.of(HttpListener.builder().paths(List.of()).build());
-        api.setListeners(listeners);
-        api.setVisibility(Visibility.PUBLIC);
-        Document doc = cut.transform(api);
-        assertThat(doc.get("id")).isEqualTo(api.getId());
-        assertThat(doc.get(FIELD_VISIBILITY)).isEqualTo("PUBLIC");
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("FEDERATED");
-        assertThat(doc.get(FIELD_STATUS)).isNull();
-        assertThat(doc.get(FIELD_STATUS_SORTED)).isNull();
-    }
-
-    @Test
-    void transform_api_entity_federated_agent_verify_no_status() {
-        var api = FederatedApiAgentEntity.builder().id("api-agent").name("Alpha Agent").visibility(Visibility.PUBLIC).build();
-
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("statuses")
+    void should_index_the_status_and_its_sort_key(String caseName, GenericApiEntity api, String expectedStatus) {
         Document doc = cut.transform(api);
 
-        assertThat(doc.get(FIELD_ID)).isEqualTo("api-agent");
-        assertThat(doc.getField(FIELD_STATUS)).isNull();
-        assertThat(doc.getField(FIELD_STATUS_SORTED)).isNull();
+        assertThat(doc.get(FIELD_STATUS)).isEqualTo(expectedStatus);
+        assertThat(doc.getFields(FIELD_STATUS_SORTED)).hasSize(expectedStatus == null ? 0 : 1);
     }
 
-    @Test
-    void should_index_the_status_and_its_sort_key_for_a_non_federated_api() {
-        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
-        api.setId("api-uuid");
-        api.setDefinitionVersion(DefinitionVersion.V4);
-        api.setType(ApiType.PROXY);
-        api.setVisibility(Visibility.PUBLIC);
+    private static Stream<Arguments> statuses() {
+        return Stream.of(
+            Arguments.of("a non federated api indexes its status", startedV4Api(), "STARTED"),
+            Arguments.of("a federated api carries no status term", federatedApi(), null),
+            Arguments.of("a federated agent carries no status term", federatedAgent(), null)
+        );
+    }
+
+    private static io.gravitee.rest.api.model.v4.api.ApiEntity startedV4Api() {
+        var api = v4Api(ApiType.PROXY);
         api.setState(Lifecycle.State.STARTED);
+        return api;
+    }
 
-        Document doc = cut.transform(api);
-
-        assertThat(doc.get(FIELD_STATUS)).isEqualTo("STARTED");
-        assertThat(doc.getField(FIELD_STATUS_SORTED)).isNotNull();
+    private static FederatedApiAgentEntity federatedAgent() {
+        return FederatedApiAgentEntity.builder().id("api-agent").name("Alpha Agent").visibility(Visibility.PUBLIC).build();
     }
 
     @ParameterizedTest(name = "{0}")
@@ -354,14 +305,6 @@ class ApiDocumentTransformerTest {
                 null
             )
         );
-    }
-
-    @Test
-    void transform_api_entity_v2_verify_api_type() {
-        var api = ApiEntity.builder().id("api-1").name("API 1").graviteeDefinitionVersion("2.0.0").visibility(Visibility.PUBLIC).build();
-
-        Document doc = cut.transform(api);
-        assertThat(doc.get(FIELD_API_TYPE)).isEqualTo("V2");
     }
 
     @Test
