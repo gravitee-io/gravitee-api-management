@@ -223,6 +223,7 @@ class FilterValuesQueryServiceImplTest {
 
     static Stream<Arguments> filterToEsFieldMappings() {
         return Stream.of(
+            Arguments.of(FilterSpec.Name.HTTP_PATH, "path-info.keyword"),
             Arguments.of(FilterSpec.Name.EDGE_PROVIDER, "additional-metrics.keyword_edge_provider"),
             Arguments.of(FilterSpec.Name.EDGE_PROCESS, "additional-metrics.keyword_edge_process"),
             Arguments.of(FilterSpec.Name.EDGE_CLIENT, "client-identifier"),
