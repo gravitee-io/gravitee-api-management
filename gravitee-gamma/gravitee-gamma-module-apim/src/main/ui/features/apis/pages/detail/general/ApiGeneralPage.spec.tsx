@@ -162,11 +162,13 @@ import { toast } from '@gravitee/graphene-core';
 
 import { ApiGeneralPage } from './ApiGeneralPage';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
+import { useEnvCategories } from '../../../hooks/useEnvCategories';
 import * as apiServices from '../../../services/apis';
 
 const mockUseEnvironment = useEnvironment as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockUseHasPermission = useHasPermission as jest.Mock;
+const mockUseEnvCategories = useEnvCategories as jest.Mock;
 
 // lifecycleState: 'CREATED' so the delete button is not blocked by cannotDelete
 const STUB_API = {
@@ -197,8 +199,32 @@ const FEDERATED_API = {
     lifecycleState: 'CREATED',
 };
 
+// `Ops` matches the fixture's already-selected category; `payments` is the one a test can newly select.
+const ENV_CATEGORIES = [
+    { id: 'cat-ops', key: 'Ops', name: 'Ops' },
+    { id: 'cat-payments', key: 'payments', name: 'Payments' },
+];
+
 function makeClient() {
     return new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+}
+
+function describeControl(el: Element): string {
+    const tag = el.tagName.toLowerCase();
+    const id = el.getAttribute('id');
+    if (id) return `${tag}#${id}`;
+    const ariaLabel = el.getAttribute('aria-label');
+    if (ariaLabel) return `${tag}[${ariaLabel}]`;
+    const placeholder = el.getAttribute('placeholder');
+    if (placeholder) return `${tag}[${placeholder}]`;
+    if (el instanceof HTMLInputElement) return `input[type=${el.type}]`;
+    // An action card nests its own name in a leading <p> ahead of a longer description <p>
+    const heading = el.querySelector('p');
+    return `${tag}:${(heading ?? el).textContent?.trim()}`;
+}
+
+function interactiveControls(container: HTMLElement): string[] {
+    return [...container.querySelectorAll('input, textarea, button, [role="button"]')].map(describeControl).sort();
 }
 
 function renderPage(apiId = 'api-1', client = makeClient()) {
@@ -223,6 +249,7 @@ describe('ApiGeneralPage', () => {
         mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' });
         mockUseApiDetailContext.mockReturnValue({ api: STUB_API, isLoading: false, permissionsReady: true });
         mockUseHasPermission.mockReturnValue(true);
+        mockUseEnvCategories.mockReturnValue({ data: [], isLoading: false });
 
         jest.spyOn(apiServices, 'updateApiGeneral').mockResolvedValue({ ...STUB_API, name: 'Updated API' });
         jest.spyOn(apiServices, 'startApi').mockResolvedValue(undefined);
@@ -457,6 +484,18 @@ describe('ApiGeneralPage', () => {
         expect(screen.queryByRole('button', { name: /delete this api/i })).toBeNull();
     });
 
+    it('hides the API Events card for a natively-managed API when the user holds neither update nor delete permission', () => {
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-u') && !anyOf.includes('api-definition-d'),
+        );
+        renderPage();
+
+        expect(screen.queryByText('API Events')).toBeNull();
+        expect(screen.queryByText(/alter the runtime state of your API/i)).toBeNull();
+        expect(screen.queryByRole('button', { name: /start api/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /delete this api/i })).toBeNull();
+    });
+
     // ── Delete ───────────────────────────────────────────────────────────────
 
     it('opens delete dialog when Delete button is clicked', () => {
@@ -553,6 +592,19 @@ describe('ApiGeneralPage', () => {
         renderPage();
         expect(screen.getByRole('button', { name: /import/i })).not.toBeDisabled();
         expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
+    });
+
+    it('drops only Duplicate from the action strip for a native API', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, type: 'NATIVE' },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage();
+
+        expect(screen.queryByRole('button', { name: /duplicate/i })).toBeNull();
+        expect(screen.getByRole('button', { name: /export/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /import/i })).toBeInTheDocument();
     });
 
     it('hides the whole action strip, divider included, for a federated API', () => {
@@ -756,6 +808,15 @@ describe('ApiGeneralPage', () => {
         expect(screen.queryByRole('button', { name: /export/i })).toBeNull();
     });
 
+    it('hides the Allow in API Products toggle, switch included, when user lacks api-definition-r permission', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-r'));
+        const { container } = renderPage();
+
+        expect(screen.queryByText('Allow in API Products')).toBeNull();
+        // The Switch is the page's only checkbox outside the export/duplicate sheets, which are closed here
+        expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
+    });
+
     it('hides Import and Duplicate buttons when user lacks api-definition-c permission', () => {
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-c'));
         renderPage();
@@ -805,5 +866,191 @@ describe('ApiGeneralPage', () => {
         fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Changed' } });
         // Input is disabled so value won't actually change, but even if it did, save must not appear
         expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+    });
+
+    it('disables Import and Duplicate when API is managed by Kubernetes operator', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, definitionContext: { origin: 'KUBERNETES' } },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage();
+
+        expect(screen.getByRole('button', { name: /import/i })).toBeDisabled();
+        expect(screen.getByRole('button', { name: /duplicate/i })).toBeDisabled();
+    });
+
+    // ── Federated fields, control inventory, and images ──────────────────────
+
+    describe('for a federated API', () => {
+        beforeEach(() => {
+            mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
+        });
+
+        it('renders the five supported fields as enabled controls', () => {
+            mockUseEnvCategories.mockReturnValue({ data: ENV_CATEGORIES, isLoading: false });
+            const { container } = renderPage('federated-api-1');
+
+            expect((screen.getByRole('textbox', { name: /name/i }) as HTMLInputElement).disabled).toBe(false);
+            expect((screen.getByRole('textbox', { name: /version/i }) as HTMLInputElement).disabled).toBe(false);
+            expect((screen.getByRole('textbox', { name: /description/i }) as HTMLTextAreaElement).disabled).toBe(false);
+
+            const labelsInput = screen.getByRole('textbox', { name: /labels/i }) as HTMLInputElement;
+            fireEvent.change(labelsInput, { target: { value: 'beta' } });
+            expect(labelsInput.value).toBe('beta');
+
+            expect(container.querySelector('button#api-categories')).not.toBeDisabled();
+        });
+
+        const supportedFieldEdits: { field: string; edit: () => void; patch: Record<string, unknown> }[] = [
+            {
+                field: 'name',
+                edit: () =>
+                    fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } }),
+                patch: { name: 'Renamed Federated API' },
+            },
+            {
+                field: 'version',
+                edit: () => fireEvent.change(screen.getByRole('textbox', { name: /version/i }), { target: { value: 'v2.0' } }),
+                patch: { apiVersion: 'v2.0' },
+            },
+            {
+                field: 'description',
+                edit: () =>
+                    fireEvent.change(screen.getByRole('textbox', { name: /description/i }), { target: { value: 'A federated API' } }),
+                patch: { description: 'A federated API' },
+            },
+            {
+                field: 'labels',
+                edit: () => {
+                    const labelsInput = screen.getByRole('textbox', { name: /labels/i });
+                    fireEvent.change(labelsInput, { target: { value: 'beta' } });
+                    fireEvent.keyDown(labelsInput, { key: 'Enter' });
+                },
+                patch: { labels: ['alpha', 'beta'] },
+            },
+            {
+                field: 'categories',
+                edit: () => fireEvent.click(screen.getByLabelText('Payments')),
+                patch: { categories: ['Ops', 'payments'] },
+            },
+        ];
+
+        it.each(supportedFieldEdits)('sends an edited $field through the FEDERATED update path on Save', async ({ edit, patch }) => {
+            mockUseEnvCategories.mockReturnValue({ data: ENV_CATEGORIES, isLoading: false });
+            renderPage('federated-api-1');
+
+            edit();
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => expect(apiServices.updateApiGeneral).toHaveBeenCalledTimes(1));
+            expect(apiServices.updateApiGeneral).toHaveBeenCalledWith(
+                'DEFAULT',
+                'federated-api-1',
+                expect.objectContaining({ definitionVersion: 'FEDERATED' }),
+                expect.objectContaining(patch),
+            );
+        });
+
+        // No page to reload in a component test; the checkable equivalent is that the detail query is
+        // evicted, so the next read of the API comes from the server rather than from the cached value.
+        it('invalidates the API detail query once the save resolves', async () => {
+            const client = makeClient();
+            const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
+            renderPage('federated-api-1', client);
+
+            fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-detail', 'DEFAULT', 'federated-api-1'] }));
+        });
+
+        // ── Complete interactive-control inventory ───────────────────────────
+
+        // The last three are markup rather than fields: the Popover mock ignores its `open` prop so the
+        // category filter input is always mounted, and each ImagePicker hides an sr-only file input
+        // behind its div[role=button]. The fixture's single label produces the one chip-removal button;
+        // it carries no `_links`, which is why neither ImagePicker renders a Remove button.
+        const federatedInteractiveControls = [
+            'input#api-name',
+            'input#api-version',
+            'textarea#api-description',
+            'input#api-labels',
+            'button[Remove alpha]',
+            'button#api-categories',
+            'div[Upload Picture]',
+            'div[Upload Background]',
+            'button:Delete this API',
+            'input[Filter categories…]',
+            'input[type=file]',
+            'input[type=file]',
+        ];
+
+        it('renders no interactive control beyond the supported fields, the image pickers, and Delete', () => {
+            const { container } = renderPage('federated-api-1');
+
+            expect(interactiveControls(container)).toEqual([...federatedInteractiveControls].sort());
+        });
+
+        it('adds only Save and Discard to that set once the form is dirty', () => {
+            const { container } = renderPage('federated-api-1');
+
+            fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } });
+
+            expect(interactiveControls(container)).toEqual(
+                [...federatedInteractiveControls, 'button:Discard', 'button:Save changes'].sort(),
+            );
+        });
+
+        // ── Image uploads ────────────────────────────────────────────────────
+
+        it.each([
+            ['Picture', 0],
+            ['Background', 1],
+        ])('opens the %s file chooser from its upload control', (label, index) => {
+            const { container } = renderPage('federated-api-1');
+            const fileInput = container.querySelectorAll('input[type="file"]')[index] as HTMLInputElement;
+            const openChooser = jest.spyOn(fileInput, 'click');
+
+            fireEvent.click(screen.getByRole('button', { name: new RegExp(`upload ${label}`, 'i') }));
+
+            expect(openChooser).toHaveBeenCalledTimes(1);
+        });
+
+        it('persists a selected Picture immediately, with no Save click and no dirty form', async () => {
+            const pictureSpy = jest.spyOn(apiServices, 'updateApiPicture').mockResolvedValue(undefined);
+            const { container } = renderPage('federated-api-1');
+
+            const pictureInput = container.querySelectorAll('input[type="file"]')[0] as HTMLInputElement;
+            await act(async () => {
+                fireEvent.change(pictureInput, { target: { files: [new File(['png'], 'picture.png', { type: 'image/png' })] } });
+            });
+
+            await waitFor(() =>
+                expect(pictureSpy).toHaveBeenCalledWith('DEFAULT', 'federated-api-1', expect.stringMatching(/^data:image\/png;base64,/)),
+            );
+            expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+            expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
+        });
+
+        // Both pickers sit in the same row and differ only by props, so a mis-wired onSelect would still
+        // fire "some" image mutation — the Picture spy is what pins the Background picker to its own call.
+        it('persists a selected Background immediately, leaving the Picture request unsent', async () => {
+            const backgroundSpy = jest.spyOn(apiServices, 'updateApiBackground').mockResolvedValue(undefined);
+            const pictureSpy = jest.spyOn(apiServices, 'updateApiPicture').mockResolvedValue(undefined);
+            const { container } = renderPage('federated-api-1');
+
+            const backgroundInput = container.querySelectorAll('input[type="file"]')[1] as HTMLInputElement;
+            await act(async () => {
+                fireEvent.change(backgroundInput, { target: { files: [new File(['png'], 'background.png', { type: 'image/png' })] } });
+            });
+
+            await waitFor(() =>
+                expect(backgroundSpy).toHaveBeenCalledWith('DEFAULT', 'federated-api-1', expect.stringMatching(/^data:image\/png;base64,/)),
+            );
+            expect(pictureSpy).not.toHaveBeenCalled();
+            expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+            expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
+        });
     });
 });
