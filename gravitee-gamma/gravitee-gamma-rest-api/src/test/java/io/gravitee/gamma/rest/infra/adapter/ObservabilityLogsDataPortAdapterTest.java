@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.infra.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,9 +41,13 @@ import io.gravitee.apim.core.user.model.UserContext;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
+import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
+import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogsSearchQuery;
@@ -56,12 +61,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -124,6 +132,40 @@ class ObservabilityLogsDataPortAdapterTest {
             .hasMessageContaining("API_TYPE");
 
         verifyNoInteractions(connectionLogsCrudService);
+    }
+
+    /**
+     * The logs screen offers every LOGS filter of the catalog, while the connection log search applies only
+     * the names its switch translates and answers 400 on the rest. Nothing links the two, so they drift
+     * silently: a filter opted into LOGS without a search criterion is offered in the picker and then rejected.
+     */
+    @ParameterizedTest
+    @MethodSource("filtersTheConnectionLogsScreenOffers")
+    void should_translate_every_filter_the_connection_logs_screen_offers(FilterSpec spec) {
+        stubEmptySearchResult();
+        var query = queryWith(new FilterCondition(spec.name(), spec.operators().getFirst(), List.of(sampleValue(spec))));
+
+        assertThatCode(() -> adapter.searchLogs(ORG, ENV, query)).doesNotThrowAnyException();
+    }
+
+    static Stream<FilterSpec> filtersTheConnectionLogsScreenOffers() {
+        // Scope filters are stripped by the use case before the adapter sees them, and AUTHZ_* filters go to
+        // the decision search, which DecisionFilterAllowlistTest guards.
+        var scopeFilters = Set.of("API", "API_TYPE", ExtensibleFilters.RECORD_TYPE.filterName());
+        return Arrays.stream(StaticFilters.values())
+            .map(StaticFilters::toSpec)
+            .filter(spec -> spec.signals().contains(Signal.LOGS))
+            .filter(spec -> !scopeFilters.contains(spec.name()))
+            .filter(spec -> !spec.name().startsWith("AUTHZ_"));
+    }
+
+    private static String sampleValue(FilterSpec spec) {
+        return switch (spec.type()) {
+            case ENUM -> spec.enumValues().getFirst().value();
+            case NUMBER -> spec.range() != null ? String.valueOf(spec.range().min()) : "200";
+            case BOOLEAN -> "true";
+            case KEYWORD, STRING -> "value";
+        };
     }
 
     @Test
@@ -386,6 +428,26 @@ class ObservabilityLogsDataPortAdapterTest {
             adapter.searchLogs(ORG, ENV, query);
 
             assertThat(captureSearchFilters().llmProxyProviders()).containsExactly("openai");
+        }
+
+        @Test
+        void should_translate_llm_proxy_tool() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("LLM_PROXY_TOOL", FilterOperator.IN, List.of("get_weather", "search")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().llmProxyTools()).containsExactlyInAnyOrder("get_weather", "search");
+        }
+
+        @Test
+        void should_translate_llm_proxy_request_kind() {
+            stubEmptySearchResult();
+            var query = queryWith(new FilterCondition("LLM_PROXY_REQUEST_KIND", FilterOperator.EQ, List.of("side")));
+
+            adapter.searchLogs(ORG, ENV, query);
+
+            assertThat(captureSearchFilters().llmProxyRequestKinds()).containsExactly("side");
         }
 
         @Test

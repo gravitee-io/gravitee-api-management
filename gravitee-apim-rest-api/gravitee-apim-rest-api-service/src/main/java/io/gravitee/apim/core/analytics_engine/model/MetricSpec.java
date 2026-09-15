@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.analytics_engine.model;
 
 import java.util.List;
+import java.util.Set;
 
 public record MetricSpec(
     Name name,
@@ -26,6 +27,25 @@ public record MetricSpec(
     List<FilterSpec.Name> filters,
     List<FacetSpec.Name> facets
 ) {
+    /** Copy without the given facets, so a listing can hide what the validator still accepts. */
+    public MetricSpec withoutFacets(Set<FacetSpec.Name> hidden) {
+        if (hidden.isEmpty() || facets == null) {
+            return this;
+        }
+        return new MetricSpec(
+            name,
+            label,
+            apis,
+            unit,
+            measures,
+            filters,
+            facets
+                .stream()
+                .filter(facet -> !hidden.contains(facet))
+                .toList()
+        );
+    }
+
     public enum Name {
         HTTP_REQUESTS,
         HTTP_ERRORS,

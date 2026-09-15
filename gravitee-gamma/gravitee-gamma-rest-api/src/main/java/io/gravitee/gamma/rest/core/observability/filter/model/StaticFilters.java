@@ -168,14 +168,29 @@ public enum StaticFilters {
         Set.of(ApiType.LLM)
     ),
     /**
-     * A tool the agent ran and handed the result back for. Analytics only: the field it filters on is
-     * multi-valued, and the log search has no {@code llmProxyTools} criterion to carry it.
+     * A tool the agent ran and handed the result back for. The field is multi-valued, so on the log search
+     * it reads "contains": a request matches when any of the tools it carries is among the values.
      */
-    LLM_PROXY_TOOL("LLM Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.LLM)),
+    LLM_PROXY_TOOL("LLM Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
+    /**
+     * The same tool, identified rather than named: one {@code rawName|fingerprint} per distinct tool of
+     * an exchange, or {@code rawName|} when its definition carries no description. Analytics only: the log search has no criterion to carry it.
+     */
+    LLM_PROXY_TOOL_REF("LLM Tool ref", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.LLM)),
 
     // --- MCP ------------------------------------------------------------------------------------
     MCP_PROXY_METHOD("MCP Method", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
     MCP_PROXY_TOOL("MCP Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
+    /**
+     * The fingerprint of the tool a {@code tools/call} ran. Analytics only: the log search has no criterion
+     * carrying it.
+     */
+    MCP_PROXY_TOOL_FINGERPRINT("MCP Tool fingerprint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.MCP)),
+    /**
+     * A tool a {@code tools/list} answered with, as {@code servedName|fingerprint}. Analytics only: the
+     * log search has no criterion to carry it.
+     */
+    MCP_PROXY_TOOL_CATALOG("MCP Tool advertised", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.MCP)),
     MCP_PROXY_RESOURCE("MCP Resource", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
     MCP_PROXY_PROMPT("MCP Prompt", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
 

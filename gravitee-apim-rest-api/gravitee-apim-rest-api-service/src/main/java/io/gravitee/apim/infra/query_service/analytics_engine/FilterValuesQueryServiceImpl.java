@@ -99,7 +99,8 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case ZONE -> "zone";
             case HTTP_METHOD -> "http-method";
             case HTTP_STATUS_CODE_GROUP, HTTP_STATUS -> "status";
-            case HTTP_PATH -> "path";
+            // the gateway reports the path after the context path as path-info; `path` is declared but never written
+            case HTTP_PATH -> "path-info.keyword";
             case HTTP_PATH_MAPPING -> "mapped-path";
             case GEO_IP_COUNTRY -> "geoip.country_iso_code";
             case GEO_IP_REGION -> "geoip.region_name";
@@ -113,8 +114,11 @@ public class FilterValuesQueryServiceImpl implements FilterValuesQueryService {
             case LLM_PROXY_CONVERSATION -> "additional-metrics.keyword_llm-proxy_conversation-id";
             case LLM_PROXY_REQUEST_KIND -> "additional-metrics.keyword_llm-proxy_request-kind";
             case LLM_PROXY_TOOL -> "additional-metrics.keyword_llm-proxy_tool-names";
+            case LLM_PROXY_TOOL_REF -> "additional-metrics.keyword_llm-proxy_tool-refs";
             case MCP_PROXY_METHOD -> "additional-metrics.keyword_mcp-proxy_method";
             case MCP_PROXY_TOOL -> "additional-metrics.keyword_mcp-proxy_tools/call";
+            case MCP_PROXY_TOOL_FINGERPRINT -> "additional-metrics.keyword_mcp-proxy_tool-fingerprint";
+            case MCP_PROXY_TOOL_CATALOG -> "additional-metrics.keyword_mcp-proxy_tool-catalog";
             case MCP_PROXY_RESOURCE -> "additional-metrics.keyword_mcp-proxy_resources/read";
             case MCP_PROXY_PROMPT -> "additional-metrics.keyword_mcp-proxy_prompts/get";
             case EDGE_PROVIDER -> "additional-metrics.keyword_edge_provider";

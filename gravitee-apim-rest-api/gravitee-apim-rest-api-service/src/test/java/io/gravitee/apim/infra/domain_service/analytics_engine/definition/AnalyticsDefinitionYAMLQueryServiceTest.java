@@ -150,7 +150,8 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                     FacetSpec.Name.LLM_PROXY_MODEL,
                     FacetSpec.Name.LLM_PROXY_PROVIDER,
                     FacetSpec.Name.LLM_PROXY_CONVERSATION,
-                    FacetSpec.Name.LLM_PROXY_TOOL
+                    FacetSpec.Name.LLM_PROXY_TOOL,
+                    FacetSpec.Name.LLM_PROXY_TOOL_REF
                 );
 
             assertThat(service.getFilters(metric))
@@ -159,8 +160,81 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                     FilterSpec.Name.LLM_PROXY_MODEL,
                     FilterSpec.Name.LLM_PROXY_PROVIDER,
                     FilterSpec.Name.LLM_PROXY_CONVERSATION,
-                    FilterSpec.Name.LLM_PROXY_TOOL
+                    FilterSpec.Name.LLM_PROXY_TOOL,
+                    FilterSpec.Name.LLM_PROXY_TOOL_REF
                 );
+        }
+
+        /** Same family, same reason, for the mcp tool dimensions the count and rate metrics carry. */
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = { "HTTP_REQUESTS", "HTTP_ERRORS", "HTTP_ERROR_RATE", "HTTP_SERVER_ERROR_RATE", "HTTP_REQUESTS_PER_SECOND" }
+        )
+        void should_offer_every_mcp_proxy_tool_dimension_to_the_whole_http_count_and_rate_family(MetricSpec.Name metric) {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            assertThat(service.getFacets(metric))
+                .extracting(FacetSpec::name)
+                .contains(
+                    FacetSpec.Name.MCP_PROXY_TOOL,
+                    FacetSpec.Name.MCP_PROXY_TOOL_CATALOG,
+                    FacetSpec.Name.MCP_PROXY_TOOL_PRICE_STATUS,
+                    FacetSpec.Name.MCP_PROXY_TOOL_BILLED
+                );
+
+            assertThat(service.getFilters(metric))
+                .extracting(FilterSpec::name)
+                .contains(
+                    FilterSpec.Name.MCP_PROXY_TOOL,
+                    FilterSpec.Name.MCP_PROXY_TOOL_FINGERPRINT,
+                    FilterSpec.Name.MCP_PROXY_TOOL_CATALOG,
+                    FilterSpec.Name.MCP_PROXY_TOOL_PRICE_STATUS,
+                    FilterSpec.Name.MCP_PROXY_TOOL_BILLED
+                );
+        }
+
+        /** The fingerprint is an internal facet: the validator's metric keeps it, every listing drops it. */
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = { "HTTP_REQUESTS", "HTTP_ERRORS", "HTTP_ERROR_RATE", "HTTP_SERVER_ERROR_RATE", "HTTP_REQUESTS_PER_SECOND" }
+        )
+        void should_accept_the_mcp_proxy_tool_fingerprint_facet_without_advertising_it(MetricSpec.Name metric) {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            assertThat(service.findMetric(metric)).hasValueSatisfying(spec ->
+                assertThat(spec.facets()).contains(FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT)
+            );
+            assertThat(service.getFacets(metric)).extracting(FacetSpec::name).doesNotContain(FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT);
+            assertThat(service.getMetrics(ApiSpec.Name.HTTP_PROXY))
+                .filteredOn(spec -> spec.name() == metric)
+                .singleElement()
+                .satisfies(spec -> assertThat(spec.facets()).doesNotContain(FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT));
+        }
+
+        /**
+         * Grouping or filtering by the tool name is where two tools sharing a name get conflated — tool cost
+         * and value above all — so wherever the name is offered, the identity is offered beside it. A metric
+         * accepting one and rejecting the other reads as a broken widget, not as a catalog gap.
+         */
+        @Test
+        void should_offer_the_mcp_tool_identity_wherever_the_mcp_tool_name_is_offered() {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            Arrays.stream(MetricSpec.Name.values()).forEach(metric -> {
+                var facets = service.getFacets(metric).stream().map(FacetSpec::name).toList();
+                if (facets.contains(FacetSpec.Name.MCP_PROXY_TOOL)) {
+                    assertThat(facets).as("facets of %s", metric).contains(FacetSpec.Name.MCP_PROXY_TOOL_CATALOG);
+                }
+
+                var filters = service.getFilters(metric).stream().map(FilterSpec::name).toList();
+                if (filters.contains(FilterSpec.Name.MCP_PROXY_TOOL)) {
+                    assertThat(filters)
+                        .as("filters of %s", metric)
+                        .contains(FilterSpec.Name.MCP_PROXY_TOOL_FINGERPRINT, FilterSpec.Name.MCP_PROXY_TOOL_CATALOG);
+                }
+            });
         }
     }
 

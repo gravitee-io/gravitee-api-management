@@ -223,10 +223,14 @@ class FilterValuesQueryServiceImplTest {
 
     static Stream<Arguments> filterToEsFieldMappings() {
         return Stream.of(
+            Arguments.of(FilterSpec.Name.HTTP_PATH, "path-info.keyword"),
             Arguments.of(FilterSpec.Name.EDGE_PROVIDER, "additional-metrics.keyword_edge_provider"),
             Arguments.of(FilterSpec.Name.EDGE_PROCESS, "additional-metrics.keyword_edge_process"),
             Arguments.of(FilterSpec.Name.EDGE_CLIENT, "client-identifier"),
             Arguments.of(FilterSpec.Name.EDGE_TYPE, "additional-metrics.keyword_edge_type"),
+            Arguments.of(FilterSpec.Name.LLM_PROXY_TOOL_REF, "additional-metrics.keyword_llm-proxy_tool-refs"),
+            Arguments.of(FilterSpec.Name.MCP_PROXY_TOOL_FINGERPRINT, "additional-metrics.keyword_mcp-proxy_tool-fingerprint"),
+            Arguments.of(FilterSpec.Name.MCP_PROXY_TOOL_CATALOG, "additional-metrics.keyword_mcp-proxy_tool-catalog"),
             Arguments.of(FilterSpec.Name.MESSAGE_CONNECTOR_TYPE, "connector-type"),
             Arguments.of(FilterSpec.Name.ENTRYPOINT, "entrypoint-id"),
             Arguments.of(FilterSpec.Name.ERROR_KEY, "error-key"),

@@ -33,10 +33,12 @@ public class FilterValuesQueryAdapter {
             boolFilter.add(JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", query.from(), "lte", query.to()))));
         }
 
-        if (query.searchPattern() != null && !query.searchPattern().isBlank()) {
-            // Exact match on the keyword field (case-insensitive); avoids costly leading/trailing wildcards.
-            var termValue = JsonObject.of("value", query.searchPattern(), "case_insensitive", true);
-            boolFilter.add(JsonObject.of("term", JsonObject.of(query.esFieldName(), termValue)));
+        var searching = query.searchPattern() != null && !query.searchPattern().isBlank();
+        if (searching) {
+            // Prefix match on the keyword field (case-insensitive): a fingerprint or a name|fingerprint value is
+            // never typed whole, and a prefix still avoids the cost of a leading wildcard.
+            var prefixValue = JsonObject.of("value", query.searchPattern(), "case_insensitive", true);
+            boolFilter.add(JsonObject.of("prefix", JsonObject.of(query.esFieldName(), prefixValue)));
         }
 
         if (query.apiIds() != null) {
@@ -49,6 +51,22 @@ public class FilterValuesQueryAdapter {
 
         if (!boolFilter.isEmpty()) {
             root.put("query", JsonObject.of("bool", JsonObject.of("filter", boolFilter)));
+        }
+
+        if (searching) {
+            // The document filter keeps every value of a matching multi-valued document, and a composite terms
+            // source takes no include, so a search aggregates plain terms narrowed to the matching values. It is
+            // not paged: the matches of one pattern fit a page.
+            var terms = JsonObject.of(
+                "field",
+                query.esFieldName(),
+                "size",
+                query.size(),
+                "include",
+                caseInsensitiveRegex(query.searchPattern()) + ".*"
+            );
+            root.put("aggs", JsonObject.of("filter_values", JsonObject.of("terms", terms)));
+            return root.encode();
         }
 
         var termsSource = JsonObject.of("field", query.esFieldName());
@@ -70,5 +88,27 @@ public class FilterValuesQueryAdapter {
         );
 
         return root.encode();
+    }
+
+    private static final String REGEX_RESERVED = ".?+*|{}[]()\"\\#@&<>~";
+
+    /** A Lucene regex matching {@code pattern} literally, ignoring case: the include syntax has no flag for it. */
+    private static String caseInsensitiveRegex(String pattern) {
+        var regex = new StringBuilder();
+        pattern
+            .codePoints()
+            .forEach(codePoint -> {
+                var lower = Character.toLowerCase(codePoint);
+                var upper = Character.toUpperCase(codePoint);
+                if (lower != upper) {
+                    regex.append('[').appendCodePoint(lower).appendCodePoint(upper).append(']');
+                } else {
+                    if (REGEX_RESERVED.indexOf(codePoint) >= 0) {
+                        regex.append('\\');
+                    }
+                    regex.appendCodePoint(codePoint);
+                }
+            });
+        return regex.toString();
     }
 }

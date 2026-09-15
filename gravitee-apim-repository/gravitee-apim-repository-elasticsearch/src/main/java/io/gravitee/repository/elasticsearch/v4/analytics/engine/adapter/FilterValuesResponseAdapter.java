@@ -42,9 +42,21 @@ public class FilterValuesResponseAdapter {
 
         var values = extractValues(agg);
         var afterKey = extractAfterKey(agg);
-        var totalCount = extractTotalCount(response);
+        // A search answers with plain terms buckets, whose count is the total: there is no cardinality beside them.
+        var totalCount = hasTermsBuckets(agg) ? values.size() : extractTotalCount(response);
 
         return new FilterValuesResult(values, afterKey, totalCount);
+    }
+
+    private boolean hasTermsBuckets(Aggregation agg) {
+        var buckets = agg.getBuckets();
+        if (buckets == null) {
+            return false;
+        }
+        if (buckets.isEmpty()) {
+            return false;
+        }
+        return buckets.getFirst().path("key").isTextual();
     }
 
     private long extractTotalCount(SearchResponse response) {
@@ -64,7 +76,9 @@ public class FilterValuesResponseAdapter {
         var values = new ArrayList<String>(buckets.size());
         for (var bucket : buckets) {
             var keyNode = bucket.get("key");
-            if (keyNode != null && keyNode.has("value")) {
+            if (keyNode != null && keyNode.isTextual()) {
+                values.add(keyNode.asText());
+            } else if (keyNode != null && keyNode.has("value")) {
                 values.add(keyNode.get("value").asText());
             }
         }
@@ -78,7 +92,7 @@ public class FilterValuesResponseAdapter {
         }
 
         var afterKey = new HashMap<String, Object>();
-        afterKeyNode.fields().forEachRemaining(entry -> afterKey.put(entry.getKey(), extractJsonValue(entry.getValue())));
+        afterKeyNode.properties().forEach(entry -> afterKey.put(entry.getKey(), extractJsonValue(entry.getValue())));
         return afterKey;
     }
 

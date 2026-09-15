@@ -91,16 +91,35 @@ class FilterValuesQueryAdapterTest {
     }
 
     @Test
-    void should_include_term_query_for_search_pattern() {
+    void should_include_prefix_query_for_search_pattern() {
         var query = FilterValuesQuery.builder().esFieldName("gateway").size(10).searchPattern("gw-1").build();
 
         var result = new JsonObject(adapter.adapt(query));
         var boolFilter = result.getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
         assertThat(boolFilter).hasSize(1);
 
-        var term = boolFilter.getJsonObject(0).getJsonObject("term").getJsonObject("gateway");
+        var term = boolFilter.getJsonObject(0).getJsonObject("prefix").getJsonObject("gateway");
         assertThat(term.getString("value")).isEqualTo("gw-1");
         assertThat(term.getBoolean("case_insensitive")).isTrue();
+    }
+
+    /**
+     * On a multi-valued field the document filter alone would also list every other value of the matching
+     * documents, and a composite terms source takes no include, so a search aggregates plain terms instead.
+     */
+    @Test
+    void should_aggregate_only_the_values_matching_the_search_pattern() {
+        var query = FilterValuesQuery.builder().esFieldName("tool-refs").size(10).searchPattern("Search|v1:ab").build();
+
+        var result = new JsonObject(adapter.adapt(query));
+        var aggs = result.getJsonObject("aggs");
+
+        assertThat(aggs.getJsonObject("total_count")).isNull();
+        assertThat(aggs.getJsonObject("filter_values").getJsonObject("composite")).isNull();
+        var terms = aggs.getJsonObject("filter_values").getJsonObject("terms");
+        assertThat(terms.getString("field")).isEqualTo("tool-refs");
+        assertThat(terms.getInteger("size")).isEqualTo(10);
+        assertThat(terms.getString("include")).isEqualTo("[sS][eE][aA][rR][cC][hH]\\|[vV]1:[aA][bB].*");
     }
 
     @Test
@@ -120,7 +139,7 @@ class FilterValuesQueryAdapterTest {
         var range = boolFilter.getJsonObject(0).getJsonObject("range").getJsonObject("@timestamp");
         assertThat(range.getLong("gte")).isEqualTo(1704067200000L);
 
-        var term = boolFilter.getJsonObject(1).getJsonObject("term").getJsonObject("gateway");
+        var term = boolFilter.getJsonObject(1).getJsonObject("prefix").getJsonObject("gateway");
         assertThat(term.getString("value")).isEqualTo("prod");
         assertThat(term.getBoolean("case_insensitive")).isTrue();
     }
@@ -163,7 +182,7 @@ class FilterValuesQueryAdapterTest {
         assertThat(boolFilter).hasSize(3);
 
         assertThat(boolFilter.getJsonObject(0).getJsonObject("range")).isNotNull();
-        assertThat(boolFilter.getJsonObject(1).getJsonObject("term")).isNotNull();
+        assertThat(boolFilter.getJsonObject(1).getJsonObject("prefix")).isNotNull();
         assertThat(boolFilter.getJsonObject(2).getJsonObject("terms").getJsonArray("api-id")).containsExactly("api-1");
     }
 }

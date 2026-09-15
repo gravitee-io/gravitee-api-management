@@ -18,7 +18,11 @@ package io.gravitee.apim.core.analytics_engine.model;
 import io.gravitee.apim.core.observability.model.NumberRange;
 import java.util.List;
 
-public record FacetSpec(Name name, String label, String type, List<Object> enumValues, NumberRange range) {
+/**
+ * @param internal a facet the engine accepts but the definition endpoints never advertise — its bucket keys are
+ *     not readable on a chart legend, yet a server-side caller still needs to group by it
+ */
+public record FacetSpec(Name name, String label, String type, List<Object> enumValues, NumberRange range, boolean internal) {
     public enum Name {
         API,
         APPLICATION,
@@ -48,8 +52,11 @@ public record FacetSpec(Name name, String label, String type, List<Object> enumV
         LLM_PROXY_CONVERSATION,
         LLM_PROXY_REQUEST_KIND,
         LLM_PROXY_TOOL,
+        LLM_PROXY_TOOL_REF,
         MCP_PROXY_METHOD,
         MCP_PROXY_TOOL,
+        MCP_PROXY_TOOL_FINGERPRINT,
+        MCP_PROXY_TOOL_CATALOG,
         MCP_PROXY_RESOURCE,
         MCP_PROXY_PROMPT,
         MCP_PROXY_TOOL_PRICE_STATUS,
