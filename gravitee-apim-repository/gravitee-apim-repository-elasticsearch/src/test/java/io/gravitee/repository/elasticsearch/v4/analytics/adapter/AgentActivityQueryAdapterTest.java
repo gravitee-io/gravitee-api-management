@@ -153,10 +153,11 @@ class AgentActivityQueryAdapterTest {
     class AdaptDecisions {
 
         @Test
-        void should_build_terms_query_on_request_ids() {
+        void should_build_terms_query_on_kebab_request_id() {
             var query = new AgentActivityQuery("api-a2a", Collections.<String>emptyList(), "actor-1", 0L, 0L, 0, 25);
             var result = AgentActivityQueryAdapter.adaptDecisions(query, Set.of("req-1", "req-2"));
             assertThatJson(result).inPath("$.query.bool.must").isArray().hasSize(2);
+            assertThatJson(result).inPath("$.query.bool.must[0].terms['request-id']").isArray().contains("req-1", "req-2");
         }
 
         @Test
@@ -169,7 +170,7 @@ class AgentActivityQueryAdapterTest {
                     "\"query\": {" +
                     "  \"bool\": {" +
                     "    \"must\": [" +
-                    "      { \"terms\": { \"requestId\": [\"req-1\"] } }" +
+                    "      { \"terms\": { \"request-id\": [\"req-1\"] } }" +
                     "    ]" +
                     "  }" +
                     "}" +
