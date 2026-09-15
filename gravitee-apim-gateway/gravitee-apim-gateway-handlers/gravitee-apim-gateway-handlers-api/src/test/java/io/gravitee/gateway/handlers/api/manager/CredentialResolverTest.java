@@ -150,9 +150,11 @@ class CredentialResolverTest {
             resolver = new CredentialResolver(credentialManager, spiedEncryptor, new ObjectMapper());
             deploy("{\"clientSecret\": \"s3cr3t\"}");
 
-            resolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD);
-            resolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD);
+            String first = resolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD);
+            String second = resolver.resolve("env-1", "credential-1", "clientSecret", SECRET_FIELD);
 
+            assertThat(first).isEqualTo("s3cr3t");
+            assertThat(second).isEqualTo("s3cr3t");
             verify(spiedEncryptor, times(2)).decrypt(anyString());
         }
 
