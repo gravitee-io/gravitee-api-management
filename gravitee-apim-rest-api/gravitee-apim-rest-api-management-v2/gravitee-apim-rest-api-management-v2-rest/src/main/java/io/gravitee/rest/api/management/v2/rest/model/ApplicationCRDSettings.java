@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -73,5 +74,6 @@ public class ApplicationCRDSettings {
         private List<String> grantTypes;
         private List<String> redirectUris;
         private String applicationType;
+        private Map<String, String> additionalClientMetadata;
     }
 }
