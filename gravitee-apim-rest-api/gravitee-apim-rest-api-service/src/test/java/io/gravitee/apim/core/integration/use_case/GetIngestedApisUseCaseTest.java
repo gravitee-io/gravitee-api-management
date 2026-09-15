@@ -67,7 +67,7 @@ class GetIngestedApisUseCaseTest {
 
         AssertionsForClassTypes.assertThat(ingestedApis)
             .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-            .containsExactly(1, 1L, 1L);
+            .containsExactly(0, 1L, 1L);
     }
 
     @ParameterizedTest
@@ -92,8 +92,8 @@ class GetIngestedApisUseCaseTest {
 
     private static Stream<Arguments> should_return_an_empty_page_when_the_requested_page_starts_past_the_last_match() {
         return Stream.of(
-            Arguments.of(federatedApis("api-1"), new PageableImpl(2, 10), 2, 1L),
-            Arguments.of(federatedApis("api-1", "api-2", "api-3"), new PageableImpl(3, 2), 3, 3L)
+            Arguments.of(federatedApis("api-1"), new PageableImpl(2, 10), 1, 1L),
+            Arguments.of(federatedApis("api-1", "api-2", "api-3"), new PageableImpl(3, 2), 2, 3L)
         );
     }
 

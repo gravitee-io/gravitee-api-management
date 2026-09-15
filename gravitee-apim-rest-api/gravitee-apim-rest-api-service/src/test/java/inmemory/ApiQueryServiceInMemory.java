@@ -193,7 +193,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     }
 
     private static Page<Api> pageOf(List<Api> matches, Pageable pageable) {
-        var pageNumber = pageable.getPageNumber();
+        var pageNumber = repositoryPageNumberOf(pageable.getPageNumber());
         var pageSize = pageable.getPageSize();
 
         var page = windowOf(matches, pageNumber, pageSize);
@@ -201,8 +201,12 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
         return new Page<>(page.stream().map(ApiQueryServiceInMemory::withoutApiDefinition).toList(), pageNumber, pageSize, matches.size());
     }
 
-    private static <T> List<T> windowOf(List<T> items, int pageNumber, int pageSize) {
-        var from = Math.min(Math.max(pageNumber - 1, 0) * pageSize, items.size());
+    private static int repositoryPageNumberOf(int callersPageNumber) {
+        return Math.max(callersPageNumber - 1, 0);
+    }
+
+    private static <T> List<T> windowOf(List<T> items, int repositoryPageNumber, int pageSize) {
+        var from = Math.min(repositoryPageNumber * pageSize, items.size());
         var to = Math.min(from + pageSize, items.size());
         return items.subList(from, to);
     }
