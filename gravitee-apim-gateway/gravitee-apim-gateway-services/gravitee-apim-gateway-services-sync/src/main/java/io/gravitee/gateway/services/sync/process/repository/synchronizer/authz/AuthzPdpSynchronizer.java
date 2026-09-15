@@ -391,6 +391,17 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             });
     }
 
+    /**
+     * Stop re-driving a provision. Its absorbed scopes go with it: nothing else will ever drop them, and a
+     * scope left hosted for an engine this node no longer provisions makes that engine un-evictable, because
+     * every later unmark finds the ghost and takes the "another scope remains" branch.
+     */
+    private void giveUpOnProvision(AuthzPdpProvisionDeployable deployable, String scopeKey) {
+        pendingProvisions.remove(scopeKey);
+        pendingProvisionAttempts.remove(scopeKey);
+        dropAbsorbedScopes(deployable);
+    }
+
     private void dropAbsorbedScopes(AuthzPdpProvisionDeployable deployable) {
         for (String absorbed : deployable.absorbedScopes()) {
             dropScopeLocally(deployable.environmentId(), absorbed, scopeKey(deployable.environmentId(), absorbed));
@@ -439,8 +450,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     String rk = scopeKey(deployable);
                     if (!matchesNodeTag(deployable)) {
                         // Node was re-sharded away from this tag — stop owning the scope.
-                        pendingProvisions.remove(rk);
-                        pendingProvisionAttempts.remove(rk);
+                        giveUpOnProvision(deployable, rk);
                         return false;
                     }
                     int attempts = pendingProvisionAttempts.merge(rk, 1, Integer::sum);
@@ -451,8 +461,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                             routingScope(deployable.targetPdpId(), deployable.tag()),
                             attempts - 1
                         );
-                        pendingProvisions.remove(rk);
-                        pendingProvisionAttempts.remove(rk);
+                        giveUpOnProvision(deployable, rk);
                         return false;
                     }
                     return true;
