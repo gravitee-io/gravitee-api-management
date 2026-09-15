@@ -2,16 +2,22 @@ suite: Test Management API configmap for the OTel traces repository scope
 templates:
   - "api/api-configmap.yaml"
 tests:
-  - it: Default values render no otel-traces block (type "none")
+  - it: Default values render otel-traces with type "none" and no elasticsearch block
     template: api/api-configmap.yaml
     asserts:
       - hasDocuments:
           count: 1
       - isKind:
           of: ConfigMap
+      # The configmap replaces the whole gravitee.yml: without an explicit `type: none` the optional
+      # OTEL_TRACES scope loads no repository at all, and the gamma trace explorer fails with a 500
+      # instead of falling back to the no-op TracingRepository.
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-traces:\\s+type: none"
       - notMatchRegex:
           path: data["gravitee.yml"]
-          pattern: "otel-traces:"
+          pattern: "otel-traces:\\s+type: none\\s+elasticsearch:"
 
   - it: Type elasticsearch renders the block with endpoints and index template
     template: api/api-configmap.yaml
@@ -105,8 +111,8 @@ tests:
         otelTraces:
           type: tempo
     asserts:
-      # The block-level guard is `ne … "none"`, so any non-"none" type renders `otel-traces.type: <value>`
-      # without forcing it through the ES branch. Future impls (PR 4 wires Tempo here) add their own block
+      # The block always renders `otel-traces.type: <value>`; only the elasticsearch type goes through
+      # the ES branch. Future impls (PR 4 wires Tempo here) add their own block
       # next to the elasticsearch one — this test pins that the structure is type-agnostic, not ES-only.
       - matchRegex:
           path: data["gravitee.yml"]
