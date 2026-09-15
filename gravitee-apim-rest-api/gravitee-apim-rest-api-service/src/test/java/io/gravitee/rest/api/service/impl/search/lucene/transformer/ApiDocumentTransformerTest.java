@@ -159,6 +159,7 @@ class ApiDocumentTransformerTest {
             Arguments.of("a v4 proxy api listening on tcp", v4ProxyApi(TcpListener.builder().build()), "V4_TCP_PROXY"),
             Arguments.of("a v4 proxy api listening on http", v4ProxyApi(HttpListener.builder().paths(List.of()).build()), "V4_HTTP_PROXY"),
             Arguments.of("a federated api", federatedApi(), "FEDERATED"),
+            Arguments.of("a federated agent", federatedAgent(), "FEDERATED_AGENT"),
             Arguments.of("a v2 api", v2Api(), "V2")
         );
     }
