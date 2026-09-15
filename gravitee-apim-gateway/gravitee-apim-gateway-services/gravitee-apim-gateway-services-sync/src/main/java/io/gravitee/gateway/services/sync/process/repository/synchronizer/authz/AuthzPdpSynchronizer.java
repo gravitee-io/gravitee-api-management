@@ -243,10 +243,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     d.targetPdpId()
                 );
                 if (!liveScopeKeys.contains(scopeKey(d))) {
-                    String scope = routingScope(d.targetPdpId(), d.tag());
-                    hostedScopes.unmarkHosted(d.environmentId(), scope);
-                    clearPending(scopeKey(d));
-                    revisions.forgetScope(d.environmentId(), scope);
+                    dropScopeLocally(d.environmentId(), routingScope(d.targetPdpId(), d.tag()), scopeKey(d));
                 }
                 continue;
             }
@@ -298,9 +295,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         String rk = scopeKey(deployable);
         // The PDP keys the engine by env:targetPdpId, so an evict tears down every routing scope on it. Relay it
         // only for the last routing scope this node hosts on the engine.
-        if (!provision && hostedScopes.unmarkHosted(deployable.environmentId(), scope)) {
-            clearPending(rk);
-            revisions.forgetScope(deployable.environmentId(), scope);
+        if (!provision && dropScopeLocally(deployable.environmentId(), scope, rk)) {
             log.debug(
                 "Not relaying AUTHZ_PDP evict for env [{}] scope [{}] — this node hosts another scope on the same engine",
                 deployable.environmentId(),
@@ -308,8 +303,10 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             );
             return Completable.complete();
         }
-        // raw membership, not serves(): gate on prior provision of this exact scope, not tag-serving
-        boolean wasHosted = hostedScopes.isHosted(deployable.environmentId(), scope);
+        // Raw membership, not serves(): gate on prior provision of this exact scope, not tag-serving. An
+        // unconfirmed evict counts as not provisioned, because the engine may already be torn down — that is
+        // what lets a PDP re-created inside the resync window hydrate instead of coming up empty.
+        boolean firstProvision = provision && (!hostedScopes.isHosted(deployable.environmentId(), scope) || pendingEvicts.containsKey(rk));
         String op = provision ? OP_PROVISION : OP_EVICT;
         JsonObject command = new JsonObject()
             .put("op", op)
@@ -327,7 +324,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     pendingProvisionAttempts.remove(rk);
                     pendingEvicts.remove(rk);
                     hostedScopes.markHosted(deployable.environmentId(), scope);
-                    if (!wasHosted) {
+                    if (firstProvision) {
                         provisionedScopes.add(deployable);
                     }
                 } else {
@@ -337,7 +334,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                 }
             })
             .onErrorResumeNext(t -> {
-                log.error("Failed to relay AUTHZ_PDP {} for targetPdpId [{}]", op, deployable.targetPdpId(), t);
+                log.error("Failed to relay AUTHZ_PDP {} for env [{}] scope [{}]", op, deployable.environmentId(), scope, t);
                 if (provision) {
                     // Re-drive on the next cycle independently of the event window — do NOT report
                     // success-without-retry, the scope is not added to provisionedScopes here.
@@ -347,9 +344,29 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     // so a stale entry cannot resurrect a scope the control plane already removed.
                     clearPending(rk);
                     pendingEvicts.put(rk, deployable);
+                    // The scope was unhosted before the relay, and the engine is presumably still alive. Put
+                    // it back, otherwise serves() gates out the control plane's own removals for this scope
+                    // and the engine keeps serving documents that moved elsewhere. The re-drive unmarks it
+                    // again; a sibling provisioned before then legitimately absorbs the evict.
+                    hostedScopes.markHosted(deployable.environmentId(), scope);
+                    // The engine may equally have evicted and only lost the reply, so drop its marks the way
+                    // a confirmed evict does: a re-created engine would otherwise be gated empty by revisions
+                    // it no longer holds, and re-sending a document it does still hold is idempotent.
+                    revisions.forgetEngine(deployable.environmentId(), deployable.targetPdpId());
                 }
                 return Completable.complete();
             });
+    }
+
+    /**
+     * Drop a routing scope from this node's bookkeeping — placement, pending work and revision marks — and
+     * report whether its engine still hosts another routing scope here.
+     */
+    private boolean dropScopeLocally(String environmentId, String scope, String scopeKey) {
+        boolean engineStillHosted = hostedScopes.unmarkHosted(environmentId, scope);
+        clearPending(scopeKey);
+        revisions.forgetScope(environmentId, scope);
+        return engineStillHosted;
     }
 
     private void clearPending(String scopeKey) {
@@ -362,8 +379,11 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private Completable retryPending(ConcurrentLinkedQueue<AuthzPdpProvisionDeployable> provisionedScopes) {
         return Completable.defer(() -> {
-            // Evicts re-drive first: an evict and a provision can never both stay pending for the same
-            // scope key (evict clears the pending provision), so ordering only matters for logging.
+            // Evicts re-drive first, and must keep doing so. Per scope key the two can never both be
+            // pending (an evict clears the pending provision), but two scope keys of one engine can —
+            // a pending evict of stock@us alongside a pending provision of stock@eu. Evicting first tears
+            // the engine down and the provision rebuilds it from hydration; provisioning first would leave
+            // the engine up, holding the evicted scope's documents.
             List<AuthzPdpProvisionDeployable> evicts = new ArrayList<>(pendingEvicts.values());
             List<AuthzPdpProvisionDeployable> provisions = new ArrayList<>(pendingProvisions.values());
             if (evicts.isEmpty() && provisions.isEmpty()) {
@@ -387,9 +407,9 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                     int attempts = pendingProvisionAttempts.merge(rk, 1, Integer::sum);
                     if (attempts > MAX_PENDING_ATTEMPTS) {
                         log.warn(
-                            "Abandoning pending AUTHZ_PDP provision for env [{}] targetPdpId [{}] after {} attempts",
+                            "Abandoning pending AUTHZ_PDP provision for env [{}] scope [{}] after {} attempts",
                             deployable.environmentId(),
-                            deployable.targetPdpId(),
+                            routingScope(deployable.targetPdpId(), deployable.tag()),
                             attempts - 1
                         );
                         pendingProvisions.remove(rk);
@@ -419,9 +439,9 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                 int attempts = pendingHydrationAttempts.merge(rk, 1, Integer::sum);
                 if (attempts > MAX_PENDING_ATTEMPTS) {
                     log.warn(
-                        "Abandoning pending AUTHZ_PDP hydration for env [{}] targetPdpId [{}] after {} attempts",
+                        "Abandoning pending AUTHZ_PDP hydration for env [{}] scope [{}] after {} attempts",
                         entry.getValue().environmentId(),
-                        entry.getValue().targetPdpId(),
+                        routingScope(entry.getValue().targetPdpId(), entry.getValue().tag()),
                         attempts - 1
                     );
                     pendingHydrations.remove(rk);
