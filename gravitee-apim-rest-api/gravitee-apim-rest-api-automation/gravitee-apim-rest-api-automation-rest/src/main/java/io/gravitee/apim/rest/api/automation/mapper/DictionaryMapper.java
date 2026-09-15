@@ -17,6 +17,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.rest.api.automation.model.DictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
@@ -30,7 +31,9 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -47,10 +50,33 @@ public interface DictionaryMapper {
     // ===== DictionarySpec → Dictionary (core) =====
 
     @Mapping(source = "type", target = "type")
-    @Mapping(source = "manual.properties", target = "properties")
+    @Mapping(target = "properties", expression = "java(mapManualProperties(spec))")
     @Mapping(source = "dynamic.provider", target = "provider")
     @Mapping(source = "dynamic.trigger", target = "trigger")
     Dictionary toDictionary(DictionarySpec spec);
+
+    default Map<String, DictionaryProperty> mapManualProperties(DictionarySpec spec) {
+        if (spec.getManual() == null) {
+            return null;
+        }
+        Map<String, String> plain = spec.getManual().getProperties() == null ? Map.of() : spec.getManual().getProperties();
+        Map<String, String> encrypted = spec.getManual().getEncryptedProperties();
+        if (encrypted != null) {
+            for (String key : encrypted.keySet()) {
+                if (plain.containsKey(key)) {
+                    throw new IllegalArgumentException(
+                        "Dictionary property '" + key + "' cannot appear in both 'properties' and 'encryptedProperties'"
+                    );
+                }
+            }
+        }
+        Map<String, DictionaryProperty> result = new HashMap<>(plain.size() + (encrypted == null ? 0 : encrypted.size()));
+        plain.forEach((key, value) -> result.put(key, new DictionaryProperty(value, false)));
+        if (encrypted != null) {
+            encrypted.forEach((key, value) -> result.put(key, new DictionaryProperty(value, true)));
+        }
+        return result;
+    }
 
     io.gravitee.apim.core.dictionary.model.DictionaryType toCoreType(DictionaryType type);
 
@@ -85,7 +111,22 @@ public interface DictionaryMapper {
         if (entity.getType() == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             state.setDeployed(entity.getDeployedAt() != null);
             ManualDictionarySpec manual = new ManualDictionarySpec();
-            manual.setProperties(entity.getProperties() != null ? entity.getProperties() : Map.of());
+            Map<String, String> plain = new HashMap<>();
+            Map<String, String> encrypted = new HashMap<>();
+            if (entity.getProperties() != null) {
+                Set<String> encryptedKeys = entity.getEncryptedPropertyKeys();
+                entity
+                    .getProperties()
+                    .forEach((key, value) -> {
+                        if (encryptedKeys != null && encryptedKeys.contains(key)) {
+                            encrypted.put(key, value);
+                        } else {
+                            plain.put(key, value);
+                        }
+                    });
+            }
+            manual.setProperties(plain);
+            manual.setEncryptedProperties(encrypted.isEmpty() ? null : encrypted);
             state.setManual(manual);
         } else {
             state.setDeployed(isEntityStarted(entity));

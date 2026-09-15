@@ -17,6 +17,7 @@ package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -34,6 +35,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -125,7 +127,8 @@ class DictionariesResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                     soft.assertThat(state.getDeployed()).isTrue();
                     soft.assertThat(state.getManual()).isNotNull();
-                    soft.assertThat(state.getManual().getProperties()).containsEntry("key1", "value1");
+                    soft.assertThat(state.getManual().getProperties()).containsKey("key1");
+                    soft.assertThat(state.getManual().getProperties().get("key1")).isEqualTo("value1");
                 });
             }
         }
@@ -151,6 +154,37 @@ class DictionariesResourceTest extends AbstractResourceTest {
             ) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 verify(createOrUpdateDictionaryUseCase).execute(any(CreateOrUpdateDictionaryUseCase.Input.class));
+            }
+        }
+
+        @Test
+        void should_create_or_update_a_dictionary_with_only_encrypted_properties() {
+            var entity = DictionaryEntity.builder()
+                .id("dict-id")
+                .name("Encrypted-only Dictionary")
+                .key("encrypted-only-dict")
+                .type(DictionaryType.MANUAL)
+                .state(Lifecycle.State.STOPPED)
+                .properties(Map.of("secret-key", "cipher"))
+                .encryptedPropertyKeys(Set.of("secret-key"))
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("encrypted-only-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                verify(createOrUpdateDictionaryUseCase).execute(
+                    argThat(input -> {
+                        var property = input.dictionary().getProperties().get("secret-key");
+                        return property != null && property.isEncrypted() && "cipher".equals(property.getValue());
+                    })
+                );
             }
         }
     }

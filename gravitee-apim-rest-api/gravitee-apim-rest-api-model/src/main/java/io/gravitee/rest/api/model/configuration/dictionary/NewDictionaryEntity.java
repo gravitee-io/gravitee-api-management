@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.configuration.dictionary;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Map;
+import java.util.Set;
 import lombok.Data;
 
 /**
@@ -45,4 +46,10 @@ public class NewDictionaryEntity {
     private DictionaryTriggerEntity trigger;
 
     private Map<String, String> properties;
+
+    /**
+     * Keys of {@link #properties} to store encrypted. Additive: callers that never set this
+     * (e.g. the Console) are unaffected.
+     */
+    private Set<String> encryptedPropertyKeys;
 }

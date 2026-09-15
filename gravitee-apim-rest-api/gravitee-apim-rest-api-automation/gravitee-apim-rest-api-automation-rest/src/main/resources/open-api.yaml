@@ -1649,11 +1649,16 @@ components:
       properties:
         properties:
           type: object
-          description: Dictionary data are key/value pairs for `MANUAL` properties
+          description: Dictionary data are key/value pairs for `MANUAL` properties, stored unencrypted.
           additionalProperties:
             type: string
-      required:
-        - properties
+        encryptedProperties:
+          type: object
+          description: >-
+            Dictionary data for `MANUAL` properties that are stored encrypted. Keys here
+            must not also appear in `properties`.
+          additionalProperties:
+            type: string
     DynamicDictionarySpec:
       description: A dynamic dictionary populated from an external provider on a schedule.
       type: object

@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.dictionary;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,9 +59,17 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
                 dictionary.setProperties(Collections.emptyMap());
             }
 
-            log.info("Dictionary {} has been deployed with {} properties", dictionary, dictionary.getProperties().size());
+            int propertyCount = dictionary.getProperties().size();
+            log.info("Dictionary {} has been deployed with {} properties", dictionary, propertyCount);
             dictionaries.get(environmentId).put(key, dictionary);
-            values.get(environmentId).put(key, dictionary.getProperties());
+            Map<String, String> flattenedProperties = new HashMap<>((propertyCount * 4) / 3 + 1);
+            for (Map.Entry<String, DictionaryProperty> entry : dictionary.getProperties().entrySet()) {
+                DictionaryProperty property = entry.getValue();
+                if (property != null) {
+                    flattenedProperties.put(entry.getKey(), property.value());
+                }
+            }
+            values.get(environmentId).put(key, flattenedProperties);
         }
     }
 
