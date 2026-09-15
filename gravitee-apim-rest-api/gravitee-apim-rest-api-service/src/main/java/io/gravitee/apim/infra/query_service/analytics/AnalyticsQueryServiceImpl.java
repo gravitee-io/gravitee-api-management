@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.analytics;
 
+import io.gravitee.apim.core.analytics.model.AgentActivityResult;
 import io.gravitee.apim.core.analytics.model.AnalyticsQueryParameters;
 import io.gravitee.apim.core.analytics.model.EventAnalytics;
 import io.gravitee.apim.core.analytics.model.GroupByAnalytics;
@@ -23,6 +24,7 @@ import io.gravitee.apim.core.analytics.model.ResponseStatusOvertime;
 import io.gravitee.apim.core.analytics.model.StatsAnalytics;
 import io.gravitee.apim.core.analytics.model.Timestamp;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
+import io.gravitee.apim.infra.adapter.AgentActivityAdapter;
 import io.gravitee.apim.infra.adapter.ApiMetricsDetailAdapter;
 import io.gravitee.apim.infra.adapter.ResponseStatusQueryCriteriaAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -411,6 +413,23 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         );
 
         return aggregate.map(analyticsAggregate -> new EventAnalytics(analyticsAggregate.values()));
+    }
+
+    @Override
+    public AgentActivityResult searchAgentActivity(ExecutionContext executionContext, AgentActivityQuery query) {
+        var repositoryResult = analyticsRepository.searchAgentActivity(
+            executionContext.getQueryContext(),
+            new io.gravitee.repository.log.v4.model.analytics.AgentActivityQuery(
+                query.a2aApiId(),
+                query.applicationIds(),
+                query.actorId(),
+                query.from(),
+                query.to(),
+                query.page(),
+                query.size()
+            )
+        );
+        return AgentActivityAdapter.INSTANCE.map(repositoryResult);
     }
 
     private static @NotNull List<Term> mapTerms(HistogramQuery query) {

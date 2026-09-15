@@ -33,6 +33,7 @@ import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsRespons
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopAppsByRequestCountResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopFailedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.EnvironmentAnalyticsTopHitsApisResponse;
+import io.gravitee.rest.api.management.v2.rest.resource.analytics.agent.AgentActivityResource;
 import io.gravitee.rest.api.management.v2.rest.resource.analytics.computation.AnalyticsComputationResource;
 import io.gravitee.rest.api.management.v2.rest.resource.analytics.dashboards.DashboardsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.analytics.definition.AnalyticsDefinitionResource;
@@ -224,5 +225,10 @@ public class EnvironmentAnalyticsResource {
     @Path("/dashboards")
     public DashboardsResource getDashboardsResource() {
         return resourceContext.getResource(DashboardsResource.class);
+    }
+
+    @Path("/agent-activity")
+    public AgentActivityResource getAgentActivityResource() {
+        return resourceContext.getResource(AgentActivityResource.class);
     }
 }
