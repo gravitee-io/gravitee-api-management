@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// Must stay first: fixes the cascade layer order for the whole app (FOUND-166).
+import './styles/layer-order.css';
 import '@gravitee/graphene-core/fonts';
 import '@gravitee/graphene-core/styles';
 import('./bootstrap').catch(err => console.error(err));
