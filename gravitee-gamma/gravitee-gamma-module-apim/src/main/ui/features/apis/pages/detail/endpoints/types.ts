@@ -92,9 +92,19 @@ export interface HeaderEntry {
     value: string;
 }
 
+export interface TcpFormState {
+    connectTimeout: number;
+    reconnectAttempts: number;
+    reconnectInterval: number;
+    idleTimeout: number;
+    readIdleTimeout: number;
+    writeIdleTimeout: number;
+}
+
 export interface SharedConfigFormState {
     proxy: ProxyFormState;
     http: HttpFormState;
+    tcp: TcpFormState;
     ssl: SslFormState;
     headers: HeaderEntry[];
 }
@@ -147,9 +157,19 @@ export const DEFAULT_SSL: SslFormState = {
     clientAuthentication: 'NONE',
 };
 
+export const DEFAULT_TCP: TcpFormState = {
+    connectTimeout: 3000,
+    reconnectAttempts: 3,
+    reconnectInterval: 1000,
+    idleTimeout: 0,
+    readIdleTimeout: 0,
+    writeIdleTimeout: 0,
+};
+
 export const DEFAULT_SHARED_CONFIG: SharedConfigFormState = {
     proxy: DEFAULT_PROXY,
     http: DEFAULT_HTTP,
+    tcp: DEFAULT_TCP,
     ssl: DEFAULT_SSL,
     headers: [],
 };
@@ -165,9 +185,18 @@ export const DEFAULT_GROUP_FORM: EndpointGroupFormState = {
 /** Convert a DTO shared-configuration object (group's or endpoint-override's) to form state. */
 export function parseSharedConfigDto(sc: EndpointGroupSharedConfiguration): SharedConfigFormState {
     const http = sc.http ?? {};
+    const tcp = sc.tcp ?? {};
     const proxy = sc.proxy ?? {};
     const ssl = sc.ssl ?? {};
     return {
+        tcp: {
+            connectTimeout: tcp.connectTimeout ?? DEFAULT_TCP.connectTimeout,
+            reconnectAttempts: tcp.reconnectAttempts ?? DEFAULT_TCP.reconnectAttempts,
+            reconnectInterval: tcp.reconnectInterval ?? DEFAULT_TCP.reconnectInterval,
+            idleTimeout: tcp.idleTimeout ?? DEFAULT_TCP.idleTimeout,
+            readIdleTimeout: tcp.readIdleTimeout ?? DEFAULT_TCP.readIdleTimeout,
+            writeIdleTimeout: tcp.writeIdleTimeout ?? DEFAULT_TCP.writeIdleTimeout,
+        },
         http: {
             keepAlive: http.keepAlive ?? true,
             keepAliveTimeout: http.keepAliveTimeout ?? 30000,

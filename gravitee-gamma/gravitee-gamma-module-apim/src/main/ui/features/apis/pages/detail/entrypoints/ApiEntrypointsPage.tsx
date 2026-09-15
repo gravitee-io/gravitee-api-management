@@ -31,7 +31,7 @@ import { useApiEntrypoints } from '../../../hooks/useApiEntrypoints';
 import type { ApiDetailDto, HttpListener, TcpListener } from '../../../types';
 import type { TcpHostEntry } from '../../../types/apiCreation';
 import { validateTcpHosts } from '../../../utils/apiCreationValidation';
-import { hasTcpListeners } from '../../../utils/apiHttpProxy';
+import { hasTcpListeners, normalizeTcpHost } from '../../../utils/apiHttpProxy';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -92,7 +92,9 @@ export function ApiEntrypointsPage() {
             if (hasTcpListeners(apiData)) {
                 const tcpListener = getTcpListener(apiData);
                 const hosts = tcpListener?.hosts ?? [];
-                setTcpHosts(hosts.length > 0 ? hosts.map(host => ({ id: newId(), host })) : [{ id: newId(), host: '' }]);
+                const mappedHosts = hosts.map(host => ({ id: newId(), host: normalizeTcpHost(host) }));
+                const initialTcpHosts = mappedHosts.length > 0 ? mappedHosts : [{ id: newId(), host: '' }];
+                setTcpHosts(initialTcpHosts);
                 setIsDirty(false);
                 setSaveError(null);
                 return;

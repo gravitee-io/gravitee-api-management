@@ -43,6 +43,7 @@ interface EndpointGroupFormProps {
     showHealthCheck?: boolean;
     /** Create flow: Configuration step collects default endpoint target + group shared config. */
     isCreateMode?: boolean;
+    isTcp?: boolean;
     isReadOnly?: boolean;
     isSaving: boolean;
     saveError: string | null;
@@ -56,6 +57,7 @@ export function EndpointGroupForm({
     initialStep = 'general',
     showHealthCheck = false,
     isCreateMode = false,
+    isTcp = false,
     isReadOnly = false,
     isSaving,
     saveError,
@@ -107,7 +109,7 @@ export function EndpointGroupForm({
 
     const generalValid = !nameError && form.name.trim().length > 0;
     const configurationValid =
-        validateHttpProxyOptions(form.sharedConfig.proxy) === null && (!isCreateMode || endpointTargetError === null);
+        isTcp || (validateHttpProxyOptions(form.sharedConfig.proxy) === null && (!isCreateMode || endpointTargetError === null));
     const healthCheckValid = !showHealthCheck || Object.keys(validateHealthCheckForm(form.healthCheck)).length === 0;
 
     const currentStepIndex = steps.findIndex(s => s.id === currentStep);
@@ -116,7 +118,7 @@ export function EndpointGroupForm({
 
     function goNext() {
         if (currentStep === 'general' && !generalValid) return;
-        if (currentStep === 'configuration') {
+        if (currentStep === 'configuration' && !isTcp) {
             const targetErr = isCreateMode ? validateEndpointTarget(form.defaultEndpointTarget ?? '') : null;
             setTargetError(targetErr);
             const proxyErr = validateHttpProxyOptions(form.sharedConfig.proxy);
@@ -138,17 +140,19 @@ export function EndpointGroupForm({
     }
 
     function handleSave() {
-        const targetErr = isCreateMode ? validateEndpointTarget(form.defaultEndpointTarget ?? '') : null;
-        setTargetError(targetErr);
-        const proxyErr = validateHttpProxyOptions(form.sharedConfig.proxy);
-        setProxyError(proxyErr);
-        if (targetErr) {
-            setCurrentStep('configuration');
-            return;
-        }
-        if (proxyErr) {
-            setCurrentStep('configuration');
-            return;
+        if (!isTcp) {
+            const targetErr = isCreateMode ? validateEndpointTarget(form.defaultEndpointTarget ?? '') : null;
+            setTargetError(targetErr);
+            const proxyErr = validateHttpProxyOptions(form.sharedConfig.proxy);
+            setProxyError(proxyErr);
+            if (targetErr) {
+                setCurrentStep('configuration');
+                return;
+            }
+            if (proxyErr) {
+                setCurrentStep('configuration');
+                return;
+            }
         }
         if (showHealthCheck) {
             const errors = validateHealthCheckForm(form.healthCheck);
@@ -190,6 +194,7 @@ export function EndpointGroupForm({
                             patchForm({ defaultEndpointTarget: value });
                             setTargetError(null);
                         }}
+                        isTcp={isTcp}
                     />
                 )}
                 {currentStep === 'health-check' && showHealthCheck && (
