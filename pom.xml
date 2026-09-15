@@ -233,6 +233,7 @@
                   <exclude>**/dist/**</exclude>
                   <exclude>**/.tmp/**</exclude>
                   <exclude>**/node_modules/**</exclude>
+                  <exclude>**/coverage/**</exclude>
                   <exclude>**/.*</exclude>
                   <exclude>*.js</exclude>
                   <exclude>**/.*/**</exclude>
