@@ -231,8 +231,9 @@ class PerformanceTargetNotificationDispatcherTest {
         private final Map<String, Object> params = Map.of(PARAM_PERFORMANCE_TARGET, "data");
 
         @Test
-        void should_post_the_console_text_to_each_slack_webhook_and_a_report_to_each_webhook() {
+        void should_post_a_report_to_a_plain_webhook_and_the_console_text_to_a_slack_incoming_webhook() {
             var webhook = PerformanceTargetNotificationDispatcher.Recipients.webhook("https://hooks.example.com/agents");
+            var slack = PerformanceTargetNotificationDispatcher.Recipients.webhook("https://hooks.slack.com/services/T0/B0/x");
 
             dispatcher.notify(
                 CONTEXT,
@@ -241,14 +242,16 @@ class PerformanceTargetNotificationDispatcherTest {
                 new PerformanceTargetNotificationDispatcher.Recipients(
                     List.of("owner"),
                     List.of("owner@example.com"),
-                    List.of(webhook),
-                    List.of("https://hooks.slack.com/services/T0/B0/x")
+                    List.of(webhook, slack)
                 )
             );
 
             verify(portalNotificationService).create(CONTEXT, PerformanceTargetHook.RULE_MISSED, List.of("owner"), params);
             verify(emailNotifierService).trigger(CONTEXT, PerformanceTargetHook.RULE_MISSED, params, Set.of("owner@example.com"));
-            verify(webhookNotifierService).trigger(PerformanceTargetHook.RULE_MISSED, webhook, params);
+            // the Slack address is not among them: GenericNotificationConfig compares by id, so assert on the address
+            var delivered = ArgumentCaptor.forClass(GenericNotificationConfig.class);
+            verify(webhookNotifierService).trigger(eq(PerformanceTargetHook.RULE_MISSED), delivered.capture(), eq(params));
+            assertThat(delivered.getValue().getConfig()).isEqualTo("https://hooks.example.com/agents");
             var body = ArgumentCaptor.forClass(String.class);
             verify(webNotifierService).request(
                 eq(HttpMethod.POST),
@@ -273,7 +276,7 @@ class PerformanceTargetNotificationDispatcherTest {
                 CONTEXT,
                 PerformanceTargetHook.RULE_MISSED,
                 params,
-                new PerformanceTargetNotificationDispatcher.Recipients(List.of(), List.of(), List.of(webhook), List.of())
+                new PerformanceTargetNotificationDispatcher.Recipients(List.of(), List.of(), List.of(webhook))
             );
 
             verify(webhookNotifierService, times(3)).trigger(PerformanceTargetHook.RULE_MISSED, webhook, params);
@@ -289,7 +292,7 @@ class PerformanceTargetNotificationDispatcherTest {
                 CONTEXT,
                 PerformanceTargetHook.RULE_RECOVERED,
                 params,
-                new PerformanceTargetNotificationDispatcher.Recipients(List.of(), List.of(), List.of(), List.of())
+                new PerformanceTargetNotificationDispatcher.Recipients(List.of(), List.of(), List.of())
             );
 
             verify(portalNotificationService, never()).create(any(), any(), anyList(), any());
