@@ -16,7 +16,6 @@
 package inmemory;
 
 import static java.util.Objects.isNull;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -25,7 +24,6 @@ import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
@@ -155,41 +153,13 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
         String query,
         Pageable pageable
     ) {
-        var matches = apisOwnedBy(integrationId)
-            .filter(api -> matchesRequestedDefinitionVersion(api, definitionVersions))
-            .filter(api -> matchesFreeTextQuery(api, query))
-            .sorted(MOST_RECENTLY_UPDATED_FIRST)
-            .toList();
-
-        return pageOf(matches, pageable);
+        throw new UnsupportedOperationException("searchByIntegrationId has no in-memory implementation yet");
     }
 
     private Stream<Api> apisOwnedBy(String integrationId) {
         return storage
             .stream()
             .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte && integrationId.equals(inte.integrationId()));
-    }
-
-    private static boolean matchesRequestedDefinitionVersion(Api api, List<DefinitionVersion> definitionVersions) {
-        if (definitionVersions == null || definitionVersions.isEmpty()) {
-            return true;
-        }
-        return definitionVersions.contains(Objects.requireNonNullElse(api.getDefinitionVersion(), DefinitionVersion.V2));
-    }
-
-    private static boolean matchesFreeTextQuery(Api api, String query) {
-        if (isBlank(query)) {
-            return true;
-        }
-        var searchedText = query.trim().toLowerCase();
-        return freeTextSearchableValuesOf(api).anyMatch(value -> value.toLowerCase().contains(searchedText));
-    }
-
-    private static Stream<String> freeTextSearchableValuesOf(Api api) {
-        var providerOrganization = api.getApiDefinitionValue() instanceof FederatedAgent agent && agent.getProvider() != null
-            ? agent.getProvider().organization()
-            : null;
-        return Stream.of(api.getName(), api.getDescription(), providerOrganization).filter(Objects::nonNull);
     }
 
     private static Page<Api> pageOf(List<Api> matches, Pageable pageable) {
