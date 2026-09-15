@@ -22,6 +22,7 @@ function DialogDictionaryAddPropertyController($scope, $mdDialog) {
     const property = {
       key: $scope.property.name,
       value: $scope.property.value,
+      encryptable: $scope.property.encryptable === true,
     };
 
     $mdDialog.hide(property);

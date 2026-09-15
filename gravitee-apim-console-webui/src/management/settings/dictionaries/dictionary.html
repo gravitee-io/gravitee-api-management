@@ -296,7 +296,8 @@
                 </th>
                 <th md-column md-order-by="name" ng-click="reverse = !reverse">Key</th>
                 <th md-column>Value</th>
-                <th md-column md-column width="80px" nowrap ng-if="$ctrl.dictionary.type === 'MANUAL'"></th>
+                <th md-column>Characteristic</th>
+                <th md-column md-column width="90px" nowrap ng-if="$ctrl.dictionary.type === 'MANUAL'"></th>
               </tr>
             </thead>
             <tbody md-body>
@@ -312,12 +313,45 @@
                 <td
                   md-cell
                   class="dictionary-property-value"
-                  ng-click="$ctrl.editProperty($event, entry.key, entry.value)"
+                  ng-click="entry.encrypted || $ctrl.editProperty($event, entry.key, entry.value)"
                   ng-class="{'gravitee-placeholder': entry.value}"
                 >
                   {{entry.value || 'Set value'}}
                 </td>
-                <td md-cell ng-if="$ctrl.dictionary.type === 'MANUAL'">
+                <td md-cell>
+                  <span ng-if="entry.encrypted" class="gio-badge-success" title="This value is encrypted">Encrypted</span>
+                  <span ng-if="!entry.encrypted && entry.encryptable" class="gio-badge-accent">Encrypted on save</span>
+                  <span ng-if="!entry.encrypted && !entry.encryptable" class="gio-badge-neutral">Unencrypted</span>
+                  <span ng-if="$ctrl.dictionary.type === 'DYNAMIC'" class="gio-badge-neutral">Dynamic</span>
+                </td>
+                <td md-cell class="dictionary-property-actions" ng-if="$ctrl.dictionary.type === 'MANUAL'">
+                  <ng-md-icon
+                    ng-if="!entry.encrypted && !entry.encryptable"
+                    permission
+                    permission-only="['environment-dictionary-u']"
+                    ng-click="$ctrl.encryptProperty(entry.key)"
+                    icon="lock"
+                    aria-label="Encrypt {{entry.key}}"
+                    title="Encrypt this value"
+                  ></ng-md-icon>
+                  <ng-md-icon
+                    ng-if="entry.encryptable"
+                    permission
+                    permission-only="['environment-dictionary-u']"
+                    ng-click="$ctrl.undoEncryptProperty(entry.key)"
+                    icon="clear"
+                    aria-label="Do not encrypt {{entry.key}}"
+                    title="Do not encrypt this value"
+                  ></ng-md-icon>
+                  <ng-md-icon
+                    ng-if="entry.encrypted"
+                    permission
+                    permission-only="['environment-dictionary-u']"
+                    ng-click="$ctrl.renewProperty($event, entry.key)"
+                    icon="autorenew"
+                    aria-label="Replace {{entry.key}}"
+                    title="Replace this value"
+                  ></ng-md-icon>
                   <ng-md-icon
                     permission
                     permission-only="['environment-dictionary-u']"
