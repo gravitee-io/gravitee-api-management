@@ -41,6 +41,7 @@ import { ExportApi } from './ExportApi';
 import { ImagePicker } from './ImagePicker';
 import { ImportApiSheet } from './ImportApiSheet';
 import { PromoteDialog } from './PromoteDialog';
+import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { downloadBlob } from '../../../../../shared/browser';
 import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
@@ -80,9 +81,6 @@ function formatDate(iso?: string): string {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
-
-/** Promote flow is still stubbed — keep disabled until it ships. */
-const PROMOTE_UNAVAILABLE = true;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -159,24 +157,72 @@ export function ApiGeneralPage() {
         removePictureMutation,
         backgroundMutation,
         removeBackgroundMutation,
-    } = useApiGeneralMutations(api, {
-        onDeleteSuccess: () => {
-            setDeleteOpen(false);
-            notify.success('API deleted');
-            navigate('../..');
+        promotionTargetsQuery,
+        pendingPromotionsQuery,
+        promoteMutation,
+    } = useApiGeneralMutations(
+        api,
+        {
+            onDeleteSuccess: () => {
+                setDeleteOpen(false);
+                notify.success('API deleted');
+                navigate('../..');
+            },
+            onDuplicateSuccess: newApi => {
+                setDuplicateOpen(false);
+                navigate(`../../${newApi.id}/general`);
+            },
+            onImportSuccess: updatedApi => {
+                setImportOpen(false);
+                notify.success('API updated');
+                const seed = formFromApi(updatedApi);
+                setSavedForm(seed);
+                setForm(seed);
+            },
+            onPromoteSuccess: () => {
+                setPromoteOpen(false);
+                notify.success('Promotion requested');
+            },
         },
-        onDuplicateSuccess: newApi => {
-            setDuplicateOpen(false);
-            navigate(`../../${newApi.id}/general`);
-        },
-        onImportSuccess: updatedApi => {
-            setImportOpen(false);
-            notify.success('API updated');
-            const seed = formFromApi(updatedApi);
-            setSavedForm(seed);
-            setForm(seed);
-        },
-    });
+        promoteOpen,
+    );
+
+    // ── Promote dialog derived state (mirrors api-general-info-promote-dialog.component.ts, which
+    // treats either the targets or the pending-promotions call failing with installation.notAccepted
+    // the same way via a single combineLatest catchError) ──
+    let cockpitNotAccepted = false;
+    let cockpitURL: string | undefined;
+    for (const error of [promotionTargetsQuery.error, pendingPromotionsQuery.error]) {
+        if (error instanceof ApimApiError) {
+            const body = error.body as { technicalCode?: string; parameters?: { cockpitURL?: string } } | undefined;
+            if (body?.technicalCode === 'installation.notAccepted') {
+                cockpitNotAccepted = true;
+                cockpitURL = body.parameters?.cockpitURL;
+                break;
+            }
+        }
+    }
+
+    const promoteState: 'loading' | 'ready' | 'cloudNotConnected' = cockpitNotAccepted
+        ? 'cloudNotConnected'
+        : promotionTargetsQuery.isLoading || pendingPromotionsQuery.isLoading
+          ? 'loading'
+          : 'ready';
+
+    const pendingPromotions = pendingPromotionsQuery.data ?? [];
+    const promoteTargets = (promotionTargetsQuery.data ?? [])
+        .map(target => ({
+            id: target.id,
+            name: target.name,
+            promotionInProgress: pendingPromotions.some(promotion => promotion.targetEnvCockpitId === target.id),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const promoteError = promoteMutation.isError
+        ? promoteMutation.error instanceof Error
+            ? promoteMutation.error.message
+            : 'An error occurred while requesting promotion.'
+        : null;
 
     const handleSave = useCallback(() => {
         if (!form) return;
@@ -534,7 +580,7 @@ export function ApiGeneralPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setPromoteOpen(true)}
-                                disabled={PROMOTE_UNAVAILABLE || isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
+                                disabled={isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
                             >
                                 <ExternalLinkIcon className="size-3.5" /> Promote
                             </Button>
@@ -650,7 +696,16 @@ export function ApiGeneralPage() {
                 isLoading={duplicateMutation.isPending}
                 error={duplicateError}
             />
-            <PromoteDialog open={promoteOpen} onOpenChange={setPromoteOpen} />
+            <PromoteDialog
+                open={promoteOpen}
+                onOpenChange={setPromoteOpen}
+                state={promoteState}
+                targets={promoteTargets}
+                cockpitURL={cockpitURL}
+                onPromote={target => promoteMutation.mutate(target)}
+                isPromoting={promoteMutation.isPending}
+                error={promoteError}
+            />
             <ConfirmDialog
                 open={deleteOpen}
                 onOpenChange={setDeleteOpen}

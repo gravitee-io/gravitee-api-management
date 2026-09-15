@@ -13,7 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchBlobV2, apimFetchJsonV2, apimFetchJsonV2WithMeta } from '../../../shared/api/apimClient';
+import {
+    apimFetchBlobV2,
+    apimFetchJsonOrg,
+    apimFetchJsonV1Env,
+    apimFetchJsonV2,
+    apimFetchJsonV2WithMeta,
+} from '../../../shared/api/apimClient';
 import type {
     Analytics,
     ApiDetailDto,
@@ -25,6 +31,8 @@ import type {
     Failover,
     ImportSwaggerDescriptor,
     ImportWsdlDescriptor,
+    Promotion,
+    PromotionTarget,
     Property,
     ResponseTemplatesMap,
 } from '../types';
@@ -110,6 +118,29 @@ export async function duplicateApi(environmentId: string, apiId: string, options
         method: 'POST',
         headers: JSON_HEADERS,
         body: JSON.stringify(options),
+    });
+}
+
+export async function getPromotionTargets(environmentId: string): Promise<PromotionTarget[]> {
+    return apimFetchJsonV1Env<PromotionTarget[]>(environmentId, '/promotion-targets');
+}
+
+export async function getPendingPromotions(apiId: string): Promise<Promotion[]> {
+    return apimFetchJsonOrg<Promotion[]>(
+        `/promotions/_search?apiId=${encodeURIComponent(apiId)}&statuses=CREATED&statuses=TO_BE_VALIDATED`,
+        { method: 'POST' },
+    );
+}
+
+export async function promoteApi(
+    environmentId: string,
+    apiId: string,
+    target: { targetEnvCockpitId: string; targetEnvName: string },
+): Promise<void> {
+    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/_promote`, {
+        method: 'POST',
+        headers: JSON_HEADERS,
+        body: JSON.stringify(target),
     });
 }
 

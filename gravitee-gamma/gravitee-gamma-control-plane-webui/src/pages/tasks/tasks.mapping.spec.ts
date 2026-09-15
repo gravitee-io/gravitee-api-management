@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { categoryOf, countByCategory, formatRelativeTime, type ResolveEnvHrid, resolveArea, sortTasks, toTaskView } from './tasks.mapping';
+import {
+    categoryOf,
+    countByCategory,
+    formatRelativeTime,
+    promotionDataOf,
+    type ResolveEnvHrid,
+    resolveArea,
+    sortTasks,
+    toTaskView,
+} from './tasks.mapping';
 import type { TaskEntity, TaskMetadata, TaskView } from './tasks.types';
 
 function makeTaskView(overrides: Partial<TaskView> = {}): TaskView {
@@ -281,6 +290,73 @@ describe('toTaskView', () => {
         expect(view.title).toBe('Loyalty API');
         expect(view.subtitle).toBe('Staging → Production');
         expect(view.to).toBe('/environments/prod/apim/apis/api-9');
+    });
+});
+
+describe('promotionDataOf', () => {
+    it('extracts the typed promotion review fields from a PROMOTION_APPROVAL task', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-1',
+                apiName: 'Loyalty API',
+                sourceEnvironmentName: 'Staging',
+                targetEnvironmentName: 'Production',
+                targetApiId: 'api-9',
+                isApiUpdate: true,
+                authorDisplayName: 'Ada Lovelace',
+                authorEmail: 'ada@example.com',
+                authorPicture: 'https://example.com/ada.png',
+            },
+        };
+
+        expect(promotionDataOf(entity)).toEqual({
+            promotionId: 'promo-1',
+            apiName: 'Loyalty API',
+            sourceEnvironmentName: 'Staging',
+            targetEnvironmentName: 'Production',
+            targetApiId: 'api-9',
+            isApiUpdate: true,
+            authorDisplayName: 'Ada Lovelace',
+            authorEmail: 'ada@example.com',
+            authorPicture: 'https://example.com/ada.png',
+        });
+    });
+
+    it('defaults isApiUpdate to false and omits targetApiId when the task has none', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-2',
+                apiName: 'Loyalty API',
+                sourceEnvironmentName: 'Staging',
+                targetEnvironmentName: 'Production',
+                authorDisplayName: 'Ada Lovelace',
+            },
+        };
+
+        const data = promotionDataOf(entity);
+
+        expect(data?.isApiUpdate).toBe(false);
+        expect(data?.targetApiId).toBeUndefined();
+    });
+
+    it('returns undefined for a non-promotion task', () => {
+        const entity: TaskEntity = { type: 'SUBSCRIPTION_APPROVAL', created_at: 1, data: {} };
+
+        expect(promotionDataOf(entity)).toBeUndefined();
+    });
+
+    it('returns undefined when required fields are missing', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: { promotionId: 'promo-1' },
+        };
+
+        expect(promotionDataOf(entity)).toBeUndefined();
     });
 });
 

@@ -32,7 +32,11 @@
 
       <mat-form-field class="promote__content__promotion-targets">
         <mat-label>Environment</mat-label>
-        <mat-select [formControl]="promoteControl" data-testid="promotion-dialog-target-environment">
+        <mat-select
+          [formControl]="promoteControl"
+          panelClass="api-general-info-promote-dialog__target-select-panel"
+          data-testid="promotion-dialog-target-environment"
+        >
           <mat-option *ngFor="let target of promotionTargets" [value]="target.id" [disabled]="target.promotionInProgress">
             {{ target.name }}{{ target.promotionInProgress ? ' (pending)' : '' }}
           </mat-option>

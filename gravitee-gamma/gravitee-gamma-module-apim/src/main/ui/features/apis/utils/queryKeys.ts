@@ -83,6 +83,12 @@ export const apiPermissionKeys = {
     detail: (envId: string, apiId: string) => [...apiPermissionKeys.all, envId, apiId] as const,
 };
 
+export const apiPromotionKeys = {
+    all: ['api-promotion'] as const,
+    targets: (envId: string) => [...apiPromotionKeys.all, 'targets', envId] as const,
+    pending: (apiId: string) => [...apiPromotionKeys.all, 'pending', apiId] as const,
+};
+
 export const apiEntrypointKeys = {
     all: ['api-entrypoints'] as const,
     exposed: (envId: string, apiId: string) => [...apiEntrypointKeys.all, 'exposed', envId, apiId] as const,

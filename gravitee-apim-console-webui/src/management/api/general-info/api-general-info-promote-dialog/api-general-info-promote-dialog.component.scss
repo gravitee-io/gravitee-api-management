@@ -25,3 +25,9 @@
     }
   }
 }
+
+@at-root {
+  .cdk-overlay-container .mat-mdc-select-panel.api-general-info-promote-dialog__target-select-panel {
+    min-width: 100%;
+  }
+}
