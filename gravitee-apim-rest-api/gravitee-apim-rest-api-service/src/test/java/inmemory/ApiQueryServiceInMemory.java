@@ -196,11 +196,15 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
-        var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+        var page = windowOf(matches, pageNumber, pageSize);
 
         return new Page<>(page.stream().map(ApiQueryServiceInMemory::withoutApiDefinition).toList(), pageNumber, pageSize, matches.size());
+    }
+
+    private static <T> List<T> windowOf(List<T> items, int pageNumber, int pageSize) {
+        var from = Math.min(Math.max(pageNumber - 1, 0) * pageSize, items.size());
+        var to = Math.min(from + pageSize, items.size());
+        return items.subList(from, to);
     }
 
     private static Api withoutApiDefinition(Api api) {
