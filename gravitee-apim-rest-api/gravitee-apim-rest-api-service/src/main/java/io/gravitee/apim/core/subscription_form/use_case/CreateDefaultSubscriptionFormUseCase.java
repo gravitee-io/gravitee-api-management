@@ -20,15 +20,16 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.crud_service.SubscriptionFormCrudService;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormSchemaGenerator;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormTemplateDomainService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQueryService;
-import java.nio.charset.StandardCharsets;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Creates the default (disabled) subscription form for an environment when none exists.
- * Idempotent: no-op if a form is already present for the environment.
+ * Seeds the catalog of an environment that has no form yet with a disabled form named
+ * {@value #DEFAULT_FORM_NAME}, marked as the environment default. Idempotent: no-op once the
+ * environment holds any form.
  *
  * @author Gravitee.io Team
  */
@@ -37,43 +38,32 @@ import lombok.RequiredArgsConstructor;
 @CustomLog
 public class CreateDefaultSubscriptionFormUseCase {
 
-    private static final String DEFAULT_FORM_TEMPLATE_PATH = "templates/default-subscription-form.md";
+    public static final String DEFAULT_FORM_NAME = "Default";
 
     private final SubscriptionFormCrudService subscriptionFormCrudService;
     private final SubscriptionFormQueryService subscriptionFormQueryService;
     private final SubscriptionFormSchemaGenerator schemaGenerator;
+    private final SubscriptionFormTemplateDomainService templateDomainService;
 
     public void execute(String environmentId) {
-        if (subscriptionFormQueryService.findDefaultForEnvironmentId(environmentId).isPresent()) {
+        if (!subscriptionFormQueryService.findAllByEnvironmentId(environmentId).isEmpty()) {
             return;
         }
 
-        var gmd = GraviteeMarkdown.of(loadDefaultFormContent());
+        var gmd = GraviteeMarkdown.of(templateDomainService.gmdContent());
         var constraints = SubscriptionFormConstraintsFactory.fromSchema(schemaGenerator.generate(gmd));
 
         var defaultForm = SubscriptionForm.builder()
             .id(null)
             .environmentId(environmentId)
+            .name(DEFAULT_FORM_NAME)
             .gmdContent(gmd)
             .enabled(false)
+            .defaultForm(true)
             .validationConstraints(constraints)
             .build();
 
         subscriptionFormCrudService.create(defaultForm);
         log.info("Created default subscription form for environment [{}]", environmentId);
-    }
-
-    private String loadDefaultFormContent() {
-        try (final var is = CreateDefaultSubscriptionFormUseCase.class.getClassLoader().getResourceAsStream(DEFAULT_FORM_TEMPLATE_PATH)) {
-            if (is == null) {
-                throw new IllegalStateException("Could not load default subscription form template: " + DEFAULT_FORM_TEMPLATE_PATH);
-            }
-            return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            if (e instanceof IllegalStateException illegalStateException) {
-                throw illegalStateException;
-            }
-            throw new IllegalStateException("Could not load default subscription form template", e);
-        }
     }
 }

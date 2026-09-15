@@ -38,8 +38,10 @@ public class SubscriptionFormCrudServiceInMemory implements SubscriptionFormCrud
             ? SubscriptionForm.builder()
                 .id(SubscriptionFormId.random())
                 .environmentId(subscriptionForm.getEnvironmentId())
+                .name(subscriptionForm.getName())
                 .gmdContent(subscriptionForm.getGmdContent())
                 .enabled(subscriptionForm.isEnabled())
+                .defaultForm(subscriptionForm.isDefaultForm())
                 .validationConstraints(subscriptionForm.getValidationConstraints())
                 .build()
             : subscriptionForm;

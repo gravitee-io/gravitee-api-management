@@ -41,10 +41,18 @@ public class SubscriptionFormQueryServiceInMemory implements SubscriptionFormQue
     }
 
     @Override
-    public Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId) {
+    public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) {
         return storage
             .stream()
             .filter(form -> form.getEnvironmentId().equals(environmentId))
+            .toList();
+    }
+
+    @Override
+    public Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId) {
+        return storage
+            .stream()
+            .filter(form -> form.getEnvironmentId().equals(environmentId) && form.isDefaultForm())
             .findFirst();
     }
 

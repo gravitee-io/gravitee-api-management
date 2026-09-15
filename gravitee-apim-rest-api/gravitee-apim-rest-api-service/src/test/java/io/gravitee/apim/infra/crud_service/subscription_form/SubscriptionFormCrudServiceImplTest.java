@@ -23,7 +23,9 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SubscriptionFormFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormConflictException;
 import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
@@ -96,6 +98,15 @@ class SubscriptionFormCrudServiceImplTest {
         }
 
         @Test
+        void should_throw_a_conflict_when_the_row_collides_with_another_form() throws TechnicalException {
+            when(repository.create(any())).thenThrow(new DuplicateKeyException("collision"));
+
+            assertThatThrownBy(() -> service.create(SubscriptionFormFixtures.aSubscriptionFormWithNullId()))
+                .isInstanceOf(SubscriptionFormConflictException.class)
+                .hasCauseInstanceOf(DuplicateKeyException.class);
+        }
+
+        @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             when(repository.create(any())).thenThrow(TechnicalException.class);
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
@@ -136,7 +147,16 @@ class SubscriptionFormCrudServiceImplTest {
         }
 
         @Test
-        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+        void should_throw_a_conflict_when_the_row_collides_with_another_form() throws TechnicalException {
+            when(repository.update(any())).thenThrow(new DuplicateKeyException("collision"));
+
+            assertThatThrownBy(() -> service.update(SubscriptionFormFixtures.aSubscriptionForm()))
+                .isInstanceOf(SubscriptionFormConflictException.class)
+                .hasCauseInstanceOf(DuplicateKeyException.class);
+        }
+
+        @Test
+        void should_throw_when_the_row_cannot_be_updated() throws TechnicalException {
             when(repository.update(any())).thenThrow(TechnicalException.class);
             var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
 

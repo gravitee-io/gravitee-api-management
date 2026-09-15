@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.SubscriptionForm;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,16 +38,25 @@ public interface SubscriptionFormRepository extends CrudRepository<SubscriptionF
     Optional<SubscriptionForm> findByIdAndEnvironmentId(String id, String environmentId) throws TechnicalException;
 
     /**
-     * Finds the subscription form for a given environment.
+     * Finds every subscription form of an environment.
      *
      * @param environmentId the environment ID
-     * @return Optional containing the form if found
+     * @return the forms of the environment, empty when it has none
      * @throws TechnicalException if a technical error occurs
      */
-    Optional<SubscriptionForm> findByEnvironmentId(String environmentId) throws TechnicalException;
+    List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException;
 
     /**
-     * Deletes the subscription form for a given environment.
+     * Finds the default subscription form of an environment.
+     *
+     * @param environmentId the environment ID
+     * @return Optional containing the default form if the environment has one
+     * @throws TechnicalException if a technical error occurs
+     */
+    Optional<SubscriptionForm> findDefaultByEnvironmentId(String environmentId) throws TechnicalException;
+
+    /**
+     * Deletes every subscription form of an environment.
      *
      * @param environmentId the environment ID
      * @throws TechnicalException if a technical error occurs

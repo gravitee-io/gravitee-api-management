@@ -22,6 +22,7 @@ import inmemory.SubscriptionFormCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormConstraintsFactory;
+import io.gravitee.apim.core.subscription_form.domain_service.SubscriptionFormTemplateDomainService;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.infra.domain_service.subscription_form.SubscriptionFormSchemaGeneratorImpl;
 import java.net.URL;
@@ -48,7 +49,12 @@ class CreateDefaultSubscriptionFormUseCaseTest {
     void setUp() {
         crudService.reset();
         queryService.reset();
-        useCase = new CreateDefaultSubscriptionFormUseCase(crudService, queryService, schemaGenerator);
+        useCase = new CreateDefaultSubscriptionFormUseCase(
+            crudService,
+            queryService,
+            schemaGenerator,
+            new SubscriptionFormTemplateDomainService()
+        );
     }
 
     @Test
@@ -66,6 +72,8 @@ class CreateDefaultSubscriptionFormUseCaseTest {
             .satisfies(created -> {
                 assertThat(created.getId()).isNotNull();
                 assertThat(created.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+                assertThat(created.getName()).isEqualTo(CreateDefaultSubscriptionFormUseCase.DEFAULT_FORM_NAME);
+                assertThat(created.isDefaultForm()).isTrue();
                 assertThat(created.getGmdContent().value()).isEqualTo(defaultContent);
                 assertThat(created.isEnabled()).isFalse();
                 assertThat(created.getValidationConstraints().isEmpty()).isFalse();
