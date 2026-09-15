@@ -602,6 +602,11 @@ class CreateHttpApiUseCaseTest {
                         "NEW_SUPPORT_TICKET",
                         "REQUEST_FOR_CHANGES",
                         "REVIEW_OK",
+                        // a new API is subscribed to its performance target rules changing verdict
+                        "RULE_EVALUABLE_AGAIN",
+                        "RULE_MISSED",
+                        "RULE_NOT_EVALUABLE",
+                        "RULE_RECOVERED",
                         "SUBSCRIPTION_ACCEPTED",
                         "SUBSCRIPTION_CLOSED",
                         "SUBSCRIPTION_FAILED",
