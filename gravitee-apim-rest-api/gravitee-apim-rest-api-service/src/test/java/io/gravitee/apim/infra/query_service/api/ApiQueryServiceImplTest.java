@@ -411,23 +411,6 @@ class ApiQueryServiceImplTest {
         }
 
         @Test
-        void should_match_an_upper_case_query_against_every_matched_field() throws IOException {
-            // Given three apis of the integration, each carrying a capitalised Alpha in a different matched field
-            givenIndexedApis(
-                anApiNamed("api-name", "Alpha Agent"),
-                anApiDescribed("api-desc", "Alpha workload handler"),
-                anAgentOfOrganization("api-org", "Alpha Robotics")
-            );
-            givenTheRepositoryHydratesTheSelectedApis();
-
-            // When the integration is searched with the upper case form of that text
-            var page = service.searchByIntegrationId(INTEGRATION_ID, null, "ALPHA", new PageableImpl(1, 10));
-
-            // Then all three come back, query and indexed field having been folded to the same case
-            assertThat(page.getContent()).extracting(Api::getId).containsExactlyInAnyOrder("api-name", "api-desc", "api-org");
-        }
-
-        @Test
         void should_narrow_by_the_requested_definition_versions_and_the_query_together() throws IOException {
             // Given two identically named apis of the integration differing only in definition version
             givenIndexedApis(
@@ -584,7 +567,7 @@ class ApiQueryServiceImplTest {
 
         private void givenTheRepositoryHoldsAnAgentRow(String apiId) {
             var row = fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id(apiId).build();
-            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(List.of(row), 1, 1, 1));
+            when(apiRepository.search(any(), any(), any(), any())).thenReturn(new Page<>(List.of(row), 0, 1, 1));
         }
 
         private static Stream<Arguments> reIngestedOrganizationQueries() {
@@ -787,7 +770,10 @@ class ApiQueryServiceImplTest {
                     "a text occurring only in an agent card provider organization matches that api alone",
                     "robotics",
                     List.of("api-org")
-                )
+                ),
+                Arguments.of("an upper case text matching a name", "BILLING", List.of("api-name")),
+                Arguments.of("an upper case text matching a description", "INVOICE", List.of("api-desc")),
+                Arguments.of("an upper case text matching a provider organization", "ROBOTICS", List.of("api-org"))
             );
         }
 
@@ -879,8 +865,9 @@ class ApiQueryServiceImplTest {
         }
 
         private Api aLegacyApiWithoutDefinitionVersion(String apiId) {
-            // The api definition has to go with the version: Api.toBuilder() re-derives definitionVersion from it,
-            // so an api that kept its definition would silently come back as V2 however this builder chain is ordered.
+            // ApiBuilder.apiDefinitionValue(...) re-derives definitionVersion whenever it is called with a non-null value, so
+            // apiDefinitionValue(null) has to be called alongside definitionVersion(null) and must not be followed by a non-null
+            // apiDefinitionValue(...) call; plain toBuilder() alone never touches definitionVersion.
             return anApiOwnedByIntegration(ApiFixtures.aProxyApiV2(), apiId, INTEGRATION_ID)
                 .toBuilder()
                 .apiDefinitionValue(null)
