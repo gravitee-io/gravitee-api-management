@@ -194,11 +194,17 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
     private static Page<Api> pageOf(List<Api> matches, Pageable pageable) {
         var pageNumber = repositoryPageNumberOf(pageable.getPageNumber());
-        var pageSize = pageable.getPageSize();
+        var content = withoutApiDefinitions(windowOf(matches, pageNumber, pageable.getPageSize()));
 
-        var page = windowOf(matches, pageNumber, pageSize);
+        return pageOfContent(content, pageNumber, matches.size());
+    }
 
-        return new Page<>(page.stream().map(ApiQueryServiceInMemory::withoutApiDefinition).toList(), pageNumber, pageSize, matches.size());
+    private static List<Api> withoutApiDefinitions(List<Api> apis) {
+        return apis.stream().map(ApiQueryServiceInMemory::withoutApiDefinition).toList();
+    }
+
+    private static <T> Page<T> pageOfContent(List<T> content, int repositoryPageNumber, long totalElements) {
+        return new Page<>(content, repositoryPageNumber, content.size(), totalElements);
     }
 
     private static int repositoryPageNumberOf(int callersPageNumber) {

@@ -86,8 +86,8 @@ class GetIngestedApisUseCaseTest {
 
         assertThat(output.getContent()).isEmpty();
         AssertionsForClassTypes.assertThat(output)
-            .extracting(Page::getPageNumber, Page::getTotalElements)
-            .containsExactly(expectedPageNumber, expectedTotalElements);
+            .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+            .containsExactly(expectedPageNumber, 0L, expectedTotalElements);
     }
 
     private static Stream<Arguments> should_return_an_empty_page_when_the_requested_page_starts_past_the_last_match() {
