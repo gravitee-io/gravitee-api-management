@@ -25,6 +25,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,10 +40,16 @@ public interface PortalNavigationItemsQueryService {
         String referenceId
     );
 
-    default Optional<PortalNavigationItem> findByParentIdAndSegment(String environmentId, PortalNavigationItemId parentId, String segment) {
+    default Optional<PortalNavigationItem> findByParentIdAndSegment(
+        String environmentId,
+        @Nullable PortalNavigationItemId parentId,
+        String segment,
+        NavigationItemReference reference
+    ) {
         return findByParentIdAndEnvironmentId(environmentId, parentId)
             .stream()
             .filter(it -> segment.equals(it.getSegment()))
+            .filter(it -> parentId != null || reference.sharesRootNamespaceWith(it.getReference()))
             .findFirst();
     }
 

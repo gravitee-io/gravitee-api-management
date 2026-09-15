@@ -18,7 +18,22 @@ package io.gravitee.apim.core.portal_page.model;
 import io.gravitee.apim.core.portal.model.PortalId;
 
 public sealed interface NavigationItemReference {
-    NavigationItemReference DEFAULT = PortalReference.DEFAULT;
+    /**
+     * Deliberately a method, not an eagerly-initialized field: a field initializer here would read
+     * {@code PortalReference.DEFAULT} as part of this interface's own class initialization, coupling
+     * the two classes' {@code <clinit>} together. A method defers that read to first call, so this
+     * interface's own initialization has no dependency on {@link PortalReference} at all.
+     */
+    static NavigationItemReference defaultReference() {
+        return PortalReference.DEFAULT;
+    }
+
+    default boolean sharesRootNamespaceWith(NavigationItemReference other) {
+        return switch (this) {
+            case ApiReference api -> other instanceof ApiReference otherApi && api.apiId().equals(otherApi.apiId());
+            case PortalReference ignored -> !(other instanceof ApiReference);
+        };
+    }
 
     record PortalReference(PortalId portalId) implements NavigationItemReference {
         public static final PortalReference DEFAULT = new PortalReference(PortalId.ZERO);

@@ -94,7 +94,7 @@ class HomepageReconcilerTest {
     @Test
     void drops_unattached_sentinel_homepage_and_its_content() {
         var seededContentId = PortalPageContentId.of("00000000-0000-0000-0000-0000000000c3");
-        navItemCrud.create(homepage(UNATTACHED_ID, NavigationItemReference.DEFAULT, seededContentId));
+        navItemCrud.create(homepage(UNATTACHED_ID, NavigationItemReference.defaultReference(), seededContentId));
         pageContentCrud.create(content(seededContentId));
 
         reconciler.dropStaleHomepages(ENV_ID, PORTAL_ID, ACTIVE_ID);

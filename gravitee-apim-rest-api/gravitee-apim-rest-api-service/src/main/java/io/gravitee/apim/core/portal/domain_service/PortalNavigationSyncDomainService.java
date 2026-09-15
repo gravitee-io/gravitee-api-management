@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -100,6 +101,7 @@ public class PortalNavigationSyncDomainService {
             auditInfo,
             area,
             null,
+            NavigationItemReference.defaultReference(),
             portalIdFolderFactory(auditInfo, portalId),
             ctx.ownership().asDeleteStrategy()
         );
