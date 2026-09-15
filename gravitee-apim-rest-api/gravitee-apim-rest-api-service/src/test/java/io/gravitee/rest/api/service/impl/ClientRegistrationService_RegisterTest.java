@@ -218,8 +218,49 @@ public class ClientRegistrationService_RegisterTest {
         wireMockServer.verify(0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata")));
     }
 
+    @Test
+    public void should_prefer_the_application_software_id_over_the_provider_one() throws TechnicalException {
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setAdditionalClientMetadata(Map.of("software_id", "APP_TEMPLATE"));
+
+        NewApplicationEntity application = setupApplicationAndProvider(
+            oAuthClientSettings,
+            "{ \"client_name\": \"gravitee\"}",
+            "PROVIDER_TEMPLATE"
+        );
+
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, null);
+
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE")))
+        );
+    }
+
+    @Test
+    public void should_fall_back_on_the_provider_software_id_when_the_application_has_none() throws TechnicalException {
+        NewApplicationEntity application = setupApplicationAndProvider(
+            new OAuthClientSettings(),
+            "{ \"client_name\": \"gravitee\"}",
+            "PROVIDER_TEMPLATE"
+        );
+
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application, null);
+
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.software_id", equalTo("PROVIDER_TEMPLATE")))
+        );
+    }
+
     private NewApplicationEntity setupApplicationAndProvider(OAuthClientSettings oAuthClientSettings, String registrationEndpointResponse)
         throws TechnicalException {
+        return setupApplicationAndProvider(oAuthClientSettings, registrationEndpointResponse, null);
+    }
+
+    private NewApplicationEntity setupApplicationAndProvider(
+        OAuthClientSettings oAuthClientSettings,
+        String registrationEndpointResponse,
+        String providerSoftwareId
+    ) throws TechnicalException {
         NewApplicationEntity application = new NewApplicationEntity();
 
         ApplicationSettings applicationSettings = new ApplicationSettings();
@@ -230,6 +271,7 @@ public class ClientRegistrationService_RegisterTest {
         provider.setId("CRP_ID");
         provider.setName("name");
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        provider.setSoftwareId(providerSoftwareId);
 
         when(
             mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
