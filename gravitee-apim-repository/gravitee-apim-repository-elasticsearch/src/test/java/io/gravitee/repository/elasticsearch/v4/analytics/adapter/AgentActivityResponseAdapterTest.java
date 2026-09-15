@@ -135,6 +135,33 @@ class AgentActivityResponseAdapterTest {
             assertThat(decisions.get(0).getOutcome()).isEqualTo("ALLOW");
             assertThat(decisions.get(0).getReason()).isEqualTo("Permitted");
         }
+
+        @Test
+        @SneakyThrows
+        void should_join_kebab_case_decision_fields_from_decisions_stream() {
+            var hopJson = "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000000 }";
+            var decisionJson =
+                "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000500, \"decision-point-type\": \"human-approval\", \"outcome\": \"PENDING\", \"enforced\": \"SUSPEND\", \"phase\": \"REQUESTED\", \"event-id\": \"hitl-req\", \"reasons\": [\"Needs manager approval\"] }";
+            var result = adapter.adapt(hopResponse(hopJson), decisionResponse(decisionJson), 0, 25);
+            var decisions = result.runs().get(0).getHops().get(0).getDecisions();
+            assertThat(decisions).hasSize(1);
+            assertThat(decisions.get(0).getDecisionPointType()).isEqualTo("human-approval");
+            assertThat(decisions.get(0).getPhase()).isEqualTo("REQUESTED");
+            assertThat(result.runs().get(0).getOutcome()).isEqualTo("waiting");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_join_kebab_case_guardian_decision() {
+            var hopJson = "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000000 }";
+            var decisionJson =
+                "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000500, \"decision-point-type\": \"guardian\", \"outcome\": \"DENY\", \"enforced\": \"DENY\", \"phase\": \"RESOLVED\", \"event-id\": \"g-1\" }";
+            var result = adapter.adapt(hopResponse(hopJson), decisionResponse(decisionJson), 0, 25);
+            var decision = result.runs().get(0).getHops().get(0).getDecisions().get(0);
+            assertThat(decision.getDecisionPointType()).isEqualTo("guardian");
+            assertThat(decision.getOutcome()).isEqualTo("DENY");
+            assertThat(result.runs().get(0).getOutcome()).isEqualTo("stopped");
+        }
     }
 
     @Nested

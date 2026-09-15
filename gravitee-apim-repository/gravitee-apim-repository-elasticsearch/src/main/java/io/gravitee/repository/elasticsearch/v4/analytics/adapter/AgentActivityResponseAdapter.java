@@ -49,16 +49,22 @@ public class AgentActivityResponseAdapter {
     private static final String MCP_TOOL_METRIC = "keyword_mcp-proxy_tools/call";
     private static final String MCP_RESOURCE_METRIC = "keyword_mcp-proxy_resources/read";
 
-    // Decision fields
-    private static final String DECISION_REQUEST_ID = "requestId";
-    private static final String DECISION_POINT_TYPE = "decisionPointType";
+    // Decision fields — kebab-case as written to the decisions data stream. CamelCase kept as
+    // fallback for older fixtures.
+    private static final String DECISION_REQUEST_ID = "request-id";
+    private static final String DECISION_REQUEST_ID_CAMEL = "requestId";
+    private static final String DECISION_POINT_TYPE = "decision-point-type";
+    private static final String DECISION_POINT_TYPE_CAMEL = "decisionPointType";
     private static final String OUTCOME = "outcome";
     private static final String ENFORCED = "enforced";
     private static final String PHASE = "phase";
-    private static final String DECIDER_TYPE = "deciderType";
-    private static final String DECIDER_ID = "deciderId";
+    private static final String DECIDER_TYPE = "decider-type";
+    private static final String DECIDER_TYPE_CAMEL = "deciderType";
+    private static final String DECIDER_ID = "decider-id";
+    private static final String DECIDER_ID_CAMEL = "deciderId";
     private static final String REASONS = "reasons";
-    private static final String DECISION_ID = "eventId";
+    private static final String DECISION_ID = "event-id";
+    private static final String DECISION_ID_CAMEL = "eventId";
 
     public AgentActivityResult adapt(SearchResponse hopsResponse, SearchResponse decisionsResponse, int page, int size) {
         var hops = parseHops(hopsResponse);
@@ -413,7 +419,7 @@ public class AgentActivityResponseAdapter {
             return null;
         }
 
-        var requestId = asTextOrNull(source.get(DECISION_REQUEST_ID));
+        var requestId = coalesceText(source, DECISION_REQUEST_ID, DECISION_REQUEST_ID_CAMEL);
         if (requestId == null) {
             return null;
         }
@@ -422,20 +428,20 @@ public class AgentActivityResponseAdapter {
 
         return AgentActivityDecision.builder()
             .requestId(requestId)
-            .decisionPointType(asTextOrNull(source.get(DECISION_POINT_TYPE)))
+            .decisionPointType(coalesceText(source, DECISION_POINT_TYPE, DECISION_POINT_TYPE_CAMEL))
             .outcome(asTextOrNull(source.get(OUTCOME)))
             .enforced(asTextOrNull(source.get(ENFORCED)))
             .phase(asTextOrNull(source.get(PHASE)))
             .decider(extractDecider(source))
             .reason(extractReason(source))
             .timestamp(timestamp)
-            .decisionId(asTextOrNull(source.get(DECISION_ID)))
+            .decisionId(coalesceText(source, DECISION_ID, DECISION_ID_CAMEL))
             .build();
     }
 
     private String extractDecider(JsonNode source) {
-        var type = asTextOrNull(source.get(DECIDER_TYPE));
-        var id = asTextOrNull(source.get(DECIDER_ID));
+        var type = coalesceText(source, DECIDER_TYPE, DECIDER_TYPE_CAMEL);
+        var id = coalesceText(source, DECIDER_ID, DECIDER_ID_CAMEL);
         if (type != null && id != null) {
             return type + ": " + id;
         }

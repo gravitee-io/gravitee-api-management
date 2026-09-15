@@ -88,11 +88,13 @@ public class AgentActivityQueryAdapter {
 
     /**
      * Builds a query to fetch decisions for a set of request ids.
+     *
+     * <p>The decisions stream stores the hop key as kebab-case {@code request-id}.
      */
     public static String adaptDecisions(AgentActivityQuery query, java.util.Set<String> requestIds) {
         var must = new JsonArray();
 
-        must.add(JsonObject.of("terms", JsonObject.of("requestId", new JsonArray(new ArrayList<>(requestIds)))));
+        must.add(JsonObject.of("terms", JsonObject.of(REQUEST_ID_V4, new JsonArray(new ArrayList<>(requestIds)))));
 
         // Scope to this agent's actor-id on decisions
         if (query.actorId() != null && !query.actorId().isEmpty()) {
