@@ -490,26 +490,24 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (incoming == null) {
             return null;
         }
-        Map<String, DictionaryProperty> result = new HashMap<>(incoming.size());
-        incoming.forEach((key, value) -> {
-            DictionaryProperty previous = existing == null ? null : existing.get(key);
-            boolean unchanged = previous != null && Objects.equals(previous.value(), value);
-            result.put(key, new DictionaryProperty(value, unchanged && previous.encrypted()));
-        });
-        return result;
+        return incoming.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, entry -> toTypedProperty(entry, existing)));
+    }
+
+    private static DictionaryProperty toTypedProperty(Map.Entry<String, String> entry, Map<String, DictionaryProperty> existing) {
+        DictionaryProperty previous = existing == null ? null : existing.get(entry.getKey());
+        boolean unchanged = previous != null && Objects.equals(previous.value(), entry.getValue());
+        return new DictionaryProperty(entry.getValue(), unchanged && previous.encrypted());
     }
 
     private static Map<String, String> toFlatProperties(Map<String, DictionaryProperty> typed) {
         if (typed == null) {
             return null;
         }
-        Map<String, String> result = new HashMap<>(typed.size());
-        typed.forEach((key, property) -> {
-            if (property != null) {
-                result.put(key, property.value());
-            }
-        });
-        return result;
+        return typed
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null)
+            .collect(HashMap::new, (flat, entry) -> flat.put(entry.getKey(), entry.getValue().value()), HashMap::putAll);
     }
 
     private Dictionary convert(UpdateDictionaryEntity updateDictionaryEntity, Dictionary existing) {

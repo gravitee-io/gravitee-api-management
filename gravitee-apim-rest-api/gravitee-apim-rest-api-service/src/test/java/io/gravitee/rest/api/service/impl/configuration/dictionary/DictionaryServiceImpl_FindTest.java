@@ -62,4 +62,26 @@ class DictionaryServiceImpl_FindTest {
 
         assertThat(result.getProperties()).containsExactlyEntriesOf(Map.of("valid", "value"));
     }
+
+    @Test
+    void should_keep_property_with_null_value_when_finding_dictionary() throws TechnicalException {
+        Dictionary stored = new Dictionary();
+        stored.setId("dictionary-id");
+        stored.setName("Dictionary");
+        stored.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        stored.setType(DictionaryType.MANUAL);
+        stored.setState(LifecycleState.STOPPED);
+        Map<String, DictionaryProperty> properties = new HashMap<>();
+        properties.put("valued", new DictionaryProperty("value", false));
+        properties.put("valueless", new DictionaryProperty(null, false));
+        stored.setProperties(properties);
+        when(dictionaryRepository.findById("dictionary-id")).thenReturn(Optional.of(stored));
+
+        DictionaryEntity result = dictionaryService.findById(GraviteeContext.getExecutionContext(), "dictionary-id");
+
+        Map<String, String> expected = new HashMap<>();
+        expected.put("valued", "value");
+        expected.put("valueless", null);
+        assertThat(result.getProperties()).containsExactlyInAnyOrderEntriesOf(expected);
+    }
 }
