@@ -492,6 +492,24 @@ class ApiAdapterTest {
             assertThat(api.getType()).isEqualTo(ApiType.EDGE);
             assertThat(api.getDefinition()).isEqualTo(GraviteeJacksonMapper.getInstance().writeValueAsString(edgeDefinition));
         }
+
+        @Test
+        void should_convert_federated_agent_to_repository() throws JsonProcessingException {
+            var model = ApiFixtures.aFederatedAgent();
+
+            var api = ApiAdapter.INSTANCE.toRepository(model);
+
+            var persistedAgent = GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), FederatedAgent.class);
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(persistedAgent.getName()).isEqualTo("My agent");
+                soft.assertThat(persistedAgent.getDescription()).isEqualTo("a fake agent");
+                soft.assertThat(persistedAgent.getUrl()).isEqualTo("https://example.net");
+                soft.assertThat(persistedAgent.getVersion()).isEqualTo("1.0.0");
+                soft.assertThat(persistedAgent.getDocumentationUrl()).isEqualTo("https://example.net");
+                soft.assertThat(persistedAgent.getSkills()).isEmpty();
+                soft.assertThat(persistedAgent.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED_AGENT);
+            });
+        }
     }
 
     @Nested
