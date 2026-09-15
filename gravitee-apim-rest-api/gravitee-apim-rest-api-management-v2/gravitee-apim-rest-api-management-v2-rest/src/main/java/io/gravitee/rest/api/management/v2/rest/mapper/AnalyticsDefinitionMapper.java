@@ -22,6 +22,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.ApiSpecsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetName;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpec;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FacetSpecsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.analytics.engine.FilterName;
@@ -69,6 +70,10 @@ public interface AnalyticsDefinitionMapper {
     default MetricSpecsResponse toMetricSpecsResponse(List<io.gravitee.apim.core.analytics_engine.model.MetricSpec> metricSpecs) {
         return new MetricSpecsResponse().data(mapMetricSpecs(metricSpecs));
     }
+
+    // Internal facet: the definition listings drop it before it gets here, and the API enum does not carry it.
+    @ValueMapping(source = "MCP_PROXY_TOOL_FINGERPRINT", target = MappingConstants.THROW_EXCEPTION)
+    FacetName mapFacetName(io.gravitee.apim.core.analytics_engine.model.FacetSpec.Name name);
 
     FacetSpec mapFacetSpec(io.gravitee.apim.core.analytics_engine.model.FacetSpec facetSpec);
 

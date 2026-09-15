@@ -43,10 +43,27 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
     /** Name index over {@link AnalyticsDefinitionSpec#filters()}, so resolving one by name stays constant-time. */
     private final Map<FilterSpec.Name, FilterSpec> filtersByName;
 
+    /**
+     * Facets {@link #findMetric} keeps, so the validator accepts them, but the listings drop, so no client offers
+     * them — see {@link FacetSpec#internal()}.
+     */
+    private final Set<FacetSpec.Name> internalFacets;
+
     public AnalyticsDefinitionYAMLQueryService() {
         var rawSpec = YAMLDefinitionLoader.load(ANALYTICS_DEFINITION_FILE, AnalyticsDefinition.class).spec();
         spec = enrichFiltersWithApiTypes(rawSpec);
         filtersByName = indexByName(spec.filters());
+        internalFacets = internalFacets(spec.facets());
+    }
+
+    private static Set<FacetSpec.Name> internalFacets(List<FacetSpec> facets) {
+        Set<FacetSpec.Name> internal = EnumSet.noneOf(FacetSpec.Name.class);
+        for (var facet : facets) {
+            if (facet.internal()) {
+                internal.add(facet.name());
+            }
+        }
+        return internal;
     }
 
     /**
@@ -102,6 +119,7 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
             .metrics()
             .stream()
             .filter(metric -> metric.apis().contains(apiSpecName))
+            .map(metric -> metric.withoutFacets(internalFacets))
             .toList();
     }
 
@@ -138,7 +156,7 @@ public class AnalyticsDefinitionYAMLQueryService implements AnalyticsDefinitionQ
         return spec
             .facets()
             .stream()
-            .filter(facet -> metric.facets().contains(facet.name()))
+            .filter(facet -> !facet.internal() && metric.facets().contains(facet.name()))
             .toList();
     }
 

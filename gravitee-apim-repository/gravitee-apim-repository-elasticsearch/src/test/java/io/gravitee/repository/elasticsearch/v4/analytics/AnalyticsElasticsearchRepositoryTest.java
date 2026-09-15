@@ -2465,6 +2465,26 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             }
 
             /**
+             * Single-valued on a {@code tools/call}, so its buckets are the two calls, one each. Not offered to
+             * charts, but lineage groups by it to tie each fingerprint to the tool name it was called under.
+             */
+            @Test
+            void should_return_facets_by_mcp_proxy_tool_fingerprint() {
+                var timeRange = buildTimeRange();
+                var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+                var filter = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID));
+                var query = new FacetsQuery(timeRange, List.of(filter), metrics, List.of(Facet.MCP_PROXY_TOOL_FINGERPRINT));
+
+                var result = cut.searchHTTPFacets(QUERY_CONTEXT, query);
+
+                assertThat(result).isNotNull();
+                assertThat(result.metrics()).hasSize(1);
+                assertThat(result.metrics().getFirst().buckets())
+                    .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
+                    .containsExactlyInAnyOrder(tuple("v1:7b2e44a90c1d5e36", 1.0), tuple("v1:a4d1e80b6c3f2a97", 1.0));
+            }
+
+            /**
              * Two {@code tools/list} answers carry a catalog, {@code ["search|v1:7b2e44a90c1d5e36","fetch|v1:a4d1e80b6c3f2a97"]} and {@code ["search|v1:7b2e44a90c1d5e36"]},
              * so the counts total three over two requests: a bucket counts the listings a tool was served in,
              * never the tools served, and a listing of two tools is in both buckets. Asserted, as for the llm

@@ -194,6 +194,25 @@ class AnalyticsDefinitionYAMLQueryServiceTest {
                 );
         }
 
+        /** The fingerprint is an internal facet: the validator's metric keeps it, every listing drops it. */
+        @ParameterizedTest
+        @EnumSource(
+            value = MetricSpec.Name.class,
+            names = { "HTTP_REQUESTS", "HTTP_ERRORS", "HTTP_ERROR_RATE", "HTTP_SERVER_ERROR_RATE", "HTTP_REQUESTS_PER_SECOND" }
+        )
+        void should_accept_the_mcp_proxy_tool_fingerprint_facet_without_advertising_it(MetricSpec.Name metric) {
+            var service = new AnalyticsDefinitionYAMLQueryService();
+
+            assertThat(service.findMetric(metric)).hasValueSatisfying(spec ->
+                assertThat(spec.facets()).contains(FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT)
+            );
+            assertThat(service.getFacets(metric)).extracting(FacetSpec::name).doesNotContain(FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT);
+            assertThat(service.getMetrics(ApiSpec.Name.HTTP_PROXY))
+                .filteredOn(spec -> spec.name() == metric)
+                .singleElement()
+                .satisfies(spec -> assertThat(spec.facets()).doesNotContain(FacetSpec.Name.MCP_PROXY_TOOL_FINGERPRINT));
+        }
+
         /**
          * Grouping or filtering by the tool name is where two tools sharing a name get conflated — tool cost
          * and value above all — so wherever the name is offered, the identity is offered beside it. A metric
