@@ -37,6 +37,7 @@ class DictionaryService {
       description: dictionary.description,
       type: dictionary.type,
       properties: dictionary.properties,
+      propertyOptions: dictionary.propertyOptions,
       provider: dictionary.provider,
       trigger: dictionary.trigger,
     });
