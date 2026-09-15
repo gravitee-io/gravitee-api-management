@@ -83,6 +83,32 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     }
 
     @Override
+    public AgentActivityResult searchAgentActivity(QueryContext queryContext, AgentActivityQuery query) {
+        var metricsIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var decisionsIndex = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
+
+        var hopsQuery = AgentActivityQueryAdapter.adaptHops(query);
+
+        log.debug("Agent activity hops query: {}", hopsQuery);
+
+        var hopsResponse = client.search(metricsIndex, null, hopsQuery).blockingGet();
+
+        // Collect request-ids from hop hits to fetch their decisions
+        var requestIds = AgentActivityQueryAdapter.extractRequestIds(hopsResponse);
+        io.gravitee.elasticsearch.model.SearchResponse decisionsResponse;
+
+        if (requestIds.isEmpty()) {
+            decisionsResponse = null;
+        } else {
+            var decisionsQuery = AgentActivityQueryAdapter.adaptDecisions(query, requestIds);
+            log.debug("Agent activity decisions query: {}", decisionsQuery);
+            decisionsResponse = client.search(decisionsIndex, null, decisionsQuery).blockingGet();
+        }
+
+        return new AgentActivityResponseAdapter().adapt(hopsResponse, decisionsResponse, query.page(), query.size());
+    }
+
+    @Override
     public Optional<CountAggregate> searchRequestsCount(QueryContext queryContext, RequestsCountQuery query) {
         var indexV4 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
         var indexV2 = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.REQUEST, clusters);

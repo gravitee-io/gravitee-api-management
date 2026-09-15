@@ -217,4 +217,9 @@ public class NoOpAnalyticsRepository implements AnalyticsRepository {
     public FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query) {
         return new FilterValuesResult(Collections.emptyList(), null, 0);
     }
+
+    @Override
+    public AgentActivityResult searchAgentActivity(QueryContext queryContext, AgentActivityQuery query) {
+        return new AgentActivityResult(Collections.emptyList(), 0, query.page(), query.size());
+    }
 }
