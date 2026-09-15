@@ -25,6 +25,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -124,6 +125,69 @@ describe('ApiPropertiesComponent', () => {
         characteristic: 'Unencrypted Dynamic',
       },
     ]);
+  });
+
+  it('should visually distinguish the Dynamic chip from Unencrypted', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key3', value: 'value3', dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const dynamicChip = await loader.getHarness(SpanHarness.with({ selector: '[data-testid="property-characteristic-dynamic"]' }));
+    expect(await dynamicChip.getText()).toEqual('Dynamic');
+
+    const dynamicChipHost = await dynamicChip.host();
+    expect(await dynamicChipHost.hasClass('gio-badge-neutral')).toEqual(false);
+  });
+
+  it('should disable the value input for encrypted and dynamic properties (AC-4)', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [
+          { key: 'encryptedKey', value: 'cipher', encrypted: true },
+          { key: 'dynamicKey', value: 'value', dynamic: true },
+        ],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const rows = await table.getRows();
+
+    const encryptedValueInput = await (await rows[0].getCells())[1].getHarness(MatInputHarness);
+    expect(await encryptedValueInput.isDisabled()).toEqual(true);
+
+    const dynamicValueInput = await (await rows[1].getCells())[1].getHarness(MatInputHarness);
+    expect(await dynamicValueInput.isDisabled()).toEqual(true);
+  });
+
+  it('should allow encrypting a dynamic property row', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'value', dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const encryptValueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    expect(await encryptValueButton.isDisabled()).toEqual(false);
   });
 
   it('should renew encrypted value', async () => {
