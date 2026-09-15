@@ -1778,7 +1778,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-                    .containsExactlyInAnyOrder(tuple("GET", 3L), tuple("DELETE", 13L), tuple("POST", 6L), tuple("PUT", 2L));
+                    .containsExactlyInAnyOrder(tuple("GET", 3L), tuple("DELETE", 14L), tuple("POST", 6L), tuple("PUT", 2L));
             }
 
             @Test
@@ -1798,7 +1798,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 14L));
+                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 15L));
             }
         }
 
@@ -2252,8 +2252,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             /**
              * The refs carry the same tools as the names, identified by definition: the three documents hold
-             * {@code ["get_weather|3f9a1c","search|7b2e44"]}, {@code ["get_weather|3f9a1c"]} and
-             * {@code ["search|c81d05","<unnamed>|"]}. Two things follow and are both asserted: the two
+             * {@code ["get_weather|v1:3f9a1c2b8d4e7f01","search|v1:7b2e44a90c1d5e36"]}, {@code ["get_weather|v1:3f9a1c2b8d4e7f01"]} and
+             * {@code ["search|v1:c81d05f37a2b9e64","<unnamed>|"]}. Two things follow and are both asserted: the two
              * {@code search} exchanges that share a name land in separate buckets because their fingerprints
              * differ, and the counts still total five over three requests — a bucket counts exchanges, and an
              * exchange that ran two tools is in both. {@code <unnamed>|} is the shape of a tool with no
@@ -2273,9 +2273,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
                     .containsExactlyInAnyOrder(
-                        tuple("get_weather|3f9a1c", 2.0),
-                        tuple("search|7b2e44", 1.0),
-                        tuple("search|c81d05", 1.0),
+                        tuple("get_weather|v1:3f9a1c2b8d4e7f01", 2.0),
+                        tuple("search|v1:7b2e44a90c1d5e36", 1.0),
+                        tuple("search|v1:c81d05f37a2b9e64", 1.0),
                         tuple("<unnamed>|", 1.0)
                     );
             }
@@ -2287,7 +2287,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
                 var filters = List.of(
                     new Filter(Filter.Name.API, Filter.Operator.IN, List.of(LLM_API_ID)),
-                    new Filter(Filter.Name.LLM_PROXY_TOOL_REF, Filter.Operator.EQ, "get_weather|3f9a1c")
+                    new Filter(Filter.Name.LLM_PROXY_TOOL_REF, Filter.Operator.EQ, "get_weather|v1:3f9a1c2b8d4e7f01")
                 );
 
                 var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(timeRange, filters, metrics));
@@ -2318,7 +2318,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var measure = result.measures().getFirst();
                 assertThat(measure.metric()).isEqualTo(Metric.HTTP_REQUESTS);
                 assertThat(measure.measures()).containsKey(Measure.COUNT);
-                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isEqualTo(5.0);
+                assertThat(measure.measures().get(Measure.COUNT).doubleValue()).isEqualTo(6.0);
             }
 
             @Test
@@ -2357,7 +2357,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 var methodBuckets = metric.buckets();
                 assertThat(methodBuckets.stream().map(FacetBucketResult::key).toList()).containsExactlyInAnyOrder(
-                    "initialize",
+                    "tools/list",
                     "tools/call",
                     "resources/read",
                     "prompts/get"
@@ -2430,11 +2430,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(result.metrics()).hasSize(1);
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
-                    .containsExactlyInAnyOrder(tuple("7b2e44", 1.0), tuple("a4d1e8", 1.0));
+                    .containsExactlyInAnyOrder(tuple("v1:7b2e44a90c1d5e36", 1.0), tuple("v1:a4d1e80b6c3f2a97", 1.0));
             }
 
             /**
-             * Two documents carry a catalog, {@code ["search|7b2e44","fetch|a4d1e8"]} and {@code ["search|7b2e44"]},
+             * Two {@code tools/list} answers carry a catalog, {@code ["search|v1:7b2e44a90c1d5e36","fetch|v1:a4d1e80b6c3f2a97"]} and {@code ["search|v1:7b2e44a90c1d5e36"]},
              * so the counts total three over two requests: a bucket counts the listings a tool was served in,
              * never the tools served, and a listing of two tools is in both buckets. Asserted, as for the llm
              * refs, because it is the property anything reading this facet has to state.
@@ -2452,7 +2452,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 assertThat(result.metrics()).hasSize(1);
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(FacetBucketResult::key, bucket -> bucket.measures().get(Measure.COUNT).doubleValue())
-                    .containsExactlyInAnyOrder(tuple("search|7b2e44", 2.0), tuple("fetch|a4d1e8", 1.0));
+                    .containsExactlyInAnyOrder(tuple("search|v1:7b2e44a90c1d5e36", 2.0), tuple("fetch|v1:a4d1e80b6c3f2a97", 1.0));
             }
 
             /** {@code EQ} on the multi-valued catalog means "served this tool". */
@@ -2462,7 +2462,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
                 var filters = List.of(
                     new Filter(Filter.Name.API, Filter.Operator.IN, List.of(MCP_API_ID)),
-                    new Filter(Filter.Name.MCP_PROXY_TOOL_CATALOG, Filter.Operator.EQ, "search|7b2e44")
+                    new Filter(Filter.Name.MCP_PROXY_TOOL_CATALOG, Filter.Operator.EQ, "search|v1:7b2e44a90c1d5e36")
                 );
 
                 var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(timeRange, filters, metrics));
