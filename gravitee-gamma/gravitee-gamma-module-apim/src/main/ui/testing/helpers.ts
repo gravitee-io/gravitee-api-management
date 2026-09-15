@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { act } from '@testing-library/react';
 import { http, HttpResponse, type JsonBodyType } from 'msw';
 
 import { server } from './server';
+
+const SETTLE_MS = 50;
 
 export interface TrackedRequest {
     url: string;
@@ -66,6 +69,28 @@ export function trackHandler(
             return requests[requests.length - 1] ?? null;
         },
     };
+}
+
+/**
+ * Hands back every signal the code under test opened a time bound with, so the test can fire them itself.
+ * The spy this installs on `AbortSignal.timeout` survives `jest.clearAllMocks()` — only `jest.restoreAllMocks()`
+ * (or an explicit `mockRestore()`) undoes it, so a spec using this helper must restore rather than clear.
+ */
+export function captureTimeoutSignals(): AbortController[] {
+    const controllers: AbortController[] = [];
+    jest.spyOn(AbortSignal, 'timeout').mockImplementation(() => {
+        const controller = new AbortController();
+        controllers.push(controller);
+        return controller.signal;
+    });
+    return controllers;
+}
+
+/** Lets anything already on the wire reach its stub, so an empty request log reads as "never asked" rather than "not yet". */
+export async function settleOutstandingRequests() {
+    await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, SETTLE_MS));
+    });
 }
 
 export function respondWith(method: 'get' | 'post' | 'put' | 'delete', url: string, body: JsonBodyType, status = 200) {

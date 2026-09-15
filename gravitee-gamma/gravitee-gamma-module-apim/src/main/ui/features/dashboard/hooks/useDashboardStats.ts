@@ -21,6 +21,7 @@ import { apiProductKeys } from '../../api-products/utils/queryKeys';
 import { searchApis } from '../../apis/services/apiList';
 import { apiListKeys } from '../../apis/utils/queryKeys';
 import { ApimLicenseFeature } from '../../license/apimFeatures';
+import { useFederationEnabled } from '../../license/useFederationEnabled';
 
 const STATS_PAGE = 1;
 const STATS_PER_PAGE = 1;
@@ -38,13 +39,15 @@ export function useDashboardStats(): DashboardStats {
     const env = useEnvironment();
     const envId = env?.id ?? '';
     const hasApiProducts = useHasFeature(ApimLicenseFeature.API_PRODUCTS);
+    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
     // Guard on envId too — env may be truthy but id not yet populated
     const enabled = Boolean(envId);
 
     const totalApisQuery = useQuery({
-        queryKey: apiListKeys.count(envId, {}),
-        queryFn: () => searchApis(envId, {}, STATS_PAGE, STATS_PER_PAGE),
-        enabled,
+        queryKey: apiListKeys.count(envId, {}, includeFederated),
+        queryFn: () => searchApis(envId, {}, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        // Waiting for the gate keeps the count from disagreeing with the API Proxies list it links to.
+        enabled: enabled && isFederationResolved,
         staleTime: 60_000,
     });
 

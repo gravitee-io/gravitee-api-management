@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { searchApis } from '../../apis/services/apiList';
 import type { ApiListItem } from '../../apis/types';
 import { apiListKeys } from '../../apis/utils/queryKeys';
+import { useFederationEnabled } from '../../license/useFederationEnabled';
 
 const RECENT_PAGE = 1;
 const RECENT_PER_PAGE = 6;
@@ -32,18 +33,22 @@ export interface DashboardRecentApis {
 export function useDashboardRecentApis(): DashboardRecentApis {
     const env = useEnvironment();
     const envId = env?.id ?? '';
+    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
     const enabled = Boolean(envId);
 
     const query = useQuery({
-        queryKey: apiListKeys.search(envId, '', RECENT_PAGE, RECENT_PER_PAGE),
-        queryFn: () => searchApis(envId, {}, RECENT_PAGE, RECENT_PER_PAGE),
-        enabled,
+        queryKey: apiListKeys.search(envId, '', RECENT_PAGE, RECENT_PER_PAGE, includeFederated),
+        queryFn: () => searchApis(envId, {}, RECENT_PAGE, RECENT_PER_PAGE, undefined, includeFederated),
+        // Waiting for the gate keeps the widget from listing federation-free rows it would replace milliseconds later.
+        enabled: enabled && isFederationResolved,
         staleTime: 60_000,
     });
 
     return {
         apis: query.data?.data ?? [],
-        isLoading: query.isLoading,
+        // A disabled query reports isLoading false with no data, which the widget renders as its empty state.
+        // While the gate is still resolving nothing has loaded, so report that wait as loading.
+        isLoading: query.isLoading || !isFederationResolved,
         isError: query.isError,
     };
 }

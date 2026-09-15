@@ -27,7 +27,8 @@ export const apiListKeys = {
     all: ['api-list'] as const,
     search: (envId: string, query: string, page: number, perPage: number, includeFederated = false) =>
         [...apiListKeys.all, 'search', envId, query, page, perPage, includeFederated] as const,
-    count: (envId: string, filter: object) => [...apiListKeys.all, 'count', envId, JSON.stringify(filter)] as const,
+    count: (envId: string, filter: object, includeFederated = false) =>
+        [...apiListKeys.all, 'count', envId, JSON.stringify(filter), includeFederated] as const,
 } as const;
 
 export const apiDetailKeys = {

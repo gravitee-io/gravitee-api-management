@@ -22,7 +22,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { ApisPage } from './ApisPage';
 import { resetApimClientForTests } from '../../../shared/api/apimClient';
 import { TEST_CONFIG, TEST_V2_BASE } from '../../../testing/factories';
-import { trackHandler } from '../../../testing/helpers';
+import { captureTimeoutSignals, trackHandler } from '../../../testing/helpers';
 import { server } from '../../../testing/server';
 import type { OrgConsoleSettings } from '../../settings/services/orgConsoleSettings';
 
@@ -60,17 +60,6 @@ function renderPage() {
             </MemoryRouter>
         </QueryClientProvider>,
     );
-}
-
-/** Hands back every signal the code under test opened a time bound with, so the test can fire them itself. */
-function captureTimeoutSignals(): AbortController[] {
-    const controllers: AbortController[] = [];
-    jest.spyOn(AbortSignal, 'timeout').mockImplementation(() => {
-        const controller = new AbortController();
-        controllers.push(controller);
-        return controller.signal;
-    });
-    return controllers;
 }
 
 describe('ApisPage federation gate', () => {
