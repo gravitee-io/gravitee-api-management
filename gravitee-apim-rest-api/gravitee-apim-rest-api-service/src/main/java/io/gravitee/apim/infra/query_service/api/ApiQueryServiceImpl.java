@@ -99,7 +99,7 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
     ) {
         var matchedIds = searchIndexedApiIds(integrationId, definitionVersions, query);
         if (matchedIds.isEmpty()) {
-            return new Page<>(List.of(), convert(pageable).pageNumber(), 0, 0);
+            return new Page<>(List.of(), repositoryPageNumberOf(pageable), 0, 0);
         }
 
         return hydrate(new ApiCriteria.Builder().ids(matchedIds).build(), pageable);
@@ -111,6 +111,11 @@ public class ApiQueryServiceImpl extends AbstractService implements ApiQueryServ
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
+    }
+
+    private static int repositoryPageNumberOf(Pageable pageable) {
+        var repositoryPageable = convert(pageable);
+        return repositoryPageable == null ? 0 : repositoryPageable.pageNumber();
     }
 
     private Page<Api> hydrate(ApiCriteria searchCriteria, Pageable pageable) {
