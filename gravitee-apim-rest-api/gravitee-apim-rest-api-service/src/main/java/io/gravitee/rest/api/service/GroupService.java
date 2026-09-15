@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -52,6 +53,7 @@ public interface GroupService {
     Set<GroupEntity> findByUser(String username);
     Set<GroupEntity> findByUserAndEnvironment(String username, String environmentId);
     List<ApiEntity> getApis(final String environmentId, String groupId);
+    long countPrimaryOwnerMemberships(ExecutionContext executionContext, String groupId, RoleScope scope);
     List<ApplicationEntity> getApplications(String groupId);
     List<ApiProductEntity> getApiProducts(final String environmentId, String groupId);
     int getNumberOfMembers(ExecutionContext executionContext, String groupId);

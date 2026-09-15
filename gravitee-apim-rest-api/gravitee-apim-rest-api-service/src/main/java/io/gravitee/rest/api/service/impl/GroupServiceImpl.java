@@ -1317,8 +1317,30 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
      * scope on at least one reference (API or API Product), to prevent orphan PO memberships.
      */
     private void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+        long count = countPrimaryOwnerMemberships(executionContext, groupId, scope);
+        if (count > 0) {
+            throw scope == RoleScope.API
+                ? new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP)
+                : new StillApiProductPrimaryOwnerException(count);
+        }
+    }
+
+    /**
+     * Counts the memberships where the given group holds the PRIMARY_OWNER role for the given scope
+     * (API or API_PRODUCT) — i.e. references the group actually *owns*, not merely ones it is
+     * *assigned to*.
+     *
+     * This is the correct, membership-based check (already used by {@link #verifyUserCanBeDeletedFromGroup}
+     * and {@link #assertGroupIsNotPrimaryOwner}). Previously, the role-update path in
+     * {@code GroupMembersResource} used {@link #getApis(String, String)} / {@link #getApiProducts(String, String)}
+     * instead, which counts APIs the group is merely *assigned* to (has access to), not ones it owns —
+     * causing the PRIMARY_OWNER member to become permanently un-changeable for any group in normal use.
+     * See APIM-15110.
+     */
+    @Override
+    public long countPrimaryOwnerMemberships(ExecutionContext executionContext, String groupId, RoleScope scope) {
         RoleEntity poRole = getPrimaryOwnerRoleOrThrow(executionContext, scope);
-        long count = membershipService
+        return membershipService
             .getMembershipsByMemberAndReferenceAndRole(
                 MembershipMemberType.GROUP,
                 groupId,
@@ -1326,11 +1348,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 poRole.getId()
             )
             .size();
-        if (count > 0) {
-            throw scope == RoleScope.API
-                ? new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP)
-                : new StillApiProductPrimaryOwnerException(count);
-        }
     }
 
     private boolean userHasPrimaryOwnerRoleForScope(Set<RoleEntity> userRoles, RoleScope scope) {
