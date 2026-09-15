@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,9 +58,11 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
+import io.gravitee.rest.api.service.impl.search.SearchEngineServiceImpl;
 import io.gravitee.rest.api.service.impl.search.lucene.SearchEngineIndexer;
 import io.gravitee.rest.api.service.impl.search.lucene.searcher.ApiDocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.IndexableApiDocumentTransformer;
+import io.gravitee.rest.api.service.impl.search.lucene.transformer.IndexableApiProductDocumentTransformer;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
@@ -73,6 +75,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.store.ByteBuffersDirectory;
@@ -139,21 +142,7 @@ public class SearchIndexInitializerTest {
 
     @BeforeEach
     public void setup() throws Exception {
-        initializer = new SearchIndexInitializer(
-            apiRepository,
-            new GenericApiMapper(apiMapper, apiConverter),
-            pageService,
-            userRepository,
-            searchEngineService,
-            environmentRepository,
-            apiConverter,
-            new UserConverter(),
-            primaryOwnerService,
-            apiIndexerDomainService,
-            apiProductIndexerDomainService,
-            apiProductsRepository,
-            userMetadataService
-        );
+        initializer = anInitializerIndexingWith(searchEngineService);
 
         givenExistingEnvironments(
             Environment.builder().id("env1").organizationId("org1").build(),
@@ -223,27 +212,38 @@ public class SearchIndexInitializerTest {
 
         private static final String INTEGRATION_ID = "int-a";
 
+        private ByteBuffersDirectory indexDirectory;
         private IndexWriter indexWriter;
         private ApiQueryService apiSearch;
+        private SearchEngineService luceneSearchEngine;
 
         @BeforeEach
         void openTheIndexTheRebuildWritesInto() throws Exception {
-            indexWriter = new IndexWriter(new ByteBuffersDirectory(), new IndexWriterConfig(new StandardAnalyzer()));
+            indexDirectory = new ByteBuffersDirectory();
+            indexWriter = new IndexWriter(indexDirectory, new IndexWriterConfig(new StandardAnalyzer()));
             apiSearch = new ApiQueryServiceImpl(apiRepository, new ApiDocumentSearcher(indexWriter));
 
-            var indexer = new SearchEngineIndexer();
-            ReflectionTestUtils.setField(indexer, "writer", indexWriter);
-            doAnswer(invocation -> {
-                var indexable = invocation.getArgument(1, IndexableApi.class);
-                return indexer.index(new IndexableApiDocumentTransformer().transform(indexable), true);
-            })
-                .when(searchEngineService)
-                .index(any(ExecutionContext.class), any(Indexable.class), anyBoolean(), anyBoolean());
+            luceneSearchEngine = spy(aSearchEngineWritingInto(indexWriter));
+            initializer = anInitializerIndexingWith(luceneSearchEngine);
         }
 
         @AfterEach
         void closeTheIndex() throws Exception {
             indexWriter.close();
+        }
+
+        private SearchEngineServiceImpl aSearchEngineWritingInto(IndexWriter writer) {
+            var indexer = new SearchEngineIndexer();
+            ReflectionTestUtils.setField(indexer, "writer", writer);
+
+            var searchEngine = new SearchEngineServiceImpl();
+            ReflectionTestUtils.setField(searchEngine, "indexer", indexer);
+            ReflectionTestUtils.setField(
+                searchEngine,
+                "transformers",
+                List.of(new IndexableApiProductDocumentTransformer(), new IndexableApiDocumentTransformer())
+            );
+            return searchEngine;
         }
 
         @ParameterizedTest(name = "{0}")
@@ -274,18 +274,36 @@ public class SearchIndexInitializerTest {
             var futures = whenTheRebuildRunsToTheEndDespiteAFailingRow();
 
             assertThat(futures).filteredOn(CompletableFuture::isCompletedExceptionally).hasSize(1);
-            verify(searchEngineService, never()).index(
+            verify(luceneSearchEngine, never()).index(
                 any(ExecutionContext.class),
                 argThat(indexable -> "api-broken".equals(indexable.getId())),
                 anyBoolean(),
                 anyBoolean()
             );
-            verify(searchEngineService, times(1)).index(
+            verify(luceneSearchEngine, times(1)).index(
                 any(ExecutionContext.class),
                 argThat(indexable -> "api-ok".equals(indexable.getId())),
                 anyBoolean(),
                 anyBoolean()
             );
+        }
+
+        @Test
+        void should_write_the_readable_agent_as_an_api_document_that_stays_uncommitted_until_the_rebuild_commits() throws Exception {
+            givenAnAgentOfAcmeRoboticsBehindAnUnreadableOne();
+
+            whenTheRebuildRunsToTheEndDespiteAFailingRow();
+
+            assertThat(DirectoryReader.indexExists(indexDirectory)).isFalse();
+
+            luceneSearchEngine.commit();
+
+            try (var committedIndex = DirectoryReader.open(indexDirectory)) {
+                assertThat(committedIndex.numDocs()).isEqualTo(1);
+                var document = committedIndex.storedFields().document(0);
+                assertThat(document.get("id")).isEqualTo("api-ok");
+                assertThat(document.get("type")).isEqualTo("api");
+            }
         }
 
         private List<CompletableFuture<?>> whenTheRebuildRunsToTheEndDespiteAFailingRow() throws Exception {
@@ -435,6 +453,24 @@ public class SearchIndexInitializerTest {
     @Test
     public void testOrder() {
         assertThat(initializer.getOrder()).isEqualTo(InitializerOrder.SEARCH_INDEX_INITIALIZER);
+    }
+
+    private SearchIndexInitializer anInitializerIndexingWith(SearchEngineService indexingService) {
+        return new SearchIndexInitializer(
+            apiRepository,
+            new GenericApiMapper(apiMapper, apiConverter),
+            pageService,
+            userRepository,
+            indexingService,
+            environmentRepository,
+            apiConverter,
+            new UserConverter(),
+            primaryOwnerService,
+            apiIndexerDomainService,
+            apiProductIndexerDomainService,
+            apiProductsRepository,
+            userMetadataService
+        );
     }
 
     private void givenExistingApiProducts(io.gravitee.repository.management.model.ApiProduct... products) throws Exception {
