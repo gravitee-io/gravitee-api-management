@@ -229,6 +229,9 @@ class DictionaryController {
 
         if (property) {
           this.dictionary.properties[property.key] = property.value;
+          if (property.encryptable) {
+            this.encryptProperty(property.key);
+          }
           ++this.query.total;
           this.propertiesDirty = true;
         }
@@ -264,6 +267,9 @@ class DictionaryController {
 
   deleteProperty(key) {
     delete this.dictionary.properties[key];
+    if (this.dictionary.propertyOptions) {
+      delete this.dictionary.propertyOptions[key];
+    }
     --this.query.total;
     this.dictProperties = this.computeProperties();
     this.propertiesDirty = true;
@@ -323,9 +329,66 @@ class DictionaryController {
       const result: any = {};
       result.key = entry[0];
       result.value = entry[1];
+      result.encrypted = this.isEncrypted(entry[0]);
+      result.encryptable = this.isEncryptable(entry[0]);
       return result;
     });
   };
+
+  isEncrypted(key: string) {
+    return this.propertyOption(key).encrypted === true;
+  }
+
+  isEncryptable(key: string) {
+    return this.propertyOption(key).encryptable === true;
+  }
+
+  encryptProperty(key: string) {
+    if (this.dictionary.propertyOptions === undefined) {
+      this.dictionary.propertyOptions = {};
+    }
+    this.dictionary.propertyOptions[key] = { encryptable: true };
+    this.dictProperties = this.computeProperties();
+    this.propertiesDirty = true;
+  }
+
+  undoEncryptProperty(key: string) {
+    if (this.isEncrypted(key)) {
+      return;
+    }
+    delete this.dictionary.propertyOptions[key];
+    this.dictProperties = this.computeProperties();
+    this.propertiesDirty = true;
+  }
+
+  renewProperty(event, key: string) {
+    event.stopPropagation();
+
+    return this.$mdDialog
+      .show({
+        controller: 'DialogDictionaryEditPropertyController',
+        controllerAs: 'dialogDictionaryEditPropertyCtrl',
+        template: require('html-loader!./edit-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
+        clickOutsideToClose: true,
+        locals: {
+          key,
+          value: '',
+        },
+      })
+      .then(property => {
+        if (property) {
+          this.dictionary.properties[key] = property.value;
+          this.dictionary.propertyOptions[key] = { encryptable: true };
+          this.dictProperties = this.computeProperties();
+          this.propertiesDirty = true;
+        }
+      })
+      .catch(() => {});
+  }
+
+  private propertyOption(key: string) {
+    return this.dictionary?.propertyOptions?.[key] || {};
+  }
 
   getHttpMethods() {
     return ['GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'];

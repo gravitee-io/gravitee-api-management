@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<md-dialog aria-label="New property">
+<md-dialog aria-label="New property" class="dictionary-add-property-dialog">
   <form name="formDictionaryProperty" ng-submit="dialogDictionaryAddPropertyCtrl.save()" novalidate>
     <md-dialog-content layout-padding>
       <h4>New property</h4>
@@ -26,6 +26,10 @@
       <md-input-container>
         <label>Value</label>
         <input ng-model="property.value" id="value" required />
+      </md-input-container>
+      <md-input-container class="md-block dictionary-encrypt-field">
+        <md-switch ng-model="property.encryptable" aria-label="Encrypt on save toggle" id="encryptable">Encrypt</md-switch>
+        <div class="hint">The value will be encrypted on save, and cannot be retrieved later on.</div>
       </md-input-container>
     </md-dialog-content>
 
