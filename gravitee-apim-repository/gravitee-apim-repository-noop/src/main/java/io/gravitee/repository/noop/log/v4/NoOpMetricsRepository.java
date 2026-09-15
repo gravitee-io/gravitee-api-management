@@ -74,4 +74,9 @@ public class NoOpMetricsRepository implements MetricsRepository {
     public LogResponse<DecisionLog> searchDecisionLogs(QueryContext queryContext, DecisionLogQuery query) {
         return new LogResponse<>(0, List.of());
     }
+
+    @Override
+    public Optional<DecisionLog> findDecisionLog(QueryContext queryContext, String apiId, String eventId) {
+        return Optional.empty();
+    }
 }

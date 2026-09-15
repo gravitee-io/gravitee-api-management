@@ -31,6 +31,7 @@ import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConn
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchConnectionLogErrorKeysResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetricsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.connection.SearchMetricsResponseAdapter;
+import io.gravitee.repository.elasticsearch.v4.log.adapter.decision.FindDecisionLogQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.decision.SearchDecisionLogsQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.decision.SearchDecisionLogsResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.log.adapter.message.SearchMessageMetricsQueryAdapter;
@@ -192,6 +193,20 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
                 .blockingGet();
         } catch (RuntimeException e) {
             throw new AnalyticsException("Failed to search decision logs for decision point type " + query.getDecisionPointType(), e);
+        }
+    }
+
+    @Override
+    public Optional<DecisionLog> findDecisionLog(QueryContext queryContext, String apiId, String eventId) throws AnalyticsException {
+        var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
+
+        try {
+            return this.client.search(index, null, FindDecisionLogQueryAdapter.adapt(apiId, eventId))
+                .map(SearchDecisionLogsResponseAdapter::adaptFirst)
+                .blockingGet();
+        } catch (RuntimeException e) {
+            throw new AnalyticsException("Failed to find decision " + eventId + " for api " + apiId, e);
         }
     }
 }
