@@ -250,6 +250,7 @@
     <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
     <gravitee-resource-ai-model-text-embedding.version>2.0.0</gravitee-resource-ai-model-text-embedding.version>
     <gravitee-policy-ai-semantic-caching.version>2.0.0</gravitee-policy-ai-semantic-caching.version>
+    <gravitee-policy-ai-guardian.version>1.0.0-beta.1</gravitee-policy-ai-guardian.version>
     <gravitee-apim-repository-bridge.version>9.0.0</gravitee-apim-repository-bridge.version>
     <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
     <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
@@ -272,10 +273,11 @@
     <gravitee-policy-pii-filtering.version>2.2.0</gravitee-policy-pii-filtering.version>
     <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
     <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
+    <gravitee-resource-guardian-agent-gas.version>1.0.0-beta.3</gravitee-resource-guardian-agent-gas.version>
 
     <!-- Gamma plugins -->
     <gravitee-gamma-module-act.version>1.0.0-guardian-agent-SNAPSHOT</gravitee-gamma-module-act.version>
-    <gravitee-gamma-module-aim.version>4.3.0-beta.42</gravitee-gamma-module-aim.version>
+    <gravitee-gamma-module-aim.version>4.3.0-beta.48</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>1.16.0</gravitee-gamma-module-authz.version>
     <gravitee-gamma-module-edge.version>2.0.0-alpha.12</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.5.0-alpha.6</gravitee-gamma-module-esm.version>
