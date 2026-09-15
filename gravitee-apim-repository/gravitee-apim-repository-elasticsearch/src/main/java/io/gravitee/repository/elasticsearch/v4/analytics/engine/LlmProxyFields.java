@@ -60,6 +60,11 @@ public final class LlmProxyFields {
      * per distinct tool of an exchange, so two tools sharing a name but not a definition land in different
      * buckets.
      *
+     * <p>The fingerprint is empty ({@code rawName|}) when the tool's definition carries no description, and
+     * always for {@code <unnamed>}. Two same-named tools without a description therefore share a bucket, and
+     * for a client that declares no description at all (Codex) this field splits nothing more than
+     * {@link #TOOL_NAMES} does.
+     *
      * <p>Multi-valued, with the same consequence as {@link #TOOL_NAMES}: a terms aggregation over it counts
      * <b>documents, not values</b>. A bucket reads "exchanges in which this tool ran", never "tool calls",
      * an exchange that ran three tools is in three buckets, and the buckets sum to more than the number of

@@ -174,7 +174,7 @@ public enum StaticFilters {
     LLM_PROXY_TOOL("LLM Tool", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.LLM)),
     /**
      * The same tool, identified rather than named: one {@code rawName|fingerprint} per distinct tool of
-     * an exchange. Analytics only: the field it filters on is multi-valued, and the log search has no
+     * an exchange, or {@code rawName|} when its definition carries no description. Analytics only: the field it filters on is multi-valued, and the log search has no
      * criterion to carry it.
      */
     LLM_PROXY_TOOL_REF("LLM Tool ref", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.LLM)),

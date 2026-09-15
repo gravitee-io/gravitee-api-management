@@ -2253,10 +2253,11 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             /**
              * The refs carry the same tools as the names, identified by definition: the three documents hold
              * {@code ["get_weather|3f9a1c","search|7b2e44"]}, {@code ["get_weather|3f9a1c"]} and
-             * {@code ["search|c81d05","<unnamed>|0e6f92"]}. Two things follow and are both asserted: the two
+             * {@code ["search|c81d05","<unnamed>|"]}. Two things follow and are both asserted: the two
              * {@code search} exchanges that share a name land in separate buckets because their fingerprints
              * differ, and the counts still total five over three requests — a bucket counts exchanges, and an
-             * exchange that ran two tools is in both.
+             * exchange that ran two tools is in both. {@code <unnamed>|} is the shape of a tool with no
+             * fingerprint, kept as its own bucket key.
              */
             @Test
             void should_return_facets_by_llm_proxy_tool_ref_splitting_a_shared_name_by_fingerprint() {
@@ -2275,7 +2276,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                         tuple("get_weather|3f9a1c", 2.0),
                         tuple("search|7b2e44", 1.0),
                         tuple("search|c81d05", 1.0),
-                        tuple("<unnamed>|0e6f92", 1.0)
+                        tuple("<unnamed>|", 1.0)
                     );
             }
 
