@@ -944,6 +944,12 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             log.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
             metadata.put(METADATA_CLIENT_ID, applicationToUpdate.getMetadata().get(METADATA_CLIENT_ID));
             metadata.put(METADATA_REGISTRATION_PAYLOAD, applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD));
+            // The metadata map is rebuilt from scratch on update, so a key that is not re-applied here is dropped from
+            // the persisted application, not merely left untouched.
+            String previousAdditionalClientMetadata = applicationToUpdate.getMetadata().get(METADATA_ADDITIONAL_CLIENT_METADATA);
+            if (previousAdditionalClientMetadata != null) {
+                metadata.put(METADATA_ADDITIONAL_CLIENT_METADATA, previousAdditionalClientMetadata);
+            }
         }
     }
 
