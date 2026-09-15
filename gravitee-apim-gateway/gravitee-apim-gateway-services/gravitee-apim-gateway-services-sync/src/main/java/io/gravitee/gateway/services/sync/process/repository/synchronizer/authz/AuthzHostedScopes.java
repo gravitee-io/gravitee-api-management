@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
 /**
  * Set of named PDP routing scopes ({@code targetPdpId}, or {@code targetPdpId@tag} when tagged) provisioned
  * on <strong>this node</strong>, grouped by engine ({@code environmentId:targetPdpId}). Populated by
- * {@link AuthzPdpSynchronizer} on provision / evict, and read by {@link AbstractAuthzReactorSynchronizer} so a
- * node only stages policies/entities into the
- * scopes it actually hosts — instead of blindly routing to every {@code targetPdpId} a document
- * declares and hitting {@code NO_HANDLERS} on scopes that live on other nodes.
+ * {@link AuthzPdpSynchronizer} on provision / evict, and read by {@link EventBusAuthzEnginePort} so a node
+ * only routes policies/entities to the scopes it actually hosts — instead of blindly routing to every
+ * {@code targetPdpId} a document declares and hitting {@code NO_HANDLERS} on scopes that live on other
+ * nodes.
  *
  * <p>The global {@code default} scope (no tag) is always served (the bootstrap engine present on every
  * node). The {@code *} wildcard is expanded by the engine port and routed per-scope, so each node delivers
@@ -71,7 +71,13 @@ public class AuthzHostedScopes {
     /** Record a provisioned scope. Pass the full routing scope ("targetPdpId@tag" when tagged) so the
      *  wildcard expansion can reach tagged engines — "*" means every gateway, tagged and untagged. */
     public void markHosted(String environmentId, String routingScope) {
-        hostedByBase.computeIfAbsent(key(environmentId, baseOf(routingScope)), k -> ConcurrentHashMap.newKeySet()).add(routingScope);
+        // compute, not computeIfAbsent + add: unmarkHosted unlinks a drained bucket inside its own
+        // remapping function, so an add outside the lambda could land on the unlinked set and be lost.
+        hostedByBase.compute(key(environmentId, baseOf(routingScope)), (k, scopes) -> {
+            Set<String> hosted = scopes == null ? ConcurrentHashMap.newKeySet() : scopes;
+            hosted.add(routingScope);
+            return hosted;
+        });
     }
 
     /** Remove a routing scope and return whether its engine still hosts another routing scope here, as one
@@ -87,6 +93,11 @@ public class AuthzHostedScopes {
     /** Whether this exact routing scope is provisioned here. */
     public boolean isHosted(String environmentId, String routingScope) {
         return hostedByBase.getOrDefault(key(environmentId, baseOf(routingScope)), Set.of()).contains(routingScope);
+    }
+
+    /** The routing scopes this node hosts on the engine that serves {@code routingScope}, itself included. */
+    public Set<String> hostedOnEngine(String environmentId, String routingScope) {
+        return hostedByBase.getOrDefault(key(environmentId, baseOf(routingScope)), Set.of());
     }
 
     /** The routing scopes whose engine is provisioned on this node for the given environment.
