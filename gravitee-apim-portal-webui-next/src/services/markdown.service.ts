@@ -28,6 +28,30 @@ import { markedHighlight } from 'marked-highlight';
 
 import { Page } from '../entities/page/page';
 
+const HTML_ESCAPES: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+/** Escapes a value interpolated into a double-quoted HTML attribute. */
+const escapeHtmlAttribute = (value: string | null | undefined): string =>
+  value == null ? '' : value.replace(/[&<>"']/g, character => HTML_ESCAPES[character]);
+
+/** Same normalisation as marked's own `cleanUrl`, which is not exported. */
+const normalizeUrl = (href: string): string => {
+  try {
+    return encodeURI(href).replace(/%25/g, '%');
+  } catch {
+    return '';
+  }
+};
+
+const renderImage = (src: string, alt: string | null | undefined, title: string | null | undefined): string =>
+  `<img alt="${escapeHtmlAttribute(alt)}" title="${escapeHtmlAttribute(title)}" src="${escapeHtmlAttribute(src)}" />`;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -57,17 +81,17 @@ export class MarkdownService {
         // is it a portal media ?
         let parsedURL = /\/environments\/(?:[\w-]+)\/portal\/media\/([\w-]+)/g.exec(href);
         if (parsedURL) {
-          const portalHref = `${baseUrl}/media/${parsedURL[1]}`;
-          return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+          return renderImage(`${baseUrl}/media/${parsedURL[1]}`, text, title);
         } else {
           // is it a API media ?
           parsedURL = /\/environments\/(?:[\w-]+)\/apis\/([\w-]+)\/media\/([\w-]+)/g.exec(href);
           if (parsedURL) {
-            const portalHref = `${baseUrl}/apis/${parsedURL[1]}/media/${parsedURL[2]}`;
-            return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
+            return renderImage(`${baseUrl}/apis/${parsedURL[1]}/media/${parsedURL[2]}`, text, title);
           }
         }
-        return defaultRenderer.image.call(this, token);
+        // Not delegated to marked's own renderer: since 15.x it interpolates the alt text into the
+        // attribute without escaping it, and it is the only renderer that would see this branch.
+        return renderImage(normalizeUrl(href), text, title);
       },
       link(token) {
         const { href } = token;
