@@ -27,4 +27,11 @@ export type CircleCIEnvironment = {
   graviteeioVersion: string;
   changedFiles: string[];
   apimVersionPath: string;
+  /**
+   * Every tag the repository carries, read once in `index.ts` for the actions that need it — which
+   * versions have been released cannot be answered from the working tree.
+   */
+  releasedTags?: string[];
+  /** The support branches the repository carries, read alongside the tags and for the same reason. */
+  supportBranches?: string[];
 };

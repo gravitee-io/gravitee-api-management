@@ -28,7 +28,10 @@ describe('Run bridge compatibility tests', () => {
       buildId: '1234',
       graviteeioVersion: '4.2.0',
       isDryRun: false,
-      apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
+      // A line needs three previous minors in its own major, which 4.2 does not have.
+      apimVersionPath: './src/pipelines/tests/resources/common/pom-4-13.xml',
+      releasedTags: ['4.12.0', '4.11.0', '4.10.0', '4.9.0'],
+      supportBranches: ['4.12.x', '4.11.x', '4.10.x', '4.9.x'],
     });
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/bridge-compatibility-tests/bridge-compatibility-tests.yml`, 'utf-8');

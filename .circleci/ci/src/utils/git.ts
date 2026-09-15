@@ -65,6 +65,20 @@ export const remoteTags = async (): Promise<string[]> => {
 };
 
 /**
+ * The support branches the remote carries, as `<major>.<minor>.x`.
+ *
+ * Asked of the remote for the same reason as the tags above: a CI checkout holds the one branch it
+ * was started on, so a local listing would answer that no line has been cut yet.
+ */
+export const remoteSupportBranches = async (): Promise<string[]> => {
+  const stdout = await run('git', ['ls-remote', '--heads', 'origin', '*.x']);
+  return stdout
+    .split('\n')
+    .map((line) => line.split('refs/heads/')[1]?.trim())
+    .filter((branch): branch is string => !!branch && /^\d+\.\d+\.x$/.test(branch));
+};
+
+/**
  * Runs a command and resolves its whole stdout, rejecting on a non-zero exit.
  *
  * Waiting for `close` rather than resolving on the first `data`: a pipe hands over 64 KB at a time,
