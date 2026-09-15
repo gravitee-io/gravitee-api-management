@@ -41,6 +41,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -296,15 +297,18 @@ class ApiQueryServiceImplTest {
         }
 
         @ParameterizedTest(name = "{0}")
-        @MethodSource("matchedAndUnmatchedSearches")
-        void should_report_the_same_page_number_whether_or_not_the_index_matched(String caseName, String searchedIntegrationId)
-            throws IOException {
+        @MethodSource("matchedAndUnmatchedSearchesOfEveryRequestedPage")
+        void should_report_the_first_page_number_whether_or_not_the_index_matched_and_whether_or_not_a_page_was_asked_for(
+            String caseName,
+            String searchedIntegrationId,
+            Pageable requestedPage
+        ) throws IOException {
             // Given a single indexed api owned by one integration, the repository answering with the page it was handed
             givenIndexedApis(anApiOwnedByIntegration("api-1", INTEGRATION_ID));
             givenTheRepositoryHydratesTheSelectedApis();
 
-            // When the row's integration is searched for the same first page
-            var page = service.searchByIntegrationId(searchedIntegrationId, null, null, new PageableImpl(1, 10));
+            // When the row's integration is searched for the row's requested page
+            var page = service.searchByIntegrationId(searchedIntegrationId, null, null, requestedPage);
 
             // Then the page number is the zero based one the repository numbers a first page with, whatever the index matched
             assertThat(page.getPageNumber()).isZero();
@@ -817,8 +821,13 @@ class ApiQueryServiceImplTest {
             );
         }
 
-        private static Stream<Arguments> matchedAndUnmatchedSearches() {
-            return Stream.of(Arguments.of("the index matched an api", INTEGRATION_ID), Arguments.of("the index matched no api", "int-b"));
+        private static Stream<Arguments> matchedAndUnmatchedSearchesOfEveryRequestedPage() {
+            return Stream.of(
+                Arguments.of("the index matched an api and a first page was asked for", INTEGRATION_ID, new PageableImpl(1, 10)),
+                Arguments.of("the index matched no api and a first page was asked for", "int-b", new PageableImpl(1, 10)),
+                Arguments.of("the index matched an api and no page was asked for", INTEGRATION_ID, null),
+                Arguments.of("the index matched no api and no page was asked for", "int-b", null)
+            );
         }
 
         private void givenIndexedApis(Api... apis) throws IOException {
@@ -883,7 +892,7 @@ class ApiQueryServiceImplTest {
                     .map(id -> fixtures.repository.ApiFixtures.aFederatedApi().toBuilder().id(id).build())
                     .toList();
                 var requestedPage = invocation.getArgument(2, io.gravitee.repository.management.api.search.Pageable.class);
-                return new Page<>(rows, requestedPage.pageNumber(), rows.size(), rows.size());
+                return new Page<>(rows, requestedPage == null ? 0 : requestedPage.pageNumber(), rows.size(), rows.size());
             });
         }
     }
