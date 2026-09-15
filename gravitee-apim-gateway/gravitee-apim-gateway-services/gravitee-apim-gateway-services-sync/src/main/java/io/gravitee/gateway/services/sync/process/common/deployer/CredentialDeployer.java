@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import io.gravitee.gateway.handlers.api.manager.CredentialManager;
 import io.gravitee.gateway.handlers.api.manager.DeployedCredential;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.reactivex.rxjava3.core.Completable;
 import lombok.CustomLog;
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class CredentialDeployer implements Deployer<CredentialDeployable> {
 
     private final CredentialManager credentialManager;
+    private final DistributedSyncService distributedSyncService;
 
     @Override
     public Completable deploy(final CredentialDeployable deployable) {
@@ -50,6 +52,11 @@ public class CredentialDeployer implements Deployer<CredentialDeployable> {
     }
 
     @Override
+    public Completable doAfterDeployment(final CredentialDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
+    }
+
+    @Override
     public Completable undeploy(final CredentialDeployable deployable) {
         return Completable.fromRunnable(() -> {
             try {
@@ -58,5 +65,10 @@ public class CredentialDeployer implements Deployer<CredentialDeployable> {
                 throw new SyncException(String.format("An error occurred when trying to undeploy credential [%s].", deployable.id()), e);
             }
         });
+    }
+
+    @Override
+    public Completable doAfterUndeployment(final CredentialDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
     }
 }

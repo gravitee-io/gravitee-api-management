@@ -18,13 +18,15 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.gateway.handlers.api.manager.CredentialManager;
 import io.gravitee.gateway.handlers.api.manager.DeployedCredential;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
+import io.reactivex.rxjava3.core.Completable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -41,11 +43,14 @@ class CredentialDeployerTest {
     @Mock
     private CredentialManager credentialManager;
 
+    @Mock
+    private DistributedSyncService distributedSyncService;
+
     private CredentialDeployer cut;
 
     @BeforeEach
     void beforeEach() {
-        cut = new CredentialDeployer(credentialManager);
+        cut = new CredentialDeployer(credentialManager, distributedSyncService);
     }
 
     @Nested
@@ -66,10 +71,13 @@ class CredentialDeployerTest {
         }
 
         @Test
-        void should_ignore_do_post_action() {
-            cut.doAfterDeployment(null).test().assertComplete();
+        void should_distribute_after_deployment() {
+            CredentialDeployable deployable = deployable(SyncAction.DEPLOY);
+            when(distributedSyncService.distributeIfNeeded(deployable)).thenReturn(Completable.complete());
 
-            verifyNoInteractions(credentialManager);
+            cut.doAfterDeployment(deployable).test().assertComplete();
+
+            verify(distributedSyncService).distributeIfNeeded(deployable);
         }
     }
 
@@ -88,6 +96,16 @@ class CredentialDeployerTest {
             doThrow(new RuntimeException("error")).when(credentialManager).undeploy(any(), any());
 
             cut.undeploy(deployable(SyncAction.UNDEPLOY)).test().assertFailure(SyncException.class);
+        }
+
+        @Test
+        void should_distribute_after_undeployment() {
+            CredentialDeployable deployable = deployable(SyncAction.UNDEPLOY);
+            when(distributedSyncService.distributeIfNeeded(deployable)).thenReturn(Completable.complete());
+
+            cut.doAfterUndeployment(deployable).test().assertComplete();
+
+            verify(distributedSyncService).distributeIfNeeded(deployable);
         }
     }
 

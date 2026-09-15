@@ -154,6 +154,6 @@ public class DeployerFactory {
     }
 
     public CredentialDeployer createCredentialDeployer() {
-        return new CredentialDeployer(credentialManager);
+        return new CredentialDeployer(credentialManager, distributedSyncService);
     }
 }

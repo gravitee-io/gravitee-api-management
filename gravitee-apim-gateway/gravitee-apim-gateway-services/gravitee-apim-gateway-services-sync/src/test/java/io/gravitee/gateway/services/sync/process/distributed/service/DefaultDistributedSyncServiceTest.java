@@ -47,6 +47,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.accessp
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
@@ -130,7 +131,8 @@ class DefaultDistributedSyncServiceTest {
             new NodeMetadataMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
-            new ApiProductMapper(objectMapper)
+            new ApiProductMapper(objectMapper),
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper)
         );
     }
 
@@ -157,6 +159,7 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 distributedEventRepository,
                 distributedSyncStateRepository,
+                null,
                 null,
                 null,
                 null,
@@ -242,6 +245,15 @@ class DefaultDistributedSyncServiceTest {
         @Test
         void should_distribute_dictionary() {
             cut.distributeIfNeeded(DictionaryDeployable.builder().id("id").build()).test().assertComplete();
+            verify(distributedEventRepository).createOrUpdate(any());
+        }
+
+        @Test
+        void should_distribute_credential() {
+            cut
+                .distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
+                .test()
+                .assertComplete();
             verify(distributedEventRepository).createOrUpdate(any());
         }
 
@@ -351,6 +363,15 @@ class DefaultDistributedSyncServiceTest {
         @Test
         void should_not_call_repository_when_distributing_dictionary() {
             cut.distributeIfNeeded(DictionaryDeployable.builder().id("id").build()).test().assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_credential() {
+            cut
+                .distributeIfNeeded(CredentialDeployable.builder().credentialId("credential-id").syncAction(SyncAction.UNDEPLOY).build())
+                .test()
+                .assertComplete();
             verifyNoInteractions(distributedEventRepository);
         }
 
