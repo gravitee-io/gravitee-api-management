@@ -83,3 +83,8 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/20497
+    - kind: fixed
+      description: "The Management API gravitee.yml now always declares the otel-traces and otel-logs repository types, so the Gamma trace explorer answers empty results instead of a 500 when OpenTelemetry tracing is not configured"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/19977
