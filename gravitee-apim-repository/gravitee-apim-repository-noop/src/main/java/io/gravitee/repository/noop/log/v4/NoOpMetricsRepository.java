@@ -25,6 +25,8 @@ import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricsQuery;
+import io.gravitee.repository.log.v4.model.decision.DecisionLog;
+import io.gravitee.repository.log.v4.model.decision.DecisionLogQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.ArrayList;
@@ -65,6 +67,16 @@ public class NoOpMetricsRepository implements MetricsRepository {
 
     @Override
     public Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId) {
+        return Optional.empty();
+    }
+
+    @Override
+    public LogResponse<DecisionLog> searchDecisionLogs(QueryContext queryContext, DecisionLogQuery query) {
+        return new LogResponse<>(0, List.of());
+    }
+
+    @Override
+    public Optional<DecisionLog> findDecisionLog(QueryContext queryContext, String apiId, String eventId) {
         return Optional.empty();
     }
 }

@@ -25,6 +25,8 @@ import io.gravitee.repository.log.v4.model.connection.Metrics;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetrics;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricsQuery;
+import io.gravitee.repository.log.v4.model.decision.DecisionLog;
+import io.gravitee.repository.log.v4.model.decision.DecisionLogQuery;
 import io.gravitee.repository.log.v4.model.message.MessageMetrics;
 import io.gravitee.repository.log.v4.model.message.MessageMetricsQuery;
 import java.util.List;
@@ -54,4 +56,20 @@ public interface MetricsRepository {
      * same request id, so the event id is the only key that identifies a single one.
      */
     Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId) throws AnalyticsException;
+
+    /**
+     * Reads the documents of the {@code decisions} data stream, one row per record a decision point wrote.
+     *
+     * <p>Aggregates over the same stream go through the analytics engine; this is the detail behind them.
+     * The stream is shared by every family of decision point and a point may write twice for one decision,
+     * so the query pins both the family and the settled phase — see {@link DecisionLogQuery}.
+     */
+    LogResponse<DecisionLog> searchDecisionLogs(QueryContext queryContext, DecisionLogQuery query) throws AnalyticsException;
+
+    /**
+     * Reads one decision record by its event id, scoped to an api. Each record of a decision carries its
+     * own event id — an asynchronous decision has one for the request and one for the resolution — so this
+     * reads a record, whatever phase it is in, and never collapses the two.
+     */
+    Optional<DecisionLog> findDecisionLog(QueryContext queryContext, String apiId, String eventId) throws AnalyticsException;
 }
