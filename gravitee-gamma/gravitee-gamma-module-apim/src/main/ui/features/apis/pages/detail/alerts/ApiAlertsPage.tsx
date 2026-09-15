@@ -50,6 +50,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ALERT_RULES } from '../../../constants/alertConstants';
 import { deleteAlertTrigger, listAlerts, updateAlertTrigger, alertTriggerToFormData } from '../../../services/alerts';
 import type { AlertTrigger } from '../../../types';
+import { API_ALERT_CREATE_PERMISSION, API_ALERT_DELETE_PERMISSION, API_ALERT_UPDATE_PERMISSION } from '../../../utils/alertPermissions';
 import { apiAlertKeys } from '../../../utils/queryKeys';
 
 const CAPABILITIES = [
@@ -80,6 +81,17 @@ function SeverityBadge({ severity }: { severity: AlertTrigger['severity'] }) {
 function getRuleLabel(source: string, type: string): string {
     const ruleId = `${source}@${type}`;
     return ALERT_RULES.find(r => r.id === ruleId)?.description ?? `${source} / ${type}`;
+}
+
+function getEventCount(alert: AlertTrigger): number | undefined {
+    if (!alert.counters) {
+        return undefined;
+    }
+    const values = Object.values(alert.counters);
+    if (values.length === 0) {
+        return undefined;
+    }
+    return values.reduce((sum, count) => sum + count, 0);
 }
 
 // ─── Empty state ──────────────────────────────────────────────────────────────
@@ -175,7 +187,10 @@ export function ApiAlertsPage() {
     const env = useEnvironment();
     const queryClient = useQueryClient();
 
-    const canEdit = useHasPermission({ anyOf: ['api-definition-u'] });
+    const canCreate = useHasPermission({ anyOf: [API_ALERT_CREATE_PERMISSION] });
+    const canUpdate = useHasPermission({ anyOf: [API_ALERT_UPDATE_PERMISSION] });
+    const canDelete = useHasPermission({ anyOf: [API_ALERT_DELETE_PERMISSION] });
+    const showEventCounts = canUpdate || canDelete;
 
     const {
         data: alerts,
@@ -183,7 +198,7 @@ export function ApiAlertsPage() {
         isError,
     } = useQuery({
         queryKey: apiAlertKeys.list(env?.id ?? '', apiId ?? ''),
-        queryFn: () => listAlerts(env?.id ?? '', apiId!),
+        queryFn: () => listAlerts(env?.id ?? '', apiId!, showEventCounts),
         enabled: !!apiId,
     });
 
@@ -211,7 +226,7 @@ export function ApiAlertsPage() {
                     <p className="text-sm text-muted-foreground">Set up alerting conditions for the Gateway.</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                    {canEdit && (
+                    {canCreate && (
                         <Button type="button" size="sm" onClick={handleAdd}>
                             <PlusIcon className="size-4" aria-hidden="true" />
                             Add alert
@@ -250,8 +265,9 @@ export function ApiAlertsPage() {
                                 <TableHead>Name</TableHead>
                                 <TableHead>Rule</TableHead>
                                 <TableHead>Severity</TableHead>
+                                {showEventCounts && <TableHead>Events</TableHead>}
                                 <TableHead>Enabled</TableHead>
-                                {canEdit && <TableHead className="w-12 text-right">Actions</TableHead>}
+                                {(canUpdate || canDelete) && <TableHead className="w-12 text-right">Actions</TableHead>}
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -271,15 +287,20 @@ export function ApiAlertsPage() {
                                     <TableCell>
                                         <SeverityBadge severity={alert.severity} />
                                     </TableCell>
+                                    {showEventCounts && (
+                                        <TableCell>
+                                            <span className="text-sm text-muted-foreground">{getEventCount(alert) ?? '—'}</span>
+                                        </TableCell>
+                                    )}
                                     <TableCell>
                                         <Switch
                                             checked={alert.enabled}
-                                            disabled={!canEdit || toggleMutation.isPending}
+                                            disabled={!canUpdate || toggleMutation.isPending}
                                             onClick={e => e.stopPropagation()}
                                             onCheckedChange={() => toggleMutation.mutate(alert)}
                                         />
                                     </TableCell>
-                                    {canEdit && (
+                                    {(canUpdate || canDelete) && (
                                         <TableCell onClick={e => e.stopPropagation()}>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
@@ -288,14 +309,18 @@ export function ApiAlertsPage() {
                                                     </Button>
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
-                                                    <DropdownMenuItem onSelect={() => handleEdit(alert.id!)}>Edit</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem
-                                                        className="text-destructive focus:text-destructive"
-                                                        onSelect={() => deleteMutation.mutate(alert.id!)}
-                                                    >
-                                                        Delete
-                                                    </DropdownMenuItem>
+                                                    {canUpdate && (
+                                                        <DropdownMenuItem onSelect={() => handleEdit(alert.id!)}>Edit</DropdownMenuItem>
+                                                    )}
+                                                    {canUpdate && canDelete && <DropdownMenuSeparator />}
+                                                    {canDelete && (
+                                                        <DropdownMenuItem
+                                                            className="text-destructive focus:text-destructive"
+                                                            onSelect={() => deleteMutation.mutate(alert.id!)}
+                                                        >
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    )}
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
