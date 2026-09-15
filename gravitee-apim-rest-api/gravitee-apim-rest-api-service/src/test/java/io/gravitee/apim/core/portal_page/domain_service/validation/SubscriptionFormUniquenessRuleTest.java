@@ -19,18 +19,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
-import io.gravitee.apim.core.portal_page.exception.SubscriptionFormAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.SubscriptionFormAlreadyPublishedException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -48,45 +50,106 @@ class SubscriptionFormUniquenessRuleTest {
         rule = new SubscriptionFormUniquenessRule(navigationItemsQueryService);
     }
 
-    @Test
-    void applies_only_to_subscription_form_area() {
-        assertThat(rule.appliesTo(subscriptionFormCreateItem())).isTrue();
-        assertThat(
-            rule.appliesTo(
-                CreatePortalNavigationItem.builder()
-                    .type(PortalNavigationItemType.FOLDER)
-                    .title("Navbar")
-                    .segment("navbar")
-                    .area(PortalArea.TOP_NAVBAR)
-                    .order(0)
-                    .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
-                    .build()
-            )
-        ).isFalse();
+    @Nested
+    class Create {
+
+        @Test
+        void applies_only_to_published_subscription_form_items() {
+            assertThat(rule.appliesTo(subscriptionFormCreateItem(true))).isTrue();
+            assertThat(rule.appliesTo(subscriptionFormCreateItem(false))).isFalse();
+            assertThat(
+                rule.appliesTo(
+                    CreatePortalNavigationItem.builder()
+                        .type(PortalNavigationItemType.FOLDER)
+                        .title("Navbar")
+                        .segment("navbar")
+                        .area(PortalArea.TOP_NAVBAR)
+                        .order(0)
+                        .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                        .published(true)
+                        .build()
+                )
+            ).isFalse();
+        }
+
+        @Test
+        void rejects_creating_a_second_published_subscription_form_for_the_same_environment() {
+            navigationItemsQueryService.storage().add(PortalNavigationItem.from(subscriptionFormCreateItem(true), ORG_ID, ENV_ID, null));
+
+            assertThatThrownBy(() -> rule.validate(subscriptionFormCreateItem(true), ENV_ID, null)).isInstanceOf(
+                SubscriptionFormAlreadyPublishedException.class
+            );
+        }
+
+        @Test
+        void allows_the_first_published_subscription_form_for_an_environment() {
+            assertThatCode(() -> rule.validate(subscriptionFormCreateItem(true), ENV_ID, null)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void existing_published_subscription_form_in_a_different_environment_does_not_conflict() {
+            navigationItemsQueryService
+                .storage()
+                .add(PortalNavigationItem.from(subscriptionFormCreateItem(true), ORG_ID, "env-other", null));
+
+            assertThatCode(() -> rule.validate(subscriptionFormCreateItem(true), ENV_ID, null)).doesNotThrowAnyException();
+        }
     }
 
-    @Test
-    void rejects_a_second_subscription_form_for_the_same_environment() {
-        navigationItemsQueryService.storage().add(PortalNavigationItem.from(subscriptionFormCreateItem(), ORG_ID, ENV_ID, null));
+    @Nested
+    class Update {
 
-        assertThatThrownBy(() -> rule.validate(subscriptionFormCreateItem(), ENV_ID, null)).isInstanceOf(
-            SubscriptionFormAlreadyExistsException.class
-        );
+        @Test
+        void applies_only_to_subscription_form_items_being_published() {
+            var existing = subscriptionForm(false);
+
+            assertThat(rule.appliesTo(updatePublished(true), existing)).isTrue();
+            assertThat(rule.appliesTo(updatePublished(false), existing)).isFalse();
+        }
+
+        @Test
+        void rejects_publishing_a_second_form_while_another_is_already_published() {
+            var alreadyPublished = subscriptionForm(true);
+            var toBePublished = subscriptionForm(false);
+            navigationItemsQueryService.storage().add(alreadyPublished);
+            navigationItemsQueryService.storage().add(toBePublished);
+
+            assertThatThrownBy(() -> rule.validate(updatePublished(true), toBePublished, null)).isInstanceOf(
+                SubscriptionFormAlreadyPublishedException.class
+            );
+        }
+
+        @Test
+        void allows_republishing_the_same_form_that_is_already_the_only_published_one() {
+            var alreadyPublished = subscriptionForm(true);
+            navigationItemsQueryService.storage().add(alreadyPublished);
+
+            assertThatCode(() -> rule.validate(updatePublished(true), alreadyPublished, null)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void allows_publishing_when_no_other_form_is_currently_published() {
+            var toBePublished = subscriptionForm(false);
+            navigationItemsQueryService.storage().add(toBePublished);
+
+            assertThatCode(() -> rule.validate(updatePublished(true), toBePublished, null)).doesNotThrowAnyException();
+        }
+
+        private PortalNavigationSubscriptionForm subscriptionForm(boolean published) {
+            return (PortalNavigationSubscriptionForm) PortalNavigationItem.from(
+                subscriptionFormCreateItem(published),
+                ORG_ID,
+                ENV_ID,
+                null
+            );
+        }
+
+        private UpdatePortalNavigationItem updatePublished(boolean published) {
+            return UpdatePortalNavigationItem.builder().title("Subscription Form").published(published).build();
+        }
     }
 
-    @Test
-    void allows_the_first_subscription_form_for_an_environment() {
-        assertThatCode(() -> rule.validate(subscriptionFormCreateItem(), ENV_ID, null)).doesNotThrowAnyException();
-    }
-
-    @Test
-    void existing_subscription_form_in_a_different_environment_does_not_conflict() {
-        navigationItemsQueryService.storage().add(PortalNavigationItem.from(subscriptionFormCreateItem(), ORG_ID, "env-other", null));
-
-        assertThatCode(() -> rule.validate(subscriptionFormCreateItem(), ENV_ID, null)).doesNotThrowAnyException();
-    }
-
-    private static CreatePortalNavigationItem subscriptionFormCreateItem() {
+    private static CreatePortalNavigationItem subscriptionFormCreateItem(boolean published) {
         return CreatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.SUBSCRIPTION_FORM)
             .title("Subscription Form")
@@ -95,6 +158,7 @@ class SubscriptionFormUniquenessRuleTest {
             .order(0)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
             .portalPageContentId(PortalPageContentId.random())
+            .published(published)
             .build();
     }
 }

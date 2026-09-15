@@ -16,34 +16,57 @@
 package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal.model.PortalArea;
-import io.gravitee.apim.core.portal_page.exception.SubscriptionFormAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.SubscriptionFormAlreadyPublishedException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import lombok.RequiredArgsConstructor;
 
 /**
- * For SUBSCRIPTION_FORM area, ensures no item already exists in that area — there is exactly one
- * subscription form per environment.
+ * For SUBSCRIPTION_FORM area, ensures at most one item is published per environment. There is no
+ * stored "default" flag: the environment's default subscription form is derived as "the one
+ * published item" (see {@link PortalNavigationItemsQueryService#findPublishedSubscriptionForm}), so
+ * this rule is what keeps that derivation unambiguous.
  */
 @RequiredArgsConstructor
-public class SubscriptionFormUniquenessRule implements CreatePortalNavigationItemValidationRule {
+public class SubscriptionFormUniquenessRule implements CreatePortalNavigationItemValidationRule, UpdatePortalNavigationItemValidationRule {
 
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
 
     @Override
     public boolean appliesTo(CreatePortalNavigationItem item) {
-        return item.getArea() == PortalArea.SUBSCRIPTION_FORM;
+        return item.getArea() == PortalArea.SUBSCRIPTION_FORM && Boolean.TRUE.equals(item.getPublished());
     }
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
-        var existing = navigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-            environmentId,
-            PortalArea.SUBSCRIPTION_FORM,
-            item.getReference()
-        );
-        if (!existing.isEmpty()) {
-            throw new SubscriptionFormAlreadyExistsException();
+        var alreadyPublished = navigationItemsQueryService
+            .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.SUBSCRIPTION_FORM, item.getReference())
+            .stream()
+            .anyMatch(existing -> Boolean.TRUE.equals(existing.getPublished()));
+        if (alreadyPublished) {
+            throw new SubscriptionFormAlreadyPublishedException();
+        }
+    }
+
+    @Override
+    public boolean appliesTo(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
+        return existingItem.getArea() == PortalArea.SUBSCRIPTION_FORM && Boolean.TRUE.equals(toUpdate.getPublished());
+    }
+
+    @Override
+    public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
+        var anotherAlreadyPublished = navigationItemsQueryService
+            .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                existingItem.getEnvironmentId(),
+                PortalArea.SUBSCRIPTION_FORM,
+                existingItem.getReference()
+            )
+            .stream()
+            .anyMatch(existing -> !existing.getId().equals(existingItem.getId()) && Boolean.TRUE.equals(existing.getPublished()));
+        if (anotherAlreadyPublished) {
+            throw new SubscriptionFormAlreadyPublishedException();
         }
     }
 }
