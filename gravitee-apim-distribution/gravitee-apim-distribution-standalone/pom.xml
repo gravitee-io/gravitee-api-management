@@ -2109,6 +2109,19 @@
                     </exclusions>
                 </dependency>
                 <dependency>
+                    <groupId>io.gravitee.resource</groupId>
+                    <artifactId>gravitee-resource-guardian-agent-gas</artifactId>
+                    <version>${gravitee-resource-guardian-agent-gas.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>com.graviteesource.resource</groupId>
                     <artifactId>gravitee-resource-schema-registry-confluent</artifactId>
                     <version>${gravitee-resource-schema-registry-confluent.version}</version>
@@ -2571,6 +2584,19 @@
                     <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-ai-semantic-caching</artifactId>
                     <version>${gravitee-policy-ai-semantic-caching.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-ai-guardian</artifactId>
+                    <version>${gravitee-policy-ai-guardian.version}</version>
                     <type>zip</type>
                     <scope>runtime</scope>
                     <exclusions>
