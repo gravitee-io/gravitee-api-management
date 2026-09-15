@@ -118,6 +118,32 @@ describe('MarkdownService', () => {
       init();
     });
 
+    it('should escape quotes in the alt and title of a portal media', () => {
+      const renderedImage = renderImage(
+        'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
+        'a " title',
+        'an " alt',
+      );
+
+      expect(renderedImage).toEqual(`<img alt="an &quot; alt" title="a &quot; title" src="${BASE_URL}/media/123456789" />`);
+    });
+
+    it('should escape quotes in the alt and title of an API media', () => {
+      const renderedImage = renderImage(
+        'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1234/media/123456789',
+        'a " title',
+        'an " alt',
+      );
+
+      expect(renderedImage).toEqual(`<img alt="an &quot; alt" title="a &quot; title" src="${BASE_URL}/apis/1234/media/123456789" />`);
+    });
+
+    it('should escape quotes in the alt and title of an image marked does not rewrite', () => {
+      const renderedImage = renderImage('https://example.com/picture.png', 'a " title', 'an " alt');
+
+      expect(renderedImage).toEqual('<img alt="an &quot; alt" title="a &quot; title" src="https://example.com/picture.png" />');
+    });
+
     it('should use correct portal media url', () => {
       const renderedImage = renderImage(
         'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
