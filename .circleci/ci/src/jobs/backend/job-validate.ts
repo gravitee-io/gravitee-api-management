@@ -15,7 +15,7 @@
  */
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { OpenJdkExecutor } from '../../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
@@ -27,14 +27,17 @@ export class ValidateJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Validate project',
         command: `mvn -s ${config.maven.settingsFile} validate --no-transfer-progress -Pall-modules,integration-tests-modules ${mavenParallelism('medium')}`,
