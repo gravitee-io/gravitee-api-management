@@ -717,4 +717,44 @@ class AnalyticsEngineQueryServiceImplTest {
             );
         }
     }
+
+    @Nested
+    class SearchAgentActivity {
+
+        @Test
+        void should_map_repository_result() {
+            when(analyticsRepository.searchAgentActivity(any(QueryContext.class), any())).thenReturn(
+                new io.gravitee.repository.log.v4.model.analytics.AgentActivityResult(
+                    List.of(
+                        io.gravitee.repository.log.v4.model.analytics.AgentActivityRun.builder()
+                            .conversationId("conv-1")
+                            .outcome("done")
+                            .outcomeSummary("The agent called lookup_claim")
+                            .askedBy("Not recorded")
+                            .hops(List.of())
+                            .startedAt(1L)
+                            .lastEventAt(2L)
+                            .build()
+                    ),
+                    1,
+                    0,
+                    25
+                )
+            );
+
+            var result = cut.searchAgentActivity(
+                GraviteeContext.getExecutionContext(),
+                new AnalyticsQueryService.AgentActivityQuery("a2a-1", List.of("app-1"), "actor-1", 1L, 2L, 0, 25)
+            );
+
+            SoftAssertions.assertSoftly(softly -> {
+                softly.assertThat(result.total()).isEqualTo(1);
+                softly.assertThat(result.page()).isZero();
+                softly.assertThat(result.size()).isEqualTo(25);
+                softly.assertThat(result.runs()).hasSize(1);
+                softly.assertThat(result.runs().getFirst().getConversationId()).isEqualTo("conv-1");
+                softly.assertThat(result.runs().getFirst().getOutcome()).isEqualTo("done");
+            });
+        }
+    }
 }
