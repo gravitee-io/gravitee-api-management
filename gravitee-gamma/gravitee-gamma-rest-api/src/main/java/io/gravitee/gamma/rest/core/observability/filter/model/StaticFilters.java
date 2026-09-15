@@ -190,7 +190,7 @@ public enum StaticFilters {
      * A tool a {@code tools/list} answered with, as {@code servedName|fingerprint}. Analytics only: the
      * log search has no criterion to carry it.
      */
-    MCP_PROXY_TOOL_CATALOG("MCP Tool catalog", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.MCP)),
+    MCP_PROXY_TOOL_CATALOG("MCP Tool advertised", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Set.of(ApiType.MCP)),
     MCP_PROXY_RESOURCE("MCP Resource", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
     MCP_PROXY_PROMPT("MCP Prompt", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.MCP)),
 

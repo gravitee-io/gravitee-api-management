@@ -2968,7 +2968,7 @@ spec:
               - MCP
 
         - name: MCP_PROXY_TOOL_CATALOG
-          label: MCP Tool catalog
+          label: MCP Tool advertised
           type: KEYWORD
           operators:
               - EQ
@@ -3374,7 +3374,7 @@ spec:
           type: KEYWORD
 
         - name: MCP_PROXY_TOOL_CATALOG
-          label: MCP Tool catalog
+          label: MCP Tool advertised
           type: KEYWORD
 
         - name: MCP_PROXY_TOOL_PRICE_STATUS
