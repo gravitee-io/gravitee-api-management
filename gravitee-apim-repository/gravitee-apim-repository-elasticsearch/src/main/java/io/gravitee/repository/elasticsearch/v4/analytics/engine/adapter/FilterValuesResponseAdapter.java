@@ -92,7 +92,7 @@ public class FilterValuesResponseAdapter {
         }
 
         var afterKey = new HashMap<String, Object>();
-        afterKeyNode.fields().forEachRemaining(entry -> afterKey.put(entry.getKey(), extractJsonValue(entry.getValue())));
+        afterKeyNode.properties().forEach(entry -> afterKey.put(entry.getKey(), extractJsonValue(entry.getValue())));
         return afterKey;
     }
 
