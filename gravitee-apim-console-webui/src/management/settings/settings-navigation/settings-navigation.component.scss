@@ -18,6 +18,7 @@
 @use '@gravitee/ui-particles-angular/index' as gio;
 
 $textColor: map.get(gio.$mat-dove-palette, default);
+$subMenuBackground: var(--gio-oem-palette--sub-menu, #{map.get(gio.$mat-space-palette, lighter20)});
 
 :host {
   display: block;
@@ -43,6 +44,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     flex-direction: column;
     min-height: 0;
     overflow: hidden;
+    background: $subMenuBackground;
 
     &-scroll {
       flex: 1 1 auto;
