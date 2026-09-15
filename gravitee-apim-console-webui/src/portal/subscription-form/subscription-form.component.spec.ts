@@ -35,8 +35,12 @@ import { SubscriptionFormComponent } from './subscription-form.component';
 import { GioTestingModule, CONSTANTS_TESTING } from '../../shared/testing';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { fakeSubscriptionForm } from '../../entities/management-api-v2/subscriptionForm/subscriptionForm.fixture';
-import { SubscriptionForm } from '../../entities/management-api-v2';
+import {
+  fakePortalNavigationSubscriptionForm,
+  fakePortalNavigationItemsResponse,
+} from '../../entities/management-api-v2/portalNavigationItem/portalNavigationItem.fixture';
+import { fakePortalPageContent } from '../../entities/management-api-v2/portalPageContent/portalPageContent.fixture';
+import { PortalNavigationSubscriptionForm, PortalPageContent } from '../../entities/management-api-v2';
 
 describe('SubscriptionFormComponent', () => {
   let fixture: ComponentFixture<SubscriptionFormComponent>;
@@ -45,7 +49,11 @@ describe('SubscriptionFormComponent', () => {
   let rootLoader: HarnessLoader;
   let snackBarService: SnackBarService;
 
-  const init = async (canUpdate: boolean, subscriptionForm = fakeSubscriptionForm()) => {
+  const init = async (
+    canUpdate: boolean,
+    navItem: PortalNavigationSubscriptionForm = fakePortalNavigationSubscriptionForm(),
+    content: PortalPageContent = fakePortalPageContent({ id: navItem.portalPageContentId }),
+  ) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, SubscriptionFormComponent],
       providers: [
@@ -73,12 +81,18 @@ describe('SubscriptionFormComponent', () => {
 
     fixture.detectChanges();
 
-    // Expect GET request for subscription form
-    const req = httpTestingController.expectOne({
+    // Expect GET request for the SUBSCRIPTION_FORM-area navigation item, then for its content
+    const navItemReq = httpTestingController.expectOne({
       method: 'GET',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=SUBSCRIPTION_FORM`,
     });
-    req.flush(subscriptionForm);
+    navItemReq.flush(fakePortalNavigationItemsResponse({ items: [navItem] }));
+
+    const contentReq = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${navItem.portalPageContentId}`,
+    });
+    contentReq.flush(content);
   };
 
   afterEach(() => {
@@ -92,9 +106,10 @@ describe('SubscriptionFormComponent', () => {
 
   it('should load subscription form content from API', async () => {
     const gmdContent = '# Test Form\n\n<gmd-input name="email" label="Email" fieldKey="email" required="true"></gmd-input>';
-    const form = fakeSubscriptionForm({ gmdContent });
+    const navItem = fakePortalNavigationSubscriptionForm();
+    const content = fakePortalPageContent({ id: navItem.portalPageContentId, content: gmdContent });
 
-    await init(true, form);
+    await init(true, navItem, content);
 
     const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
     // The mock editor might normalize newlines to spaces or remove them if it's an input
@@ -115,7 +130,8 @@ describe('SubscriptionFormComponent', () => {
   });
 
   it('should disable save button when content is empty or unchanged', async () => {
-    await init(true, fakeSubscriptionForm({ gmdContent: '# Hello world' }));
+    const navItem = fakePortalNavigationSubscriptionForm();
+    await init(true, navItem, fakePortalPageContent({ id: navItem.portalPageContentId, content: '# Hello world' }));
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -139,9 +155,10 @@ describe('SubscriptionFormComponent', () => {
   });
 
   it('should update subscription form content', async () => {
-    const form = fakeSubscriptionForm();
+    const navItem = fakePortalNavigationSubscriptionForm();
+    const content = fakePortalPageContent({ id: navItem.portalPageContentId });
     const updatedContent = '# Updated Form\n\n<gmd-input name="name" label="Name" fieldKey="name"></gmd-input>';
-    await init(true, form);
+    await init(true, navItem, content);
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -153,7 +170,7 @@ describe('SubscriptionFormComponent', () => {
     expect(await saveButton.isDisabled()).toBeFalsy();
     await saveButton.click();
 
-    expectSubscriptionFormUpdate({ gmdContent: updatedContent }, { ...form, gmdContent: updatedContent });
+    expectPageContentUpdate(navItem.portalPageContentId, updatedContent, { ...content, content: updatedContent });
     expect(snackBarService.success).toHaveBeenCalledWith('The subscription form has been updated successfully');
     expect(await saveButton.isDisabled()).toBeTruthy();
   });
@@ -194,8 +211,8 @@ describe('SubscriptionFormComponent', () => {
 
   describe('enable/disable toggle functionality', () => {
     it('should enable a disabled form after confirmation', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
+      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
+      await init(true, disabledNavItem);
 
       const toggle = await getEnableToggle();
       expect(await toggle.isChecked()).toBe(false);
@@ -204,10 +221,10 @@ describe('SubscriptionFormComponent', () => {
       await confirmDialog('Enable');
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${disabledForm.id}/_enable`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${disabledNavItem.id}`,
       });
-      req.flush({ ...disabledForm, enabled: true });
+      req.flush({ ...disabledNavItem, published: true });
       fixture.detectChanges();
 
       expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been enabled successfully.');
@@ -215,8 +232,8 @@ describe('SubscriptionFormComponent', () => {
     });
 
     it('should disable an enabled form after confirmation', async () => {
-      const enabledForm = fakeSubscriptionForm({ enabled: true });
-      await init(true, enabledForm);
+      const enabledNavItem = fakePortalNavigationSubscriptionForm({ published: true });
+      await init(true, enabledNavItem);
 
       const toggle = await getEnableToggle();
       expect(await toggle.isChecked()).toBe(true);
@@ -225,10 +242,10 @@ describe('SubscriptionFormComponent', () => {
       await confirmDialog('Disable');
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${enabledForm.id}/_disable`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${enabledNavItem.id}`,
       });
-      req.flush({ ...enabledForm, enabled: false });
+      req.flush({ ...enabledNavItem, published: false });
       fixture.detectChanges();
 
       expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been disabled successfully.');
@@ -236,8 +253,8 @@ describe('SubscriptionFormComponent', () => {
     });
 
     it('should not perform any action if the confirmation dialog is cancelled', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
+      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
+      await init(true, disabledNavItem);
 
       const toggle = await getEnableToggle();
       await toggle.toggle();
@@ -251,16 +268,16 @@ describe('SubscriptionFormComponent', () => {
     });
 
     it('should show an error message if enabling fails', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
+      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
+      await init(true, disabledNavItem);
 
       const toggle = await getEnableToggle();
       await toggle.toggle();
       await confirmDialog('Enable');
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${disabledForm.id}/_enable`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${disabledNavItem.id}`,
       });
       req.flush({ message: 'API error on enable' }, { status: 500, statusText: 'Server Error' });
 
@@ -270,8 +287,9 @@ describe('SubscriptionFormComponent', () => {
     });
 
     it('should save changes before enabling when form has unsaved changes', async () => {
-      const disabledForm = fakeSubscriptionForm({ enabled: false });
-      await init(true, disabledForm);
+      const disabledNavItem = fakePortalNavigationSubscriptionForm({ published: false });
+      const content = fakePortalPageContent({ id: disabledNavItem.portalPageContentId });
+      await init(true, disabledNavItem, content);
       await fixture.whenStable();
       fixture.detectChanges();
 
@@ -283,13 +301,16 @@ describe('SubscriptionFormComponent', () => {
 
       await confirmDialog('Save and enable');
 
-      expectSubscriptionFormUpdate({ gmdContent: 'Updated form content' }, { ...disabledForm, gmdContent: 'Updated form content' });
+      expectPageContentUpdate(disabledNavItem.portalPageContentId, 'Updated form content', {
+        ...content,
+        content: 'Updated form content',
+      });
 
       const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${disabledForm.id}/_enable`,
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/${disabledNavItem.id}`,
       });
-      req.flush({ ...disabledForm, enabled: true });
+      req.flush({ ...disabledNavItem, published: true });
       fixture.detectChanges();
 
       expect(snackBarService.success).toHaveBeenCalledWith('Subscription form has been enabled successfully.');
@@ -312,7 +333,8 @@ describe('SubscriptionFormComponent', () => {
   });
 
   it('should have unsaved changes when content is modified', async () => {
-    await init(true, fakeSubscriptionForm({ gmdContent: 'Initial content' }));
+    const navItem = fakePortalNavigationSubscriptionForm();
+    await init(true, navItem, fakePortalPageContent({ id: navItem.portalPageContentId, content: 'Initial content' }));
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -323,7 +345,8 @@ describe('SubscriptionFormComponent', () => {
   });
 
   it('should not have unsaved changes when content is modified and then reverted', async () => {
-    await init(true, fakeSubscriptionForm({ gmdContent: 'Initial content' }));
+    const navItem = fakePortalNavigationSubscriptionForm();
+    await init(true, navItem, fakePortalPageContent({ id: navItem.portalPageContentId, content: 'Initial content' }));
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -383,12 +406,12 @@ describe('SubscriptionFormComponent', () => {
     };
   }
 
-  function expectSubscriptionFormUpdate(expected: { gmdContent: string }, response: SubscriptionForm) {
+  function expectPageContentUpdate(contentId: string, expectedContent: string, response: PortalPageContent) {
     const req = httpTestingController.expectOne({
       method: 'PUT',
-      url: `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms/${response.id}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/${contentId}`,
     });
-    expect(req.request.body).toStrictEqual(expected);
+    expect(req.request.body).toStrictEqual({ content: expectedContent });
     req.flush(response);
   }
 });

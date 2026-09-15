@@ -91,6 +91,13 @@ public interface PortalNavigationItemsMapper {
         io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct
     );
 
+    @Mapping(target = "type", constant = "SUBSCRIPTION_FORM")
+    @Mapping(target = "portalPageContentId", expression = "java(subscriptionForm.getPortalPageContentId().id())")
+    @Mapping(target = "rootId", source = "rootId", qualifiedByName = "portalNavigationItemIdToUuid")
+    io.gravitee.rest.api.management.v2.rest.model.PortalNavigationSubscriptionForm map(
+        io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm subscriptionForm
+    );
+
     default List<PortalNavigationItem> map(List<io.gravitee.apim.core.portal_page.model.PortalNavigationItem> items) {
         return items.stream().map(this::map).toList();
     }
@@ -105,8 +112,8 @@ public interface PortalNavigationItemsMapper {
             case io.gravitee.apim.core.portal_page.model.PortalNavigationLink link -> new PortalNavigationItem(map(link));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApi api -> new PortalNavigationItem(map(api));
             case io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct apiProduct -> new PortalNavigationItem(map(apiProduct));
-            case io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm subscriptionForm -> throw new UnsupportedOperationException(
-                "SUBSCRIPTION_FORM navigation items are not yet exposed through the management-v2 REST contract"
+            case io.gravitee.apim.core.portal_page.model.PortalNavigationSubscriptionForm subscriptionForm -> new PortalNavigationItem(
+                map(subscriptionForm)
             );
         };
     }
@@ -271,6 +278,9 @@ public interface PortalNavigationItemsMapper {
             case UpdatePortalNavigationLink link -> map(link);
             case UpdatePortalNavigationApi api -> map(api);
             case UpdatePortalNavigationApiProduct apiProduct -> map(apiProduct);
+            case io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationSubscriptionForm subscriptionForm -> map(
+                subscriptionForm
+            );
             default -> throw new TechnicalDomainException(
                 String.format("Unknown PortalNavigationItem class %s", updatePortalNavigationItem.getClass().getSimpleName())
             );
@@ -294,6 +304,10 @@ public interface PortalNavigationItemsMapper {
     );
 
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(UpdatePortalNavigationApiProduct apiProduct);
+
+    io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
+        io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationSubscriptionForm subscriptionForm
+    );
 
     default PortalCategoryId mapCategoryId(UUID id) {
         if (id == null) {

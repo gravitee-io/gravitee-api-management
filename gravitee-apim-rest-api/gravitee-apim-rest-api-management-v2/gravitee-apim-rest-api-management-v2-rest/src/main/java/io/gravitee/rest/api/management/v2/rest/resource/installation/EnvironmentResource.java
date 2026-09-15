@@ -33,7 +33,6 @@ import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalCatego
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalNavigationItemsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.PortalPageContentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.environment.SharedPolicyGroupsResource;
-import io.gravitee.rest.api.management.v2.rest.resource.environment.SubscriptionFormsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.kafka_console.ProxyKafkaConsoleResource;
 import io.gravitee.rest.api.management.v2.rest.resource.observability.ObservabilityResource;
@@ -160,11 +159,6 @@ public class EnvironmentResource extends AbstractResource {
     @Path("/observability")
     public ObservabilityResource getObservabilityResource() {
         return resourceContext.getResource(ObservabilityResource.class);
-    }
-
-    @Path("/subscription-forms")
-    public SubscriptionFormsResource getSubscriptionFormsResource() {
-        return resourceContext.getResource(SubscriptionFormsResource.class);
     }
 
     @Path("/kafka-explorer")

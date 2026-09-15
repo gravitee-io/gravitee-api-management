@@ -21,7 +21,6 @@ import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.OptionalInt;
 
 /**
  * In-memory implementation of SubscriptionFormCrudService for testing.
@@ -45,17 +44,6 @@ public class SubscriptionFormCrudServiceInMemory implements SubscriptionFormCrud
             : subscriptionForm;
         storage.add(toStore);
         return toStore;
-    }
-
-    @Override
-    public SubscriptionForm update(SubscriptionForm subscriptionForm) {
-        OptionalInt index = this.findIndex(this.storage, form -> form.getId().equals(subscriptionForm.getId()));
-        if (index.isPresent()) {
-            storage.set(index.getAsInt(), subscriptionForm);
-            return subscriptionForm;
-        }
-
-        throw new IllegalStateException("Subscription form not found: " + subscriptionForm.getId());
     }
 
     @Override

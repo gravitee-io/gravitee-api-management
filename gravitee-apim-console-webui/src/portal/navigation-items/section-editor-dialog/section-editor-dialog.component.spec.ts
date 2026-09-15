@@ -76,6 +76,9 @@ class TestHostComponent {
       if (type === 'API' || type === 'API_PRODUCT') {
         throw new Error('API and API Product items use dedicated dialogs in create mode');
       }
+      if (type === 'SUBSCRIPTION_FORM') {
+        throw new Error('Subscription form items are not created through this generic dialog');
+      }
 
       return { mode: 'create', type, parentItem: this.parentItem() };
     }

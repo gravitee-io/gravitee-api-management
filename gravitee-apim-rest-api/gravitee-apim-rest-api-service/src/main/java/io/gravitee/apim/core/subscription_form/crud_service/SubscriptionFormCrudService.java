@@ -30,12 +30,4 @@ public interface SubscriptionFormCrudService {
      * @return the created form with generated ID
      */
     SubscriptionForm create(SubscriptionForm subscriptionForm);
-
-    /**
-     * Updates an existing subscription form.
-     *
-     * @param subscriptionForm the form to update
-     * @return the updated form
-     */
-    SubscriptionForm update(SubscriptionForm subscriptionForm);
 }

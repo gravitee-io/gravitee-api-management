@@ -23,6 +23,7 @@ const portalNavigationItemTypeToSvgIcon: Readonly<Record<PortalNavigationItemTyp
   FOLDER: 'gio:folder',
   API: 'gio:folder-api',
   API_PRODUCT: 'gio:folder-api',
+  SUBSCRIPTION_FORM: 'gio:list-check',
 };
 
 @Pipe({

@@ -1528,7 +1528,9 @@ public class ResourceContextConfiguration {
     public UpdatePortalPageContentUseCase updatePortalPageContentUseCase(
         PortalPageContentQueryService portalPageContentQueryService,
         PortalPageContentCrudService portalPageContentCrudService,
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        SubscriptionFormSchemaGenerator subscriptionFormSchemaGenerator,
+        PortalNavigationItemCrudService portalNavigationItemCrudService
     ) {
         GraviteeMarkdownValidator gmdValidator = new GraviteeMarkdownValidator();
         GraviteePortalPageContentValidatorService gmdContentValidator = new GraviteePortalPageContentValidatorService(
@@ -1550,7 +1552,9 @@ public class ResourceContextConfiguration {
             portalPageContentCrudService,
             validatorService,
             portalNavigationItemsQueryService,
-            new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService)
+            new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService),
+            subscriptionFormSchemaGenerator,
+            portalNavigationItemCrudService
         );
     }
 
