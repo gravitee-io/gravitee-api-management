@@ -27,6 +27,7 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.credential.CredentialDeployable;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -60,7 +61,9 @@ class CredentialDeployerTest {
         void should_deploy_credential() {
             cut.deploy(deployable(SyncAction.DEPLOY)).test().assertComplete();
 
-            verify(credentialManager).deploy(new DeployedCredential("credential-1", "env-1", "org-1", "ciphertext", 1234L));
+            verify(credentialManager).deploy(
+                new DeployedCredential("credential-1", "env-1", "org-1", Set.of("api-1"), "ciphertext", 1234L)
+            );
         }
 
         @Test
@@ -114,6 +117,7 @@ class CredentialDeployerTest {
             .credentialId("credential-1")
             .environmentId("env-1")
             .organizationId("org-1")
+            .allowedApiIds(Set.of("api-1"))
             .encryptedSecret("ciphertext")
             .updatedAt(1234L)
             .syncAction(syncAction)

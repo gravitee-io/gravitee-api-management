@@ -29,7 +29,10 @@ class CredentialMapperTest {
 
     @Test
     void should_map_a_publish_event_to_a_deployable() {
-        Event event = event("evt-1", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
+        Event event = event(
+            "evt-1",
+            "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\", \"allowedApiIds\": [\"api-1\", \"api-2\"]}"
+        );
         event.setUpdatedAt(new Date(1234L));
 
         CredentialDeployable d = mapper.toDeploy(event).blockingGet();
@@ -37,9 +40,17 @@ class CredentialMapperTest {
         assertThat(d).isNotNull();
         assertThat(d.id()).isEqualTo("credential-1");
         assertThat(d.environmentId()).isEqualTo("env-1");
+        assertThat(d.allowedApiIds()).containsExactlyInAnyOrder("api-1", "api-2");
         assertThat(d.encryptedSecret()).isEqualTo("ciphertext");
         assertThat(d.updatedAt()).isEqualTo(1234L);
         assertThat(d.syncAction()).isEqualTo(SyncAction.DEPLOY);
+    }
+
+    @Test
+    void should_allow_no_api_when_the_event_lists_none() {
+        Event event = event("evt-10", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
+
+        assertThat(mapper.toDeploy(event).blockingGet().allowedApiIds()).isEmpty();
     }
 
     @Test

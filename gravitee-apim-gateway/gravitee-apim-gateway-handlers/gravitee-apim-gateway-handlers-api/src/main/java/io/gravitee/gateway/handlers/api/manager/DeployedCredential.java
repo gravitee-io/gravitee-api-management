@@ -15,16 +15,30 @@
  */
 package io.gravitee.gateway.handlers.api.manager;
 
+import java.util.Set;
+
 /**
  * A credential deployed to the gateway.
  *
  * @param id the credential id
  * @param environmentId the environment the credential belongs to
  * @param organizationId the organization of that environment, used for the license check
+ * @param allowedApiIds the ids of the APIs allowed to resolve the credential; empty when no API is
  * @param encryptedSecret the secret, still encrypted with {@code api.properties.encryption.secret}
  * @param updatedAt when the credential was last changed, in epoch milliseconds
  */
-public record DeployedCredential(String id, String environmentId, String organizationId, String encryptedSecret, long updatedAt) {
+public record DeployedCredential(
+    String id,
+    String environmentId,
+    String organizationId,
+    Set<String> allowedApiIds,
+    String encryptedSecret,
+    long updatedAt
+) {
+    public DeployedCredential {
+        allowedApiIds = allowedApiIds == null ? Set.of() : Set.copyOf(allowedApiIds);
+    }
+
     @Override
     public String toString() {
         return (
@@ -34,6 +48,8 @@ public record DeployedCredential(String id, String environmentId, String organiz
             environmentId +
             ", organizationId=" +
             organizationId +
+            ", allowedApiIds=" +
+            allowedApiIds +
             ", encryptedSecret=***, updatedAt=" +
             updatedAt +
             "]"

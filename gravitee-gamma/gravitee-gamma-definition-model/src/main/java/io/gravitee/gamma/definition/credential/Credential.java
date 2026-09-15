@@ -18,6 +18,7 @@ package io.gravitee.gamma.definition.credential;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -63,4 +64,8 @@ public class Credential implements Serializable {
      *  to a specific Jackson time module on the gateway side. */
     @JsonProperty
     private String updatedAt;
+
+    /** Ids of the APIs allowed to resolve this credential. The gateway refuses any other API; absent means none. */
+    @JsonProperty
+    private Set<String> allowedApiIds;
 }

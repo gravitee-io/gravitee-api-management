@@ -18,6 +18,7 @@ package io.gravitee.gamma.definition.credential;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class CredentialWireTest {
@@ -31,6 +32,7 @@ class CredentialWireTest {
             .environmentId("env-1")
             .encryptedSecret("ciphertext")
             .updatedAt("2026-09-14T00:00:00Z")
+            .allowedApiIds(Set.of("api-1", "api-2"))
             .build();
 
         Credential back = om.readValue(om.writeValueAsString(c), Credential.class);

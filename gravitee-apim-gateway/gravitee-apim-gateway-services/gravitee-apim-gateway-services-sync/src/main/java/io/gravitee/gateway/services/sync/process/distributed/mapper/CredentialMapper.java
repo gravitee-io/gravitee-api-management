@@ -22,6 +22,7 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
+import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -61,6 +62,7 @@ public class CredentialMapper {
                     .credentialId(payload.id())
                     .environmentId(payload.environmentId())
                     .organizationId(payload.organizationId())
+                    .allowedApiIds(payload.allowedApiIds() == null ? Set.of() : Set.copyOf(payload.allowedApiIds()))
                     .encryptedSecret(payload.encryptedSecret())
                     .updatedAt(payload.updatedAt())
                     .syncAction(syncAction)
@@ -87,6 +89,7 @@ public class CredentialMapper {
                                 deployable.credentialId(),
                                 deployable.environmentId(),
                                 deployable.organizationId(),
+                                deployable.allowedApiIds(),
                                 deployable.encryptedSecret(),
                                 deployable.updatedAt()
                             )
@@ -105,5 +108,12 @@ public class CredentialMapper {
         return value == null || value.isBlank();
     }
 
-    record Payload(String id, String environmentId, String organizationId, String encryptedSecret, long updatedAt) {}
+    record Payload(
+        String id,
+        String environmentId,
+        String organizationId,
+        Set<String> allowedApiIds,
+        String encryptedSecret,
+        long updatedAt
+    ) {}
 }

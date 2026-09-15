@@ -119,6 +119,7 @@ class DistributedCredentialSynchronizerTest {
             .credentialId("credential-1")
             .environmentId("env-1")
             .organizationId("org-1")
+            .allowedApiIds(Set.of("api-1"))
             .encryptedSecret("ciphertext")
             .updatedAt(1234L)
             .syncAction(SyncAction.DEPLOY)

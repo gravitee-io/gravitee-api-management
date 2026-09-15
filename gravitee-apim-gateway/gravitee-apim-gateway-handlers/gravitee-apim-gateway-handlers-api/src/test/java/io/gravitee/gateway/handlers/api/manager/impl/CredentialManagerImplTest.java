@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.gateway.handlers.api.manager.DeployedCredential;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -224,6 +225,6 @@ class CredentialManagerImplTest {
     }
 
     private static DeployedCredential credential(String id, String environmentId, String encryptedSecret, long updatedAt) {
-        return new DeployedCredential(id, environmentId, "org-1", encryptedSecret, updatedAt);
+        return new DeployedCredential(id, environmentId, "org-1", Set.of("api-1"), encryptedSecret, updatedAt);
     }
 }

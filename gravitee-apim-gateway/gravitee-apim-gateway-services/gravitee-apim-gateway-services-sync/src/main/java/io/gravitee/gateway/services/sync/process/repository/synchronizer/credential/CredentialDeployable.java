@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.creden
 
 import io.gravitee.gateway.services.sync.process.common.model.Deployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -35,6 +36,7 @@ public class CredentialDeployable implements Deployable {
     private String credentialId;
     private String environmentId;
     private String organizationId;
+    private Set<String> allowedApiIds;
     private String encryptedSecret;
     private long updatedAt;
     private SyncAction syncAction;

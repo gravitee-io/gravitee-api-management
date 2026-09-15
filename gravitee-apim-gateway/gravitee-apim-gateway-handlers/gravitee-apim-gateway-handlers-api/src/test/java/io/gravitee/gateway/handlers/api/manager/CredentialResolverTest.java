@@ -29,6 +29,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.secrets.api.el.FieldKind;
 import io.gravitee.secrets.api.el.SecretFieldAccessControl;
 import java.util.Optional;
+import java.util.Set;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -173,6 +174,6 @@ class CredentialResolverTest {
     }
 
     private static DeployedCredential credential(String encryptedSecret) {
-        return new DeployedCredential("credential-1", "env-1", "org-1", encryptedSecret, 1L);
+        return new DeployedCredential("credential-1", "env-1", "org-1", Set.of("api-1"), encryptedSecret, 1L);
     }
 }

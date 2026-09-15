@@ -20,6 +20,7 @@ import io.gravitee.gamma.definition.credential.Credential;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Maybe;
+import java.util.Set;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -40,6 +41,7 @@ public class CredentialMapper {
                 return CredentialDeployable.builder()
                     .credentialId(wire.getId())
                     .environmentId(wire.getEnvironmentId())
+                    .allowedApiIds(wire.getAllowedApiIds() == null ? Set.of() : Set.copyOf(wire.getAllowedApiIds()))
                     .encryptedSecret(wire.getEncryptedSecret())
                     .updatedAt(event.getUpdatedAt() != null ? event.getUpdatedAt().getTime() : 0L)
                     .syncAction(SyncAction.DEPLOY)

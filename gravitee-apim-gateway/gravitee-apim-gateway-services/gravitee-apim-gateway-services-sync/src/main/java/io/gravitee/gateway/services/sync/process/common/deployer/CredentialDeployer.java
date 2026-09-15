@@ -40,6 +40,7 @@ public class CredentialDeployer implements Deployer<CredentialDeployable> {
                         deployable.credentialId(),
                         deployable.environmentId(),
                         deployable.organizationId(),
+                        deployable.allowedApiIds(),
                         deployable.encryptedSecret(),
                         deployable.updatedAt()
                     )

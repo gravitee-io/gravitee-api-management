@@ -24,6 +24,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.credent
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -80,6 +81,7 @@ class CredentialMapperTest {
             .credentialId("credential-1")
             .environmentId("env-1")
             .organizationId("org-1")
+            .allowedApiIds(Set.of("api-1", "api-2"))
             .encryptedSecret("ciphertext")
             .updatedAt(1234L)
             .syncAction(SyncAction.DEPLOY)
