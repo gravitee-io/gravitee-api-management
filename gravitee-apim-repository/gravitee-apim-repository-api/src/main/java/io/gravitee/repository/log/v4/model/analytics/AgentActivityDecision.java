@@ -56,7 +56,7 @@ public class AgentActivityDecision {
     /** Epoch millis of the decision. */
     long timestamp;
 
-    /** Decision record id for linking to Sam's Decisions page. */
+    /** HITL approval id ({@code case-id}) when present, else event id — for Govern deep links. */
     String decisionId;
 
     /** Key-value pairs the decision recorded (guardian findings, policy rule metadata). */

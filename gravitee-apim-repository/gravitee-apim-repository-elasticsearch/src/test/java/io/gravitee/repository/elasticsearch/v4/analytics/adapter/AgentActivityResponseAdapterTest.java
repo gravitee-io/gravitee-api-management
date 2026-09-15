@@ -162,6 +162,26 @@ class AgentActivityResponseAdapterTest {
             assertThat(decision.getOutcome()).isEqualTo("DENY");
             assertThat(result.runs().get(0).getOutcome()).isEqualTo("stopped");
         }
+
+        @Test
+        @SneakyThrows
+        void should_prefer_case_id_as_decision_id_for_hitl_deep_links() {
+            var hopJson = "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000000 }";
+            var decisionJson =
+                "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000500, \"decision-point-type\": \"human-approval\", \"outcome\": \"PENDING\", \"phase\": \"REQUESTED\", \"case-id\": \"approval-1\", \"event-id\": \"event-1\" }";
+            var result = adapter.adapt(hopResponse(hopJson), decisionResponse(decisionJson), 0, 25);
+            assertThat(result.runs().get(0).getHops().get(0).getDecisions().get(0).getDecisionId()).isEqualTo("approval-1");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_fall_back_to_event_id_when_case_id_is_absent() {
+            var hopJson = "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000000 }";
+            var decisionJson =
+                "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000500, \"decision-point-type\": \"guardian\", \"outcome\": \"ALLOW\", \"phase\": \"RESOLVED\", \"event-id\": \"event-1\" }";
+            var result = adapter.adapt(hopResponse(hopJson), decisionResponse(decisionJson), 0, 25);
+            assertThat(result.runs().get(0).getHops().get(0).getDecisions().get(0).getDecisionId()).isEqualTo("event-1");
+        }
     }
 
     @Nested
@@ -183,6 +203,18 @@ class AgentActivityResponseAdapterTest {
             assertThat(decisions.get(0).getDecider()).isEqualTo("person: manager-1");
             assertThat(decisions.get(0).getReason()).isEqualTo("Needs manager approval");
             assertThat(decisions.get(0).getDecisionId()).isEqualTo("hitl-res");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_keep_case_id_from_resolved_when_collapsing_hitl() {
+            var hopJson = "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000000000 }";
+            var requested =
+                "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000001000, \"decision-point-type\": \"human-approval\", \"outcome\": \"PENDING\", \"phase\": \"REQUESTED\", \"case-id\": \"approval-1\", \"event-id\": \"hitl-req\" }";
+            var resolved =
+                "{ \"request-id\": \"req-1\", \"@timestamp\": 1700000002000, \"decision-point-type\": \"human-approval\", \"outcome\": \"ALLOW\", \"enforced\": \"ALLOW\", \"phase\": \"RESOLVED\", \"case-id\": \"approval-1\", \"event-id\": \"hitl-res\" }";
+            var result = adapter.adapt(hopResponse(hopJson), decisionResponse(requested, resolved), 0, 25);
+            assertThat(result.runs().get(0).getHops().get(0).getDecisions().get(0).getDecisionId()).isEqualTo("approval-1");
         }
 
         @Test

@@ -49,8 +49,8 @@ public class AgentActivityResponseAdapter {
     private static final String MCP_TOOL_METRIC = "keyword_mcp-proxy_tools/call";
     private static final String MCP_RESOURCE_METRIC = "keyword_mcp-proxy_resources/read";
 
-    // Decision fields — kebab-case as written to the decisions data stream. CamelCase kept as
-    // fallback for older fixtures.
+    // Decision fields — kebab-case as written to the decisions data stream (see DecisionEventMetrics
+    // / HumanApprovalFieldResolver). CamelCase kept as fallback for older fixtures.
     private static final String DECISION_REQUEST_ID = "request-id";
     private static final String DECISION_REQUEST_ID_CAMEL = "requestId";
     private static final String DECISION_POINT_TYPE = "decision-point-type";
@@ -65,6 +65,9 @@ public class AgentActivityResponseAdapter {
     private static final String REASONS = "reasons";
     private static final String DECISION_ID = "event-id";
     private static final String DECISION_ID_CAMEL = "eventId";
+    /** HITL approval id — deep-links to Govern HITL / Decisions. Prefer over event-id. */
+    private static final String CASE_ID = "case-id";
+    private static final String CASE_ID_CAMEL = "caseId";
 
     public AgentActivityResult adapt(SearchResponse hopsResponse, SearchResponse decisionsResponse, int page, int size) {
         var hops = parseHops(hopsResponse);
@@ -228,15 +231,16 @@ public class AgentActivityResponseAdapter {
             var res = i < hitlResolved.size() ? hitlResolved.get(i) : null;
 
             if (res != null) {
-                // Merged: use RESOLVED outcome + REQUESTED reason
+                // Merged: use RESOLVED outcome + REQUESTED reason; case-id/decisionId from RESOLVED
                 var merged = AgentActivityDecision.builder()
+                    .requestId(res.getRequestId() != null ? res.getRequestId() : req.getRequestId())
                     .decisionPointType("human-approval")
                     .outcome(res.getOutcome())
                     .enforced(res.getEnforced())
                     .decider(res.getDecider())
                     .reason(req.getReason() != null ? req.getReason() : res.getReason())
                     .timestamp(res.getTimestamp())
-                    .decisionId(res.getDecisionId())
+                    .decisionId(res.getDecisionId() != null ? res.getDecisionId() : req.getDecisionId())
                     .build();
                 result.add(merged);
             } else {
@@ -426,6 +430,12 @@ public class AgentActivityResponseAdapter {
 
         long timestamp = extractTimestamp(source);
 
+        // Prefer case-id (HITL approval id) for Govern deep links; else event-id.
+        var linkId = coalesceText(source, CASE_ID, CASE_ID_CAMEL);
+        if (linkId == null) {
+            linkId = coalesceText(source, DECISION_ID, DECISION_ID_CAMEL);
+        }
+
         return AgentActivityDecision.builder()
             .requestId(requestId)
             .decisionPointType(coalesceText(source, DECISION_POINT_TYPE, DECISION_POINT_TYPE_CAMEL))
@@ -435,7 +445,7 @@ public class AgentActivityResponseAdapter {
             .decider(extractDecider(source))
             .reason(extractReason(source))
             .timestamp(timestamp)
-            .decisionId(coalesceText(source, DECISION_ID, DECISION_ID_CAMEL))
+            .decisionId(linkId)
             .build();
     }
 
