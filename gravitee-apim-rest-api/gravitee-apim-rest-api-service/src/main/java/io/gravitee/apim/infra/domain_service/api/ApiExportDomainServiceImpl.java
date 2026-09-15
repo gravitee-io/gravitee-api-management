@@ -39,6 +39,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.Excludable;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.media.query_service.MediaQueryService;
@@ -73,11 +75,13 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@CustomLog
 public class ApiExportDomainServiceImpl implements ApiExportDomainService {
 
     private static final GraviteeDefinitionAdapter DEFINITION_ADAPTER = GraviteeDefinitionAdapter.INSTANCE;
@@ -96,6 +100,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
     private final IntegrationCrudService integrationCrudService;
     private final FlowCrudService flowCrudService;
     private final ApiCategoryQueryService apiCategoryQueryService;
+    private final GroupQueryService groupQueryService;
 
     @Override
     public GraviteeDefinition export(String apiId, AuditInfo auditInfo, Collection<Excludable> excluded) {
@@ -118,7 +123,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             .findFirst()
             .orElse(null);
 
-        var groups = !excluded.contains(GROUPS) ? api1.getGroups() : null;
+        var groups = !excluded.contains(GROUPS) ? exportGroupNames(api1.getGroups()) : null;
         return switch (apiType(api1)) {
             case V2 -> {
                 Function<Plan, PlanDescriptor.V2> mapPlanV2 = plan -> {
@@ -314,5 +319,24 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             return api;
         }
         return api.toBuilder().categories(Set.copyOf(categoryKeys)).build();
+    }
+
+    @Nullable
+    private Set<String> exportGroupNames(Set<String> groupIds) {
+        if (groupIds == null) {
+            return null;
+        }
+        if (groupIds.isEmpty()) {
+            return Set.of();
+        }
+        var found = groupQueryService.findByIds(groupIds);
+        if (found.size() != groupIds.size()) {
+            var foundIds = found.stream().map(Group::getId).collect(Collectors.toSet());
+            groupIds
+                .stream()
+                .filter(id -> !foundIds.contains(id))
+                .forEach(groupId -> log.warn("Group [{}] no longer exists, skipping from export", groupId));
+        }
+        return found.stream().map(Group::getName).collect(Collectors.toSet());
     }
 }

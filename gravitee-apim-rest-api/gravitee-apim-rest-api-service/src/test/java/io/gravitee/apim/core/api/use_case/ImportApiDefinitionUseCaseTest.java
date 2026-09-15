@@ -222,6 +222,32 @@ class ImportApiDefinitionUseCaseTest {
         }
 
         @Test
+        void should_create_a_new_api_resolving_and_auto_creating_groups_by_name() {
+            importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
+                List.of(
+                    fixtures.core.model.GroupFixtures.aGroup("developers-id")
+                        .toBuilder()
+                        .name("Developers")
+                        .environmentId(ENVIRONMENT_ID)
+                        .build()
+                )
+            );
+
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = "a-custom-id";
+            importDefinition.getApiExport().setId(customId);
+            importDefinition.getApiExport().setGroups(Set.of("Developers", "Helios"));
+
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            var createdApi = apiCrudService.get(customId);
+            assertThat(createdApi.getGroups()).hasSize(2).contains("developers-id");
+            assertThat(
+                importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(ENVIRONMENT_ID, Set.of("Helios"))
+            ).hasSize(1);
+        }
+
+        @Test
         void should_create_a_new_api_without_sub_entities_with_user_defined_id() {
             // Given
             var importDefinition = anApiProxyImportDefinition();
