@@ -51,6 +51,7 @@ import { exportApiCrd, exportApiDefinition } from '../../../services/apis';
 import type { ApiDetailDto } from '../../../types';
 import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntryMode } from '../../../utils/apiGeneralDuplicate';
 import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
+import { isFederatedApi } from '../../../utils/federatedApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,6 +104,7 @@ export function ApiGeneralPage() {
     const canDeleteDefinition = useHasPermission({ anyOf: ['api-definition-d'] });
 
     const isKubernetesManaged = api?.definitionContext?.origin === 'KUBERNETES';
+    const isFederated = isFederatedApi(api);
 
     // Form is read-only until permissions are resolved, if user lacks update rights,
     // or if the API is managed by the Kubernetes operator.
@@ -373,7 +375,7 @@ export function ApiGeneralPage() {
                                 />
                             </div>
 
-                            {canReadDefinition && (
+                            {canReadDefinition && !isFederated && (
                                 <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
                                     <div className="flex items-start gap-3">
                                         <BoxesIcon className="size-4 text-primary mt-0.5 shrink-0" />
@@ -499,52 +501,56 @@ export function ApiGeneralPage() {
                     </div>
 
                     {/* ─ Action strip ─ */}
-                    <Separator className="my-5" />
-                    <div className="flex flex-wrap items-center gap-2">
-                        {canReadDefinition && (
-                            <Button type="button" variant="outline" size="sm" onClick={() => setExportOpen(true)}>
-                                <DownloadIcon className="size-3.5" /> Export
-                            </Button>
-                        )}
-                        {canCreateDefinition && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setImportOpen(true)}
-                                disabled={isKubernetesManaged}
-                            >
-                                <FileUpIcon className="size-3.5" /> Import
-                            </Button>
-                        )}
-                        {canCreateDefinition && api?.type !== 'NATIVE' && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDuplicateOpen(true)}
-                                disabled={isKubernetesManaged}
-                            >
-                                <CopyIcon className="size-3.5" /> Duplicate
-                            </Button>
-                        )}
-                        {canEditDefinition && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPromoteOpen(true)}
-                                disabled={PROMOTE_UNAVAILABLE || isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
-                            >
-                                <ExternalLinkIcon className="size-3.5" /> Promote
-                            </Button>
-                        )}
-                    </div>
+                    {!isFederated && (
+                        <>
+                            <Separator className="my-5" />
+                            <div className="flex flex-wrap items-center gap-2">
+                                {canReadDefinition && (
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setExportOpen(true)}>
+                                        <DownloadIcon className="size-3.5" /> Export
+                                    </Button>
+                                )}
+                                {canCreateDefinition && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setImportOpen(true)}
+                                        disabled={isKubernetesManaged}
+                                    >
+                                        <FileUpIcon className="size-3.5" /> Import
+                                    </Button>
+                                )}
+                                {canCreateDefinition && api?.type !== 'NATIVE' && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setDuplicateOpen(true)}
+                                        disabled={isKubernetesManaged}
+                                    >
+                                        <CopyIcon className="size-3.5" /> Duplicate
+                                    </Button>
+                                )}
+                                {canEditDefinition && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setPromoteOpen(true)}
+                                        disabled={PROMOTE_UNAVAILABLE || isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
+                                    >
+                                        <ExternalLinkIcon className="size-3.5" /> Promote
+                                    </Button>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 
             {/* ── API Events ──────────────────────────────────────────────── */}
-            {(canEditDefinition || canDeleteDefinition) && (
+            {((canEditDefinition && !isFederated) || canDeleteDefinition) && (
                 <Card>
                     <CardContent className="pt-5 pb-5">
                         <div className="space-y-4">
@@ -555,7 +561,7 @@ export function ApiGeneralPage() {
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                {canEditDefinition && (
+                                {canEditDefinition && !isFederated && (
                                     <button
                                         type="button"
                                         className={cn(

@@ -103,7 +103,7 @@ jest.mock('@gravitee/graphene-core', () => ({
         disabled?: boolean;
     }) => <input id={id} value={value} onChange={onChange} placeholder={placeholder} disabled={disabled} />,
     Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
-    Separator: () => <hr />,
+    Separator: ({ className }: { className?: string }) => <hr className={className} />,
     Skeleton: () => <div data-testid="skeleton" />,
     Switch: ({ checked, onCheckedChange, disabled }: { checked?: boolean; onCheckedChange?: (v: boolean) => void; disabled?: boolean }) => (
         <input type="checkbox" checked={checked} onChange={e => onCheckedChange?.(e.target.checked)} disabled={disabled} />
@@ -255,6 +255,29 @@ describe('ApiGeneralPage', () => {
         expect((screen.getByRole('textbox', { name: /description/i }) as HTMLTextAreaElement).value).toBe('A test API');
     });
 
+    it('hides the Allow in API Products toggle, switch included, for a federated API', () => {
+        mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
+        const { container } = renderPage('federated-api-1');
+
+        expect(screen.queryByText('Allow in API Products')).toBeNull();
+        // The Switch is the page's only checkbox outside the export/duplicate sheets, which are closed here
+        expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
+    });
+
+    it('keeps the Allow in API Products switch bound to the form and dirty-tracking for a natively-managed API', () => {
+        const { container } = renderPage();
+
+        expect(screen.getByText('Allow in API Products')).toBeInTheDocument();
+        const allowSwitch = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
+        expect(allowSwitch).not.toBeChecked();
+
+        fireEvent.click(allowSwitch);
+
+        expect(allowSwitch).toBeChecked();
+        expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /discard/i })).toBeInTheDocument();
+    });
+
     // ── Dirty tracking & save ────────────────────────────────────────────────
 
     it('does not show Save button initially when form is clean', () => {
@@ -293,6 +316,57 @@ describe('ApiGeneralPage', () => {
         );
     });
 
+    it('sends the toggled Allow in API Products value on Save for a natively-managed API', async () => {
+        const { container } = renderPage();
+        fireEvent.click(container.querySelector('input[type="checkbox"]') as HTMLInputElement);
+        fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() =>
+            expect(apiServices.updateApiGeneral).toHaveBeenCalledWith(
+                'DEFAULT',
+                'api-1',
+                expect.objectContaining({ id: 'api-1' }),
+                expect.objectContaining({ allowedInApiProducts: true }),
+            ),
+        );
+    });
+
+    // The federated page hides the Allow in API Products toggle but keeps its form field, so the API's own
+    // value has to round-trip through the save payload rather than be dropped or reset to the `false` default.
+    it('sends a federated API its own unchanged allowedInApiProducts value on Save', async () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...FEDERATED_API, allowedInApiProducts: true },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage('federated-api-1');
+        fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } });
+        fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+        await waitFor(() => expect(apiServices.updateApiGeneral).toHaveBeenCalledTimes(1));
+        expect(apiServices.updateApiGeneral).toHaveBeenCalledWith(
+            'DEFAULT',
+            'federated-api-1',
+            expect.objectContaining({ id: 'federated-api-1' }),
+            {
+                name: 'Renamed Federated API',
+                apiVersion: 'v1.0',
+                description: 'A test API',
+                labels: ['alpha'],
+                categories: ['Ops'],
+                allowedInApiProducts: true,
+            },
+        );
+    });
+
+    it('shows an error toast when the save request is refused', async () => {
+        jest.spyOn(apiServices, 'updateApiGeneral').mockRejectedValue(new Error('Save refused'));
+        renderPage();
+        fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed API' } });
+        fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Save refused', expect.anything()));
+    });
+
     // ── Start / Stop ─────────────────────────────────────────────────────────
 
     it('shows Start button when API is stopped', () => {
@@ -325,6 +399,62 @@ describe('ApiGeneralPage', () => {
         renderPage();
         fireEvent.click(screen.getByRole('button', { name: /stop/i }));
         await waitFor(() => expect(apiServices.stopApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
+    });
+
+    it('shows an error toast when the start request is refused', async () => {
+        jest.spyOn(apiServices, 'startApi').mockRejectedValue(new Error('Start refused'));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /start/i }));
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Start refused', expect.anything()));
+    });
+
+    it('shows an error toast when the stop request is refused', async () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, state: 'STARTED' },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        jest.spyOn(apiServices, 'stopApi').mockRejectedValue(new Error('Stop refused'));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /stop/i }));
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Stop refused', expect.anything()));
+    });
+
+    // 'STARTED' is not a shape a federated API can really carry; it is here to prove the control is
+    // gated on the API type rather than on `apiStarted`, which an absent state already degrades to false.
+    it.each([
+        ['no runtime state', undefined],
+        ['a runtime state of STARTED', 'STARTED'],
+    ])('hides the Start/Stop control for a federated API with %s, keeping the API Events card', (_shape, state) => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...FEDERATED_API, state },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage('federated-api-1');
+
+        expect(screen.queryByRole('button', { name: /start api/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /stop api/i })).toBeNull();
+        expect(screen.getByText('API Events')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /delete this api/i })).toBeInTheDocument();
+    });
+
+    it('hides the API Events card for a federated API when the user holds update but not delete permission', () => {
+        mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-d'));
+        renderPage('federated-api-1');
+
+        expect(screen.queryByText('API Events')).toBeNull();
+        expect(screen.queryByText(/alter the runtime state of your API/i)).toBeNull();
+    });
+
+    it('keeps the API Events card and its Start control for a natively-managed API when the user holds update but not delete permission', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-d'));
+        renderPage();
+
+        expect(screen.getByText('API Events')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /start api/i })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /delete this api/i })).toBeNull();
     });
 
     // ── Delete ───────────────────────────────────────────────────────────────
@@ -425,6 +555,19 @@ describe('ApiGeneralPage', () => {
         expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
     });
 
+    it('hides the whole action strip, divider included, for a federated API', () => {
+        mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
+        const { container } = renderPage('federated-api-1');
+
+        expect(screen.queryByRole('button', { name: /export/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /import/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /duplicate/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /promote/i })).toBeNull();
+        // `my-5` is the action strip's own separator; the sidebar separator carries no class
+        expect(container.querySelector('hr.my-5')).toBeNull();
+        expect(container.querySelectorAll('hr')).toHaveLength(1);
+    });
+
     it('calls exportApiDefinition with unchecked exclude options from the export dialog', async () => {
         const exportSpy = jest.spyOn(apiServices, 'exportApiDefinition').mockResolvedValue(new Blob(['{}'], { type: 'application/json' }));
         renderPage();
@@ -434,6 +577,19 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(within(dialog).getByRole('button', { name: /^export$/i }));
 
         await waitFor(() => expect(exportSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', ['members']));
+        exportSpy.mockRestore();
+    });
+
+    it('shows an inline error in the export sheet when the export request is refused', async () => {
+        const exportSpy = jest.spyOn(apiServices, 'exportApiDefinition').mockRejectedValue(new Error('Export refused'));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /export/i }));
+        const dialog = screen.getByRole('dialog');
+        await act(async () => {
+            fireEvent.click(within(dialog).getByRole('button', { name: /^export$/i }));
+        });
+
+        expect(await screen.findByText('Export refused')).toBeInTheDocument();
         exportSpy.mockRestore();
     });
 
@@ -462,6 +618,24 @@ describe('ApiGeneralPage', () => {
         duplicateSpy.mockRestore();
     });
 
+    it('shows an inline error in the duplicate sheet when the duplicate request is refused', async () => {
+        const duplicateSpy = jest.spyOn(apiServices, 'duplicateApi').mockRejectedValue(new Error('Duplicate refused'));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /duplicate/i }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.change(within(dialog).getByPlaceholderText('/testVisibility/'), { target: { value: '/duplicate' } });
+        fireEvent.change(within(dialog).getByPlaceholderText('v1.0'), { target: { value: 'v2' } });
+
+        const duplicateBtn = within(dialog).getByRole('button', { name: /^duplicate$/i });
+        await waitFor(() => expect(duplicateBtn).not.toBeDisabled());
+        await act(async () => {
+            fireEvent.click(duplicateBtn);
+        });
+
+        expect(await screen.findByText('Duplicate refused')).toBeInTheDocument();
+        duplicateSpy.mockRestore();
+    });
+
     it('calls updateApiFromDefinition when importing a local Gravitee definition file', async () => {
         const importSpy = jest.spyOn(apiServices, 'updateApiFromDefinition').mockResolvedValue({ id: 'api-1', name: 'My Test API' });
         renderPage();
@@ -481,6 +655,28 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(importBtn);
 
         await waitFor(() => expect(importSpy).toHaveBeenCalledWith('DEFAULT', 'api-1', definition));
+        importSpy.mockRestore();
+    });
+
+    it('shows an inline error in the import sheet when the import request is refused', async () => {
+        const importSpy = jest.spyOn(apiServices, 'updateApiFromDefinition').mockRejectedValue(new Error('Import refused'));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        const dialog = screen.getByRole('dialog');
+
+        const definition = { api: { name: 'My Test API' } };
+        const file = new File([JSON.stringify(definition)], 'api.json', { type: 'application/json' });
+        Object.defineProperty(file, 'text', { value: () => Promise.resolve(JSON.stringify(definition)) });
+        const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+
+        const importBtn = within(dialog).getByRole('button', { name: /^import$/i });
+        await waitFor(() => expect(importBtn).not.toBeDisabled());
+        fireEvent.click(importBtn);
+
+        expect(await screen.findByText('Import refused')).toBeInTheDocument();
         importSpy.mockRestore();
     });
 
@@ -535,6 +731,20 @@ describe('ApiGeneralPage', () => {
             }),
         );
         importSpy.mockRestore();
+    });
+
+    // ── Images ───────────────────────────────────────────────────────────────
+
+    it('shows an error toast when removing the picture is refused', async () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, _links: { pictureUrl: 'https://example.com/picture.png' } },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        jest.spyOn(apiServices, 'deleteApiPicture').mockRejectedValue(new Error('Remove picture refused'));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^remove$/i }));
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Remove picture refused', expect.anything()));
     });
 
     // ── Permission-gated rendering ────────────────────────────────────────────
