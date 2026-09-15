@@ -251,6 +251,22 @@ public class FilterAdapter {
         return MESSAGE_FILTER_NAMES.contains(filter.name());
     }
 
+    /**
+     * Whether every filter of this query reads a field the message documents carry themselves.
+     *
+     * <p>When it does, the connection phase of the message join has nothing left to contribute: it
+     * would resolve request ids only to re-express a restriction the message query already applies.
+     * Skipping it also removes the ceiling that phase carries — the ids are collected 10k at a time,
+     * up to a thousand pages, into a single {@code terms} clause, and Elasticsearch refuses the whole
+     * search past {@code index.max_terms_count} (65,536 by default).
+     *
+     * <p>A query naming a dimension that lives only on the connection document — plan, application,
+     * entrypoint — still needs the join, and keeps it.
+     */
+    public boolean isFullyAppliedOnMessages(Query query) {
+        return query.filters().stream().allMatch(this::shouldAdaptForMessage);
+    }
+
     public boolean shouldAdaptForMessageConnexion(Filter filter) {
         return HTTP_FILTER_NAMES.contains(filter.name());
     }

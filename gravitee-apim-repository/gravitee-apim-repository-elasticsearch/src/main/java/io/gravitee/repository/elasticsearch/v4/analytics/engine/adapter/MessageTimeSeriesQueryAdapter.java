@@ -37,13 +37,21 @@ public class MessageTimeSeriesQueryAdapter {
     private final BoolQueryAdapter boolAdapter = new BoolQueryAdapter(filterAdapter);
 
     public String adapt(TimeSeriesQuery query, Set<String> requestIDs) {
-        return json(query, requestIDs).toString();
-    }
-
-    private JsonObject json(TimeSeriesQuery query, Set<String> requestIDs) {
         var boolQuery = boolAdapter.messageFilter(query);
         MessageFacetsQueryAdapter.MessageRequestIdFilter.restrictTo(boolQuery, requestIDs);
+        return json(query, boolQuery).toString();
+    }
 
+    /**
+     * Without the connection join: every filter of the query reads a field the message documents
+     * carry, so there is no request-id set to narrow by. Distinct from passing an empty set, which
+     * says the join ran and matched nothing.
+     */
+    public String adapt(TimeSeriesQuery query) {
+        return json(query, boolAdapter.messageFilter(query)).toString();
+    }
+
+    private JsonObject json(TimeSeriesQuery query, JsonObject boolQuery) {
         return new JsonObject().put("size", 0).put("query", JsonObject.of("bool", boolQuery)).put("aggs", adaptTimeSeries(query));
     }
 
