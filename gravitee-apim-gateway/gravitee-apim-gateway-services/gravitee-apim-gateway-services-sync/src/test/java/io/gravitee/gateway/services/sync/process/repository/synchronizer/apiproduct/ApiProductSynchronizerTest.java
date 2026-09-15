@@ -33,6 +33,7 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiProductMapper;
 import io.gravitee.gateway.services.sync.process.repository.service.EnvironmentService;
@@ -338,7 +339,7 @@ class ApiProductSynchronizerTest {
 
         @Test
         void should_return_correct_order() {
-            assertThat(cut.order()).isEqualTo(12);
+            assertThat(cut.order()).isEqualTo(Order.API_PRODUCT.index());
         }
     }
 

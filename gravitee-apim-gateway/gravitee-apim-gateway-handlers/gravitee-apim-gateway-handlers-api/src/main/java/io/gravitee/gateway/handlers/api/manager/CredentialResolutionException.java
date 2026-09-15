@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.distributedsync.model;
+package io.gravitee.gateway.handlers.api.manager;
 
-public enum DistributedEventType {
-    ACCESS_POINT,
-    API,
-    API_KEY,
-    API_PRODUCT,
-    AUTHZ_ENTITY,
-    AUTHZ_POLICY,
-    CREDENTIAL,
-    DICTIONARY,
-    LICENSE,
-    NODE_METADATA,
-    ORGANIZATION,
-    SHARED_POLICY_GROUP,
-    SUBSCRIPTION,
+/**
+ * Raised when a credential cannot be resolved. Messages name the credential and field, never their values.
+ */
+public class CredentialResolutionException extends RuntimeException {
+
+    public CredentialResolutionException(String message) {
+        super(message);
+    }
+
+    public CredentialResolutionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

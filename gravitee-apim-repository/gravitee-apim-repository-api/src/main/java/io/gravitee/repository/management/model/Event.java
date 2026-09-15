@@ -107,7 +107,8 @@ public class Event implements Serializable {
         AUTHZ_POLICY_ID("authz_policy_id"),
         AUTHZ_ENTITY_ID("authz_entity_id"),
         AUTHZ_PDP_ID("authz_pdp_id"),
-        AUTHZ_SCHEMA_ID("authz_schema_id");
+        AUTHZ_SCHEMA_ID("authz_schema_id"),
+        CREDENTIAL_ID("credential_id");
 
         private final String value;
     }
