@@ -68,6 +68,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
 
   private readonly MIN_PANEL_WIDTH = 280;
   private readonly MAX_PANEL_WIDTH = 600;
+  private readonly PANEL_RESIZE_STEP = 20;
   panelWidth = signal(500);
 
   readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-metadata-u']));
@@ -108,11 +109,13 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     toObservable(this.selectedFormId).pipe(
       switchMap(id => {
         if (id === null || id === 'new') return of(null);
+        // Starts empty so the editor never keeps showing the previous form under the newly selected id.
         return this.subscriptionFormService.get(id).pipe(
           catchError(({ error }) => {
             this.snackbarService.error(error?.message ?? 'An error occurred while loading the subscription form.');
             return of(null);
           }),
+          startWith(null),
         );
       }),
     ),
@@ -122,12 +125,19 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly nameValue = toSignal(this.nameControl.valueChanges.pipe(startWith(this.nameControl.value)));
   private readonly contentValue = toSignal(this.contentControl.valueChanges.pipe(startWith(this.contentControl.value)));
 
+  /** The form shown in the editor, once the one matching the current selection has loaded. */
+  private readonly loadedForm = computed<SubscriptionForm | null>(() => {
+    const form = this.selectedFormDetail();
+    return form?.id === this.selectedFormId() ? form : null;
+  });
+  private readonly isEditable = computed(() => this.isCreating() || this.loadedForm() !== null);
+
   readonly saveButtonLabel = computed(() => (this.isCreating() ? 'Create' : 'Save'));
 
   protected readonly hasConfigErrors = computed(() => this.store.criticalConfigErrors().length > 0);
 
   readonly isSaveDisabled = computed(() => {
-    if (this.selectedFormId() === null) return true;
+    if (!this.isEditable()) return true;
     const name = (this.nameValue() ?? '').trim();
     const content = normalizeContent(this.contentValue());
     if (name.length === 0 || content.length === 0 || this.hasConfigErrors()) return true;
@@ -135,32 +145,16 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   });
 
   private readonly controlsDisabledStateEffect = effect(() => {
-    const canUpdate = this.canUpdate();
-    const hasSelection = this.selectedFormId() !== null;
     const options = { emitEvent: false };
-    const shouldEnable = canUpdate && hasSelection;
+    const shouldEnable = this.canUpdate() && this.isEditable();
     shouldEnable ? this.nameControl.enable(options) : this.nameControl.disable(options);
     shouldEnable ? this.contentControl.enable(options) : this.contentControl.disable(options);
   });
 
   private readonly formLoadEffect = effect(() => {
-    if (this.isCreating()) {
-      untracked(() => {
-        this.initialName.set('');
-        this.initialContent.set('');
-        this.nameControl.reset('', { emitEvent: true });
-        this.contentControl.reset('', { emitEvent: true });
-      });
-      return;
-    }
-    const form = this.selectedFormDetail();
-    if (!form) return;
-    untracked(() => {
-      this.initialName.set(form.name);
-      this.initialContent.set(form.gmdContent || '');
-      this.nameControl.reset(form.name, { emitEvent: true });
-      this.contentControl.reset(form.gmdContent || '', { emitEvent: true });
-    });
+    if (this.isCreating()) return;
+    const form = this.loadedForm();
+    untracked(() => this.resetEditor(form?.name ?? '', form?.gmdContent || ''));
   });
 
   /** Selects the first row once, the first time the list loads. */
@@ -195,6 +189,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   startCreate(): void {
     this.checkUnsavedChangesAndRun(() => {
       this.selectedFormId.set('new');
+      this.resetEditor('', '');
       this.subscriptionFormService
         .getTemplate()
         .pipe(
@@ -212,7 +207,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
 
   save(): void {
     if (this.isSaveDisabled()) return;
-    const save$ = this.isCreating() ? this.createForm() : this.updateForm(this.selectedForm()!);
+    const save$ = this.isCreating() ? this.createForm() : this.updateForm(this.loadedForm()!);
     save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
@@ -262,6 +257,20 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
     });
+  }
+
+  onResizeKeydown(event: KeyboardEvent): void {
+    const step = { ArrowLeft: -this.PANEL_RESIZE_STEP, ArrowRight: this.PANEL_RESIZE_STEP }[event.key];
+    if (!step) return;
+    event.preventDefault();
+    this.panelWidth.update(width => Math.max(this.MIN_PANEL_WIDTH, Math.min(this.MAX_PANEL_WIDTH, width + step)));
+  }
+
+  private resetEditor(name: string, content: string): void {
+    this.initialName.set(name);
+    this.initialContent.set(content);
+    this.nameControl.reset(name, { emitEvent: true });
+    this.contentControl.reset(content, { emitEvent: true });
   }
 
   private confirm(data: GioConfirmDialogData): Observable<boolean> {

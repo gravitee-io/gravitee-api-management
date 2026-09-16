@@ -18,7 +18,6 @@ export interface SubscriptionForm {
   name: string;
   gmdContent: string;
   enabled: boolean;
-  resolvedOptions?: Record<string, string[]>;
 }
 
 export interface SubscriptionFormTemplate {

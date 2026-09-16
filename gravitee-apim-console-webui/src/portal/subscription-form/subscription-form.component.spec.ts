@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ConfigureTestingGraviteeMarkdownEditor, GmdFormEditorHarness, provideGmdFormStore } from '@gravitee/gravitee-markdown';
+import {
+  ConfigureTestingGraviteeMarkdownEditor,
+  GMD_FORM_STATE_STORE,
+  GmdFormEditorHarness,
+  provideGmdFormStore,
+} from '@gravitee/gravitee-markdown';
 
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -201,6 +206,28 @@ describe('SubscriptionFormComponent', () => {
       expect(await saveButton.isDisabled()).toBe(false);
     });
 
+    it('should clear a discarded name when starting a new form again', async () => {
+      await init(true);
+      expectList([]);
+
+      const createButton = await harnessLoader.getHarness(
+        MatButtonHarness.with({ selector: '[data-testid=create-subscription-form-button]' }),
+      );
+      await createButton.click();
+      fixture.detectChanges();
+      expectTemplate('# Template');
+      fixture.componentInstance.nameControl.setValue('Discarded name');
+      fixture.detectChanges();
+
+      await createButton.click();
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      await (await dialog.getHarness(MatButtonHarness.with({ text: /Discard/ }))).click();
+      expectTemplate('# Template');
+
+      expect(fixture.componentInstance.nameControl.value).toBe('');
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
+    });
+
     it('should create the form, select it and refresh the list', async () => {
       await init(true);
       expectList([]);
@@ -299,6 +326,50 @@ describe('SubscriptionFormComponent', () => {
       expect(fixture.componentInstance.nameControl.value).toBe('Form B');
     });
 
+    it('should clear the editor and keep Save disabled while the selected form is loading', async () => {
+      await init(true);
+      const formA = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', gmdContent: 'Content A' });
+      const formB = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', gmdContent: 'Content B' });
+      expectList([formA, formB]);
+      expectGet(formA);
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.nameControl.value).toBe('');
+      expect(fixture.componentInstance.nameControl.disabled).toBe(true);
+      expect(fixture.componentInstance.contentControl.disabled).toBe(true);
+      expect(fixture.componentInstance.isSaveDisabled()).toBe(true);
+
+      expectGet(formB);
+      expect(fixture.componentInstance.nameControl.value).toBe('Form B');
+      expect(fixture.componentInstance.nameControl.enabled).toBe(true);
+    });
+
+    it('should never save the previous form over the selected one when loading it fails', async () => {
+      await init(true);
+      const formA = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', gmdContent: 'Content A' });
+      const formB = fakeSubscriptionForm({ id: 'form-b', name: 'Form B', gmdContent: 'Content B' });
+      expectList([formA, formB]);
+      expectGet(formA);
+
+      fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-b]')).nativeElement.click();
+      fixture.detectChanges();
+      httpTestingController
+        .expectOne({ method: 'GET', url: `${baseUrl}/form-b` })
+        .flush({ message: 'Load failed' }, { status: 500, statusText: 'Server Error' });
+      fixture.detectChanges();
+
+      expect(snackBarService.error).toHaveBeenCalledWith('Load failed');
+      expect(fixture.componentInstance.nameControl.value).toBe('');
+      expect(fixture.componentInstance.contentControl.value).toBe('');
+      expect(fixture.componentInstance.nameControl.disabled).toBe(true);
+      expect(fixture.componentInstance.contentControl.disabled).toBe(true);
+
+      fixture.componentInstance.save();
+      httpTestingController.expectNone({ method: 'PUT' });
+    });
+
     it('should prompt to discard unsaved changes before switching selection', async () => {
       await init(true);
       const formA = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', gmdContent: 'Content A' });
@@ -318,6 +389,75 @@ describe('SubscriptionFormComponent', () => {
 
       expectGet(formB);
       expect(fixture.componentInstance.nameControl.value).toBe('Form B');
+    });
+  });
+
+  describe('config errors', () => {
+    const fieldStateWithConfigError = (severity: 'error' | 'warning') => ({
+      id: 'field-1',
+      fieldKey: 'key-1',
+      valid: true,
+      value: '',
+      required: false,
+      touched: false,
+      validationErrors: [],
+      configErrors: [
+        severity === 'error'
+          ? { code: 'emptyFieldKey' as const, message: 'Missing property', severity: 'error' as const }
+          : { code: 'normalizedValue' as const, message: 'Missing property', severity: 'warning' as const },
+      ],
+    });
+
+    const editLoadedForm = async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', gmdContent: 'Original content' });
+      expectList([form]);
+      expectGet(form);
+      fixture.componentInstance.contentControl.setValue('Updated content');
+      fixture.detectChanges();
+      return harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
+    };
+
+    it('should disable Save when critical config errors exist', async () => {
+      const saveButton = await editLoadedForm();
+      expect(await saveButton.isDisabled()).toBe(false);
+
+      fixture.debugElement.injector.get(GMD_FORM_STATE_STORE).updateField(fieldStateWithConfigError('error'));
+      fixture.detectChanges();
+
+      expect(await saveButton.isDisabled()).toBe(true);
+    });
+
+    it('should keep Save enabled when only config warnings exist', async () => {
+      const saveButton = await editLoadedForm();
+
+      fixture.debugElement.injector.get(GMD_FORM_STATE_STORE).updateField(fieldStateWithConfigError('warning'));
+      fixture.detectChanges();
+
+      expect(await saveButton.isDisabled()).toBe(false);
+    });
+  });
+
+  describe('panel resize', () => {
+    const pressOnHandle = (key: string) => {
+      const handle = fixture.debugElement.query(By.css('[data-testid=subscription-form-resize-handle]')).nativeElement;
+      handle.dispatchEvent(new KeyboardEvent('keydown', { key }));
+      fixture.detectChanges();
+    };
+
+    it('should resize the panel with the arrow keys within its bounds', async () => {
+      await init(true);
+      expectList([]);
+      const initialWidth = fixture.componentInstance.panelWidth();
+
+      pressOnHandle('ArrowLeft');
+      expect(fixture.componentInstance.panelWidth()).toBeLessThan(initialWidth);
+
+      pressOnHandle('ArrowRight');
+      expect(fixture.componentInstance.panelWidth()).toBe(initialWidth);
+
+      for (let i = 0; i < 50; i++) pressOnHandle('ArrowRight');
+      expect(fixture.componentInstance.panelWidth()).toBe(600);
     });
   });
 

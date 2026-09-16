@@ -45,8 +45,20 @@
     </div>
   </section>
 
-  <div class="resize-handle-container" (mousedown)="onResizeStart($event)">
-    <hr class="resize-handle" aria-label="Resize subscription forms panel" aria-orientation="vertical" />
+  <div
+    class="resize-handle-container"
+    role="separator"
+    tabindex="0"
+    aria-label="Resize subscription forms panel"
+    aria-orientation="vertical"
+    aria-valuemin="280"
+    aria-valuemax="600"
+    [attr.aria-valuenow]="panelWidth()"
+    data-testid="subscription-form-resize-handle"
+    (mousedown)="onResizeStart($event)"
+    (keydown)="onResizeKeydown($event)"
+  >
+    <hr class="resize-handle" aria-hidden="true" />
     <mat-icon svgIcon="gio:drag-indicator"></mat-icon>
   </div>
 
