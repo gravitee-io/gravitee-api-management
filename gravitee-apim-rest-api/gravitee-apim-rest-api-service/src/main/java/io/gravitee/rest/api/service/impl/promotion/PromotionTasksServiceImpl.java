@@ -20,11 +20,15 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.TaskEntity;
 import io.gravitee.rest.api.model.TaskType;
@@ -40,6 +44,7 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.gravitee.rest.api.service.promotion.PromotionTasksService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -105,6 +110,10 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         }
 
         List<String> envCockpitIds = environments.stream().map(EnvironmentEntity::getCockpitId).filter(Objects::nonNull).collect(toList());
+        Map<String, List<String>> environmentIdsByCockpitId = environments
+            .stream()
+            .filter(environment -> environment.getCockpitId() != null)
+            .collect(groupingBy(EnvironmentEntity::getCockpitId, mapping(EnvironmentEntity::getId, toList())));
 
         final PromotionQuery promotionQuery = new PromotionQuery();
         promotionQuery.setStatuses(Collections.singletonList(PromotionEntityStatus.TO_BE_VALIDATED));
@@ -136,7 +145,12 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
                     .findFirst();
 
                 boolean isUpdate = foundTargetApiId.isPresent() && apiSearchService.exists(foundTargetApiId.get());
-                return convert(promotionEntity, isUpdate, foundTargetApiId);
+                return convert(
+                    promotionEntity,
+                    isUpdate,
+                    foundTargetApiId,
+                    onlyEnvironmentId(environmentIdsByCockpitId.get(promotionEntity.getTargetEnvCockpitId()))
+                );
             })
             .filter(taskEntity ->
                 ((Boolean) ((Map<String, Object>) taskEntity.getData()).getOrDefault("isApiUpdate", false) == selectUpdatePromotion)
@@ -144,15 +158,20 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
             .collect(toList());
     }
 
-    private TaskEntity convert(PromotionEntity promotionEntity, boolean isUpdate, Optional<String> foundTargetApiId) {
+    private TaskEntity convert(
+        PromotionEntity promotionEntity,
+        boolean isUpdate,
+        Optional<String> foundTargetApiId,
+        String targetEnvironmentId
+    ) {
         TaskEntity taskEntity = new TaskEntity();
         taskEntity.setType(TaskType.PROMOTION_APPROVAL);
         taskEntity.setCreatedAt(promotionEntity.getCreatedAt());
 
-        String apiName = extractApiNameFromDefinition(promotionEntity.getApiDefinition());
+        JsonNode definition = readDefinition(promotionEntity);
 
         Map<String, Object> data = new HashMap<>();
-        data.put("apiName", apiName);
+        data.put("apiName", apiNameOf(definition));
         data.put("apiId", promotionEntity.getApiId());
         data.put("sourceEnvironmentName", promotionEntity.getSourceEnvName());
         data.put("targetEnvironmentName", promotionEntity.getTargetEnvName());
@@ -162,44 +181,58 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         data.put("isApiUpdate", isUpdate);
 
         foundTargetApiId.ifPresent(targetApiId -> data.put("targetApiId", targetApiId));
+        // Lets a console route the review to the module owning the API type, in the environment it lands in —
+        // for a first promotion there is no target API yet, so neither can be read off one.
+        apiTypeOf(definition).ifPresent(apiType -> data.put("apiType", apiType));
+        if (targetEnvironmentId != null) {
+            data.put("targetEnvironmentId", targetEnvironmentId);
+        }
 
         taskEntity.setData(data);
         return taskEntity;
     }
 
     /**
-     * Extracts the API name from the API definition.
-     * This approach works for both v2 and v4 API definitions.
-     *
-     * @param apiDefinition the API definition JSON string
-     * @return the API name, or "Unknown API" if extraction fails
+     * APIM does not keep cockpit ids unique; when one names several environments there is no telling which of them the
+     * promotion lands in, so none is given rather than a guess.
      */
-    private String extractApiNameFromDefinition(String apiDefinition) {
+    private static String onlyEnvironmentId(List<String> environmentIds) {
+        return environmentIds != null && environmentIds.size() == 1 ? environmentIds.getFirst() : null;
+    }
+
+    private JsonNode readDefinition(PromotionEntity promotion) {
+        String apiDefinition = promotion.getApiDefinition();
         if (apiDefinition == null || apiDefinition.isBlank()) {
-            return "Unknown API name";
+            return MissingNode.getInstance();
         }
         try {
-            JsonNode root = objectMapper.readTree(apiDefinition);
-
-            // Try to get name directly (v2 format)
-            JsonNode nameNode = root.get("name");
-            if (nameNode != null && !nameNode.isNull()) {
-                return nameNode.asText();
-            }
-
-            // Try to get name from api object (v4 format)
-            JsonNode apiNode = root.get("api");
-            if (apiNode != null && !apiNode.isNull()) {
-                nameNode = apiNode.get("name");
-                if (nameNode != null && !nameNode.isNull()) {
-                    return nameNode.asText();
-                }
-            }
-
-            return "Unknown API name";
-        } catch (Exception e) {
-            log.warn("Failed to extract API name from promotion definition", e);
-            return "Unknown API name";
+            return objectMapper.readTree(apiDefinition);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to read the API definition of promotion {} for API {}", promotion.getId(), promotion.getApiId(), e);
+            return MissingNode.getInstance();
         }
+    }
+
+    /** A v2 definition carries its name at the root, a v4 export under {@code api}. */
+    private static String apiNameOf(JsonNode definition) {
+        for (JsonNode name : List.of(definition.path("name"), definition.path("api").path("name"))) {
+            if (!name.isMissingNode() && !name.isNull()) {
+                return name.asText();
+            }
+        }
+        return "Unknown API name";
+    }
+
+    /**
+     * Only a v4 export declares a type, stored as the enum's name ({@code LLM_PROXY}) by the definition serializer, and
+     * exposed as its label ({@code llm-proxy}) like the rest of the task metadata. A name this installation doesn't know,
+     * from a newer one, is left out rather than failing the task list.
+     */
+    private static Optional<String> apiTypeOf(JsonNode definition) {
+        String storedType = definition.path("api").path("type").textValue();
+        return Arrays.stream(ApiType.values())
+            .filter(type -> type.name().equals(storedType))
+            .findFirst()
+            .map(ApiType::getLabel);
     }
 }
