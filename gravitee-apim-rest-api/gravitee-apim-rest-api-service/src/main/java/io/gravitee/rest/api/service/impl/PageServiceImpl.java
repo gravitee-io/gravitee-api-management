@@ -1706,80 +1706,76 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public long execAutoFetch(ExecutionContext executionContext) {
         log.debug("Auto Fetch pages");
+        List<Page> autoFetchPages;
         try {
-            List<Page> autoFetchPages = pageRepository.search(new PageCriteria.Builder().withAutoFetch().build());
-            long nbOfFetchedPages = autoFetchPages
-                .stream()
-                .filter(pageListItem -> pageListItem.getSource() != null)
-                .filter(this::isFetchRequired)
-                .map(page -> executeAutoFetch(executionContext, page))
-                .flatMap(Collection::stream)
-                .count();
-
-            log.debug("{} pages fetched", nbOfFetchedPages);
-            return nbOfFetchedPages;
+            autoFetchPages = pageRepository.search(new PageCriteria.Builder().withAutoFetch().build());
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to fetch pages", ex);
         }
+
+        long nbOfFetchedPages = autoFetchPages
+            .stream()
+            .map(page -> executeAutoFetchSafely(executionContext, page))
+            .flatMap(Collection::stream)
+            .count();
+
+        log.debug("{} pages fetched", nbOfFetchedPages);
+        return nbOfFetchedPages;
     }
 
-    private boolean isFetchRequired(Page pageItem) {
+    private boolean isFetchRequired(Page pageItem) throws FetcherException {
         boolean fetchRequired = false;
-        try {
-            Fetcher fetcher = getFetcher(pageItem.getSource());
-            if (fetcher == null) {
-                throw new TechnicalManagementException("An error occurs while trying to fetch page source");
-            }
-            FetcherConfiguration configuration = fetcher.getConfiguration();
-            if (configuration.isAutoFetch()) {
-                String cron = configuration.getFetchCron();
-                if (cron != null && !cron.isEmpty()) {
-                    CronExpression cronExpression = CronExpression.parse(cron);
-                    if (pageItem.getUpdatedAt() != null) {
-                        LocalDateTime nextRun;
-                        LocalDateTime updatedAt = LocalDateTime.ofInstant(pageItem.getUpdatedAt().toInstant(), ZoneId.systemDefault());
-                        if ((nextRun = cronExpression.next(updatedAt)) != null) {
-                            fetchRequired = nextRun.isBefore(LocalDateTime.now());
-                        }
+        Fetcher fetcher = getFetcher(pageItem.getSource());
+        if (fetcher == null) {
+            throw new TechnicalManagementException("An error occurs while trying to fetch page source");
+        }
+        FetcherConfiguration configuration = fetcher.getConfiguration();
+        if (configuration.isAutoFetch()) {
+            String cron = configuration.getFetchCron();
+            if (cron != null && !cron.isEmpty()) {
+                CronExpression cronExpression = CronExpression.parse(cron);
+                if (pageItem.getUpdatedAt() != null) {
+                    LocalDateTime nextRun;
+                    LocalDateTime updatedAt = LocalDateTime.ofInstant(pageItem.getUpdatedAt().toInstant(), ZoneId.systemDefault());
+                    if ((nextRun = cronExpression.next(updatedAt)) != null) {
+                        fetchRequired = nextRun.isBefore(LocalDateTime.now());
                     }
                 }
             }
-        } catch (FetcherException e) {
-            log.error(
-                "An error occurs while trying to initialize fetcher '{}' for page '{}'",
-                pageItem.getSource().getType(),
-                pageItem.getId(),
-                e
-            );
-        } catch (IllegalArgumentException e) {
-            log.error("An error occurs while trying to parse the cron expression for page '{}'", pageItem.getId(), e);
         }
         return fetchRequired;
     }
 
-    private List<PageEntity> executeAutoFetch(ExecutionContext executionContext, Page page) {
+    private List<PageEntity> executeAutoFetchSafely(ExecutionContext executionContext, Page page) {
         try {
-            if (page.getType() != null && page.getType().equals("ROOT")) {
-                final ImportPageEntity pageEntity = new ImportPageEntity();
-                pageEntity.setType(PageType.valueOf(page.getType()));
-                pageEntity.setSource(convert(page.getId(), page.getSource(), false));
-                pageEntity.setConfiguration(page.getConfiguration());
-                pageEntity.setPublished(page.isPublished());
-                pageEntity.setExcludedAccessControls(page.isExcludedAccessControls());
-                pageEntity.setAccessControls(convertToEntities(page.getAccessControls()));
-                pageEntity.setLastContributor(SYSTEM_CONTRIBUTOR);
-                pageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
-                return fetchPages(executionContext, page.getReferenceId(), pageEntity);
-            } else {
-                PageEntity fetchedPage = fetch(executionContext, page, SYSTEM_CONTRIBUTOR);
-                if (fetchedPage != null) {
-                    return List.of(fetchedPage);
-                }
-                return List.of();
+            if (page.getSource() == null || !isFetchRequired(page)) {
+                return emptyList();
             }
-        } catch (TechnicalException e) {
-            log.error("An error occurs while trying to auto fetch page {}", page.getId(), e);
+            return executeAutoFetch(executionContext, page);
+        } catch (Exception e) {
+            log.error("Unable to auto fetch page '{}': {}: {}", page.getId(), e.getClass().getSimpleName(), e.getMessage(), e);
             return emptyList();
+        }
+    }
+
+    private List<PageEntity> executeAutoFetch(ExecutionContext executionContext, Page page) throws TechnicalException {
+        if (page.getType() != null && page.getType().equals("ROOT")) {
+            final ImportPageEntity pageEntity = new ImportPageEntity();
+            pageEntity.setType(PageType.valueOf(page.getType()));
+            pageEntity.setSource(convert(page.getId(), page.getSource(), false));
+            pageEntity.setConfiguration(page.getConfiguration());
+            pageEntity.setPublished(page.isPublished());
+            pageEntity.setExcludedAccessControls(page.isExcludedAccessControls());
+            pageEntity.setAccessControls(convertToEntities(page.getAccessControls()));
+            pageEntity.setLastContributor(SYSTEM_CONTRIBUTOR);
+            pageEntity.setVisibility(Visibility.valueOf(page.getVisibility()));
+            return fetchPages(executionContext, page.getReferenceId(), pageEntity);
+        } else {
+            PageEntity fetchedPage = fetch(executionContext, page, SYSTEM_CONTRIBUTOR);
+            if (fetchedPage != null) {
+                return List.of(fetchedPage);
+            }
+            return List.of();
         }
     }
 
