@@ -22,9 +22,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -45,6 +47,9 @@ class SegmentConflictRuleTest {
     private static final PortalNavigationItemId PARENT_ID = PortalNavigationItemId.of("11111111-1111-1111-1111-111111111a11");
     private static final PortalNavigationItemId ITEM_ID = PortalNavigationItemId.of("22222222-2222-2222-2222-2222222222a2");
     private static final PortalNavigationItemId OTHER_ID = PortalNavigationItemId.of("33333333-3333-3333-3333-3333333333a3");
+    private static final NavigationItemReference ATTACHED_PORTAL = new NavigationItemReference.PortalReference(
+        PortalId.of("44444444-4444-4444-4444-4444444444a4")
+    );
 
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private SegmentConflictRule rule;
@@ -56,18 +61,18 @@ class SegmentConflictRuleTest {
     }
 
     @Test
-    void appliesTo_returns_false_when_segment_or_id_is_null() {
+    void applies_to_returns_false_when_segment_or_id_is_null() {
         assertThat(rule.appliesTo(item(null, "docs", PortalNavigationItemType.FOLDER, null))).isFalse();
         assertThat(rule.appliesTo(item(ITEM_ID, null, PortalNavigationItemType.FOLDER, null))).isFalse();
     }
 
     @Test
-    void appliesTo_returns_false_for_page_type() {
+    void applies_to_returns_false_for_page_type() {
         assertThat(rule.appliesTo(item(ITEM_ID, "docs", PortalNavigationItemType.PAGE, null))).isFalse();
     }
 
     @Test
-    void appliesTo_returns_true_for_folder_link_api_and_api_product() {
+    void applies_to_returns_true_for_folder_link_api_and_api_product() {
         assertThat(rule.appliesTo(item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, null))).isTrue();
         assertThat(rule.appliesTo(item(ITEM_ID, "docs", PortalNavigationItemType.LINK, null))).isTrue();
         assertThat(rule.appliesTo(item(ITEM_ID, "docs", PortalNavigationItemType.API, null))).isTrue();
@@ -123,7 +128,13 @@ class SegmentConflictRuleTest {
 
     @Test
     void validate_throws_when_another_item_in_the_pending_batch_claims_same_parent_and_segment() {
-        var pendingClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.CLAIM);
+        var pendingClaim = new PendingSegmentClaim(
+            OTHER_ID,
+            PARENT_ID,
+            "docs",
+            NavigationItemReference.defaultReference(),
+            PendingSegmentClaim.Intent.CLAIM
+        );
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingClaim));
         var item = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
@@ -135,7 +146,13 @@ class SegmentConflictRuleTest {
     @Test
     void validate_throws_when_a_pending_update_in_the_same_batch_targets_the_same_parent_and_segment() {
         // A create at (PARENT_ID, "docs") collides with a pending update moving another item to the same slot.
-        var pendingUpdateClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.CLAIM);
+        var pendingUpdateClaim = new PendingSegmentClaim(
+            OTHER_ID,
+            PARENT_ID,
+            "docs",
+            NavigationItemReference.defaultReference(),
+            PendingSegmentClaim.Intent.CLAIM
+        );
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(pendingUpdateClaim));
         var newItem = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
@@ -148,7 +165,13 @@ class SegmentConflictRuleTest {
     void validate_accepts_create_when_persisted_sibling_is_being_vacated_by_a_pending_update_in_the_same_batch() {
         // A same-batch RELEASE claim frees the persisted sibling's slot for a new create.
         navigationItemsQueryService.storage().add(existingFolder(OTHER_ID, PARENT_ID, "docs"));
-        var releaseClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.RELEASE);
+        var releaseClaim = new PendingSegmentClaim(
+            OTHER_ID,
+            PARENT_ID,
+            "docs",
+            NavigationItemReference.defaultReference(),
+            PendingSegmentClaim.Intent.RELEASE
+        );
         var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
         var newItem = item(ITEM_ID, "docs", PortalNavigationItemType.FOLDER, folderLocation("/docs"));
 
@@ -161,7 +184,13 @@ class SegmentConflictRuleTest {
         // and the RELEASE claim excuses the collision the incoming update would otherwise hit.
         navigationItemsQueryService.storage().add(existingFolder(OTHER_ID, PARENT_ID, "docs"));
         var incomingExisting = existingFolder(ITEM_ID, PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), "docs");
-        var releaseClaim = new PendingSegmentClaim(OTHER_ID, PARENT_ID, "docs", PendingSegmentClaim.Intent.RELEASE);
+        var releaseClaim = new PendingSegmentClaim(
+            OTHER_ID,
+            PARENT_ID,
+            "docs",
+            NavigationItemReference.defaultReference(),
+            PendingSegmentClaim.Intent.RELEASE
+        );
         var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(releaseClaim));
         var toUpdate = UpdatePortalNavigationItem.builder()
             .type(PortalNavigationItemType.FOLDER)
@@ -185,6 +214,80 @@ class SegmentConflictRuleTest {
         )
             .isInstanceOf(PathConflictException.class)
             .hasMessageContaining("Link entry at [help]");
+    }
+
+    @Test
+    void validate_accepts_a_root_create_when_the_batch_claim_on_that_segment_belongs_to_an_api_subtree() {
+        var apiRoot = rootItem(OTHER_ID, "pets", new NavigationItemReference.ApiReference("api-1"));
+        var ctx = batchOf(PendingSegmentClaim.forCreate(apiRoot));
+        var portalRoot = rootItem(ITEM_ID, "pets", NavigationItemReference.defaultReference());
+
+        assertThatCode(() -> rule.validate(portalRoot, ENV_ID, ctx)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void validate_throws_when_a_root_create_collides_in_batch_with_a_portal_attached_root() {
+        var attachedRoot = rootItem(OTHER_ID, "docs", ATTACHED_PORTAL);
+        var ctx = batchOf(PendingSegmentClaim.forCreate(attachedRoot));
+        var consoleRoot = rootItem(ITEM_ID, "docs", NavigationItemReference.defaultReference());
+
+        assertThatThrownBy(() -> rule.validate(consoleRoot, ENV_ID, ctx))
+            .isInstanceOf(PathConflictException.class)
+            .hasMessageContaining("docs");
+    }
+
+    @Test
+    void validate_throws_when_two_roots_of_the_same_api_subtree_claim_the_same_segment_in_batch() {
+        var sibling = rootItem(OTHER_ID, "pets", new NavigationItemReference.ApiReference("api-1"));
+        var ctx = batchOf(PendingSegmentClaim.forCreate(sibling));
+        var item = rootItem(ITEM_ID, "pets", new NavigationItemReference.ApiReference("api-1"));
+
+        assertThatThrownBy(() -> rule.validate(item, ENV_ID, ctx))
+            .isInstanceOf(PathConflictException.class)
+            .hasMessageContaining("pets");
+    }
+
+    @Test
+    void validate_throws_when_nested_items_of_different_references_claim_the_same_slot_in_batch() {
+        var sibling = nestedItem(OTHER_ID, "pets", new NavigationItemReference.ApiReference("api-1"));
+        var ctx = batchOf(PendingSegmentClaim.forCreate(sibling));
+        var item = nestedItem(ITEM_ID, "pets", NavigationItemReference.defaultReference());
+
+        assertThatThrownBy(() -> rule.validate(item, ENV_ID, ctx))
+            .isInstanceOf(PathConflictException.class)
+            .hasMessageContaining("pets");
+    }
+
+    private static CreateValidationContext batchOf(PendingSegmentClaim claim) {
+        return new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(claim));
+    }
+
+    private static CreatePortalNavigationItem rootItem(PortalNavigationItemId id, String segment, NavigationItemReference reference) {
+        return referencedItem(id, segment, null, reference);
+    }
+
+    private static CreatePortalNavigationItem nestedItem(PortalNavigationItemId id, String segment, NavigationItemReference reference) {
+        return referencedItem(id, segment, PARENT_ID, reference);
+    }
+
+    private static CreatePortalNavigationItem referencedItem(
+        PortalNavigationItemId id,
+        String segment,
+        PortalNavigationItemId parentId,
+        NavigationItemReference reference
+    ) {
+        return CreatePortalNavigationItem.builder()
+            .id(id)
+            .title(segment)
+            .segment(segment)
+            .type(PortalNavigationItemType.FOLDER)
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .parentId(parentId)
+            .reference(reference)
+            .visibility(PortalVisibility.PUBLIC)
+            .published(true)
+            .build();
     }
 
     private static CreatePortalNavigationItem item(

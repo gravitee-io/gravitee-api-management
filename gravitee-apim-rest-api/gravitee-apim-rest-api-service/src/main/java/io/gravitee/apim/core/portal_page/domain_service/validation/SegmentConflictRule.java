@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
@@ -53,8 +54,21 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
         if (
-            collidesWithPendingBatch(item.getId(), item.getParentId(), item.getSegment(), ctx.pendingSegmentClaims()) ||
-            collidesWithPersistedSibling(item.getId(), item.getParentId(), item.getSegment(), environmentId, ctx.pendingSegmentClaims())
+            collidesWithPendingBatch(
+                item.getId(),
+                item.getParentId(),
+                item.getSegment(),
+                item.getReference(),
+                ctx.pendingSegmentClaims()
+            ) ||
+            collidesWithPersistedSibling(
+                item.getId(),
+                item.getParentId(),
+                item.getSegment(),
+                item.getReference(),
+                environmentId,
+                ctx.pendingSegmentClaims()
+            )
         ) {
             throw exceptionFor(item);
         }
@@ -71,11 +85,18 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
         if (
-            collidesWithPendingBatch(existingItem.getId(), toUpdate.getParentId(), toUpdate.getSegment(), ctx.pendingSegmentClaims()) ||
+            collidesWithPendingBatch(
+                existingItem.getId(),
+                toUpdate.getParentId(),
+                toUpdate.getSegment(),
+                existingItem.getReference(),
+                ctx.pendingSegmentClaims()
+            ) ||
             collidesWithPersistedSibling(
                 existingItem.getId(),
                 toUpdate.getParentId(),
                 toUpdate.getSegment(),
+                existingItem.getReference(),
                 existingItem.getEnvironmentId(),
                 ctx.pendingSegmentClaims()
             )
@@ -88,6 +109,7 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
         PortalNavigationItemId itemId,
         PortalNavigationItemId parentId,
         String segment,
+        NavigationItemReference reference,
         List<PendingSegmentClaim> claims
     ) {
         return claims
@@ -97,7 +119,8 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
                     claim.intent() == PendingSegmentClaim.Intent.CLAIM &&
                     !Objects.equals(claim.id(), itemId) &&
                     Objects.equals(claim.parentId(), parentId) &&
-                    Objects.equals(claim.segment(), segment)
+                    Objects.equals(claim.segment(), segment) &&
+                    (parentId != null || reference.sharesRootNamespaceWith(claim.reference()))
             );
     }
 
@@ -105,11 +128,12 @@ public class SegmentConflictRule implements CreatePortalNavigationItemValidation
         PortalNavigationItemId itemId,
         PortalNavigationItemId parentId,
         String segment,
+        NavigationItemReference reference,
         String environmentId,
         List<PendingSegmentClaim> claims
     ) {
         return navigationItemsQueryService
-            .findByParentIdAndSegment(environmentId, parentId, segment)
+            .findByParentIdAndSegment(environmentId, parentId, segment, reference)
             .filter(sibling -> !sibling.getId().equals(itemId))
             .filter(sibling -> !isVacatedInBatch(sibling.getId(), parentId, segment, claims))
             .isPresent();
