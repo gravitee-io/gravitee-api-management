@@ -15,24 +15,28 @@
  */
 package io.gravitee.apim.core.dictionary.model;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Dictionary {
+@ToString(onlyExplicitlyIncluded = true)
+public class DictionaryProperty {
 
-    private String id;
-    private String hrid;
-    private String name;
-    private String description;
-    private DictionaryType type;
-    private List<DictionaryProperty> properties;
-    private DictionaryProvider provider;
-    private DictionaryTrigger trigger;
+    @ToString.Include
+    private String key;
+
+    private String value;
+
+    /** {@code null} when the caller said nothing: the stored classification then stands. */
+    @ToString.Include
+    private Boolean encrypted;
+
+    @ToString.Include
+    private Boolean encryptable;
 }

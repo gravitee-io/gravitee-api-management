@@ -17,6 +17,7 @@ package io.gravitee.apim.core.dictionary.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryType;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Objects;
@@ -29,7 +30,7 @@ public class ValidateDictionaryDomainService {
             if (dictionary.getProperties() == null || dictionary.getProperties().isEmpty()) {
                 throw new ValidationDomainException("Manual dictionary must have at least one property.");
             }
-            if (dictionary.getProperties().values().stream().anyMatch(Objects::isNull)) {
+            if (dictionary.getProperties().stream().map(DictionaryProperty::getValue).anyMatch(Objects::isNull)) {
                 throw new ValidationDomainException("Dictionary property values must not be null.");
             }
             if (dictionary.getProvider() != null || dictionary.getTrigger() != null) {

@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -134,6 +135,39 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         verify(auditService).createAuditLog(
             eq(expectedContext),
             argThat(auditLogData -> auditLogData.getEvent().equals(DICTIONARY_UPDATED))
+        );
+    }
+
+    @Test
+    public void should_reapply_stored_classification_to_freshly_fetched_values() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setCreatedAt(new Date());
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        dictionaryInDb.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("previous-cipher", true));
+        stored.put("plain", new DictionaryProperty("previous-value", false));
+        dictionaryInDb.setProperties(stored);
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-secret", "plain", "fetched-plain"));
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() &&
+                    dict.getProperties().get("secret").value().equals("fetched-secret") &&
+                    !dict.getProperties().get("plain").encrypted() &&
+                    dict.getProperties().get("plain").value().equals("fetched-plain")
+            )
         );
     }
 

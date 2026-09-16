@@ -15,24 +15,16 @@
  */
 package io.gravitee.apim.core.dictionary.model;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Dictionary {
+import org.junit.jupiter.api.Test;
 
-    private String id;
-    private String hrid;
-    private String name;
-    private String description;
-    private DictionaryType type;
-    private List<DictionaryProperty> properties;
-    private DictionaryProvider provider;
-    private DictionaryTrigger trigger;
+class DictionaryPropertyTest {
+
+    @Test
+    void should_redact_the_value_from_to_string() {
+        String result = DictionaryProperty.builder().value("super-secret").encrypted(true).build().toString();
+
+        assertThat(result).doesNotContain("super-secret").contains("encrypted=true");
+    }
 }
