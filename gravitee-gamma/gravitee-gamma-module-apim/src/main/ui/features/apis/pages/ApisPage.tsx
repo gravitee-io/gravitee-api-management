@@ -45,7 +45,7 @@ export function ApisPage() {
     }, [search]);
 
     const sortBy = toApiListSortBy(sorting);
-    const { data, isLoading, isPlaceholderData } = useApiList({ query: debouncedSearch, page, perPage, sortBy });
+    const { data, isLoading, isPlaceholderData, isError } = useApiList({ query: debouncedSearch, page, perPage, sortBy });
 
     const apis = data?.data ?? [];
     const totalCount = data?.pagination?.totalCount ?? 0;
@@ -71,7 +71,7 @@ export function ApisPage() {
         return <ApisPageSkeleton />;
     }
 
-    const hasNoApis = !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
+    const hasNoApis = !isError && !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
     if (hasNoApis) {
         return <ApisEmptyLanding onCreateProxy={handleCreateProxy} canCreate={canCreate} />;
     }

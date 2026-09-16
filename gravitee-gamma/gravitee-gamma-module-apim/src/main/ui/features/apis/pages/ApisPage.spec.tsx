@@ -103,6 +103,10 @@ function tableRowContaining(name: string) {
     return screen.getAllByRole('row').find(row => within(row).queryByText(name) !== null);
 }
 
+function renderedApiRowCount() {
+    return screen.queryAllByRole('button', { name: 'API actions' }).length;
+}
+
 describe('ApisPage', () => {
     beforeEach(() => {
         mockUseApiStats.mockReturnValue(STUB_STATS);
@@ -172,6 +176,7 @@ describe('ApisPage', () => {
 
         expect(screen.queryByText(NATIVE_PROXY_NAME)).not.toBeNull();
         expect(screen.queryByText(FEDERATED_API_NAME)).not.toBeNull();
+        expect(renderedApiRowCount()).toBe(API_ROWS.length);
     });
 
     it.each<[string, ReturnType<typeof federatedRow>[]]>([
@@ -190,7 +195,7 @@ describe('ApisPage', () => {
         rows.forEach(row => expect(screen.getAllByText(row.name)).toHaveLength(1));
     });
 
-    it('renders no API row of either kind when the search is refused with 403', () => {
+    it('renders the table with no API row of either kind when the search is refused with 403', () => {
         mockUseApiList.mockReturnValue({
             data: undefined,
             isLoading: false,
@@ -201,6 +206,9 @@ describe('ApisPage', () => {
         });
         renderPage();
 
+        expect(screen.queryByPlaceholderText('Search APIs...')).not.toBeNull();
+        expect(screen.queryByText('Why add an API proxy?')).toBeNull();
+        expect(renderedApiRowCount()).toBe(0);
         expect(screen.queryByText(NATIVE_PROXY_NAME)).toBeNull();
         expect(screen.queryByText(FEDERATED_API_NAME)).toBeNull();
     });

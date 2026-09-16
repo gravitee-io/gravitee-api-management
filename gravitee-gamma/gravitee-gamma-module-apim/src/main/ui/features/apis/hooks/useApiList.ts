@@ -50,7 +50,7 @@ export function useApiList({
         placeholderData: keepPreviousData,
         // The spread below reads every field of react-query's tracked-properties proxy, which would
         // subscribe callers to all of them — including the ones every background refetch touches.
-        notifyOnChangeProps: ['data', 'isLoading', 'isPlaceholderData', 'error'],
+        notifyOnChangeProps: ['data', 'isLoading', 'isPlaceholderData', 'isError', 'error'],
     });
     // A disabled query reports isLoading false with no data, which callers read as "loaded and empty".
     // While the gate is still resolving the list has not loaded at all, so report that wait as loading.
