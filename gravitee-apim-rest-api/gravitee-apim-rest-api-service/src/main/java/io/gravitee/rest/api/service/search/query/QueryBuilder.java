@@ -89,6 +89,11 @@ public class QueryBuilder<T extends Indexable> {
         return this;
     }
 
+    public QueryBuilder<T> setSearchSortStrategy(SearchSortStrategy searchSortStrategy) {
+        query.setSearchSortStrategy(searchSortStrategy);
+        return this;
+    }
+
     public QueryBuilder<T> setTypoTolerance(boolean typoTolerance) {
         query.setTypoTolerance(typoTolerance);
         return this;

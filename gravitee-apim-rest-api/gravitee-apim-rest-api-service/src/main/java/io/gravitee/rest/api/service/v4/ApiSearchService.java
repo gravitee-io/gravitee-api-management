@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.search.query.SearchSortStrategy;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Map;
@@ -92,6 +93,18 @@ public interface ApiSearchService {
         Collection<DefinitionVersion> excludeDefinitionVersions,
         boolean typoTolerance
     );
+
+    default Collection<String> searchIds(
+        ExecutionContext executionContext,
+        String query,
+        Map<String, Object> filters,
+        Sortable sortable,
+        Collection<DefinitionVersion> excludeDefinitionVersions,
+        boolean typoTolerance,
+        SearchSortStrategy searchSortStrategy
+    ) {
+        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, typoTolerance);
+    }
 
     default Collection<String> searchIds(
         final ExecutionContext executionContext,

@@ -46,6 +46,8 @@ public class Query<T extends Indexable> {
 
     private Sortable sort;
 
+    private SearchSortStrategy searchSortStrategy = SearchSortStrategy.DEFAULT;
+
     private Collection<String> ids;
 
     /**
