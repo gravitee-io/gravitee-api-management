@@ -16,10 +16,12 @@
 import { Badge, Button, Card, CardContent, toast } from '@gravitee/graphene-core';
 import { ArrowRightIcon, CloudUploadIcon, EyeIcon, KeyIcon, MessageSquareWarningIcon, UserCheckIcon } from '@gravitee/graphene-core/icons';
 import type { LucideIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { PromotionReviewDialog } from './PromotionReviewDialog';
 import { getModuleLabel, useModulesStore } from '../../../features/modules';
-import { formatRelativeTime } from '../tasks.mapping';
+import { formatRelativeTime, promotionDataOf } from '../tasks.mapping';
 import type { TaskAreaKey, TaskIconKey, TaskView } from '../tasks.types';
 
 const ICONS: Record<TaskIconKey, LucideIcon> = {
@@ -40,16 +42,27 @@ const AREA_CLASS: Record<TaskAreaKey, string> = {
     users: 'border-success/30 text-success',
 };
 
-export function TaskRow({ task, onNavigate }: { task: TaskView; onNavigate?: () => void }) {
+export function TaskRow({
+    task,
+    onNavigate,
+    onProcessPromotion,
+}: {
+    task: TaskView;
+    onNavigate?: () => void;
+    onProcessPromotion?: (promotionId: string, accepted: boolean) => Promise<void>;
+}) {
     const navigate = useNavigate();
     const modules = useModulesStore(s => s.modules);
     const Icon = ICONS[task.iconKey];
+    const [reviewOpen, setReviewOpen] = useState(false);
 
     const hasTarget = Boolean(task.to && task.toModuleId);
     const targetModule = task.toModuleId ? modules.find(m => m.id === task.toModuleId) : undefined;
     const targetLabel = task.toModuleId ? getModuleLabel(task.toModuleId, targetModule?.name) : undefined;
 
-    const handleAction = () => {
+    const promotionData = task.type === 'PROMOTION_APPROVAL' ? promotionDataOf(task.entity) : undefined;
+
+    const navigateToTarget = () => {
         if (!task.to || !task.toModuleId) {
             return;
         }
@@ -59,6 +72,14 @@ export function TaskRow({ task, onNavigate }: { task: TaskView; onNavigate?: () 
         }
         navigate(task.to);
         onNavigate?.();
+    };
+
+    const handleAction = () => {
+        if (promotionData) {
+            setReviewOpen(true);
+            return;
+        }
+        navigateToTarget();
     };
 
     return (
@@ -92,11 +113,27 @@ export function TaskRow({ task, onNavigate }: { task: TaskView; onNavigate?: () 
                                 {task.actionLabel}
                                 <ArrowRightIcon className="size-3" aria-hidden />
                             </Button>
-                            {targetLabel && <span className="text-xs text-muted-foreground">Opens {targetLabel}</span>}
+                            {targetLabel && !promotionData && <span className="text-xs text-muted-foreground">Opens {targetLabel}</span>}
                         </div>
                     )}
                 </div>
             </CardContent>
+            {promotionData && (
+                <PromotionReviewDialog
+                    open={reviewOpen}
+                    onOpenChange={setReviewOpen}
+                    data={promotionData}
+                    onProcess={onProcessPromotion}
+                    onOpenApi={
+                        targetModule
+                            ? () => {
+                                  setReviewOpen(false);
+                                  navigateToTarget();
+                              }
+                            : undefined
+                    }
+                />
+            )}
         </Card>
     );
 }

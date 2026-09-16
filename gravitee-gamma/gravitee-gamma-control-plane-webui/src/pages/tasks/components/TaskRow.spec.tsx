@@ -13,13 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fireEvent, render, screen } from '@testing-library/react';
+import { toast } from '@gravitee/graphene-core';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import { TaskRow } from './TaskRow';
 import { useModulesStore } from '../../../features/modules';
 import { resetAllStores } from '../../../testing/helpers';
-import type { TaskView } from '../tasks.types';
+import type { TaskEntity, TaskView } from '../tasks.types';
+
+function makePromotionTask(overrides: Partial<TaskView> = {}, dataOverrides: Partial<TaskEntity['data']> = {}): TaskView {
+    const data = {
+        promotionId: 'promo-1',
+        apiName: 'Loyalty API',
+        sourceEnvironmentName: 'Staging',
+        targetEnvironmentName: 'Production',
+        targetApiId: 'api-9',
+        isApiUpdate: false,
+        authorDisplayName: 'Ada Lovelace',
+        ...dataOverrides,
+    };
+    return {
+        id: 'task-promo-1',
+        type: 'PROMOTION_APPROVAL',
+        category: 'API_PROMOTION',
+        categoryLabel: 'API Promotion',
+        actionLabel: 'Review promotion',
+        iconKey: 'promotion',
+        area: { key: 'apim', label: 'API Management' },
+        title: 'Loyalty API',
+        subtitle: 'Staging → Production',
+        createdAt: 0,
+        to: '/environments/env-1/apim/apis/api-9',
+        toModuleId: 'apim',
+        entity: { type: 'PROMOTION_APPROVAL', created_at: 0, data },
+        ...overrides,
+    };
+}
 
 function makeTask(overrides: Partial<TaskView> = {}): TaskView {
     return {
@@ -50,10 +80,10 @@ function LocationProbe() {
     return <span data-testid="location">{useLocation().pathname}</span>;
 }
 
-function renderRow(task: TaskView) {
+function renderRow(task: TaskView, onProcessPromotion?: (promotionId: string, accepted: boolean) => Promise<void>) {
     return render(
         <MemoryRouter initialEntries={['/start']}>
-            <TaskRow task={task} />
+            <TaskRow task={task} onProcessPromotion={onProcessPromotion} />
             <Routes>
                 <Route path="*" element={<LocationProbe />} />
             </Routes>
@@ -81,5 +111,87 @@ describe('TaskRow', () => {
         expect(screen.getByText('Passenger App → Flight Status API')).toBeTruthy();
         expect(screen.queryByRole('button')).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/start');
+    });
+});
+
+describe('TaskRow promotion review', () => {
+    beforeEach(() => {
+        resetAllStores();
+        jest.spyOn(toast, 'success').mockImplementation(() => '');
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('opens the review dialog instead of navigating when a promotion task is clicked', () => {
+        renderRow(makePromotionTask());
+
+        fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
+
+        expect(screen.getByRole('dialog')).toBeTruthy();
+        expect(screen.getByTestId('location').textContent).toBe('/start');
+    });
+
+    it('shows Accept/Reject without any client-side permission gate — the backend enforces it', () => {
+        renderRow(makePromotionTask());
+
+        fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
+
+        expect(screen.getByRole('button', { name: /^Accept$/ })).toBeTruthy();
+        expect(screen.getByRole('button', { name: /^Reject$/ })).toBeTruthy();
+    });
+
+    it('accepts a promotion, toasts success, and closes the dialog', async () => {
+        const onProcessPromotion = jest.fn().mockResolvedValue(undefined);
+        renderRow(makePromotionTask(), onProcessPromotion);
+
+        fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
+        fireEvent.click(screen.getByRole('button', { name: /^Accept$/ }));
+
+        await waitFor(() => expect(onProcessPromotion).toHaveBeenCalledWith('promo-1', true));
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect(toast.success).toHaveBeenCalledWith('API promotion accepted.');
+    });
+
+    it('requires confirmation before rejecting a promotion, then toasts success and closes the dialog', async () => {
+        const onProcessPromotion = jest.fn().mockResolvedValue(undefined);
+        renderRow(makePromotionTask(), onProcessPromotion);
+
+        fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
+        fireEvent.click(screen.getByRole('button', { name: /^Reject$/ }));
+
+        expect(onProcessPromotion).not.toHaveBeenCalled();
+        expect(screen.getByText(/reject this promotion/i)).toBeTruthy();
+
+        fireEvent.click(screen.getByRole('button', { name: /^Confirm reject$/ }));
+
+        await waitFor(() => expect(onProcessPromotion).toHaveBeenCalledWith('promo-1', false));
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        expect(toast.success).toHaveBeenCalledWith('API promotion rejected.');
+    });
+
+    it('cancelling the reject confirmation does not process the promotion', () => {
+        const onProcessPromotion = jest.fn().mockResolvedValue(undefined);
+        renderRow(makePromotionTask(), onProcessPromotion);
+
+        fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
+        fireEvent.click(screen.getByRole('button', { name: /^Reject$/ }));
+        fireEvent.click(screen.getByRole('button', { name: /^Cancel$/ }));
+
+        expect(onProcessPromotion).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', { name: /^Reject$/ })).toBeTruthy();
+    });
+
+    it('shows an error and keeps the task open when processing fails', async () => {
+        const onProcessPromotion = jest.fn().mockRejectedValue(new Error('Target already has a newer promotion'));
+        renderRow(makePromotionTask(), onProcessPromotion);
+
+        fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
+        fireEvent.click(screen.getByRole('button', { name: /^Accept$/ }));
+
+        expect(await screen.findByText('Target already has a newer promotion')).toBeTruthy();
+        expect(screen.getByRole('dialog')).toBeTruthy();
+        expect(toast.success).not.toHaveBeenCalled();
     });
 });
