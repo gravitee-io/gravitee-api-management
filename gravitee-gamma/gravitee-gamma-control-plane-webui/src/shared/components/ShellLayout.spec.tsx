@@ -22,7 +22,7 @@ import { EnvironmentGuard } from '../../features/environment';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import type { GammaModule } from '../../features/modules';
 import { EnvironmentRenderProbe } from '../../testing/EnvironmentRenderProbe';
-import { resetAllStores, seedBootstrap, seedEnvironments } from '../../testing/helpers';
+import { resetAllStores, seedBootstrap, seedEnvironments, seedUser } from '../../testing/helpers';
 
 const MODULES: GammaModule[] = [{ id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' }];
 
@@ -92,6 +92,18 @@ describe('ShellLayout environment switching', () => {
         await switchToEnvironment2();
 
         await waitFor(() => expect(renders.at(-1)?.pathname).toBe('/environments/env-2/tasks'));
+    });
+
+    it('should expose the theme options in the header account menu', async () => {
+        const user = userEvent.setup();
+        seedUser();
+        renderShell('/environments/env-1/home');
+
+        await user.click(await screen.findByRole('button', { name: 'Account menu' }));
+
+        expect(screen.getByRole('menuitemradio', { name: 'Light' })).toBeTruthy();
+        expect(screen.getByRole('menuitemradio', { name: 'Dark' })).toBeTruthy();
+        expect(screen.getByRole('menuitemradio', { name: 'System' })).toBeTruthy();
     });
 
     it('should keep my-account when switching environments', async () => {

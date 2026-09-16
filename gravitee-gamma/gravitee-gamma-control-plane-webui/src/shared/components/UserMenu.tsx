@@ -22,9 +22,19 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
+    DropdownMenuRadioGroup,
+    DropdownMenuRadioItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    type ThemeMode,
+    useTheme,
 } from '@gravitee/graphene-core';
+
+const THEME_MODES: ReadonlyArray<{ readonly value: ThemeMode; readonly label: string }> = [
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+    { value: 'system', label: 'System' },
+];
 
 function initialsFromName(name: string): string {
     return (
@@ -50,6 +60,8 @@ export function UserMenu({
     onMyAccount: () => void;
     onSignOut: () => void;
 }>) {
+    const { mode, setMode } = useTheme();
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -77,6 +89,15 @@ export function UserMenu({
                 <DropdownMenuItem className="whitespace-nowrap" onSelect={() => onMyAccount()}>
                     My Account
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">Theme</DropdownMenuLabel>
+                <DropdownMenuRadioGroup value={mode} onValueChange={value => setMode(value as ThemeMode)}>
+                    {THEME_MODES.map(theme => (
+                        <DropdownMenuRadioItem key={theme.value} className="whitespace-nowrap" value={theme.value}>
+                            {theme.label}
+                        </DropdownMenuRadioItem>
+                    ))}
+                </DropdownMenuRadioGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="whitespace-nowrap" onSelect={() => onSignOut()}>
                     Sign out

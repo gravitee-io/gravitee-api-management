@@ -13,10 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ThemeProvider, useTheme } from '@gravitee/graphene-core';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { UserMenu } from './UserMenu';
+
+function ThemeProbe() {
+    const { mode } = useTheme();
+    return <span data-testid="theme-mode">{mode}</span>;
+}
+
+function renderMenu(props: Partial<Parameters<typeof UserMenu>[0]> = {}) {
+    return render(
+        <ThemeProvider defaultMode="system">
+            <ThemeProbe />
+            <UserMenu
+                name="Ada Lovelace"
+                email="ada@example.com"
+                avatarSrc="http://api/avatar?1"
+                onMyAccount={jest.fn()}
+                onSignOut={jest.fn()}
+                {...props}
+            />
+        </ThemeProvider>,
+    );
+}
 
 describe('UserMenu', () => {
     beforeAll(() => {
@@ -25,20 +47,16 @@ describe('UserMenu', () => {
         Element.prototype.releasePointerCapture = jest.fn();
     });
 
+    beforeEach(() => {
+        localStorage.clear();
+    });
+
     it('should open My Account and Sign out from the avatar menu', async () => {
         const user = userEvent.setup();
         const onMyAccount = jest.fn();
         const onSignOut = jest.fn();
 
-        render(
-            <UserMenu
-                name="Ada Lovelace"
-                email="ada@example.com"
-                avatarSrc="http://api/avatar?1"
-                onMyAccount={onMyAccount}
-                onSignOut={onSignOut}
-            />,
-        );
+        renderMenu({ onMyAccount, onSignOut });
 
         await user.click(screen.getByRole('button', { name: 'Account menu' }));
         expect(screen.getByText('Ada Lovelace')).toBeTruthy();
@@ -50,5 +68,29 @@ describe('UserMenu', () => {
         await user.click(screen.getByRole('button', { name: 'Account menu' }));
         await user.click(screen.getByRole('menuitem', { name: 'Sign out' }));
         expect(onSignOut).toHaveBeenCalledTimes(1);
+    });
+
+    it('should offer the Light, Dark, and System theme options that Graphene TopNavUser used to own', async () => {
+        const user = userEvent.setup();
+        renderMenu();
+
+        await user.click(screen.getByRole('button', { name: 'Account menu' }));
+
+        expect(screen.getByRole('menuitemradio', { name: 'Light' })).toBeTruthy();
+        expect(screen.getByRole('menuitemradio', { name: 'Dark' })).toBeTruthy();
+        expect(screen.getByRole('menuitemradio', { name: 'System' }).getAttribute('aria-checked')).toBe('true');
+    });
+
+    it('should switch the theme when another mode is selected', async () => {
+        const user = userEvent.setup();
+        renderMenu();
+
+        await user.click(screen.getByRole('button', { name: 'Account menu' }));
+        await user.click(screen.getByRole('menuitemradio', { name: 'Dark' }));
+
+        expect(screen.getByTestId('theme-mode').textContent).toBe('dark');
+
+        await user.click(screen.getByRole('button', { name: 'Account menu' }));
+        expect(screen.getByRole('menuitemradio', { name: 'Dark' }).getAttribute('aria-checked')).toBe('true');
     });
 });
