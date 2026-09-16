@@ -214,4 +214,23 @@ describe('ApiV4MenuService', () => {
       expect(menu.subMenuItems.some(item => item.displayName === 'Logs')).toBe(false);
     });
   });
+
+  describe('Alerts menu', () => {
+    beforeEach(() => {
+      TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: ['api-alert-r'] });
+      service = TestBed.inject(ApiV4MenuService);
+    });
+
+    it('should not include Alerts menu for NATIVE API', () => {
+      const menu = service.getMenu(fakeApiV4({ type: 'NATIVE' }));
+
+      expect(menu.subMenuItems.some(item => item.displayName === 'Alerts')).toBe(false);
+    });
+
+    it.each(['PROXY', 'MESSAGE', 'MCP_PROXY'] as const)('should include Alerts menu for %s', type => {
+      const menu = service.getMenu(fakeApiV4({ type }));
+
+      expect(menu.subMenuItems.some(item => item.displayName === 'Alerts')).toBe(true);
+    });
+  });
 });

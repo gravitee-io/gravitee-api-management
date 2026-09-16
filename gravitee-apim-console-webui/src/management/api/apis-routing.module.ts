@@ -502,6 +502,7 @@ const apisRoutes: Routes = [
       {
         path: 'v4/alerts/new',
         component: AlertComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           docs: {
             page: 'management-alerts',
@@ -519,6 +520,7 @@ const apisRoutes: Routes = [
       {
         path: 'v4/alerts/:alertId',
         component: AlertComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           docs: {
             page: 'management-alerts',
@@ -536,6 +538,7 @@ const apisRoutes: Routes = [
       {
         path: 'v4/alerts',
         component: AlertsComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           docs: {
             page: 'management-alerts',
