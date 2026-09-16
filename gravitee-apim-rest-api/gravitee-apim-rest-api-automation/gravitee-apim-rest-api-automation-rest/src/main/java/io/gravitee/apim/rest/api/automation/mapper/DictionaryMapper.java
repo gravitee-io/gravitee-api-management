@@ -100,9 +100,7 @@ public interface DictionaryMapper {
             .filter(key -> !properties.containsKey(key))
             .findFirst()
             .ifPresent(key -> {
-                throw new ValidationDomainException(
-                    "Dictionary propertyOptions name '" + key + "', which is not declared in properties."
-                );
+                throw new ValidationDomainException("Dictionary propertyOptions name '" + key + "', which is not declared in properties.");
             });
     }
 
@@ -134,7 +132,8 @@ public interface DictionaryMapper {
             .stream()
             .collect(
                 LinkedHashMap::new,
-                (specOptions, entry) -> specOptions.put(entry.getKey(), new DictionaryPropertyOptions().encrypted(entry.getValue().getEncrypted())),
+                (specOptions, entry) ->
+                    specOptions.put(entry.getKey(), new DictionaryPropertyOptions().encrypted(entry.getValue().getEncrypted())),
                 LinkedHashMap::putAll
             );
     }

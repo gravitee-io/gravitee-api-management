@@ -293,8 +293,9 @@ public class DictionaryServiceImpl_UpdateTest {
             Map.of("secret", DictionaryPropertyOptions.builder().encrypted(false).build())
         );
 
-        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
-            .isInstanceOf(DictionaryPropertyEncryptedToPlainException.class);
+        assertThatThrownBy(() ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        ).isInstanceOf(DictionaryPropertyEncryptedToPlainException.class);
         verify(dictionaryRepository, never()).update(any());
     }
 
@@ -407,8 +408,7 @@ public class DictionaryServiceImpl_UpdateTest {
         verify(dictionaryRepository).update(
             argThat(
                 dict ->
-                    dict.getProperties().get("secret").encrypted() &&
-                    dict.getProperties().get("secret").value().equals("renewed-plaintext")
+                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("renewed-plaintext")
             )
         );
     }

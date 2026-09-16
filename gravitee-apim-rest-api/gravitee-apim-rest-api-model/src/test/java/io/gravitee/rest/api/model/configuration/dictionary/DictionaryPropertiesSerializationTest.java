@@ -27,8 +27,7 @@ class DictionaryPropertiesSerializationTest {
 
     @Test
     void should_deserialize_a_payload_without_property_options() throws Exception {
-        String json =
-            """
+        String json = """
             {
               "name": "My Dictionary",
               "type": "MANUAL",
@@ -44,8 +43,7 @@ class DictionaryPropertiesSerializationTest {
 
     @Test
     void should_deserialize_property_options() throws Exception {
-        String json =
-            """
+        String json = """
             {
               "name": "My Dictionary",
               "type": "MANUAL",
@@ -60,20 +58,14 @@ class DictionaryPropertiesSerializationTest {
         UpdateDictionaryEntity entity = objectMapper.readValue(json, UpdateDictionaryEntity.class);
 
         assertThat(entity.getPropertyOptions()).containsExactlyInAnyOrderEntriesOf(
-            Map.of(
-                "apiKey",
-                new DictionaryPropertyOptions(true, false),
-                "renewed",
-                new DictionaryPropertyOptions(null, true)
-            )
+            Map.of("apiKey", new DictionaryPropertyOptions(true, false), "renewed", new DictionaryPropertyOptions(null, true))
         );
         assertThat(entity.getPropertyOptions().get("apiKey").getEncrypted()).isTrue();
     }
 
     @Test
     void should_read_an_omitted_flag_as_null_rather_than_false() throws Exception {
-        String json =
-            """
+        String json = """
             {
               "name": "My Dictionary",
               "type": "MANUAL",

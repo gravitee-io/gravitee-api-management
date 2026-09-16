@@ -515,9 +515,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> toTypedProperty(dictionaryId, entry, optionsFor(options, entry.getKey()), existing)
+                Collectors.toMap(Map.Entry::getKey, entry ->
+                    toTypedProperty(dictionaryId, entry, optionsFor(options, entry.getKey()), existing)
                 )
             );
     }
@@ -593,13 +592,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(
-                    Map.Entry::getKey,
-                    entry -> {
-                        DictionaryProperty stored = existing == null ? null : existing.get(entry.getKey());
-                        return new DictionaryProperty(entry.getValue(), stored != null && stored.encrypted());
-                    }
-                )
+                Collectors.toMap(Map.Entry::getKey, entry -> {
+                    DictionaryProperty stored = existing == null ? null : existing.get(entry.getKey());
+                    return new DictionaryProperty(entry.getValue(), stored != null && stored.encrypted());
+                })
             );
     }
 
@@ -616,11 +612,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .filter(entry -> entry.getValue() != null)
             .sorted(Map.Entry.comparingByKey())
-            .collect(
-                LinkedHashMap::new,
-                (flat, entry) -> flat.put(entry.getKey(), entry.getValue().value()),
-                LinkedHashMap::putAll
-            );
+            .collect(LinkedHashMap::new, (flat, entry) -> flat.put(entry.getKey(), entry.getValue().value()), LinkedHashMap::putAll);
     }
 
     /**
@@ -686,12 +678,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
         if (type == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             dictionary.setProperties(
-                toTypedProperties(
-                    dictionary.getId(),
-                    newDictionaryEntity.getProperties(),
-                    newDictionaryEntity.getPropertyOptions(),
-                    null
-                )
+                toTypedProperties(dictionary.getId(), newDictionaryEntity.getProperties(), newDictionaryEntity.getPropertyOptions(), null)
             );
         } else {
             dictionary.setProvider(convert(newDictionaryEntity.getProvider()));
