@@ -35,6 +35,7 @@ import io.gravitee.rest.api.service.converter.CategoryMapper;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.search.query.SearchSortStrategy;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.FlowService;
@@ -192,6 +193,34 @@ public class ApiSearchService_SearchIdsTest {
 
         assertThat(apis).isNotNull();
         assertThat(apis.size()).isEqualTo(1);
+        assertThat(apis).isEqualTo(List.of("api-id"));
+    }
+
+    @Test
+    public void should_propagate_search_sort_strategy() {
+        var searchSortStrategy = SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS;
+        QueryBuilder<GenericApiEntity> apiEntityQueryBuilder = QueryBuilder.create(GenericApiEntity.class)
+            .setQuery("*")
+            .setSort(null)
+            .setSearchSortStrategy(searchSortStrategy);
+        var filters = new HashMap<String, Object>();
+        apiEntityQueryBuilder.setFilters(filters);
+        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
+
+        when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
+            new SearchResult(List.of("api-id"))
+        );
+
+        final var apis = apiSearchService.searchIds(
+            GraviteeContext.getExecutionContext(),
+            "*",
+            filters,
+            null,
+            EnumSet.noneOf(DefinitionVersion.class),
+            false,
+            searchSortStrategy
+        );
+
         assertThat(apis).isEqualTo(List.of("api-id"));
     }
 

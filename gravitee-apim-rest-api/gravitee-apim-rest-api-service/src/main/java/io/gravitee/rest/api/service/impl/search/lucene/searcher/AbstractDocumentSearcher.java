@@ -80,6 +80,10 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
         return search(query, sortable, null, FIELD_ID);
     }
 
+    protected SearchResult search(Query query, Sortable sortable, Sort defaultSort) throws TechnicalException {
+        return search(query, sortable, null, FIELD_ID, defaultSort);
+    }
+
     public SearchResult searchReference(Query query) throws TechnicalException {
         return search(query, null, null, FIELD_REFERENCE_ID);
     }
@@ -89,6 +93,11 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     }
 
     protected SearchResult search(Query query, Sortable sort, Pageable pageable, String fieldReference) throws TechnicalException {
+        return search(query, sort, pageable, fieldReference, null);
+    }
+
+    private SearchResult search(Query query, Sortable sort, Pageable pageable, String fieldReference, Sort defaultSort)
+        throws TechnicalException {
         log.debug("Searching for: {}", query.toString());
 
         try {
@@ -103,10 +112,11 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                 topDocs = collectorManager
                     .newCollector()
                     .topDocs((pageable.getPageNumber() - 1) * pageable.getPageSize(), pageable.getPageSize());
-            } else if (sort != null) {
-                topDocs = searcher.search(query, Integer.MAX_VALUE, convert(sort));
             } else {
-                topDocs = searcher.search(query, Integer.MAX_VALUE);
+                var luceneSort = sort == null ? defaultSort : convert(sort);
+                topDocs = luceneSort == null
+                    ? searcher.search(query, Integer.MAX_VALUE)
+                    : searcher.search(query, Integer.MAX_VALUE, luceneSort);
             }
 
             final Set<String> results = new LinkedHashSet<>();

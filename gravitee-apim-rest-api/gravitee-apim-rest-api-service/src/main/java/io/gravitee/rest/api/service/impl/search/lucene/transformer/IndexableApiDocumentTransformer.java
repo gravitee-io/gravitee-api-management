@@ -63,6 +63,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         Document doc = new Document();
 
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(FIELD_ID_SORTED, new BytesRef(api.getId())));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
         // If no definition version or name, the api is being deleted. No need for more info in doc.

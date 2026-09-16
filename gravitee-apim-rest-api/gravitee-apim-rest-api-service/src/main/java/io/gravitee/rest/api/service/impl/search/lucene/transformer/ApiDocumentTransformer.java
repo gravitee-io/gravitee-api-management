@@ -63,6 +63,7 @@ import org.springframework.stereotype.Component;
 public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEntity> {
 
     public static final String FIELD_ID = "id";
+    public static final String FIELD_ID_SORTED = "id_sorted";
     public static final String FIELD_TYPE = "type";
     public static final String FIELD_TYPE_VALUE = "api";
     public static final String FIELD_NAME = "name";
@@ -124,6 +125,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         Document doc = new Document();
 
         doc.add(new StringField(FIELD_ID, api.getId(), Field.Store.YES));
+        doc.add(new SortedDocValuesField(FIELD_ID_SORTED, new BytesRef(api.getId())));
         doc.add(new StringField(FIELD_TYPE, FIELD_TYPE_VALUE, Field.Store.YES));
 
         // If no definition version or name, the api is being deleted. No need for more info in doc.
