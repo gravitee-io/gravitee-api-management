@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer;
+import io.gravitee.rest.api.service.search.query.SearchSortStrategy;
 import jakarta.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collection;
@@ -50,6 +51,8 @@ import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
 import org.springframework.stereotype.Component;
@@ -149,6 +152,14 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         super(indexWriter);
     }
 
+    private Sort stableSort() {
+        var nameSort = new SortField(FIELD_NAME_SORTED, SortField.Type.STRING);
+        nameSort.setMissingValue(SortField.STRING_LAST);
+        var idSort = new SortField(FIELD_ID_SORTED, SortField.Type.STRING);
+        idSort.setMissingValue(SortField.STRING_LAST);
+        return new Sort(SortField.FIELD_SCORE, nameSort, idSort);
+    }
+
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
         BooleanQuery.Builder apiQuery = new BooleanQuery.Builder().add(
             new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)),
@@ -243,13 +254,14 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         }
 
         BooleanQuery finalQuery = apiQuery.build();
+        Sort defaultSort = query.getSearchSortStrategy() == SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS ? stableSort() : null;
 
         try {
-            return search(finalQuery, query.getSort());
+            return search(finalQuery, query.getSort(), defaultSort);
         } catch (IndexSearcher.TooManyClauses tooManyClauses) {
             int maxClauseCount = getClauseCount(finalQuery);
             increaseMaxClauseCountIfNecessary(maxClauseCount);
-            return search(finalQuery, query.getSort());
+            return search(finalQuery, query.getSort(), defaultSort);
         }
     }
 
