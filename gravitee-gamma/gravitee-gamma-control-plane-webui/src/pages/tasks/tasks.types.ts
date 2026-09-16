@@ -40,6 +40,18 @@ export interface TaskArea {
 
 export type TaskIconKey = 'subscription' | 'review' | 'changes' | 'registration' | 'promotion';
 
+export interface PromotionReviewData {
+    readonly promotionId: string;
+    readonly apiName: string;
+    readonly sourceEnvironmentName: string;
+    readonly targetEnvironmentName: string;
+    readonly targetApiId?: string;
+    readonly isApiUpdate: boolean;
+    readonly authorDisplayName: string;
+    readonly authorEmail?: string;
+    readonly authorPicture?: string;
+}
+
 export interface TaskView {
     readonly id: string;
     readonly type: TaskType;

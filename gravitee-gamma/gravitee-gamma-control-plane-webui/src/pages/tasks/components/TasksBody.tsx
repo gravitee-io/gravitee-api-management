@@ -29,9 +29,10 @@ interface TasksBodyProps {
     readonly reload: () => void;
     readonly compact?: boolean;
     readonly onNavigate?: () => void;
+    readonly onProcessPromotion?: (promotionId: string, accepted: boolean) => Promise<void>;
 }
 
-export function TasksBody({ tasks, loading, error, reload, compact = false, onNavigate }: TasksBodyProps) {
+export function TasksBody({ tasks, loading, error, reload, compact = false, onNavigate, onProcessPromotion }: TasksBodyProps) {
     const [filter, setFilter] = useState<TaskFilterValue>('all');
     const [sort, setSort] = useState<TaskSortOrder>('newest');
 
@@ -69,7 +70,7 @@ export function TasksBody({ tasks, loading, error, reload, compact = false, onNa
                     compact={compact}
                 />
             </div>
-            <TaskList tasks={visibleTasks} loading={loading} onNavigate={onNavigate} />
+            <TaskList tasks={visibleTasks} loading={loading} onNavigate={onNavigate} onProcessPromotion={onProcessPromotion} />
         </div>
     );
 }

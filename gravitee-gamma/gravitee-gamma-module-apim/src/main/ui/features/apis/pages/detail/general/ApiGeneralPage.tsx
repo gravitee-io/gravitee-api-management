@@ -40,7 +40,8 @@ import { DuplicateApi } from './DuplicateApi';
 import { ExportApi } from './ExportApi';
 import { ImagePicker } from './ImagePicker';
 import { ImportApiSheet } from './ImportApiSheet';
-import { PromoteDialog } from './PromoteDialog';
+import { PromoteDialog, type PromoteState } from './PromoteDialog';
+import { ApimApiError } from '../../../../../shared/api/apimClient';
 import { downloadBlob } from '../../../../../shared/browser';
 import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
@@ -81,8 +82,12 @@ function formatDate(iso?: string): string {
     return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-/** Promote flow is still stubbed — keep disabled until it ships. */
-const PROMOTE_UNAVAILABLE = true;
+function resolvePromoteState(input: { cockpitNotAccepted: boolean; hasLoadError: boolean; isLoading: boolean }): PromoteState {
+    if (input.cockpitNotAccepted) return 'cloudNotConnected';
+    if (input.hasLoadError) return 'error';
+    if (input.isLoading) return 'loading';
+    return 'ready';
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -159,24 +164,79 @@ export function ApiGeneralPage() {
         removePictureMutation,
         backgroundMutation,
         removeBackgroundMutation,
-    } = useApiGeneralMutations(api, {
-        onDeleteSuccess: () => {
-            setDeleteOpen(false);
-            notify.success('API deleted');
-            navigate('../..');
+        promotionTargetsQuery,
+        pendingPromotionsQuery,
+        promoteMutation,
+    } = useApiGeneralMutations(
+        api,
+        {
+            onDeleteSuccess: () => {
+                setDeleteOpen(false);
+                notify.success('API deleted');
+                navigate('../..');
+            },
+            onDuplicateSuccess: newApi => {
+                setDuplicateOpen(false);
+                navigate(`../../${newApi.id}/general`);
+            },
+            onImportSuccess: updatedApi => {
+                setImportOpen(false);
+                notify.success('API updated');
+                const seed = formFromApi(updatedApi);
+                setSavedForm(seed);
+                setForm(seed);
+            },
+            onPromoteSuccess: () => {
+                setPromoteOpen(false);
+                notify.success('Promotion requested');
+            },
         },
-        onDuplicateSuccess: newApi => {
-            setDuplicateOpen(false);
-            navigate(`../../${newApi.id}/general`);
-        },
-        onImportSuccess: updatedApi => {
-            setImportOpen(false);
-            notify.success('API updated');
-            const seed = formFromApi(updatedApi);
-            setSavedForm(seed);
-            setForm(seed);
-        },
+        promoteOpen,
+    );
+
+    // ── Promote dialog derived state (mirrors api-general-info-promote-dialog.component.ts, which
+    // treats either the targets or the pending-promotions call failing with installation.notAccepted
+    // the same way via a single combineLatest catchError) ──
+    let cockpitNotAccepted = false;
+    let cockpitURL: string | undefined;
+    for (const error of [promotionTargetsQuery.error, pendingPromotionsQuery.error]) {
+        if (error instanceof ApimApiError) {
+            const body = error.body as { technicalCode?: string; parameters?: { cockpitURL?: string } } | undefined;
+            if (body?.technicalCode === 'installation.notAccepted') {
+                cockpitNotAccepted = true;
+                cockpitURL = body.parameters?.cockpitURL;
+                break;
+            }
+        }
+    }
+
+    // Any other failure (either query) is a real error, not "zero eligible targets" — and since
+    // pending-promotion flags come from a separate query, letting that one fail silently would let
+    // a user re-promote to a destination that already has a request in flight.
+    const promoteLoadError = !cockpitNotAccepted ? (promotionTargetsQuery.error ?? pendingPromotionsQuery.error) : null;
+    const promoteState = resolvePromoteState({
+        cockpitNotAccepted,
+        hasLoadError: promoteLoadError !== null,
+        isLoading: promotionTargetsQuery.isLoading || pendingPromotionsQuery.isLoading,
     });
+
+    const pendingPromotions = pendingPromotionsQuery.data ?? [];
+    const promoteTargets = (promotionTargetsQuery.data ?? [])
+        .map(target => ({
+            id: target.id,
+            name: target.name,
+            promotionInProgress: pendingPromotions.some(promotion => promotion.targetEnvCockpitId === target.id),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+    const promoteLoadErrorMessage =
+        promoteLoadError instanceof Error ? promoteLoadError.message : 'An error occurred while loading promotion targets.';
+
+    const promoteError = promoteMutation.isError
+        ? promoteMutation.error instanceof Error
+            ? promoteMutation.error.message
+            : 'An error occurred while requesting promotion.'
+        : null;
 
     const handleSave = useCallback(() => {
         if (!form) return;
@@ -533,8 +593,11 @@ export function ApiGeneralPage() {
                                 type="button"
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setPromoteOpen(true)}
-                                disabled={PROMOTE_UNAVAILABLE || isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
+                                onClick={() => {
+                                    promoteMutation.reset();
+                                    setPromoteOpen(true);
+                                }}
+                                disabled={isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
                             >
                                 <ExternalLinkIcon className="size-3.5" /> Promote
                             </Button>
@@ -650,7 +713,20 @@ export function ApiGeneralPage() {
                 isLoading={duplicateMutation.isPending}
                 error={duplicateError}
             />
-            <PromoteDialog open={promoteOpen} onOpenChange={setPromoteOpen} />
+            <PromoteDialog
+                open={promoteOpen}
+                onOpenChange={open => {
+                    if (!open) promoteMutation.reset();
+                    setPromoteOpen(open);
+                }}
+                state={promoteState}
+                targets={promoteTargets}
+                cockpitURL={cockpitURL}
+                loadErrorMessage={promoteLoadErrorMessage}
+                onPromote={target => promoteMutation.mutate(target)}
+                isPromoting={promoteMutation.isPending}
+                error={promoteError}
+            />
             <ConfirmDialog
                 open={deleteOpen}
                 onOpenChange={setDeleteOpen}
