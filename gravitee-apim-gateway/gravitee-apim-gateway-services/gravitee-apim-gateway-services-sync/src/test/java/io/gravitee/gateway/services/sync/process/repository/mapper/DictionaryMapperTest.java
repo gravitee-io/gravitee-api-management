@@ -82,6 +82,26 @@ class DictionaryMapperTest {
     }
 
     @Test
+    void should_map_dictionary_mixing_legacy_and_typed_properties() throws JsonProcessingException {
+        // The rolling-upgrade payload: a dictionary saved before the typed shape existed, with one
+        // property since encrypted.
+        Event event = new Event();
+        event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(dictionary -> {
+                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
+                assertThat(dictionary.getProperties().get("legacy-key").encrypted()).isFalse();
+                assertThat(dictionary.getProperties().get("typed-key").value()).isEqualTo("cipher");
+                assertThat(dictionary.getProperties().get("typed-key").encrypted()).isTrue();
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
     void should_map_dictionary_with_typed_properties() throws JsonProcessingException {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
