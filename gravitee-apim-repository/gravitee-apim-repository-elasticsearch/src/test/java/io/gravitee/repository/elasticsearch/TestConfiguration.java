@@ -26,7 +26,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.Collections;
-import org.opensearch.testcontainers.OpensearchContainer;
+import org.opensearch.testcontainers.OpenSearchContainer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -154,9 +154,9 @@ public class TestConfiguration {
         return elasticsearchContainer;
     }
 
-    private OpensearchContainer generateOpenSearchContainer() {
+    private OpenSearchContainer generateOpenSearchContainer() {
         final String dockerImage = "opensearchproject/opensearch:" + opensearchVersion;
-        OpensearchContainer opensearchContainer = new OpensearchContainer(dockerImage);
+        OpenSearchContainer opensearchContainer = new OpenSearchContainer(dockerImage);
         if (opensearchVersion.startsWith("2")) {
             // https://github.com/opensearch-project/OpenSearch/issues/15169
             opensearchContainer.withEnv("search.max_aggregation_rewrite_filters", "0");
