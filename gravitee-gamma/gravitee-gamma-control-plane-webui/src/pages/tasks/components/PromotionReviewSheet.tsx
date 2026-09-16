@@ -18,20 +18,19 @@ import {
     AlertDescription,
     AlertTitle,
     Button,
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     toast,
 } from '@gravitee/graphene-core';
 import { useState } from 'react';
 
 import type { PromotionReviewData } from '../tasks.types';
 
-export function PromotionReviewDialog({
+export function PromotionReviewSheet({
     open,
     onOpenChange,
     data,
@@ -73,19 +72,20 @@ export function PromotionReviewDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-            {/* Fixed width: sm:max-w-lg loses a cross-remote CSS specificity collision in this
+        <Sheet open={open} onOpenChange={handleOpenChange}>
+            {/* Fixed width: a Tailwind max-width class loses a cross-remote CSS specificity collision in this
                 module-federation setup and silently stretches to near-full viewport width. */}
-            <DialogContent style={{ maxWidth: '32rem' }}>
-                <DialogHeader>
-                    <DialogTitle>API promotion request</DialogTitle>
-                    <DialogDescription>
-                        <strong>{data.authorDisplayName}</strong> requested the promotion of <strong>{data.apiName}</strong> from{' '}
+            <SheetContent side="right" style={{ maxWidth: '32rem' }}>
+                <SheetHeader>
+                    <SheetTitle>API promotion request</SheetTitle>
+                    <SheetDescription>
+                        <strong>{data.authorDisplayName}</strong>
+                        {data.authorEmail ? ` (${data.authorEmail})` : ''} requested the promotion of <strong>{data.apiName}</strong> from{' '}
                         <strong>{data.sourceEnvironmentName}</strong> to <strong>{data.targetEnvironmentName}</strong>.
-                    </DialogDescription>
-                </DialogHeader>
+                    </SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-3 py-2">
+                <div className="space-y-3 px-4 py-2">
                     <Alert>
                         <AlertTitle>Sharding tags</AlertTitle>
                         <AlertDescription>The sharding tags of the promotion must exist in this environment.</AlertDescription>
@@ -107,17 +107,15 @@ export function PromotionReviewDialog({
                     {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
 
-                <DialogFooter>
+                <SheetFooter>
                     {onOpenApi && (
                         <Button type="button" variant="ghost" onClick={onOpenApi}>
                             Open API
                         </Button>
                     )}
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Close
-                        </Button>
-                    </DialogClose>
+                    <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+                        Close
+                    </Button>
                     {confirmingReject ? (
                         <>
                             <Button
@@ -152,8 +150,8 @@ export function PromotionReviewDialog({
                             </Button>
                         </>
                     )}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

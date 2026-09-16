@@ -291,6 +291,48 @@ describe('toTaskView', () => {
         expect(view.subtitle).toBe('Staging → Production');
         expect(view.to).toBe('/environments/prod/apim/apis/api-9');
     });
+
+    it('routes an LLM promotion update to the aim llm-proxy page of its target environment', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-2',
+                apiName: 'Loyalty API',
+                sourceEnvironmentName: 'Production',
+                targetEnvironmentName: 'Staging',
+                targetApiId: 'api-9',
+                apiType: 'llm-proxy',
+                targetEnvironmentId: 'env-2-id',
+            },
+        };
+
+        const view = toTaskView(entity, {}, resolveEnvHrid);
+
+        expect(view.area.key).toBe('llm');
+        expect(view.toModuleId).toBe('aim');
+        expect(view.to).toBe('/environments/staging/aim/llm-proxy/api-9');
+    });
+
+    it('routes a first-time LLM promotion to the aim module of its target environment', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-3',
+                apiName: 'Loyalty API',
+                sourceEnvironmentName: 'Production',
+                targetEnvironmentName: 'Staging',
+                apiType: 'llm-proxy',
+                targetEnvironmentId: 'env-2-id',
+            },
+        };
+
+        const view = toTaskView(entity, {}, resolveEnvHrid);
+
+        expect(view.area.key).toBe('llm');
+        expect(view.to).toBe('/environments/staging/aim');
+    });
 });
 
 describe('promotionDataOf', () => {
