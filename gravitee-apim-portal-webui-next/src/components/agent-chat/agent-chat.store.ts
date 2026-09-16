@@ -17,12 +17,9 @@ import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import type { LocalizeFn } from '@angular/localize/init';
 
 import { A2AEvent, buildStreamRequest, eventFromFrame, splitSseFrames } from './a2a-client';
-import { ConfigService } from '../../services/config.service';
 import { randomId } from '../../utils/random-id';
 
 declare const $localize: LocalizeFn;
-
-export const DEFAULT_API_KEY_HEADER = 'X-Gravitee-Api-Key';
 
 export interface ChatTurn {
   id: string;
@@ -41,8 +38,6 @@ class GatewayResponseError extends Error {}
 
 @Injectable()
 export class AgentChatStore {
-  private readonly configService = inject(ConfigService);
-
   private readonly turnsState = signal<ChatTurn[]>([]);
   private readonly isStreamingState = signal(false);
   private readonly errorState = signal<string | null>(null);
@@ -121,7 +116,7 @@ export class AgentChatStore {
       headers: {
         'Content-Type': 'application/json',
         Accept: 'text/event-stream',
-        [this.apiKeyHeader()]: target.apiKey,
+        Authorization: `Bearer ${target.apiKey}`,
       },
       body: JSON.stringify(buildStreamRequest(question, this.contextId, messageId, randomId())),
       signal,
@@ -196,9 +191,5 @@ export class AgentChatStore {
     this.inFlight?.abort();
     this.inFlight = null;
     this.isStreamingState.set(false);
-  }
-
-  private apiKeyHeader(): string {
-    return this.configService.configuration?.portal?.apikeyHeader ?? DEFAULT_API_KEY_HEADER;
   }
 }
