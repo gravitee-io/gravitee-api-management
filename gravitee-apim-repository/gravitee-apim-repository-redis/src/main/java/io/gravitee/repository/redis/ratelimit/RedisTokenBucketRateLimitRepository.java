@@ -18,7 +18,6 @@ package io.gravitee.repository.redis.ratelimit;
 import static io.gravitee.repository.redis.ratelimit.RateLimitRepositoryConfiguration.SCRIPT_TOKEN_BUCKET_KEY;
 
 import io.gravitee.repository.exception.RedisNotConnectedException;
-import io.gravitee.repository.exception.RedisOperationTimeoutException;
 import io.gravitee.repository.ratelimit.api.TokenBucketCalculator;
 import io.gravitee.repository.ratelimit.api.TokenBucketConsumeResult;
 import io.gravitee.repository.ratelimit.api.TokenBucketRateLimitRepository;
@@ -47,8 +46,6 @@ import lombok.CustomLog;
 public class RedisTokenBucketRateLimitRepository implements TokenBucketRateLimitRepository<TokenBucket> {
 
     private static final String REDIS_KEY_PREFIX = "tokenbucket:";
-
-    private static final String NOSCRIPT_PREFIX = "NOSCRIPT";
 
     private final RedisClient redisClient;
     private final int operationTimeout;
@@ -99,7 +96,7 @@ public class RedisTokenBucketRateLimitRepository implements TokenBucketRateLimit
                                 )
                             )
                             .recover(t -> {
-                                if (!isNoScript(t)) {
+                                if (!RedisScriptSupport.isNoScript(t)) {
                                     return Future.failedFuture(t);
                                 }
                                 final String source = redisClient.scriptSource(SCRIPT_TOKEN_BUCKET_KEY);
@@ -135,20 +132,23 @@ public class RedisTokenBucketRateLimitRepository implements TokenBucketRateLimit
                                         return Future.failedFuture(evalError);
                                     });
                             })
+                            .timeout(operationTimeout, TimeUnit.MILLISECONDS)
+                            .recover(t -> RedisScriptSupport.mapTimeout(t, operationTimeout))
                     )
-                    .onFailure(this::logOperationFailure)
+                    .onFailure(t -> {
+                        logOperationFailure(t);
+                        redisClient.notifyConnectionFailure(t);
+                    })
                     .onComplete(asyncResultHandler)
-        )
-            .map(response -> {
-                boolean allowed = response.get(0).toLong() == 1L;
-                long newTokens = response.get(1).toLong();
-                return new TokenBucketConsumeResult(
-                    allowed,
-                    newTokens,
-                    TokenBucketCalculator.nextAvailableAtMillis(newTokens, refillRate, refillPeriodMillis, nowMillis)
-                );
-            })
-            .timeout(operationTimeout, TimeUnit.MILLISECONDS, Single.error(new RedisOperationTimeoutException(operationTimeout)));
+        ).map(response -> {
+            boolean allowed = response.get(0).toLong() == 1L;
+            long newTokens = response.get(1).toLong();
+            return new TokenBucketConsumeResult(
+                allowed,
+                newTokens,
+                TokenBucketCalculator.nextAvailableAtMillis(newTokens, refillRate, refillPeriodMillis, nowMillis)
+            );
+        });
     }
 
     // numkeys is "1": only the bucket key is a KEY, so all keys touched share one hash slot.
@@ -176,18 +176,6 @@ public class RedisTokenBucketRateLimitRepository implements TokenBucketRateLimit
             subscription == null ? "" : subscription,
             Long.toString(expireAt)
         );
-    }
-
-    // package-private for direct unit testing of the cause-chain matcher
-    static boolean isNoScript(Throwable t) {
-        int depth = 0;
-        for (Throwable cause = t; cause != null && depth < 20; cause = cause.getCause(), depth++) {
-            String message = cause.getMessage();
-            if (message != null && message.stripLeading().regionMatches(true, 0, NOSCRIPT_PREFIX, 0, NOSCRIPT_PREFIX.length())) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void logOperationFailure(Throwable t) {

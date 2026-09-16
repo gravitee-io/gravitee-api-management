@@ -74,6 +74,6 @@ export const EditPageAclsComponent: ng.IComponentOptions = {
     isApiPage: '<',
     readOnly: '<',
   },
-  template: require('html-loader!./edit-page-acls.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./edit-page-acls.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: EditPageAclsComponentController,
 };

@@ -30,4 +30,12 @@ describe('MetadataFormatBadge', () => {
         render(<MetadataFormatBadge format={format} />);
         expect(screen.queryByText(expectedLabel)).not.toBeNull();
     });
+
+    it('renders on Graphene’s default variant, without the unshipped palette classes', () => {
+        render(<MetadataFormatBadge format="STRING" />);
+        const badge = screen.getByText('String').closest('[data-slot="badge"]');
+        expect(badge).toHaveAttribute('data-variant', 'default');
+        expect(badge).not.toHaveClass('bg-blue-100');
+        expect(badge).not.toHaveClass('text-blue-700');
+    });
 });

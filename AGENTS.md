@@ -190,7 +190,7 @@ Consequences for any Maven command:
 - Building the distribution takes two phases: install the engine first, then assemble against it. `task build-quick` does both.
 - After a `clean install` fails or is interrupted (especially with `-T`, parallel reactor builds), a later scoped `mvn test`/`mvn -pl <module> test` **without `clean`** silently compiles against stale `target/classes` left by modules that never finished rebuilding — producing "cannot find symbol"/"constructor cannot be applied" errors that look like a broken annotation processor (e.g. Lombok) but aren't. Re-run a full `clean install` covering every changed reactor module before trusting a scoped test run.
 
-The distribution assembles a **pinned released** engine unless `-Pengine-snapshot` is passed. Leaving the profile out does not fail — it produces a distribution without the change under test. `task which-engine` prints which engine actually got bundled.
+The distribution assembles the **pinned released** core unless `-Dapim.core.version=<root triplet>` is passed. Leaving it out does not fail — it produces a distribution without the change under test. `task build-distribution` passes it for you, and `task which-engine` prints which core actually got bundled.
 
 # Modules
 

@@ -25,6 +25,8 @@ const ROLE_RIGHTS_CONFIG: readonly { key: RoleRight; label: string }[] = [
     { key: 'D', label: 'Delete' },
 ];
 
+const PERMISSION_CHECKBOX_CLASS = 'rounded-sm';
+
 function computeSelectAllState(
     value: RolePermissionsForm,
     right: RoleRight,
@@ -84,40 +86,37 @@ export function RolePermissionsTable({
                         const state = computeSelectAllState(value, right.key, permissionNames, scope);
                         const isIndeterminate = state === 'indeterminate';
                         return (
-                            <TableHead key={right.key} scope="col">
-                                <div className="flex flex-col items-start gap-1">
+                            <TableHead key={right.key} scope="col" className="w-28 text-center">
+                                <div className="flex flex-col items-center gap-2 py-1">
                                     <span>{right.label}</span>
-                                    {/* The design-system Checkbox renders the same check glyph for "checked" and
-                                        "indeterminate", which makes a partial selection look identical to "all
-                                        selected". Force a visibly distinct treatment for the indeterminate case:
-                                        a muted/outlined box with our own dash mark instead of the check icon.
-                                        This overrides Graphene internals via nested selectors, which graphene.md
-                                        lists as a mistake to avoid — the real fix belongs upstream as a Graphene
-                                        `indeterminate` visual variant. Treat this as a temporary, referenced
-                                        workaround until that lands, not a pattern to copy elsewhere. */}
-                                    <div className="relative inline-flex">
-                                        <Checkbox
-                                            checked={state}
+                                    {isIndeterminate ? (
+                                        // Graphene Checkbox renders a check glyph for indeterminate, so partial column
+                                        // selection looks fully checked. Use a matching control with a horizontal dash
+                                        // (standard indeterminate UX) until Graphene ships a distinct variant.
+                                        <button
+                                            type="button"
+                                            role="checkbox"
+                                            aria-checked="mixed"
                                             disabled={disabled}
-                                            onCheckedChange={checked => toggleAll(right.key, checked === true)}
-                                            aria-label={
-                                                isIndeterminate
-                                                    ? `Some ${right.label} permissions selected — select all ${right.label}`
-                                                    : `${state === true ? 'Deselect' : 'Select'} all ${right.label}`
-                                            }
-                                            className={
-                                                isIndeterminate
-                                                    ? 'border-primary bg-background data-[state=indeterminate]:bg-background [&_svg]:invisible'
-                                                    : undefined
-                                            }
-                                        />
-                                        {isIndeterminate ? (
+                                            aria-label={`Some ${right.label} permissions selected — select all ${right.label}`}
+                                            className={`flex size-4 shrink-0 items-center justify-center border border-primary bg-primary p-0 shadow-xs outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 ${PERMISSION_CHECKBOX_CLASS}`}
+                                            onClick={() => toggleAll(right.key, true)}
+                                        >
                                             <span
                                                 aria-hidden="true"
-                                                className="pointer-events-none absolute inset-0 m-auto h-[2px] w-2 rounded-full bg-primary"
+                                                className="block shrink-0 rounded-none bg-primary-foreground"
+                                                style={{ height: 2, width: 10 }}
                                             />
-                                        ) : null}
-                                    </div>
+                                        </button>
+                                    ) : (
+                                        <Checkbox
+                                            checked={state === true}
+                                            disabled={disabled}
+                                            onCheckedChange={checked => toggleAll(right.key, checked === true)}
+                                            aria-label={`${state === true ? 'Deselect' : 'Select'} all ${right.label}`}
+                                            className={PERMISSION_CHECKBOX_CLASS}
+                                        />
+                                    )}
                                 </div>
                             </TableHead>
                         );
@@ -129,8 +128,8 @@ export function RolePermissionsTable({
                     const moved = isPermissionMovedToOrganizationScope(scope, permission);
                     return (
                         <TableRow key={permission}>
-                            <TableCell>
-                                <span>{permission}</span>
+                            <TableCell className="py-3">
+                                <span className="text-sm font-medium">{permission}</span>
                                 {moved ? (
                                     <div className="text-xs text-muted-foreground">
                                         This permission has been moved to ORGANIZATION scope
@@ -138,12 +137,13 @@ export function RolePermissionsTable({
                                 ) : null}
                             </TableCell>
                             {ROLE_RIGHTS_CONFIG.map(right => (
-                                <TableCell key={right.key}>
+                                <TableCell key={right.key} className="py-3 text-center">
                                     <Checkbox
                                         checked={Boolean(value[permission]?.[right.key])}
                                         disabled={disabled || moved}
                                         onCheckedChange={checked => toggleCell(permission, right.key, checked === true)}
                                         aria-label={`${right.label} permission for ${permission}`}
+                                        className={PERMISSION_CHECKBOX_CLASS}
                                     />
                                 </TableCell>
                             ))}

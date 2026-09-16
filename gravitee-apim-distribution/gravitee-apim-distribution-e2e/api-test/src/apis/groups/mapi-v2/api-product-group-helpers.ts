@@ -15,7 +15,6 @@
  */
 import { expect } from '@jest/globals';
 import { adminAuthHeader, envId, managementV2BaseUrl, orgId } from '@gravitee/utils/api-products';
-import fetch from 'node-fetch';
 
 export interface ApiProduct {
   id: string;

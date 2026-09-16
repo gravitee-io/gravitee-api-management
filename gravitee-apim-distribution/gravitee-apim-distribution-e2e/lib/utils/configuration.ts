@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import 'dotenv/config';
-import fetchApi from 'node-fetch';
 import { Configuration as ManagementConfiguration } from '@gravitee/management-webclient-sdk/src/lib/runtime';
 import { Configuration as ManagementV2Configuration } from '@gravitee/management-v2-webclient-sdk/src/lib/runtime';
 import { Configuration as PortalConfiguration, HTTPHeaders } from '@gravitee/portal-webclient-sdk/src/lib';
@@ -66,7 +65,7 @@ export const forManagement = (auth: BasicAuthentication = ADMIN_USER, headers = 
   return new ManagementConfiguration({
     basePath: process.env.MANAGEMENT_BASE_URL,
     // @ts-ignore
-    fetchApi,
+    fetchApi: fetch,
     ...auth,
     headers: { ...defaultHeaders, ...headers },
   });
@@ -92,7 +91,7 @@ export const forManagementV2 = (auth: BasicAuthentication = ADMIN_USER, headers 
   return new ManagementV2Configuration({
     basePath: process.env.MANAGEMENT_V2_BASE_URL,
     // @ts-ignore
-    fetchApi,
+    fetchApi: fetch,
     ...auth,
     headers: { ...defaultHeaders, ...headers },
   });
@@ -109,7 +108,7 @@ const defaultHeaders = {
 export const forPortal = ({ auth = ANONYMOUS, envId = 'DEFAULT', headers = {} }) => {
   return new PortalConfiguration({
     basePath: `${process.env.PORTAL_BASE_URL}/${envId}`,
-    fetchApi,
+    fetchApi: fetch,
     ...auth,
     headers: { ...defaultHeaders, ...headers },
   });

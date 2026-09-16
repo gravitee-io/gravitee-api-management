@@ -33,7 +33,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
     reload: '&',
   },
-  template: require('html-loader!./alert.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./alert.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: [
     'Constants',
     '$scope',

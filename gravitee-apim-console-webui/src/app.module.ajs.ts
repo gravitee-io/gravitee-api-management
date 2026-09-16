@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/* eslint-disable @typescript-eslint/no-var-requires, import/order */
+/* eslint-disable @typescript-eslint/no-require-imports, import/order */
 import * as jQuery from 'jquery';
 import 'angular-aria';
 import 'angular-animate';
@@ -289,16 +289,18 @@ require('angular-ui-tree');
 
 require('angular-gridster');
 require('angular-scroll');
-require('diff/dist/diff.min.js');
+require('diff/dist/diff.js');
 require('angular-loading-bar');
 
 // Highcharts
 const Highcharts = require('highcharts');
 window.Highcharts = Highcharts;
-require('highcharts/highcharts-more')(Highcharts);
-require('highcharts/modules/solid-gauge')(Highcharts);
-require('highcharts/modules/no-data-to-display')(Highcharts);
-require('highcharts/modules/map')(Highcharts);
+// Since Highcharts 12 a module is no longer a factory to apply to the namespace: it composes
+// itself on load, against the instance the main entry exposes.
+require('highcharts/highcharts-more');
+require('highcharts/modules/solid-gauge');
+require('highcharts/modules/no-data-to-display');
+require('highcharts/modules/map');
 
 require('@highcharts/map-collection/custom/world');
 

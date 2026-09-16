@@ -16,11 +16,16 @@
 import type { UserRole } from '@gravitee/gamma-modules-sdk';
 
 export interface CurrentUser {
+    id?: string;
     displayName: string;
     email?: string;
     firstname: string;
     lastname: string;
-    roles?: UserRole[];
+    source?: string;
+    primaryOwner?: boolean;
+    roles?: Array<UserRole & { name?: string }>;
+    groupsByEnvironment?: Record<string, string[]>;
+    customFields?: Record<string, unknown>;
 }
 
 export type IdentityProviderType = 'GOOGLE' | 'GITHUB' | 'GRAVITEEIO_AM' | 'OIDC';

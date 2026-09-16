@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { changedFiles, coreVersionFromTag, diffRef, isBlank, isSupportBranchOrMaster } from './utils';
+import {
+  changedFiles,
+  coreVersionFromTag,
+  diffRef,
+  distributionVersionFromTag,
+  isBlank,
+  isLatestRelease,
+  isSupportBranchOrMaster,
+  remoteSupportBranches,
+  remoteTags,
+} from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
@@ -26,7 +36,6 @@ const CIRCLE_SHA1: string = process.env.CIRCLE_SHA1 ?? '';
 const CI_ACTION: string | undefined = process.env.CI_ACTION;
 const CI_DRY_RUN: string | undefined = process.env.CI_DRY_RUN;
 const CI_GRAVITEEIO_VERSION: string = process.env.CI_GRAVITEEIO_VERSION ?? '';
-const CI_DOCKER_TAG_AS_LATEST: string | undefined = process.env.CI_DOCKER_TAG_AS_LATEST;
 const GIT_BASE_BRANCH: string = process.env.GIT_BASE_BRANCH ?? 'master';
 const GIT_COMMON_COMMIT_HASH: string = process.env.GIT_COMMON_COMMIT_HASH ?? '';
 const APIM_VERSION_PATH: string | undefined = process.env.APIM_VERSION_PATH;
@@ -45,34 +54,75 @@ if (isBlank(CIRCLE_SHA1)) {
 const coreReleaseVersion = coreVersionFromTag(CIRCLE_TAG);
 
 /**
+ * The distribution releases under the bare version. Same principle as above: the tag carries the
+ * version, so nothing is passed as a pipeline parameter and the artefacts come from the tagged tree.
+ */
+const distributionReleaseVersion = distributionVersionFromTag(CIRCLE_TAG);
+
+const releasedByTag = coreReleaseVersion ?? distributionReleaseVersion;
+
+/** Which lane the pipeline is generating for. A tag decides it; off a tag, the parameter does. */
+const action =
+  coreReleaseVersion !== undefined
+    ? 'core_release'
+    : distributionReleaseVersion !== undefined
+      ? 'distribution_release'
+      : (CI_ACTION ?? 'pull_requests');
+
+/**
+ * Which images take the `latest` tag. It used to be a pipeline parameter, answered from memory; a
+ * tag-triggered pipeline receives none, so it is read from what has already been released instead.
+ *
+ * Only this lane ever asks. The `latest` tag is pushed on the release path alone — every other
+ * workflow builds images with `isProd` false — so anything that is not a distribution tag answers
+ * no without looking.
+ */
+const dockerTagAsLatest =
+  distributionReleaseVersion === undefined
+    ? Promise.resolve(false)
+    : remoteTags().then((tags) => isLatestRelease(distributionReleaseVersion, tags));
+
+/**
+ * Which versions have been released, for the bridge compatibility matrix: it tests the server against
+ * the minors before it, and a line that has a branch but no release yet contributes its branch tip
+ * alone. Left undefined everywhere else, so a workflow that starts needing it says so instead of
+ * quietly reading an empty list.
+ */
+const isBridgeRun = action === 'bridge_compatibility_tests';
+const releasedTags = isBridgeRun ? remoteTags() : Promise.resolve(undefined);
+const supportBranches = isBridgeRun ? remoteSupportBranches() : Promise.resolve(undefined);
+
+/**
  * The pipeline generation is available according to different conditions:
  *     - if the branch is supported ( CIRCLE_BRANCH is master or a support branch )
  *     - if we are working on a branch with changes committed on the base branch
  */
 const changed =
-  coreReleaseVersion !== undefined || isSupportBranchOrMaster(CIRCLE_BRANCH)
+  releasedByTag !== undefined || isSupportBranchOrMaster(CIRCLE_BRANCH)
     ? Promise.resolve([])
     : changedFiles(diffRef(GIT_COMMON_COMMIT_HASH, GIT_BASE_BRANCH));
 
-changed
+Promise.all([changed, dockerTagAsLatest, releasedTags, supportBranches])
   .then(
-    (changes) =>
+    ([changes, tagAsLatest, tags, branches]) =>
       ({
         baseBranch: GIT_BASE_BRANCH,
         branch: CIRCLE_BRANCH,
         buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
         buildId: CIRCLE_BUILD_NUM,
         sha1: CIRCLE_SHA1,
-        action: coreReleaseVersion !== undefined ? 'core_release' : (CI_ACTION ?? 'pull_requests'),
+        action,
         tag: CIRCLE_TAG === '' ? undefined : CIRCLE_TAG,
         // A tag is never a rehearsal. `dry_run` defaults to true and no parameter reaches this path,
         // so without this a pushed tag would publish nothing and go green. Rehearsals keep the API
         // trigger, which is where the flag belongs.
-        isDryRun: coreReleaseVersion !== undefined ? false : CI_DRY_RUN !== 'false',
-        graviteeioVersion: coreReleaseVersion ?? CI_GRAVITEEIO_VERSION,
+        isDryRun: releasedByTag !== undefined ? false : CI_DRY_RUN !== 'false',
+        graviteeioVersion: releasedByTag ?? CI_GRAVITEEIO_VERSION,
         changedFiles: changes,
         apimVersionPath: APIM_VERSION_PATH ?? '/home/circleci/project/pom.xml',
-        dockerTagAsLatest: CI_DOCKER_TAG_AS_LATEST === 'true',
+        dockerTagAsLatest: tagAsLatest,
+        releasedTags: tags,
+        supportBranches: branches,
       }) as CircleCIEnvironment,
   )
   .then((environment: CircleCIEnvironment) => buildCIPipeline(environment))

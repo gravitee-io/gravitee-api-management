@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { CustomRolesLicenseDialog } from '../features/roles/components/CustomRolesLicenseDialog';
 import { RoleDeleteDialog } from '../features/roles/components/RoleDeleteDialog';
@@ -62,7 +63,12 @@ export function RolesPage() {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl font-semibold tracking-tight">Roles</h1>
+            <div className="space-y-1">
+                <h1 className="text-2xl font-semibold tracking-tight">Roles</h1>
+                <p className="text-sm text-muted-foreground">
+                    Define what users can create, read, update, and delete in each part of the platform.
+                </p>
+            </div>
 
             {groups.map(group => (
                 <RolesByScopeSection

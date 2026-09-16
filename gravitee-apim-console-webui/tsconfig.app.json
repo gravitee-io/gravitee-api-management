@@ -3,7 +3,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": []
+    // The AngularJS side loads its templates with require('html-loader!…'), 123 times over, so the
+    // app program needs the Node types for `require` to exist. The tsconfig it extends already
+    // lists them for the test and typecheck programs.
+    "types": ["node"]
   },
   "files": ["src/index.ts", "src/polyfills.ts"],
   "include": ["src/**/*.d.ts", "src/libraries/**/*.ts"]

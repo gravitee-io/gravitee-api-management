@@ -15,10 +15,7 @@
  */
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({
-  name: 'localizedDate',
-  standalone: false,
-})
+@Pipe({ name: 'localizedDate' })
 export class LocalizedDatePipe implements PipeTransform {
   transform(value: any, format = 'shortDate', defaultValue: string = null): string {
     if (value == null && defaultValue != null) {

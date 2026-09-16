@@ -50,7 +50,7 @@ describe('API Info Page functionality', () => {
     cy.log('Import (create) v2 API for Info');
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
+      url: `${Cypress.expose('managementApi')}${Cypress.expose('defaultOrgEnv')}/apis/import`,
       auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
       body: ApisFaker.apiImport({ visibility: Visibility.PUBLIC }),
     }).then((response) => {
@@ -61,7 +61,7 @@ describe('API Info Page functionality', () => {
     cy.log('Create v4 API for Info');
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis`,
+      url: `${Cypress.expose('managementApi')}/management/v2/environments/DEFAULT/apis`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
       body: MAPIV2ApisFaker.newApi({
         type: ApiType.PROXY,
@@ -76,7 +76,7 @@ describe('API Info Page functionality', () => {
     cy.log('Create v4 API for Dangerzone');
     cy.request({
       method: 'POST',
-      url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis`,
+      url: `${Cypress.expose('managementApi')}/management/v2/environments/DEFAULT/apis`,
       auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
       body: MAPIV2ApisFaker.newApi({
         type: ApiType.PROXY,
@@ -91,7 +91,7 @@ describe('API Info Page functionality', () => {
       cy.log('Create a plan with a flow');
       cy.request({
         method: 'POST',
-        url: `${Cypress.env('managementApi')}/management/v2/environments/${envId}/apis/${v4dangerzoneApi.id}/plans`,
+        url: `${Cypress.expose('managementApi')}/management/v2/environments/${envId}/apis/${v4dangerzoneApi.id}/plans`,
         auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
         body: MAPIV2PlansFaker.newPlanV4(),
       })
@@ -103,7 +103,7 @@ describe('API Info Page functionality', () => {
           cy.log('Publish Plan');
           cy.request({
             method: 'POST',
-            url: `${Cypress.env('managementApi')}/management/v2/environments/DEFAULT/apis/${v4dangerzoneApi.id}/plans/${planId}/_publish`,
+            url: `${Cypress.expose('managementApi')}/management/v2/environments/DEFAULT/apis/${v4dangerzoneApi.id}/plans/${planId}/_publish`,
             auth: { username: ADMIN_USER.username, password: ADMIN_USER.password },
           }).then((response) => {
             expect(response.status).to.eq(200);

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, Injector } from '@angular/core';
+import { Injectable, Injector, inject } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { Router } from '@angular/router';
 
@@ -27,17 +27,15 @@ import { ConfigurationService } from './configuration.service';
   providedIn: 'root',
 })
 export class AuthService {
+  private configurationService = inject(ConfigurationService);
+  private oauthService = inject(OAuthService);
+  private currentUserService = inject(CurrentUserService);
+  private notificationService = inject(NotificationService);
+  private injector = inject(Injector);
+
   private authenticationService: AuthenticationService;
   private portalService: PortalService;
   private router: Router;
-
-  constructor(
-    private configurationService: ConfigurationService,
-    private oauthService: OAuthService,
-    private currentUserService: CurrentUserService,
-    private notificationService: NotificationService,
-    private injector: Injector,
-  ) {}
 
   load() {
     // lazy injection to wait for base path injection and router init

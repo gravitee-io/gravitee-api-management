@@ -70,10 +70,11 @@ function seedWithProviders(providers: SocialIdentityProvider[], localLoginEnable
     });
 }
 
-function stubLoginMethods(providers: SocialIdentityProvider[] = [], localLoginEnabled = true) {
+function stubLoginMethods(providers: SocialIdentityProvider[] = [], localLoginEnabled = true, registrationEnabled = false) {
     respondWith('get', `${TEST_MANAGEMENT_BASE}/social-identities`, providers);
     respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, {
         authentication: { localLogin: { enabled: localLoginEnabled } },
+        management: { userCreation: { enabled: registrationEnabled } },
         reCaptcha: { enabled: false },
     });
 }
@@ -256,6 +257,14 @@ describe('LoginPage', () => {
             expect(screen.queryByText('or')).toBeNull();
         });
 
+        // jsdom 26 normalises colours to rgb() where 20 kept the literal, so the expectation goes
+        // through the same engine instead of hard-coding a notation.
+        const asCssColor = (value: string) => {
+            const probe = document.createElement('div');
+            probe.style.borderColor = value;
+            return probe.style.borderColor;
+        };
+
         it('should edge the chip with the provider color rather than filling it', async () => {
             stubLoginMethods([googleProvider]);
             renderLoginPage();
@@ -263,7 +272,7 @@ describe('LoginPage', () => {
             const button = (await screen.findByText('Google')).closest('button')!;
             const chip = button.querySelector('[aria-hidden]') as HTMLElement;
 
-            expect(chip.style.borderColor.toLowerCase()).toBe('#4285f4');
+            expect(chip.style.borderColor).toBe(asCssColor('#4285f4'));
             // A fill would put a multi-colour glyph on an administrator-chosen colour it cannot
             // adapt to, so the chip surface stays neutral and the glyph stays legible.
             expect(chip.style.backgroundColor).toBe('');
@@ -346,6 +355,45 @@ describe('LoginPage', () => {
 
             expect(loginWithProviderSpy).toHaveBeenCalledWith('google-idp', '/dashboard');
             loginWithProviderSpy.mockRestore();
+        });
+    });
+
+    describe('sign-up entry point', () => {
+        it('should link to sign-up when registration is enabled', async () => {
+            stubLoginMethods([], true, true);
+            renderLoginPage();
+
+            const link = await screen.findByRole('link', { name: 'Request an account' });
+            expect(link.getAttribute('href')).toBe('/sign-up');
+        });
+
+        it('should render nothing about sign-up when registration is disabled', async () => {
+            stubLoginMethods([], true, false);
+            renderLoginPage();
+
+            await screen.findByLabelText('Username');
+            // Not a disabled control and not an explanation: either would advertise a
+            // capability the operator turned off.
+            expect(screen.queryByRole('link', { name: 'Request an account' })).toBeNull();
+            expect(screen.queryByText(/account/i)).toBeNull();
+        });
+
+        it('should not offer sign-up when local login is disabled', async () => {
+            stubLoginMethods([googleProvider], false, true);
+            renderLoginPage();
+
+            await screen.findByText('Google');
+            // Sign-up creates a local account, which nothing on this page could then sign in with.
+            expect(screen.queryByRole('link', { name: 'Request an account' })).toBeNull();
+        });
+
+        it('should place sign-up after the identity providers', async () => {
+            stubLoginMethods([googleProvider], true, true);
+            renderLoginPage();
+
+            const signUp = await screen.findByRole('link', { name: 'Request an account' });
+            const provider = screen.getByRole('button', { name: 'Continue with Google' });
+            expect(provider.compareDocumentPosition(signUp) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
     });
 });

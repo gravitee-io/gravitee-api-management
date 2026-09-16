@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-text';
 import '@gravitee/ui-components/wc/gv-checkbox';
+import { GvContactComponent } from '../../../components/gv-contact/gv-contact.component';
 
 @Component({
   selector: 'app-user-contact',
   templateUrl: './user-contact.component.html',
-  standalone: false,
+  imports: [GvContactComponent],
 })
 export class UserContactComponent {}

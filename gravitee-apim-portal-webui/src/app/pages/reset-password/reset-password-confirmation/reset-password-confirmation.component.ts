@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, inject } from '@angular/core';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ChangeUserPasswordInput, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { TokenService } from '../../../services/token.service';
 import { GvValidators } from '../../../utils/gv-validators';
 import { ReCaptchaService } from '../../../services/recaptcha.service';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
 
 type ResetPasswordConfirmationFormType = FormGroup<{
   firstname: FormControl<string>;
@@ -34,21 +37,20 @@ type ResetPasswordConfirmationFormType = FormGroup<{
   selector: 'app-reset-password-confirmation',
   templateUrl: './reset-password-confirmation.component.html',
   styleUrls: ['./reset-password-confirmation.component.css'],
-  standalone: false,
+  imports: [ReactiveFormsModule, NgIf, GvFormControlDirective, RouterLink, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ResetPasswordConfirmationComponent implements OnInit {
+  private usersService = inject(UsersService);
+  private route = inject(ActivatedRoute);
+  private tokenService = inject(TokenService);
+  private reCaptchaService = inject(ReCaptchaService);
+
   resetPasswordConfirmationForm: ResetPasswordConfirmationFormType;
   isSubmitted: boolean;
   token: string;
   userFromToken: any;
   isTokenExpired: boolean;
-
-  constructor(
-    private usersService: UsersService,
-    private route: ActivatedRoute,
-    private tokenService: TokenService,
-    private reCaptchaService: ReCaptchaService,
-  ) {}
 
   ngOnInit() {
     this.isSubmitted = false;

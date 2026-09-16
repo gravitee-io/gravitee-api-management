@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -25,6 +25,9 @@ declare let grecaptcha: any;
   providedIn: 'root',
 })
 export class ReCaptchaService {
+  private configurationService = inject(ConfigurationService);
+  private router = inject(Router);
+
   private readonly headerName: string = 'X-Recaptcha-Token';
   private readonly scriptId: string = 'reCaptcha';
   private siteKey: string;
@@ -33,10 +36,7 @@ export class ReCaptchaService {
   private reCaptchaToken: string;
   private display = false;
 
-  constructor(
-    private configurationService: ConfigurationService,
-    private router: Router,
-  ) {
+  constructor() {
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       // Hide recaptcha badge by default (let each component decide whether it should display the recaptcha badge or not).
       this.hideBadge();

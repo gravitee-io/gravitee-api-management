@@ -27,8 +27,7 @@ import { CategoriesComponent } from './categories.component';
 describe('CategoriesComponent', () => {
   const createComponent = createComponentFactory({
     component: CategoriesComponent,
-    declarations: [SafePipe],
-    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, SafePipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 

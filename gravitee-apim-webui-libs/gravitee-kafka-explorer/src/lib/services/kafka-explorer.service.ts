@@ -174,7 +174,7 @@ export class KafkaExplorerService {
       if (eventName === 'message' && data) {
         try {
           subscriber.next(JSON.parse(data));
-        } catch (e) {
+        } catch {
           subscriber.error(new Error('Failed to parse SSE message data'));
           return '';
         }

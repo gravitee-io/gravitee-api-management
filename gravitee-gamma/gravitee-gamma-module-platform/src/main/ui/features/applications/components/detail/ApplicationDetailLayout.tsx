@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService } from '@gravitee/gamma-modules-sdk';
 import {
     Avatar,
     AvatarFallback,
@@ -27,6 +26,8 @@ import {
 import { AppWindowIcon, CircleCheckIcon, CircleStopIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+
+import { permissionService } from '@gravitee/gamma-modules-sdk';
 
 import { ApplicationDetailNoSectionsAvailable } from './ApplicationDetailNoSectionsAvailable';
 import { ApplicationDetailPermissionsError } from './ApplicationDetailPermissionsError';
@@ -45,7 +46,7 @@ import { formatApplicationOwnerLabel, formatApplicationSecurityTypeLabel } from 
 function StatusBadge({ status }: { status: ApplicationStatus }) {
     if (status === 'ACTIVE') {
         return (
-            <Badge className="gap-1 h-5 w-fit px-1.5 text-xs font-medium bg-success/10 text-success border-transparent">
+            <Badge variant="success" className="gap-1 h-5 w-fit px-1.5 text-xs font-medium">
                 <CircleCheckIcon className="size-3" />
                 Active
             </Badge>

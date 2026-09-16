@@ -61,6 +61,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { CLIENT_TABLE_PAGE_SIZE_OPTIONS, useClientFilteredPagination } from '../../../../../shared/hooks/useClientFilteredPagination';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiProperties } from '../../../services/apis';
 import type { Property } from '../../../types';
@@ -70,6 +71,10 @@ import { apiDetailKeys } from '../../../utils/queryKeys';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type DialogState = null | { type: 'add' } | { type: 'edit'; property: Property };
+
+function matchesPropertySearch(property: Property, query: string): boolean {
+    return property.key.toLowerCase().includes(query);
+}
 
 // ─── Empty landing ────────────────────────────────────────────────────────────
 
@@ -367,8 +372,6 @@ function ImportPropertiesDialog({ existingProperties, isSaving, onClose, onImpor
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
-
 type ColCell<T> = { row: { original: T } };
 
 export function ApiPropertiesPage() {
@@ -381,9 +384,11 @@ export function ApiPropertiesPage() {
     const { data: api, isLoading, isError } = useApiDetail(apiId);
     const properties = useMemo<Property[]>(() => api?.properties ?? [], [api?.properties]);
 
-    const [search, setSearch] = useState('');
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(10);
+    const { search, page, pageSize, totalCount, pageData, handleSearchChange, setPage, handlePageSizeChange } = useClientFilteredPagination(
+        properties,
+        matchesPropertySearch,
+    );
+
     const [dialog, setDialog] = useState<DialogState>(null);
     const [showImportDialog, setShowImportDialog] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
@@ -402,30 +407,10 @@ export function ApiPropertiesPage() {
         },
     });
 
-    const filtered = useMemo(() => {
-        if (!search.trim()) return properties;
-        const q = search.toLowerCase();
-        return properties.filter(p => p.key.toLowerCase().includes(q));
-    }, [properties, search]);
-
-    const totalCount = filtered.length;
-    const pageStart = (page - 1) * pageSize;
-    const paginated = filtered.slice(pageStart, pageStart + pageSize);
-
     const encryptedCount = properties.filter(p => p.encrypted).length;
     const dynamicCount = properties.filter(p => p.dynamic).length;
 
     const existingKeys = useMemo(() => properties.map(p => p.key), [properties]);
-
-    const handlePageSizeChange = useCallback((size: number) => {
-        setPageSize(size);
-        setPage(1);
-    }, []);
-
-    const handleSearchChange = useCallback((val: string) => {
-        setSearch(val);
-        setPage(1);
-    }, []);
 
     const handleSaveProperty = useCallback(
         (newProp: Property) => {
@@ -666,16 +651,14 @@ export function ApiPropertiesPage() {
                         <CardHeader className="pb-2">
                             <CardTitle className="text-base">Defined properties</CardTitle>
                             <CardDescription>
-                                {search.trim()
-                                    ? `${filtered.length} of ${properties.length} properties`
-                                    : `${properties.length} properties`}
+                                {search.trim() ? `${totalCount} of ${properties.length} properties` : `${properties.length} properties`}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="px-4 pb-4 pt-0">
                             <DataTable
                                 aria-label="API properties"
                                 columns={columns}
-                                data={paginated}
+                                data={pageData}
                                 serverSide
                                 pagination={
                                     totalCount > 0
@@ -683,7 +666,7 @@ export function ApiPropertiesPage() {
                                               page,
                                               pageSize,
                                               totalCount,
-                                              pageSizeOptions: PAGE_SIZE_OPTIONS,
+                                              pageSizeOptions: [...CLIENT_TABLE_PAGE_SIZE_OPTIONS],
                                               onPageChange: setPage,
                                               onPageSizeChange: handlePageSizeChange,
                                           }

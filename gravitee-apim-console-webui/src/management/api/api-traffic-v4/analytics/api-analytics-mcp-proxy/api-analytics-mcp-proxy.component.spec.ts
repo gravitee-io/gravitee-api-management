@@ -24,7 +24,7 @@ import { of } from 'rxjs';
 import { ApiAnalyticsMcpProxyComponent } from './api-analytics-mcp-proxy.component';
 import { ApiAnalyticsMcpProxyHarness } from './api-analytics-mcp-proxy.component.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule, provideHighchartsTesting } from '../../../../../shared/testing';
 import { fakeAnalyticsHistogram } from '../../../../../entities/management-api-v2/analytics/analyticsHistogram.fixture';
 import { fakeGroupByResponse } from '../../../../../entities/management-api-v2/analytics/analyticsGroupBy.fixture';
 import { fakeAnalyticsStatsResponse } from '../../../../../entities/management-api-v2/analytics/analyticsStats.fixture';
@@ -41,6 +41,7 @@ describe('ApiAnalyticsMcpProxyComponent', () => {
     TestBed.configureTestingModule({
       imports: [ApiAnalyticsMcpProxyComponent, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
       providers: [
+        provideHighchartsTesting(),
         {
           provide: ActivatedRoute,
           useValue: {

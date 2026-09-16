@@ -32,9 +32,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import inmemory.ClientCertificateCrudServiceInMemory;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
 import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
+import io.gravitee.apim.infra.domain_service.application_certificates.ClientCertificateValidationDomainServiceImpl;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
@@ -191,7 +193,10 @@ public class ApplicationService_UpdateTest {
 
     @BeforeEach
     public void setUp() {
-        lenient().when(clientCertificateValidationDomainService.validateForCreation(any(), any())).thenReturn(VALID_CERT_INFO);
+        lenient().when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenReturn(VALID_CERT_INFO);
+        lenient()
+            .when(clientCertificateValidationDomainService.validate(any()))
+            .thenAnswer(invocation -> new CertificateInfo(new Date(), "CN=test", "CN=issuer", "fp:" + invocation.getArgument(0)));
     }
 
     @Test
@@ -782,6 +787,132 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void should_allow_certificate_rename_when_fingerprint_already_belongs_to_same_application() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(
+            TlsSettings.builder()
+                .clientCertificates(
+                    java.util.List.of(
+                        new io.gravitee.rest.api.model.clientcertificate.CreateClientCertificate("new-name", null, null, VALID_PEM_1)
+                    )
+                )
+                .build()
+        );
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate existingCert =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "existing-cert-id",
+                null,
+                APPLICATION_ID,
+                "old-name",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                VALID_PEM_1,
+                null,
+                null,
+                null,
+                "fp:" + VALID_PEM_1,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.List.of(existingCert));
+
+        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(clientCertificateCrudService).update(eq("existing-cert-id"), any());
+        verify(clientCertificateCrudService, never()).create(any(), any());
+        verify(clientCertificateValidationDomainService, never()).validateForCreation(any(), any(), any());
+    }
+
+    @Test
+    public void should_create_certificate_during_sync_when_exclude_ignores_same_application_fingerprint() throws TechnicalException {
+        ClientCertificateCrudServiceInMemory backingStore = new ClientCertificateCrudServiceInMemory();
+        ClientCertificateValidationDomainServiceImpl realValidation = new ClientCertificateValidationDomainServiceImpl(backingStore);
+        var certInfo = realValidation.validate(VALID_PEM_1);
+
+        backingStore.initWith(
+            List.of(
+                new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                    "stored-cert-id",
+                    null,
+                    APPLICATION_ID,
+                    "existing",
+                    null,
+                    null,
+                    new java.util.Date(),
+                    new java.util.Date(),
+                    VALID_PEM_1,
+                    null,
+                    null,
+                    null,
+                    certInfo.fingerprint(),
+                    GraviteeContext.getExecutionContext().getEnvironmentId(),
+                    io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+                )
+            )
+        );
+
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM_1).build());
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate staleExisting =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "stored-cert-id",
+                null,
+                APPLICATION_ID,
+                "existing",
+                null,
+                null,
+                new java.util.Date(),
+                new java.util.Date(),
+                VALID_PEM_1,
+                null,
+                null,
+                null,
+                "stale-fingerprint",
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.List.of(staleExisting));
+        when(clientCertificateCrudService.create(eq(APPLICATION_ID), any())).thenAnswer(invocation ->
+            backingStore.create(invocation.getArgument(0), invocation.getArgument(1))
+        );
+        when(clientCertificateValidationDomainService.validate(any())).thenAnswer(invocation ->
+            realValidation.validate(invocation.getArgument(0))
+        );
+        when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenAnswer(invocation ->
+            realValidation.validateForCreation(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2))
+        );
+
+        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(clientCertificateCrudService).create(eq(APPLICATION_ID), any());
+        verify(clientCertificateValidationDomainService).validateForCreation(any(), any(), eq(APPLICATION_ID));
+    }
+
+    @Test
     public void should_update_client_certificate_via_crud_service() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         settings.setApp(new SimpleApplicationSettings());
@@ -1027,6 +1158,69 @@ public class ApplicationService_UpdateTest {
         verify(clientCertificateCrudService).update(eq("update-cert-id"), any());
         verify(clientCertificateCrudService).delete("removed-cert-id");
         verify(clientCertificateCrudService, never()).update(eq("kept-cert-id"), any());
+        verify(clientCertificateCrudService, never()).create(any(), any());
+    }
+
+    @Test
+    public void should_delete_all_duplicates_when_certificate_removed_from_incoming() throws TechnicalException {
+        // Scenario: two existing rows share the same fingerprint (legacy data),
+        // incoming list is empty → both must be deleted.
+        ApplicationSettings settings = new ApplicationSettings();
+        settings.setApp(new SimpleApplicationSettings());
+        settings.setTls(TlsSettings.builder().clientCertificates(java.util.List.of()).build());
+
+        when(updateApplication.getSettings()).thenReturn(settings);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+
+        String sharedFingerprint = "fp:shared-pem";
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate dup1 =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "dup-cert-1",
+                null,
+                APPLICATION_ID,
+                "cert-dup-1",
+                null,
+                null,
+                java.util.Date.from(Instant.now().minus(2, ChronoUnit.HOURS)),
+                new java.util.Date(),
+                "shared-pem",
+                null,
+                null,
+                null,
+                sharedFingerprint,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        io.gravitee.apim.core.application_certificate.model.ClientCertificate dup2 =
+            new io.gravitee.apim.core.application_certificate.model.ClientCertificate(
+                "dup-cert-2",
+                null,
+                APPLICATION_ID,
+                "cert-dup-2",
+                null,
+                null,
+                java.util.Date.from(Instant.now().minus(1, ChronoUnit.HOURS)),
+                new java.util.Date(),
+                "shared-pem",
+                null,
+                null,
+                null,
+                sharedFingerprint,
+                null,
+                io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.ACTIVE
+            );
+        when(
+            clientCertificateCrudService.findByApplicationIdAndStatuses(
+                any(),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class),
+                any(io.gravitee.apim.core.application_certificate.model.ClientCertificateStatus.class)
+            )
+        ).thenReturn(java.util.List.of(dup1, dup2));
+
+        applicationService.syncClientCertificates(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        verify(clientCertificateCrudService).delete("dup-cert-1");
+        verify(clientCertificateCrudService).delete("dup-cert-2");
         verify(clientCertificateCrudService, never()).create(any(), any());
     }
 

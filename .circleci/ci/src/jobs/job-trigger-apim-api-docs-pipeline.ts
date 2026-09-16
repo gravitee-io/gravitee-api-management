@@ -16,12 +16,17 @@
 import { Command, Job, commands } from '../circleci-config';
 import { CircleCIEnvironment } from '../pipelines';
 import { BaseExecutor } from '../executors';
+import { corePin } from '../utils';
 
 /**
  * Notifies the gravitee-apim-api-docs repository of a new APIM release so it
  * regenerates its OpenAPI documentation site. Fire-and-forget: the docs
  * pipeline absorbs Sonatype → Maven Central propagation delay on its side, so
  * we do not wait for completion here.
+ *
+ * Two versions, because the site needs both: it polls `gravitee-apim-rest-api-management-rest-<v>.jar`
+ * before ingesting, and that jar is a core artefact, while the specs are published under the number
+ * users look for. Sent one, it would wait an hour for a jar that no longer exists under that number.
  */
 export class TriggerApimApiDocsPipelineJob {
   private static jobName: string = 'job-trigger-apim-api-docs-pipeline';
@@ -33,7 +38,7 @@ export class TriggerApimApiDocsPipelineJob {
 --url https://circleci.com/api/v2/project/github/gravitee-io/gravitee-apim-api-docs/pipeline \
 --header "Circle-Token: \${CIRCLE_TOKEN}" \
 --header 'content-type: application/json' \
---data '{"parameters":{"version":"${environment.graviteeioVersion}", "dry_run":${environment.isDryRun}}}'
+--data '{"parameters":{"version":"${environment.graviteeioVersion}", "core_version":"${corePin(environment)}", "dry_run":${environment.isDryRun}}}'
 echo "Docs ingestion pipeline triggered for APIM ${environment.graviteeioVersion}."`,
       }),
     ];

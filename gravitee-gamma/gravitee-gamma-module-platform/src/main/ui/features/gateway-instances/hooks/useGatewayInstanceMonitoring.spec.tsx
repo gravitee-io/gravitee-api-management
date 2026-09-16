@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { useGatewayInstanceMonitoring } from './useGatewayInstanceMonitoring';
 import { getGatewayInstanceMonitoring } from '../services/instances';

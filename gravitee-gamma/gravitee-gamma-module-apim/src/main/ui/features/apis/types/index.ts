@@ -27,4 +27,5 @@ export * from './metadata';
 export * from './notification';
 export * from './plan';
 export * from './resource';
+export * from './responseTemplate';
 export * from './subscription';

@@ -234,9 +234,9 @@ public class ClientCertificateCrudServiceImpl extends TransactionalService imple
     }
 
     @Override
-    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) {
+    public boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId) {
         try {
-            return clientCertificateRepository.existsByFingerprintAndActiveApplication(fingerprint, environmentId);
+            return clientCertificateRepository.existsByFingerprintAndActiveApplication(fingerprint, environmentId, excludeApplicationId);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurs while checking if client certificate with fingerprint " + fingerprint + " already exists",

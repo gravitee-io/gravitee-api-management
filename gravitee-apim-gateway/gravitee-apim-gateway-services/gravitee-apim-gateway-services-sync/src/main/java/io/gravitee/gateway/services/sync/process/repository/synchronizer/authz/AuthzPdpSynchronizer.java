@@ -33,6 +33,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.rxjava3.core.Vertx;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,22 +77,21 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
      * Node-local set of provisions whose relay did not confirm (startup {@code NO_HANDLERS},
      * reply timeout, explicit failure). Re-driven on every {@link #synchronize} cycle independently
      * of the {@code updatedAt} event window so a transient relay failure is not silently lost.
-     * Keyed by runtime key (environmentId + ":" + targetPdpId) so confirmations in one environment
-     * cannot drop a pending entry that belongs to another environment.
+     * Keyed by scope key.
      */
     private final Map<String, AuthzPdpProvisionDeployable> pendingProvisions = new ConcurrentHashMap<>();
 
     /**
      * Symmetric to {@link #pendingProvisions} for the evict path: an evict relay that did not confirm
      * is kept here and re-driven on the next cycle, otherwise a disabled PDP keeps serving forever.
-     * Keyed by runtime key.
+     * Keyed by scope key.
      */
     private final Map<String, AuthzPdpProvisionDeployable> pendingEvicts = new ConcurrentHashMap<>();
 
     /**
      * Provisioned scopes whose hydration (policy/entity backfill + commit) failed. Re-driven on the
      * next cycle so a transient engine failure does not leave a scope cold-started forever. Keyed by
-     * runtime key.
+     * scope key.
      */
     private final Map<String, AuthzPdpProvisionDeployable> pendingHydrations = new ConcurrentHashMap<>();
 
@@ -108,8 +109,16 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private final AuthzAppliedRevisions revisions;
 
-    private static String runtimeKey(AuthzPdpProvisionDeployable deployable) {
+    private static String engineKey(AuthzPdpProvisionDeployable deployable) {
         return deployable.environmentId() + ":" + deployable.targetPdpId();
+    }
+
+    private static String scopeKey(AuthzPdpProvisionDeployable deployable) {
+        return scopeKey(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
+    }
+
+    private static String scopeKey(String environmentId, String routingScope) {
+        return environmentId + ":" + routingScope;
     }
 
     public AuthzPdpSynchronizer(
@@ -217,7 +226,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             })
             .flatMap(this::tagGate)
             .toList()
-            .flatMapPublisher(AuthzPdpSynchronizer::reconcileScopeReuse)
+            .flatMapPublisher(this::reconcileScopeReuse)
             .compose(upstream ->
                 upstream
                     .parallel(syncDeployerExecutor.getMaximumPoolSize())
@@ -227,28 +236,50 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             );
     }
 
-    private static Flowable<AuthzPdpProvisionDeployable> reconcileScopeReuse(List<AuthzPdpProvisionDeployable> deployables) {
-        Set<String> livePublishKeys = deployables
+    private Flowable<AuthzPdpProvisionDeployable> reconcileScopeReuse(List<AuthzPdpProvisionDeployable> deployables) {
+        List<AuthzPdpProvisionDeployable> deploys = deployables
             .stream()
             .filter(d -> d.syncAction() == SyncAction.DEPLOY)
-            .map(AuthzPdpSynchronizer::runtimeKey)
-            .collect(Collectors.toSet());
+            .toList();
+        Set<String> liveEngineKeys = deploys.stream().map(AuthzPdpSynchronizer::engineKey).collect(Collectors.toSet());
+        Set<String> liveScopeKeys = deploys.stream().map(AuthzPdpSynchronizer::scopeKey).collect(Collectors.toSet());
+        Map<String, Set<String>> absorbedByEngine = new HashMap<>();
+        List<AuthzPdpProvisionDeployable> relayed = new ArrayList<>();
+        for (AuthzPdpProvisionDeployable d : deployables) {
+            if (d.syncAction() == SyncAction.UNDEPLOY && liveEngineKeys.contains(engineKey(d))) {
+                log.debug(
+                    "Suppressing AUTHZ_PDP evict for env [{}] targetPdpId [{}] — a live provision reuses the same engine",
+                    d.environmentId(),
+                    d.targetPdpId()
+                );
+                if (!liveScopeKeys.contains(scopeKey(d))) {
+                    absorbedByEngine.computeIfAbsent(engineKey(d), k -> new HashSet<>()).add(routingScope(d.targetPdpId(), d.tag()));
+                }
+                continue;
+            }
+            relayed.add(d);
+        }
+        // Hand the suppressed scopes to the deploys that absorbed them rather than dropping them here. The
+        // engine is still up, so until one of those deploys confirms, serves() must keep routing the control
+        // plane's removals for these scopes — otherwise a failed relay leaves the engine holding documents
+        // the cascade has already moved elsewhere, and hydration, which only ever adds, never takes them back.
         return Flowable.fromIterable(
-            deployables
+            relayed
                 .stream()
-                .filter(d -> {
-                    if (d.syncAction() == SyncAction.UNDEPLOY && livePublishKeys.contains(runtimeKey(d))) {
-                        log.debug(
-                            "Suppressing AUTHZ_PDP evict for env [{}] targetPdpId [{}] — a live provision reuses the same scope",
-                            d.environmentId(),
-                            d.targetPdpId()
-                        );
-                        return false;
-                    }
-                    return true;
-                })
+                .map(d -> withAbsorbedScopes(d, absorbedByEngine))
                 .toList()
         );
+    }
+
+    private static AuthzPdpProvisionDeployable withAbsorbedScopes(
+        AuthzPdpProvisionDeployable deployable,
+        Map<String, Set<String>> absorbedByEngine
+    ) {
+        Set<String> absorbed = absorbedByEngine.get(engineKey(deployable));
+        if (deployable.syncAction() != SyncAction.DEPLOY || absorbed == null) {
+            return deployable;
+        }
+        return deployable.toBuilder().absorbedScopes(absorbed).build();
     }
 
     private Flowable<AuthzPdpProvisionDeployable> tagGate(AuthzPdpProvisionDeployable deployable) {
@@ -257,13 +288,8 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         if (DEFAULT_SCOPE.equals(deployable.targetPdpId())) {
             return Flowable.empty();
         }
-        // A node provisions AND evicts a named scope only when it carries the PDP's tag — the gate is
-        // symmetric. This is required for regional replicas (same targetPdpId, different tags on disjoint
-        // nodes): a delete of (X, tagA) emits unpublishPdp(X, tagA), and the engine is keyed by the bare X,
-        // so letting that evict through on a (X, tagB) node would tear down the survivor's engine. A node
-        // that doesn't carry the tag never hosted the scope, so dropping the evict there is correct.
-        // (A re-tag is a delete+recreate: the delete's UNPUBLISH carries the OLD tag and cleans up the node
-        // that actually matched it; no cross-node evict broadcast is needed.)
+        // The gate is symmetric: a node provisions and evicts a named scope only when it carries the PDP's
+        // tag. A re-tag arrives as a delete plus a recreate, and the delete's UNPUBLISH carries the old tag.
         if (matchesNodeTag(deployable)) {
             return Flowable.just(deployable);
         }
@@ -295,8 +321,22 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
         ConcurrentLinkedQueue<AuthzPdpProvisionDeployable> provisionedScopes
     ) {
         boolean provision = deployable.syncAction() == SyncAction.DEPLOY;
-        // raw membership, not serves(): gate on prior provision of this exact scope, not tag-serving
-        boolean wasHosted = hostedScopes.isHosted(deployable.environmentId(), deployable.targetPdpId());
+        String scope = routingScope(deployable.targetPdpId(), deployable.tag());
+        String rk = scopeKey(deployable);
+        // The PDP keys the engine by env:targetPdpId, so an evict tears down every routing scope on it. Relay it
+        // only for the last routing scope this node hosts on the engine.
+        if (!provision && dropScopeLocally(deployable.environmentId(), scope, rk)) {
+            log.debug(
+                "Not relaying AUTHZ_PDP evict for env [{}] scope [{}] — this node hosts another scope on the same engine",
+                deployable.environmentId(),
+                scope
+            );
+            return Completable.complete();
+        }
+        // Raw membership, not serves(): gate on prior provision of this exact scope, not tag-serving. An
+        // unconfirmed evict counts as not provisioned, because the engine may already be torn down — that is
+        // what lets a PDP re-created inside the resync window hydrate instead of coming up empty.
+        boolean firstProvision = provision && (!hostedScopes.isHosted(deployable.environmentId(), scope) || pendingEvicts.containsKey(rk));
         String op = provision ? OP_PROVISION : OP_EVICT;
         JsonObject command = new JsonObject()
             .put("op", op)
@@ -307,34 +347,27 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             .rxRequest(PROVISION_ADDRESS, command, deliveryOptions)
             .ignoreElement()
             .doOnComplete(() -> {
-                String rk = runtimeKey(deployable);
                 if (provision) {
                     // Confirmed relay reply — only now is the scope eligible for hydration and visible
                     // to the entity/policy synchronizers as locally hosted.
                     pendingProvisions.remove(rk);
                     pendingProvisionAttempts.remove(rk);
                     pendingEvicts.remove(rk);
-                    hostedScopes.markHosted(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
-                    if (!wasHosted) {
+                    hostedScopes.markHosted(deployable.environmentId(), scope);
+                    // Only the reply proves the engine is reachable, so this is where the evicts this batch
+                    // suppressed on its behalf are finally applied to the node's bookkeeping.
+                    dropAbsorbedScopes(deployable);
+                    if (firstProvision) {
                         provisionedScopes.add(deployable);
                     }
                 } else {
-                    // Evict confirmed: drop any pending provision (evict wins), pending hydration and evict,
-                    // and stop treating the scope as locally hosted.
-                    pendingProvisions.remove(rk);
-                    pendingProvisionAttempts.remove(rk);
-                    pendingHydrations.remove(rk);
-                    pendingHydrationAttempts.remove(rk);
-                    pendingEvicts.remove(rk);
-                    hostedScopes.unmarkHosted(deployable.environmentId(), routingScope(deployable.targetPdpId(), deployable.tag()));
-                    // Drop the bare id AND every tag-variant bucket: revisions are keyed by routing scope
-                    // (targetPdpId@tag), and on a catch-all node several tag variants alias to this one engine.
+                    // Evict confirmed: the evict wins over any pending work of this scope.
+                    clearPending(rk);
                     revisions.forgetEngine(deployable.environmentId(), deployable.targetPdpId());
                 }
             })
             .onErrorResumeNext(t -> {
-                String rk = runtimeKey(deployable);
-                log.error("Failed to relay AUTHZ_PDP {} for targetPdpId [{}]", op, deployable.targetPdpId(), t);
+                log.error("Failed to relay AUTHZ_PDP {} for env [{}] scope [{}]", op, deployable.environmentId(), scope, t);
                 if (provision) {
                     // Re-drive on the next cycle independently of the event window — do NOT report
                     // success-without-retry, the scope is not added to provisionedScopes here.
@@ -342,20 +375,65 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                 } else {
                     // Evict relay failed: re-drive it next cycle and clear any pending provision/hydration
                     // so a stale entry cannot resurrect a scope the control plane already removed.
-                    pendingProvisions.remove(rk);
-                    pendingProvisionAttempts.remove(rk);
-                    pendingHydrations.remove(rk);
-                    pendingHydrationAttempts.remove(rk);
+                    clearPending(rk);
                     pendingEvicts.put(rk, deployable);
+                    // The scope was unhosted before the relay, and the engine is presumably still alive. Put
+                    // it back, otherwise serves() gates out the control plane's own removals for this scope
+                    // and the engine keeps serving documents that moved elsewhere. The re-drive unmarks it
+                    // again; a sibling provisioned before then legitimately absorbs the evict.
+                    hostedScopes.markHosted(deployable.environmentId(), scope);
+                    // The engine may equally have evicted and only lost the reply, so drop its marks the way
+                    // a confirmed evict does: a re-created engine would otherwise be gated empty by revisions
+                    // it no longer holds, and re-sending a document it does still hold is idempotent.
+                    revisions.forgetEngine(deployable.environmentId(), deployable.targetPdpId());
                 }
                 return Completable.complete();
             });
     }
 
+    /**
+     * Stop re-driving a provision. Its absorbed scopes go with it: nothing else will ever drop them, and a
+     * scope left hosted for an engine this node no longer provisions makes that engine un-evictable, because
+     * every later unmark finds the ghost and takes the "another scope remains" branch.
+     */
+    private void giveUpOnProvision(AuthzPdpProvisionDeployable deployable, String scopeKey) {
+        pendingProvisions.remove(scopeKey);
+        pendingProvisionAttempts.remove(scopeKey);
+        dropAbsorbedScopes(deployable);
+    }
+
+    private void dropAbsorbedScopes(AuthzPdpProvisionDeployable deployable) {
+        for (String absorbed : deployable.absorbedScopes()) {
+            dropScopeLocally(deployable.environmentId(), absorbed, scopeKey(deployable.environmentId(), absorbed));
+        }
+    }
+
+    /**
+     * Drop a routing scope from this node's bookkeeping — placement, pending work and revision marks — and
+     * report whether its engine still hosts another routing scope here.
+     */
+    private boolean dropScopeLocally(String environmentId, String scope, String scopeKey) {
+        boolean engineStillHosted = hostedScopes.unmarkHosted(environmentId, scope);
+        clearPending(scopeKey);
+        revisions.forgetScope(environmentId, scope);
+        return engineStillHosted;
+    }
+
+    private void clearPending(String scopeKey) {
+        pendingProvisions.remove(scopeKey);
+        pendingProvisionAttempts.remove(scopeKey);
+        pendingHydrations.remove(scopeKey);
+        pendingHydrationAttempts.remove(scopeKey);
+        pendingEvicts.remove(scopeKey);
+    }
+
     private Completable retryPending(ConcurrentLinkedQueue<AuthzPdpProvisionDeployable> provisionedScopes) {
         return Completable.defer(() -> {
-            // Evicts re-drive first: an evict and a provision can never both stay pending for the same
-            // runtime key (evict clears the pending provision), so ordering only matters for logging.
+            // Evicts re-drive first, and must keep doing so. Per scope key the two can never both be
+            // pending (an evict clears the pending provision), but two scope keys of one engine can —
+            // a pending evict of stock@us alongside a pending provision of stock@eu. Evicting first tears
+            // the engine down and the provision rebuilds it from hydration; provisioning first would leave
+            // the engine up, holding the evicted scope's documents.
             List<AuthzPdpProvisionDeployable> evicts = new ArrayList<>(pendingEvicts.values());
             List<AuthzPdpProvisionDeployable> provisions = new ArrayList<>(pendingProvisions.values());
             if (evicts.isEmpty() && provisions.isEmpty()) {
@@ -369,23 +447,21 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             List<AuthzPdpProvisionDeployable> drivableProvisions = provisions
                 .stream()
                 .filter(deployable -> {
-                    String rk = runtimeKey(deployable);
+                    String rk = scopeKey(deployable);
                     if (!matchesNodeTag(deployable)) {
                         // Node was re-sharded away from this tag — stop owning the scope.
-                        pendingProvisions.remove(rk);
-                        pendingProvisionAttempts.remove(rk);
+                        giveUpOnProvision(deployable, rk);
                         return false;
                     }
                     int attempts = pendingProvisionAttempts.merge(rk, 1, Integer::sum);
                     if (attempts > MAX_PENDING_ATTEMPTS) {
                         log.warn(
-                            "Abandoning pending AUTHZ_PDP provision for env [{}] targetPdpId [{}] after {} attempts",
+                            "Abandoning pending AUTHZ_PDP provision for env [{}] scope [{}] after {} attempts",
                             deployable.environmentId(),
-                            deployable.targetPdpId(),
+                            routingScope(deployable.targetPdpId(), deployable.tag()),
                             attempts - 1
                         );
-                        pendingProvisions.remove(rk);
-                        pendingProvisionAttempts.remove(rk);
+                        giveUpOnProvision(deployable, rk);
                         return false;
                     }
                     return true;
@@ -411,9 +487,9 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
                 int attempts = pendingHydrationAttempts.merge(rk, 1, Integer::sum);
                 if (attempts > MAX_PENDING_ATTEMPTS) {
                     log.warn(
-                        "Abandoning pending AUTHZ_PDP hydration for env [{}] targetPdpId [{}] after {} attempts",
+                        "Abandoning pending AUTHZ_PDP hydration for env [{}] scope [{}] after {} attempts",
                         entry.getValue().environmentId(),
-                        entry.getValue().targetPdpId(),
+                        routingScope(entry.getValue().targetPdpId(), entry.getValue().tag()),
                         attempts - 1
                     );
                     pendingHydrations.remove(rk);
@@ -425,7 +501,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             // Freshly provisioned scopes this cycle hydrate as a first attempt — reset any stale counter
             // so a re-provisioned scope gets the full retry budget again.
             provisionedScopes.forEach(d -> {
-                String rk = runtimeKey(d);
+                String rk = scopeKey(d);
                 pendingHydrationAttempts.remove(rk);
                 toHydrate.put(rk, d);
             });
@@ -442,7 +518,7 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
 
     private Completable hydrateEnv(List<AuthzPdpProvisionDeployable> provisions) {
         String environmentId = provisions.get(0).environmentId();
-        // Scope -> provision, so a per-scope outcome can be mapped back to its runtime key for retry.
+        // Scope -> provision, so a per-scope outcome can be mapped back to its scope key for retry.
         Map<String, AuthzPdpProvisionDeployable> byScope = new LinkedHashMap<>();
         for (AuthzPdpProvisionDeployable p : provisions) {
             byScope.put(routingScope(p.targetPdpId(), p.tag()), p);
@@ -462,14 +538,14 @@ public class AuthzPdpSynchronizer implements RepositorySynchronizer {
             )
             .onErrorResumeNext(t -> {
                 // The shared fetch/grouping failed: re-drive the whole environment's scopes next cycle.
-                provisions.forEach(p -> pendingHydrations.put(runtimeKey(p), p));
+                provisions.forEach(p -> pendingHydrations.put(scopeKey(p), p));
                 log.error("Failed to fetch documents for hydration of env [{}], will retry next cycle", environmentId, t);
                 return Completable.complete();
             });
     }
 
     private Completable hydrateScope(String environmentId, String scope, AuthzPdpProvisionDeployable provision, BackfillGroups groups) {
-        String rk = runtimeKey(provision);
+        String rk = scopeKey(provision);
         // Per scope: schema, then policies, then entities (a failure short-circuits the scope), so a single
         // scope's engine failure re-pends only that scope, not the whole environment. Schema goes first so
         // the freshly provisioned scope's very first commit already carries it; staged later it would take

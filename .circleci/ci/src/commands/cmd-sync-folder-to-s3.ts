@@ -55,7 +55,7 @@ export class SyncFolderToS3Command {
   private static getSyncCommand(graviteeioVersion: GraviteeioVersion, isDryRun: boolean): ReusedCommand {
     const targetFolder = graviteeioVersion.qualifier.full && graviteeioVersion.qualifier.full.length > 0 ? '/pre-releases' : '';
 
-    let to = '';
+    let to: string;
     if (isDryRun) {
       to = `s3://gravitee-dry-releases-downloads${targetFolder}`;
     } else {

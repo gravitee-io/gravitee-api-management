@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_18_add_portal_page_content_id_to_subscription_forms
+      author: GraviteeSource Team
+      changes:
+        # The form definition moves out of the inline gmd_content column into portal_page_contents
+        # (GRAVITEE_MARKDOWN). The data copy is done at boot by SubscriptionFormPageContentUpgrader,
+        # which runs after this changeset, so gmd_content must stay readable (and become nullable) here.
+        - addColumn:
+            tableName: ${gravitee_prefix}subscription_forms
+            columns:
+              - column:
+                  name: portal_page_content_id
+                  type: nvarchar(64)
+                  constraints:
+                    nullable: true
+        - dropNotNullConstraint:
+            tableName: ${gravitee_prefix}subscription_forms
+            columnName: gmd_content
+            columnDataType: nclob

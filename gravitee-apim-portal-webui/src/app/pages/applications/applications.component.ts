@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { NgIf } from '@angular/common';
 
 import {
   Application,
@@ -33,9 +34,17 @@ import { parsePaginationParam } from '../../utils/navigation-query-params.util';
   selector: 'app-applications',
   templateUrl: './applications.component.html',
   styleUrls: ['./applications.component.css'],
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationsComponent implements OnInit, OnDestroy {
+  private applicationService = inject(ApplicationService);
+  private subscriptionService = inject(SubscriptionService);
+  private permissionsService = inject(PermissionsService);
+  private router = inject(Router);
+  private translateService = inject(TranslateService);
+  private activatedRoute = inject(ActivatedRoute);
+
   nbApplications: number;
   applications: { item: Application; metrics: Promise<{ subscribers: { clickable: boolean; value: number } }> }[] = [];
   metrics: Array<any>;
@@ -46,14 +55,7 @@ export class ApplicationsComponent implements OnInit, OnDestroy {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor(
-    private applicationService: ApplicationService,
-    private subscriptionService: SubscriptionService,
-    private permissionsService: PermissionsService,
-    private router: Router,
-    private translateService: TranslateService,
-    private activatedRoute: ActivatedRoute,
-  ) {
+  constructor() {
     this.metrics = [];
   }
 

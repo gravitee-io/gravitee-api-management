@@ -20,6 +20,7 @@ import '@gravitee/ui-components/wc/gv-nav';
 import '@gravitee/ui-components/wc/gv-user-menu';
 import '@gravitee/ui-components/wc/gv-theme';
 import {
+  CUSTOM_ELEMENTS_SCHEMA,
   AfterViewInit,
   ChangeDetectorRef,
   Component,
@@ -28,10 +29,12 @@ import {
   OnDestroy,
   OnInit,
   ViewChild,
+  inject,
 } from '@angular/core';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
-import { ViewportScroller } from '@angular/common';
+import { ViewportScroller, NgIf, NgClass, NgFor } from '@angular/common';
+import { filter } from 'rxjs/operators';
 import {
   ActivatedRoute,
   NavigationEnd,
@@ -41,6 +44,8 @@ import {
   RouterOutlet,
   UrlSegmentGroup,
   UrlTree,
+  RouterLink,
+  Scroll,
 } from '@angular/router';
 
 import { Link, PortalService, User, UserService } from '../../projects/portal-webclient-sdk/src/lib';
@@ -61,15 +66,47 @@ import { GvSlot } from './directives/gv-slot';
 import { GoogleAnalyticsService } from './services/google-analytics.service';
 import { EventService, GvEvent } from './services/event.service';
 import { PreviewService } from './services/preview.service';
+import { GvCookieConsentComponent } from './components/gv-cookie-consent/gv-cookie-consent.component';
+import { GvSearchApiComponent } from './components/gv-search-api/gv-search-api.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css'],
   animations: [animation],
-  standalone: false,
+  imports: [
+    NgIf,
+    GvCookieConsentComponent,
+    NgClass,
+    GvSearchApiComponent,
+    RouterLink,
+    GvMenuTopSlotDirective,
+    GvMenuRightTransitionSlotDirective,
+    GvMenuRightSlotDirective,
+    RouterOutlet,
+    NgFor,
+    TranslatePipe,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
+  private titleService = inject(Title);
+  private translateService = inject(TranslateService);
+  private router = inject(Router);
+  private currentUserService = inject(CurrentUserService);
+  private navRouteService = inject(NavRouteService);
+  private notificationService = inject(NotificationService);
+  private activatedRoute = inject(ActivatedRoute);
+  private componentFactoryResolver = inject(ComponentFactoryResolver);
+  private configurationService = inject(ConfigurationService);
+  private portalService = inject(PortalService);
+  private userService = inject(UserService);
+  private eventService = inject(EventService);
+  private ref = inject(ChangeDetectorRef);
+  private googleAnalyticsService = inject(GoogleAnalyticsService);
+  private previewService = inject(PreviewService);
+  private viewportScroller = inject(ViewportScroller);
+
   static UPDATE_USER_AVATAR: ':gv-user:avatar';
   public mainRoutes: Promise<INavRoute[]>;
   public userRoutes: Promise<INavRoute[]>;
@@ -94,27 +131,25 @@ export class AppComponent implements AfterViewInit, OnInit, OnDestroy {
   public homepageTitle: string;
   public currentYear = new Date().getFullYear().toString();
 
-  constructor(
-    private titleService: Title,
-    private translateService: TranslateService,
-    private router: Router,
-    private currentUserService: CurrentUserService,
-    private navRouteService: NavRouteService,
-    private notificationService: NotificationService,
-    private activatedRoute: ActivatedRoute,
-    private componentFactoryResolver: ComponentFactoryResolver,
-    private configurationService: ConfigurationService,
-    private portalService: PortalService,
-    private userService: UserService,
-    private eventService: EventService,
-    private ref: ChangeDetectorRef,
-    private googleAnalyticsService: GoogleAnalyticsService,
-    private previewService: PreviewService,
-    private viewportScroller: ViewportScroller,
-  ) {
+  constructor() {
+    const previewService = this.previewService;
+
     this.activatedRoute.queryParamMap.subscribe(params => {
       if (params.has('preview') && params.get('preview') === 'on') {
         this.previewService.activate();
+      }
+    });
+
+    // Ported from the AppModule constructor, which standalone bootstrapping did away with. The router
+    // runs with scrollPositionRestoration disabled and still emits Scroll, so this has to stay: an
+    // anchored navigation is skipped on purpose, the markdown table of contents handles fragments.
+    this.router.events.pipe(filter((e): e is Scroll => e instanceof Scroll)).subscribe(e => {
+      if (e.position) {
+        // backward navigation
+        this.viewportScroller.scrollToPosition(e.position);
+      } else if (!e.anchor) {
+        // forward navigation
+        this.viewportScroller.scrollToPosition([0, 0]);
       }
     });
 

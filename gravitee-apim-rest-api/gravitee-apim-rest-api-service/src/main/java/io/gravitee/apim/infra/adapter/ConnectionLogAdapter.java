@@ -51,6 +51,8 @@ public interface ConnectionLogAdapter {
     MetricsQuery.Filter.StatusRange convertStatusRange(SearchLogsFilters.StatusRange statusRange);
     List<MetricsQuery.Filter.StatusRange> convertStatusRanges(List<SearchLogsFilters.StatusRange> statusRanges);
 
+    MetricsQuery.Filter.EntrypointScope convertEntrypointScope(SearchLogsFilters.EntrypointScope entrypointScope);
+
     ConnectionDiagnosticModel convert(ConnectionDiagnostic connectionDiagnostic);
 
     @AfterMapping

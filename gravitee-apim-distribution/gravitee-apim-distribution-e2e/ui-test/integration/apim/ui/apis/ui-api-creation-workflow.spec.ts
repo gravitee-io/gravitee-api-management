@@ -61,7 +61,7 @@ describe('API creation workflow', () => {
 
       // Step 3 (endpoints)
       cy.contains('Step 3');
-      const targetUrl = `${Cypress.env('wiremockUrl')}/hello`;
+      const targetUrl = `${Cypress.expose('wiremockUrl')}/hello`;
       cy.getByDataTestId('validate_endpoint_button').should('be.disabled');
       cy.get('input[id*=target]').should('be.enabled').type(targetUrl);
       cy.getByDataTestId('validate_endpoint_button').click();

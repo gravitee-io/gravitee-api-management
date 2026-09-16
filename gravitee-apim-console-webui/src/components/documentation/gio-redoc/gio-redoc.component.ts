@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 import { Component, ElementRef, OnDestroy, effect, inject, input, viewChild } from '@angular/core';
-import * as yaml from 'js-yaml';
 
 import { GioRedocService, type RedocApi } from './gio-redoc.service';
 
-const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
+import { loadYaml } from '../../../util/yaml';
 
 const parseSpec = (spec: string): object | null => {
   try {
     const result: unknown = JSON.parse(spec);
     return result instanceof Object ? result : null;
   } catch {
-    const result: unknown = yaml.load(spec, { schema: yamlSchema });
+    const result: unknown = loadYaml(spec);
     return result instanceof Object ? result : null;
   }
 };

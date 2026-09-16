@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 import { of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { NgIf, NgFor } from '@angular/common';
 
 import {
   Api,
@@ -50,6 +51,9 @@ import { ScrollService } from '../../../services/scroll.service';
 import { getNavigationContextQueryParams, navigateWithNavigationContext } from '../../../utils/navigation-query-params.util';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { MarkdownService } from '../../../services/markdown.service';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
+import { SafePipe } from '../../../pipes/safe.pipe';
 
 type RatingFormType = FormGroup<{
   title: FormControl<string>;
@@ -69,9 +73,22 @@ type SearchableKeys = keyof typeof searchableKeysMapping;
   selector: 'app-api-general',
   templateUrl: './api-general.component.html',
   styleUrls: ['./api-general.component.css'],
-  standalone: false,
+  imports: [NgIf, GvPageComponent, ReactiveFormsModule, GvFormControlDirective, NgFor, TranslatePipe, SafePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApiGeneralComponent implements OnInit {
+  private apiService = inject(ApiService);
+  private route = inject(ActivatedRoute);
+  private translateService = inject(TranslateService);
+  private router = inject(Router);
+  private currentUserService = inject(CurrentUserService);
+  private notificationService = inject(NotificationService);
+  private configService = inject(ConfigurationService);
+  private scrollService = inject(ScrollService);
+  private portalService = inject(PortalService);
+  private applicationService = inject(ApplicationService);
+  private markdownService = inject(MarkdownService);
+
   private apiId: any;
   private ratingPageSize: any;
   private ratingsMetadata: any;
@@ -99,19 +116,7 @@ export class ApiGeneralComponent implements OnInit {
   pageBaseUrl: string;
   categoryNames: Record<string, string> = {};
 
-  constructor(
-    private apiService: ApiService,
-    private route: ActivatedRoute,
-    private translateService: TranslateService,
-    private router: Router,
-    private currentUserService: CurrentUserService,
-    private notificationService: NotificationService,
-    private configService: ConfigurationService,
-    private scrollService: ScrollService,
-    private portalService: PortalService,
-    private applicationService: ApplicationService,
-    private markdownService: MarkdownService,
-  ) {
+  constructor() {
     this.ratingListPermissions = {
       update: [],
       delete: false,

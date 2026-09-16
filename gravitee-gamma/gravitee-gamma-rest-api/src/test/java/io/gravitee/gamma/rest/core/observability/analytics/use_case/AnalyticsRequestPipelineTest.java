@@ -33,7 +33,6 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
-import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -65,7 +64,7 @@ class AnalyticsRequestPipelineTest {
     void setUp() {
         var accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope, new EntrypointScopeProviderAdapter());
+        pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope);
 
         when(filterRegistry.getFilters(any(), any())).thenReturn(
             List.of(
@@ -152,6 +151,16 @@ class AnalyticsRequestPipelineTest {
         }
 
         @Test
+        void should_return_the_empty_scope_rather_than_an_environment_wide_query_when_no_api_is_accessible() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
+
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
+
+            assertThat(scope.isEmpty()).isTrue();
+            assertThat(scope.filters()).isEmpty();
+        }
+
+        @Test
         void should_return_empty_scope_when_user_filters_unknown_api() {
             when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
@@ -216,32 +225,17 @@ class AnalyticsRequestPipelineTest {
     }
 
     @Nested
-    class DefaultEntrypointScoping {
+    class EntrypointScope {
 
         @Test
-        void should_inject_default_entrypoint_filter_when_none_provided() {
+        void should_add_no_entrypoint_condition_and_leave_the_default_scope_to_the_engine() {
             when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
 
             var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
 
-            var entrypoint = scope
-                .filters()
-                .stream()
-                .filter(c -> "ENTRYPOINT".equals(c.name()))
-                .findFirst();
-            assertThat(entrypoint).isPresent();
-            assertThat(entrypoint.get().values()).containsExactlyInAnyOrder(
-                "http-get",
-                "http-post",
-                "http-proxy",
-                "llm-proxy",
-                "mcp-proxy",
-                "a2a-proxy",
-                "mcp",
-                "mcp-studio"
-            );
+            assertThat(scope.filters()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
         }
 
         @Test
@@ -265,26 +259,6 @@ class AnalyticsRequestPipelineTest {
 
     @Nested
     class AuthzDecisionScoping {
-
-        @Test
-        void should_not_inject_entrypoint_scoping_for_an_authz_decision_request() {
-            var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
-
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
-
-            assertThat(scope.filters()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
-        }
-
-        @Test
-        void should_still_inject_entrypoint_scoping_for_a_normal_request() {
-            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
-                List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
-            );
-
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
-
-            assertThat(scope.filters()).anyMatch(condition -> "ENTRYPOINT".equals(condition.name()));
-        }
 
         @Test
         void should_strip_the_record_type_condition_before_it_reaches_the_analytics_engine() {
@@ -317,7 +291,7 @@ class AnalyticsRequestPipelineTest {
             var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
 
             assertThat(scope.filters()).noneMatch(condition -> "RECORD_TYPE".equals(condition.name()));
-            assertThat(scope.filters()).anyMatch(condition -> "ENTRYPOINT".equals(condition.name()));
+            assertThat(scope.filters()).anyMatch(condition -> "API".equals(condition.name()));
         }
     }
 }

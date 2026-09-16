@@ -32,7 +32,11 @@ RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
 
 # Third stage to build the final docker image. COPY preserves ownership & permissions
 FROM base
+# The core this image embeds, which stops being the image's own version once the two reactors
+# release apart. Declared in this stage on purpose: an ARG before the first FROM does not reach it.
+ARG CORE_VERSION=unknown
 LABEL maintainer="contact@graviteesource.com"
+LABEL io.gravitee.core.version="${CORE_VERSION}"
 COPY --from=builder ${GRAVITEEIO_HOME} ${GRAVITEEIO_HOME}
 WORKDIR ${GRAVITEEIO_HOME}
 EXPOSE 8082

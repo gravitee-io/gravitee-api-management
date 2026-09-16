@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { AuditLogsPageView } from '../features/audit-logs/components/AuditLogsPageView';
 import { AuditTrailLicenseDialog } from '../features/audit-logs/components/AuditTrailLicenseDialog';

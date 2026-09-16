@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-category-list';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Category, PortalService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 
 @Component({
   selector: 'app-categories',
   templateUrl: './categories.component.html',
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CategoriesComponent implements OnInit {
+  private portalService = inject(PortalService);
+  private router = inject(Router);
+  private activatedRoute = inject(ActivatedRoute);
+
   nbCategories: object;
   categories: Array<Category>;
   empty: boolean;
   emptyIcon: any;
-
-  constructor(
-    private portalService: PortalService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-  ) {}
 
   ngOnInit() {
     this.empty = false;

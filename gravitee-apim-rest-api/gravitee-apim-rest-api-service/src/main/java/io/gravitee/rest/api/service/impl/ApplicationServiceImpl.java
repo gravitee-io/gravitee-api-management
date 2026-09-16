@@ -548,7 +548,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                     cert.startsAt(),
                     cert.endsAt()
                 );
-                clientCertificateCrudService.create(application.getId(), validateAndEnrich(certToCreate, executionContext));
+                clientCertificateCrudService.create(application.getId(), validateAndEnrich(certToCreate, executionContext, null));
             }
 
             Application createdApplication = applicationRepository.create(application);
@@ -730,46 +730,55 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             .sorted(Comparator.comparing(ClientCertificate::createdAt))
             .toList();
 
-        // Build a map of existing certificates by their certificate content for matching
-        Map<String, ClientCertificate> existingByCertificate = existing
+        Map<String, ClientCertificate> existingByFingerprint = existing
             .stream()
-            .collect(Collectors.toMap(ClientCertificate::certificate, c -> c, (a, b) -> a));
+            .collect(Collectors.toMap(this::fingerprintOf, c -> c, (a, b) -> a));
 
-        Set<String> incomingCertificates = incoming.stream().map(CreateClientCertificate::certificate).collect(toSet());
-
-        // Create new certificates (incoming certificates not in existing) or update existing ones
+        Map<CreateClientCertificate, String> incomingFingerprints = incoming
+            .stream()
+            .collect(Collectors.toMap(cert -> cert, cert -> fingerprint(cert.certificate())));
+        Set<String> matchedIds = new HashSet<>();
         for (CreateClientCertificate incomingCert : incoming) {
-            ClientCertificate existingCert = existingByCertificate.get(incomingCert.certificate());
+            String incomingFingerprint = incomingFingerprints.get(incomingCert);
+            ClientCertificate existingCert = existingByFingerprint.get(incomingFingerprint);
             if (existingCert == null) {
-                // Create new certificate
                 var certToCreate = new ClientCertificate(
                     incomingCert.name(),
                     incomingCert.certificate(),
                     incomingCert.startsAt(),
                     incomingCert.endsAt()
                 );
-                clientCertificateCrudService.create(applicationId, validateAndEnrich(certToCreate, executionContext));
-            } else if (hasChanges(incomingCert, existingCert)) {
-                // Update existing certificate only if there are changes (name, startsAt, endsAt)
-                clientCertificateCrudService.update(
-                    existingCert.id(),
-                    new ClientCertificate(incomingCert.name(), incomingCert.startsAt(), incomingCert.endsAt())
-                );
+                clientCertificateCrudService.create(applicationId, validateAndEnrich(certToCreate, executionContext, applicationId));
+            } else {
+                matchedIds.add(existingCert.id());
+                if (hasChanges(incomingCert, existingCert)) {
+                    clientCertificateCrudService.update(
+                        existingCert.id(),
+                        new ClientCertificate(incomingCert.name(), incomingCert.startsAt(), incomingCert.endsAt())
+                    );
+                }
             }
         }
 
-        // Delete certificates that are no longer in the incoming list
-        for (ClientCertificate existingCert : existing) {
-            if (!incomingCertificates.contains(existingCert.certificate())) {
-                clientCertificateCrudService.delete(existingCert.id());
+        for (ClientCertificate cert : existing) {
+            if (!matchedIds.contains(cert.id())) {
+                clientCertificateCrudService.delete(cert.id());
             }
         }
 
         applicationCertificatesUpdateDomainService.updateActiveMTLSSubscriptions(applicationId);
     }
 
-    private ClientCertificate validateAndEnrich(ClientCertificate certToCreate, ExecutionContext executionContext) {
-        var certInfo = clientCertificateValidationDomainService.validateForCreation(certToCreate, executionContext.getEnvironmentId());
+    private ClientCertificate validateAndEnrich(
+        ClientCertificate certToCreate,
+        ExecutionContext executionContext,
+        String excludeApplicationId
+    ) {
+        var certInfo = clientCertificateValidationDomainService.validateForCreation(
+            certToCreate,
+            executionContext.getEnvironmentId(),
+            excludeApplicationId
+        );
         return new ClientCertificate(
             null,
             null,
@@ -795,6 +804,17 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             !Objects.equals(incoming.startsAt(), existing.startsAt()) ||
             !Objects.equals(incoming.endsAt(), existing.endsAt())
         );
+    }
+
+    private String fingerprint(String certificatePem) {
+        return clientCertificateValidationDomainService.validate(certificatePem).fingerprint();
+    }
+
+    private String fingerprintOf(ClientCertificate certificate) {
+        if (StringUtils.isNotBlank(certificate.fingerprint())) {
+            return certificate.fingerprint();
+        }
+        return fingerprint(certificate.certificate());
     }
 
     private void createAuditLog(

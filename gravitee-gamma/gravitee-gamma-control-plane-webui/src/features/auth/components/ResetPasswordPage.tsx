@@ -18,13 +18,14 @@ import { useMemo, useState, type ReactNode, type SubmitEvent } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { AuthPageShell } from './AuthPageShell';
-import { PasswordRequirements, isPasswordPolicySatisfied } from '../../../shared/password-policy';
+import { PasswordRequirements, assessPassword } from '../../../shared/password-policy';
 import { usePasswordPolicy } from '../hooks/usePasswordPolicy';
-import { finalizeResetPassword } from '../services/resetPassword.service';
+import { PasswordRejectedError, finalizeResetPassword } from '../services/resetPassword.service';
 import { isAuthTokenExpired, parseAuthToken, type AuthTokenClaims } from '../utils/authToken';
 
 const INVALID_LINK = "This reset link isn't valid. Ask your administrator to send a new one.";
 const EXPIRED_LINK = 'This reset link has expired. Ask your administrator to send a new one.';
+const PASSWORD_REJECTION_ID = 'reset-password-rejection';
 
 function passwordsMatch(password: string, confirmPassword: string): boolean {
     return password.length > 0 && password === confirmPassword;
@@ -82,19 +83,22 @@ export function ResetPasswordPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [passwordRejection, setPasswordRejection] = useState('');
     const [success, setSuccess] = useState(false);
     const [loading, setLoading] = useState(false);
     const { policy: passwordPolicy, loading: passwordPolicyLoading, error: passwordPolicyError } = usePasswordPolicy();
 
     const accountName = [tokenClaims?.firstname, tokenClaims?.lastname].filter(Boolean).join(' ');
     const passwordMismatch = confirmPassword.length > 0 && password !== confirmPassword;
-    const passwordPolicySatisfied = isPasswordPolicySatisfied(password, passwordPolicy.rules);
+    // 'undecidable' means the browser cannot read the configured pattern as the server does. Blocking on that
+    // would refuse a password the server would accept, so only an outright failure stops submission.
+    const policyRefusesPassword = assessPassword(password, passwordPolicy) === 'unsatisfied';
     const canSubmit =
         Boolean(tokenClaims?.sub) &&
         password.length > 0 &&
         confirmPassword.length > 0 &&
         passwordsMatch(password, confirmPassword) &&
-        passwordPolicySatisfied &&
+        !policyRefusesPassword &&
         !passwordPolicyLoading &&
         !passwordPolicyError &&
         !loading &&
@@ -109,12 +113,13 @@ export function ResetPasswordPage() {
             passwordPolicyLoading ||
             loading ||
             !passwordsMatch(password, confirmPassword) ||
-            !isPasswordPolicySatisfied(password, passwordPolicy.rules)
+            policyRefusesPassword
         ) {
             return;
         }
 
         setError('');
+        setPasswordRejection('');
         setLoading(true);
         try {
             await finalizeResetPassword(tokenClaims.sub, {
@@ -129,7 +134,11 @@ export function ResetPasswordPage() {
                 console.error('Password reset failed', submitError);
             }
             const message = submitError instanceof Error ? submitError.message : 'An error occurred while resetting your password.';
-            setError(message);
+            if (submitError instanceof PasswordRejectedError) {
+                setPasswordRejection(message);
+            } else {
+                setError(message);
+            }
         } finally {
             setLoading(false);
         }
@@ -189,13 +198,24 @@ export function ResetPasswordPage() {
                     <PasswordInput
                         id="reset-password"
                         value={password}
-                        onChange={event => setPassword(event.target.value)}
+                        onChange={event => {
+                            setPassword(event.target.value);
+                            // The server's verdict was on the password it was sent, not on this one.
+                            setPasswordRejection('');
+                        }}
+                        aria-invalid={Boolean(passwordRejection)}
+                        aria-describedby={passwordRejection ? PASSWORD_REJECTION_ID : undefined}
                         required
                         autoComplete="new-password"
                         // eslint-disable-next-line jsx-a11y/no-autofocus
                         autoFocus
                     />
-                    <PasswordRequirements rules={passwordPolicy.rules} password={password} showStrengthMeter />
+                    <PasswordRequirements policy={passwordPolicy} password={password} showStrengthMeter />
+                    {passwordRejection ? (
+                        <p id={PASSWORD_REJECTION_ID} role="alert" className="text-sm text-destructive">
+                            {passwordRejection}
+                        </p>
+                    ) : null}
                 </Field>
 
                 <Field orientation="vertical" className="gap-2">

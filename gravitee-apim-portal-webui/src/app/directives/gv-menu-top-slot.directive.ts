@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Directive, ViewContainerRef } from '@angular/core';
+import { Directive, ViewContainerRef, inject } from '@angular/core';
 
 import { GvSlot } from './gv-slot';
 
-@Directive({
-  selector: '[gvMenuTopSlot]',
-  standalone: false,
-})
+@Directive({ selector: '[gvMenuTopSlot]' })
 export class GvMenuTopSlotDirective extends GvSlot {
-  constructor(viewContainerRef: ViewContainerRef) {
+  constructor() {
+    const viewContainerRef = inject(ViewContainerRef);
+
     super(viewContainerRef);
   }
 

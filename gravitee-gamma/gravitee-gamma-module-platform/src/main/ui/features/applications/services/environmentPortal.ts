@@ -17,6 +17,9 @@ import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 
 /** Subset of GET /environments/{envId}/portal (console EnvSettings). */
 export interface EnvironmentPortalConfiguration {
+    apiScore?: {
+        enabled?: boolean;
+    };
     plan?: {
         security?: {
             sharedApiKey?: {

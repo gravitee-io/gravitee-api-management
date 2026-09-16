@@ -75,6 +75,6 @@ export const EditPageConfigurationComponent: ng.IComponentOptions = {
     page: '=',
     readOnly: '<',
   },
-  template: require('html-loader!./edit-page-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./edit-page-configuration.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: EditPageConfigurationComponentController,
 };

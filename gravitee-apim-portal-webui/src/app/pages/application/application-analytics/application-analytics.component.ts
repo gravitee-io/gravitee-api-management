@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-chart-line';
 import '@gravitee/ui-components/wc/gv-chart-pie';
@@ -29,9 +29,12 @@ import { GvAnalyticsFiltersComponent } from '../../../components/gv-analytics-fi
   selector: 'app-application-analytics',
   templateUrl: './application-analytics.component.html',
   styleUrls: ['./application-analytics.component.css'],
-  standalone: false,
+  imports: [GvAnalyticsFiltersComponent, GvAnalyticsDashboardComponent],
 })
 export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private translateService = inject(TranslateService);
+
   private subscription: any;
   application: Application;
   dashboard: Dashboard;
@@ -42,11 +45,6 @@ export class ApplicationAnalyticsComponent implements OnInit, OnDestroy {
   filtersComponent: GvAnalyticsFiltersComponent;
   @ViewChild(GvAnalyticsDashboardComponent)
   dashboardComponent: GvAnalyticsDashboardComponent;
-
-  constructor(
-    private route: ActivatedRoute,
-    private translateService: TranslateService,
-  ) {}
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;

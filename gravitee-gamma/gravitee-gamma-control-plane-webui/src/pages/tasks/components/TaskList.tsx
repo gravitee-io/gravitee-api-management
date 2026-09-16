@@ -38,7 +38,17 @@ function TaskListSkeleton() {
     );
 }
 
-export function TaskList({ tasks, loading, onNavigate }: { tasks: readonly TaskView[]; loading: boolean; onNavigate?: () => void }) {
+export function TaskList({
+    tasks,
+    loading,
+    onNavigate,
+    onProcessPromotion,
+}: {
+    tasks: readonly TaskView[];
+    loading: boolean;
+    onNavigate?: () => void;
+    onProcessPromotion?: (promotionId: string, accepted: boolean) => Promise<void>;
+}) {
     if (loading && tasks.length === 0) {
         return <TaskListSkeleton />;
     }
@@ -58,7 +68,7 @@ export function TaskList({ tasks, loading, onNavigate }: { tasks: readonly TaskV
     return (
         <div className="space-y-3">
             {tasks.map(task => (
-                <TaskRow key={task.id} task={task} onNavigate={onNavigate} />
+                <TaskRow key={task.id} task={task} onNavigate={onNavigate} onProcessPromotion={onProcessPromotion} />
             ))}
         </div>
     );

@@ -29,10 +29,9 @@ describe('SinglePageComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [SinglePageComponent, GvPageComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       teardown: { destroyAfterEach: false },
-      imports: [RouterTestingModule],
+      imports: [RouterTestingModule, SinglePageComponent, GvPageComponent],
       providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     }).compileComponents();
   }));

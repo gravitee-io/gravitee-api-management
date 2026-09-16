@@ -40,7 +40,7 @@ export const isWindowedCountValidFormat = (): ValidatorFn | undefined => {
       if (!windowedCount.isValid()) {
         return { invalidFormat: true };
       }
-    } catch (error) {
+    } catch {
       return { invalidFormat: true };
     }
     return undefined;

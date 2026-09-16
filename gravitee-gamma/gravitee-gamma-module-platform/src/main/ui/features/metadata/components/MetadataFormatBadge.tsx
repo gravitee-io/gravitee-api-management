@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-import { Badge, cn } from '@gravitee/graphene-core';
+import { Badge } from '@gravitee/graphene-core';
 
 import type { MetadataFormat } from '../types/metadata';
 
-const FORMAT_CONFIG: Record<MetadataFormat, { label: string; className: string }> = {
-    STRING: { label: 'String', className: 'bg-blue-100 text-blue-700 border-transparent' },
-    NUMERIC: { label: 'Numeric', className: 'bg-purple-100 text-purple-700 border-transparent' },
-    BOOLEAN: { label: 'Boolean', className: 'bg-amber-100 text-amber-700 border-transparent' },
-    DATE: { label: 'Date', className: 'bg-green-100 text-green-700 border-transparent' },
-    MAIL: { label: 'Mail', className: 'bg-pink-100 text-pink-700 border-transparent' },
-    URL: { label: 'URL', className: 'bg-cyan-100 text-cyan-700 border-transparent' },
+const FORMAT_LABELS: Record<MetadataFormat, string> = {
+    STRING: 'String',
+    NUMERIC: 'Numeric',
+    BOOLEAN: 'Boolean',
+    DATE: 'Date',
+    MAIL: 'Mail',
+    URL: 'URL',
 };
 
 export function MetadataFormatBadge({ format }: Readonly<{ format: MetadataFormat }>) {
-    const config = FORMAT_CONFIG[format] ?? { label: format, className: '' };
-    return <Badge className={cn('font-normal text-xs', config.className)}>{config.label}</Badge>;
+    return (
+        <Badge variant="default" className="font-normal">
+            {FORMAT_LABELS[format] ?? format}
+        </Badge>
+    );
 }

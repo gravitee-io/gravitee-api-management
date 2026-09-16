@@ -79,6 +79,27 @@ class AuthzAppliedRevisionsTest {
     }
 
     @Test
+    void isApplied_reports_a_recorded_revision_until_it_is_forgotten() {
+        assertThat(revisions.isApplied("env", "scope", "doc")).isFalse();
+        revisions.markApplied("env", "scope", "doc", 100L);
+        assertThat(revisions.isApplied("env", "scope", "doc")).isTrue();
+        assertThat(revisions.isApplied("env", "other-scope", "doc")).isFalse();
+        revisions.forget("env", "scope", "doc");
+        assertThat(revisions.isApplied("env", "scope", "doc")).isFalse();
+    }
+
+    @Test
+    void forgetScope_clears_only_that_routing_scope() {
+        revisions.markApplied("env", "orders", "doc", 100L);
+        revisions.markApplied("env", "orders@eu", "doc", 100L);
+        revisions.markApplied("env", "orders@us", "doc", 100L);
+        revisions.forgetScope("env", "orders@us");
+        assertThat(revisions.shouldApply("env", "orders@us", "doc", 100L)).isTrue();
+        assertThat(revisions.shouldApply("env", "orders@eu", "doc", 100L)).isFalse();
+        assertThat(revisions.shouldApply("env", "orders", "doc", 100L)).isFalse();
+    }
+
+    @Test
     void an_unknown_timestamp_is_never_gated() {
         // A missing event.updatedAt is mapped to 0: it must never be recorded nor gated, otherwise a real
         // change carrying no timestamp would be suppressed after the first apply.

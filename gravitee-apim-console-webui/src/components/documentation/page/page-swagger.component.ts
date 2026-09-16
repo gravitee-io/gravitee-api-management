@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 import angular, { IController } from 'angular';
-import * as yaml from 'js-yaml';
 import { isNaN } from 'lodash';
 import SwaggerUI from 'swagger-ui';
 
 import UserService from '../../../services/user.service';
-
-const yamlSchema = yaml.DEFAULT_SCHEMA.extend([]);
+import { loadYaml } from '../../../util/yaml';
 
 const OAS_SCHEMA_TYPES = new Set(['null', 'boolean', 'object', 'array', 'number', 'string', 'integer']);
 const OAS_TYPE_PRIORITY = ['string', 'number', 'integer', 'boolean', 'array', 'object'];
@@ -94,8 +92,8 @@ class PageSwaggerComponentController implements IController {
     let contentAsJson = {};
     try {
       contentAsJson = normalizeTypeArrays(angular.fromJson(this.pageContent));
-    } catch (e) {
-      contentAsJson = normalizeTypeArrays(yaml.load(this.pageContent, { schema: yamlSchema }));
+    } catch {
+      contentAsJson = normalizeTypeArrays(loadYaml(this.pageContent));
     }
     return contentAsJson;
   }
@@ -145,7 +143,7 @@ class PageSwaggerComponentController implements IController {
 PageSwaggerComponentController.$inject = ['UserService', '$window'];
 
 export const PageSwaggerComponent: ng.IComponentOptions = {
-  template: require('html-loader!./page-swagger.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./page-swagger.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     pageConfiguration: '<',
     pageContent: '<',

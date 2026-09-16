@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const JsDiff = require('diff/dist/diff.min.js');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const JsDiff = require('diff/dist/diff.js');
 
 const DiffDirective: ng.IDirective = {
   restrict: 'AE',

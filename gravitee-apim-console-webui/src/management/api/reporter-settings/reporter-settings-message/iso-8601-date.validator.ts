@@ -26,7 +26,7 @@ export const isIso8601DateValid = (): ValidatorFn | null => {
     try {
       const parsedDuration = duration(formControlValue);
       return !parsedDuration.isValid() || parsedDuration.asSeconds() < 1 ? { invalidISO8601Duration: true } : null;
-    } catch (error) {
+    } catch {
       return { invalidISO8601Duration: true };
     }
   };

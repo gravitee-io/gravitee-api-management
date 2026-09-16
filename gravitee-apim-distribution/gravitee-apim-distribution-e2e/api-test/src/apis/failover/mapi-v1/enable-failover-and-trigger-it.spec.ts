@@ -25,7 +25,6 @@ import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/Pl
 import { fetchGatewayServiceUnavailable, fetchGatewaySuccess } from '@gravitee/utils/apim-http';
 import { teardownApisAndApplications } from '@gravitee/utils/management';
 import { verifyWiremockRequest } from '@gravitee/utils/wiremock';
-import fetchApi from 'node-fetch';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -132,7 +131,7 @@ describe('Enable failover and trigger it', () => {
     test('Should succeed to reach the working endpoint after failover happened', async () => {
       await fetchGatewaySuccess({ contextPath: createdApi2.context_path });
       const { count: before } = await verifyWiremockRequest('/delayed', 'GET').then((res) => res.json());
-      const response = await fetchApi(`${process.env.GATEWAY_BASE_URL}${createdApi2.context_path}`).then((res) => res.json());
+      const response = await fetch(`${process.env.GATEWAY_BASE_URL}${createdApi2.context_path}`).then((res) => res.json());
       const { count: after } = await verifyWiremockRequest('/delayed', 'GET').then((res) => res.json());
       expect(after - before).toEqual(2);
       expect(response.message).toEqual('Hello, Endpoint!');
@@ -183,7 +182,7 @@ describe('Enable failover and trigger it', () => {
     test('Should fail after trying to reach bad endpoints <MAX ATTEMPT> times', async () => {
       await fetchGatewaySuccess({ contextPath: createdApi3.context_path, maxRetries: 20 });
       const { count: before } = await verifyWiremockRequest('/delayed', 'GET').then((res) => res.json());
-      const response = await fetchApi(`${process.env.GATEWAY_BASE_URL}${createdApi3.context_path}`);
+      const response = await fetch(`${process.env.GATEWAY_BASE_URL}${createdApi3.context_path}`);
       const { count: after } = await verifyWiremockRequest('/delayed', 'GET').then((res) => res.json());
       expect(after - before).toEqual(2);
       expect(response.status).toEqual(502);

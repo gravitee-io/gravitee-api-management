@@ -18,7 +18,7 @@ const AlertTriggerConditionThresholdRangeComponent: ng.IComponentOptions = {
     condition: '<',
     isReadonly: '<',
   },
-  template: require('html-loader!./trigger-condition-threshold-range.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./trigger-condition-threshold-range.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: function () {
     this.$onInit = () => {
       /*

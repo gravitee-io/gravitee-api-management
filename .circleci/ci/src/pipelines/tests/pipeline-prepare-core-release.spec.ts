@@ -27,7 +27,7 @@ const environment: CircleCIEnvironment = {
   buildId: '1234',
   graviteeioVersion: '4.13.0',
   isDryRun: false,
-  apimVersionPath: '',
+  apimVersionPath: './src/pipelines/tests/resources/common/pom.xml',
 };
 
 const tagStep = (config: { stringify: () => string }) => config.stringify();
@@ -61,10 +61,24 @@ describe('Prepare core release workflow tests', () => {
     expect(generated).toContain('<sha1>-alpha.2</sha1>');
   });
 
-  it('should advance both poms, which a pull request check requires to agree', function () {
+  // It ships inside the core's jars and the documentation site publishes it, so it has to carry a
+  // number that moves. Left behind, every release of the line would publish the version the code
+  // freeze wrote.
+  it('should reopen the portal spec on the next core version', function () {
     const generated = tagStep(generatePrepareCoreReleaseConfig(environment));
 
-    expect(generated).toContain('POMS="pom.xml gravitee-apim-distribution/pom.xml"');
+    expect(generated).toContain('version: "4.13.1-SNAPSHOT"');
+    expect(generated).toContain('portal-openapi.yaml');
+  });
+
+  it('should reopen the portal spec on the next qualifier too', function () {
+    const generated = tagStep(generatePrepareCoreReleaseConfig({ ...environment, graviteeioVersion: '4.13.0-alpha.1' }));
+
+    expect(generated).toContain('version: "4.13.0-alpha.2-SNAPSHOT"');
+  });
+
+  it('should leave the distribution pom alone, it releasing under its own tag', function () {
+    expect(tagStep(generatePrepareCoreReleaseConfig(environment))).not.toContain('gravitee-apim-distribution/pom.xml');
   });
 
   it('should push nothing on a dry run', function () {

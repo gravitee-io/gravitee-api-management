@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useEffect, useMemo, useRef, useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { useResetEnvironmentBrandedSenders } from '../features/environment-settings/hooks/useResetEnvironmentBrandedSenders';
 import { OrgSettingsFormShell } from '../features/organization-settings/components/OrgSettingsFormShell';

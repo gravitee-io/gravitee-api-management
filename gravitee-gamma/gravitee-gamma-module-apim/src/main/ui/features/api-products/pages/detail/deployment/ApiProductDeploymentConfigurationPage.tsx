@@ -94,7 +94,7 @@ export function ApiProductDeploymentConfigurationPage() {
     return (
         <div className="space-y-4">
             <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight">Deployment Configuration</h1>
+                <h1 className="text-2xl font-semibold tracking-tight">Sharding Tags</h1>
                 <p className="text-sm text-muted-foreground">
                     Control where this API Product is deployed on the gateway mesh. Only gateway instances advertising matching sharding
                     tags will load it.

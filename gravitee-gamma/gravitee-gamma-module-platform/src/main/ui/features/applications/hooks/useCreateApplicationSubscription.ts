@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { useEnvironmentPermissionsReady } from '../../../shared/hooks/useEnvironmentPermissions';
 import { useApplicationDetailContext } from '../context/ApplicationDetailContext';

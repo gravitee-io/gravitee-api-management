@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { useState } from 'react';
 
 import { ApiMetadataTable } from './ApiMetadataTable';
@@ -150,14 +151,23 @@ describe('ApiMetadataTable', () => {
 
     it('hides mutating actions for inherited rows without an API override', () => {
         renderTable({ metadata: [GLOBAL_INHERITED], canEdit: false, canDelete: true });
-        expect(screen.queryByRole('button', { name: /delete/i })).toBeNull();
-        expect(screen.queryByRole('button', { name: /reset .* metadata/i })).toBeNull();
         expect(screen.queryByRole('button', { name: /actions for/i })).toBeNull();
     });
 
-    it('uses a reset action for inherited metadata that has an API override', () => {
+    it('puts a single reset action in the actions dropdown for inherited overrides', async () => {
+        const user = userEvent.setup();
         renderTable({ metadata: [GLOBAL_OVERRIDE], canEdit: false, canDelete: true });
-        expect(screen.queryByRole('button', { name: /reset documentation url metadata/i })).not.toBeNull();
+        await user.click(screen.getByRole('button', { name: /actions for documentation url metadata/i }));
+        expect(screen.queryByText(/^reset$/i)).not.toBeNull();
+        expect(screen.queryByText(/^edit$/i)).toBeNull();
+    });
+
+    it('puts a single edit action in the actions dropdown', async () => {
+        const user = userEvent.setup();
+        renderTable({ metadata: [API_ONLY], canEdit: true, canDelete: false });
+        await user.click(screen.getByRole('button', { name: /actions for team metadata/i }));
+        expect(screen.queryByText(/^edit$/i)).not.toBeNull();
+        expect(screen.queryByText(/^delete$/i)).toBeNull();
     });
 
     it('hides the actions column when the user cannot edit or delete', () => {
@@ -168,9 +178,6 @@ describe('ApiMetadataTable', () => {
 
     it('hides mutating actions when the API is Kubernetes-managed even if the user can edit', () => {
         renderTable({ canEdit: true, canDelete: true, readOnly: true });
-        expect(screen.queryByRole('button', { name: /edit .* metadata/i })).toBeNull();
-        expect(screen.queryByRole('button', { name: /delete/i })).toBeNull();
-        expect(screen.queryByRole('button', { name: /reset .* metadata/i })).toBeNull();
         expect(screen.queryByRole('button', { name: /actions for/i })).toBeNull();
     });
 

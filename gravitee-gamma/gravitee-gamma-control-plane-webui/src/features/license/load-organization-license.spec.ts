@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { licenseService } from '@gravitee/gamma-modules-sdk';
 import type { License } from '@gravitee/gamma-modules-sdk/types';
+
+import { licenseService } from '@gravitee/gamma-modules-sdk';
 
 import { loadOrganizationLicense } from './load-organization-license';
 import { TEST_MANAGEMENT_V2_ORGANIZATION_BASE } from '../../testing/factories';

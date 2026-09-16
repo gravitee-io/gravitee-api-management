@@ -13,32 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge } from '@gravitee/graphene-core';
+import { Badge, type BadgeVariant } from '@gravitee/graphene-core';
 
 import type { SubscriptionStatus } from '../../../types/subscription';
 
-type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
-
 interface StatusConfig {
     label: string;
-    variant?: BadgeVariant;
-    className?: string;
+    variant: BadgeVariant;
 }
 
 const STATUS_CONFIG: Record<SubscriptionStatus, StatusConfig> = {
-    ACCEPTED: { label: 'Accepted', className: 'bg-success/10 text-success border-transparent' },
-    RESUMED: { label: 'Resumed', className: 'bg-success/10 text-success border-transparent' },
-    PENDING: { label: 'Pending', variant: 'outline', className: 'border-warning/30 text-warning' },
-    PAUSED: { label: 'Paused', variant: 'outline', className: 'border-warning/30 text-warning' },
+    ACCEPTED: { label: 'Accepted', variant: 'success' },
+    RESUMED: { label: 'Resumed', variant: 'success' },
+    PENDING: { label: 'Pending', variant: 'warning' },
+    PAUSED: { label: 'Paused', variant: 'warning' },
     REJECTED: { label: 'Rejected', variant: 'destructive' },
     CLOSED: { label: 'Closed', variant: 'secondary' },
 };
 
 export function SubscriptionStatusBadge({ status }: { status: SubscriptionStatus }) {
-    const config = STATUS_CONFIG[status] ?? { label: status, variant: 'outline' as BadgeVariant };
-    return (
-        <Badge variant={config.variant} className={config.className}>
-            {config.label}
-        </Badge>
-    );
+    const config = STATUS_CONFIG[status] ?? { label: status, variant: 'outline' };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
 }

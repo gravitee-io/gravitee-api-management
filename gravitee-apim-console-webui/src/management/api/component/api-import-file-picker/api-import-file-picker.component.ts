@@ -77,7 +77,7 @@ export class ApiImportFilePickerComponent implements OnInit {
         try {
           const json: any = JSON.parse(fileContent);
           this.importType = this.determineImportType(json);
-        } catch (error) {
+        } catch {
           this.resetImportFile('Invalid JSON file.');
         }
         break;

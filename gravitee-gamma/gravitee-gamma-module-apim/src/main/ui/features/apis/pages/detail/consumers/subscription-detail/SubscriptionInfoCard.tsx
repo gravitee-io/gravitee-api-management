@@ -85,7 +85,7 @@ export function SubscriptionInfoCard({ subscription: sub, isLoading }: Readonly<
                 {sub.consumerStatus && (
                     <Row label="Consumer status">
                         {sub.consumerStatus === 'STARTED' ? (
-                            <Badge className="bg-success/10 text-success border-transparent">Started</Badge>
+                            <Badge variant="success">Started</Badge>
                         ) : sub.consumerStatus === 'FAILURE' ? (
                             <Badge variant="destructive">Failure</Badge>
                         ) : (

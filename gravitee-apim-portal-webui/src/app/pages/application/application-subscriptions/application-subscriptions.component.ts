@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, HostListener, NgZone, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ChangeDetectorRef, Component, HostListener, NgZone, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-input';
 import '@gravitee/ui-components/wc/gv-list';
 import '@gravitee/ui-components/wc/gv-rating-list';
 import '@gravitee/ui-components/wc/gv-confirm';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { getPictureDisplayName } from '@gravitee/ui-components/src/lib/item';
 import { Pagination } from '@gravitee/ui-components/wc/gv-pagination';
+import { NgIf, NgFor } from '@angular/common';
 
 import { NotificationService } from '../../../services/notification.service';
 import {
@@ -39,6 +40,8 @@ import {
   SubscriptionService,
 } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ConfigurationService } from '../../../services/configuration.service';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
+import { LocalizedDatePipe } from '../../../pipes/localized-date.pipe';
 
 const StatusEnum = Subscription.StatusEnum;
 const SecurityEnum = Plan.SecurityEnum;
@@ -53,9 +56,23 @@ type ApplicationSubscriptionsFormType = FormGroup<{
   selector: 'app-application-subscriptions',
   templateUrl: './application-subscriptions.component.html',
   styleUrls: ['./application-subscriptions.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, NgFor, TranslatePipe, LocalizedDatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationSubscriptionsComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private applicationService = inject(ApplicationService);
+  private subscriptionService = inject(SubscriptionService);
+  private notificationService = inject(NotificationService);
+  private translateService = inject(TranslateService);
+  private apiService = inject(ApiService);
+  private formBuilder = inject(FormBuilder);
+  private permissionsService = inject(PermissionsService);
+  private ref = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
+  private config = inject(ConfigurationService);
+
   subscriptions: Array<Subscription>;
   options: any;
   format: any;
@@ -84,21 +101,6 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   fragments: { pagination: string } = {
     pagination: 'pagination',
   };
-
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private applicationService: ApplicationService,
-    private subscriptionService: SubscriptionService,
-    private notificationService: NotificationService,
-    private translateService: TranslateService,
-    private apiService: ApiService,
-    private formBuilder: FormBuilder,
-    private permissionsService: PermissionsService,
-    private ref: ChangeDetectorRef,
-    private ngZone: NgZone,
-    private config: ConfigurationService,
-  ) {}
 
   ngOnInit() {
     this.application = this.route.snapshot.data.application;

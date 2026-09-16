@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient, HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HttpClientModule, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TranslateCompiler, TranslateDirective, TranslateLoader, TranslatePipe, provideChildTranslateService } from '@ngx-translate/core';
+import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { OAuthModule } from 'angular-oauth2-oidc';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 
@@ -39,7 +39,26 @@ import { SafePipe } from '../pipes/safe.pipe';
 import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
 
 @NgModule({
-  declarations: [
+  exports: [
+    TranslatePipe,
+    TranslateDirective,
+    HttpClientModule,
+    ReactiveFormsModule,
+    OAuthModule,
+    GvFormControlDirective,
+    SafePipe,
+    MarkdownDescriptionPipe,
+    LocalizedDatePipe,
+    GvCheckboxControlValueAccessorDirective,
+    GvPageComponent,
+  ],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    OAuthModule.forRoot(),
+    TranslatePipe,
+    TranslateDirective,
     ApiLabelsPipe,
     ApiStatesPipe,
     MarkdownDescriptionPipe,
@@ -56,34 +75,23 @@ import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
     GvPageSwaggerUIComponent,
     GvMarkdownTocComponent,
   ],
-  exports: [
-    HttpClientModule,
-    ReactiveFormsModule,
-    OAuthModule,
-    GvFormControlDirective,
-    SafePipe,
-    MarkdownDescriptionPipe,
-    LocalizedDatePipe,
-    GvCheckboxControlValueAccessorDirective,
-    GvPageComponent,
-  ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    OAuthModule.forRoot(),
-    TranslateModule.forChild({
+  providers: [
+    ...provideChildTranslateService({
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient) => new TranslateHttpLoader(http, './assets/i18n/'),
-        deps: [HttpClient],
+        useClass: TranslateHttpLoader,
       },
       compiler: {
         provide: TranslateCompiler,
         useClass: TranslateMessageFormatCompiler,
       },
     }),
+    ApiLabelsPipe,
+    ApiStatesPipe,
+    MarkdownDescriptionPipe,
+    LocalizedDatePipe,
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { resources: [{ prefix: './assets/i18n/', suffix: '.json' }], failOnError: true } },
   ],
-  providers: [ApiLabelsPipe, ApiStatesPipe, MarkdownDescriptionPipe, LocalizedDatePipe, provideHttpClient(withInterceptorsFromDi())],
 })
 export class SharedModule {}

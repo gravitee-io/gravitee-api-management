@@ -79,6 +79,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.DuplicateKeyException;
 
 /**
@@ -265,12 +266,50 @@ public class PromotionServiceTest {
         verify(promotionRepository, times(1)).update(any());
     }
 
+    // The row the conflict proves exists is not always visible to the next read: on SQL Server the lookup that
+    // missed it before the insert missed it again right after the violation, and the promotion failed with the
+    // very duplicate key this recovery exists to absorb.
+    @Test
+    public void shouldUpdateWhenTheConflictingPromotionIsStillInvisibleToReads() throws TechnicalException {
+        when(promotionRepository.findById(any())).thenReturn(Optional.empty());
+        when(promotionRepository.create(any())).thenThrow(
+            new TechnicalException(
+                "Failed to create promotion",
+                new DuplicateKeyException("Violation of PRIMARY KEY constraint 'pk_apim_promotions'")
+            )
+        );
+        when(promotionRepository.update(any())).thenReturn(getAPromotion());
+
+        promotionService.createOrUpdate(getAPromotionEntity());
+
+        verify(promotionRepository, times(1)).create(any());
+        verify(promotionRepository, times(1)).update(any());
+    }
+
+    // JdbcAbstractCrudRepository.update returns findById(...).orElse(null), so the read that missed the row can
+    // miss it again right after the update wrote it. The recovery must not hand that null back to the caller.
+    @Test
+    public void shouldReturnTheWrittenPromotionWhenTheUpdateReadBackMissesIt() throws TechnicalException {
+        when(promotionRepository.findById(any())).thenReturn(Optional.empty());
+        when(promotionRepository.create(any())).thenThrow(
+            new TechnicalException(
+                "Failed to create promotion",
+                new DuplicateKeyException("Violation of PRIMARY KEY constraint 'pk_apim_promotions'")
+            )
+        );
+        when(promotionRepository.update(any())).thenReturn(null);
+
+        final PromotionEntity result = promotionService.createOrUpdate(getAPromotionEntity());
+
+        assertThat(result.getApiId()).isEqualTo("api#1");
+    }
+
     @Test
     public void shouldRethrowWhenTheCreateFailureIsNotAConflict() throws TechnicalException {
         when(promotionRepository.findById(any())).thenReturn(Optional.empty());
-        when(promotionRepository.create(any())).thenThrow(new DuplicateKeyException("boom"));
+        when(promotionRepository.create(any())).thenThrow(new DataIntegrityViolationException("boom"));
 
-        assertThrows(DuplicateKeyException.class, () -> promotionService.createOrUpdate(getAPromotionEntity()));
+        assertThrows(DataIntegrityViolationException.class, () -> promotionService.createOrUpdate(getAPromotionEntity()));
     }
 
     // JdbcAbstractCrudRepository.create wraps every failure into a checked TechnicalException, so on the JDBC

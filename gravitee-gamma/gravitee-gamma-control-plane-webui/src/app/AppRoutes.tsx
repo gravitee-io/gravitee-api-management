@@ -15,10 +15,19 @@
  */
 import { Navigate, Route, Routes } from 'react-router-dom';
 
-import { LoginPage, ProtectedRoute, PublicOnlyRoute, ResetPasswordPage } from '../features/auth';
+import {
+    ActivationPage,
+    LoginPage,
+    ProtectedRoute,
+    PublicOnlyRoute,
+    RegistrationEnabledRoute,
+    ResetPasswordPage,
+    SignUpPage,
+} from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
+import { MyAccountPage } from '../pages/my-account';
 import { TasksPage } from '../pages/tasks';
 import { ContentSkeleton } from '../shared/components/ContentSkeleton';
 import { RouteLayout } from '../shared/components/RouteLayout';
@@ -31,8 +40,12 @@ export function AppRoutes() {
         return (
             <Routes>
                 <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+                <Route path="/registration/:token" element={<ActivationPage />} />
                 <Route element={<PublicOnlyRoute />}>
                     <Route path="/login" element={<LoginPage />} />
+                    <Route element={<RegistrationEnabledRoute />}>
+                        <Route path="/sign-up" element={<SignUpPage />} />
+                    </Route>
                 </Route>
                 <Route element={<ProtectedRoute />}>
                     <Route path="/environments/:envHrid" element={<ShellLayout modules={[]} />}>
@@ -50,8 +63,14 @@ export function AppRoutes() {
     return (
         <Routes>
             <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            {/* Outside every guard: the link is the only way in, whether or not someone is signed in or
+                registration is still on, and the server has the only explanation worth giving. */}
+            <Route path="/registration/:token" element={<ActivationPage />} />
             <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginPage />} />
+                <Route element={<RegistrationEnabledRoute />}>
+                    <Route path="/sign-up" element={<SignUpPage />} />
+                </Route>
             </Route>
             <Route element={<ProtectedRoute />}>
                 <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
@@ -59,6 +78,7 @@ export function AppRoutes() {
                         <Route element={<RouteLayout />}>
                             <Route path="home" element={<HomePage modules={modules} loading={loading} error={error} onRetry={retry} />} />
                             <Route path="tasks" element={<TasksPage />} />
+                            <Route path="my-account" element={<MyAccountPage />} />
                         </Route>
                         {modules.map((m: GammaModule) => (
                             <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />

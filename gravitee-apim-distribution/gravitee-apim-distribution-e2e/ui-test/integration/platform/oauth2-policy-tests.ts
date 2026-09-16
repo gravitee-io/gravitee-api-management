@@ -165,7 +165,7 @@ context('Testing OAuth2 policy', () => {
     before(() => {
       requestGateway({
         method: 'POST',
-        url: `${Cypress.env('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
+        url: `${Cypress.expose('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
         form: true,
         auth: {
           username: am_noScopeApplication.settings.oauth.clientId,
@@ -179,7 +179,7 @@ context('Testing OAuth2 policy', () => {
 
     it('should successfully call API endpoint when using access token', () => {
       requestGateway({
-        url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
+        url: `${Cypress.expose('gatewayServer')}${noScopeApi.context_path}`,
         auth: { bearer: noScopeToken },
       }).should((response: Cypress.Response<any>) => {
         expect(response.body).to.have.property('date');
@@ -190,7 +190,7 @@ context('Testing OAuth2 policy', () => {
     it('should fail to call API endpoint without using access token', () => {
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${noScopeApi.context_path}`,
         },
         {
           validWhen: (response) => {
@@ -207,7 +207,7 @@ context('Testing OAuth2 policy', () => {
     it('should fail to call API endpoint using an invalid access token', () => {
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${noScopeApi.context_path}`,
           auth: { bearer: 'invalid_token' },
         },
         {
@@ -226,7 +226,7 @@ context('Testing OAuth2 policy', () => {
       requestGateway(
         {
           method: 'POST',
-          url: `${Cypress.env('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
+          url: `${Cypress.expose('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
           form: true,
           auth: {
             username: am_oneScopeApplication.settings.oauth.clientId,
@@ -247,7 +247,7 @@ context('Testing OAuth2 policy', () => {
 
     it('should successfully call API when access token contains a scope that is not required in APIM (non-strict)', () => {
       requestGateway({
-        url: `${Cypress.env('gatewayServer')}${noScopeApi.context_path}`,
+        url: `${Cypress.expose('gatewayServer')}${noScopeApi.context_path}`,
         auth: { bearer: tokenWithScope },
       }).should((response: Cypress.Response<any>) => {
         expect(response.body).to.have.property('date');
@@ -257,7 +257,7 @@ context('Testing OAuth2 policy', () => {
 
     it('should successfully call API when scope of access token matches the configured scopes in APIM (strict mode)', () => {
       requestGateway({
-        url: `${Cypress.env('gatewayServer')}${oneScopeApi.context_path}`,
+        url: `${Cypress.expose('gatewayServer')}${oneScopeApi.context_path}`,
         auth: { bearer: tokenWithScope },
       }).should((response: Cypress.Response<any>) => {
         expect(response.body).to.have.property('date');
@@ -268,7 +268,7 @@ context('Testing OAuth2 policy', () => {
     it("should fail to call API when scope of access token doesn't contain scope that is configured in APIM (strict mode)", () => {
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${oneScopeApi.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${oneScopeApi.context_path}`,
           auth: { bearer: noScopeToken },
         },
         {
@@ -291,7 +291,7 @@ context('Testing OAuth2 policy', () => {
       requestGateway(
         {
           method: 'POST',
-          url: `${Cypress.env('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
+          url: `${Cypress.expose('am_gatewayServer')}/auth/${am_domainHrid}/oauth/token`,
           form: true,
           auth: {
             username: am_expiredTokenApplication.settings.oauth.clientId,
@@ -312,7 +312,7 @@ context('Testing OAuth2 policy', () => {
     it('should fail to call API endpoint with an expired JWT access token', () => {
       requestGateway(
         {
-          url: `${Cypress.env('gatewayServer')}${expiredTokenApi.context_path}`,
+          url: `${Cypress.expose('gatewayServer')}${expiredTokenApi.context_path}`,
           auth: { bearer: expiredToken },
         },
         {

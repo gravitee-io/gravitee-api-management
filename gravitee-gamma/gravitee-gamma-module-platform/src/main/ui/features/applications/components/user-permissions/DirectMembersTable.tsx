@@ -41,7 +41,7 @@ import type { ColCell } from '../../utils/dataTableTypes';
 function RoleBadge({ roleName, isPO }: Readonly<{ roleName: string; isPO: boolean }>) {
     if (isPO) {
         return (
-            <Badge className="gap-1 bg-primary/10 text-primary border-transparent font-normal">
+            <Badge variant="default" className="gap-1 font-normal">
                 <ShieldCheckIcon className="size-3" aria-hidden="true" />
                 Primary Owner
             </Badge>

@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+
+import { GvContactComponent } from '../../../components/gv-contact/gv-contact.component';
 
 @Component({
   selector: 'app-api-contact',
   templateUrl: './api-contact.component.html',
-  standalone: false,
+  imports: [GvContactComponent],
 })
 export class ApiContactComponent implements OnInit {
-  apiId: string;
+  private route = inject(ActivatedRoute);
 
-  constructor(private route: ActivatedRoute) {}
+  apiId: string;
 
   ngOnInit() {
     this.apiId = this.route.snapshot.params.apiId;

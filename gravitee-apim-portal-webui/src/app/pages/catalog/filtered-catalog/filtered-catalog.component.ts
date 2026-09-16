@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf, NgClass, NgFor, AsyncPipe } from '@angular/common';
 
 import {
   Api,
@@ -39,14 +40,26 @@ import '@gravitee/ui-components/wc/gv-card-full';
 import '@gravitee/ui-components/wc/gv-card';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-option';
+import { GvPageComponent } from '../../../components/gv-page/gv-page.component';
 
 @Component({
   selector: 'app-all',
   templateUrl: './filtered-catalog.component.html',
   styleUrls: ['./filtered-catalog.component.css'],
-  standalone: false,
+  imports: [NgIf, NgClass, NgFor, GvPageComponent, AsyncPipe, TranslatePipe, MarkdownDescriptionPipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class FilteredCatalogComponent implements OnInit {
+  private apiService = inject(ApiService);
+  private translateService = inject(TranslateService);
+  private activatedRoute = inject(ActivatedRoute);
+  private router = inject(Router);
+  private apiStates = inject(ApiStatesPipe);
+  private apiLabels = inject(ApiLabelsPipe);
+  private markdownDescription = inject(MarkdownDescriptionPipe);
+  private config = inject(ConfigurationService);
+  private portalService = inject(PortalService);
+
   static readonly RANDOM_MAX_SIZE = 4;
   static readonly DEFAULT_DISPLAY = 'cards';
 
@@ -76,17 +89,7 @@ export class FilteredCatalogComponent implements OnInit {
   emptyMessage: any;
   isDocHidden = true;
 
-  constructor(
-    private apiService: ApiService,
-    private translateService: TranslateService,
-    private activatedRoute: ActivatedRoute,
-    private router: Router,
-    private apiStates: ApiStatesPipe,
-    private apiLabels: ApiLabelsPipe,
-    private markdownDescription: MarkdownDescriptionPipe,
-    private config: ConfigurationService,
-    private portalService: PortalService,
-  ) {
+  constructor() {
     this.allApis = [];
   }
 

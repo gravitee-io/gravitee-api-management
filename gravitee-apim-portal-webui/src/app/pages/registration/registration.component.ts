@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, inject } from '@angular/core';
+import { FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { NgIf, NgFor } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { RegisterUserInput, UsersService, CustomUserFields } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ConfigurationService } from '../../services/configuration.service';
 import { ReCaptchaService } from '../../services/recaptcha.service';
+import { GvFormControlDirective } from '../../directives/gv-form-control.directive';
 
 type RegistrationFormType = FormGroup<{
   firstname: FormControl<string>;
@@ -30,9 +34,14 @@ type RegistrationFormType = FormGroup<{
   selector: 'app-registration',
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, NgFor, RouterLink, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class RegistrationComponent implements OnInit {
+  private usersService = inject(UsersService);
+  private reCaptchaService = inject(ReCaptchaService);
+  private configurationService = inject(ConfigurationService);
+
   isSubmitted: boolean;
   registrationForm: RegistrationFormType;
   customUserFields: Array<CustomUserFields>;
@@ -43,11 +52,7 @@ export class RegistrationComponent implements OnInit {
   // without automatic validation, the activation email is only sent once an administrator has approved the request.
   isApprovalRequired = false;
 
-  constructor(
-    private usersService: UsersService,
-    private reCaptchaService: ReCaptchaService,
-    private configurationService: ConfigurationService,
-  ) {
+  constructor() {
     this.isSubmitted = false;
   }
 

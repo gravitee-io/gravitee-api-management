@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { RoleForm, type RoleFormSubmitValues } from '../features/roles/components/RoleForm';
 import { useCreateRole, useUpdateRole } from '../features/roles/hooks/useRoleMutations';
@@ -105,7 +106,7 @@ export function RoleFormPage() {
             <div>
                 <Button variant="ghost" size="sm" className="-ml-2 mb-3 text-muted-foreground" onClick={goBack}>
                     <ArrowLeftIcon className="size-4" aria-hidden />
-                    Back to roles
+                    Back to Roles
                 </Button>
                 <h1 className="text-2xl font-semibold tracking-tight">
                     {isEditMode ? 'Update' : 'Create'} role in the {ROLE_SCOPE_LABELS[scope]} scope

@@ -15,7 +15,13 @@
  */
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { OpenJdkNodeExecutor } from '../../executors';
-import { PrepareGpgCmd, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, SyncFolderToS3Command } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  PrepareGpgCmd,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+  SyncFolderToS3Command,
+} from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 import { parse } from '../../utils';
@@ -25,7 +31,9 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment, publishOnDownloadWebsite: boolean): Job {
     const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get(environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCommand);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const prepareGpgCommand = PrepareGpgCmd.get(dynamicConfig);
     dynamicConfig.addReusableCommand(prepareGpgCommand);
@@ -33,16 +41,58 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
     const saveMavenJobCacheCommand = SaveMavenJobCacheCommand.get();
     dynamicConfig.addReusableCommand(saveMavenJobCacheCommand);
 
+    // Which line this release belongs to, computed here rather than in shell: the version is already
+    // parsed for the artefact paths below, and one parser is enough.
+    const { version: releasedVersion } = parse(environment.graviteeioVersion);
+    const releasedLine = `${releasedVersion.major}.${releasedVersion.minor}`;
+
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
+      new commands.Run({
+        // First, before anything is built: placed after the engine build it fired half an hour into
+        // the release. Reading the pin needs no reactor and no installed artifact — the pom parents
+        // to the organisation pom with <relativePath/> — and the `versions:set -DremoveSnapshot`
+        // below only touches the project version, never this property.
+        //
+        // What replaces `Check both reactors carry the same version`. A SNAPSHOT is mutable, so a
+        // distribution assembled on one is not reproducible: the same tag rebuilt tomorrow would
+        // carry a different core. Read through Maven rather than parsed out of the pom — a parsing
+        // slip here would let a release through silently, which is the failure this exists to stop.
+        name: 'Refuse a core pin this release cannot assemble',
+        command: `PIN=$(mvn --settings ${config.maven.settingsFile} -q -N -f gravitee-apim-distribution/pom.xml help:evaluate -Dexpression=apim.core.version -DforceStdout)
+echo "Releasing ${environment.graviteeioVersion}, which pins core $PIN"
+
+case "$PIN" in
+*-SNAPSHOT)
+  echo
+  echo "A release cannot assemble a SNAPSHOT core: it is mutable, so this tag would not rebuild to"
+  echo "the same artefacts. Release the core first, then merge the pull request that pins it."
+  exit 1
+  ;;
+esac
+
+# The pin may trail the release by a few patches — it moves only when someone decides a core is
+# ready — but never by a minor. A pin from another line is a hand-edit, or a branch whose code
+# freeze never moved it off the previous line, and either ships a core nobody meant to ship.
+PIN_BASE=\${PIN%%-*}
+if [ "\${PIN_BASE%.*}" != "${releasedLine}" ]; then
+  echo
+  echo "core $PIN is not on the ${releasedLine} line, which ${environment.graviteeioVersion} releases."
+  echo "Release a ${releasedLine} core and merge the pull request that pins it, or fix the pin by hand."
+  exit 1
+fi`,
+      }),
       new commands.Run({
         // The distribution carries its own version properties now, so it needs the same treatment.
+        // Both calls resolve versions-maven-plugin, so they take the shared settings like every
+        // other Maven invocation — without it they reach Maven Central directly.
         name: 'Remove `-SNAPSHOT` from versions',
-        command: `mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+        command: `mvn -B -s ${config.maven.settingsFile} versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
 sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
-mvn -B -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+mvn -B -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
 sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml`,
       }),
       new reusable.ReusedCommand(prepareGpgCommand),
@@ -63,11 +113,11 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-
         // reaches it; the property activation does. Without this the released zip and images ship
         // without those two jars, and no pull-request build would show it — job-build-backend
         // passes -Dbundle=dev and so activates the profile by property already.
-        // engine-snapshot resolves ${revision}${sha1}${changelist}, which the step above has just
-        // set to the version being released: the distribution ships the engine this build produced,
-        // not the one its pom is pinned to.
+        // Nothing overrides apim.core.version here, so the distribution assembles the core it pins.
+        // That is the whole point of pinning: what ships is what someone reviewed and chose, not
+        // whatever this build happened to compile.
         name: 'Maven build APIM distribution',
-        command: `mvn --settings ${config.maven.settingsFile} -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release,engine-snapshot -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
+        command: `mvn --settings ${config.maven.settingsFile} -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
         environment: {
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,

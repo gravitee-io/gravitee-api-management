@@ -40,6 +40,18 @@ export class WorkflowJob implements Generable {
     private readonly parameters?: WorkflowJobParameters,
   ) {}
 
+  /**
+   * The same job, restricted to `filters`.
+   *
+   * A workflow generated for a tag has to repeat its filter on every single job: the continued
+   * configuration is a pipeline of its own and inherits nothing from the one that produced it. A job
+   * that forgets it does not run, and the pipeline goes green having published nothing — so the
+   * filter is applied to a whole list at once rather than written out job by job.
+   */
+  withFilters(filters: WorkflowJobParameters['filters']): WorkflowJob {
+    return new WorkflowJob(this.job, { ...this.parameters, filters });
+  }
+
   generate(): string | Schema {
     if (!this.parameters || Object.keys(this.parameters).length === 0) {
       return this.job.name;

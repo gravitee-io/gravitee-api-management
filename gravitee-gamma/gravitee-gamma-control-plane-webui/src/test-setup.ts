@@ -31,6 +31,18 @@ window.matchMedia ??= (query: string): MediaQueryList =>
         dispatchEvent: () => false,
     }) as MediaQueryList;
 
+global.ResizeObserver ??= class ResizeObserver {
+    observe() {
+        return undefined;
+    }
+    unobserve() {
+        return undefined;
+    }
+    disconnect() {
+        return undefined;
+    }
+};
+
 beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' });
 });

@@ -36,8 +36,7 @@ describe('GvPageMarkdownComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageMarkdownComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [SafePipe, GvMarkdownTocComponent],
-    imports: [RouterTestingModule],
+    imports: [RouterTestingModule, SafePipe, GvMarkdownTocComponent],
     providers: [
       mockProvider(ConfigurationService, {
         get: () => BASE_URL,
@@ -70,8 +69,8 @@ describe('GvPageMarkdownComponent', () => {
     spectator.element.appendChild(linkElement);
     linkElement.click();
 
-    expect(scrollToAnchorSpy).toBeCalledTimes(1);
-    expect(scrollToAnchorSpy).toBeCalledWith(anchor);
+    expect(scrollToAnchorSpy).toHaveBeenCalledTimes(1);
+    expect(scrollToAnchorSpy).toHaveBeenCalledWith(anchor);
   });
 
   it('should call navigate to page when click to a.internal-link', () => {
@@ -84,8 +83,8 @@ describe('GvPageMarkdownComponent', () => {
     spectator.element.appendChild(internalLinkElement);
     internalLinkElement.click();
 
-    expect(navigateByUrlSpy).toBeCalledTimes(1);
-    expect(navigateByUrlSpy).toBeCalledWith(pageLink);
+    expect(navigateByUrlSpy).toHaveBeenCalledTimes(1);
+    expect(navigateByUrlSpy).toHaveBeenCalledWith(pageLink);
   });
 
   it('should open external link', () => {
@@ -98,7 +97,7 @@ describe('GvPageMarkdownComponent', () => {
     spectator.element.appendChild(linkElement);
     linkElement.click();
 
-    expect(navigateByUrlSpy).not.toBeCalled();
-    expect(scrollToAnchorSpy).not.toBeCalled();
+    expect(navigateByUrlSpy).not.toHaveBeenCalled();
+    expect(scrollToAnchorSpy).not.toHaveBeenCalled();
   });
 });

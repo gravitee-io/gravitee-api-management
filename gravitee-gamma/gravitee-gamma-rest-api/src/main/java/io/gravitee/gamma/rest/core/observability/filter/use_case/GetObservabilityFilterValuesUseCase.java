@@ -25,6 +25,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterValuesPage;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.ObservabilityFilterDataPort;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -112,7 +113,33 @@ public class GetObservabilityFilterValuesUseCase {
         if (StaticFilters.withoutValueListing().contains(spec.name())) {
             throw UnsupportedObservabilityFilterException.valueListingNotSupported(spec.name(), spec.type().name());
         }
-        return filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
+        var stored = filterDataPort.listKeywordValues(spec.name(), input.query(), input.from(), input.to(), page, perPage, apiTypes);
+        if (!StaticFilters.ENTRYPOINT.name().equals(spec.name()) || !noEntrypointMatches(input.query())) {
+            return stored;
+        }
+        return withNoEntrypointValue(stored, page, perPage);
+    }
+
+    /**
+     * Documents written without an entrypoint id are a legitimate target of an exact filter and only the catalog
+     * knows to offer them: the synthetic value takes the slot right after the last stored id, so pages stay
+     * within {@code perPage} and the total counts it.
+     */
+    private static FilterValuesPage withNoEntrypointValue(FilterValuesPage stored, int page, int perPage) {
+        long total = stored.totalElements() + 1;
+        long syntheticIndex = stored.totalElements();
+        boolean onThisPage = syntheticIndex / perPage + 1 == page;
+        if (!onThisPage) {
+            return new FilterValuesPage(stored.data(), total);
+        }
+        var data = new ArrayList<>(stored.data());
+        data.add(new FilterValue(StaticFilters.NO_ENTRYPOINT_VALUE, StaticFilters.NO_ENTRYPOINT_LABEL));
+        return new FilterValuesPage(List.copyOf(data), total);
+    }
+
+    /** The store narrows KEYWORD values by an exact, case-insensitive match; the synthetic value follows suit. */
+    private static boolean noEntrypointMatches(String query) {
+        return query == null || query.isBlank() || StaticFilters.NO_ENTRYPOINT_VALUE.equalsIgnoreCase(query);
     }
 
     private FilterSpec lookupFilter(String filterName, Set<ApiType> apiTypes) {

@@ -82,8 +82,8 @@ class ObservabilityFilterValuesResourceTest extends AbstractResourceTest {
         JsonNode body = response.readEntity(JsonNode.class);
         assertThat(body.get("data"))
             .extracting(node -> node.get("value").asText())
-            .containsExactly("http-proxy", "mcp-studio");
-        assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(2L);
+            .containsExactly("http-proxy", "mcp-studio", "(none)");
+        assertThat(body.get("pagination").get("totalCount").asLong()).isEqualTo(3L);
         assertThat(dataPort.lastCall()).hasValueSatisfying(call -> assertThat(call.filterName()).isEqualTo("ENTRYPOINT"));
     }
 

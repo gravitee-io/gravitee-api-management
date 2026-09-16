@@ -298,6 +298,11 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
                 continue;
             }
             String address = addressFor(environmentId, scope);
+            if (appliedOnAnotherScope(environmentId, scope, scopes, docId)) {
+                // Another scope keeps the document on this shared engine.
+                revisions.forget(environmentId, scope, docId);
+                continue;
+            }
             sends.add(
                 vertx
                     .eventBus()
@@ -310,6 +315,17 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
             );
         }
         return Completable.merge(sends);
+    }
+
+    // The engine a routing scope lands on is its base (addressFor strips the tag), so the scopes sharing an
+    // engine with it are exactly its hostedByBase bucket — no need to scan every environment's scopes and
+    // compare addresses.
+    private boolean appliedOnAnotherScope(String environmentId, String scope, Set<String> removedScopes, String docId) {
+        return hostedScopes
+            .hostedOnEngine(environmentId, scope)
+            .stream()
+            .filter(other -> !removedScopes.contains(other))
+            .anyMatch(other -> revisions.isApplied(environmentId, other, docId));
     }
 
     // "*" means every engine in the environment. On a given node that is the set of scopes the node

@@ -81,7 +81,22 @@ public interface ClientCertificateRepository extends CrudRepository<ClientCertif
      * @return true if such a certificate exists, false otherwise
      * @throws TechnicalException if an error occurs
      */
-    boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException;
+    default boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId) throws TechnicalException {
+        return existsByFingerprintAndActiveApplication(fingerprint, environmentId, null);
+    }
+
+    /**
+     * Check if a client certificate with the given fingerprint exists for an active application,
+     * excluding certificates with REVOKED status and optionally excluding a specific application.
+     *
+     * @param fingerprint the certificate fingerprint to check
+     * @param environmentId the environment ID
+     * @param excludeApplicationId application ID to exclude from the lookup, or null to check all applications
+     * @return true if such a certificate exists, false otherwise
+     * @throws TechnicalException if an error occurs
+     */
+    boolean existsByFingerprintAndActiveApplication(String fingerprint, String environmentId, String excludeApplicationId)
+        throws TechnicalException;
 
     /**
      * Delete all client certificates for a given application.

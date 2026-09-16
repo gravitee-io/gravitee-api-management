@@ -17,8 +17,8 @@ import { defineConfig } from 'cypress';
 import cypressConfig from '../cypress-apim-config';
 
 export default defineConfig({
-  env: {
-    ...cypressConfig.env,
+  expose: {
+    ...cypressConfig.expose,
   },
   e2e: {
     ...cypressConfig.e2e,

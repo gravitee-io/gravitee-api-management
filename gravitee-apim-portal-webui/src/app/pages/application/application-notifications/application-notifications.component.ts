@@ -13,29 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-switch';
 import { ActivatedRoute } from '@angular/router';
+import { NgFor } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ApplicationService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { NotificationService } from '../../../services/notification.service';
+import { ApplicationMetadataComponent } from '../application-metadata/application-metadata.component';
 
 @Component({
   selector: 'app-application-notifications',
   templateUrl: './application-notifications.component.html',
   styleUrls: ['./application-notifications.component.css'],
-  standalone: false,
+  imports: [NgFor, ApplicationMetadataComponent, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationNotificationsComponent implements OnInit {
+  private applicationService = inject(ApplicationService);
+  private notificationService = inject(NotificationService);
+  private route = inject(ActivatedRoute);
+
   hooks: Array<string>;
   categories: Array<string>;
   hooksByCategory: any;
-
-  constructor(
-    private applicationService: ApplicationService,
-    private notificationService: NotificationService,
-    private route: ActivatedRoute,
-  ) {}
 
   ngOnInit() {
     const applicationId = this.route.snapshot.params.applicationId;

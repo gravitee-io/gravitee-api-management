@@ -233,7 +233,16 @@ export class BuildDockerChainguardFipsImageJob {
 }
 
 function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string[], isProd: boolean, variant?: Variant) {
-  let command = 'docker buildx build';
+  // The core version travels inside the distribution the assembly produced, so the label states what
+  // the image actually embeds rather than what a pom happened to pin at the time. Only the backend
+  // images declare the arg and ship that file; a UI context has neither, and nothing is passed.
+  let command = `CORE_VERSION_FILE="<< parameters.docker-context >>/distribution/core.version"
+CORE_ARG=""
+if [ -f "$CORE_VERSION_FILE" ]; then
+  CORE_ARG="--build-arg CORE_VERSION=$(cat "$CORE_VERSION_FILE")"
+  echo "This image embeds core $(cat "$CORE_VERSION_FILE")"
+fi
+docker buildx build`;
 
   let dockerfile = 'docker/Dockerfile';
   if (variant === 'debian') {
@@ -260,6 +269,7 @@ function dockerBuildCommand(environment: CircleCIEnvironment, dockerTags: string
     command += `--build-arg BASE_IMAGE=<< parameters.docker-fips-base-image >> \\\n`;
   }
 
+  command += '${CORE_ARG} \\\n';
   command += `${dockerTags.map((t) => `-t ${t}`).join(' ')} \\\n`;
   command += `<< parameters.docker-context >>`;
 

@@ -31,7 +31,7 @@ class IdentityPictureDirective {
         imageTheme: '<',
         noDefaultImage: '=',
       },
-      template: require('html-loader!./identityPicture.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+      template: require('html-loader!./identityPicture.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
       controller: IdentityPictureController,
       controllerAs: 'identityPictureCtrl',
     };

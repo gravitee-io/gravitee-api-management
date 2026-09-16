@@ -28,6 +28,12 @@ describe('resolveHostRoute', () => {
         expect(breadcrumbSegments[0]?.label).toBe('Home');
     });
 
+    it('should resolve my-account for /environments/:envHrid/my-account', () => {
+        const { activeNavKey, breadcrumbSegments } = resolveHostRoute('/environments/my-env/my-account', 'my-env');
+        expect(activeNavKey).toBe('my-account');
+        expect(breadcrumbSegments[0]?.label).toBe('My Account');
+    });
+
     it('should use default when pathname env does not match param', () => {
         const { activeNavKey } = resolveHostRoute('/environments/other/home', 'my-env');
         expect(activeNavKey).toBe('home');
@@ -68,6 +74,10 @@ describe('buildPathnameAfterEnvironmentChange', () => {
 
     it('should use home when the pathname is not under the current environment', () => {
         expect(buildPathnameAfterEnvironmentChange('/environments/other/apim/apis', 'env-1', 'env-2')).toBe('/environments/env-2/home');
+    });
+
+    it('should keep host my-account when switching', () => {
+        expect(buildPathnameAfterEnvironmentChange('/environments/a/my-account', 'a', 'b')).toBe('/environments/b/my-account');
     });
 
     it('should keep host home when switching', () => {

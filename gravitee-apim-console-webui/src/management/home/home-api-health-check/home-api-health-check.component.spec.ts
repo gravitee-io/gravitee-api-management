@@ -21,7 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { HighchartsChartModule } from 'highcharts-angular';
+import { HighchartsChartComponent } from 'highcharts-angular';
 
 import { HomeApiHealthCheckComponent } from './home-api-health-check.component';
 
@@ -44,7 +44,7 @@ describe('HomeApiHealthCheckComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule, HighchartsChartModule],
+      imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule, HighchartsChartComponent],
     });
   });
 

@@ -15,8 +15,10 @@
  */
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-message';
-import { Component } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, inject } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { CookieEnum } from '../../model/cookie.enum';
 import { GoogleAnalyticsService } from '../../services/google-analytics.service';
@@ -25,13 +27,12 @@ import { GoogleAnalyticsService } from '../../services/google-analytics.service'
   selector: 'app-gv-cookie-consent',
   templateUrl: './gv-cookie-consent.component.html',
   styleUrls: ['./gv-cookie-consent.component.css'],
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvCookieConsentComponent {
-  constructor(
-    private googleAnalyticsService: GoogleAnalyticsService,
-    private cookieService: CookieService,
-  ) {}
+  private googleAnalyticsService = inject(GoogleAnalyticsService);
+  private cookieService = inject(CookieService);
 
   _disableGA() {
     this.googleAnalyticsService.disableGA();

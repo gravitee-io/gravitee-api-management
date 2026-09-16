@@ -16,7 +16,6 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import 'dotenv/config';
-import fetch from 'node-fetch';
 import { adminAuthHeader, apiAuthHeader, envId, managementV2BaseUrl, simpleAuthHeader } from '@gravitee/utils/api-products';
 
 interface ApiProduct {

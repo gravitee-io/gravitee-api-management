@@ -13,11 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HttpClient } from '@angular/common/http';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateCompiler, TranslateLoader, TranslateModule } from '@ngx-translate/core';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
+import { TranslateCompiler, TranslateDirective, TranslateLoader, TranslatePipe, provideChildTranslateService } from '@ngx-translate/core';
+import { TRANSLATE_HTTP_LOADER_CONFIG, TranslateHttpLoader } from '@ngx-translate/http-loader';
 import { TranslateMessageFormatCompiler } from 'ngx-translate-messageformat-compiler';
 
 import { GvAnalyticsDashboardComponent } from '../../components/gv-analytics-dashboard/gv-analytics-dashboard.component';
@@ -46,7 +45,12 @@ import { ApplicationsRoutingModule } from './applications-routing.module';
 import { ApplicationsComponent } from './applications.component';
 
 @NgModule({
-  declarations: [
+  imports: [
+    ApplicationsRoutingModule,
+    CommonModule,
+    SharedModule,
+    TranslatePipe,
+    TranslateDirective,
     ApplicationsComponent,
     ApplicationAnalyticsComponent,
     ApplicationGeneralComponent,
@@ -69,23 +73,20 @@ import { ApplicationsComponent } from './applications.component';
     GvAlertComponent,
     GvSelectDashboardComponent,
   ],
-  imports: [
-    ApplicationsRoutingModule,
-    CommonModule,
-    SharedModule,
-    TranslateModule.forChild({
+  exports: [SharedModule],
+  providers: [
+    ...provideChildTranslateService({
       loader: {
         provide: TranslateLoader,
-        useFactory: (http: HttpClient) => new TranslateHttpLoader(http),
-        deps: [HttpClient],
+        useClass: TranslateHttpLoader,
       },
       compiler: {
         provide: TranslateCompiler,
         useClass: TranslateMessageFormatCompiler,
       },
     }),
+    { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { resources: [{ prefix: '/assets/i18n/', suffix: '.json' }], failOnError: true } },
   ],
-  exports: [SharedModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationsModule {}

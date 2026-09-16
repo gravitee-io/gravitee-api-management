@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.filter.model;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.analytics.engine.api.query.HttpStatusCodeGroups;
+import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -63,5 +64,14 @@ class StaticFiltersContractTest {
                 .as("Catalog label for '%s' must match HttpStatusCodeGroups.FRIENDLY_LABELS", enumValue.value())
                 .isEqualTo(enumValue.label())
         );
+    }
+
+    /**
+     * The catalog offers this token and the Elasticsearch adapters translate it to a field-missing predicate;
+     * core cannot import the registry that declares it (AGENTS.md §5), so the two spellings are pinned here.
+     */
+    @Test
+    void no_entrypoint_value_should_match_the_registry_token() {
+        assertThat(StaticFilters.NO_ENTRYPOINT_VALUE).isEqualTo(ObservabilityEntrypoints.NO_ENTRYPOINT_VALUE);
     }
 }

@@ -18,19 +18,21 @@ package io.gravitee.gamma.rest.core.observability.filter.port.service_provider;
 import java.util.List;
 
 /**
- * Supplies the entrypoint ids a query covers when the caller set no explicit entrypoint filter.
+ * Reads the observability entrypoint registry, which records what each entrypoint's traffic means for the
+ * signals, for a core layer that cannot import it.
  *
  * <p>A port rather than a constant because the canonical declaration is shared with the analytics
  * engine and therefore lives in the platform's analytics-engine query package, which core must not
- * reach (AGENTS.md §5). The core decides <em>whether</em> a query is entrypoint-scoped; infra says
- * <em>which</em> ids that means.
+ * reach (AGENTS.md §5). The core decides <em>whether</em> a search is entrypoint-scoped; infra
+ * says <em>which</em> ids that means.
  *
  * @author GraviteeSource Team
  */
 public interface EntrypointScopeProvider {
-    /** Entrypoints an unfiltered analytics or dashboard query covers. */
-    List<String> analyticsScope();
-
-    /** Entrypoints an unfiltered logs query covers. Wider than {@link #analyticsScope()}. */
-    List<String> logsScope();
+    /**
+     * The entrypoint ids an unfiltered logs search leaves out. The analytics default is built by the engine
+     * itself; the logs one is built here because the platform logs query keeps its legacy predicate for the
+     * Console and only Gamma asks for the exclusion.
+     */
+    List<String> excludedFromLogs();
 }

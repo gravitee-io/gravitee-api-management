@@ -17,7 +17,6 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { describeIfClientGatewaySupportingApiProduct } from '@lib/jest-utils';
 import 'dotenv/config';
-import fetch from 'node-fetch';
 import { ApiType, ApiV4, HttpListener, PlanMode, PlanSecurityType } from '../../../../lib/management-v2-webclient-sdk/src/lib';
 import { adminAuthHeader, envId, managementV2BaseUrl, orgId } from '@gravitee/utils/api-products';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';

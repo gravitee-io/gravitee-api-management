@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import {
     Button,
     Card,
@@ -40,6 +39,8 @@ import { MoreHorizontalIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { AlertsEducationalEmptyState } from '../features/alerts/components/AlertsEducationalEmptyState';
 import { SeverityBadge } from '../features/alerts/components/SeverityBadge';

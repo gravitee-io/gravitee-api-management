@@ -114,7 +114,11 @@ export class SslKeyStoreComponent implements OnInit, ControlValueAccessor, Valid
 
   setDisabledState(isDisabled: boolean): void {
     this.isDisabled = isDisabled;
-    isDisabled ? this.keyStoreForm.disable({ emitEvent: false }) : this.keyStoreForm.enable({ emitEvent: false });
+    if (isDisabled) {
+      this.keyStoreForm.disable({ emitEvent: false });
+    } else {
+      this.keyStoreForm.enable({ emitEvent: false });
+    }
   }
 
   validate(_: AbstractControl): ValidationErrors | null {

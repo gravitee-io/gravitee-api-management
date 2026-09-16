@@ -40,14 +40,24 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useId, useState } from 'react';
 import { Navigate, Outlet, useParams } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withMetadataPermission, withTcpRestrictions } from './ApiDetailSidebarNav';
+import {
+    API_PROXY_NAV_GROUPS,
+    ApiDetailSidebarNav,
+    withApiScoreEnabled,
+    withMetadataPermission,
+    withObservabilityLinks,
+    withResponseTemplatesPermission,
+    withTcpRestrictions,
+} from './ApiDetailSidebarNav';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
+import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
-import { hasTcpListeners } from '../../utils/apiHttpProxy';
+import { buildApiDashboardHref, buildApiLogsHref } from '../../utils/analyticsDeepLink';
+import { hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
@@ -56,10 +66,7 @@ const DEPLOYMENT_LABEL_MAX_LENGTH = 32;
 function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state']; deploymentState?: string }) {
     if (state === 'STARTED' && deploymentState === 'NEED_REDEPLOY') {
         return (
-            <Badge
-                className="gap-1 h-5 px-1.5 text-xs font-medium border-transparent"
-                style={{ backgroundColor: 'color-mix(in oklab, var(--color-warning) 12%, transparent)', color: 'var(--color-warning)' }}
-            >
+            <Badge variant="warning" className="gap-1 h-5 px-1.5 text-xs font-medium">
                 <TriangleAlertIcon className="size-3" />
                 Out of sync
             </Badge>
@@ -69,7 +76,7 @@ function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state
     switch (state) {
         case 'STARTED':
             return (
-                <Badge className="gap-1 h-5 px-1.5 text-xs font-medium bg-success/10 text-success border-transparent">
+                <Badge variant="success" className="gap-1 h-5 px-1.5 text-xs font-medium">
                     <CircleCheckIcon className="size-3" />
                     Started
                 </Badge>
@@ -83,7 +90,7 @@ function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state
             );
         case 'CLOSED':
             return (
-                <Badge variant="outline" className="gap-1 h-5 px-1.5 text-xs font-medium text-muted-foreground">
+                <Badge variant="outline" className="gap-1 h-5 px-1.5 text-xs font-medium">
                     <CircleXIcon className="size-3" />
                     Closed
                 </Badge>
@@ -254,6 +261,9 @@ export function ApiDetailLayout() {
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
+    const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
+    const showResponseTemplates = Boolean(api) && canReadResponseTemplates && supportsResponseTemplates(api);
+    const { enabled: apiScoreEnabled } = useApiScoreEnabled();
     const queryClient = useQueryClient();
     const [contextExpanded, setContextExpanded] = useState(true);
     const [showDeployDialog, setShowDeployDialog] = useState(false);
@@ -272,7 +282,18 @@ export function ApiDetailLayout() {
     });
 
     const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
-    const navGroups = withMetadataPermission(withTcpRestrictions(API_PROXY_NAV_GROUPS, hasTcpListeners(api)), canReadMetadata);
+    // The observability section hangs off the module root, one level above `/apis/:apiId`.
+    const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
+    const navGroups = withTcpRestrictions(
+        withObservabilityLinks(
+            withResponseTemplatesPermission(
+                withApiScoreEnabled(withMetadataPermission(API_PROXY_NAV_GROUPS, canReadMetadata), apiScoreEnabled),
+                showResponseTemplates,
+            ),
+            apiId ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) } : {},
+        ),
+        hasTcpListeners(api),
+    );
 
     useLayoutConfig(
         {
@@ -285,7 +306,7 @@ export function ApiDetailLayout() {
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
             breadcrumbs: [
-                { label: 'API Proxies', href: `${basePath.slice(0, basePath.lastIndexOf('/apis/'))}${'/apis'}` },
+                { label: 'API Proxies', href: `${moduleRoot}/apis` },
                 { label: api?.name ? (api.name.length > 40 ? `${api.name.slice(0, 40).trimEnd()}…` : api.name) : 'Loading…' },
             ],
             banner: showDeployBanner ? (
@@ -293,7 +314,18 @@ export function ApiDetailLayout() {
             ) : null,
             bannerSticky: true,
         },
-        [contextExpanded, api, isLoading, basePath, permissionsReady, showDeployBanner, deployMutation.isPending, canReadMetadata],
+        [
+            contextExpanded,
+            api,
+            isLoading,
+            basePath,
+            permissionsReady,
+            showDeployBanner,
+            deployMutation.isPending,
+            canReadMetadata,
+            showResponseTemplates,
+            apiScoreEnabled,
+        ],
     );
 
     if (isError) {

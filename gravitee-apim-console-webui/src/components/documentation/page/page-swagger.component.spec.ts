@@ -19,7 +19,7 @@ import SwaggerUI from 'swagger-ui';
 
 import { PageSwaggerComponent } from './page-swagger.component';
 
-const SwaggerUIMock = SwaggerUI as jest.Mock;
+const SwaggerUIMock = SwaggerUI as unknown as jest.Mock;
 
 describe('PageSwaggerComponent', () => {
   // Direct controller instantiation — this is an AngularJS hybrid component;

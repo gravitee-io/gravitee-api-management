@@ -53,7 +53,7 @@ Cypress.Commands.add('loginInAPIM', (username: string, password: string) => {
   cy.clearCookie('Auth-Graviteeio-APIM');
   cy.request({
     method: 'POST',
-    url: `${Cypress.env('managementApi')}/management/organizations/DEFAULT/user/login`,
+    url: `${Cypress.expose('managementApi')}/management/organizations/DEFAULT/user/login`,
     auth: { username, password },
   });
 });

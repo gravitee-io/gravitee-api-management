@@ -17,8 +17,8 @@ import { defineConfig } from 'cypress';
 import cypressConfig from '../cypress-integration-config';
 
 export default defineConfig({
-  env: {
-    ...cypressConfig.env,
+  expose: {
+    ...cypressConfig.expose,
     gatewayServer: 'http://localhost:8082',
     portalApi: '/portal/environments/DEFAULT',
   },

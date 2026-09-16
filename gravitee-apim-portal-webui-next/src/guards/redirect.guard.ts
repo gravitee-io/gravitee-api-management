@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DOCUMENT } from '@angular/common';
 import { inject } from '@angular/core';
 
 import { ConfigService } from '../services/config.service';
@@ -21,7 +22,9 @@ export const redirectGuard = (): boolean => {
   const enabled = inject(ConfigService).configuration?.portalNext?.access?.enabled;
 
   if (!enabled) {
-    window.location.href = window.location.href.substring(0, window.location.href.indexOf('/next')) + '/404';
+    // Through DOCUMENT rather than the window global, which is not replaceable under jsdom 26.
+    const location = inject(DOCUMENT).location;
+    location.href = location.href.substring(0, location.href.indexOf('/next')) + '/404';
   }
   return true;
 };

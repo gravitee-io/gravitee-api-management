@@ -188,6 +188,27 @@ class ApisResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_and_no_fqcn_when_use_case_throws_validation_domain_exception() {
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenThrow(
+                new io.gravitee.apim.core.exception.ValidationDomainException("bad payload")
+            );
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", false)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("api-with-hrid.json")))
+            ) {
+                var body = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Error.class);
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(response.getStatus()).isEqualTo(400);
+                    soft.assertThat(body.getMessage()).doesNotContain("io.gravitee.apim.core");
+                    soft.assertThat(body.getMessage()).contains("bad payload");
+                });
+            }
+        }
+
+        @Test
         void should_return_state_from_hrid_and_have_spg_hrid_replaced() {
             var state = expectEntity("api-with-hrid-spg-hrid.json");
             SoftAssertions.assertSoftly(soft -> {

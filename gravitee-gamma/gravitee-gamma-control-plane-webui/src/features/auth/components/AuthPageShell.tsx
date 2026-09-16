@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Logo, cn } from '@gravitee/graphene-core';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 interface AuthPageShellProps {
     readonly title: string;
@@ -26,6 +26,12 @@ interface AuthPageShellProps {
      * `div`, not a `p`: `ReactNode` admits block elements, which a `p` would nest invalidly.
      */
     readonly footer?: ReactNode;
+    /**
+     * Moves focus to the title when this page appears. For a state that replaces a form the reader
+     * was using: the control that held focus goes with the form, focus falls to the document body,
+     * and the new state is neither announced nor a place for the keyboard to start from.
+     */
+    readonly focusTitle?: boolean;
 }
 
 /**
@@ -44,13 +50,31 @@ interface AuthPageShellProps {
  * The mark comes from Graphene, the same source `AppSidebar` renders, so the signed-out
  * pages cannot drift from the signed-in chrome.
  */
-export function AuthPageShell({ title, description, children, footer }: AuthPageShellProps) {
+export function AuthPageShell({ title, description, children, footer, focusTitle = false }: AuthPageShellProps) {
+    const titleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (focusTitle) {
+            titleRef.current?.focus();
+        }
+    }, [focusTitle]);
+
     return (
-        <div className={cn('flex min-h-screen flex-col items-center justify-center p-4', 'font-sans text-foreground')}>
+        // Full height inline: Graphene's pre-built bundle has no full-viewport min-height utility, so the
+        // card was never centred vertically.
+        <div className={cn('flex flex-col items-center justify-center p-4', 'font-sans text-foreground')} style={{ minHeight: '100vh' }}>
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-2">
                     <Logo size="lg" className="mb-4" />
-                    <CardTitle className="text-2xl">{title}</CardTitle>
+                    {/* Focusable from script only, and without a ring: the title is where reading
+                        resumes, not a control. */}
+                    <CardTitle
+                        ref={titleRef}
+                        tabIndex={focusTitle ? -1 : undefined}
+                        className={cn('text-2xl', focusTitle && 'outline-none')}
+                    >
+                        {title}
+                    </CardTitle>
                     {description ? <CardDescription>{description}</CardDescription> : null}
                 </CardHeader>
                 <CardContent>

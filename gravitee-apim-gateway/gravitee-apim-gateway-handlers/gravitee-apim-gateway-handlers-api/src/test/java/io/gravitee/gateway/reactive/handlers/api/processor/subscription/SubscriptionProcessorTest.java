@@ -23,12 +23,17 @@ import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.APPLICATION_ANONYMOUS;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.DEFAULT_CLIENT_IDENTIFIER_HEADER;
 import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.PLAN_ANONYMOUS;
+import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.SPAN_APPLICATION_ID_ATTR;
+import static io.gravitee.gateway.reactive.handlers.api.processor.subscription.SubscriptionProcessor.SPAN_APPLICATION_NAME_ATTR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.el.TemplateVariableProvider;
@@ -36,8 +41,11 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.tracing.Tracer;
 import io.gravitee.gateway.reactive.handlers.api.context.SubscriptionVariable;
 import io.gravitee.gateway.reactive.handlers.api.processor.AbstractProcessorTest;
+import io.gravitee.node.api.opentelemetry.Span;
+import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.vertx.core.MultiMap;
 import java.util.Collection;
@@ -204,6 +212,58 @@ class SubscriptionProcessorTest extends AbstractProcessorTest {
             cut.execute(spyCtx).test().assertComplete();
 
             assertThat(spyCtx.metrics().getApplicationName()).isNull();
+        }
+    }
+
+    @Nested
+    class RootSpan {
+
+        private static final String APPLICATION_NAME = "applicationName";
+
+        private Tracer tracer;
+        private Span rootSpan;
+
+        @BeforeEach
+        void initTracer() {
+            tracer = new Tracer(null, new NoOpTracer());
+            spyCtx.tracer(tracer);
+            rootSpan = mock(Span.class);
+            when(rootSpan.isRoot()).thenReturn(true);
+        }
+
+        @Test
+        void should_set_application_id_and_name_when_subscription_has_an_application_name() {
+            var subscription = new Subscription();
+            subscription.setApplicationName(APPLICATION_NAME);
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, subscription);
+
+            cut.execute(spyCtx).test().assertComplete();
+            tracer.end(rootSpan);
+
+            verify(rootSpan).withAttribute(SPAN_APPLICATION_ID_ATTR, APPLICATION_ID);
+            verify(rootSpan).withAttribute(SPAN_APPLICATION_NAME_ATTR, APPLICATION_NAME);
+        }
+
+        @Test
+        void should_set_application_id_only_when_subscription_has_no_application_name() {
+            spyCtx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_SUBSCRIPTION, new Subscription());
+
+            cut.execute(spyCtx).test().assertComplete();
+            tracer.end(rootSpan);
+
+            verify(rootSpan).withAttribute(SPAN_APPLICATION_ID_ATTR, APPLICATION_ID);
+            verify(rootSpan, never()).withAttribute(eq(SPAN_APPLICATION_NAME_ATTR), any());
+        }
+
+        @Test
+        void should_set_anonymous_application_id_when_security_chain_is_skipped() {
+            spyCtx.setInternalAttribute(ATTR_INTERNAL_SECURITY_SKIP, true);
+            spyCtx.setAttribute(ATTR_APPLICATION, null);
+
+            cut.execute(spyCtx).test().assertComplete();
+            tracer.end(rootSpan);
+
+            verify(rootSpan).withAttribute(SPAN_APPLICATION_ID_ATTR, APPLICATION_ANONYMOUS);
         }
     }
 

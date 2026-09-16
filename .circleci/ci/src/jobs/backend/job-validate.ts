@@ -15,7 +15,7 @@
  */
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { OpenJdkExecutor } from '../../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
+import { AzureArtifactsTokenCommand, NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
 import { mavenParallelism } from '../../utils';
@@ -26,51 +26,32 @@ export class ValidateJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: ValidateJob.jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Validate project',
         command: `mvn -s ${config.maven.settingsFile} validate -Dgravitee.archrules.skip=true --no-transfer-progress -Pall-modules ${mavenParallelism('large')}`,
       }),
       new commands.Run({
-        // Its own reactor, so validated separately. No engine-snapshot here: the profile makes the
-        // BOM import resolve ${revision}${sha1}${changelist}, and this step runs before anything is
-        // installed. It works only for as long as that snapshot happens to be on Nexus — right
-        // after a <revision> bump none exists, and validation would hard-fail on every pull request
-        // until the first publication. License and prettier do not care which engine is pinned.
+        // Its own reactor, so validated separately. The core version is left at whatever the pom
+        // pins — license and prettier do not care which core it names, and this step runs before
+        // anything is installed, so the coordinate has to be one somebody publishes.
+        //
+        // On master that is the branch's own snapshot, republished on every merge. Elsewhere it is a
+        // release. What this depends on is that the pin never names a version nobody produces any
+        // more: a branch whose code freeze left the pin behind would make every pull request here
+        // rest on Nexus not purging a snapshot. BX-383 is what closes that.
         name: 'Validate distribution',
         command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules ${mavenParallelism('large')}`,
-      }),
-      new commands.Run({
-        // The two reactors each carry a version triplet and they must stay in step: engine-snapshot
-        // resolves apim.core.version from the distribution's own properties, so a stale triplet
-        // does not fail — it resolves the previous version's snapshot from Nexus and quietly
-        // assembles the wrong engine. Cheap to check, expensive to notice otherwise.
-        name: 'Check both reactors carry the same version',
-        command: `triplet() {
-  rev=$(grep -o '<revision>[^<]*</revision>' "$1" | head -1 | sed -E 's#</?revision>##g')
-  chg=$(grep -o '<changelist>[^<]*</changelist>' "$1" | head -1 | sed -E 's#</?changelist>##g')
-  # <sha1 /> and <sha1></sha1> mean the same thing; normalise both to the empty string.
-  sha=$(grep -oE '<sha1 */>|<sha1>[^<]*</sha1>' "$1" | head -1 | sed -E 's#<sha1 */>##; s#</?sha1>##g')
-  echo "revision=$rev sha1=$sha changelist=$chg"
-}
-ROOT=$(triplet pom.xml)
-DIST=$(triplet gravitee-apim-distribution/pom.xml)
-echo "root:         $ROOT"
-echo "distribution: $DIST"
-if [ "$ROOT" != "$DIST" ]; then
-  echo
-  echo "The root pom and the distribution pom disagree on the version being built."
-  echo "Both must be bumped together — see release/code-freeze/_common.sh and"
-  echo "job-release-commit-and-prepare-next-version."
-  exit 1
-fi`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: ValidateJob.jobName }),

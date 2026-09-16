@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService } from '@gravitee/gamma-modules-sdk';
 import { cn, Skeleton } from '@gravitee/graphene-core';
 import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
+
+import { permissionService } from '@gravitee/gamma-modules-sdk';
 
 import type { ApplicationDetailNavGroup } from '../../../../config/applicationDetailNavigation';
 import { filterApplicationDetailNavGroups } from '../../../../config/applicationDetailNavigation';

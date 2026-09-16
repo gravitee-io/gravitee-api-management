@@ -78,6 +78,7 @@ const ENVIRONMENT_ADMIN = [
     'environment-audit-r',
     'environment-am_configuration-r',
     'environment-message-c',
+    'environment-client_registration_provider-r',
 ] as const;
 
 const ORGANIZATION_ADMIN = [
@@ -197,10 +198,12 @@ describe('platform nav visibility', () => {
                 'alerts',
                 'notification-settings',
                 'environment-smtp',
+                'environment-cors',
                 'security-plan-types',
                 'api-health-check',
                 'environment-audit',
                 'access-management',
+                'client-registration',
                 'groups',
             ]),
         );
@@ -217,6 +220,29 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('access-management', visibility(['environment-am_configuration-r']))).toBe(true);
         expect(isNavItemVisible('access-management', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
         expect(isNavItemVisible('access-management', visibility([...ORGANIZATION_USER, ...FEDERATION_AGENT]))).toBe(false);
+    });
+
+    it('shows API Score for environment-integration-r when scoring is enabled', () => {
+        const entitled = visibility(['environment-integration-r'], { apiScoreEnabled: true });
+
+        expect(isNavItemVisible('api-score', entitled)).toBe(true);
+        expect(visibleNavItemKeys(entitled)).toEqual(['api-score']);
+        expect(pageGuardForNavItem('api-score')).toEqual({ anyOf: ['environment-integration-r'] });
+        expect(requiresOrganizationSettingsGate('api-score')).toBe(false);
+    });
+
+    it('hides API Score without environment-integration-r even when scoring is enabled', () => {
+        const unpermitted = visibility([], { apiScoreEnabled: true });
+
+        expect(isNavItemVisible('api-score', unpermitted)).toBe(false);
+        expect(visibleNavItemKeys(unpermitted)).not.toContain('api-score');
+    });
+
+    it('hides API Score when scoring is disabled, even with environment-integration-r', () => {
+        const permitted = visibility(['environment-integration-r']);
+
+        expect(isNavItemVisible('api-score', permitted)).toBe(false);
+        expect(visibleNavItemKeys(permitted)).not.toContain('api-score');
     });
 
     it('shows Integrations for environment-integration-r when the federation availability gate passes', () => {
@@ -243,20 +269,27 @@ describe('platform nav visibility', () => {
         expect(isFederationAvailable({ federationEnabled: true, license: ENTITLED_LICENSE })).toBe(true);
     });
 
-    it('hides Management, CORS, and SMTP when the user has organization-settings-u without -r', () => {
+    it('hides Management, CORS, SMTP, and API Logging when the user has organization-settings-u without -r', () => {
         const onlyUpdate = visibility(['organization-settings-u']);
         expect(isNavItemVisible('management-and-schedulers', onlyUpdate)).toBe(false);
         expect(isNavItemVisible('cors', onlyUpdate)).toBe(false);
         expect(isNavItemVisible('smtp', onlyUpdate)).toBe(false);
+        expect(isNavItemVisible('api-logging', onlyUpdate)).toBe(false);
         expect(isNavItemVisible('users', visibility(['organization-settings-u', 'organization-user-r']))).toBe(true);
     });
 
-    it('shows Management, CORS, and SMTP when the user has organization-settings-r', () => {
+    it('shows Management, CORS, SMTP, and API Logging when the user has organization-settings-r', () => {
         const canRead = visibility(['organization-settings-r']);
         expect(isNavItemVisible('management-and-schedulers', canRead)).toBe(true);
         expect(isNavItemVisible('cors', canRead)).toBe(true);
         expect(isNavItemVisible('smtp', canRead)).toBe(true);
+        expect(isNavItemVisible('api-logging', canRead)).toBe(true);
         expect(isNavItemVisible('templates', canRead)).toBe(false);
+    });
+
+    it('hides API Logging for environment admin without org settings', () => {
+        expect(isNavItemVisible('api-logging', visibility([...ENVIRONMENT_ADMIN]))).toBe(false);
+        expect(isNavItemVisible('api-logging', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_ADMIN]))).toBe(false);
     });
 
     it('gates Templates on organization-notification_templates-r after the org settings gate', () => {
@@ -330,6 +363,10 @@ describe('platform nav visibility', () => {
             anyOf: ['organization-settings-r'],
             alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
         });
+        expect(pageGuardForNavItem('api-logging')).toEqual({
+            anyOf: ['organization-settings-r'],
+            alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
+        });
         expect(pageGuardForNavItem('tenants')).toEqual({
             anyOf: ['organization-tenant-r'],
             alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
@@ -342,6 +379,13 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('broadcasts', visibility(['environment-message-c']))).toBe(true);
         expect(isNavItemVisible('broadcasts', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
         expect(landingNavItemKey(visibility(['environment-application-r', 'environment-message-c']))).toBe('applications');
+    });
+
+    it('gates Client Registration on environment-client_registration_provider-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('client-registration')).toBe(false);
+        expect(pageGuardForNavItem('client-registration')).toEqual({ anyOf: ['environment-client_registration_provider-r'] });
+        expect(isNavItemVisible('client-registration', visibility(['environment-client_registration_provider-r']))).toBe(true);
+        expect(isNavItemVisible('client-registration', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
     });
 
     it('gates Notifications on environment-notification-r without the org settings gate', () => {
@@ -374,13 +418,19 @@ describe('platform nav visibility', () => {
         expect(modulePathFor('/alerts', 'applications')).toBe('/applications');
         expect(modulePathFor('/environments/dev/platform/alerts', 'applications')).toBe('/environments/dev/platform/applications');
         expect(modulePathFor('/groups/group-1', 'applications')).toBe('/applications');
-        expect(modulePathFor('/environments/dev/platform/applications/app-1/subscriptions/sub-1', 'groups')).toBe(
-            '/environments/dev/platform/groups',
-        );
         expect(modulePathFor('/environments/dev/platform/environment/smtp', 'applications')).toBe(
             '/environments/dev/platform/applications',
         );
         expect(modulePathFor('/environments/dev/platform/environment/smtp', 'smtp')).toBe('/environments/dev/platform/smtp');
+        expect(modulePathFor('/environments/dev/platform/environment/cors', 'environment-cors')).toBe(
+            '/environments/dev/platform/environment/cors',
+        );
+        expect(modulePathFor('/environments/dev/platform/environment/cors', 'applications')).toBe(
+            '/environments/dev/platform/applications',
+        );
+        expect(modulePathFor('/environments/dev/platform/applications/app-1/subscriptions/sub-1', 'groups')).toBe(
+            '/environments/dev/platform/groups',
+        );
         expect(modulePathFor('/environments/dev/platform', 'no-access')).toBe('/environments/dev/platform/no-access');
         expect(modulePathFor('/', 'no-access')).toBe('/no-access');
     });

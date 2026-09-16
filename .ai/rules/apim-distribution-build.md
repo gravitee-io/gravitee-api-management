@@ -13,7 +13,7 @@ Run Maven here with `-f gravitee-apim-distribution/pom.xml` — see the two-reac
 
 Three flags, each of which fails quietly rather than loudly:
 
-- **`-Pengine-snapshot`** — without it you assemble the pinned *released* engine instead of the working tree. The build succeeds and the change under test is simply absent.
+- **`-Dapim.core.version=<root triplet>`** — without it you assemble the pinned *released* core instead of the working tree. The build succeeds and the change under test is simply absent. `task build-distribution` computes the value for you.
 - **`-nsu`** — without it Maven may replace the engine you just installed with a timestamped snapshot from the remote. Same symptom, different route.
 - **`-Dbundle=dev`** — activates the profile adding the Cloud initializer and MCP libraries to `lib/`. That profile belongs to the gateway container, an external dependency here, so `-P` does not reach it; only the property activation does.
 

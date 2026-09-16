@@ -15,7 +15,7 @@
  */
 
 const LogsFiltersComponent: ng.IComponentOptions = {
-  template: require('html-loader!./logs-filters.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./logs-filters.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: 'LogsFiltersController',
   bindings: {
     onFiltersChange: '&',

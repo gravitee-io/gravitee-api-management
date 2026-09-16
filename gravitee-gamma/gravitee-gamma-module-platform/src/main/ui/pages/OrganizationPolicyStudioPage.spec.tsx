@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import type { Flow, FlowExecution, OrganizationTag, SaveOutput } from '@gravitee/graphene-policy-studio';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { OrganizationPolicyStudioPage } from './OrganizationPolicyStudioPage';
 import { listOrgTags } from '../features/entrypoints/services/tags';

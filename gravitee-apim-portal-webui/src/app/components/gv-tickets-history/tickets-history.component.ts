@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnDestroy, OnInit, inject } from '@angular/core';
 import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
+import { NgIf, DatePipe } from '@angular/common';
 
 import { ScrollService } from '../../services/scroll.service';
 import { ConfigurationService } from '../../services/configuration.service';
@@ -29,9 +30,17 @@ import { GetTicketsRequestParams, PortalService, Ticket } from '../../../../proj
   selector: 'app-gv-tickets-history',
   templateUrl: './tickets-history.component.html',
   styleUrls: ['./tickets-history.component.css'],
-  standalone: false,
+  imports: [NgIf, DatePipe, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class TicketsHistoryComponent implements OnInit, OnDestroy {
+  private config = inject(ConfigurationService);
+  private portalService = inject(PortalService);
+  private translateService = inject(TranslateService);
+  private scrollService = inject(ScrollService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+
   queryParamSubscription: Subscription;
   tickets: Ticket[] = [];
   selectedTicket: Ticket;
@@ -44,15 +53,6 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
   selectedTicketIds: string[];
   compareFn: any;
 
-  constructor(
-    private config: ConfigurationService,
-    private portalService: PortalService,
-    private translateService: TranslateService,
-    private scrollService: ScrollService,
-    private router: Router,
-    private route: ActivatedRoute,
-  ) {}
-
   ngOnInit(): void {
     this.pageSizes = this.config.get('pagination.size.values');
     this.size = this.route.snapshot.queryParams[SearchQueryParam.SIZE]
@@ -60,7 +60,7 @@ export class TicketsHistoryComponent implements OnInit, OnDestroy {
       : this.config.get('pagination.size.default');
 
     // since the content of the table is already sorted by the backend, we don't need to sort the table again
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+
     this.compareFn = () => {};
 
     this.queryParamSubscription = this.route.queryParams.subscribe(queryParams => {

@@ -10,7 +10,7 @@ const config: StorybookConfig = {
   },
 
   stories: ['../src/**/*.stories.@(ts|mdx)'],
-  addons: ['@storybook/addon-essentials'],
+  addons: ['@storybook/addon-links', '@storybook/addon-docs'],
   features: {},
   webpackFinal: async config => {
     config.optimization.minimize = false;

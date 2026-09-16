@@ -27,6 +27,7 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    MonoCell,
     Select,
     SelectContent,
     SelectItem,
@@ -36,6 +37,7 @@ import {
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
+    TruncatedCell,
 } from '@gravitee/graphene-core';
 import { DatabaseIcon, MoreVerticalIcon, PencilIcon, PlusIcon, RefreshCwIcon, SearchIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
@@ -60,7 +62,7 @@ function GlobalBadge() {
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Badge variant="secondary">Global</Badge>
+                <Badge variant="default">Global</Badge>
             </TooltipTrigger>
             <TooltipContent>Inherited global metadata</TooltipContent>
         </Tooltip>
@@ -88,8 +90,8 @@ function buildColumns({
             accessorKey: 'key',
             header: ({ column }: ColHeader<ApiMetadata>) => <DataTableColumnHeader column={column} title="Key" />,
             cell: ({ row }: ColCell<ApiMetadata>) => (
-                <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs bg-muted px-1.5 py-0.5 rounded">{row.original.key}</span>
+                <div className="flex min-w-0 items-center gap-2">
+                    <MonoCell value={row.original.key} />
                     {isInheritedGlobal(row.original) ? <GlobalBadge /> : null}
                 </div>
             ),
@@ -98,7 +100,7 @@ function buildColumns({
             id: 'name',
             accessorKey: 'name',
             header: ({ column }: ColHeader<ApiMetadata>) => <DataTableColumnHeader column={column} title="Name" />,
-            cell: ({ row }: ColCell<ApiMetadata>) => <span className="text-sm font-medium">{row.original.name}</span>,
+            cell: ({ row }: ColCell<ApiMetadata>) => <TruncatedCell className="font-medium" value={row.original.name} />,
         },
         {
             id: 'format',
@@ -112,7 +114,7 @@ function buildColumns({
             header: ({ column }: ColHeader<ApiMetadata>) => <DataTableColumnHeader column={column} title="Value" />,
             cell: ({ row }: ColCell<ApiMetadata>) => {
                 const value = displayMetadataValue(row.original);
-                return value ? <span className="text-sm">{value}</span> : <span className="text-sm text-muted-foreground">—</span>;
+                return value ? <TruncatedCell value={value} /> : <span className="text-sm text-muted-foreground">—</span>;
             },
         },
     ];
@@ -129,45 +131,8 @@ function buildColumns({
                 const canEditItem = canEdit && !readOnly;
                 const canRemoveItem = canDelete && !readOnly && canDeleteOrResetMetadata(item);
                 const isReset = isResettableMetadata(item);
-                const actionCount = (canEditItem ? 1 : 0) + (canRemoveItem ? 1 : 0);
 
-                if (actionCount === 0) return null;
-
-                if (actionCount === 1) {
-                    return (
-                        <div className="flex justify-end">
-                            {canEditItem ? (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-8"
-                                    aria-label={`Edit ${item.name} metadata`}
-                                    disabled={isMutating}
-                                    onClick={() => onEdit(item)}
-                                >
-                                    <PencilIcon className="size-4" aria-hidden />
-                                </Button>
-                            ) : (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="icon"
-                                    className="size-8 text-destructive hover:text-destructive"
-                                    aria-label={isReset ? `Reset ${item.name} metadata` : `Delete ${item.name} metadata`}
-                                    disabled={isMutating}
-                                    onClick={() => onDelete(item)}
-                                >
-                                    {isReset ? (
-                                        <RefreshCwIcon className="size-4" aria-hidden />
-                                    ) : (
-                                        <Trash2Icon className="size-4" aria-hidden />
-                                    )}
-                                </Button>
-                            )}
-                        </div>
-                    );
-                }
+                if (!canEditItem && !canRemoveItem) return null;
 
                 return (
                     <div className="flex justify-end">
@@ -185,19 +150,23 @@ function buildColumns({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="min-w-48">
-                                <DropdownMenuItem onSelect={() => onEdit(item)} disabled={isMutating}>
-                                    <PencilIcon className="size-4" aria-hidden />
-                                    Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem variant="destructive" onSelect={() => onDelete(item)} disabled={isMutating}>
-                                    {isReset ? (
-                                        <RefreshCwIcon className="size-4" aria-hidden />
-                                    ) : (
-                                        <Trash2Icon className="size-4" aria-hidden />
-                                    )}
-                                    {isReset ? 'Reset' : 'Delete'}
-                                </DropdownMenuItem>
+                                {canEditItem ? (
+                                    <DropdownMenuItem onSelect={() => onEdit(item)} disabled={isMutating}>
+                                        <PencilIcon className="size-4" aria-hidden />
+                                        Edit
+                                    </DropdownMenuItem>
+                                ) : null}
+                                {canEditItem && canRemoveItem ? <DropdownMenuSeparator /> : null}
+                                {canRemoveItem ? (
+                                    <DropdownMenuItem variant="destructive" onSelect={() => onDelete(item)} disabled={isMutating}>
+                                        {isReset ? (
+                                            <RefreshCwIcon className="size-4" aria-hidden />
+                                        ) : (
+                                            <Trash2Icon className="size-4" aria-hidden />
+                                        )}
+                                        {isReset ? 'Reset' : 'Delete'}
+                                    </DropdownMenuItem>
+                                ) : null}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>

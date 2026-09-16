@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
 import { Router, NavigationEnd } from '@angular/router';
@@ -29,17 +29,17 @@ declare let gtag: any;
   providedIn: 'root',
 })
 export class GoogleAnalyticsService {
+  private configurationService = inject(ConfigurationService);
+  private cookieService = inject(CookieService);
+  private router = inject(Router);
+
   private readonly isGAEnabled: BehaviorSubject<boolean>;
   private readonly isGALoaded: BehaviorSubject<boolean>;
   private readonly scriptGAId = 'GA_ID';
   private readonly scriptGtagId = 'Gtag_ID';
   private trackingId: string;
 
-  constructor(
-    private configurationService: ConfigurationService,
-    private cookieService: CookieService,
-    private router: Router,
-  ) {
+  constructor() {
     this.isGAEnabled = new BehaviorSubject<boolean>(undefined);
     this.isGALoaded = new BehaviorSubject<boolean>(undefined);
     this.router.events.subscribe(event => {

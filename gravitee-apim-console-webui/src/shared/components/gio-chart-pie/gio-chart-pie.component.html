@@ -18,7 +18,6 @@
 <div class="gio-chart-pie">
   <highcharts-chart
     *ngIf="input && input.length > 0; else noData"
-    [Highcharts]="Highcharts"
     [options]="chartOptions"
     (chartInstance)="chartInstance($event)"
     class="gio-chart-pie__chart"

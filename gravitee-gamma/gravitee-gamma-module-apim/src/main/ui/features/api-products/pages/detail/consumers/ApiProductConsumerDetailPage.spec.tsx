@@ -57,7 +57,7 @@ jest.mock('./api-consumers/subscription-detail/SubscriptionApiKeysCard', () => (
 // ─── Graphene UI mock ─────────────────────────────────────────────────────────
 
 jest.mock('@gravitee/graphene-core', () => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const React = require('react');
 
     return {

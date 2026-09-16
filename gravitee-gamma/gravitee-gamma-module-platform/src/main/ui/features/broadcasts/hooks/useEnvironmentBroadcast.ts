@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { listEnvironmentRoles, sendEnvironmentBroadcast } from '../services/environmentBroadcasts';
 import type { BroadcastPayload, BroadcastRecipientOption } from '../types';

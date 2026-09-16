@@ -13,25 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiService, Page } from '../../../../../projects/portal-webclient-sdk/src/lib';
+import { GvDocumentationComponent } from '../../../components/gv-documentation/gv-documentation.component';
 
 @Component({
   selector: 'app-api-documentation',
   templateUrl: './api-documentation.component.html',
-  standalone: false,
+  imports: [GvDocumentationComponent],
 })
 export class ApiDocumentationComponent implements OnInit {
+  private apiService = inject(ApiService);
+  private route = inject(ActivatedRoute);
+
   pages: Page[];
 
   pageBaseUrl: string;
-
-  constructor(
-    private apiService: ApiService,
-    private route: ActivatedRoute,
-  ) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {

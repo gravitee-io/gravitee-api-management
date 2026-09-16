@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { createRequire } from 'module';
 import { join } from 'path';
 
 import type { StorybookConfig } from '@storybook/react-webpack5';
@@ -22,7 +23,9 @@ import type { StorybookConfig } from '@storybook/react-webpack5';
  * implementation is used instead of the SDK stub. Mirror that here so stories
  * resolve modules-sdk exports the same way the running app does.
  */
-const gammaModulesSdkEntry = join(__dirname, '..', 'src/shared/gamma-modules-sdk.ts');
+// Storybook 10 loads this config as ESM, where neither __dirname nor require exist.
+const require = createRequire(import.meta.url);
+const gammaModulesSdkEntry = join(import.meta.dirname, '..', 'src/shared/gamma-modules-sdk.ts');
 
 const config: StorybookConfig = {
     framework: {

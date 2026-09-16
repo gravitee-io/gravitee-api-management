@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { renderHook } from '@testing-library/react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { useEnvironmentNotificationPermissions } from './useEnvironmentNotificationPermissions';
 

@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log.adapter.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.gravitee.repository.log.v4.model.connection.MetricsQuery;
 import io.gravitee.repository.log.v4.model.connection.NativeApiMetricKeys;
@@ -79,7 +80,7 @@ public class SearchMetricsQueryAdapter {
 
         addStatusCodeGroupsFilter(filter, mustFilterList);
 
-        addEntrypointIdsFilter(filter, mustFilterList);
+        addEntrypointFilter(filter, mustFilterList);
 
         addRequestIdsFilter(filter, mustFilterList);
 
@@ -170,7 +171,22 @@ public class SearchMetricsQueryAdapter {
         }
     }
 
-    private static void addEntrypointIdsFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+    /**
+     * An {@link MetricsQuery.Filter.EntrypointScope} replaces the ids: the default scope excludes, an explicit
+     * condition is exact. Without one, the legacy predicate applies unchanged for the Console runtime logs and
+     * the v2 environment logs: the ids as terms, plus the documents written without an entrypoint id.
+     */
+    private static void addEntrypointFilter(MetricsQuery.Filter filter, List<JsonObject> mustFilterList) {
+        var scope = filter.getEntrypointScope();
+        if (scope != null) {
+            mustFilterList.add(
+                switch (scope.kind()) {
+                    case EXCLUDING -> EntrypointScopeClause.excluding(scope.ids());
+                    case EXACTLY -> EntrypointScopeClause.exactly(scope.ids());
+                }
+            );
+            return;
+        }
         if (!CollectionUtils.isEmpty(filter.getEntrypointIds())) {
             var termsFilter = JsonObject.of(
                 "terms",

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { addTranslations, setLanguage } from '@gravitee/ui-components/src/lib/i18n';
-import { TranslateService } from '@ngx-translate/core';
+import { TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { Title } from '@angular/platform-browser';
 
 import { environment } from '../../environments/environment';
@@ -24,22 +24,28 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class TranslationService {
-  constructor(
-    private translateService: TranslateService,
-    private titleService: Title,
-  ) {}
+  private translateService = inject(TranslateService);
+  private translateLoader = inject(TranslateLoader);
+  private titleService = inject(Title);
 
   load() {
     return new Promise(resolve => {
       this.translateService.addLangs(environment.locales);
       const defaultLang = environment.locales[0];
-      this.translateService.setDefaultLang(defaultLang);
+      // ngx-translate 18 renamed the fallback language and turned the current one into a signal.
+      this.translateService.setFallbackLang(defaultLang);
       const browserLang = this.translateService.getBrowserLang();
-      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe(translations => {
-        setLanguage(this.translateService.currentLang);
-        addTranslations(this.translateService.currentLang, translations, this.translateService.currentLang);
-        this.translateService.get('site.title').subscribe(title => this.titleService.setTitle(title));
-        resolve(true);
+      this.translateService.use(environment.locales.includes(browserLang) ? browserLang : defaultLang).subscribe(() => {
+        const currentLang = this.translateService.currentLang() ?? defaultLang;
+        setLanguage(currentLang);
+        // ngx-translate 18 made use() emit the compiled dictionary, and the messageformat compiler
+        // turns every string into a function. ui-components stores what it is given and hands it back
+        // untouched, so it has to read the file itself to get plain strings.
+        this.translateLoader.getTranslation(currentLang).subscribe(translations => {
+          addTranslations(currentLang, translations, currentLang);
+          this.translateService.get('site.title').subscribe(title => this.titleService.setTitle(String(title)));
+          resolve(true);
+        });
       });
     });
   }

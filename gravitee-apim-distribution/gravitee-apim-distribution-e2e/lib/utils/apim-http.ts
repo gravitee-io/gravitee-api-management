@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import 'dotenv/config';
-import fetchApi, { HeadersInit, Response } from 'node-fetch';
 
 import { fetchEventSource } from './eventsource-fetch';
 import { ApiResponse, ApisResponse } from '@gravitee/management-v2-webclient-sdk/src/lib';
@@ -142,7 +141,7 @@ async function _fetchRestApiWithRetries<T>(attributes: Partial<RestApiRequest<T>
 }
 
 async function _fetchGateway(request: Partial<GatewayRequest>): Promise<Response> {
-  const response = await fetchApi(`${process.env.GATEWAY_BASE_URL}${request.contextPath}`, {
+  const response = await fetch(`${process.env.GATEWAY_BASE_URL}${request.contextPath}`, {
     method: request.method,
     body: request.body,
     headers: request.headers,

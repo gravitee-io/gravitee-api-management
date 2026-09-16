@@ -46,9 +46,8 @@ public class AccessibleApiScopeDomainService {
 
     /**
      * @param accessibleApis   All APIs the caller can read (from the data port).
-     * @param wantedApiTypes   API kinds relevant for the current signal (e.g. PROXY, LLM_PROXY,
-     *                         MCP_PROXY for LOGS). Extensible: adding MESSAGE or NATIVE later only
-     *                         requires widening this set.
+     * @param wantedApiTypes   API kinds the caller may see for the current request: every kind by
+     *                         default on both signals, or the kinds an {@code API_TYPE} condition names.
      * @param userApiFilter    API IDs explicitly requested by the caller (from an {@code API}
      *                         filter condition). {@code null} or empty means "all accessible".
      * @return The intersection of the three constraints. An empty {@code apiIds} means the caller

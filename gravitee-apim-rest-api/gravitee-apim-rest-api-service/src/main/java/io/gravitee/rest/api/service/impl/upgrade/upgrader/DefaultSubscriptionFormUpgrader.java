@@ -50,11 +50,12 @@ public class DefaultSubscriptionFormUpgrader implements Upgrader {
     /**
      * Bumped to re-run once more: {@link CreateDefaultSubscriptionFormUseCase#execute} is idempotent,
      * so this catches environments where the form was never created because APIM-14865 (a classloader
-     * bug) aborted EnvironmentCommandHandler before this use case was even reached.
+     * bug) aborted EnvironmentCommandHandler before this use case was even reached, and now those where
+     * moving the definition back inline found no definition left to move and deleted the form.
      */
     @Override
     public String version() {
-        return "v3";
+        return "v4";
     }
 
     @Override

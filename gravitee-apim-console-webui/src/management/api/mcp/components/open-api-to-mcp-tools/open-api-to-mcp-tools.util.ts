@@ -15,11 +15,11 @@
  */
 import angular from 'angular';
 import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
-import * as yaml from 'js-yaml';
 import { dereference, validate } from '@scalar/openapi-parser';
 import { isEmpty, snakeCase } from 'lodash';
 
 import { MCPTool, MCPToolAnnotations, MCPToolDefinition, MCPToolGatewayMapping } from '../../../../../entities/entrypoint/mcp';
+import { loadYaml } from '../../../../../util/yaml';
 
 type OpenAPIObject = OpenAPIV3.Document | OpenAPIV3_1.Document;
 type OperationObject = OpenAPIV3.OperationObject | OpenAPIV3_1.OperationObject;
@@ -307,13 +307,15 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
   let parsedSpec: OpenAPIObject;
 
   try {
-    parsedSpec = yaml.load(specString) as OpenAPIObject;
+    parsedSpec = loadYaml(specString) as OpenAPIObject;
   } catch {
     return { result: [], errors: [{ key: 'invalidFormat', message: 'Failed to parse specification' }] };
   }
 
   try {
-    await validate(parsedSpec);
+    // @scalar/openapi-parser 0.29 takes `string | UnknownObject | Filesystem`, and openapi-types'
+    // Document has no index signature, so it needs saying that a parsed spec is a plain object.
+    await validate(parsedSpec as unknown as Record<string, unknown>);
   } catch (e) {
     return { result: [], errors: [{ key: 'invalidSpec', message: (e as Error).message }] };
   }
@@ -328,7 +330,7 @@ async function convertOpenApiToMcpTools(specString: string): Promise<OpenApiToMc
 
   let api: OpenAPIObject;
   try {
-    const { schema } = await dereference(parsedSpec);
+    const { schema } = await dereference(parsedSpec as unknown as Record<string, unknown>);
     api = schema as OpenAPIObject;
   } catch (e) {
     return { result: [], errors: [{ key: 'invalidRefs', message: 'Failed to dereference OpenAPI spec: ' + (e as Error).message }] };

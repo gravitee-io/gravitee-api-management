@@ -46,6 +46,7 @@ import { CreateApiGate } from '../features/apis/pages/CreateApiGate';
 import { CreateApiProxyPage } from '../features/apis/pages/CreateApiProxyPage';
 import { AlertFormPage } from '../features/apis/pages/detail/alerts/AlertFormPage';
 import { ApiAlertsPage } from '../features/apis/pages/detail/alerts/ApiAlertsPage';
+import { ApiScoringPage } from '../features/apis/pages/detail/api-score/ApiScoringPage';
 import { ApiDetailOverviewPage } from '../features/apis/pages/detail/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../features/apis/pages/detail/ApiDetailPlaceholderPage';
 import { AuditLogsPage } from '../features/apis/pages/detail/audit-logs/AuditLogsPage';
@@ -70,6 +71,8 @@ import { ApiDynamicPropertiesPage } from '../features/apis/pages/detail/properti
 import { ApiReporterSettingsPage } from '../features/apis/pages/detail/reporter-settings/ApiReporterSettingsPage';
 import { ApiResourcesPage } from '../features/apis/pages/detail/resources/ApiResourcesPage';
 import { ApiResourceWizardPage } from '../features/apis/pages/detail/resources/ApiResourceWizardPage';
+import { ApiResponseTemplateFormPage } from '../features/apis/pages/detail/response-templates/ApiResponseTemplateFormPage';
+import { ApiResponseTemplatesPage } from '../features/apis/pages/detail/response-templates/ApiResponseTemplatesPage';
 import { UserPermissionsPage } from '../features/apis/pages/detail/user-permissions/UserPermissionsPage';
 import { ImportApiPage } from '../features/apis/pages/ImportApiPage';
 import { PolicyStudioPage } from '../features/apis/pages/policy-studio/PolicyStudioPage';
@@ -230,9 +233,15 @@ export function AppRoutes() {
                                     <Route path="new" element={<ApiNotificationFormPage />} />
                                     <Route path=":notificationKey" element={<ApiNotificationFormPage />} />
                                 </Route>
+                                <Route path="api-score" element={<ApiScoringPage />} />
                                 <Route path="entrypoints" element={<ApiEntrypointsPage />} />
                                 <Route path="cors" element={<ApiCorsPage />} />
                                 <Route path="metadata" element={<ApiMetadataPage />} />
+                                <Route path="response-templates">
+                                    <Route index element={<ApiResponseTemplatesPage />} />
+                                    <Route path="new" element={<ApiResponseTemplateFormPage />} />
+                                    <Route path=":templateKey/:contentType" element={<ApiResponseTemplateFormPage />} />
+                                </Route>
                                 <Route path="endpoints">
                                     <Route index element={<Navigate to="list" replace />} />
                                     <Route path="list" element={<ApiEndpointsPage />} />

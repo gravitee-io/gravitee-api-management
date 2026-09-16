@@ -62,11 +62,11 @@
     <gravitee-exchange.version>3.0.0</gravitee-exchange.version>
     <gravitee-expression-language.version>4.4.1</gravitee-expression-language.version>
     <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
-    <gravitee-gateway-api.version>6.3.0</gravitee-gateway-api.version>
-    <gravitee-integration-api.version>5.1.0</gravitee-integration-api.version>
+    <gravitee-gateway-api.version>6.4.0</gravitee-gateway-api.version>
+    <gravitee-integration-api.version>6.0.1</gravitee-integration-api.version>
     <gravitee-json-validation.version>3.0.2</gravitee-json-validation.version>
     <gravitee-kubernetes.version>4.0.0</gravitee-kubernetes.version>
-    <gravitee-node.version>9.10.1</gravitee-node.version>
+    <gravitee-node.version>9.11.0</gravitee-node.version>
     <gravitee-notifier-api.version>2.0.0</gravitee-notifier-api.version>
     <gravitee-platform-repository-api.version>2.0.0</gravitee-platform-repository-api.version>
     <gravitee-plugin.version>5.1.5</gravitee-plugin.version>
@@ -79,7 +79,7 @@
     <gravitee-resource-content-provider-api.version>1.0.0</gravitee-resource-content-provider-api.version>
     <gravitee-resource-oauth2-provider-api.version>1.6.0</gravitee-resource-oauth2-provider-api.version>
     <gravitee-resource-storage-api.version>1.1.0</gravitee-resource-storage-api.version>
-    <gravitee-scoring-api.version>0.7.1</gravitee-scoring-api.version>
+    <gravitee-scoring-api.version>1.0.0</gravitee-scoring-api.version>
     <gravitee-secret-api.version>3.0.0</gravitee-secret-api.version>
     <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
     <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
@@ -164,7 +164,7 @@
     <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-remote-resources-plugin.version>3.3.0</maven-remote-resources-plugin.version>
-    <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
+    <build-helper-maven-plugin.version>3.6.2</build-helper-maven-plugin.version>
     <exec-maven-plugin.version>3.5.1</exec-maven-plugin.version>
     <flatten-maven-plugin.version>1.7.2</flatten-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
@@ -233,6 +233,7 @@
                   <exclude>**/dist/**</exclude>
                   <exclude>**/.tmp/**</exclude>
                   <exclude>**/node_modules/**</exclude>
+                  <exclude>**/coverage/**</exclude>
                   <exclude>**/.*</exclude>
                   <exclude>*.js</exclude>
                   <exclude>**/.*/**</exclude>

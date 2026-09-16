@@ -118,7 +118,11 @@ export class ConsumerConfigurationSslComponent implements ControlValueAccessor, 
 
   setDisabledState(isDisabled: boolean): void {
     this.isDisabled = isDisabled;
-    isDisabled ? this.sslForm.disable({ emitEvent: false }) : this.sslForm.enable({ emitEvent: false });
+    if (isDisabled) {
+      this.sslForm.disable({ emitEvent: false });
+    } else {
+      this.sslForm.enable({ emitEvent: false });
+    }
   }
 
   private _onChange: (value: SslOptions) => void = () => ({});

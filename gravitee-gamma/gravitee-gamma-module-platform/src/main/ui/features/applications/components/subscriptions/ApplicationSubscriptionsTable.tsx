@@ -68,7 +68,7 @@ function buildColumns({
                 <>
                     <span className="text-sm">{row.original.securityType}</span>
                     {row.original.isSharedApiKey ? (
-                        <Badge variant="outline" className="ml-2 text-[10px]">
+                        <Badge variant="outline" className="ml-2">
                             Shared
                         </Badge>
                     ) : null}

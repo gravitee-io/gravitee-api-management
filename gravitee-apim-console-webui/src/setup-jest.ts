@@ -26,7 +26,8 @@ jest.mock('swagger-ui', () => jest.fn());
 
 // mocking asciidoctor for tests as it contains some JS incompatible with Jest
 // This means we will not be able to test Asciidoctor in our components tests
-jest.mock('@asciidoctor/core', () => jest.fn());
+// Since asciidoctor 4 the module exposes `convert` directly, and it returns a promise.
+jest.mock('@asciidoctor/core', () => ({ convert: (content: string) => Promise.resolve(content) }));
 
 // mocking openapi-parser for tests
 jest.mock('@scalar/openapi-parser', () => {

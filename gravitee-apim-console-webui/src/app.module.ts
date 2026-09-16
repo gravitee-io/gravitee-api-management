@@ -25,6 +25,8 @@ import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { MatMomentDateModule, provideMomentDateAdapter } from '@angular/material-moment-adapter';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import * as Highcharts from 'highcharts';
+import { provideHighcharts } from 'highcharts-angular';
 
 import { currentUserProvider, ajsScopeProvider } from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';
@@ -58,6 +60,11 @@ import { GioPaginatorIntl } from './shared/paginator/gio-paginator-intl';
     GioFormJsonSchemaExtendedModule,
   ],
   providers: [
+    // highcharts-angular 5 takes the Highcharts instance from a provider rather than from a
+    // [Highcharts] input on each chart. The instance is handed over explicitly: left to its
+    // default the library would import 'highcharts/esm/highcharts', a second copy of the
+    // namespace that the modules registered elsewhere (highcharts/modules/map) never reach.
+    provideHighcharts({ instance: () => Promise.resolve(Highcharts) }),
     httpInterceptorProviders,
     currentUserProvider,
     ajsScopeProvider,

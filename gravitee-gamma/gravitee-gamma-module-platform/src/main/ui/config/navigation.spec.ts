@@ -21,6 +21,7 @@ import {
     MailIcon,
     MessageSquareIcon,
     SettingsIcon,
+    ShieldCheckIcon,
     ShieldIcon,
     UsersIcon,
     UsersRoundIcon,
@@ -73,9 +74,10 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'templates')?.icon).toBe(FileTextIcon);
     });
 
-    it('places Applications, Integrations, Metadata, Dictionaries, Shared Policy Groups, then Broadcasts under Environment / APIs & Assets', () => {
+    it('places Applications, API Score, Integrations, Metadata, Dictionaries, Shared Policy Groups, then Broadcasts under Environment / APIs & Assets', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual([
             'applications',
+            'api-score',
             'integrations',
             'metadata',
             'dictionaries',
@@ -84,11 +86,13 @@ describe('platform navigation config', () => {
         ]);
         const assetItems =
             NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'APIs & Assets')?.items ?? [];
+        expect(assetItems.find(item => item.key === 'api-score')?.icon).toBe(ShieldCheckIcon);
+        expect(assetItems.find(item => item.key === 'api-score')?.title).toBe('API Score');
         expect(assetItems.find(item => item.key === 'broadcasts')?.icon).toBe(MessageSquareIcon);
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, Security Plan Types, and Audit under Environment / System & Security', () => {
+    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
             'gateways',
@@ -96,7 +100,10 @@ describe('platform navigation config', () => {
             'notification-settings',
             'api-health-check',
             'environment-smtp',
+            'environment-cors',
+            'api-logging',
             'security-plan-types',
+            'client-registration',
             'environment-audit',
         ]);
         const systemItems =
@@ -106,6 +113,13 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
+        expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
+    });
+
+    it('declares the client-registration route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('client-registration');
+        expect(ROUTES['client-registration']).toEqual({ path: 'client-registration', label: 'Client Registration' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'client-registration')).toBe('environment');
     });
 
     it('declares the api-health-check route in platform routing config', () => {
@@ -173,6 +187,12 @@ describe('platform navigation config', () => {
         expect(findAlerts(lockNavItem([...NAV_SECTIONS], 'alerts', false))?.access).toBeUndefined();
     });
 
+    it('declares the api-score route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('api-score');
+        expect(ROUTES['api-score']).toEqual({ path: 'api-score', label: 'API Score' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'api-score')).toBe('environment');
+    });
+
     it('declares the integrations route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('integrations');
         expect(ROUTES.integrations).toEqual({ path: 'integrations', label: 'Integrations' });
@@ -234,6 +254,11 @@ describe('platform navigation config', () => {
     it('declares the environment-smtp route in platform routing config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-smtp');
         expect(ROUTES['environment-smtp']).toEqual({ path: 'environment/smtp', label: 'SMTP' });
+    });
+
+    it('declares the environment-cors route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('environment-cors');
+        expect(ROUTES['environment-cors']).toEqual({ path: 'environment/cors', label: 'CORS' });
     });
 
     it('declares the authentication route in platform routing config', () => {

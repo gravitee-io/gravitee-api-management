@@ -18,7 +18,7 @@ const PortalThemeComponentAjs: ng.IComponentOptions = {
     views: '<',
   },
   controller: 'PortalThemeController',
-  template: require('html-loader!./portalTheme.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./portalTheme.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
 };
 
 export default PortalThemeComponentAjs;

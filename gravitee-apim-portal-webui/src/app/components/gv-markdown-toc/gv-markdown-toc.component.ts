@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit, OnDestroy, HostListener, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef, AfterViewInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { lexer, Parser, Renderer, TextRenderer, Tokens } from 'marked';
+import { lexer, Parser, TextRenderer, Tokens } from 'marked';
 import { Subscription } from 'rxjs';
 import GithubSlugger from 'github-slugger';
+import { NgIf, NgTemplateOutlet, NgFor, NgClass } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { PageService } from '../../services/page.service';
 import { ScrollService } from '../../services/scroll.service';
@@ -27,9 +29,15 @@ import { GvDocumentationComponent } from '../gv-documentation/gv-documentation.c
   selector: 'app-gv-markdown-toc',
   templateUrl: './gv-markdown-toc.component.html',
   styleUrls: ['./gv-markdown-toc.component.css'],
-  standalone: false,
+  imports: [NgIf, NgTemplateOutlet, NgFor, NgClass, TranslatePipe],
 })
 export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit {
+  private route = inject(ActivatedRoute);
+  private pageService = inject(PageService);
+  private router = inject(Router);
+  private scrollService = inject(ScrollService);
+  private element = inject(ElementRef);
+
   tocList: TocModel[];
   currentAnchor: string;
   pageServiceSubscription: Subscription;
@@ -40,14 +48,6 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   textRenderer = new TextRenderer();
   /* ****************** */
   private scrollInProgress: boolean;
-
-  constructor(
-    private route: ActivatedRoute,
-    private pageService: PageService,
-    private router: Router,
-    private scrollService: ScrollService,
-    private element: ElementRef,
-  ) {}
 
   ngOnInit(): void {
     this.route.fragment.subscribe(anchor => {
@@ -115,11 +115,11 @@ export class GvMarkdownTocComponent implements OnInit, OnDestroy, AfterViewInit 
   }
 
   _computeText(item: any) {
-    return this.parser.parseInline(item.tokens, this.textRenderer as Renderer);
+    return this.parser.parseInline(item.tokens, this.textRenderer);
   }
 
   _computeAnchor(item: any) {
-    return this.slugger.slug(this._unescape(this.parser.parseInline(item.tokens, this.textRenderer as Renderer)));
+    return this.slugger.slug(this._unescape(this.parser.parseInline(item.tokens, this.textRenderer)));
   }
 
   _findParentNode(tokens: TocModel[], child: TocModel, childIndex: number): any {

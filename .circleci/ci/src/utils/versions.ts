@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import * as fs from 'fs';
+import * as path from 'path';
 import { isBlank } from './string';
 import { CircleCIEnvironment } from '../pipelines';
 
@@ -83,6 +84,105 @@ export function computeApimVersion(environment: CircleCIEnvironment): string {
   return `${revision}${sha1}${changelist}`;
 }
 
+/**
+ * The core version the distribution assembles, read from the pom beside the root one.
+ *
+ * The two reactors release apart, so this is the number the core's artefacts carry — `4.13.1` under
+ * a product `4.13.4` — and anything fetching them by version needs it rather than the product's.
+ * Read here, at generation time, because the tag is checked out; the release itself refuses a pin
+ * it cannot assemble, through Maven, before it builds anything.
+ */
+export function corePin(environment: CircleCIEnvironment): string {
+  const distributionPom = `${path.dirname(environment.apimVersionPath)}/gravitee-apim-distribution/pom.xml`;
+  if (!fs.existsSync(distributionPom)) {
+    throw new Error('corePin - No file at specified path: ' + distributionPom);
+  }
+
+  const pin = fs.readFileSync(distributionPom, 'utf8').match(/<apim\.core\.version>(.*?)<\/apim\.core\.version>/);
+  if (pin === null || isBlank(pin[1])) {
+    throw new Error('corePin - No <apim.core.version> in ' + distributionPom);
+  }
+  return pin[1];
+}
+
+/** A server keeps talking to four client lines: its own and the three before it. */
+const BRIDGE_CLIENT_LINES = 4;
+
+/** Newest first, comparing numbers rather than strings, so `4.10` outranks `4.9`. Missing components count as 0. */
+const newestFirst = (left: string, right: string): number => {
+  const [a, b] = [left.split('.').map(Number), right.split('.').map(Number)];
+  for (let index = 0; index < Math.max(a.length, b.length); index++) {
+    if ((b[index] ?? 0) !== (a[index] ?? 0)) {
+      return (b[index] ?? 0) - (a[index] ?? 0);
+    }
+  }
+  return 0;
+};
+
+/** The lines that have shipped their first release, most recent first; the four newest are the supported ones. */
+const releasedLines = (tags: string[]): string[] => {
+  const lines = tags.filter((tag) => /^\d+\.\d+\.0$/.test(tag)).map((tag) => tag.split('.').slice(0, 2).join('.'));
+  return [...new Set(lines)].sort(newestFirst);
+};
+
+/**
+ * Every image a bridge compatibility run tests the server against.
+ *
+ * Four client lines — its own and the three before it — and two clients per line: the line's first
+ * release, and its last. What "last" means depends on whether the line is still supported: a
+ * supported one keeps moving, and its tip lives on our registry as `<line>.x-latest`; a retired one
+ * stopped, and its last is the public `graviteeio@<line>` tag. A line a freeze has just cut has
+ * neither — only its branch tip. Its own line is named after the branch that carries it: `<line>.x-latest`
+ * once that support branch exists, `master-latest` until then. Read from the branches rather than from
+ * the branch the pipeline runs on, so a pull request targeting `4.12.x` tests against 4.12's images and
+ * not master's.
+ *
+ * The list used to be written out by hand, once per branch, which made it two files to edit at every
+ * code freeze and five more at every retirement — and the linter reflows the array as soon as its
+ * length changes, so no script could edit it twice. Derived, it follows a release on its own.
+ *
+ * One window is knowingly left open: a line counts as released the moment its `<line>.0` tag is on
+ * origin, and pushing that tag is what *starts* the release that publishes the images. That gap is
+ * around thirty minutes, and bridge compatibility runs are scheduled — 02:00 and 03:00 UTC on a
+ * Monday — so landing inside it would take a release running at that hour. Closing it would mean
+ * asking the registry at config-generation time, on a host we do not control, from the job that
+ * decides whether anything runs at all.
+ *
+ * @param version the version in the tree, as `computeApimVersion` reads it
+ * @param supportBranches the support branches the repository carries
+ * @param releasedTags every tag the repository carries, which `index.ts` reads for this action only
+ */
+export function bridgeClientTags(version: string, supportBranches: string[] | undefined, releasedTags: string[] | undefined): string[] {
+  if (releasedTags === undefined || supportBranches === undefined) {
+    throw new Error('bridgeClientTags - the branches and tags are missing; index.ts reads them for this action only');
+  }
+
+  const { major, minor } = parse(version).version;
+  if (Number(minor) < BRIDGE_CLIENT_LINES - 1) {
+    throw new Error(
+      `bridgeClientTags - ${major}.${minor} has fewer than three previous minors in its own major, and which versions of the previous major it should keep talking to is not something a version number answers. List them here.`,
+    );
+  }
+
+  const released = releasedLines(releasedTags);
+  const supported = released.slice(0, BRIDGE_CLIENT_LINES);
+
+  return Array.from({ length: BRIDGE_CLIENT_LINES }, (_, index) => `${major}.${Number(minor) - index}`).flatMap((line, index) => {
+    // A line's images are published under the branch that carries it, and until it is cut that
+    // branch is master.
+    if (index === 0 && !supportBranches.includes(`${line}.x`)) {
+      return ['master-latest'];
+    }
+    // Between a freeze and the first release of the line it cut, that line has a branch and nothing
+    // else: no first release to test against, and a `graviteeio@` tag that does not exist yet.
+    if (!released.includes(line)) {
+      return [`${line}.x-latest`];
+    }
+    const last = supported.includes(line) ? `${line}.x-latest` : `graviteeio@${line}`;
+    return [last, `graviteeio@${line}.0`];
+  });
+}
+
 function parsePomXml(pomXml: string) {
   const revisionMatch = pomXml.match(/<revision>(.*?)<\/revision>/);
   const sha1Match = pomXml.match(/<sha1>(.*?)<\/sha1>/);
@@ -99,4 +199,42 @@ export function validateGraviteeioVersion(graviteeioVersion: string) {
   if (isBlank(graviteeioVersion)) {
     throw new Error('Graviteeio version is not defined - Please export CI_GRAVITEEIO_VERSION environment variable');
   }
+}
+
+/** A released version with no qualifier. Prefixed tags — the core lane's — never match. */
+const FINAL_VERSION = /^\d+\.\d+\.\d+$/;
+
+/**
+ * Whether `version` is the newest final release the repository has produced.
+ *
+ * This replaces the `--latest` flag. A distribution release is started by pushing a tag, and a
+ * tag-triggered pipeline receives no parameter, so which images take `latest` cannot be answered at
+ * the keyboard any more — it is read from what has already been released. That is also one fewer
+ * thing to get wrong: the flag was answered from memory, and a release from an older support line
+ * only had a prompt standing between it and overwriting `latest`.
+ *
+ * A qualified version is never the latest: an alpha must not become what `docker pull` hands to
+ * someone who names no tag.
+ * @param version the version being released
+ * @param tags every tag the repository carries, raw
+ */
+export function isLatestRelease(version: string, tags: string[]): boolean {
+  if (!FINAL_VERSION.test(version)) {
+    return false;
+  }
+
+  return !tags.filter((tag) => FINAL_VERSION.test(tag)).some((candidate) => newestFirst(candidate, version) < 0);
+}
+
+/**
+ * The support line a version belongs to — `4.13.0-alpha.1` comes from `4.13.x`.
+ *
+ * A tag-triggered pipeline has no branch: CircleCI leaves `CIRCLE_BRANCH` empty, and a job that
+ * reads it passes an empty string onward, which the other end takes for a directory or a cache key.
+ * The release commands already derive the branch from the version this way, so the lanes a tag
+ * starts do the same rather than trusting a value that is never there.
+ */
+export function supportLineOf(version: string): string {
+  const { version: parsed } = parse(version);
+  return `${parsed.major}.${parsed.minor}.x`;
 }

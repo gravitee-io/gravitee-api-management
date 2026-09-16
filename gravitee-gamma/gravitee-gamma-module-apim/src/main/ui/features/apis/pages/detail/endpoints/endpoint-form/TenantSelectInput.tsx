@@ -75,7 +75,7 @@ export function TenantSelectInput({ selectedKeys, tenants, isLoading, disabled, 
                         <span className="text-muted-foreground text-sm flex-1">{disabled ? '—' : 'Select tenants…'}</span>
                     ) : (
                         selectedTenants.map(t => (
-                            <Badge key={t.key} variant="secondary" style={{ fontSize: '11px', gap: '2px' }}>
+                            <Badge key={t.key} variant="secondary" className="gap-0.5">
                                 {t.name}
                                 {!disabled && (
                                     <button

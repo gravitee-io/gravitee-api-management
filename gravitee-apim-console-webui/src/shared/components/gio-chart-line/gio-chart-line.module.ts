@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { HighchartsChartModule } from 'highcharts-angular';
+import { HighchartsChartComponent } from 'highcharts-angular';
 import { CommonModule } from '@angular/common';
 
 import { GioChartLineComponent } from './gio-chart-line.component';
 
 @NgModule({
-  imports: [HighchartsChartModule, CommonModule],
+  imports: [HighchartsChartComponent, CommonModule],
   declarations: [GioChartLineComponent],
   exports: [GioChartLineComponent],
 })

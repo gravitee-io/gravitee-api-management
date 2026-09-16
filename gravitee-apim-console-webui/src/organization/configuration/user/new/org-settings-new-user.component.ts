@@ -88,7 +88,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         this.userForm
           .get('type')
           ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
-          // eslint-disable-next-line rxjs/no-nested-subscribe
+          // eslint-disable-next-line rxjs-x/no-nested-subscribe
           .subscribe(type => {
             this.userForm.removeControl('firstName');
             this.userForm.removeControl('lastName');
@@ -107,7 +107,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
         this.userForm
           .get('source')
           ?.valueChanges.pipe(takeUntil(this.unsubscribe$))
-          // eslint-disable-next-line rxjs/no-nested-subscribe
+          // eslint-disable-next-line rxjs-x/no-nested-subscribe
           .subscribe(source => {
             if (source !== this.graviteeIdp.id) {
               this.userForm.get('sourceId').addValidators(Validators.required);

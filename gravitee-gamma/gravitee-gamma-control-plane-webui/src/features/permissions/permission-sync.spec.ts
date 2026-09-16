@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService } from '@gravitee/gamma-modules-sdk';
 import { waitFor } from '@testing-library/react';
+
+import { permissionService } from '@gravitee/gamma-modules-sdk';
 
 import { startPermissionSync } from './permission-sync';
 import { buildEnvironment, buildUser, TEST_MANAGEMENT_BASE } from '../../testing/factories';

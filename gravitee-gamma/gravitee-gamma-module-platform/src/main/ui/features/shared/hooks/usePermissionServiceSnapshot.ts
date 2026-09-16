@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService } from '@gravitee/gamma-modules-sdk';
 import { useSyncExternalStore } from 'react';
+
+import { permissionService } from '@gravitee/gamma-modules-sdk';
 
 /** Re-renders when {@link permissionService} loads or clears a scope. */
 export function usePermissionServiceSnapshot(): number {

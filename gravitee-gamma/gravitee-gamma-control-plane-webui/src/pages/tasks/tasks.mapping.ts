@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { TaskArea, TaskCategory, TaskEntity, TaskIconKey, TaskMetadata, TaskType, TaskView } from './tasks.types';
+import type { PromotionReviewData, TaskArea, TaskCategory, TaskEntity, TaskIconKey, TaskMetadata, TaskType, TaskView } from './tasks.types';
 
 const CATEGORY_BY_TYPE: Record<TaskType, TaskCategory> = {
     SUBSCRIPTION_APPROVAL: 'SUBSCRIPTION',
@@ -113,6 +113,32 @@ const EMPTY_COUNTS: Record<TaskCategory, number> = {
 
 export function categoryOf(type: TaskType): TaskCategory {
     return CATEGORY_BY_TYPE[type];
+}
+
+/** Pulls the typed review fields out of a `PROMOTION_APPROVAL` task's untyped `data` bag. */
+export function promotionDataOf(entity: TaskEntity): PromotionReviewData | undefined {
+    if (entity.type !== 'PROMOTION_APPROVAL') {
+        return undefined;
+    }
+    const { data } = entity;
+    const promotionId = str(data.promotionId);
+    const apiName = str(data.apiName);
+    const sourceEnvironmentName = str(data.sourceEnvironmentName);
+    const targetEnvironmentName = str(data.targetEnvironmentName);
+    if (!promotionId || !apiName || !sourceEnvironmentName || !targetEnvironmentName) {
+        return undefined;
+    }
+    return {
+        promotionId,
+        apiName,
+        sourceEnvironmentName,
+        targetEnvironmentName,
+        targetApiId: str(data.targetApiId),
+        isApiUpdate: data.isApiUpdate === true,
+        authorDisplayName: str(data.authorDisplayName) ?? 'Unknown requester',
+        authorEmail: str(data.authorEmail),
+        authorPicture: str(data.authorPicture),
+    };
 }
 
 export function countByCategory(tasks: readonly TaskView[]): Record<TaskCategory, number> {

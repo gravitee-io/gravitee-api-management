@@ -3,7 +3,7 @@ import { unlinkSync } from "fs";
 
 export default defineConfig({
     projectId: "88vnc3",
-    env: {
+    expose: {
         failOnStatusCode: false,
         api_publisher_user_login: "api1",
         api_publisher_user_password: "api1",

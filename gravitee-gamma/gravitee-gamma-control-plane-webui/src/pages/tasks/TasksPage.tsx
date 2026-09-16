@@ -21,7 +21,7 @@ import { countByCategory } from './tasks.mapping';
 import { useTasks } from './useTasks';
 
 export function TasksPage() {
-    const { tasks, totalCount, loading, error, reload } = useTasks();
+    const { tasks, totalCount, loading, error, reload, processPromotion } = useTasks();
 
     const counts = useMemo(() => countByCategory(tasks), [tasks]);
     const initialLoading = loading && tasks.length === 0;
@@ -41,7 +41,7 @@ export function TasksPage() {
                 promotions={initialLoading ? null : counts.API_PROMOTION}
             />
 
-            <TasksBody tasks={tasks} loading={loading} error={error} reload={reload} />
+            <TasksBody tasks={tasks} loading={loading} error={error} reload={reload} onProcessPromotion={processPromotion} />
         </div>
     );
 }

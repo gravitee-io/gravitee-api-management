@@ -17,12 +17,7 @@
 -->
 <div class="gio-chart-bar">
   @if (data?.length > 0) {
-    <highcharts-chart
-      [Highcharts]="Highcharts"
-      [options]="chartOptions"
-      (chartInstance)="chartInstance($event)"
-      class="gio-chart-bar__chart"
-    />
+    <highcharts-chart [options]="chartOptions" (chartInstance)="chartInstance($event)" class="gio-chart-bar__chart" />
   } @else {
     <div class="gio-chart-bar__no-data">
       <div class="mat-body">No data to display</div>

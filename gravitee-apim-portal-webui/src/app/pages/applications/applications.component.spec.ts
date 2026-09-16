@@ -35,10 +35,9 @@ describe('ApplicationsComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ApplicationsComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       teardown: { destroyAfterEach: false },
-      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule],
+      imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule, ApplicationsComponent],
       providers: [
         {
           provide: ActivatedRoute,

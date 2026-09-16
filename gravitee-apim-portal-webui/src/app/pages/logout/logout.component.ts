@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-logout',
   template: ``,
-  standalone: false,
 })
 export class LogoutComponent implements OnInit {
-  constructor(private authService: AuthService) {}
+  private authService = inject(AuthService);
 
   ngOnInit() {
     this.authService.logout();

@@ -24,7 +24,6 @@ import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
 import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { adminAuthHeader, envId, managementV2BaseUrl, orgId } from '@gravitee/utils/api-products';
-import fetch from 'node-fetch';
 import { ApiProduct, createApiProduct, deleteApiProduct, getApiProduct, listMembers } from './api-product-group-helpers';
 
 const v1GroupsResourceAsAdmin = new GroupsApi(forManagementAsAdminUser());

@@ -17,7 +17,7 @@ import { Command, Config, Job, commands, reusable } from '../../circleci-config'
 import { OpenJdkNodeExecutor } from '../../executors';
 import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
-import { mavenParallelism } from '../../utils';
+import { computeApimVersion, mavenParallelism } from '../../utils';
 
 export class CommunityBuildBackendJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -40,10 +40,10 @@ export class CommunityBuildBackendJob {
       new commands.Run({
         // The distribution left the product reactor, so the root build above no longer reaches it.
         // Without this step the job stopped answering the question it exists for — whether an
-        // outside contributor can build what we ship. engine-snapshot points it at the engine just
-        // installed rather than at the pinned release.
+        // outside contributor can build what we ship. The core version is passed explicitly so it
+        // assembles the one just installed rather than the pinned release.
         name: 'Build distribution',
-        command: `mvn -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -Pengine-snapshot -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')}`,
+        command: `mvn -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -Dapim.core.version=${computeApimVersion(environment)} -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')}`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName: jobName }),

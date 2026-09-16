@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { NgIf, NgFor } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import '@gravitee/ui-components/wc/gv-file-upload';
 
 import { AppComponent } from '../../../app.component';
@@ -22,6 +24,7 @@ import { CurrentUserService } from '../../../services/current-user.service';
 import { CustomUserFields, User, UserService, UsersService } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { EventService, GvEvent } from '../../../services/event.service';
 import { NotificationService } from '../../../services/notification.service';
+import { GvFormControlDirective } from '../../../directives/gv-form-control.directive';
 
 type UserFormType = FormGroup<{
   last_name: FormControl<string>;
@@ -34,9 +37,17 @@ type UserFormType = FormGroup<{
   selector: 'app-user-account',
   templateUrl: './user-account.component.html',
   styleUrls: ['./user-account.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, NgFor, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class UserAccountComponent implements OnInit, OnDestroy {
+  private currentUserService = inject(CurrentUserService);
+  private userService = inject(UserService);
+  private usersService = inject(UsersService);
+  private notificationService = inject(NotificationService);
+  private formBuilder = inject(FormBuilder);
+  private eventService = inject(EventService);
+
   private subscription: any;
   public currentUser: User;
   public userForm: UserFormType;
@@ -49,15 +60,6 @@ export class UserAccountComponent implements OnInit, OnDestroy {
   // boolean used to display the form only once the FormGroup is completed using the CustomUserFields.
   canDisplayForm = false;
   avatarHasChanged = false;
-
-  constructor(
-    private currentUserService: CurrentUserService,
-    private userService: UserService,
-    private usersService: UsersService,
-    private notificationService: NotificationService,
-    private formBuilder: FormBuilder,
-    private eventService: EventService,
-  ) {}
 
   ngOnInit() {
     this.subscription = this.currentUserService.get().subscribe(user => {

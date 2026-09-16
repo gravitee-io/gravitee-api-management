@@ -16,7 +16,9 @@
 package io.gravitee.repository.log.v4.model.connection;
 
 import io.gravitee.common.http.HttpMethod;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
@@ -47,6 +49,11 @@ public class MetricsQuery {
         private List<StatusRange> statusRanges;
         private Set<String> statusCodeGroups;
         private Set<String> entrypointIds;
+        /**
+         * Replaces {@link #entrypointIds} when present. Absent, the legacy predicate applies: the ids as terms plus
+         * the field-missing fallback, kept as is for the Console runtime logs and the v2 environment logs.
+         */
+        private EntrypointScope entrypointScope;
         private Set<String> apiIds;
         private Set<String> apiProductIds;
         private Set<String> requestIds;
@@ -65,6 +72,32 @@ public class MetricsQuery {
         private Set<String> nativeClientSoftwareVersions;
         private Set<String> failureOrigins;
         private Set<String> tenants;
+
+        /**
+         * Which documents an entrypoint predicate selects: everything but the given ids (a default scope, which by
+         * construction also keeps documents without an entrypoint id), or exactly the given values, where
+         * {@link io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints#NO_ENTRYPOINT_VALUE}
+         * stands for documents without an entrypoint id.
+         */
+        public record EntrypointScope(Kind kind, List<String> ids) {
+            public EntrypointScope {
+                Objects.requireNonNull(kind, "An entrypoint scope needs a kind");
+                ids = List.copyOf(ids);
+            }
+
+            public enum Kind {
+                EXCLUDING,
+                EXACTLY,
+            }
+
+            public static EntrypointScope excluding(Collection<String> ids) {
+                return new EntrypointScope(Kind.EXCLUDING, List.copyOf(ids));
+            }
+
+            public static EntrypointScope exactly(Collection<String> values) {
+                return new EntrypointScope(Kind.EXACTLY, List.copyOf(values));
+            }
+        }
 
         @Data
         @Builder

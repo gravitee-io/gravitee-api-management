@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQueries } from '@tanstack/react-query';
 import { useMemo } from 'react';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { getGroupMembers } from '../services/applicationMembers';
 import type { EnvironmentGroup, GroupMember } from '../types/applicationMembers.types';

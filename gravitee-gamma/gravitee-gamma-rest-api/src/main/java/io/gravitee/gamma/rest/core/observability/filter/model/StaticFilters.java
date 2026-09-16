@@ -72,7 +72,8 @@ public enum StaticFilters {
     ZONE("Zone", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
 
     // Every API kind but not the decision scope: a decision document carries no entrypoint, so the
-    // decision search cannot apply this and would refuse it.
+    // decision search cannot apply this and would refuse it. Exact on both signals: without it, each
+    // signal applies the registry's fail-open default; see NO_ENTRYPOINT_VALUE for unattributed requests.
     ENTRYPOINT("Entrypoint", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.API_KINDS),
 
     // --- HTTP -----------------------------------------------------------------------------------
@@ -307,6 +308,16 @@ public enum StaticFilters {
 
     /** KEYWORD filters whose store holds no value pool to list: the values endpoint refuses them with a 400. */
     private static final Set<String> WITHOUT_VALUE_LISTING = Set.of(NATIVE_TOPIC.name(), NATIVE_OPERATION.name());
+
+    /**
+     * Synthetic {@link #ENTRYPOINT} value for documents written without an entrypoint id: requests refused
+     * before an entrypoint was selected on gateways predating report-time attribution, and requests no
+     * entrypoint matches. Offered by the values endpoint after the stored ids; both signals translate it to a
+     * field-missing predicate. Same token as the platform registry, which a test pins.
+     */
+    public static final String NO_ENTRYPOINT_VALUE = "(none)";
+
+    public static final String NO_ENTRYPOINT_LABEL = "No entrypoint (refused before routing)";
 
     public static Set<String> withoutValueListing() {
         return WITHOUT_VALUE_LISTING;

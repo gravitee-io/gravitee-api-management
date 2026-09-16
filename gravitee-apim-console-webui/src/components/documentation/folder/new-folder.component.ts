@@ -29,6 +29,6 @@ export const DocumentationNewFolderComponent: ng.IComponentOptions = {
     page: '=',
     onSave: '&',
   },
-  template: require('html-loader!./new-folder.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./new-folder.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: DocumentationNewFolderComponentController,
 };

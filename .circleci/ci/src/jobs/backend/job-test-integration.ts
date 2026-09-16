@@ -16,8 +16,16 @@
 import { Command, Config, Job, commands, reusable } from '../../circleci-config';
 import { config } from '../../config';
 import { UbuntuExecutor } from '../../executors';
-import { NotifyOnFailureCommand, RestoreMavenJobCacheCommand, SaveMavenJobCacheCommand, withJdk } from '../../commands';
+import {
+  AzureArtifactsTokenCommand,
+  NotifyOnFailureCommand,
+  RestoreMavenJobCacheCommand,
+  SaveMavenJobCacheCommand,
+  withJdk,
+} from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
+import { computeApimVersion } from '../../utils';
+import { assemblesPinnedCore } from '../../workflows/groups/changed-files';
 
 export class TestIntegrationJob {
   private static jobName = 'job-test-integration';
@@ -26,16 +34,22 @@ export class TestIntegrationJob {
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
     const notifyOnFailureCmd = NotifyOnFailureCommand.get(dynamicConfig, environment);
+    const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCmd);
+    dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
     dynamicConfig.addReusableCommand(saveMavenJobCacheCmd);
     dynamicConfig.addReusableCommand(notifyOnFailureCmd);
     const executor = UbuntuExecutor.create();
+
+    // Same rule as job-build-backend: a distribution-only change is tested against the core it pins.
+    const coreVersion = assemblesPinnedCore(environment.changedFiles) ? '' : ` -Dapim.core.version=${computeApimVersion(environment)}`;
 
     const steps: Command[] = [
       new commands.Checkout(),
       ...withJdk(dynamicConfig, executor),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName: TestIntegrationJob.jobName }),
+      new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.cache.Restore({
         keys: [`${config.cache.prefix}-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}`],
       }),
@@ -59,7 +73,7 @@ echo "Following test files will run on this executor:"
 cat tests-to-run
 
 # Run tests with rerunFailingTestsCount=3 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
-mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu -Pengine-snapshot -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300`,
+mvn --fail-fast -s ../../.gravitee.settings.xml test --no-transfer-progress -nsu${coreVersion} -Dskip.validation=true -Dgravitee.archrules.skip=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=3 -Dsurefire.exitTimeout=300`,
       }),
       new commands.Run({
         name: 'Save test results',

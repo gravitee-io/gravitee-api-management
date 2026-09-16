@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+// The object exists only to derive the type below; typescript-eslint 8 counts that as unused.
+// eslint-disable-next-line unused-imports/no-unused-vars
 const PageTypeEnum = {
   ASCIIDOC: 'ASCIIDOC',
   ASYNCAPI: 'ASYNCAPI',

@@ -122,7 +122,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
         this.formSettings
           .get('management.userCreation.enabled')
           .valueChanges.pipe(takeUntil(this.unsubscribe$))
-          // eslint-disable-next-line rxjs/no-nested-subscribe
+          // eslint-disable-next-line rxjs-x/no-nested-subscribe
           .subscribe(checked => {
             if (checked) {
               this.formSettings.get('management.automaticValidation.enabled').enable();
@@ -146,7 +146,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
           { name: 'properties.sslTrust' },
           { name: 'brandedSenders', readonlyKey: 'email.branded_senders' },
         ];
-        // eslint-disable-next-line rxjs/no-nested-subscribe
+        // eslint-disable-next-line rxjs-x/no-nested-subscribe
         this.formSettings.get('email.enabled').valueChanges.subscribe(checked => {
           emailControls
             .filter(({ name, readonlyKey }) => !isReadonlySetting(this.settings, readonlyKey ?? `email.${name}`))

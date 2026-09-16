@@ -17,6 +17,7 @@ import type { ModuleRouteConfig } from '@gravitee/gamma-modules-sdk/routing';
 
 export const ROUTE_KEYS: readonly string[] = [
     'applications',
+    'api-score',
     'integrations',
     'users',
     'groups',
@@ -28,6 +29,7 @@ export const ROUTE_KEYS: readonly string[] = [
     'shared-policy-groups',
     'broadcasts',
     'security-plan-types',
+    'client-registration',
     'api-health-check',
     'gateways',
     'tenants',
@@ -38,10 +40,12 @@ export const ROUTE_KEYS: readonly string[] = [
     'organization-audit',
     'environment-audit',
     'management-and-schedulers',
-    'cors',
+    'environment-cors',
     'environment-smtp',
+    'cors',
     'smtp',
     'templates',
+    'api-logging',
     'no-access',
 ];
 export type RouteKey = (typeof ROUTE_KEYS)[number];
@@ -50,6 +54,7 @@ export const DEFAULT_ROUTE_KEY: RouteKey = 'applications';
 
 export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: string }> = {
     applications: { path: 'applications', label: 'Applications' },
+    'api-score': { path: 'api-score', label: 'API Score' },
     integrations: { path: 'integrations', label: 'Integrations' },
     users: { path: 'users', label: 'Users' },
     groups: { path: 'groups', label: 'Groups' },
@@ -57,6 +62,7 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'access-management': { path: 'access-management', label: 'Access Management' },
     authentication: { path: 'authentication', label: 'Authentication' },
     'security-plan-types': { path: 'security-plan-types', label: 'Security Plan Types' },
+    'client-registration': { path: 'client-registration', label: 'Client Registration' },
     'api-health-check': { path: 'api-health-check', label: 'API Health Check' },
     metadata: { path: 'metadata', label: 'Metadata' },
     dictionaries: { path: 'dictionaries', label: 'Dictionaries' },
@@ -73,8 +79,10 @@ export const ROUTES: Record<RouteKey, { readonly path: string; readonly label: s
     'management-and-schedulers': { path: 'management-and-schedulers', label: 'Management & Schedulers' },
     cors: { path: 'cors', label: 'CORS' },
     smtp: { path: 'smtp', label: 'SMTP' },
+    'environment-cors': { path: 'environment/cors', label: 'CORS' },
     'environment-smtp': { path: 'environment/smtp', label: 'SMTP' },
     templates: { path: 'templates', label: 'Templates' },
+    'api-logging': { path: 'api-logging', label: 'API Logging' },
     'no-access': { path: 'no-access', label: 'No access' },
 };
 

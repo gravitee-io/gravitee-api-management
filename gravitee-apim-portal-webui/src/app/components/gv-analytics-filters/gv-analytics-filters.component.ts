@@ -13,9 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  inject,
+} from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { NgIf, NgFor } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ApplicationService, Dashboard } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { AnalyticsService } from '../../services/analytics.service';
@@ -27,6 +40,7 @@ import '@gravitee/ui-components/wc/gv-select';
 import '@gravitee/ui-components/wc/gv-option';
 import '@gravitee/ui-components/wc/gv-date-picker';
 import { NavRouteService } from '../../services/nav-route.service';
+import { GvFormControlDirective } from '../../directives/gv-form-control.directive';
 
 type AnalyticsFormType = FormGroup<{
   timeframe: FormControl<string>;
@@ -45,9 +59,17 @@ type AnalyticsFormType = FormGroup<{
   selector: 'app-gv-analytics-filters',
   templateUrl: './gv-analytics-filters.component.html',
   styleUrls: ['./gv-analytics-filters.component.css'],
-  standalone: false,
+  imports: [ReactiveFormsModule, GvFormControlDirective, NgIf, NgFor, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDestroy {
+  private router = inject(Router);
+  private formBuilder = inject(FormBuilder);
+  private applicationService = inject(ApplicationService);
+  route = inject(ActivatedRoute);
+  analyticsService = inject(AnalyticsService);
+  private navRouteService = inject(NavRouteService);
+
   @Input() dashboard: Dashboard;
   @Input() withURI: boolean;
   @Input() link: { label: string; relativePath: string; icon: string };
@@ -62,15 +84,6 @@ export class GvAnalyticsFiltersComponent implements OnInit, AfterViewInit, OnDes
   apisOptions: Array<any>;
   maxDate: number;
   advancedFiltersDisplayed;
-
-  constructor(
-    private router: Router,
-    private formBuilder: FormBuilder,
-    private applicationService: ApplicationService,
-    public route: ActivatedRoute,
-    public analyticsService: AnalyticsService,
-    private navRouteService: NavRouteService,
-  ) {}
 
   ngOnInit(): void {
     this.analyticsForm = this.formBuilder.group({

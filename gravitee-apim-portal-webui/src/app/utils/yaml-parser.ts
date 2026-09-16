@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as jsYAML from 'js-yaml';
+import { CORE_SCHEMA, NOT_RESOLVED, defineScalarTag, load } from 'js-yaml';
 
 function base64ToUtf8(base64: string): string {
   const binaryString = atob(base64);
@@ -36,25 +36,26 @@ function isValidBase64(data: string): boolean {
   }
 }
 
-const binaryType = new jsYAML.Type('tag:yaml.org,2002:binary', {
-  kind: 'scalar',
-  resolve(data: any) {
+// js-yaml 5 merged resolve and construct: a scalar tag either returns the built value
+// or NOT_RESOLVED. `identify` selects the tag when dumping, mirroring the former `instanceOf`.
+export const binaryTag = defineScalarTag<string>('tag:yaml.org,2002:binary', {
+  resolve(source) {
     // Ensure data is a valid Base64 string
-    if (typeof data !== 'string') return false;
-    return isValidBase64(data);
+    if (typeof source !== 'string' || !isValidBase64(source)) return NOT_RESOLVED;
+    return base64ToUtf8(source);
   },
-  construct(data: string) {
-    return base64ToUtf8(data);
+  identify(data: any) {
+    return data instanceof String;
   },
-  instanceOf: String,
   represent(value: any) {
     return utf8ToBase64(String(value));
   },
 });
 
-// Create schema with binary support
-const CUSTOM_SCHEMA = jsYAML.JSON_SCHEMA.extend([binaryType]);
+// Create schema with binary support. js-yaml 5 made JSON_SCHEMA strictly YAML 1.2 JSON, which
+// no longer reads TRUE, Null or 0x1A; CORE_SCHEMA is what js-yaml 4 called JSON_SCHEMA.
+const CUSTOM_SCHEMA = CORE_SCHEMA.withTags(binaryTag);
 
 export function readYaml(content: string): any {
-  return jsYAML.load(content, { schema: CUSTOM_SCHEMA });
+  return load(content, { schema: CUSTOM_SCHEMA });
 }

@@ -44,6 +44,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
 import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
+import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.HttpPayload;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogDetail;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
@@ -338,6 +339,18 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         return HttpPayload.builder().status(response.getStatus()).headers(response.getHeaders()).body(response.getBody()).build();
     }
 
+    /** The use case has already folded every ENTRYPOINT condition into the scope, so only the scope is mapped. */
+    private static SearchLogsFilters.EntrypointScope toPlatformScope(EntrypointScope scope) {
+        if (scope == null) {
+            return null;
+        }
+        var kind = switch (scope.kind()) {
+            case EXCLUDING -> SearchLogsFilters.EntrypointScope.Kind.EXCLUDING;
+            case EXACTLY -> SearchLogsFilters.EntrypointScope.Kind.EXACTLY;
+        };
+        return new SearchLogsFilters.EntrypointScope(kind, scope.ids());
+    }
+
     private SearchLogsFilters buildSearchFilters(LogsSearchQuery query) {
         var builder = SearchLogsFilters.builder();
         builder.apiIds(query.apiIds());
@@ -352,7 +365,6 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         List<SearchLogsFilters.StatusRange> statusRanges = new ArrayList<>();
         Set<String> statusCodeGroups = new HashSet<>();
         var statusAccumulator = new NumericRangeAccumulator<Integer>("HTTP_STATUS");
-        Set<String> entrypointIds = new HashSet<>();
         Set<String> requestIds = new HashSet<>();
         Set<String> transactionIds = new HashSet<>();
         Set<String> errorKeys = new HashSet<>();
@@ -397,7 +409,6 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                         applyNumericBound(responseTimeAccumulator, condition.operator(), parseResponseTime(values.getFirst()));
                     }
                 }
-                case "ENTRYPOINT" -> entrypointIds.addAll(values);
                 case "MCP_PROXY_METHOD" -> mcpMethods.addAll(values);
                 case "LLM_PROXY_MODEL" -> llmProxyModels.addAll(values);
                 case "LLM_PROXY_PROVIDER" -> llmProxyProviders.addAll(values);
@@ -445,7 +456,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         builder.statuses(statuses);
         builder.statusRanges(statusRanges);
         builder.statusCodeGroups(statusCodeGroups);
-        builder.entrypointIds(entrypointIds);
+        builder.entrypointScope(toPlatformScope(query.entrypointScope()));
         builder.requestIds(requestIds);
         builder.transactionIds(transactionIds);
         builder.errorKeys(errorKeys);

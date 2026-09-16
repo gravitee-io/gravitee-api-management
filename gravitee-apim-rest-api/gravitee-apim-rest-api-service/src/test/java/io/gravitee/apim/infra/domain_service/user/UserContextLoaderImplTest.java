@@ -27,6 +27,9 @@ import io.gravitee.apim.infra.domain_service.analytics_engine.mapper.ApiMapper;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,6 +70,9 @@ class UserContextLoaderImplTest {
     private ApiRepository apiRepository;
 
     @Mock
+    private PermissionService permissionService;
+
+    @Mock
     private Authentication authentication;
 
     private UserContextLoaderImpl userContextLoader;
@@ -86,12 +92,43 @@ class UserContextLoaderImplTest {
 
     @BeforeEach
     void setUp() {
-        userContextLoader = new UserContextLoaderImpl(apiAuthorizationService, apiRepository);
+        userContextLoader = new UserContextLoaderImpl(apiAuthorizationService, apiRepository, permissionService);
     }
 
     private AuditInfo auditInfo(String userId) {
         var actor = AuditActor.builder().userId(userId).build();
         return AuditInfo.builder().organizationId("DEFAULT").environmentId("DEFAULT").actor(actor).build();
+    }
+
+    /**
+     * Read access granted by an environment role rather than by API memberships. The membership lookup knows
+     * nothing about it, so consulting it alone answered "no API" for a user entitled to every one of them, and
+     * both Gamma signals came back empty with no error. The platform's own analytics context loader has always
+     * asked this question first; this loader has to agree with it, or the two disagree on the same user.
+     */
+    @Nested
+    class NonAdminWithEnvironmentApiReadPermission {
+
+        @BeforeEach
+        void setup() {
+            setUpSecurityContext("ORGANIZATION:USER");
+            auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
+            ).thenReturn(true);
+        }
+
+        @Test
+        void should_load_every_environment_api_without_asking_for_memberships() {
+            when(apiRepository.search(any(), any())).thenReturn(ALL_APIS);
+
+            var context = userContextLoader.loadApis(new UserContext(auditInfo));
+
+            assertThat(context.apis().orElseThrow())
+                .extracting(io.gravitee.apim.core.api.model.Api::getId)
+                .containsExactlyInAnyOrder("id1", "id2", "id3");
+            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
+        }
     }
 
     private void setUpSecurityContext(String role) {
@@ -240,6 +277,26 @@ class UserContextLoaderImplTest {
             assertThat(context.apis()).hasValue(Collections.emptyList());
             assertThat(context.apiNameById()).hasValue(Collections.emptyMap());
             verify(apiRepository, never()).search(any(), any());
+        }
+
+        /**
+         * The single-api lookup gates the decision detail, and the listing that leads to it uses
+         * {@code loadApis}. Reading the environment permission in one and not the other let a reader list rows
+         * and then meet a 404 on every one of them.
+         */
+        @Test
+        void should_serve_a_reader_whose_access_comes_from_the_environment_role() {
+            setUpSecurityContext("ORGANIZATION:USER");
+            auditInfo = auditInfo(NON_ADMIN_USER_ID);
+            when(
+                permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_API), eq("DEFAULT"), eq(RolePermissionAction.READ))
+            ).thenReturn(true);
+            when(apiRepository.search(any(), any())).thenReturn(List.of(API_1));
+
+            var context = userContextLoader.loadApi(new UserContext(auditInfo), API_1.getId());
+
+            assertThat(context.apis()).hasValue(ApiMapper.INSTANCE.map(List.of(API_1)));
+            verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         }
     }
 }

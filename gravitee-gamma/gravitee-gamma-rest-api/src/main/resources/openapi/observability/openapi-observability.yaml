@@ -35,15 +35,19 @@ tags:
           return distinct values from the data store, NUMBER and STRING filters have no enumerable
           values (400). Id-based KEYWORD filters (API, APPLICATION, PLAN, API_PRODUCT) return
           entity ids as values; use the `resolve` endpoint to hydrate them into display labels.
+          `ENTRYPOINT` lists the entrypoint ids present in the store, followed by the synthetic
+          `(none)` value for requests recorded without an entrypoint.
     - name: Logs
       description: |
           Environment-wide log search returning light rows from the `v4-metrics` index. Results
           are RBAC-scoped: the caller only sees logs for APIs they have read access to.
 
           Filter conditions reference the shared filter catalog narrowed to the `LOGS` signal.
-          When no explicit entrypoint filter is supplied, the server scopes the search to the
-          entrypoints observability counts as request traffic, plus native Kafka connections, which
-          the logs signal serves and the analytics dashboard does not.
+          Entrypoint scope: rows are returned unless their entrypoint is declared outside the logs
+          scope; an entrypoint the registry does not know and a request refused before an entrypoint
+          was selected are both kept. An explicit `ENTRYPOINT` condition is exact, `(none)` selecting
+          the requests recorded without an entrypoint. Query
+          `GET /observability/filters/ENTRYPOINT/values` for the values present in your own data.
     - name: Analytics
       description: |
           Environment-wide analytics computation: aggregate measures, faceted breakdowns, and
@@ -51,10 +55,12 @@ tags:
 
           Filter conditions reference the shared filter catalog narrowed to the `ANALYTICS` signal.
           RBAC scoping ensures the caller only sees metrics for APIs they have read access to.
-          When no explicit `ENTRYPOINT` filter is supplied, the server scopes the query to the
-          entrypoints observability counts as request traffic. That list is a product decision, not a
-          plugin property, and grows as entrypoints reach the product; query
-          `GET /observability/filters/ENTRYPOINT/values` for the ids present in your own data.
+          Entrypoint scope, on the request metrics: a request is counted unless its entrypoint is
+          declared outside the HTTP scope; an entrypoint the registry does not know and a request
+          refused before an entrypoint was selected are both counted. An explicit `ENTRYPOINT`
+          condition is exact, `(none)` selecting the requests recorded without an entrypoint. Message
+          metrics count the messages of every connection of the API, whatever the entrypoint carried
+          them, unless the query names one.
 
           All three endpoints return opaque JSON produced by the APIM analytics engine — the
           response schemas below document the stable structure but additional fields may appear.
@@ -715,12 +721,13 @@ paths:
                 rejected with 400 rather than accepted and ignored, so an applied filter is never
                 indistinguishable from an unfiltered result.
 
-                **Default entrypoint scoping**: when no explicit `ENTRYPOINT` filter is supplied,
-                the server scopes the search to the entrypoints observability counts as request
-                traffic, plus native Kafka connections — the logs signal serves those and the
-                analytics dashboard does not, so an unfiltered log total can exceed the dashboard
-                total on an environment that mixes both. Skipped for decision rows, which carry no
-                entrypoint.
+                **Entrypoint scope**: without an explicit `ENTRYPOINT` condition, rows are returned
+                unless their entrypoint is declared outside the logs scope, which keeps unknown
+                entrypoints and requests refused before an entrypoint was selected; with one, only the
+                given values match, `(none)` standing for requests recorded without an entrypoint.
+                The logs scope is wider than the analytics one — it serves connections the dashboards
+                leave out — so an unfiltered logs total can exceed the dashboard total on a mixed
+                environment. Not applied to decision rows, which carry no entrypoint.
 
                 **Enrichment**: each log entry is enriched server-side with display names for API,
                 plan, application, gateway hostname, and API product. Use the `resolve` endpoint
@@ -729,8 +736,9 @@ paths:
                 **Pagination**: 1-based. `perPage` defaults to 20 and is clamped server-side at
                 100. The response `pagination` object reflects the effective (clamped) values.
 
-                **Supported API types**: only logs from `HTTP_PROXY`, `LLM`, and `MCP` APIs are
-                returned. `MESSAGE` and `NATIVE` APIs are excluded from the logs signal.
+                **Supported API types**: `HTTP_PROXY`, `LLM`, `MCP`, `A2A`, `MESSAGE`, `NATIVE`
+                and `AUTHZ`. Which requests of a `MESSAGE` API appear is the entrypoint scope's
+                decision, not the API kind's.
             operationId: searchObservabilityLogs
             parameters:
                 - name: page
@@ -970,7 +978,7 @@ paths:
                                         - name: "HTTP_REQUESTS"
                                           measures: ["COUNT"]
                             entrypoint-filter:
-                                summary: MCP requests only (entrypoint filter)
+                                summary: Requests served by the MCP proxy entrypoint only
                                 value:
                                     timeRange:
                                         from: "2026-06-10T00:00:00Z"

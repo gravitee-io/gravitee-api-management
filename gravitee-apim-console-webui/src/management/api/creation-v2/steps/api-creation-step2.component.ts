@@ -20,7 +20,7 @@ const ApiCreationStep2Component: ng.IComponentOptions = {
   require: {
     parent: '^apiCreationV2ComponentAjs',
   },
-  template: require('html-loader!./api-creation-step2.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./api-creation-step2.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: class {
     public shouldDisplayHint = shouldDisplayHint;
 

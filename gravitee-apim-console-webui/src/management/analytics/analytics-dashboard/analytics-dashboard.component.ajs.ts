@@ -196,7 +196,7 @@ const AnalyticsDashboardComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('html-loader!./analytics-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./analytics-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: AnalyticsDashboardControllerAjs,
 };
 

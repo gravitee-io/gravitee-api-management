@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import {
+    assessPassword,
     countSatisfiedPasswordRules,
+    describablePasswordRules,
     evaluatePasswordPolicyRule,
     isPasswordPolicySatisfied,
     resolvePasswordStrengthLevel,
@@ -51,5 +53,91 @@ describe('passwordPolicyRules', () => {
         expect(isPasswordPolicySatisfied('', TEST_RULES)).toBe(false);
         expect(isPasswordPolicySatisfied('Short1!a', TEST_RULES)).toBe(false);
         expect(isPasswordPolicySatisfied('LongEnough1!a', TEST_RULES)).toBe(true);
+    });
+});
+
+describe('assessPassword', () => {
+    const DIGIT_RULE = { id: 'digit', label: 'Contains a number', pattern: '[0-9]' };
+
+    it('refuses a password the derived rules accept but the configured pattern rejects', () => {
+        // The parser reads a handful of regex shapes. A policy it read incompletely used to go
+        // all-green here and be rejected by the server -- the false green this ticket exists for.
+        const policy = { pattern: '^(?=.*[0-9])(?=.*[!@#$]).{8,}$', rules: [DIGIT_RULE] };
+
+        expect(evaluatePasswordPolicyRule(DIGIT_RULE, 'password1')).toBe(true);
+        expect(assessPassword('password1', policy)).toBe('unsatisfied');
+    });
+
+    it('accepts a password the configured pattern accepts', () => {
+        const policy = { pattern: '^(?=.*[0-9])(?=.*[!@#$]).{8,}$', rules: [DIGIT_RULE] };
+
+        expect(assessPassword('password1!', policy)).toBe('satisfied');
+    });
+
+    it('matches the configured pattern against the whole password, as the server does', () => {
+        // Java's Matcher.matches() must consume the whole password; RegExp.test() settles for any
+        // substring. Unanchored, the 20-character limit here would stop applying.
+        const policy = { pattern: '(?=.*[0-9])(?=.*[A-Z]).{8,20}', rules: [DIGIT_RULE] };
+
+        expect(assessPassword(`A1${'x'.repeat(28)}`, policy)).toBe('unsatisfied');
+        expect(assessPassword('Abcdefg1', policy)).toBe('satisfied');
+    });
+
+    it('cannot decide when the browser refuses to compile the pattern', () => {
+        // The server compiles with Java's engine and we compile with JavaScript's. A possessive
+        // quantifier is valid Java and a syntax error here; reading that as "unsatisfied" would
+        // block a password the server would accept, forever.
+        const policy = { pattern: '^[a-z]++$', rules: [DIGIT_RULE] };
+
+        expect(assessPassword('abcdef', policy)).toBe('undecidable');
+    });
+
+    it.each([
+        ['a Unicode property class', '^\\p{Upper}.{7,}$', 'Abcdefgh'],
+        ['a horizontal-whitespace class', '^\\h*[A-Z].{7,}$', 'Abcdefgh'],
+        ['a quoted literal', '^\\QA.\\E.{6,}$', 'A.bcdefg'],
+        ['input-boundary anchors', '\\A[A-Z].{7,}\\z', 'Abcdefgh'],
+        ['a nested character-class intersection', '^[a-z&&[^x]]{8,}$', 'abcdefgh'],
+        ['a character-class intersection', '^[a-z&&def]{8,}$', 'abcdefgh'],
+    ])('cannot decide on %s, which JavaScript compiles to something else', (_, pattern, password) => {
+        // Without the u flag an escape JavaScript does not know reads as its letter, and '&&' or a
+        // nested '[' in a class read as literals. These compile here and demand something else,
+        // which would block passwords the server accepts or accept ones it refuses.
+        expect(assessPassword(password, { pattern, rules: [DIGIT_RULE] })).toBe('undecidable');
+    });
+
+    it('still decides on escapes both engines read alike', () => {
+        const policy = { pattern: '^(?=.*\\d)(?=.*[\\-_])\\w[\\w\\-]{7,}$', rules: [DIGIT_RULE] };
+
+        expect(assessPassword('abc-defg1', policy)).toBe('satisfied');
+        expect(assessPassword('abc-defgh', policy)).toBe('unsatisfied');
+    });
+
+    it('cannot decide when there is no pattern and no rule to check', () => {
+        expect(assessPassword('anything', { rules: [] })).toBe('undecidable');
+    });
+
+    it('falls back to the derived rules when no pattern was returned', () => {
+        expect(assessPassword('password1', { rules: [DIGIT_RULE] })).toBe('satisfied');
+        expect(assessPassword('password', { rules: [DIGIT_RULE] })).toBe('unsatisfied');
+    });
+
+    it('treats an empty password as unsatisfied rather than undecidable', () => {
+        expect(assessPassword('', { pattern: '^.{8,}$', rules: [] })).toBe('unsatisfied');
+    });
+});
+
+describe('describablePasswordRules', () => {
+    it('drops the opaque whole-pattern fallback the server sends when it derives nothing', () => {
+        const rules = [{ id: 'policyPattern', label: 'Matches the configured password policy', pattern: '^\\d{8,}$' }];
+
+        // Nothing to tick off, and its pattern is the raw policy, which must not reach the DOM.
+        expect(describablePasswordRules(rules)).toEqual([]);
+    });
+
+    it('keeps rules a reader can act on', () => {
+        const rules = [{ id: 'minLength', label: 'At least 12 characters', pattern: '^.{12,}$' }];
+
+        expect(describablePasswordRules(rules)).toEqual(rules);
     });
 });

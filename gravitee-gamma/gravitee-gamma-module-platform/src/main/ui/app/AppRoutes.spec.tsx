@@ -20,6 +20,7 @@ import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
 import { ROUTES } from '../config/routes';
+import { useApiScoreEnabled } from '../features/api-score/hooks/useApiScoreEnabled';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ApimApiError, resetApimClientForTests } from '../shared/api/apimClient';
@@ -127,10 +128,12 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 
 jest.mock('../features/dictionaries/hooks/useEnvironmentDictionaries');
 jest.mock('../features/metadata/hooks/useEnvironmentMetadata');
+jest.mock('../features/api-score/hooks/useApiScoreEnabled');
 
 const mockUseEnvironmentDictionaries = jest.mocked(useEnvironmentDictionaries);
 const mockUseEnvironmentMetadata = jest.mocked(useEnvironmentMetadata);
 const mockUseEnvironmentPermissionsReady = jest.mocked(useEnvironmentPermissionsReady);
+const mockUseApiScoreEnabled = jest.mocked(useApiScoreEnabled);
 
 function denyPermissions(...denied: string[]) {
     mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.some(permission => denied.includes(permission)));
@@ -156,6 +159,26 @@ jest.mock('../pages/IntegrationsPage', () => {
         IntegrationsPage: () => (mockUseRealIntegrationsPage ? <RealIntegrationsPage /> : <div data-testid="integrations-page" />),
     };
 });
+
+jest.mock('../features/api-score/pages/ApiScoreDashboardPage', () => ({
+    ApiScoreDashboardPage: () => <div data-testid="api-score-dashboard-page" />,
+}));
+
+jest.mock('../features/api-score/pages/ApiScoreRulesetsPage', () => ({
+    ApiScoreRulesetsPage: () => <div data-testid="api-score-rulesets-page" />,
+}));
+
+jest.mock('../features/api-score/pages/ImportApiScoreRulesetPage', () => ({
+    ImportApiScoreRulesetPage: () => <div data-testid="import-api-score-ruleset-page" />,
+}));
+
+jest.mock('../features/api-score/pages/ImportScoringFunctionPage', () => ({
+    ImportScoringFunctionPage: () => <div data-testid="import-scoring-function-page" />,
+}));
+
+jest.mock('../features/api-score/pages/EditApiScoreRulesetPage', () => ({
+    EditApiScoreRulesetPage: () => <div data-testid="edit-api-score-ruleset-page" />,
+}));
 
 jest.mock('../pages/UsersPage', () => ({
     UsersPage: () => <div data-testid="users-page" />,
@@ -252,6 +275,10 @@ jest.mock('../pages/EnvironmentSmtpSettingsPage', () => ({
     EnvironmentSmtpSettingsPage: () => <div data-testid="environment-smtp-settings-page" />,
 }));
 
+jest.mock('../pages/EnvironmentCorsSettingsPage', () => ({
+    EnvironmentCorsSettingsPage: () => <div data-testid="environment-cors-settings-page" />,
+}));
+
 jest.mock('../pages/NotificationTemplatesPage', () => ({
     NotificationTemplatesPage: () => <div data-testid="notification-templates-page" />,
 }));
@@ -317,6 +344,14 @@ jest.mock('../pages/BroadcastsPage', () => ({
     BroadcastsPage: () => <div data-testid="broadcasts-page" />,
 }));
 
+jest.mock('../pages/ClientRegistrationPage', () => ({
+    ClientRegistrationPage: () => <div data-testid="client-registration-page" />,
+}));
+
+jest.mock('../pages/ClientRegistrationProviderPage', () => ({
+    ClientRegistrationProviderPage: () => <div data-testid="client-registration-provider-page" />,
+}));
+
 function LocationProbe() {
     return <div data-testid="location">{useLocation().pathname}</div>;
 }
@@ -333,6 +368,20 @@ function renderIntegrationsUrl() {
             <NavigationTypeProbe />
         </MemoryRouter>,
     );
+}
+
+function renderApiScoreUrl(path = '/api-score') {
+    render(
+        <MemoryRouter initialEntries={[path]}>
+            <AppRoutes />
+            <LocationProbe />
+            <NavigationTypeProbe />
+        </MemoryRouter>,
+    );
+}
+
+function enableApiScore() {
+    mockUseApiScoreEnabled.mockReturnValue({ enabled: true, isFetched: true });
 }
 
 function renderPlatform(path = '/applications') {
@@ -483,6 +532,7 @@ describe('AppRoutes', () => {
             isError: false,
             error: null,
         } as unknown as ReturnType<typeof useEnvironmentMetadata>);
+        mockUseApiScoreEnabled.mockReturnValue({ enabled: false, isFetched: true });
     });
 
     it('mounts PlatformToaster for module-wide toast feedback', () => {
@@ -581,6 +631,127 @@ describe('AppRoutes', () => {
             'broadcasts',
         ]);
         expect(navItemAccess('integrations')).toBeUndefined();
+    });
+
+    it('shows the API Score nav item immediately after Applications when scoring is enabled', () => {
+        enableApiScore();
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderPlatform();
+
+        expect(navGroupItemKeys('APIs & Assets')).toEqual([
+            'applications',
+            'api-score',
+            'integrations',
+            'metadata',
+            'dictionaries',
+            'shared-policy-groups',
+            'broadcasts',
+        ]);
+    });
+
+    it('hides the API Score nav item when apiScore.enabled is false', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('api-score');
+    });
+
+    it('hides the API Score nav item when the user lacks environment-integration-r', () => {
+        enableApiScore();
+        denyPermissions('environment-integration-r');
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('api-score');
+    });
+
+    it('routes a direct API Score URL visit to the Overview tab when scoring is enabled', () => {
+        enableApiScore();
+
+        renderApiScoreUrl();
+
+        expect(screen.getByTestId('api-score-dashboard-page')).not.toBeNull();
+        expect(screen.getByRole('heading', { name: 'API Score' })).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score');
+        expect(screen.getByRole('link', { name: 'Rulesets & Functions' })).not.toBeNull();
+    });
+
+    it('routes the Rulesets & Functions tab under API Score', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets');
+
+        expect(screen.getByTestId('api-score-rulesets-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets');
+        expect(screen.getByRole('link', { name: 'Overview' })).not.toBeNull();
+    });
+
+    it('opens ruleset import outside the Overview/Rulesets tabs', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets/import');
+
+        expect(screen.getByTestId('import-api-score-ruleset-page')).not.toBeNull();
+        expect(screen.queryByTestId('api-score-rulesets-page')).toBeNull();
+        expect(screen.queryByRole('link', { name: 'Rulesets & Functions' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets/import');
+    });
+
+    it('opens function import outside the Overview/Rulesets tabs', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets/import-function');
+
+        expect(screen.getByTestId('import-scoring-function-page')).not.toBeNull();
+        expect(screen.queryByRole('link', { name: 'Overview' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets/import-function');
+    });
+
+    it('opens ruleset edit outside the Overview/Rulesets tabs', () => {
+        enableApiScore();
+
+        renderApiScoreUrl('/api-score/rulesets/rs-1/edit');
+
+        expect(screen.getByTestId('edit-api-score-ruleset-page')).not.toBeNull();
+        expect(screen.queryByRole('link', { name: 'Rulesets & Functions' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/api-score/rulesets/rs-1/edit');
+    });
+
+    it('redirects a direct API Score URL visit to Applications when scoring is disabled', () => {
+        renderApiScoreUrl();
+
+        expect(screen.queryByTestId('api-score-dashboard-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/applications');
+        expect(screen.getByTestId('navigation-type').textContent).toBe('REPLACE');
+    });
+
+    it('redirects a direct API Score URL visit to Applications when the user lacks environment-integration-r', () => {
+        enableApiScore();
+        denyPermissions('environment-integration-r');
+
+        renderApiScoreUrl();
+
+        expect(screen.queryByTestId('api-score-dashboard-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/applications');
+    });
+
+    it('lands on the API Score page from the platform index when API Score is the only visible item', () => {
+        grantOnlyPermissions('environment-integration-r');
+        enableApiScore();
+
+        render(
+            <MemoryRouter initialEntries={['/']}>
+                <AppRoutes />
+                <LocationProbe />
+            </MemoryRouter>,
+        );
+
+        expect(screen.getByTestId('location').textContent).toBe('/api-score');
+        expect(screen.getByTestId('api-score-dashboard-page')).not.toBeNull();
+        expect(screen.queryByTestId('platform-no-access-page')).toBeNull();
     });
 
     it('hides the Integrations nav item when Federation is not enabled for the organization', () => {
@@ -1575,6 +1746,11 @@ describe('AppRoutes', () => {
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
+    it('routes to environment-scoped CORS settings', () => {
+        renderPlatform('/environment/cors');
+        expect(screen.getByTestId('environment-cors-settings-page')).not.toBeNull();
+    });
+
     it('shows environment SMTP in the Environment nav section', () => {
         mockUseModuleRouting.mockReturnValue({
             activeNavKey: 'environment-smtp',
@@ -1585,6 +1761,18 @@ describe('AppRoutes', () => {
 
         expect(visibleNavKeys()).toContain('environment-smtp');
         expect(visibleNavKeys()).not.toContain('smtp');
+    });
+
+    it('shows environment CORS in the Environment nav section', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'environment-cors',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/environment/cors');
+
+        expect(visibleNavKeys()).toContain('environment-cors');
+        expect(visibleNavKeys()).not.toContain('cors');
     });
 
     it('routes to organization notification templates', () => {
@@ -1748,6 +1936,77 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('security-plan-types');
+    });
+
+    it('renders Client Registration from a pasted URL', () => {
+        renderPlatform('/client-registration');
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('renders create Client Registration provider when the user can create', () => {
+        renderPlatform('/client-registration/new');
+        expect(screen.getByTestId('client-registration-provider-page')).not.toBeNull();
+    });
+
+    it('redirects create Client Registration provider without environment-client_registration_provider-c', () => {
+        mockUseHasPermission.mockImplementation(
+            ({ anyOf }: { anyOf: string[] }) => !anyOf.includes('environment-client_registration_provider-c'),
+        );
+        renderPlatform('/client-registration/new');
+        expect(screen.queryByTestId('client-registration-provider-page')).toBeNull();
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('renders edit Client Registration provider from a pasted URL', () => {
+        renderPlatform('/client-registration/prov-1');
+        expect(screen.getByTestId('client-registration-provider-page')).not.toBeNull();
+    });
+
+    it('does not render Client Registration without environment-client_registration_provider-r', () => {
+        denyPermissions('environment-client_registration_provider-r');
+        renderPlatform('/client-registration');
+
+        expect(screen.queryByTestId('client-registration-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides Client Registration without environment-client_registration_provider-r', () => {
+        denyPermissions('environment-client_registration_provider-r');
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('client-registration');
+    });
+
+    it('locks the Client Registration nav item when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('client-registration');
+        expect(navItemAccess('client-registration')).toBe('locked');
+    });
+
+    it('still renders the Client Registration list when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+        renderPlatform('/client-registration');
+
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('redirects create Client Registration provider when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+        renderPlatform('/client-registration/new');
+
+        expect(screen.queryByTestId('client-registration-provider-page')).toBeNull();
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
+    });
+
+    it('redirects edit Client Registration provider when DCR is unlicensed', () => {
+        mockUseHasFeature.mockImplementation((feature: string) => feature !== 'apim-dcr-registration');
+        renderPlatform('/client-registration/prov-1');
+
+        expect(screen.queryByTestId('client-registration-provider-page')).toBeNull();
+        expect(screen.getByTestId('client-registration-page')).not.toBeNull();
     });
 
     it('does not render API Health Check for a pasted URL without environment-api-r', () => {

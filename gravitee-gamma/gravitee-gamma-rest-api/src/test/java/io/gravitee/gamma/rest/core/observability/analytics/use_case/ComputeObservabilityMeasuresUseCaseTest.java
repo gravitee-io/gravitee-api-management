@@ -36,7 +36,6 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
-import io.gravitee.gamma.rest.infra.adapter.EntrypointScopeProviderAdapter;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,7 +67,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
     void setUp() {
         var accessibleApiScope = new AccessibleApiScopeDomainService();
         var filterValidator = new ObservabilityFilterValidator(filterRegistry);
-        var pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope, new EntrypointScopeProviderAdapter());
+        var pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope);
         useCase = new ComputeObservabilityMeasuresUseCase(analyticsDataPort, pipeline);
 
         when(filterRegistry.getFilters(any(), any())).thenReturn(

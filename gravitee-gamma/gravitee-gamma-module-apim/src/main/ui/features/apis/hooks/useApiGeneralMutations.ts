@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLayoutEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -23,6 +23,9 @@ import {
     deleteApiBackground,
     deleteApiPicture,
     duplicateApi,
+    getPendingPromotions,
+    getPromotionTargets,
+    promoteApi,
     startApi,
     stopApi,
     updateApiBackground,
@@ -34,15 +37,16 @@ import {
     updateApiPicture,
 } from '../services/apis';
 import type { ApiDetailDto, ApiImportSubmission, DuplicateApiOptions } from '../types';
-import { apiDetailKeys } from '../utils/queryKeys';
+import { apiDetailKeys, apiPromotionKeys } from '../utils/queryKeys';
 
 interface ApiGeneralSideEffects {
     onDeleteSuccess?: () => void;
     onDuplicateSuccess?: (newApi: ApiDetailDto) => void;
     onImportSuccess?: (updatedApi: ApiDetailDto) => void;
+    onPromoteSuccess?: () => void;
 }
 
-export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: ApiGeneralSideEffects = {}) {
+export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: ApiGeneralSideEffects = {}, promoteDialogOpen = false) {
     const { apiId } = useParams<{ apiId: string }>();
     const env = useEnvironment();
     const queryClient = useQueryClient();
@@ -78,6 +82,25 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
     const duplicateMutation = useMutation({
         mutationFn: (opts: DuplicateApiOptions) => duplicateApi(env!.id, apiId!, opts),
         onSuccess: newApi => sideEffectsRef.current.onDuplicateSuccess?.(newApi),
+    });
+
+    const promotionTargetsQuery = useQuery({
+        queryKey: apiPromotionKeys.targets(env?.id ?? ''),
+        queryFn: () => getPromotionTargets(env!.id),
+        enabled: promoteDialogOpen && Boolean(env?.id),
+        retry: false,
+    });
+
+    const pendingPromotionsQuery = useQuery({
+        queryKey: apiPromotionKeys.pending(apiId ?? ''),
+        queryFn: () => getPendingPromotions(apiId!),
+        enabled: promoteDialogOpen && Boolean(apiId),
+        retry: false,
+    });
+
+    const promoteMutation = useMutation({
+        mutationFn: (target: { targetEnvCockpitId: string; targetEnvName: string }) => promoteApi(env!.id, apiId!, target),
+        onSuccess: () => sideEffectsRef.current.onPromoteSuccess?.(),
     });
 
     const performImportSubmission = (submission: ApiImportSubmission) => {
@@ -132,5 +155,8 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
         removePictureMutation,
         backgroundMutation,
         removeBackgroundMutation,
+        promotionTargetsQuery,
+        pendingPromotionsQuery,
+        promoteMutation,
     };
 }

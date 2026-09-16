@@ -22,7 +22,7 @@ import { EnvironmentGuard } from '../../features/environment';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import type { GammaModule } from '../../features/modules';
 import { EnvironmentRenderProbe } from '../../testing/EnvironmentRenderProbe';
-import { resetAllStores, seedBootstrap, seedEnvironments } from '../../testing/helpers';
+import { resetAllStores, seedBootstrap, seedEnvironments, seedUser } from '../../testing/helpers';
 
 const MODULES: GammaModule[] = [{ id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' }];
 
@@ -94,6 +94,26 @@ describe('ShellLayout environment switching', () => {
         await waitFor(() => expect(renders.at(-1)?.pathname).toBe('/environments/env-2/tasks'));
     });
 
+    it('should expose the theme options in the header account menu', async () => {
+        const user = userEvent.setup();
+        seedUser();
+        renderShell('/environments/env-1/home');
+
+        await user.click(await screen.findByRole('button', { name: 'Account menu' }));
+
+        expect(screen.getByRole('menuitemradio', { name: 'Light' })).toBeTruthy();
+        expect(screen.getByRole('menuitemradio', { name: 'Dark' })).toBeTruthy();
+        expect(screen.getByRole('menuitemradio', { name: 'System' })).toBeTruthy();
+    });
+
+    it('should keep my-account when switching environments', async () => {
+        renderShell('/environments/env-1/my-account');
+
+        await switchToEnvironment2();
+
+        await waitFor(() => expect(renders.at(-1)?.pathname).toBe('/environments/env-2/my-account'));
+    });
+
     it('should never render the new environment path while the store still holds the previous environment', async () => {
         renderShell('/environments/env-1/apim/apis/api-1/endpoints');
 
@@ -129,5 +149,48 @@ describe('ShellLayout environment switching', () => {
         await switchToEnvironment2();
 
         await waitFor(() => expect(useEnvironmentStore.getState().currentEnvironment?.id).toBe('env-2-id'));
+    });
+});
+
+describe('ShellLayout app switcher', () => {
+    beforeEach(() => {
+        resetAllStores();
+        seedBootstrap();
+        seedEnvironments();
+    });
+
+    it('should list the products in catalog order, whatever order the backend returns the modules in', async () => {
+        const backendOrder: GammaModule[] = ['edge', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(id => ({
+            id,
+            name: `${id} plugin`,
+            version: '1.0.0',
+            remoteName: id,
+            exposedModule: 'Module',
+        }));
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={backendOrder} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        const items = await screen.findAllByRole('menuitem');
+        expect(items.map(item => item.textContent)).toEqual(
+            [
+                'Home',
+                'Agent Management',
+                'API Management',
+                'Event Stream Management',
+                'Authorization Management',
+                'Developer Portals',
+                'Edge Management',
+                'Platform Management',
+            ].map(label => expect.stringMatching(`^${label}`)),
+        );
     });
 });

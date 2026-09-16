@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { permissionService, useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { markNavItemDenied } from '../nav/deniedNavItems';
 import { environmentPermissionKeys } from '../utils/queryKeys';

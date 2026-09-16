@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { ReactNode } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { SmtpSettingsPage } from './SmtpSettingsPage';
 import { useOrgConsoleSettings } from '../features/organization-settings/hooks/useOrgConsoleSettings';

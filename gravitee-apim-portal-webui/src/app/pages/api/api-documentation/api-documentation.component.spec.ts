@@ -27,8 +27,7 @@ import { ApiDocumentationComponent } from './api-documentation.component';
 describe('ApiDocumentationComponent', () => {
   const createComponent = createComponentFactory({
     component: ApiDocumentationComponent,
-    declarations: [GvDocumentationComponent],
-    imports: [RouterTestingModule, HttpClientTestingModule],
+    imports: [RouterTestingModule, HttpClientTestingModule, GvDocumentationComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     providers: [mockProvider(PortalService)],
   });

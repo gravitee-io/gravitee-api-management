@@ -16,6 +16,6 @@
 import { BasicAuthentication } from '@model/users';
 
 export const AM_ADMIN_USER: BasicAuthentication = {
-  username: Cypress.env('am_admin_user_login'),
-  password: Cypress.env('am_admin_user_password'),
+  username: Cypress.expose('am_admin_user_login'),
+  password: Cypress.expose('am_admin_user_password'),
 };

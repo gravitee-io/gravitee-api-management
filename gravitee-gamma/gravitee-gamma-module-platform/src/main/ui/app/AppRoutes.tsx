@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService, useEnvironment, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import {
     buildLinearBreadcrumbs,
@@ -33,6 +32,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createContext, type ReactElement, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
+import { permissionService, useEnvironment, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
+
 import { PlatformToaster } from './PlatformToaster';
 import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';
 import { applicationDetailTabElement } from '../config/applicationDetailPages';
@@ -51,8 +52,16 @@ import { AlertsLayout } from '../features/alerts/components/AlertsLayout';
 import { AlertFormPage } from '../features/alerts/pages/AlertFormPage';
 import { AlertsActivityPage } from '../features/alerts/pages/AlertsActivityPage';
 import { ALERT_ENGINE_FEATURE } from '../features/alerts/utils/alertPermissions';
+import { ApiScoreLayout } from '../features/api-score/components/ApiScoreLayout';
+import { useApiScoreEnabled } from '../features/api-score/hooks/useApiScoreEnabled';
+import { ApiScoreDashboardPage } from '../features/api-score/pages/ApiScoreDashboardPage';
+import { ApiScoreRulesetsPage } from '../features/api-score/pages/ApiScoreRulesetsPage';
+import { EditApiScoreRulesetPage } from '../features/api-score/pages/EditApiScoreRulesetPage';
+import { ImportApiScoreRulesetPage } from '../features/api-score/pages/ImportApiScoreRulesetPage';
+import { ImportScoringFunctionPage } from '../features/api-score/pages/ImportScoringFunctionPage';
 import { ApplicationDetailIndexRedirect, ApplicationDetailLayout } from '../features/applications/components/detail';
 import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTrailLicense';
+import { DCR_REGISTRATION_LICENSE_FEATURE } from '../features/client-registration/license/dcrRegistrationLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
@@ -65,10 +74,13 @@ import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/sha
 import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { AlertsPage } from '../pages/AlertsPage';
 import { ApiHealthCheckPage } from '../pages/ApiHealthCheckPage';
+import { ApiLoggingSettingsPage } from '../pages/ApiLoggingSettingsPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuthenticationPage } from '../pages/AuthenticationPage';
 import { BroadcastsPage } from '../pages/BroadcastsPage';
+import { ClientRegistrationPage } from '../pages/ClientRegistrationPage';
+import { ClientRegistrationProviderPage } from '../pages/ClientRegistrationProviderPage';
 import { CorsSettingsPage } from '../pages/CorsSettingsPage';
 import { CreateIdentityProviderPage } from '../pages/CreateIdentityProviderPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
@@ -76,6 +88,7 @@ import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
 import { EntrypointsAndShardingTagsPage } from '../pages/EntrypointsAndShardingTagsPage';
 import { EnvAuditLogsPage } from '../pages/EnvAuditLogsPage';
+import { EnvironmentCorsSettingsPage } from '../pages/EnvironmentCorsSettingsPage';
 import { EnvironmentNotificationSettingsPage } from '../pages/EnvironmentNotificationSettingsPage';
 import { EnvironmentSmtpSettingsPage } from '../pages/EnvironmentSmtpSettingsPage';
 import { GatewayInstanceEnvironmentPage } from '../pages/GatewayInstanceEnvironmentPage';
@@ -123,6 +136,7 @@ const APPLICATION_DETAIL_TABS = flattenApplicationDetailNavItems(APPLICATION_NAV
 const EMPTY_NAV_GROUPS: NavGroup[] = [];
 const ALERT_ENGINE_NAV_ITEMS: readonly string[] = ['alerts'];
 const AUDIT_TRAIL_NAV_ITEMS: readonly string[] = ['organization-audit', 'environment-audit'];
+const DCR_REGISTRATION_NAV_ITEMS: readonly string[] = ['client-registration'];
 
 function resolveRequiredPermissions(permission?: string, anyOf?: readonly string[]): readonly string[] {
     if (anyOf) {
@@ -181,6 +195,29 @@ function RequireIntegrationsAvailable({ children }: { readonly children: ReactEl
     const federationAvailable = useIntegrationsAvailable();
     if (!federationAvailable) {
         return <UnauthorizedRedirect />;
+    }
+    return children;
+}
+
+// Same hook as the sidebar so a visible API Score item can never lead to a route that bounces, and a
+// switched-off flag can never leave the page enterable from a pasted URL.
+function RequireApiScoreEnabled({ children }: { readonly children: ReactElement }) {
+    const { enabled, isFetched } = useApiScoreEnabled();
+    if (!isFetched) {
+        return null;
+    }
+    if (!enabled) {
+        return <UnauthorizedRedirect />;
+    }
+    return children;
+}
+
+// List + toggles stay reachable without a DCR license (same as Classic). Create/edit bounce to
+// that list so a pasted /new or /:providerId URL cannot skip the Add-button upsell.
+function RequireDcrRegistrationLicense({ children }: { readonly children: ReactElement }) {
+    const hasFeature = useHasFeature(DCR_REGISTRATION_LICENSE_FEATURE);
+    if (!hasFeature) {
+        return <Navigate to=".." replace />;
     }
     return children;
 }
@@ -306,6 +343,7 @@ function ModuleLayout() {
     const dictionariesForbidden = isForbiddenApiError(dictionariesQuery.isError, dictionariesQuery.error);
 
     const federationAvailable = useIntegrationsAvailable();
+    const { enabled: apiScoreEnabled } = useApiScoreEnabled();
 
     // Denying on an unreported license hides a feature the organization may well be entitled to, and
     // the host logs only that the license request failed, never what the denial cost. ModuleLayout
@@ -320,12 +358,18 @@ function ModuleLayout() {
     const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
     const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
     const hasAuditTrail = useHasFeature(APIM_AUDIT_TRAIL_FEATURE);
+    const hasDcrRegistration = useHasFeature(DCR_REGISTRATION_LICENSE_FEATURE);
 
     // Unlicensed pages redirect away or open an upsell dialog, so landing on one bounces the user
     // straight back out. Alerts redirects; the audit pages show the dialog and cannot be dismissed.
+    // Client Registration keeps its list reachable; create/edit are the routes that bounce.
     const lockedItemKeys = useMemo(
-        () => [...(hasAlertEngine ? [] : ALERT_ENGINE_NAV_ITEMS), ...(hasAuditTrail ? [] : AUDIT_TRAIL_NAV_ITEMS)],
-        [hasAlertEngine, hasAuditTrail],
+        () => [
+            ...(hasAlertEngine ? [] : ALERT_ENGINE_NAV_ITEMS),
+            ...(hasAuditTrail ? [] : AUDIT_TRAIL_NAV_ITEMS),
+            ...(hasDcrRegistration ? [] : DCR_REGISTRATION_NAV_ITEMS),
+        ],
+        [hasAlertEngine, hasAuditTrail, hasDcrRegistration],
     );
 
     // permissionService is an external store, so re-reading it has to be keyed on its version:
@@ -339,20 +383,34 @@ function ModuleLayout() {
             metadataForbidden,
             dictionariesForbidden,
             federationAvailable,
+            apiScoreEnabled,
             lockedItemKeys,
             deniedItemKeys: deniedNavItemKeys,
         }),
-        [deniedNavItemKeys, dictionariesForbidden, federationAvailable, hasPermission, lockedItemKeys, metadataForbidden, permissionsReady],
+        [
+            apiScoreEnabled,
+            deniedNavItemKeys,
+            dictionariesForbidden,
+            federationAvailable,
+            hasPermission,
+            lockedItemKeys,
+            metadataForbidden,
+            permissionsReady,
+        ],
     );
 
     const visibleNavSections = useMemo(
         () =>
             lockNavItem(
-                filterNavSections(NAV_SECTIONS, itemKey => isNavItemVisible(itemKey, navVisibility)),
-                'alerts',
-                !hasAlertEngine,
+                lockNavItem(
+                    filterNavSections(NAV_SECTIONS, itemKey => isNavItemVisible(itemKey, navVisibility)),
+                    'alerts',
+                    !hasAlertEngine,
+                ),
+                'client-registration',
+                !hasDcrRegistration,
             ),
-        [hasAlertEngine, navVisibility],
+        [hasAlertEngine, hasDcrRegistration, navVisibility],
     );
     const landingNavKey = landingNavItemKey(navVisibility);
 
@@ -506,6 +564,7 @@ export function AppRoutes() {
                                     </NavPermissionGuard>
                                 }
                             />
+                            <Route path="organization/cors" element={<Navigate to="../cors" replace />} />
                             <Route
                                 path="cors"
                                 element={
@@ -527,6 +586,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="environment-smtp">
                                         <EnvironmentSmtpSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="environment/cors"
+                                element={
+                                    <NavPermissionGuard itemKey="environment-cors">
+                                        <EnvironmentCorsSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />
@@ -729,6 +796,14 @@ export function AppRoutes() {
                                 }
                             />
                             <Route
+                                path="api-logging"
+                                element={
+                                    <NavPermissionGuard itemKey="api-logging">
+                                        <ApiLoggingSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
                                 path="security-plan-types"
                                 element={
                                     <NavPermissionGuard itemKey="security-plan-types">
@@ -736,6 +811,42 @@ export function AppRoutes() {
                                     </NavPermissionGuard>
                                 }
                             />
+                            <Route path="client-registration">
+                                <Route
+                                    index
+                                    element={
+                                        <NavPermissionGuard itemKey="client-registration">
+                                            <ClientRegistrationPage />
+                                        </NavPermissionGuard>
+                                    }
+                                />
+                                <Route
+                                    path="new"
+                                    element={
+                                        <PermissionPageGuard permission="environment-client_registration_provider-c" unauthorizedTo="..">
+                                            <RequireDcrRegistrationLicense>
+                                                <ClientRegistrationProviderPage />
+                                            </RequireDcrRegistrationLicense>
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path=":providerId"
+                                    element={
+                                        <PermissionPageGuard
+                                            anyOf={[
+                                                'environment-client_registration_provider-r',
+                                                'environment-client_registration_provider-u',
+                                                'environment-client_registration_provider-d',
+                                            ]}
+                                        >
+                                            <RequireDcrRegistrationLicense>
+                                                <ClientRegistrationProviderPage />
+                                            </RequireDcrRegistrationLicense>
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                            </Route>
                             <Route
                                 path="integrations"
                                 element={
@@ -746,6 +857,24 @@ export function AppRoutes() {
                                     </NavPermissionGuard>
                                 }
                             />
+                            <Route
+                                path="api-score"
+                                element={
+                                    <NavPermissionGuard itemKey="api-score">
+                                        <RequireApiScoreEnabled>
+                                            <Outlet />
+                                        </RequireApiScoreEnabled>
+                                    </NavPermissionGuard>
+                                }
+                            >
+                                <Route element={<ApiScoreLayout />}>
+                                    <Route index element={<ApiScoreDashboardPage />} />
+                                    <Route path="rulesets" element={<ApiScoreRulesetsPage />} />
+                                </Route>
+                                <Route path="rulesets/import" element={<ImportApiScoreRulesetPage />} />
+                                <Route path="rulesets/import-function" element={<ImportScoringFunctionPage />} />
+                                <Route path="rulesets/:rulesetId/edit" element={<EditApiScoreRulesetPage />} />
+                            </Route>
                             <Route
                                 path="api-health-check"
                                 element={

@@ -21,7 +21,7 @@ const AlertTriggerWindowComponent: ng.IComponentOptions = {
     condition: '<',
     isReadonly: '<',
   },
-  template: require('html-loader!./trigger-window.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./trigger-window.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: function () {
     this.$onInit = () => {
       this.timeUnits = DurationTimeUnit.TIME_UNITS;

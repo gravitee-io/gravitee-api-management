@@ -27,8 +27,7 @@ import { ApplicationNotificationsComponent } from './application-notifications.c
 describe('ApplicationNotificationsComponent', () => {
   const createComponent = createComponentFactory({
     component: ApplicationNotificationsComponent,
-    declarations: [GvPageComponent],
-    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule],
+    imports: [HttpClientTestingModule, RouterTestingModule, TranslateTestingModule, FormsModule, ReactiveFormsModule, GvPageComponent],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
   });
 

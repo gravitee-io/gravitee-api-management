@@ -298,7 +298,7 @@ describe('ApiPlanListComponent', () => {
 
           await planListHarness.clickEditPlanButton();
 
-          expect(routerNavigateSpy).toBeCalledWith(['../plans'], expect.anything());
+          expect(routerNavigateSpy).toHaveBeenCalledWith(['../plans'], expect.anything());
         });
       });
 
@@ -308,7 +308,7 @@ describe('ApiPlanListComponent', () => {
 
         await planListHarness.clickDesignPlanButton();
 
-        expect(routerNavigateSpy).toBeCalledWith(['../v2/policy-studio'], {
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['../v2/policy-studio'], {
           queryParams: { flows: `${plan.id}_0` },
           relativeTo: expect.anything(),
         });
@@ -321,7 +321,7 @@ describe('ApiPlanListComponent', () => {
 
         component.designPlan(plan.id);
 
-        expect(routerNavigateSpy).toBeCalledWith(['../v4/policy-studio'], {
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['../v4/policy-studio'], {
           relativeTo: expect.anything(),
         });
       });

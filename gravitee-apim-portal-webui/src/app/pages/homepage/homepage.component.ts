@@ -13,34 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, HostListener, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, HostListener, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { Api, ApiMetrics, ApiService, Page, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { ApiStatesPipe } from '../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../pipes/api-labels.pipe';
 import '@gravitee/ui-components/wc/gv-card-list';
 import { ConfigurationService } from '../../services/configuration.service';
+import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 
 @Component({
   selector: 'app-homepage',
   templateUrl: './homepage.component.html',
   styleUrls: ['./homepage.component.css'],
-  standalone: false,
+  imports: [NgIf, GvPageComponent, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class HomepageComponent implements OnInit {
+  private portalService = inject(PortalService);
+  private apiService = inject(ApiService);
+  private router = inject(Router);
+  private apiStates = inject(ApiStatesPipe);
+  private apiLabels = inject(ApiLabelsPipe);
+  private config = inject(ConfigurationService);
+
   public homepage: Page;
   public topApis: { item: Api; metric: Promise<ApiMetrics> }[] = [];
   public pageBaseUrl = '/documentation/root';
-
-  constructor(
-    private portalService: PortalService,
-    private apiService: ApiService,
-    private router: Router,
-    private apiStates: ApiStatesPipe,
-    private apiLabels: ApiLabelsPipe,
-    private config: ConfigurationService,
-  ) {}
 
   ngOnInit() {
     this.portalService.getPages({ homepage: true }).subscribe(response => {

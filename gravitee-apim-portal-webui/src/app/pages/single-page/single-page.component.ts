@@ -13,25 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgIf } from '@angular/common';
 
 import { Page, PortalService } from '../../../../projects/portal-webclient-sdk/src/lib';
+import { GvPageComponent } from '../../components/gv-page/gv-page.component';
 
 @Component({
   selector: 'app-single-page',
   templateUrl: './single-page.component.html',
   styleUrls: ['./single-page.component.css'],
-  standalone: false,
+  imports: [NgIf, GvPageComponent],
 })
 export class SinglePageComponent implements OnInit {
-  singlePage: Page;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private portalService = inject(PortalService);
 
-  constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private portalService: PortalService,
-  ) {}
+  singlePage: Page;
 
   ngOnInit() {
     this.route.params.subscribe(params => {

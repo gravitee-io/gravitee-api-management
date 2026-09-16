@@ -1,3 +1,9 @@
+/**
+ * Asciidoctor 4 ships an ESM browser build that uses `import.meta`, which Jest cannot load; the
+ * CommonJS one behind the `require` condition resolves its own path from the document URL.
+ *
+ * @jest-environment-options {"customExportConditions": ["require", "node"], "url": "file:///"}
+ */
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -27,8 +33,7 @@ describe('GvPageAsciiDocComponent', () => {
   const createComponent = createComponentFactory({
     component: GvPageAsciiDocComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [SafePipe],
-    imports: [HttpClientTestingModule],
+    imports: [HttpClientTestingModule, SafePipe],
     providers: [
       mockProvider(PageService, {
         getCurrentPage: () => docPage,

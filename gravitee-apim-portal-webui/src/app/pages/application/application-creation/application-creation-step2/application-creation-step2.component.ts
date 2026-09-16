@@ -13,11 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, HostListener, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnChanges,
+  OnInit,
+  Output,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
+import { FormArray, FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { NgIf, NgClass, NgFor } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { ApplicationTypeOption } from '../application-creation.component';
+import { GvFormControlDirective } from '../../../../directives/gv-form-control.directive';
 
 export type AppFormType = FormGroup<{
   app: FormGroup<{ type: FormControl<string>; client_id: FormControl<string> }>;
@@ -37,9 +51,12 @@ export type OAuthFormType = FormGroup<{
   selector: 'app-application-creation-step2',
   templateUrl: './application-creation-step2.component.html',
   styleUrls: ['../application-creation.component.css'],
-  standalone: false,
+  imports: [NgIf, ReactiveFormsModule, GvFormControlDirective, NgClass, NgFor, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class ApplicationCreationStep2Component implements OnInit, OnChanges {
+  private formBuilder = inject(FormBuilder);
+
   @Input() allowedTypes: Array<ApplicationTypeOption>;
   @Input() requireClientId: boolean;
   @Output() applicationTypeSelected = new EventEmitter<ApplicationTypeOption>();
@@ -49,8 +66,6 @@ export class ApplicationCreationStep2Component implements OnInit, OnChanges {
   oauthForm: OAuthFormType;
   appForm: AppFormType;
   private formSubscription: Subscription;
-
-  constructor(private formBuilder: FormBuilder) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.requireClientId && this.appForm && changes.requireClientId.previousValue !== changes.requireClientId.currentValue) {

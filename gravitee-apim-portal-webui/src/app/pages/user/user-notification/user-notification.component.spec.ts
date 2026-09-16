@@ -29,9 +29,8 @@ import { UserNotificationComponent } from './user-notification.component';
 describe('UserNotificationComponent', () => {
   const createComponent = createComponentFactory({
     component: UserNotificationComponent,
-    imports: [UserTestingModule, HttpClientTestingModule, RouterTestingModule],
+    imports: [UserTestingModule, HttpClientTestingModule, RouterTestingModule, SafePipe],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
-    declarations: [SafePipe],
     providers: [
       mockProvider(UserService, {
         getCurrentUserNotifications: () => new Observable(),

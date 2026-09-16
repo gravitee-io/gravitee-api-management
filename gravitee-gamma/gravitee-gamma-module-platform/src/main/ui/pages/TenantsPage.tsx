@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Button, Skeleton } from '@gravitee/graphene-core';
 import { InfoIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { TenantDeleteDialog } from '../features/tenants/components/TenantDeleteDialog';
 import { TenantFormSheet } from '../features/tenants/components/TenantFormSheet';

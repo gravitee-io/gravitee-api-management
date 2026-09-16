@@ -15,7 +15,7 @@
  */
 import { merge } from 'lodash';
 const WidgetChartMapConfigurationComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-chart-map-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./widget-chart-map-configuration.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   bindings: {
     chart: '<',
   },

@@ -31,10 +31,11 @@ jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
 
-import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes } from 'react-router-dom';
+
+import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 
 import { RoleFormPage } from './RoleFormPage';
 import { useCreateRole, useUpdateRole } from '../features/roles/hooks/useRoleMutations';
@@ -221,7 +222,7 @@ describe('RoleFormPage', () => {
 
             // Save stays disabled until something actually changes (mirrors gio-save-bar's dirty gating).
             await user.type(screen.getByLabelText('Role description'), '!');
-            await user.click(screen.getByRole('button', { name: 'Save' }));
+            await user.click(screen.getByRole('button', { name: 'Save changes' }));
 
             await waitFor(() => {
                 expect(mutateAsync).toHaveBeenCalledWith(

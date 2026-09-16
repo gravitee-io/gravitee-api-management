@@ -29,10 +29,11 @@ jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
 
-import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+
+import { useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { RolesPage } from './RolesPage';
 import { useDeleteRole } from '../features/roles/hooks/useRoleMutations';
@@ -146,7 +147,7 @@ describe('RolesPage', () => {
 
         // CUSTOM has both "view members" and "delete", so its row actions collapse into a dropdown.
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
-        await user.click(screen.getByRole('menuitem', { name: /Delete role/ }));
+        await user.click(screen.getByRole('menuitem', { name: /^Delete$/ }));
         expect(screen.getByRole('heading', { name: 'Delete a Role' })).toBeInTheDocument();
         await user.click(screen.getByRole('button', { name: 'Delete' }));
 
@@ -163,7 +164,7 @@ describe('RolesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('button', { name: 'Actions for CUSTOM' }));
-        await user.click(screen.getByRole('menuitem', { name: /Delete role/ }));
+        await user.click(screen.getByRole('menuitem', { name: /^Delete$/ }));
         await user.click(screen.getByRole('button', { name: 'Delete' }));
 
         await waitFor(() => {

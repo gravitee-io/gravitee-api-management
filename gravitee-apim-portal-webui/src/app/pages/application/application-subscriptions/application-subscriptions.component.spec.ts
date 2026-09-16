@@ -32,8 +32,15 @@ describe('ApplicationSubscriptionsComponent', () => {
   let component: ApplicationSubscriptionsComponent;
   let fixture: ComponentFixture<ApplicationSubscriptionsComponent>;
   const defaultConf = {
-    declarations: [ApplicationSubscriptionsComponent, LocalizedDatePipe],
-    imports: [TranslateTestingModule, HttpClientTestingModule, RouterTestingModule, FormsModule, ReactiveFormsModule],
+    imports: [
+      TranslateTestingModule,
+      HttpClientTestingModule,
+      RouterTestingModule,
+      FormsModule,
+      ReactiveFormsModule,
+      ApplicationSubscriptionsComponent,
+      LocalizedDatePipe,
+    ],
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
   };
 

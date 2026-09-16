@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { permissionService } from '@gravitee/gamma-modules-sdk';
 import { http, HttpResponse, type JsonBodyType } from 'msw';
 
-import { buildBootstrapConfig, TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from './factories';
+import { permissionService } from '@gravitee/gamma-modules-sdk';
+
+import { buildBootstrapConfig, buildUser, TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE } from './factories';
 import { server } from './server';
 import { useAuthStore } from '../features/auth/auth.store';
+import type { CurrentUser } from '../features/auth/auth.types';
 import { useEnvironmentStore } from '../features/environment/environment.store';
 import { useModulesStore } from '../features/modules/modules.store';
 import { useBootstrapStore } from '../shared/config/bootstrap.store';
@@ -85,7 +87,13 @@ export function respondWithError(method: 'get' | 'post' | 'put' | 'delete', url:
 
 export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null, loginMethodsFetchedAt: null });
-    useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
+    useAuthStore.setState({
+        user: null,
+        loading: false,
+        initialized: false,
+        oauthRedirectUrl: null,
+        avatarCacheBust: 0,
+    });
     useEnvironmentStore.getState().reset();
     useModulesStore.setState({ modules: [] });
     permissionService.reset();
@@ -107,6 +115,15 @@ export function seedBootstrap(overrides: Partial<BootstrapConfig> = {}) {
  */
 export function fakePermissions(permissions: Record<string, string[]>, envId = 'env-1-id') {
     server.use(http.get(`${TEST_MANAGEMENT_BASE}/environments/${envId}/permissions`, () => HttpResponse.json(permissions)));
+}
+
+export function seedUser(overrides: Partial<CurrentUser> = {}) {
+    useAuthStore.setState({
+        user: buildUser(overrides),
+        loading: false,
+        initialized: true,
+        oauthRedirectUrl: null,
+    });
 }
 
 /** Pre-populates the environment store as if `initialize` succeeded with {@link TEST_ENVIRONMENTS}. */

@@ -24,7 +24,7 @@ const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
     metrics: '<',
     isReadonly: '<',
   },
-  template: require('html-loader!./trigger-condition-compare.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./trigger-condition-compare.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: function () {
     this.$onInit = () => {
       this.metrics = filter(

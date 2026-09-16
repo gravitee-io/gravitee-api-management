@@ -15,7 +15,6 @@
  */
 import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-// eslint-disable-next-line import/no-unresolved
 import 'chartjs-adapter-date-fns';
 
 import { TimeSeriesChartComponent } from './time-series-chart.component';

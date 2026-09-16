@@ -393,9 +393,9 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
       expect(await banner.isSettingsActionVisible()).toBe(false);
     });
 
-    it('should show settings action when user has environment-settings-r permission', async () => {
+    it('should show settings action when user has required environment permissions', async () => {
       TestBed.overrideProvider(GioTestingPermissionProvider, {
-        useValue: ['api-definition-u', 'api-definition-d', 'environment-settings-r'],
+        useValue: ['api-definition-u', 'api-definition-d', 'environment-settings-r', 'environment-documentation-r'],
       });
       portalNextEnabled = true;
       const api = fakeApiV2({ id: API_ID, lifecycleState: 'CREATED' });

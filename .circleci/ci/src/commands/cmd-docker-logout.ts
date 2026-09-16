@@ -28,7 +28,7 @@ export class DockerLogoutCommand {
 
     const steps = [];
 
-    let name = '';
+    let name: string;
     if (isProd && environment.isDryRun) {
       name = `No logout from ${dockerRegistryName} - Dry-Run`;
       steps.push(

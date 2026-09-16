@@ -13,19 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DatabaseIcon } from '@gravitee/graphene-core/icons';
-import { act, fireEvent, render, screen } from '@testing-library/react';
-import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
+import { DatabaseIcon, ShieldCheckIcon, SparklesIcon } from '@gravitee/graphene-core/icons';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 
-import { API_PROXY_NAV_GROUPS, ApiDetailSidebarNav, withMetadataPermission, withTcpRestrictions } from './ApiDetailSidebarNav';
+import {
+    API_PROXY_NAV_GROUPS,
+    ApiDetailSidebarNav,
+    withApiScoreEnabled,
+    withMetadataPermission,
+    withObservabilityLinks,
+    withResponseTemplatesPermission,
+    withTcpRestrictions,
+} from './ApiDetailSidebarNav';
 
 const GROUPS = API_PROXY_NAV_GROUPS;
 const BASE = '/env/apis/abc-123';
+const OBSERVABILITY_LINKS = { dashboardHref: '/env/observe/dashboards/http-proxy-overview?q=a', logsHref: '/env/observe/logs?q=a' };
 
-function renderNav(currentPath: string) {
+function renderNav(currentPath: string, groups = GROUPS) {
     return render(
         <MemoryRouter initialEntries={[currentPath]}>
-            <ApiDetailSidebarNav groups={GROUPS} basePath={BASE} />
+            <ApiDetailSidebarNav groups={groups} basePath={BASE} />
         </MemoryRouter>,
     );
 }
@@ -33,35 +42,42 @@ function renderNav(currentPath: string) {
 // ─── Nav structure ────────────────────────────────────────────────────────────
 
 describe('API_PROXY_NAV_GROUPS', () => {
-    it('returns 7 groups with the expected labels', () => {
-        expect(GROUPS).toHaveLength(7);
-        expect(GROUPS.map(g => g.label)).toEqual([
-            'General',
-            'Gateway',
-            'Design',
-            'Consumer Access',
-            'Security',
-            'Monitoring',
-            'Operations',
+    // The canonical Gamma API-detail IA (FOUND-304). Every API object type — an LLM proxy, a Kafka
+    // Service, a Message API — uses these groups in this order; Observability joins at render time.
+    it('declares the canonical groups, in order', () => {
+        expect(GROUPS.map(g => g.label)).toEqual(['General', 'Design', 'Consumers', 'Monitoring', 'Operations']);
+    });
+
+    it('opens Design with Entrypoints, Policy Studio, Endpoints', () => {
+        const design = GROUPS.find(g => g.label === 'Design')!;
+        expect(design.items.slice(0, 3).map(i => i.path)).toEqual(['entrypoints', 'policy-studio', 'endpoints/list']);
+    });
+
+    it('lists every entry flat — no collapsible parents left', () => {
+        expect(GROUPS.flatMap(g => g.items).every(item => !('children' in item))).toBe(true);
+    });
+
+    it('names the deployment screens Sharding Tags and Deployment History', () => {
+        const operations = GROUPS.find(g => g.label === 'Operations')!;
+        expect(operations.items.map(i => [i.label, i.path])).toEqual([
+            ['Sharding Tags', 'deployment/configuration'],
+            ['Deployment History', 'deployment/history'],
+            ['Reporter Settings', 'reporter-settings'],
         ]);
     });
 
-    it('Endpoints item has 3 children (Endpoints, Failover, Health Check Dashboard)', () => {
-        const endpoints = GROUPS.find(g => g.label === 'Gateway')!.items.find(i => i.path === 'endpoints')!;
-        expect(endpoints.children).toHaveLength(3);
-        expect(endpoints.children!.map(c => c.path)).toEqual(['list', 'failover', 'health-check-dashboard']);
-    });
-
-    it('Deployment item has 2 children (Configuration, History)', () => {
-        const deployment = GROUPS.find(g => g.label === 'Operations')!.items.find(i => i.path === 'deployment')!;
-        expect(deployment.children).toHaveLength(2);
-        expect(deployment.children!.map(c => c.path)).toEqual(['configuration', 'history']);
-    });
-
-    it('places Metadata immediately after CORS in the General group', () => {
+    it('keeps General to what identifies the API, User Permissions included', () => {
         const general = GROUPS.find(g => g.label === 'General')!;
-        const visiblePaths = general.items.filter(item => !item.comingSoon).map(item => item.path);
-        expect(visiblePaths[visiblePaths.indexOf('cors') + 1]).toBe('metadata');
+        expect(general.items.map(i => i.path)).toEqual(['overview', 'general', 'user-permissions', 'authorization', 'metadata']);
+        expect(general.items.find(i => i.path === 'general')!.label).toBe('Settings');
+    });
+
+    it('uses SparklesIcon for API Score so CORS can keep ShieldCheckIcon', () => {
+        const apiScore = GROUPS.find(g => g.label === 'Monitoring')!.items.find(item => item.path === 'api-score')!;
+        const cors = GROUPS.find(g => g.label === 'Design')!.items.find(item => item.path === 'cors')!;
+        expect(apiScore.icon).toBe(SparklesIcon);
+        expect(cors.icon).toBe(ShieldCheckIcon);
+        expect(apiScore.comingSoon).toBeUndefined();
     });
 
     it('uses the same Metadata icon as Platform Environment metadata', () => {
@@ -80,7 +96,6 @@ describe('ApiDetailSidebarNav — flat links', () => {
 
     it('renders all group section headings', () => {
         renderNav(`${BASE}/overview`);
-        // Most group labels are unique in the DOM; "General" also appears as a nav item label so use getAllByText.
         for (const group of GROUPS) {
             expect(screen.getAllByText(group.label).length).toBeGreaterThanOrEqual(1);
         }
@@ -96,21 +111,64 @@ describe('ApiDetailSidebarNav — flat links', () => {
         expect(screen.getByRole('link', { name: /^metadata$/i })).toHaveAttribute('href', `${BASE}/metadata`);
     });
 
-    it('renders "coming soon" items (API Score, Response Templates, Authorization) as disabled, non-navigable rows', () => {
+    it('renders API Score as a navigable link', () => {
         renderNav(`${BASE}/overview`);
-        for (const label of ['API Score', 'Response Templates', 'Authorization']) {
+        expect(screen.getByRole('link', { name: /^api score$/i })).toHaveAttribute('href', `${BASE}/api-score`);
+    });
+
+    it('renders the endpoint screens as flat links, not behind a collapsible parent', () => {
+        renderNav(`${BASE}/overview`);
+        expect(screen.getByRole('link', { name: /^endpoints$/i })).toHaveAttribute('href', `${BASE}/endpoints/list`);
+        expect(screen.getByRole('link', { name: /^failover$/i })).toHaveAttribute('href', `${BASE}/endpoints/failover`);
+        expect(screen.getByRole('link', { name: /^health check dashboard$/i })).toHaveAttribute(
+            'href',
+            `${BASE}/endpoints/health-check-dashboard`,
+        );
+    });
+
+    it('renders "coming soon" items (Authorization) as disabled, non-navigable rows', () => {
+        renderNav(`${BASE}/overview`);
+        for (const label of ['Authorization']) {
             expect(screen.getByText(label)).toBeInTheDocument();
             expect(screen.queryByRole('link', { name: new RegExp(`^${label}$`, 'i') })).not.toBeInTheDocument();
         }
     });
 
+    it('renders the Response Templates link with the correct href', () => {
+        renderNav(`${BASE}/overview`);
+        expect(screen.getByRole('link', { name: /^response templates$/i })).toHaveAttribute('href', `${BASE}/response-templates`);
+    });
+
     it('makes "coming soon" rows reachable by keyboard, with their reason exposed for assistive tech', () => {
         renderNav(`${BASE}/overview`);
-        const row = screen.getByText('API Score').closest('[tabindex]');
+        const row = screen.getByText('Authorization').closest('[tabindex]');
         expect(row).not.toBeNull();
         expect(row).toHaveAttribute('tabindex', '0');
         expect(row).toHaveAttribute('aria-disabled', 'true');
         expect(row).toHaveAttribute('title');
+    });
+});
+
+// ─── Observability deep links ─────────────────────────────────────────────────
+
+describe('withObservabilityLinks', () => {
+    it('inserts the group between Monitoring and Operations', () => {
+        const groups = withObservabilityLinks(GROUPS, OBSERVABILITY_LINKS);
+        expect(groups.map(g => g.label)).toEqual(['General', 'Design', 'Consumers', 'Monitoring', 'Observability', 'Operations']);
+    });
+
+    it('leaves the groups untouched when no deep link could be built', () => {
+        expect(withObservabilityLinks(GROUPS, {})).toBe(GROUPS);
+    });
+
+    it('opens each entry in a new tab, announcing the change of context', () => {
+        renderNav(`${BASE}/overview`, withObservabilityLinks(GROUPS, OBSERVABILITY_LINKS));
+        // The external-link icon is decorative, so the accessible name carries the warning instead.
+        const dashboard = screen.getByRole('link', { name: 'Dashboard (opens in a new tab)' });
+        expect(dashboard).toHaveAttribute('href', OBSERVABILITY_LINKS.dashboardHref);
+        expect(dashboard).toHaveAttribute('target', '_blank');
+        expect(dashboard).toHaveAttribute('rel', 'noopener noreferrer');
+        expect(screen.getByRole('link', { name: 'Logs (opens in a new tab)' })).toHaveAttribute('href', OBSERVABILITY_LINKS.logsHref);
     });
 });
 
@@ -121,32 +179,37 @@ describe('withTcpRestrictions', () => {
         expect(withTcpRestrictions(GROUPS, false)).toBe(GROUPS);
     });
 
-    it('marks Policy Studio and CORS as comingSoon when the API has TCP listeners', () => {
+    it('marks Policy Studio, CORS, and Response Templates as comingSoon when the API has TCP listeners', () => {
         const restricted = withTcpRestrictions(GROUPS, true);
-        const policyStudio = restricted.find(g => g.label === 'Design')!.items.find(i => i.path === 'policy-studio')!;
-        const cors = restricted.find(g => g.label === 'General')!.items.find(i => i.path === 'cors')!;
+        const design = restricted.find(g => g.label === 'Design')!;
+        const policyStudio = design.items.find(i => i.path === 'policy-studio')!;
+        const cors = design.items.find(i => i.path === 'cors')!;
+        const responseTemplates = design.items.find(i => i.path === 'response-templates')!;
 
         expect(policyStudio.comingSoon).toBe(true);
         expect(policyStudio.comingSoonReason).toBe('Coming soon for V4 APIs');
         expect(cors.comingSoon).toBe(true);
         expect(cors.comingSoonReason).toBe('Coming soon for V4 APIs');
+        expect(responseTemplates.comingSoon).toBe(true);
+        expect(responseTemplates.comingSoonReason).toBe('Coming soon for V4 APIs');
     });
 
     it('does not affect unrelated items', () => {
         const restricted = withTcpRestrictions(GROUPS, true);
-        const plans = restricted.find(g => g.label === 'Consumer Access')!.items.find(i => i.path === 'plans')!;
+        const plans = restricted.find(g => g.label === 'Consumers')!.items.find(i => i.path === 'plans')!;
         expect(plans.comingSoon).toBeUndefined();
     });
 
-    it('omits Failover and Health Check Dashboard from the Endpoints children for TCP APIs', () => {
-        const restricted = withTcpRestrictions(GROUPS, true);
-        const endpoints = restricted.find(g => g.label === 'Gateway')!.items.find(i => i.path === 'endpoints')!;
-        expect(endpoints.children!.map(c => c.path)).toEqual(['list']);
+    it('omits Failover and Health Check Dashboard for TCP APIs', () => {
+        const paths = withTcpRestrictions(GROUPS, true).flatMap(g => g.items.map(i => i.path));
+        expect(paths).not.toContain('endpoints/failover');
+        expect(paths).not.toContain('endpoints/health-check-dashboard');
+        expect(paths).toContain('endpoints/list');
     });
 
-    it('keeps Failover and Health Check Dashboard in the Endpoints children for non-TCP APIs', () => {
-        const endpoints = GROUPS.find(g => g.label === 'Gateway')!.items.find(i => i.path === 'endpoints')!;
-        expect(endpoints.children!.map(c => c.path)).toEqual(['list', 'failover', 'health-check-dashboard']);
+    it('drops the whole Observability group for TCP APIs, which have no traffic or logs screen', () => {
+        const restricted = withTcpRestrictions(withObservabilityLinks(GROUPS, OBSERVABILITY_LINKS), true);
+        expect(restricted.map(g => g.label)).not.toContain('Observability');
     });
 });
 
@@ -159,78 +222,41 @@ describe('withMetadataPermission', () => {
         const restricted = withMetadataPermission(GROUPS, false);
         const general = restricted.find(g => g.label === 'General')!;
         expect(general.items.find(item => item.path === 'metadata')).toBeUndefined();
-        expect(general.items.find(item => item.path === 'cors')).toBeDefined();
+        expect(general.items.find(item => item.path === 'user-permissions')).toBeDefined();
+    });
+});
+
+describe('withResponseTemplatesPermission', () => {
+    it('returns the groups unchanged when the user can read response templates', () => {
+        expect(withResponseTemplatesPermission(GROUPS, true)).toBe(GROUPS);
+    });
+
+    it('omits Response Templates from the Design group when the user lacks api-response_templates-r', () => {
+        const restricted = withResponseTemplatesPermission(GROUPS, false);
+        const design = restricted.find(g => g.label === 'Design')!;
+        expect(design.items.find(item => item.path === 'response-templates')).toBeUndefined();
+        expect(design.items.find(item => item.path === 'cors')).toBeDefined();
+    });
+});
+
+describe('withApiScoreEnabled', () => {
+    it('returns the groups unchanged when API Score is enabled', () => {
+        expect(withApiScoreEnabled(GROUPS, true)).toBe(GROUPS);
+    });
+
+    it('omits API Score from the Monitoring group when the portal flag is off', () => {
+        const restricted = withApiScoreEnabled(GROUPS, false);
+        const monitoring = restricted.find(g => g.label === 'Monitoring')!;
+        expect(monitoring.items.find(item => item.path === 'api-score')).toBeUndefined();
+        expect(monitoring.items.find(item => item.path === 'notifications')).toBeDefined();
     });
 });
 
 describe('ApiDetailSidebarNav — TCP restrictions', () => {
     it('renders Policy Studio as a disabled row instead of a link for a TCP API', () => {
-        const groups = withTcpRestrictions(GROUPS, true);
-        render(
-            <MemoryRouter initialEntries={[`${BASE}/overview`]}>
-                <ApiDetailSidebarNav groups={groups} basePath={BASE} />
-            </MemoryRouter>,
-        );
+        renderNav(`${BASE}/overview`, withTcpRestrictions(GROUPS, true));
 
         expect(screen.getByText('Policy Studio')).toBeInTheDocument();
         expect(screen.queryByRole('link', { name: /^policy studio$/i })).not.toBeInTheDocument();
-    });
-});
-
-// ─── Collapsible items ────────────────────────────────────────────────────────
-
-describe('ApiDetailSidebarNav — collapsible items', () => {
-    it('is closed by default when current URL does not match any child path', () => {
-        renderNav(`${BASE}/overview`);
-        expect(screen.queryByRole('link', { name: /failover/i })).not.toBeInTheDocument();
-    });
-
-    it('is open by default when current URL matches a child path', () => {
-        renderNav(`${BASE}/endpoints/list`);
-        expect(screen.getByRole('link', { name: /failover/i })).toBeInTheDocument();
-        // "Health Check Dashboard" is now a shipped child and is shown as a link.
-        expect(screen.getByRole('link', { name: /health check dashboard/i })).toBeInTheDocument();
-    });
-
-    it('is open by default when current URL matches the parent path exactly', () => {
-        renderNav(`${BASE}/endpoints`);
-        expect(screen.getByRole('link', { name: /failover/i })).toBeInTheDocument();
-    });
-
-    it('clicking a closed collapsible item opens it and shows its children', () => {
-        renderNav(`${BASE}/overview`);
-        expect(screen.queryByRole('link', { name: /failover/i })).not.toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole('button', { name: /endpoints/i }));
-
-        expect(screen.getByRole('link', { name: /failover/i })).toBeInTheDocument();
-    });
-
-    it('clicking an open collapsible item closes it and hides its children', () => {
-        renderNav(`${BASE}/endpoints/list`);
-        expect(screen.getByRole('link', { name: /failover/i })).toBeInTheDocument();
-
-        fireEvent.click(screen.getByRole('button', { name: /endpoints/i }));
-
-        expect(screen.queryByRole('link', { name: /failover/i })).not.toBeInTheDocument();
-    });
-
-    it('child links have the correct href composed from basePath + parent + child', () => {
-        renderNav(`${BASE}/endpoints/list`);
-        expect(screen.getByRole('link', { name: /failover/i })).toHaveAttribute('href', `${BASE}/endpoints/failover`);
-    });
-
-    it('auto-expands when route changes to match a child path', async () => {
-        const router = createMemoryRouter([{ path: '*', element: <ApiDetailSidebarNav groups={GROUPS} basePath={BASE} /> }], {
-            initialEntries: [`${BASE}/overview`],
-        });
-        render(<RouterProvider router={router} />);
-        expect(screen.queryByRole('link', { name: /failover/i })).not.toBeInTheDocument();
-
-        await act(async () => {
-            router.navigate(`${BASE}/endpoints/list`);
-        });
-
-        expect(screen.getByRole('link', { name: /failover/i })).toBeInTheDocument();
     });
 });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 
 import { CurrentUserService } from './current-user.service';
@@ -23,11 +23,9 @@ import { NotificationService } from './notification.service';
   providedIn: 'root',
 })
 export class SubscribeGuardService {
-  constructor(
-    private currentUserService: CurrentUserService,
-    private router: Router,
-    private notificationService: NotificationService,
-  ) {}
+  private currentUserService = inject(CurrentUserService);
+  private router = inject(Router);
+  private notificationService = inject(NotificationService);
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
     const user = this.currentUserService.get().getValue();

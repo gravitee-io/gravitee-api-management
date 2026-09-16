@@ -63,10 +63,10 @@ public class ClientCertificateValidationDomainServiceImpl implements ClientCerti
     }
 
     @Override
-    public CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId) {
+    public CertificateInfo validateForCreation(ClientCertificate clientCertificate, String environmentId, String excludeApplicationId) {
         CertificateInfo info = validate(clientCertificate.certificate());
 
-        if (clientCertificateCrudService.existsByFingerprintAndActiveApplication(info.fingerprint(), environmentId)) {
+        if (clientCertificateCrudService.existsByFingerprintAndActiveApplication(info.fingerprint(), environmentId, excludeApplicationId)) {
             throw new ClientCertificateAlreadyUsedException(info.fingerprint());
         }
 

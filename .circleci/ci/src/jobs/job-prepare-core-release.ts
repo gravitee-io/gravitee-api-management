@@ -24,23 +24,21 @@ import { CircleCIEnvironment } from '../pipelines';
  * Commits the core reactor's release version, tags it, and reopens the branch on the next
  * development version. Publishing is not here: pushing the tag starts the lane that does it.
  */
+const PORTAL_OPENAPI =
+  'gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml';
+
 export class PrepareCoreReleaseJob {
   private static jobName = 'job-prepare-core-release';
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
-    dynamicConfig.importOrb(orbs.github);
 
     const { version: nextVersion, qualifier: nextQualifier } = nextDevelopmentVersion(environment.graviteeioVersion);
     const tag = `core_${environment.graviteeioVersion}`;
 
     const steps: Command[] = [
       new commands.Checkout(),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.githubApiToken,
-        'var-name': 'GITHUB_TOKEN',
-      }),
-      new reusable.ReusedCommand(orbs.github.commands['setup']),
+      new commands.AddSSHKeys({ fingerprints: config.ssh.fingerprints }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',
@@ -55,33 +53,24 @@ export class PrepareCoreReleaseJob {
 git config --global user.email "\${GIT_USER_EMAIL}"`,
       }),
       new commands.Run({
-        // A push over the project SSH key produces no webhook, so the tag it carries starts nothing.
-        name: 'Push over HTTPS, so that pushing the tag triggers the release',
-        command: `gh auth setup-git
-git remote set-url origin "https://github.com/\${CIRCLE_PROJECT_USERNAME}/\${CIRCLE_PROJECT_REPONAME}.git"`,
-      }),
-      new commands.Run({
         name: `Tag core ${environment.graviteeioVersion} ${environment.isDryRun ? '- Dry Run' : ''}`,
-        command: `# Both poms, even though only the root reactor is published here. \`Check both reactors carry
-# the same version\` runs on every pull request and exits 1 when the triplets differ, so moving the
-# root alone would redden the branch until the next full release. The two lineages part company only
-# once engine-snapshot stops overriding the pin — until then they have to advance together.
-POMS="pom.xml gravitee-apim-distribution/pom.xml"
-for POM in \${POMS}; do
-  sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "\${POM}"
-done
+        command: `# Only the root pom. The distribution carries its own triplet and releases under its own tag;
+# what it assembles is its pin, which a reviewed pull request advances after this has published.
+sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
 git add --update
 git commit -m "${tag}"
 git tag ${tag}
 
-for POM in \${POMS}; do
-  sed -i "s#<revision>.*</revision>#<revision>${nextVersion}</revision>#" "\${POM}"
-  sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" "\${POM}"
-  # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
-  # never matches — the qualifier was silently kept on any pom already holding the empty form.
-  sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1>${nextQualifier}</sha1>#" "\${POM}"
-done
+sed -i "s#<revision>.*</revision>#<revision>${nextVersion}</revision>#" pom.xml
+sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+# <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
+# never matches — the qualifier was silently kept on any pom already holding the empty form.
+sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1>${nextQualifier}</sha1>#" pom.xml
+# The portal spec ships inside the core's jars and the documentation site publishes it under the
+# product's number, so it has to name a version that moves — left behind, every release of the line
+# would publish the one the code freeze wrote.
+sed -i 's#version: ".*"#version: "${nextVersion}${nextQualifier}-SNAPSHOT"#' ${PORTAL_OPENAPI}
 
 git add --update
 git commit -m 'chore: prepare next core version [skip ci]'

@@ -83,6 +83,12 @@ export const apiPermissionKeys = {
     detail: (envId: string, apiId: string) => [...apiPermissionKeys.all, envId, apiId] as const,
 };
 
+export const apiPromotionKeys = {
+    all: ['api-promotion'] as const,
+    targets: (envId: string) => [...apiPromotionKeys.all, 'targets', envId] as const,
+    pending: (apiId: string) => [...apiPromotionKeys.all, 'pending', apiId] as const,
+};
+
 export const apiEntrypointKeys = {
     all: ['api-entrypoints'] as const,
     exposed: (envId: string, apiId: string) => [...apiEntrypointKeys.all, 'exposed', envId, apiId] as const,
@@ -91,6 +97,13 @@ export const apiEntrypointKeys = {
 export const portalSettingsKeys = {
     all: ['portal-settings'] as const,
     env: (envId: string) => [...portalSettingsKeys.all, envId] as const,
+    portalConfig: (envId: string) => [...portalSettingsKeys.all, 'portal-config', envId] as const,
+};
+
+export const apiScoringKeys = {
+    all: ['api-scoring'] as const,
+    report: (envId: string, apiId: string) => [...apiScoringKeys.all, 'report', envId, apiId] as const,
+    jobs: (envId: string, apiId: string) => [...apiScoringKeys.all, 'jobs', envId, apiId] as const,
 };
 
 export const apiAlertKeys = {

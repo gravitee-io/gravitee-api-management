@@ -17,13 +17,14 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.authz;
 
 import io.gravitee.gateway.services.sync.process.common.model.Deployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import java.util.Set;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @Accessors(fluent = true)
 @EqualsAndHashCode
@@ -34,6 +35,11 @@ public class AuthzPdpProvisionDeployable implements Deployable {
     private String environmentId;
     private String tag;
     private SyncAction syncAction;
+
+    // Routing scopes whose evict this batch suppressed because this deploy reuses their engine; dropped from
+    // the node's bookkeeping once this deploy confirms. Gateway-internal, not on the wire.
+    @Builder.Default
+    private Set<String> absorbedScopes = Set.of();
 
     @Override
     public String id() {

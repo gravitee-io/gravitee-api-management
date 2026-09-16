@@ -18,8 +18,8 @@ import cypressConfig from '../cypress-apim-config';
 
 export default defineConfig({
   projectId: '88vnc3',
-  env: {
-    ...cypressConfig.env,
+  expose: {
+    ...cypressConfig.expose,
   },
   e2e: {
     ...cypressConfig.e2e,

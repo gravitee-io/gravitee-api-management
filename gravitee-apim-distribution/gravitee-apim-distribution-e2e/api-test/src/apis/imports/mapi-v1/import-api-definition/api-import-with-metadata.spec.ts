@@ -93,13 +93,12 @@ describe('API - Imports with metadata', () => {
     await Promise.all(createdApis);
   });
 
-  test.each`
-    expectedApiId          | expectedMetadata
-    ${firstExpectedApiId}  | ${firstApiMetadata}
-    ${secondExpectedApiId} | ${secondApiMetadata}
-    ${thirdExpectedApiId}  | ${thirdExpectedMetadata}
-    ${fourthExpectedApiId} | ${fourthExpectedMetadata}
-  `(
+  test.each([
+    { expectedApiId: firstExpectedApiId, expectedMetadata: firstApiMetadata },
+    { expectedApiId: secondExpectedApiId, expectedMetadata: secondApiMetadata },
+    { expectedApiId: thirdExpectedApiId, expectedMetadata: thirdExpectedMetadata },
+    { expectedApiId: fourthExpectedApiId, expectedMetadata: fourthExpectedMetadata },
+  ])(
     'should get API metadata for the API $expectedApiId',
     async ({ expectedApiId, expectedMetadata }: { expectedApiId: string; expectedMetadata: Record<string, string> }) => {
       const metadata = await succeed(apisResourceAsAdminUser.getApiMetadatasRaw({ orgId, envId, api: expectedApiId }));

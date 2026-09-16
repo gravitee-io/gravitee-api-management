@@ -51,7 +51,7 @@ export {};
 Cypress.Commands.add('callGateway', (contextPath, checkConditionFn?, maxRetries = 20, retryDelay = 1500) => {
   const defaultCheckFunction = (response: Cypress.Response<any>) => response.status === 200;
   const isResponseValid = checkConditionFn || defaultCheckFunction;
-  const url = `${Cypress.env('gatewayServer')}${contextPath}`;
+  const url = `${Cypress.expose('gatewayServer')}${contextPath}`;
   const sendRequest = (retriesLeft: number) => {
     cy.log(`Calling gateway: ${url} - Retry ${maxRetries - retriesLeft} of ${maxRetries}`);
     cy.request({ url, failOnStatusCode: false }).then((response) => {
@@ -102,7 +102,7 @@ Cypress.Commands.add('createAndStartApiFromSwagger', (swaggerImport: string, att
     api.name = name;
     api.proxy.virtual_hosts = [{ path: `/${name}` }];
     api.proxy.groups[0].endpoints.forEach((_value, index) => {
-      api.proxy.groups[0].endpoints[index].target = `${Cypress.env('localPetstore_v2')}`;
+      api.proxy.groups[0].endpoints[index].target = `${Cypress.expose('localPetstore_v2')}`;
     });
     // @ts-ignore
     updateApi(API_PUBLISHER_USER, api.id, api);

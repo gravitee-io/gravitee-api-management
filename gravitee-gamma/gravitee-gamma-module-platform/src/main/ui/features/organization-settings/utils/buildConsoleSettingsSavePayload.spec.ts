@@ -100,4 +100,18 @@ describe('buildConsoleSettingsSavePayload', () => {
 
         expect(payload.email).toEqual(CURRENT.email);
     });
+
+    it('overlays only logging', () => {
+        const payload = buildConsoleSettingsSavePayload(CURRENT, 'logging', {
+            logging: {
+                maxDurationMillis: 15000,
+                audit: { enabled: true, trail: { enabled: false } },
+            },
+        });
+
+        expect(payload.logging?.maxDurationMillis).toBe(15000);
+        expect(payload.logging?.audit?.trail?.enabled).toBe(false);
+        expect(payload.cors).toEqual(CURRENT.cors);
+        expect(payload.email).toEqual(CURRENT.email);
+    });
 });

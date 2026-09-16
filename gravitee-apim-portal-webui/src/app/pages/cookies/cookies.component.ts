@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, Component, OnInit, inject } from '@angular/core';
 import { CookieService } from 'ngx-cookie-service';
+import { NgIf } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import '@gravitee/ui-components/wc/gv-switch';
 
@@ -26,16 +28,15 @@ import { NotificationService } from '../../services/notification.service';
   selector: 'app-cookies',
   templateUrl: './cookies.component.html',
   styleUrls: ['./cookies.component.css'],
-  standalone: false,
+  imports: [NgIf, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class CookiesComponent implements OnInit {
-  gaCookieEnabled: boolean;
+  private googleAnalyticsService = inject(GoogleAnalyticsService);
+  private cookieService = inject(CookieService);
+  private notificationService = inject(NotificationService);
 
-  constructor(
-    private googleAnalyticsService: GoogleAnalyticsService,
-    private cookieService: CookieService,
-    private notificationService: NotificationService,
-  ) {}
+  gaCookieEnabled: boolean;
 
   ngOnInit() {
     this.gaCookieEnabled = this.cookieService.get(CookieEnum.googleAnalytics) === '1';

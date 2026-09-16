@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { CheckIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { ApplicationCertificatesSection } from './ApplicationCertificatesSection';
 import { ApplicationDetailsSection } from './ApplicationDetailsSection';
@@ -186,7 +187,7 @@ export function ApplicationGeneralContent({ application }: Readonly<{ applicatio
         <div className="space-y-5">
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">General</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
                     <p className="text-sm text-muted-foreground">
                         Application details, OAuth client configuration, certificates, and lifecycle.
                     </p>

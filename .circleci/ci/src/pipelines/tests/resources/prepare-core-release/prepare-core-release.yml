@@ -12,10 +12,6 @@ parameters:
     type: boolean
     default: true
     description: Run in dry run mode?
-  docker_tag_as_latest:
-    type: boolean
-    default: false
-    description: Is this version the latest version available?
   graviteeio_version:
     type: string
     default: ""
@@ -31,10 +27,9 @@ jobs:
     resource_class: medium
     steps:
       - checkout
-      - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: GITHUB_TOKEN
-      - gh/setup
+      - add_ssh_keys:
+          fingerprints:
+            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -47,33 +42,25 @@ jobs:
             git config --global user.name "${GIT_USER_NAME}"
             git config --global user.email "${GIT_USER_EMAIL}"
       - run:
-          name: Push over HTTPS, so that pushing the tag triggers the release
-          command: |-
-            gh auth setup-git
-            git remote set-url origin "https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}.git"
-      - run:
           name: "Tag core 4.13.0 "
           command: |
-            # Both poms, even though only the root reactor is published here. `Check both reactors carry
-            # the same version` runs on every pull request and exits 1 when the triplets differ, so moving the
-            # root alone would redden the branch until the next full release. The two lineages part company only
-            # once engine-snapshot stops overriding the pin — until then they have to advance together.
-            POMS="pom.xml gravitee-apim-distribution/pom.xml"
-            for POM in ${POMS}; do
-              sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" "${POM}"
-            done
+            # Only the root pom. The distribution carries its own triplet and releases under its own tag;
+            # what it assembles is its pin, which a reviewed pull request advances after this has published.
+            sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
 
             git add --update
             git commit -m "core_4.13.0"
             git tag core_4.13.0
 
-            for POM in ${POMS}; do
-              sed -i "s#<revision>.*</revision>#<revision>4.13.1</revision>#" "${POM}"
-              sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" "${POM}"
-              # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
-              # never matches — the qualifier was silently kept on any pom already holding the empty form.
-              sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1></sha1>#" "${POM}"
-            done
+            sed -i "s#<revision>.*</revision>#<revision>4.13.1</revision>#" pom.xml
+            sed -i "s#<changelist>.*</changelist>#<changelist>-SNAPSHOT</changelist>#" pom.xml
+            # <sha1 /> is self-closing when the qualifier is empty, which the plain <sha1>.*</sha1> pattern
+            # never matches — the qualifier was silently kept on any pom already holding the empty form.
+            sed -i -E "s#<sha1( */>|>[^<]*</sha1>)#<sha1></sha1>#" pom.xml
+            # The portal spec ships inside the core's jars and the documentation site publishes it under the
+            # product's number, so it has to name a version that moves — left behind, every release of the line
+            # would publish the one the code freeze wrote.
+            sed -i 's#version: ".*"#version: "4.13.1-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
 
             git add --update
             git commit -m 'chore: prepare next core version [skip ci]'
@@ -91,4 +78,3 @@ workflows:
           name: Tag the core release
 orbs:
   keeper: gravitee-io/keeper@0.7.1
-  gh: circleci/github-cli@1.0.5

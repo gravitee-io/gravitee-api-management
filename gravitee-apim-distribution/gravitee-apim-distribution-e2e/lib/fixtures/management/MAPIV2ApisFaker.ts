@@ -333,7 +333,7 @@ export class MAPIV2ApisFaker {
           name: 'Default HTTP proxy',
           type: 'http-proxy',
           configuration: {
-            target: `${Cypress.env('wiremockUrl')}/hello`,
+            target: `${Cypress.expose('wiremockUrl')}/hello`,
           },
         },
       ],

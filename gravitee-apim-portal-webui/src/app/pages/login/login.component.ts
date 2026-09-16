@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { CUSTOM_ELEMENTS_SCHEMA, AfterViewInit, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { NgIf, NgFor } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import '@gravitee/ui-components/wc/gv-button';
 import '@gravitee/ui-components/wc/gv-icon';
 import '@gravitee/ui-components/wc/gv-input';
@@ -25,29 +27,29 @@ import { ConfigurationService } from '../../services/configuration.service';
 import { FeatureEnum } from '../../model/feature.enum';
 import { AuthService } from '../../services/auth.service';
 import { ReCaptchaService } from '../../services/recaptcha.service';
+import { GvFormControlDirective } from '../../directives/gv-form-control.directive';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css'],
-  standalone: false,
+  imports: [ReactiveFormsModule, NgIf, GvFormControlDirective, NgFor, RouterLink, TranslatePipe],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
+  private portalService = inject(PortalService);
+  private formBuilder = inject(FormBuilder);
+  private config = inject(ConfigurationService);
+  private authService = inject(AuthService);
+  private activatedRoute = inject(ActivatedRoute);
+  private reCaptchaService = inject(ReCaptchaService);
+
   loginForm: FormGroup<{ username: FormControl<string>; password: FormControl<string> }>;
   registrationEnabled: boolean;
   loginEnabled: boolean;
   providers: IdentityProvider[];
   private redirectUrl: string;
   firstClickHandler: any;
-
-  constructor(
-    private portalService: PortalService,
-    private formBuilder: FormBuilder,
-    private config: ConfigurationService,
-    private authService: AuthService,
-    private activatedRoute: ActivatedRoute,
-    private reCaptchaService: ReCaptchaService,
-  ) {}
 
   ngOnInit() {
     this.firstClickHandler = this.onFirstClick.bind(this);

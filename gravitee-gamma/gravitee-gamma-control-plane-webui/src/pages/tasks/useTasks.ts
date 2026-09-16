@@ -19,7 +19,19 @@ import { toTaskView } from './tasks.mapping';
 import type { TasksResponse, TaskView } from './tasks.types';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
-import { managementApi } from '../../shared/api/api-client';
+import { managementApi, request } from '../../shared/api/api-client';
+
+/**
+ * `managementV2OrganizationApi.post` treats a falsy body (`false`, the reject payload) as "no
+ * body" and drops it — call `request` directly so a raw boolean still gets serialized and sent.
+ */
+async function requestProcessPromotion(promotionId: string, accepted: boolean): Promise<void> {
+    await request<unknown>('management-v2-organization', `/promotions/${encodeURIComponent(promotionId)}/_process`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(accepted),
+    });
+}
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 
@@ -63,6 +75,7 @@ export interface UseTasksResult {
     readonly loading: boolean;
     readonly error: Error | null;
     readonly reload: () => void;
+    readonly processPromotion: (promotionId: string, accepted: boolean) => Promise<void>;
 }
 
 function useTasksResponse({ poll }: { poll: boolean }): {
@@ -150,7 +163,15 @@ export function useTasks(): UseTasksResult {
 
     const totalCount = response?.page?.total_elements ?? tasks.length;
 
-    return { tasks, totalCount, loading, error, reload };
+    const processPromotion = useCallback(
+        async (promotionId: string, accepted: boolean) => {
+            await requestProcessPromotion(promotionId, accepted);
+            reload();
+        },
+        [reload],
+    );
+
+    return { tasks, totalCount, loading, error, reload, processPromotion };
 }
 
 export function usePendingTaskCount(): number | null {

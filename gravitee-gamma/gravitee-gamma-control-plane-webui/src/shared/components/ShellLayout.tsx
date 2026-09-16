@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    AppContextBar,
-    AppLayout,
-    AppSidebar,
-    ContentHeader,
-    LayoutSlotsProvider,
-    TopNavUser,
-    useLayoutSlots,
-} from '@gravitee/graphene-core';
+import { AppContextBar, AppLayout, AppSidebar, ContentHeader, LayoutSlotsProvider, useLayoutSlots } from '@gravitee/graphene-core';
 import { Globe } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Suspense, useCallback, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { ContentSkeleton } from './ContentSkeleton';
-import { useLogout, useUser } from '../../features/auth';
+import { UserMenu } from './UserMenu';
+import { useAvatarCacheBust, useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
-import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
+import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
-import { HOME_ICON, MODULE_ICONS } from '../../features/modules';
+import { HOME_ICON, MODULE_ICONS, findModuleProduct, orderByCatalog } from '../../features/modules';
+import { currentUserAvatarUrl } from '../../pages/my-account/myAccount.mapping';
 import { PendingTasksBadge } from '../../pages/tasks';
+import { useBootstrapStore } from '../config/bootstrap.store';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
@@ -50,25 +45,18 @@ function moduleIcon(moduleId: string): ReactNode {
     return Icon ? <Icon className="size-5" /> : <Globe size={20} />;
 }
 
-const MODULE_DESCRIPTIONS: Record<string, { label: string; description: string }> = {
-    aim: { label: 'Agent Management', description: 'Govern AI agents, MCPs, and LLMs' },
-    apim: { label: 'API Management', description: 'Design, deploy, and govern HTTP APIs' },
-    platform: { label: 'Platform Management', description: 'Apps, subscriptions, and usage' },
-    portals: { label: 'Developer Portals', description: 'Design and manage developer portal experiences' },
-    authz: { label: 'Authorization Management', description: 'Fine-grained authorization policies' },
-    esm: { label: 'Event Stream Management', description: 'Manage Kafka clusters, services, and event mesh' },
-    edge: { label: 'Edge Management', description: 'Monitor and manage Edge Daemons' },
-};
-
 function buildAppDefinitions(modules: readonly GammaModule[]) {
     return [
         hostAppDefinition,
-        ...modules.map(m => ({
-            key: m.id,
-            label: MODULE_DESCRIPTIONS[m.id]?.label ?? m.name,
-            description: MODULE_DESCRIPTIONS[m.id]?.description ?? m.name,
-            icon: moduleIcon(m.id),
-        })),
+        ...orderByCatalog(modules).map(m => {
+            const product = findModuleProduct(m.id);
+            return {
+                key: m.id,
+                label: product?.label ?? m.name,
+                description: product?.tagline ?? m.name,
+                icon: moduleIcon(m.id),
+            };
+        }),
     ];
 }
 
@@ -95,6 +83,8 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
     const envHrid = useEnvHrid();
     const { pathname } = useLocation();
     const { slots } = useLayoutSlots();
+    const cacheBust = useAvatarCacheBust();
+    const config = useBootstrapStore(s => s.config);
 
     const environments = useEnvironmentStore(s => s.environments);
 
@@ -166,7 +156,17 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                         user ? (
                             <div className="flex items-center gap-3">
                                 <PendingTasksBadge />
-                                <TopNavUser name={user.displayName} email={user.email} onSignOut={handleSignOut} />
+                                <UserMenu
+                                    name={user.displayName}
+                                    email={user.email}
+                                    avatarSrc={
+                                        user.id && config
+                                            ? currentUserAvatarUrl(config.managementBaseURL, config.organizationId, user.id, cacheBust)
+                                            : undefined
+                                    }
+                                    onMyAccount={() => navigate(`/environments/${envHrid}/my-account`)}
+                                    onSignOut={handleSignOut}
+                                />
                             </div>
                         ) : undefined
                     }

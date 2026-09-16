@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 import { NotificationService } from './notification.service';
@@ -22,9 +22,11 @@ import { NotificationService } from './notification.service';
   providedIn: 'root',
 })
 export class PreviewService {
+  private notificationService = inject(NotificationService);
+
   private readonly previewSource: BehaviorSubject<boolean>;
 
-  constructor(private notificationService: NotificationService) {
+  constructor() {
     this.previewSource = new BehaviorSubject<boolean>(false);
   }
 

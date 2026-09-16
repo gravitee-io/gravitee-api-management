@@ -21,7 +21,7 @@ const ApiCreationV2ComponentAjs: ng.IComponentOptions = {
     groups: '<',
     activatedRoute: '<',
   },
-  template: require('html-loader!./api-creation.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
+  template: require('html-loader!./api-creation.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
   controller: 'ApiCreationV2AjsController',
 };
 

@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { UserEnvironmentRolesCard } from '../features/users/components/UserEnvironmentRolesCard';
 import { UserGroupMembershipsCard } from '../features/users/components/UserGroupMembershipsCard';
