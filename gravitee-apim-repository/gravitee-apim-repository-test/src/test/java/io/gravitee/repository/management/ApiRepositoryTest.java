@@ -42,13 +42,22 @@ import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
+
+    private static final String FEDERATED_API_DEFINITION = """
+        {"id":"federated-api","providerId":"provider-id","name":"Task Management","apiVersion":"v1","definitionVersion":"FEDERATED","server":{"url":"https://testurl.com/Test"}}""";
+    private static final String FEDERATED_API_PICTURE = "data:image/png;base64,federated-api-picture";
+    private static final String FEDERATED_API_BACKGROUND = "data:image/png;base64,federated-api-background";
 
     @Override
     protected String getTestCasesPath() {
@@ -560,6 +569,69 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             ApiFieldFilter.allFields()
         );
         assertThat(apis).isNotNull().isNotEmpty().hasSize(1);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("paginatedSearchFieldFilters")
+    public void should_project_the_payload_columns_of_a_paginated_search_as_the_field_filter_asks(
+        String caseName,
+        ApiFieldFilter fieldFilter,
+        String expectedDefinition,
+        String expectedPicture,
+        String expectedBackground
+    ) {
+        Page<Api> page = apiRepository.search(
+            new ApiCriteria.Builder().integrationId("integration-id").build(),
+            null,
+            new PageableBuilder().pageNumber(0).pageSize(10).build(),
+            fieldFilter
+        );
+
+        assertThat(page.getContent()).hasSize(1);
+        assertThat(page.getContent().get(0).getId()).isEqualTo("federated-api");
+        assertThat(page.getContent().get(0).getDefinition()).isEqualTo(expectedDefinition);
+        assertThat(page.getContent().get(0).getPicture()).isEqualTo(expectedPicture);
+        assertThat(page.getContent().get(0).getBackground()).isEqualTo(expectedBackground);
+    }
+
+    private static Stream<Arguments> paginatedSearchFieldFilters() {
+        return Stream.of(
+            Arguments.of(
+                "an excluded definition is left unread while the images stay readable",
+                new ApiFieldFilter.Builder().excludeDefinition().build(),
+                null,
+                FEDERATED_API_PICTURE,
+                FEDERATED_API_BACKGROUND
+            ),
+            Arguments.of(
+                "an excluded picture takes the background with it while the definition stays readable",
+                new ApiFieldFilter.Builder().excludePicture().build(),
+                FEDERATED_API_DEFINITION,
+                null,
+                null
+            ),
+            Arguments.of(
+                "the exclusions this listing asks for are honored together",
+                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build(),
+                null,
+                null,
+                null
+            ),
+            Arguments.of(
+                "a caller asking for no filter at all is handed every column",
+                null,
+                FEDERATED_API_DEFINITION,
+                FEDERATED_API_PICTURE,
+                FEDERATED_API_BACKGROUND
+            ),
+            Arguments.of(
+                "an unexcluded column is read whole",
+                ApiFieldFilter.allFields(),
+                FEDERATED_API_DEFINITION,
+                FEDERATED_API_PICTURE,
+                FEDERATED_API_BACKGROUND
+            )
+        );
     }
 
     @Test
