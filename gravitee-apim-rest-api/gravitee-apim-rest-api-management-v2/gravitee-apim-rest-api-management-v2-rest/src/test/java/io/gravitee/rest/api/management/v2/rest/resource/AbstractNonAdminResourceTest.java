@@ -24,8 +24,6 @@ import java.security.Principal;
 import java.util.List;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
 import org.mockito.Mockito;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -35,7 +33,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * {@code true} to every {@code isUserInRole} check, which makes the caller an org admin and short-circuits the
  * permission and membership gates such a test exists to exercise.
  */
-@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public abstract class AbstractNonAdminResourceTest extends ApiResourceTest {
 
     @Override
