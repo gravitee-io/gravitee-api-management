@@ -2608,6 +2608,19 @@
                 </dependency>
                 <dependency>
                     <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-ai-token-compression</artifactId>
+                    <version>${gravitee-policy-ai-token-compression.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-pii-filtering</artifactId>
                     <version>${gravitee-policy-pii-filtering.version}</version>
                     <type>zip</type>
