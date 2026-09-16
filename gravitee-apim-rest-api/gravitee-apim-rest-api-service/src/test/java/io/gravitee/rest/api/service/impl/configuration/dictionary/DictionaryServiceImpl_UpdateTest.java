@@ -26,6 +26,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -40,6 +41,8 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -73,7 +76,7 @@ public class DictionaryServiceImpl_UpdateTest {
     private AuditService auditService;
 
     @Test
-    public void shouldUpdateDictionary() throws TechnicalException {
+    public void should_update_dictionary() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
         dictionaryInDb.setId(DICTIONARY_ID);
         dictionaryInDb.setCreatedAt(new Date());
@@ -103,7 +106,16 @@ public class DictionaryServiceImpl_UpdateTest {
                         arg.getEnvironmentId().equals(ENVIRONMENT_ID) &&
                         arg.getName().equals(updateDictionaryEntity.getName()) &&
                         arg.getDescription().equals(updateDictionaryEntity.getDescription()) &&
-                        arg.getProperties().equals(updateDictionaryEntity.getProperties()) &&
+                        arg.getProperties().keySet().equals(updateDictionaryEntity.getProperties().keySet()) &&
+                        arg
+                            .getProperties()
+                            .entrySet()
+                            .stream()
+                            .allMatch(
+                                e ->
+                                    !e.getValue().encrypted() &&
+                                    e.getValue().value().equals(updateDictionaryEntity.getProperties().get(e.getKey()))
+                            ) &&
                         arg.getType().name().equals(updateDictionaryEntity.getType().name())
                 )
             )
@@ -135,7 +147,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void shouldUpdateDynamicDictionary() throws TechnicalException {
+    public void should_update_dynamic_dictionary() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
         dictionaryInDb.setId(DICTIONARY_ID);
         dictionaryInDb.setCreatedAt(new Date());
@@ -165,7 +177,16 @@ public class DictionaryServiceImpl_UpdateTest {
                         arg.getEnvironmentId().equals(ENVIRONMENT_ID) &&
                         arg.getName().equals(updateDictionaryEntity.getName()) &&
                         arg.getDescription().equals(updateDictionaryEntity.getDescription()) &&
-                        arg.getProperties().equals(updateDictionaryEntity.getProperties()) &&
+                        arg.getProperties().keySet().equals(updateDictionaryEntity.getProperties().keySet()) &&
+                        arg
+                            .getProperties()
+                            .entrySet()
+                            .stream()
+                            .allMatch(
+                                e ->
+                                    !e.getValue().encrypted() &&
+                                    e.getValue().value().equals(updateDictionaryEntity.getProperties().get(e.getKey()))
+                            ) &&
                         arg.getType().name().equals(updateDictionaryEntity.getType().name())
                 )
             )
@@ -197,7 +218,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void shouldNotUpdateBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+    public void should_not_update_because_does_not_belong_to_environment() throws TechnicalException {
         assertThrows(DictionaryNotFoundException.class, () -> {
             Dictionary dictionaryInDb = new Dictionary();
             dictionaryInDb.setId(DICTIONARY_ID);
@@ -213,7 +234,7 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
+    public void should_not_update_because_not_found() throws TechnicalException {
         assertThrows(DictionaryNotFoundException.class, () -> {
             when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
 
@@ -222,4 +243,5 @@ public class DictionaryServiceImpl_UpdateTest {
             dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
         });
     }
+
 }
