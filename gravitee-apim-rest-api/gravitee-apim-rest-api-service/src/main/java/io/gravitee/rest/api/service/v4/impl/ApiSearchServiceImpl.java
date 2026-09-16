@@ -56,6 +56,7 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
+import io.gravitee.rest.api.service.search.query.SearchSortStrategy;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -488,9 +489,28 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Sortable sortable,
         Collection<DefinitionVersion> excludeDefinitionVersions
     ) {
+        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, typoTolerance, SearchSortStrategy.DEFAULT);
+    }
+
+    @Override
+    public Collection<String> searchIds(
+        final ExecutionContext executionContext,
+        final String query,
+        final Map<String, Object> filters,
+        final Sortable sortable,
+        Collection<DefinitionVersion> excludeDefinitionVersions,
+        boolean typoTolerance,
+        SearchSortStrategy searchSortStrategy
+    ) {
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder.create(GenericApiEntity.class)
             .setSort(sortable)
+<<<<<<< HEAD
             .setFilters(filters);
+=======
+            .setFilters(filters)
+            .setTypoTolerance(typoTolerance)
+            .setSearchSortStrategy(searchSortStrategy);
+>>>>>>> 4a6b077 (fix(portal): stabilize API search ordering)
         if (isNotEmpty(excludeDefinitionVersions)) {
             searchEngineQueryBuilder.setExcludedFilters(
                 Map.of(FIELD_DEFINITION_VERSION, stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList())

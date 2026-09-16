@@ -27,6 +27,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HAS_HEALTH_CHECK;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_HOSTS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID;
+import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_ID_SORTED;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_LOWERCASE;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_LABELS_SPLIT;
@@ -111,8 +112,9 @@ public class IndexableApiDocumentTransformerTest {
 
         // Then
         SoftAssertions.assertSoftly(softly -> {
-            softly.assertThat(result.getFields()).hasSize(2);
+            softly.assertThat(result.getFields()).hasSize(3);
             softly.assertThat(result.getField(FIELD_ID).stringValue()).isEqualTo(API_ID);
+            softly.assertThat(result.getField(FIELD_ID_SORTED).binaryValue()).isEqualTo(new BytesRef(API_ID));
             softly.assertThat(result.getField(FIELD_TYPE).stringValue()).isEqualTo("api");
         });
     }
