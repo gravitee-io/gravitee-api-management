@@ -42,7 +42,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -226,29 +225,6 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_not_update_because_a_property_value_is_null() throws TechnicalException {
-        Dictionary dictionaryInDb = new Dictionary();
-        dictionaryInDb.setId(DICTIONARY_ID);
-        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
-        dictionaryInDb.setState(LifecycleState.STOPPED);
-        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
-        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
-        updateDictionaryEntity.setName("UpdatedName");
-        updateDictionaryEntity.setType(DictionaryType.MANUAL);
-        Map<String, String> properties = new HashMap<>();
-        properties.put("hostname", null);
-        updateDictionaryEntity.setProperties(properties);
-
-        assertThrows(InvalidDataException.class, () ->
-            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
-        );
-
-        verify(dictionaryRepository, never()).update(any(Dictionary.class));
-    }
-
-    @Test
     public void should_not_update_because_not_found() throws TechnicalException {
         assertThrows(DictionaryNotFoundException.class, () -> {
             when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
@@ -398,6 +374,42 @@ public class DictionaryServiceImpl_UpdateTest {
 
         verify(dictionaryRepository).update(
             argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+    }
+
+    @Test
+    public void should_reject_a_property_submitted_without_a_value() throws TechnicalException {
+        givenStoredDictionaryWithoutUpdateStub(new HashMap<>());
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("hostname", "api.example.com");
+        properties.put("broken", null);
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(properties, null);
+
+        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
+            .isInstanceOf(DictionaryPropertyValueRequiredException.class)
+            .hasMessageContaining("broken");
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_keep_the_encrypted_flag_when_the_value_is_edited_without_options() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        givenStoredDictionary(stored);
+
+        // The Console edits the value and sends no options: the property stays classified as
+        // encrypted, and the encryption story is what turns the new plaintext into ciphertext.
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "renewed-plaintext"), null);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() &&
+                    dict.getProperties().get("secret").value().equals("renewed-plaintext")
+            )
         );
     }
 

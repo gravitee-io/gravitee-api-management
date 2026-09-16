@@ -21,6 +21,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+/**
+ * A dictionary property as a caller expressed it, on its way in or out of the Management API.
+ *
+ * <p>Deliberately not {@link io.gravitee.definition.model.dictionary.DictionaryProperty}, which is
+ * the persisted and gateway-facing contract: that one is a two-field record describing what is
+ * stored, this one carries the property's key and the caller's *intent*. Both flags are nullable
+ * because {@code null} ("said nothing") has to stay distinguishable from {@code false} ("asserted
+ * plain") all the way to the service boundary — a distinction the stored contract has no use for.
+ *
+ * @author GraviteeSource Team
+ */
 @Data
 @Builder
 @NoArgsConstructor

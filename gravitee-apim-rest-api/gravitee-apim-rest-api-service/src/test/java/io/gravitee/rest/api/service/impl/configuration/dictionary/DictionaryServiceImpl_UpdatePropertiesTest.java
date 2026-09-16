@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -33,7 +34,6 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -69,29 +69,6 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     @Mock
     private AuditService auditService;
-
-    @Test
-    public void should_reject_a_null_property_value() throws TechnicalException {
-        Dictionary dictionaryInDb = new Dictionary();
-        dictionaryInDb.setId(DICTIONARY_ID);
-        dictionaryInDb.setState(LifecycleState.STARTED);
-        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
-        dictionaryInDb.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
-        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
-        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        environment.setOrganizationId(ORGANIZATION_ID);
-        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
-
-        Map<String, String> newProperties = new HashMap<>();
-        newProperties.put("key1", null);
-
-        assertThrows(InvalidDataException.class, () -> dictionaryService.updateProperties(DICTIONARY_ID, newProperties));
-
-        verify(dictionaryRepository, never()).update(any(Dictionary.class));
-    }
 
     @Test
     public void shouldUpdatePropertiesUsingDictionaryEnvironment() throws TechnicalException {
@@ -169,6 +146,26 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
                     dict.getProperties().get("plain").value().equals("fetched-plain")
             )
         );
+    }
+
+    @Test
+    public void should_reject_a_fetched_property_without_a_value() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setCreatedAt(new Date());
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        dictionaryInDb.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+
+        Map<String, String> fetched = new HashMap<>();
+        fetched.put("valid", "value");
+        fetched.put("broken", null);
+
+        assertThatThrownBy(() -> dictionaryService.updateProperties(DICTIONARY_ID, fetched))
+            .isInstanceOf(DictionaryPropertyValueRequiredException.class)
+            .hasMessageContaining("broken");
+        verify(dictionaryRepository, never()).update(any(Dictionary.class));
     }
 
     @Test

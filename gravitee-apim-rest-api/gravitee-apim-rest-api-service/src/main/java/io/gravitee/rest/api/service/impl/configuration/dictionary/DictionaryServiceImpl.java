@@ -43,7 +43,6 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
@@ -53,7 +52,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -512,7 +510,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return null;
         }
         rejectOptionsWithoutProperty(properties, options);
-        rejectNullPropertyValues(properties);
+        rejectValuelessProperties(properties);
         return properties
             .entrySet()
             .stream()
@@ -524,10 +522,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
     }
 
-    private static void rejectNullPropertyValues(Map<String, String> properties) {
-        if (properties.values().stream().anyMatch(Objects::isNull)) {
-            throw new InvalidDataException("Dictionary property values must not be null.");
-        }
+    private static void rejectValuelessProperties(Map<String, String> properties) {
+        properties
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() == null)
+            .findFirst()
+            .ifPresent(entry -> {
+                throw new DictionaryPropertyValueRequiredException(entry.getKey());
+            });
     }
 
     private static DictionaryPropertyOptions optionsFor(Map<String, DictionaryPropertyOptions> options, String key) {
@@ -574,7 +577,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     /**
      * Re-applies each key's stored classification to the value the provider just fetched. The fetch
-     * carries plaintext only, so it can neither declare nor change a classification.
+     * carries plaintext only, so it can neither declare nor change a classification. A fetch that
+     * yields a property without a value fails the refresh, for the same reason the write path
+     * rejects one.
      */
     private static Map<String, DictionaryProperty> toFetchedProperties(
         Map<String, String> fetched,
@@ -583,7 +588,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (fetched == null) {
             return null;
         }
-        rejectNullPropertyValues(fetched);
+        rejectValuelessProperties(fetched);
         return fetched
             .entrySet()
             .stream()

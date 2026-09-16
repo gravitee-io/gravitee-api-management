@@ -40,7 +40,6 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -96,8 +95,8 @@ public class DictionaryServiceImpl_CreateTest {
         newDictionary.setProperties(properties);
 
         assertThatThrownBy(() -> dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary))
-            .isInstanceOf(InvalidDataException.class)
-            .hasMessageContaining("must not be null");
+            .isInstanceOf(DictionaryPropertyValueRequiredException.class)
+            .hasMessageContaining("hostname");
 
         verify(dictionaryRepository, never()).create(any(Dictionary.class));
     }
