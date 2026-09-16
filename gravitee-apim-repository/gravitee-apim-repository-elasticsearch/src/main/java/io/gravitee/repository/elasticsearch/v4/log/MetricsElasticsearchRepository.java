@@ -188,7 +188,7 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, SearchDecisionLogsQueryAdapter.adapt(query))
+            return this.client.search(index, null, SearchDecisionLogsQueryAdapter.adapt(queryContext, query))
                 .map(SearchDecisionLogsResponseAdapter::adapt)
                 .blockingGet();
         } catch (RuntimeException e) {
@@ -202,7 +202,7 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, FindDecisionLogQueryAdapter.adapt(apiId, eventId))
+            return this.client.search(index, null, FindDecisionLogQueryAdapter.adapt(queryContext, apiId, eventId))
                 .map(SearchDecisionLogsResponseAdapter::adaptFirst)
                 .blockingGet();
         } catch (RuntimeException e) {

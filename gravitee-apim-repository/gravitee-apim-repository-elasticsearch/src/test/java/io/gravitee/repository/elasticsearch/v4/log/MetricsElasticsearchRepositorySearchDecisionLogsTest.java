@@ -42,7 +42,9 @@ public class MetricsElasticsearchRepositorySearchDecisionLogsTest extends Abstra
     private static final long FROM_MILLIS = TimeProvider.now().minusSeconds(600).toEpochMilli();
     private static final long TO_MILLIS = TimeProvider.now().plusSeconds(600).toEpochMilli();
 
-    private final QueryContext queryContext = new QueryContext("org#1", "env#1");
+    // The fixtures are stamped org-id / env-id DEFAULT, and the decisions data stream is shared by every
+    // environment: a context that does not match them must read nothing.
+    private final QueryContext queryContext = new QueryContext("DEFAULT", "DEFAULT");
 
     @Autowired
     private MetricsElasticsearchRepository metricsV4Repository;
@@ -59,6 +61,14 @@ public class MetricsElasticsearchRepositorySearchDecisionLogsTest extends Abstra
         var humanApproval = metricsV4Repository.searchDecisionLogs(queryContext, baseQuery(HUMAN_APPROVAL).build());
 
         assertThat(humanApproval.data()).extracting(DecisionLog::eventId).containsExactly("dec-h-001");
+    }
+
+    @Test
+    void should_read_nothing_for_an_environment_the_decisions_were_not_written_in() throws AnalyticsException {
+        var otherEnvironment = metricsV4Repository.searchDecisionLogs(new QueryContext("org#1", "env#1"), baseQuery(GUARDIAN).build());
+
+        assertThat(otherEnvironment.total()).isZero();
+        assertThat(otherEnvironment.data()).isEmpty();
     }
 
     @Test

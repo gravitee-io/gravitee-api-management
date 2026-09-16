@@ -28,10 +28,11 @@ import lombok.Data;
  * name a family reads guardian verdicts, human approvals and external approvals as one list. Today's
  * caller asks for {@code guardian}; tomorrow's asks for {@code human-approval} through this same class.
  *
- * <p>The api is <em>not</em> required. The query context already pins the organization and the
- * environment through the index name, and the first consumer lists a whole environment's decisions;
+ * <p>The api is <em>not</em> required: the first consumer lists a whole environment's decisions, and
  * making the api a mandatory scope would rule that view out. Callers that read on behalf of a user pass
- * the apis that user may see.
+ * the apis that user may see. The organization and the environment are not part of this query — they
+ * come from the query context, and the repository turns them into predicates of their own, because the
+ * data stream is shared by every environment.
  *
  * @author GraviteeSource Team
  */
