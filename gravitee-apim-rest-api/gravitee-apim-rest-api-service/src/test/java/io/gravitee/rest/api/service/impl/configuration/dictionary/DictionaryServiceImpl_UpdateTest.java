@@ -243,5 +243,4 @@ public class DictionaryServiceImpl_UpdateTest {
             dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
         });
     }
-
 }
