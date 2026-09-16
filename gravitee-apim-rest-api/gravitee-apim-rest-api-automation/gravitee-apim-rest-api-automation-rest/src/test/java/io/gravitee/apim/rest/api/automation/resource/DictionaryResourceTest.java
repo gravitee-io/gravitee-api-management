@@ -40,6 +40,7 @@ import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryNotF
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -98,7 +99,8 @@ class DictionaryResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getDeployed()).isTrue();
                     soft.assertThat(state.getManual()).isNotNull();
                     soft.assertThat(state.getManual().getProperties()).isNotNull();
-                    soft.assertThat(state.getManual().getProperties()).containsEntry("key1", "value1");
+                    soft.assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("key1", "value1"));
+                    soft.assertThat(state.getManual().getPropertyOptions()).isEmpty();
                 });
             }
         }
