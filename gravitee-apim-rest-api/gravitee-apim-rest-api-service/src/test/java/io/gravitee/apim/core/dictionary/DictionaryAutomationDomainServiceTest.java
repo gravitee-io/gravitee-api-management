@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryProvider;
 import io.gravitee.apim.core.dictionary.model.DictionaryTrigger;
 import io.gravitee.apim.core.dictionary.model.DictionaryType;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -62,7 +64,7 @@ class DictionaryAutomationDomainServiceTest {
                 .name("My Dict")
                 .description("A description")
                 .type(DictionaryType.MANUAL)
-                .properties(Map.of("k", "v"))
+                .properties(List.of(new DictionaryProperty("k", "v", null, null)))
                 .build();
             var created = DictionaryEntity.builder().id("new-id").build();
             when(dictionaryService.create(any(), any())).thenReturn(created);
@@ -77,7 +79,8 @@ class DictionaryAutomationDomainServiceTest {
             assertThat(entity.getName()).isEqualTo("My Dict");
             assertThat(entity.getDescription()).isEqualTo("A description");
             assertThat(entity.getType()).isEqualTo(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL);
-            assertThat(entity.getProperties()).containsEntry("k", "v");
+            assertThat(entity.getProperties()).containsExactlyEntriesOf(Map.of("k", "v"));
+            assertThat(entity.getPropertyOptions()).isEmpty();
         }
     }
 
