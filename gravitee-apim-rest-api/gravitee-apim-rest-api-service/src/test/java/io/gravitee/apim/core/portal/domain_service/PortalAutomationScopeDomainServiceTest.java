@@ -98,14 +98,14 @@ class PortalAutomationScopeDomainServiceTest {
     }
 
     @Test
-    void isDefaultPortal_returns_true_when_portal_exists_in_environment() {
+    void portal_exists_in_environment_is_true_when_the_portal_is_present() {
         portalCrudService.initWith(List.of(PortalFixtures.aPortal()));
 
-        assertThat(domainService.isDefaultPortal(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).isTrue();
+        assertThat(domainService.portalExistsInEnvironment(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).isTrue();
     }
 
     @Test
-    void isDefaultPortal_returns_false_when_portal_not_in_environment() {
-        assertThat(domainService.isDefaultPortal(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).isFalse();
+    void portal_exists_in_environment_is_false_when_the_portal_is_absent() {
+        assertThat(domainService.portalExistsInEnvironment(AUDIT_INFO, ESTABLISHED_PORTAL_ID)).isFalse();
     }
 }

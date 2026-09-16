@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -32,6 +33,9 @@ public class PortalNavigationEnclosingApiDomainService {
     private final PortalNavigationItemsQueryService queryService;
 
     public Optional<String> findEnclosingApiId(String environmentId, PortalNavigationItem item) {
+        if (item.getReference() instanceof NavigationItemReference.ApiReference apiReference) {
+            return Optional.of(apiReference.apiId());
+        }
         PortalNavigationItem current = item;
         while (current != null && current.getParentId() != null) {
             current = queryService.findByIdAndEnvironmentId(environmentId, current.getParentId());
