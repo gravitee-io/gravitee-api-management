@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.exceptionmapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

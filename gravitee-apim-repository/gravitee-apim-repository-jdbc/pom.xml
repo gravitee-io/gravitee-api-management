@@ -32,10 +32,10 @@
 
     <properties>
         <!-- Dependencies version -->
-        <HikariCP.version>6.3.3</HikariCP.version>
+        <HikariCP.version>7.1.0</HikariCP.version>
         <liquibase.version>4.33.0</liquibase.version>
         <liquibase-slf4j.version>5.1.0</liquibase-slf4j.version>
-        <mysql-connector-j.version>9.7.0</mysql-connector-j.version>
+        <mysql-connector-j.version>26.7.0</mysql-connector-j.version>
 
         <!-- Plugin configuration -->
         <default-database.jdbcType>postgresql</default-database.jdbcType>

@@ -89,7 +89,7 @@
         <jna.version>5.19.1</jna.version>
         <mariadb-java-client.version>3.5.10</mariadb-java-client.version>
         <mongo.version>5.11.1</mongo.version>
-        <mssql-jdbc.version>12.10.2.jre11</mssql-jdbc.version>
+        <mssql-jdbc.version>13.6.0.jre11</mssql-jdbc.version>
         <postgresql.version>42.7.13</postgresql.version>
         <protobuf-java.version>3.25.5</protobuf-java.version>
         <vertx.version>5.0.12</vertx.version>
