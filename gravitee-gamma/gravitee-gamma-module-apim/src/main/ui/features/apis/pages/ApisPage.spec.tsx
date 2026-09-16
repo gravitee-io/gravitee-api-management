@@ -211,6 +211,26 @@ describe('ApisPage', () => {
         expect(renderedApiRowCount()).toBe(0);
         expect(screen.queryByText(NATIVE_PROXY_NAME)).toBeNull();
         expect(screen.queryByText(FEDERATED_API_NAME)).toBeNull();
+        expect(screen.queryByRole('alert')).toBeNull();
+    });
+
+    it.each<[string, unknown]>([
+        ['a server error', new ApimApiError(500, 'Boom')],
+        ['a transport failure carrying no status', new Error('Network request failed')],
+    ])('alerts instead of rendering the list when the search fails with %s', (_case, error) => {
+        mockUseApiList.mockReturnValue({
+            data: undefined,
+            isLoading: false,
+            isFetching: false,
+            isPlaceholderData: false,
+            isError: true,
+            error,
+        });
+        renderPage();
+
+        expect(screen.getByRole('alert')).not.toBeNull();
+        expect(screen.queryByPlaceholderText('Search APIs...')).toBeNull();
+        expect(screen.queryByText('Why add an API proxy?')).toBeNull();
     });
 
     it('shows the list view when APIs exist', () => {
