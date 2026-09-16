@@ -172,6 +172,48 @@ class DictionariesResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_apply_a_manifest_mixing_plain_and_encrypted_properties() {
+            var entity = DictionaryEntity.builder()
+                .id("dict-id")
+                .name("Mixed Dictionary")
+                .key("mixed-dict")
+                .type(DictionaryType.MANUAL)
+                .state(Lifecycle.State.STOPPED)
+                .properties(Map.of("url", "https://backend", "apiKey", "cipher"))
+                .propertyOptions(Map.of("apiKey", DictionaryPropertyOptions.builder().encrypted(true).build()))
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("mixed-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                verify(createOrUpdateDictionaryUseCase).execute(
+                    argThat(input -> {
+                        var properties = input.dictionary().getProperties();
+                        var plain = properties.stream().filter(property -> "url".equals(property.getKey())).findFirst().orElseThrow();
+                        var encrypted = properties.stream().filter(property -> "apiKey".equals(property.getKey())).findFirst().orElseThrow();
+                        return (
+                            plain.getEncrypted() == null &&
+                            "https://backend".equals(plain.getValue()) &&
+                            Boolean.TRUE.equals(encrypted.getEncrypted()) &&
+                            "cipher".equals(encrypted.getValue())
+                        );
+                    })
+                );
+
+                var state = response.readEntity(DictionaryState.class);
+                assertThat(state.getManual().getProperties()).containsOnlyKeys("url", "apiKey");
+                assertThat(state.getManual().getPropertyOptions()).containsOnlyKeys("apiKey");
+            }
+        }
+
+        @Test
         void should_create_or_update_dynamic_dictionary() {
             var entity = DictionaryEntity.builder()
                 .id("dyn-dict-id")
