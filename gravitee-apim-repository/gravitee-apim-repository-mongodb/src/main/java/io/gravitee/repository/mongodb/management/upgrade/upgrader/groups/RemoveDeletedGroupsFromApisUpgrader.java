@@ -21,6 +21,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.environment.MissingEnvironmentUpgrader;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.StreamSupport;
 import lombok.extern.slf4j.Slf4j;
@@ -53,11 +54,17 @@ public class RemoveDeletedGroupsFromApisUpgrader extends MongoUpgrader {
         try {
             if (checkDatabaseCompatibility(buildInfo)) {
                 final List<String> deletedGroupsIds = findDeletedGroups();
-                if (!deletedGroupsIds.isEmpty()) {
+                if (deletedGroupsIds.isEmpty()) {
+                    log.info("No deleted groups found");
+                } else if (wouldRemoveEveryExistingGroup(deletedGroupsIds)) {
+                    log.warn(
+                        "Skipping this upgrade because it would strip every group referenced by an API ({} groups) and leave no group assigned anywhere. " +
+                            "That points at the lookup rather than at real deletions. No API has been modified; check the groups collection before running it again.",
+                        deletedGroupsIds.size()
+                    );
+                } else {
                     var result = removeDeletedGroupsFromApis(deletedGroupsIds);
                     log.info("Removed deleted groups {} from {} APIs", deletedGroupsIds, result.getModifiedCount());
-                } else {
-                    log.info("No deleted groups found");
                 }
             } else {
                 log.warn("Skipping this upgrade because database is not compatible: {}", buildInfo.toJson());
@@ -82,6 +89,15 @@ public class RemoveDeletedGroupsFromApisUpgrader extends MongoUpgrader {
         return hasStorageEngine && majorVersion >= 5;
     }
 
+    /**
+     * An unbounded delete with no dry-run: if not one group in the database would survive the cleanup, the join is a
+     * likelier explanation than every group having been deleted, so refuse rather than strip every API.
+     */
+    boolean wouldRemoveEveryExistingGroup(List<String> deletedGroupsIds) {
+        var existingGroupIds = this.getCollection("groups").distinct(ATTR_ID, String.class).into(new HashSet<>());
+        return deletedGroupsIds.containsAll(existingGroupIds);
+    }
+
     private List<String> findDeletedGroups() {
         var deletedGroupsIdsAggregateResult = this.getCollection("apis").aggregate(
             List.of(
@@ -92,7 +108,7 @@ public class RemoveDeletedGroupsFromApisUpgrader extends MongoUpgrader {
                 // 3. Join with Groups collections. "matchedGroups" contains the _id of Groups that exists
                 new Document(
                     "$lookup",
-                    new Document("from", ATTR_GROUPS)
+                    new Document("from", buildCollectionName("groups"))
                         .append("localField", ATTR_GROUPS)
                         .append("foreignField", ATTR_ID)
                         .append("as", "matchedGroups")
