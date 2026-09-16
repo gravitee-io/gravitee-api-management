@@ -17,16 +17,20 @@ package io.gravitee.rest.api.management.v2.rest.exceptionmapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Path;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import org.hibernate.validator.internal.engine.ConstraintViolationImpl;
-import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.openapitools.jackson.nullable.JsonNullable;
@@ -49,34 +53,8 @@ class ConstraintValidationExceptionMapperTest {
         final ConstraintViolationException exception = new FakeValidationException(
             "fake message",
             Set.of(
-                ConstraintViolationImpl.forReturnValueValidation(
-                    "fake message",
-                    null,
-                    null,
-                    "Size must be between 1 and 2147483647",
-                    null,
-                    null,
-                    null,
-                    List.of(),
-                    PathImpl.createPathFromString("path1"),
-                    null,
-                    null,
-                    null
-                ),
-                ConstraintViolationImpl.forReturnValueValidation(
-                    "fake message",
-                    null,
-                    null,
-                    "This value is not allowed",
-                    null,
-                    null,
-                    null,
-                    "InvalidValue",
-                    PathImpl.createPathFromString("path2"),
-                    null,
-                    null,
-                    null
-                )
+                violation("path1", "Size must be between 1 and 2147483647", List.of()),
+                violation("path2", "This value is not allowed", "InvalidValue")
             )
         );
 
@@ -112,6 +90,29 @@ class ConstraintValidationExceptionMapperTest {
                         });
                 });
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ConstraintViolation<Object> violation(String propertyPath, String message, Object invalidValue) {
+        ConstraintViolation<Object> violation = mock(ConstraintViolation.class);
+        when(violation.getPropertyPath()).thenReturn(path(propertyPath));
+        when(violation.getMessage()).thenReturn(message);
+        when(violation.getInvalidValue()).thenReturn(invalidValue);
+        return violation;
+    }
+
+    private static Path path(String value) {
+        return new Path() {
+            @Override
+            public Iterator<Node> iterator() {
+                return Collections.emptyIterator();
+            }
+
+            @Override
+            public String toString() {
+                return value;
+            }
+        };
     }
 
     static class FakeValidationException extends ConstraintViolationException {
