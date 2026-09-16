@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.dictionary.model;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import java.util.Date;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
@@ -48,5 +49,5 @@ public class Dictionary {
 
     private Date deployedAt;
 
-    private Map<String, String> properties;
+    private Map<String, DictionaryProperty> properties;
 }
