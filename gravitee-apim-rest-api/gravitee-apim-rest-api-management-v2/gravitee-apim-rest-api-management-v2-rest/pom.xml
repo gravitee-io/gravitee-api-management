@@ -33,8 +33,8 @@
 	<name>Gravitee.io APIM - Management API - Management - v2 - Rest API</name>
 
 	<properties>
-		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
-		<jaxb-runtime.version>4.0.5</jaxb-runtime.version>
+		<jackson-databind-nullable-version>0.2.11</jackson-databind-nullable-version>
+		<jaxb-runtime.version>4.0.9</jaxb-runtime.version>
 	</properties>
 
 	<dependencies>

@@ -32,10 +32,10 @@
 
     <properties>
         <!-- Dependencies version -->
-        <HikariCP.version>6.2.1</HikariCP.version>
-        <liquibase.version>4.27.0</liquibase.version>
+        <HikariCP.version>6.3.3</HikariCP.version>
+        <liquibase.version>4.33.0</liquibase.version>
         <liquibase-slf4j.version>5.1.0</liquibase-slf4j.version>
-        <mysql-connector-j.version>9.2.0</mysql-connector-j.version>
+        <mysql-connector-j.version>9.7.0</mysql-connector-j.version>
 
         <!-- Plugin configuration -->
         <default-database.jdbcType>postgresql</default-database.jdbcType>
@@ -121,12 +121,14 @@
             </exclusions>
         </dependency>
 
-        <!-- Test scope -->
+        <!-- Liquibase reads and writes changelogs through commons-io; it declares the dependency
+             but the plugin bundle only ships what this pom asks for. -->
         <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
-            <scope>test</scope>
         </dependency>
+
+        <!-- Test scope -->
         <dependency>
             <groupId>io.gravitee.apim.repository</groupId>
             <artifactId>gravitee-apim-repository-api</artifactId>
