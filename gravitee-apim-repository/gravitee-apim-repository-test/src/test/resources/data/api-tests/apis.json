@@ -202,6 +202,8 @@
         "version": "v1",
         "definition": "{\"id\":\"federated-api\",\"providerId\":\"provider-id\",\"name\":\"Task Management\",\"apiVersion\":\"v1\",\"definitionVersion\":\"FEDERATED\",\"server\":{\"url\":\"https://testurl.com/Test\"}}",
         "visibility": "PRIVATE",
+        "picture": "data:image/png;base64,federated-api-picture",
+        "background": "data:image/png;base64,federated-api-background",
         "createdAt": 1439022010883,
         "updatedAt": 1439022010883,
         "apiLifecycleState": "CREATED",

@@ -194,7 +194,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
     @Override
     public Page<Api> search(ApiCriteria apiCriteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter) {
-        final List<Api> apis = findByCriteria(apiCriteria, sortable, null);
+        final List<Api> apis = findByCriteria(apiCriteria, sortable, apiFieldFilter);
         return getResultAsPage(pageable, apis);
     }
 
