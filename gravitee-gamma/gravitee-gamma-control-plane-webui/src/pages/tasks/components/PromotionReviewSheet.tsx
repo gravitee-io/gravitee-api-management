@@ -18,20 +18,19 @@ import {
     AlertDescription,
     AlertTitle,
     Button,
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetFooter,
+    SheetHeader,
+    SheetTitle,
     toast,
 } from '@gravitee/graphene-core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import type { PromotionReviewData } from '../tasks.types';
 
-export function PromotionReviewDialog({
+export function PromotionReviewSheet({
     open,
     onOpenChange,
     data,
@@ -48,12 +47,23 @@ export function PromotionReviewDialog({
     const [error, setError] = useState<string | null>(null);
     const [confirmingReject, setConfirmingReject] = useState(false);
 
-    function handleOpenChange(nextOpen: boolean) {
-        onOpenChange(nextOpen);
-        if (!nextOpen) {
+    // Reset on open, not on close. The sheet is mounted for the lifetime of its row and closes through
+    // several paths — the Close button, Escape, the overlay, and Open API, which closes it from the parent
+    // without going through this handler. Clearing on the way in is the only place every path passes.
+    useEffect(() => {
+        if (open) {
             setError(null);
             setConfirmingReject(false);
         }
+    }, [open]);
+
+    function handleOpenChange(nextOpen: boolean) {
+        // A request in flight owns the sheet: its outcome is reported here, and a sheet closed underneath it
+        // would swallow a failure the reviewer has to see.
+        if (!nextOpen && pendingAction !== null) {
+            return;
+        }
+        onOpenChange(nextOpen);
     }
 
     async function handleProcess(accepted: boolean) {
@@ -63,29 +73,35 @@ export function PromotionReviewDialog({
         try {
             await onProcess(data.promotionId, accepted);
             toast.success(accepted ? 'API promotion accepted.' : 'API promotion rejected.');
-            handleOpenChange(false);
+            setPendingAction(null);
+            onOpenChange(false);
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'Failed to process the promotion.');
+            const message = e instanceof Error ? e.message : 'Failed to process the promotion.';
+            console.error('Failed to process the promotion', e);
+            // Both: the sheet shows it next to the buttons that caused it, and the toast survives the sheet
+            // being closed straight afterwards.
+            toast.error(message);
+            setError(message);
             setConfirmingReject(false);
-        } finally {
             setPendingAction(null);
         }
     }
 
     return (
-        <Dialog open={open} onOpenChange={handleOpenChange}>
-            {/* Fixed width: sm:max-w-lg loses a cross-remote CSS specificity collision in this
+        <Sheet open={open} onOpenChange={handleOpenChange}>
+            {/* Fixed width: a Tailwind max-width class loses a cross-remote CSS specificity collision in this
                 module-federation setup and silently stretches to near-full viewport width. */}
-            <DialogContent style={{ maxWidth: '32rem' }}>
-                <DialogHeader>
-                    <DialogTitle>API promotion request</DialogTitle>
-                    <DialogDescription>
-                        <strong>{data.authorDisplayName}</strong> requested the promotion of <strong>{data.apiName}</strong> from{' '}
+            <SheetContent side="right" style={{ maxWidth: '32rem' }}>
+                <SheetHeader>
+                    <SheetTitle>API promotion request</SheetTitle>
+                    <SheetDescription>
+                        <strong>{data.authorDisplayName}</strong>
+                        {data.authorEmail ? ` (${data.authorEmail})` : ''} requested the promotion of <strong>{data.apiName}</strong> from{' '}
                         <strong>{data.sourceEnvironmentName}</strong> to <strong>{data.targetEnvironmentName}</strong>.
-                    </DialogDescription>
-                </DialogHeader>
+                    </SheetDescription>
+                </SheetHeader>
 
-                <div className="space-y-3 py-2">
+                <div className="space-y-3 px-4 py-2">
                     <Alert>
                         <AlertTitle>Sharding tags</AlertTitle>
                         <AlertDescription>The sharding tags of the promotion must exist in this environment.</AlertDescription>
@@ -107,17 +123,15 @@ export function PromotionReviewDialog({
                     {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
 
-                <DialogFooter>
+                <SheetFooter>
                     {onOpenApi && (
-                        <Button type="button" variant="ghost" onClick={onOpenApi}>
+                        <Button type="button" variant="ghost" disabled={pendingAction !== null} onClick={onOpenApi}>
                             Open API
                         </Button>
                     )}
-                    <DialogClose asChild>
-                        <Button type="button" variant="outline">
-                            Close
-                        </Button>
-                    </DialogClose>
+                    <Button type="button" variant="outline" disabled={pendingAction !== null} onClick={() => handleOpenChange(false)}>
+                        Close
+                    </Button>
                     {confirmingReject ? (
                         <>
                             <Button
@@ -152,8 +166,8 @@ export function PromotionReviewDialog({
                             </Button>
                         </>
                     )}
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                </SheetFooter>
+            </SheetContent>
+        </Sheet>
     );
 }

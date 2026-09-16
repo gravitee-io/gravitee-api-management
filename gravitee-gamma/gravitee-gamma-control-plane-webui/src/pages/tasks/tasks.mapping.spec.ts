@@ -291,6 +291,109 @@ describe('toTaskView', () => {
         expect(view.subtitle).toBe('Staging → Production');
         expect(view.to).toBe('/environments/prod/apim/apis/api-9');
     });
+
+    it('links a promotion into the target environment, which is not necessarily the current one', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-2',
+                apiName: 'Loyalty API',
+                sourceEnvironmentName: 'Production',
+                targetEnvironmentName: 'Staging',
+                targetApiId: 'api-9',
+                targetEnvironmentId: 'env-2-id',
+            },
+        };
+
+        const view = toTaskView(entity, {}, resolveEnvHrid);
+
+        expect(view.to).toBe('/environments/staging/apim/apis/api-9');
+    });
+
+    it('links to the target environment module root when the API has not been promoted there yet', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-3',
+                apiName: 'Loyalty API',
+                sourceEnvironmentName: 'Production',
+                targetEnvironmentName: 'Staging',
+                targetEnvironmentId: 'env-2-id',
+            },
+        };
+
+        const view = toTaskView(entity, {}, resolveEnvHrid);
+
+        expect(view.to).toBe('/environments/staging/apim');
+    });
+
+    // Every promotion is reviewed in API Management, whatever type the promoted API is: the payload carries
+    // `apiType` for other consumers, and the row deliberately ignores it.
+    it.each([['llm-proxy'], ['mcp-proxy'], ['a2a-proxy'], ['message'], ['native'], ['proxy'], ['LLM-PROXY'], ['not-a-type']])(
+        'routes a promotion of a %s api to apim, badge included',
+        apiType => {
+            const entity: TaskEntity = {
+                type: 'PROMOTION_APPROVAL',
+                created_at: 1,
+                data: {
+                    promotionId: 'promo-4',
+                    apiName: 'Loyalty API',
+                    sourceEnvironmentName: 'Staging',
+                    targetEnvironmentName: 'Production',
+                    targetApiId: 'api-9',
+                    targetEnvironmentId: 'env-2-id',
+                    apiType,
+                },
+            };
+
+            const view = toTaskView(entity, {}, resolveEnvHrid);
+
+            expect(view.area.label).toBe('API Management');
+            expect(view.toModuleId).toBe('apim');
+            expect(view.to).toBe('/environments/staging/apim/apis/api-9');
+        },
+    );
+
+    it('sends a first-time promotion to the apim module root, whatever type the payload claims', () => {
+        // Nothing has been promoted there yet, so there is no API to open — but the module is still apim.
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-5',
+                apiName: 'Loyalty Agent',
+                sourceEnvironmentName: 'Staging',
+                targetEnvironmentName: 'Production',
+                targetEnvironmentId: 'env-2-id',
+                apiType: 'llm-proxy',
+            },
+        };
+
+        const view = toTaskView(entity, {}, resolveEnvHrid);
+
+        expect(view.area.label).toBe('API Management');
+        expect(view.to).toBe('/environments/staging/apim');
+    });
+
+    it('falls back to the current environment when the payload names no target environment', () => {
+        const entity: TaskEntity = {
+            type: 'PROMOTION_APPROVAL',
+            created_at: 1,
+            data: {
+                promotionId: 'promo-6',
+                apiName: 'Loyalty API',
+                sourceEnvironmentName: 'Staging',
+                targetEnvironmentName: 'Production',
+                targetApiId: 'api-9',
+            },
+        };
+
+        const view = toTaskView(entity, {}, resolveEnvHrid);
+
+        expect(view.to).toBe('/environments/prod/apim/apis/api-9');
+    });
 });
 
 describe('promotionDataOf', () => {

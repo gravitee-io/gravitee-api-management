@@ -19,7 +19,7 @@ import type { LucideIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { PromotionReviewDialog } from './PromotionReviewDialog';
+import { PromotionReviewSheet } from './PromotionReviewSheet';
 import { getModuleLabel, useModulesStore } from '../../../features/modules';
 import { formatRelativeTime, promotionDataOf } from '../tasks.mapping';
 import type { TaskAreaKey, TaskIconKey, TaskView } from '../tasks.types';
@@ -60,7 +60,8 @@ export function TaskRow({
     const targetModule = task.toModuleId ? modules.find(m => m.id === task.toModuleId) : undefined;
     const targetLabel = task.toModuleId ? getModuleLabel(task.toModuleId, targetModule?.name) : undefined;
 
-    const promotionData = task.type === 'PROMOTION_APPROVAL' ? promotionDataOf(task.entity) : undefined;
+    const isPromotionTask = task.type === 'PROMOTION_APPROVAL';
+    const promotionData = isPromotionTask ? promotionDataOf(task.entity) : undefined;
 
     const navigateToTarget = () => {
         if (!task.to || !task.toModuleId) {
@@ -75,11 +76,15 @@ export function TaskRow({
     };
 
     const handleAction = () => {
-        if (promotionData) {
-            setReviewOpen(true);
+        if (!isPromotionTask) {
+            navigateToTarget();
             return;
         }
-        navigateToTarget();
+        if (!promotionData) {
+            toast.error('This promotion task is missing required details.');
+            return;
+        }
+        setReviewOpen(true);
     };
 
     return (
@@ -113,13 +118,15 @@ export function TaskRow({
                                 {task.actionLabel}
                                 <ArrowRightIcon className="size-3" aria-hidden />
                             </Button>
-                            {targetLabel && !promotionData && <span className="text-xs text-muted-foreground">Opens {targetLabel}</span>}
+                            {/* Only a row whose button navigates says where it goes. A promotion reviews in
+                                place — whether it opens the sheet or reports the details it is missing. */}
+                            {targetLabel && !isPromotionTask && <span className="text-xs text-muted-foreground">Opens {targetLabel}</span>}
                         </div>
                     )}
                 </div>
             </CardContent>
             {promotionData && (
-                <PromotionReviewDialog
+                <PromotionReviewSheet
                     open={reviewOpen}
                     onOpenChange={setReviewOpen}
                     data={promotionData}

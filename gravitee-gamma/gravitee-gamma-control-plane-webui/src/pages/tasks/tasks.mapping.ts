@@ -195,10 +195,6 @@ function envPath(envHrid: string, ...segments: string[]): string {
     return ['/environments', envHrid, ...segments].join('/');
 }
 
-function apimPath(envHrid: string, ...segments: string[]): string {
-    return envPath(envHrid, 'apim', ...segments);
-}
-
 function moduleRoot(envHrid: string, moduleId: string): string {
     return `/environments/${envHrid}/${moduleId}`;
 }
@@ -304,17 +300,23 @@ export function toTaskView(entity: TaskEntity, metadata: TaskMetadata, resolveEn
             const apiName = str(data.apiName) ?? 'API';
             const sourceEnv = str(data.sourceEnvironmentName);
             const targetEnv = str(data.targetEnvironmentName);
-            const targetApiId = str(data.targetApiId);
-            const envHrid = resolveEnvHrid(undefined);
-            const to = targetApiId ? apimPath(envHrid, 'apis', targetApiId) : apimPath(envHrid);
+            // Always apim, whatever `data.apiType` says. A V4 API of any type can be promoted — both promotion
+            // use cases export one without restricting it — so the payload does carry a type, and other
+            // consumers read it. The control plane still sends the reviewer to API Management: promotion is
+            // reviewed there, against the API's definition, not in the module that happens to run it.
+            const config = DEFAULT_CONFIG;
+            // The promoted API lives in the target environment, which is not necessarily the current one:
+            // promotion tasks are listed for every environment of the organization the user may validate in.
+            const envHrid = resolveEnvHrid(str(data.targetEnvironmentId));
+            const to = resolveApiTarget(config, envHrid, str(data.targetApiId));
             return {
                 ...base,
                 id: `PROMOTION_APPROVAL:${promotionId || apiName}`,
-                area: API_MANAGEMENT_AREA,
+                area: config.area,
                 title: apiName,
                 subtitle: sourceEnv && targetEnv ? `${sourceEnv} → ${targetEnv}` : 'Promotion requested',
                 to,
-                toModuleId: 'apim',
+                toModuleId: config.moduleId,
             };
         }
     }
