@@ -35,7 +35,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 class EventMetricsQueryAdapterTest {
@@ -197,7 +196,7 @@ class EventMetricsQueryAdapterTest {
         return false;
     }
 
-    private static @NotNull HistogramQuery buildHistogramQuery(
+    private static HistogramQuery buildHistogramQuery(
         String apiId,
         Instant from,
         Instant to,

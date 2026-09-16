@@ -242,7 +242,6 @@ import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -2804,13 +2803,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return apiIds == null ? 0 : apiIds.size();
     }
 
-    @NotNull
     private ApiCriteria.Builder getDefaultApiCriteriaBuilder() {
         // By default, in this service, we do not care for V4 APIs.
         return new ApiCriteria.Builder().definitionVersion(getAllowedDefinitionVersion());
     }
 
-    @NotNull
     private static List<DefinitionVersion> getAllowedDefinitionVersion() {
         List<DefinitionVersion> allowedDefinitionVersion = new ArrayList<>();
         allowedDefinitionVersion.add(null);

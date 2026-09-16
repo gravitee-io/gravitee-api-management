@@ -22,7 +22,6 @@ import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateType;
 import java.time.Instant;
 import java.util.Date;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 public class NotificationTemplateMapperTest {
@@ -90,7 +89,7 @@ public class NotificationTemplateMapperTest {
             .build();
     }
 
-    private static @NotNull NotificationTemplateEntity aNotificationTemplateEntity(Instant now) {
+    private static NotificationTemplateEntity aNotificationTemplateEntity(Instant now) {
         var entity = new NotificationTemplateEntity();
         entity.setId("1");
         entity.setHook("hook");

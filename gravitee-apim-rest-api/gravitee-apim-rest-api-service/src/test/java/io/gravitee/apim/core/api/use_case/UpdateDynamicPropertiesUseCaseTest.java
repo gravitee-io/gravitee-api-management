@@ -56,7 +56,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -351,7 +350,6 @@ class UpdateDynamicPropertiesUseCaseTest {
         return api;
     }
 
-    @NotNull
     private static Api buildApiWithProperties(List<Property> properties) {
         return ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).apiDefinitionHttpV4(anApiDefinitionWithProperties(properties)).build();
     }

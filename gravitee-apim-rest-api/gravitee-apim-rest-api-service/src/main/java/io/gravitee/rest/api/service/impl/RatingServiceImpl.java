@@ -50,7 +50,6 @@ import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -188,7 +187,6 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
         }
     }
 
-    @NotNull
     private RatingAnswerEntity convert(ExecutionContext executionContext, RatingAnswer ratingAnswer) {
         final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
         ratingAnswerEntity.setId(ratingAnswer.getId());

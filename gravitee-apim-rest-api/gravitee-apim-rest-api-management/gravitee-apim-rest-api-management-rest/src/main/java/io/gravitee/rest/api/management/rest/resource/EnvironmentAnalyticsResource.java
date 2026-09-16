@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -312,7 +311,6 @@ public class EnvironmentAnalyticsResource extends AbstractResource {
         }
     }
 
-    @NotNull
     private TopHitsAnalytics getTopHitsAnalytics(final ExecutionContext executionContext, Function<ApiEntity, String> groupingByFunction) {
         Set<ApiEntity> apis = isAdmin()
             ? new HashSet<>(apiService.search(executionContext, new ApiQuery()))

@@ -59,7 +59,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -705,7 +704,7 @@ class AnalyticsEngineQueryServiceImplTest {
             });
         }
 
-        private static @NotNull AnalyticsQueryService.HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {
+        private static AnalyticsQueryService.HistogramQuery buildHistogramQuery(List<Aggregation> aggregations, List<Term> terms) {
             return new AnalyticsQueryService.HistogramQuery(
                 new AnalyticsQueryService.SearchTermId(AnalyticsQueryService.SearchTerm.API, API_ID),
                 Instant.ofEpochMilli(FROM),

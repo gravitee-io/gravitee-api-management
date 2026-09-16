@@ -63,7 +63,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -558,7 +557,7 @@ class UpdatePlanUseCaseTest {
             .build();
     }
 
-    private static @NotNull PlanUpdates planMinimal() {
+    private static PlanUpdates planMinimal() {
         return PlanUpdates.builder()
             .id(PLAN_ID)
             .crossId("my-plan-crossId")

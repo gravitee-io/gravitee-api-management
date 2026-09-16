@@ -46,7 +46,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import org.apache.commons.mail2.jakarta.util.MimeMessageParser;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -766,7 +765,6 @@ public class EmailServiceTest {
         return new MimeMessageParser(mimeMessageCaptor.getValue()).parse();
     }
 
-    @NotNull
     private String buildEmailTemplateWithImage(String image) {
         return (
             "<html>\n" +

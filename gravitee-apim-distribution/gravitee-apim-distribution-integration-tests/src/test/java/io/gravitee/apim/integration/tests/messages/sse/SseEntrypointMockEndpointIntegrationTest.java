@@ -44,7 +44,6 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -158,7 +157,6 @@ public class SseEntrypointMockEndpointIntegrationTest extends AbstractGatewayTes
             });
     }
 
-    @NotNull
     private static Flowable<Buffer> startSseStream(HttpClient httpClient) {
         return httpClient
             .rxRequest(HttpMethod.GET, "/test")

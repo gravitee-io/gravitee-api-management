@@ -36,7 +36,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -99,7 +98,6 @@ public class FlowConverter {
         return flow;
     }
 
-    @NotNull
     private List<FlowStep> toRepositoryFlowSteps(List<Step> steps) {
         if (steps == null) {
             return Collections.emptyList();
@@ -124,7 +122,6 @@ public class FlowConverter {
         return consumer;
     }
 
-    @NotNull
     private FlowStep toRepositoryStep(Step step, int order) {
         FlowStep flowStep = new FlowStep();
         flowStep.setPolicy(step.getPolicy());

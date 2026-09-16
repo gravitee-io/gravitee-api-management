@@ -80,7 +80,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -212,7 +211,6 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         }
     }
 
-    @NotNull
     private Configuration getCurrentOrgConfiguration(String currentOrganization) {
         Configuration orgFreemarkerConfiguration = freemarkerConfigurationByOrg.get(currentOrganization);
         if (orgFreemarkerConfiguration == null) {
@@ -232,7 +230,6 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
         return configuration;
     }
 
-    @NotNull
     private MultiTemplateLoader createMultiTemplateLoaderForOrganization(String currentOrganization) {
         List<TemplateLoader> loaders = new ArrayList<>();
 

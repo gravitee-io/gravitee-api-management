@@ -22,7 +22,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Special {@link java.util.Map} implementation allowing to retrieve attributes prefixed with #ATTR_PREFIX without having to specify it explicitly.

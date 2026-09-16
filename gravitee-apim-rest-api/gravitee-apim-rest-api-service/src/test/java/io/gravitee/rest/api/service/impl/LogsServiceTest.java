@@ -47,7 +47,6 @@ import io.gravitee.rest.api.service.v4.PlanSearchService;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.lang3.time.FastDateFormat;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -491,7 +490,6 @@ class LogsServiceTest {
         );
     }
 
-    @NotNull
     private static ApiRequestItem createApiRequestItem(
         long timestamp,
         String id,

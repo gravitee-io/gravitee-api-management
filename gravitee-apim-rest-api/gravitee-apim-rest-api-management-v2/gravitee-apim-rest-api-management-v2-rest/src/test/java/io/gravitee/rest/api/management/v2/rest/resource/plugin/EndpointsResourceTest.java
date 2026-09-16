@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -244,12 +243,10 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         Assertions.assertThat(error).isEqualTo(expectedError);
     }
 
-    @NotNull
     private ConnectorPluginEntity getConnectorPluginEntity() {
         return getConnectorPluginEntity("id");
     }
 
-    @NotNull
     private ConnectorPluginEntity getConnectorPluginEntity(String id) {
         ConnectorPluginEntity connectorPlugin = new ConnectorPluginEntity();
         connectorPlugin.setId(id);
@@ -263,7 +260,6 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         return connectorPlugin;
     }
 
-    @NotNull
     private io.gravitee.apim.core.plugin.model.ConnectorPlugin getConnectorPlugin(String id) {
         io.gravitee.apim.core.plugin.model.ConnectorPlugin connectorPlugin = new io.gravitee.apim.core.plugin.model.ConnectorPlugin();
         connectorPlugin.setId(id);

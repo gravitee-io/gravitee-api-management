@@ -26,7 +26,6 @@ import io.gravitee.repository.management.api.SharedPolicyGroupRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
 import java.util.function.Predicate;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -76,9 +75,7 @@ public class SharedPolicyGroupCrudServiceImpl implements SharedPolicyGroupCrudSe
         }
     }
 
-    private static @NotNull Predicate<io.gravitee.repository.management.model.SharedPolicyGroup> belongsToEnvironment(
-        String environmentId
-    ) {
+    private static Predicate<io.gravitee.repository.management.model.SharedPolicyGroup> belongsToEnvironment(String environmentId) {
         return sharedPolicyGroup -> environmentId.equals(sharedPolicyGroup.getEnvironmentId());
     }
 

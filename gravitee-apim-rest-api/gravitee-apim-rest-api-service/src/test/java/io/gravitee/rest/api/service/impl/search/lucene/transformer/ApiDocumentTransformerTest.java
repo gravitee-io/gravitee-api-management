@@ -58,7 +58,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.BytesRef;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -328,7 +327,6 @@ class ApiDocumentTransformerTest {
         }
     }
 
-    @NotNull
     private ApiEntity getApiEntity() {
         ApiEntity toTransform = new ApiEntity();
         toTransform.setId("apiId");

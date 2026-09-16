@@ -43,7 +43,6 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -156,7 +155,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
         };
     }
 
-    private @NotNull Single<DeployModelReply> updateV2Api(
+    private Single<DeployModelReply> updateV2Api(
         DeployModelCommand command,
         String apiId,
         ExecutionContext executionContext,

@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.assertj.core.api.SoftAssertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 public class ApplicationResourceTest extends AbstractResourceTest {
@@ -94,7 +93,7 @@ public class ApplicationResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
     }
 
-    private static @NotNull ConsoleConfigEntity getConsoleConfigEntity(boolean userGroupRequired) {
+    private static ConsoleConfigEntity getConsoleConfigEntity(boolean userGroupRequired) {
         ConsoleConfigEntity config = new ConsoleConfigEntity();
         UserGroup userGroup = new UserGroup();
         userGroup.setRequired(new Enabled(userGroupRequired));

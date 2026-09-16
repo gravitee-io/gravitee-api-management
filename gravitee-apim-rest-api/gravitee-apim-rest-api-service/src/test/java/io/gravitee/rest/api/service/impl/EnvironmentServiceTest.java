@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -292,7 +291,6 @@ public class EnvironmentServiceTest {
         return envSet;
     }
 
-    @NotNull
     private Environment getEnvironment(String envId, List<String> hrids) {
         Environment env1 = new Environment();
         env1.setId(envId);

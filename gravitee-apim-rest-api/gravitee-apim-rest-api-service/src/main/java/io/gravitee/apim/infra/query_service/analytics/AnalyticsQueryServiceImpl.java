@@ -66,8 +66,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -327,7 +325,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
             });
     }
 
-    private static io.gravitee.repository.log.v4.model.analytics.@NotNull GroupByQuery getGroupByQuery(
+    private static io.gravitee.repository.log.v4.model.analytics.GroupByQuery getGroupByQuery(
         GroupByQuery groupByQuery,
         List<io.gravitee.repository.log.v4.model.analytics.GroupByQuery.Group> repoGroups
     ) {
@@ -413,7 +411,7 @@ public class AnalyticsQueryServiceImpl implements AnalyticsQueryService {
         return aggregate.map(analyticsAggregate -> new EventAnalytics(analyticsAggregate.values()));
     }
 
-    private static @NotNull List<Term> mapTerms(HistogramQuery query) {
+    private static List<Term> mapTerms(HistogramQuery query) {
         List<io.gravitee.apim.core.analytics.model.Term> terms = query.terms();
 
         return (terms != null && !terms.isEmpty())

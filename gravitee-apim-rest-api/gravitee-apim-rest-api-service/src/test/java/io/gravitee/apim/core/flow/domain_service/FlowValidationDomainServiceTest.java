@@ -51,7 +51,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -533,7 +532,6 @@ public class FlowValidationDomainServiceTest {
             );
         }
 
-        @NotNull
         private static Stream<Flow> getPlanFlows(Api api) {
             return Objects.requireNonNull(api.getPlans())
                 .stream()

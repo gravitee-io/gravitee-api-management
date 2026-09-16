@@ -30,7 +30,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.util.Collections;
 import javax.inject.Inject;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -139,7 +138,6 @@ public class IdentityProvidersResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
-    @NotNull
     private UpdateIdentityProviderEntity buildIdpForUpdate() {
         UpdateIdentityProviderEntity updateIdentityProviderEntity = new UpdateIdentityProviderEntity();
         updateIdentityProviderEntity.setName("my-idp-name");

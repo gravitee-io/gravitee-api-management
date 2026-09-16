@@ -40,7 +40,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -254,7 +253,7 @@ class ConnectionLogsCrudServiceImpl implements ConnectionLogsCrudService {
             .bodyText(searchLogsFilters.bodyText());
     }
 
-    private @NotNull LogResponse<Metrics> getConnectionLogsResponse(
+    private LogResponse<Metrics> getConnectionLogsResponse(
         ExecutionContext executionContext,
         MetricsQuery.Filter connectionLogQueryFilter,
         Pageable pageable,

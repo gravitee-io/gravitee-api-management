@@ -20,7 +20,6 @@ import java.util.Random;
 import lombok.AccessLevel;
 import lombok.CustomLog;
 import lombok.NoArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -90,7 +89,7 @@ public class HRIDHelper {
         return sb.toString();
     }
 
-    private static @NotNull String randomHRID() {
+    private static String randomHRID() {
         return HRID_PREFIX + RANDOM.nextInt(1000000);
     }
 }

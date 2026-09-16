@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -325,7 +324,7 @@ class GetCategoryApisUseCaseTest {
             );
     }
 
-    private static GetCategoryApisUseCase.@NotNull Result resultForApi(
+    private static GetCategoryApisUseCase.Result resultForApi(
         String apiId,
         int order,
         Api.ApiLifecycleState apiLifecycleState,
@@ -337,7 +336,7 @@ class GetCategoryApisUseCaseTest {
         );
     }
 
-    private static GetCategoryApisUseCase.@NotNull Result resultForApi(String apiId, int order, Api.Visibility visibility) {
+    private static GetCategoryApisUseCase.Result resultForApi(String apiId, int order, Api.Visibility visibility) {
         return resultForApi(apiId, order, Api.ApiLifecycleState.CREATED, visibility);
     }
 }

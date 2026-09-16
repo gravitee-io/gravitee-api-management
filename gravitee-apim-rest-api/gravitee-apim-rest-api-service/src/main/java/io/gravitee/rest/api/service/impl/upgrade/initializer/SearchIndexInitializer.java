@@ -67,7 +67,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -145,7 +144,7 @@ public class SearchIndexInitializer implements Initializer {
                 private final AtomicLong counter = new AtomicLong(0);
 
                 @Override
-                public Thread newThread(@NotNull Runnable r) {
+                public Thread newThread(Runnable r) {
                     return new Thread(r, "gio.search-indexer-upgrader-" + counter.getAndIncrement());
                 }
             }

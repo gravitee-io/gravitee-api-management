@@ -46,7 +46,6 @@ import io.gravitee.spec.gen.api.SpecGenResponse;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,7 +97,6 @@ class SpecGenResponseCommandHandlerTest {
             .assertValue(reply -> errorMessage.equals(reply.getErrorDetails()));
     }
 
-    @NotNull
     private static SpecGenCommandPayload<SpecGenResponse> generatePayload() {
         return new SpecGenCommandPayload<>(
             generateRandom(),

@@ -116,7 +116,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -542,7 +541,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     @Override
-    @NotNull
     public GroupEntity findById(ExecutionContext executionContext, String groupId) {
         try {
             log.debug("findById {}", groupId);

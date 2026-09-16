@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -35,7 +34,6 @@ class AbstractReactableApiTest {
         assertThat(api1).isEqualTo(api2);
     }
 
-    @NotNull
     private static AbstractReactableApi<?> buildApiInteger(String id) {
         return new AbstractReactableApi<Integer>() {
             @Override
@@ -80,7 +78,6 @@ class AbstractReactableApiTest {
         };
     }
 
-    @NotNull
     private static AbstractReactableApi<?> buildApiDouble(String id) {
         return new AbstractReactableApi<Double>() {
             @Override

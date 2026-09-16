@@ -42,7 +42,6 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -353,7 +352,6 @@ class PoliciesResourceTest extends AbstractResourceTest {
         assertEquals("my-description", policy.getDescription());
     }
 
-    @NotNull
     private PolicyPluginEntity getPolicyPluginEntity() {
         PolicyPluginEntity policyPlugin = new PolicyPluginEntity();
         policyPlugin.setId("id");

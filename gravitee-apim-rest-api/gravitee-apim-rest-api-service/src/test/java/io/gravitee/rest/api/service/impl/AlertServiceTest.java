@@ -50,7 +50,6 @@ import io.gravitee.rest.api.service.converter.AlertTriggerConverter;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -133,7 +132,6 @@ public class AlertServiceTest {
         lenient().when(configService.getConsoleConfig(executionContext)).thenReturn(consoleConfigEntity);
     }
 
-    @NotNull
     protected AlertServiceImpl getAlertService() {
         return new AlertServiceImpl(
             configuration,
@@ -153,7 +151,6 @@ public class AlertServiceTest {
         );
     }
 
-    @NotNull
     protected AlertEvent newAlertEvent() {
         AlertEvent entity = new AlertEvent();
         entity.setId(UUID.randomUUID().toString());
@@ -164,12 +161,10 @@ public class AlertServiceTest {
         return entity;
     }
 
-    @NotNull
     protected NewAlertTriggerEntity getNewAlertTriggerEntity() {
         return getNewAlertTriggerEntity(false);
     }
 
-    @NotNull
     protected NewAlertTriggerEntity getNewAlertTriggerEntity(boolean isTemplate) {
         final NewAlertTriggerEntity alert = new NewAlertTriggerEntity();
         alert.setId(UUID.randomUUID().toString());
@@ -199,7 +194,6 @@ public class AlertServiceTest {
         return alert;
     }
 
-    @NotNull
     protected UpdateAlertTriggerEntity getUpdateAlertTriggerEntity() {
         final UpdateAlertTriggerEntity alert = new UpdateAlertTriggerEntity();
         alert.setId(UUID.randomUUID().toString());
@@ -228,12 +222,10 @@ public class AlertServiceTest {
         return alert;
     }
 
-    @NotNull
     protected AlertTrigger getAlertTriggerFromNew(NewAlertTriggerEntity alertEntity) throws JsonProcessingException {
         return getAlertTriggerFromNew(alertEntity, executionContext.getEnvironmentId());
     }
 
-    @NotNull
     protected AlertTrigger getAlertTriggerFromNew(NewAlertTriggerEntity alertEntity, String environmentId) throws JsonProcessingException {
         var alert = new AlertTrigger();
         alert.setId(alertEntity.getId());
@@ -260,7 +252,6 @@ public class AlertServiceTest {
         return alert;
     }
 
-    @NotNull
     protected AlertTrigger getAlertTriggerFromUpdate(UpdateAlertTriggerEntity alertEntity) throws JsonProcessingException {
         var alert = new AlertTrigger();
         alert.setId(alertEntity.getId());
