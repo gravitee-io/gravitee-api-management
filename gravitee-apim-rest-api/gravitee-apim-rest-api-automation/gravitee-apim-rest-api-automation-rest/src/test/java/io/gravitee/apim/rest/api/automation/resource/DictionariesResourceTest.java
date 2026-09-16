@@ -163,8 +163,11 @@ class DictionariesResourceTest extends AbstractResourceTest {
                             .dictionary()
                             .getProperties()
                             .stream()
-                            .anyMatch(property ->
-                                "key1".equals(property.getKey()) && "value1".equals(property.getValue()) && property.getEncrypted() == null
+                            .anyMatch(
+                                property ->
+                                    "key1".equals(property.getKey()) &&
+                                    "value1".equals(property.getValue()) &&
+                                    property.getEncrypted() == null
                             )
                     )
                 );
@@ -196,8 +199,16 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 verify(createOrUpdateDictionaryUseCase).execute(
                     argThat(input -> {
                         var properties = input.dictionary().getProperties();
-                        var plain = properties.stream().filter(property -> "url".equals(property.getKey())).findFirst().orElseThrow();
-                        var encrypted = properties.stream().filter(property -> "apiKey".equals(property.getKey())).findFirst().orElseThrow();
+                        var plain = properties
+                            .stream()
+                            .filter(property -> "url".equals(property.getKey()))
+                            .findFirst()
+                            .orElseThrow();
+                        var encrypted = properties
+                            .stream()
+                            .filter(property -> "apiKey".equals(property.getKey()))
+                            .findFirst()
+                            .orElseThrow();
                         return (
                             plain.getEncrypted() == null &&
                             "https://backend".equals(plain.getValue()) &&
@@ -265,10 +276,11 @@ class DictionariesResourceTest extends AbstractResourceTest {
                             .dictionary()
                             .getProperties()
                             .stream()
-                            .anyMatch(property ->
-                                "secret-key".equals(property.getKey()) &&
-                                Boolean.TRUE.equals(property.getEncrypted()) &&
-                                "cipher".equals(property.getValue())
+                            .anyMatch(
+                                property ->
+                                    "secret-key".equals(property.getKey()) &&
+                                    Boolean.TRUE.equals(property.getEncrypted()) &&
+                                    "cipher".equals(property.getValue())
                             )
                     )
                 );
