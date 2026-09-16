@@ -82,7 +82,13 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
         if (dictionaryMongo.getProperties() != null) {
             final Map<String, DictionaryPropertyMongo> properties = new HashMap<>(dictionaryMongo.getProperties().size());
-            dictionaryMongo.getProperties().forEach((key, value) -> properties.put(computeMongoDBCompliantKey(key), value));
+            dictionaryMongo
+                .getProperties()
+                .forEach((key, value) -> {
+                    if (value != null) {
+                        properties.put(computeMongoDBCompliantKey(key), value);
+                    }
+                });
             dictionaryMongo.setProperties(properties);
         }
 
