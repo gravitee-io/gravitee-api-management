@@ -502,6 +502,7 @@ const apisRoutes: Routes = [
       {
         path: 'v4/alerts/new',
         component: AlertComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           docs: {
             page: 'management-alerts',
@@ -519,6 +520,7 @@ const apisRoutes: Routes = [
       {
         path: 'v4/alerts/:alertId',
         component: AlertComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           docs: {
             page: 'management-alerts',
@@ -536,6 +538,7 @@ const apisRoutes: Routes = [
       {
         path: 'v4/alerts',
         component: AlertsComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           docs: {
             page: 'management-alerts',
@@ -553,6 +556,7 @@ const apisRoutes: Routes = [
       {
         path: 'ng/alerts',
         component: ApiRuntimeAlertsComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           requireLicense: {
             license: { feature: ApimFeature.ALERT_ENGINE },
@@ -566,6 +570,7 @@ const apisRoutes: Routes = [
       {
         path: 'ng/alerts/new',
         component: RuntimeAlertCreateComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           requireLicense: {
             license: { feature: ApimFeature.ALERT_ENGINE },
@@ -580,6 +585,7 @@ const apisRoutes: Routes = [
       {
         path: 'ng/alerts/:alertId',
         component: RuntimeAlertCreateComponent,
+        canActivate: [ApisGuard.denyNativeApi],
         data: {
           requireLicense: {
             license: { feature: ApimFeature.ALERT_ENGINE },

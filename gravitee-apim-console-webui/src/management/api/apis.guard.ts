@@ -14,18 +14,44 @@
  * limitations under the License.
  */
 import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateFn, CanDeactivateFn, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivateFn, CanDeactivateFn, Router, RouterStateSnapshot, UrlTree } from '@angular/router';
 import { map } from 'rxjs/operators';
 
 import { ApiNavigationComponent } from './api-navigation/api-navigation.component';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { NewtAIService } from '../../services-ngx/newtai.service';
 
 export const ApisGuard: {
   loadPermissions: CanActivateFn;
   clearPermissions: CanDeactivateFn<unknown>;
+  denyNativeApi: CanActivateFn;
 } = {
+  /**
+   * Refuses a route for a NATIVE API, sending the user to the API's own pages instead.
+   *
+   * Hiding a menu entry only hides the entry. The legacy Alerts screen offers HTTP conditions that a
+   * Kafka API's gateway can never satisfy, so without this a bookmark or a pasted link would still let
+   * someone save a trigger that never fires.
+   *
+   * `type` lives on the V4 shape alone, so the union is narrowed on `definitionVersion` first — which
+   * is also what the check means: NATIVE is a V4-only API type.
+   */
+  denyNativeApi: (route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) => {
+    const router = inject(Router);
+    return inject(ApiV2Service)
+      .get(route.params.apiId)
+      .pipe(
+        map(api => {
+          if (api.definitionVersion === 'V4' && api.type === 'NATIVE') {
+            return apiUrlTree(router, route);
+          }
+          return true;
+        }),
+      );
+  },
+
   loadPermissions: (route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) => {
     const gioPermissionService = inject(GioPermissionService);
     inject(NewtAIService).addToContext('apiId', route.params.apiId);
@@ -44,3 +70,16 @@ export const ApisGuard: {
     return true;
   },
 };
+
+/**
+ * The API's own page, built from the route that is being refused rather than from a literal.
+ *
+ * These routes are children of `:apiId`, which sits under `:envHrid` — so a hard-coded `/apis/{id}`
+ * omits the environment, and the router reads `apis` as the environment hrid. `EnvironmentGuard` then
+ * finds no such environment and bounces the user to the first one, silently switching the environment
+ * they were working in.
+ */
+function apiUrlTree(router: Router, route: ActivatedRouteSnapshot): UrlTree {
+  const segments = route.parent.pathFromRoot.flatMap(ancestor => ancestor.url.map(segment => segment.path));
+  return router.createUrlTree(segments);
+}
