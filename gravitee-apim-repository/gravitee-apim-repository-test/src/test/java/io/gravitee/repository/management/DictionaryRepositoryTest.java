@@ -33,7 +33,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_all() throws Exception {
+    public void shouldFindAll() throws Exception {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAll();
 
         assertNotNull(dictionaries);
@@ -41,7 +41,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_all_by_environments() throws Exception {
+    public void shouldFindAllByEnvironments() throws Exception {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(Collections.singleton("DEFAULT"));
 
         assertNotNull(dictionaries);
@@ -49,7 +49,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_all_by_environment_empty_list() throws Exception {
+    public void shouldFindAllByEnvironmentEmptyList() throws Exception {
         final Set<Dictionary> dictionaries = dictionaryRepository.findAllByEnvironments(Collections.emptySet());
 
         assertNotNull(dictionaries);
@@ -57,7 +57,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_all_by_environments_default_and_other_env() throws Exception {
+    public void shouldFindAllByEnvironmentsDefaultAndOtherEnv() throws Exception {
         HashSet<String> envs = new HashSet<>();
         envs.add("DEFAULT");
         envs.add("OTHER_ENV");
@@ -68,7 +68,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_all_by_environments_default_and_key() throws Exception {
+    public void shouldFindAllByEnvironmentsDefaultAndKey() throws Exception {
         Optional<Dictionary> dictionary = dictionaryRepository.findByKeyAndEnvironment("dic-1", "DEFAULT");
 
         assertTrue(dictionary.isPresent());
@@ -77,7 +77,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_all_by_environments_other_env_and_key() throws Exception {
+    public void shouldFindAllByEnvironmentsOtherEnvAndKey() throws Exception {
         Optional<Dictionary> dictionary = dictionaryRepository.findByKeyAndEnvironment("dic-1", "OTHER_ENV");
 
         assertTrue(dictionary.isPresent());
@@ -86,7 +86,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_find_by_id() throws Exception {
+    public void shouldFindById() throws Exception {
         final Optional<Dictionary> optionalDictionary = dictionaryRepository.findById("dic-1");
         assertNotNull(optionalDictionary);
         assertTrue(optionalDictionary.isPresent());
@@ -101,7 +101,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_create() throws Exception {
+    public void shouldCreate() throws Exception {
         final Dictionary dictionary = new Dictionary();
         dictionary.setId("new-dictionary");
         dictionary.setEnvironmentId("DEFAULT");
@@ -137,7 +137,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_update() throws Exception {
+    public void shouldUpdate() throws Exception {
         Optional<Dictionary> optional = dictionaryRepository.findById("dic-1");
         Assertions.assertTrue(optional.isPresent(), "Dictionary to update not found");
         Assertions.assertEquals("My dic 1", optional.get().getName(), "Invalid saved dictionary name.");
@@ -177,7 +177,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_update_with_empty_properties() throws Exception {
+    public void shouldUpdateWithEmptyProperties() throws Exception {
         Optional<Dictionary> optional = dictionaryRepository.findById("dic-1");
 
         final Dictionary dictionary = optional.get();
@@ -206,7 +206,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_delete() throws Exception {
+    public void shouldDelete() throws Exception {
         int nbDictionariesBeforeDeletion = dictionaryRepository.findAll().size();
         dictionaryRepository.delete("dic-3");
         int nbDictionariesAfterDeletion = dictionaryRepository.findAll().size();
@@ -215,7 +215,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_not_update_unknown_view() throws Exception {
+    public void shouldNotUpdateUnknownView() throws Exception {
         assertThrows(IllegalStateException.class, () -> {
             Dictionary unknownDictionary = new Dictionary();
             unknownDictionary.setId("unknown");
@@ -225,7 +225,7 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_not_update_null() throws Exception {
+    public void shouldNotUpdateNull() throws Exception {
         assertThrows(IllegalStateException.class, () -> {
             dictionaryRepository.update(null);
             fail("A null dictionary should not be updated");
