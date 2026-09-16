@@ -24,7 +24,9 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
+import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.search.query.SearchSortStrategy;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -39,6 +41,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryService {
+
+    private static final Sortable DEFAULT_SORT = new SortableImpl("name", true);
 
     private final ApiSearchService apiSearchService;
     private final ApiQueryService apiQueryService;
@@ -69,7 +73,7 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
                     .environmentId(query.environmentId())
                     .notApiTypes(List.of(ApiType.EDGE))
                     .build(),
-                sortable.map(this::toCoreSortable).orElse(null),
+                toCoreSortable(sortable.orElse(DEFAULT_SORT)),
                 pageable.orElse(null),
                 null
             );
@@ -82,7 +86,8 @@ public class ApiPortalSearchQueryServiceImpl implements ApiPortalSearchQueryServ
             Map.of(),
             sortable.orElse(null),
             EnumSet.noneOf(DefinitionVersion.class),
-            query.typoTolerance()
+            query.typoTolerance(),
+            SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS
         );
         List<String> intersected = luceneIds.stream().filter(allowedApiIds::contains).toList();
 
