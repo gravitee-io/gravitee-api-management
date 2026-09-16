@@ -15,7 +15,7 @@
  */
 import { http, HttpResponse } from 'msw';
 
-import { TEST_MANAGEMENT_BASE } from '../factories';
+import { TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ORGANIZATION_BASE } from '../factories';
 
 export const TEST_TASKS_RESPONSE = {
     data: [
@@ -38,6 +38,9 @@ export const TEST_TASKS_RESPONSE = {
                 sourceEnvironmentName: 'Staging',
                 targetEnvironmentName: 'Production',
                 targetApiId: 'api-9',
+                targetEnvironmentId: 'env-1-id',
+                isApiUpdate: false,
+                authorDisplayName: 'Ada Lovelace',
             },
         },
     ],
@@ -53,4 +56,5 @@ export const TEST_TASKS_RESPONSE = {
 export const tasksHandlers = [
     http.get(`${TEST_MANAGEMENT_BASE}/user/tasks`, () => HttpResponse.json(TEST_TASKS_RESPONSE)),
     http.get(`${TEST_MANAGEMENT_BASE}/settings`, () => HttpResponse.json({ scheduler: { tasks: 10 } })),
+    http.post(`${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/promotions/:promotionId/_process`, () => new HttpResponse(null, { status: 204 })),
 ];
