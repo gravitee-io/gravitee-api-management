@@ -30,7 +30,7 @@ import org.springframework.stereotype.Repository;
 public interface SubscriptionFormMongoRepository extends MongoRepository<SubscriptionFormMongo, String> {
     Optional<SubscriptionFormMongo> findByIdAndEnvironmentId(String id, String environmentId);
 
-    List<SubscriptionFormMongo> findAllByEnvironmentId(String environmentId);
+    List<SubscriptionFormMongo> findAllByEnvironmentIdOrderByNameAsc(String environmentId);
 
     void deleteByEnvironmentId(String environmentId);
 }

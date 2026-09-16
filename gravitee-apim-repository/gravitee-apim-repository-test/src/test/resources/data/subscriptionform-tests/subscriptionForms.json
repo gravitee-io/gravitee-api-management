@@ -46,5 +46,13 @@
       "gmdContent": "<gmd-card><gmd-input name=\"field\" label=\"Field\"/></gmd-card>",
       "enabled": true,
       "validationConstraints": "{}"
+   },
+   {
+      "id": "sub-form-api-products",
+      "environmentId": "env-1",
+      "name": "API products",
+      "gmdContent": "<gmd-card><gmd-input name=\"product\" label=\"Product\"/></gmd-card>",
+      "enabled": true,
+      "validationConstraints": "{}"
    }
 ]

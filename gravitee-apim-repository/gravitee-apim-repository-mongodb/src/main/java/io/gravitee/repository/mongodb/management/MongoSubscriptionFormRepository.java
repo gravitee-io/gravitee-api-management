@@ -65,7 +65,7 @@ public class MongoSubscriptionFormRepository implements SubscriptionFormReposito
     public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) throws TechnicalException {
         log.debug("Find subscription forms by environment ID [{}]", environmentId);
         List<SubscriptionForm> result = internalSubscriptionFormRepo
-            .findAllByEnvironmentId(environmentId)
+            .findAllByEnvironmentIdOrderByNameAsc(environmentId)
             .stream()
             .map(mapper::map)
             .toList();

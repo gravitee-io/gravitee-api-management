@@ -56,10 +56,10 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
-    public void shouldFindAllByEnvironmentId() throws Exception {
+    public void shouldFindAllByEnvironmentIdSortedByName() throws Exception {
         List<SubscriptionForm> forms = subscriptionFormRepository.findAllByEnvironmentId("env-1");
 
-        assertThat(forms).extracting(SubscriptionForm::getId).containsExactlyInAnyOrder("sub-form-find-by-id", "sub-form-partner");
+        assertThat(forms).extracting(SubscriptionForm::getName).containsExactly("API products", "Default", "Partner onboarding");
     }
 
     @Test
@@ -216,7 +216,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
     public void shouldFindAll() throws Exception {
         Set<SubscriptionForm> all = subscriptionFormRepository.findAll();
 
-        assertThat(all).hasSize(6);
+        assertThat(all).hasSize(7);
     }
 
     private static SubscriptionForm aFormNamed(String id, String environmentId, String name) {
