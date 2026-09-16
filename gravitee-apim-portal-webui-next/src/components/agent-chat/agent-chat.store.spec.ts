@@ -15,7 +15,7 @@
  */
 import { TestBed } from '@angular/core/testing';
 
-import { AgentChatStore, DEFAULT_API_KEY_HEADER } from './agent-chat.store';
+import { AgentChatStore } from './agent-chat.store';
 import { completed, delta, frame, sseBody } from './testing/sse-body';
 import { ConfigService } from '../../services/config.service';
 
@@ -103,20 +103,22 @@ describe('AgentChatStore', () => {
 
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('https://gw.test/agent');
-    expect(init.headers[DEFAULT_API_KEY_HEADER]).toBe('key-1');
+    expect(init.headers['Authorization']).toBe('Bearer key-1');
     expect(init.headers['Accept']).toBe('text/event-stream');
     expect(JSON.parse(init.body).method).toBe('message/stream');
   });
 
-  it('uses the api key header the portal is configured with', async () => {
+  it('sends the api key as a bearer token whatever api key header the portal is configured with', async () => {
     configuration = { portal: { apikeyHeader: 'X-Custom-Key' } };
     init();
     respondWith([completed()]);
 
     await store.send('hi', TARGET);
 
-    expect(fetchMock.mock.calls[0][1].headers['X-Custom-Key']).toBe('key-1');
-    expect(fetchMock.mock.calls[0][1].headers[DEFAULT_API_KEY_HEADER]).toBeUndefined();
+    const headers = fetchMock.mock.calls[0][1].headers;
+    expect(headers['Authorization']).toBe('Bearer key-1');
+    expect(headers['X-Custom-Key']).toBeUndefined();
+    expect(headers['X-Gravitee-Api-Key']).toBeUndefined();
   });
 
   it('carries the context id into the next message, which is what makes it a conversation', async () => {
