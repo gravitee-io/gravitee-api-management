@@ -32,15 +32,20 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.model.decision.DecisionLogQuery;
 import java.util.Set;
 
 /**
  * Translates a decision search into an Elasticsearch query.
  *
- * <p>Two terms are on every query this builds, and neither comes from the caller's filters:
+ * <p>Four terms are on every query this builds, and none comes from the caller's filters:
  *
  * <ol>
+ *   <li>{@code org-id} and {@code env-id}, from the query context, because the data stream is shared by
+ *       every environment — the reporter stamps the tenant on the document, it never splits the index.
+ *       The api is an optional filter here, so without these terms a search with no api restriction
+ *       reads the whole cluster.
  *   <li>{@code decision-point-type}, because the {@code decisions} data stream is shared by every kind of
  *       point — a guardian verdict, a human approval and an external approval are the same document shape
  *       in the same index. Without it a "guardian activity" table quietly lists other people's decisions.
@@ -64,6 +69,10 @@ public final class SearchDecisionLogsQueryAdapter {
     private static final String CASE_INSENSITIVE = "case_insensitive";
 
     private SearchDecisionLogsQueryAdapter() {}
+
+    private static void addTerm(ArrayNode filters, String field, String value) {
+        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
+    }
 
     /** Omitted entirely when nothing is selected: an empty terms clause matches no document. */
     private static void addTermsIfAny(ArrayNode filters, String field, Set<String> values) {
@@ -96,17 +105,12 @@ public final class SearchDecisionLogsQueryAdapter {
         return needle.replace("\\", "\\\\").replace("*", "\\*").replace("?", "\\?");
     }
 
-    public static String adapt(DecisionLogQuery query) {
+    public static String adapt(QueryContext queryContext, DecisionLogQuery query) {
         ArrayNode filters = MAPPER.createArrayNode();
-        filters.add(
-            MAPPER.createObjectNode().set(
-                TERM,
-                MAPPER.createObjectNode().put(DecisionLogFields.DECISION_POINT_TYPE, query.getDecisionPointType())
-            )
-        );
-        filters.add(
-            MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(DecisionLogFields.PHASE, DecisionLogFields.PHASE_RESOLVED))
-        );
+        addTerm(filters, DecisionLogFields.ORG_ID, queryContext.getOrgId());
+        addTerm(filters, DecisionLogFields.ENV_ID, queryContext.getEnvId());
+        addTerm(filters, DecisionLogFields.DECISION_POINT_TYPE, query.getDecisionPointType());
+        addTerm(filters, DecisionLogFields.PHASE, DecisionLogFields.PHASE_RESOLVED);
 
         // Every one of these is a keyword field, so an exact terms clause is the whole translation.
         addTermsIfAny(filters, DecisionLogFields.API_ID, query.getApiIds());

@@ -20,6 +20,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.json;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.model.decision.DecisionLogQuery;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -29,11 +30,13 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SearchDecisionLogsQueryAdapterTest {
 
+    private static final QueryContext QUERY_CONTEXT = new QueryContext("org#1", "env#1");
+
     @Test
     void builds_a_paginated_query_pinned_to_one_decision_point_family_and_to_settled_records() {
         var query = DecisionLogQuery.builder().decisionPointType("guardian").from(1000L).to(2000L).page(2).size(10).build();
 
-        var result = SearchDecisionLogsQueryAdapter.adapt(query);
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result).isEqualTo(
             """
@@ -41,6 +44,8 @@ class SearchDecisionLogsQueryAdapterTest {
               "query": {
                 "bool": {
                   "filter": [
+                    { "term": { "org-id": "org#1" } },
+                    { "term": { "env-id": "env#1" } },
                     { "term": { "decision-point-type": "guardian" } },
                     { "term": { "phase": "RESOLVED" } },
                     { "range": { "@timestamp": { "gte": 1000, "lte": 2000 } } }
@@ -60,8 +65,21 @@ class SearchDecisionLogsQueryAdapterTest {
     }
 
     @Test
+    void pins_the_organization_and_the_environment_so_a_search_cannot_read_another_tenant() {
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, DecisionLogQuery.builder().decisionPointType("guardian").build());
+
+        // The decisions data stream is shared by every environment, and a search without an api
+        // restriction would otherwise read the whole cluster.
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"term\": { \"org-id\": \"org#1\" } }"));
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"term\": { \"env-id\": \"env#1\" } }"));
+    }
+
+    @Test
     void pins_the_family_so_the_shared_index_cannot_leak_another_kind_of_decision() {
-        var result = SearchDecisionLogsQueryAdapter.adapt(DecisionLogQuery.builder().decisionPointType("human-approval").build());
+        var result = SearchDecisionLogsQueryAdapter.adapt(
+            QUERY_CONTEXT,
+            DecisionLogQuery.builder().decisionPointType("human-approval").build()
+        );
 
         assertThatJson(result)
             .inPath("$.query.bool.filter")
@@ -71,14 +89,14 @@ class SearchDecisionLogsQueryAdapterTest {
 
     @Test
     void pins_the_phase_so_a_settled_consultation_is_not_read_twice() {
-        var result = SearchDecisionLogsQueryAdapter.adapt(DecisionLogQuery.builder().decisionPointType("guardian").build());
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, DecisionLogQuery.builder().decisionPointType("guardian").build());
 
         assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"term\": { \"phase\": \"RESOLVED\" } }"));
     }
 
     @Test
     void breaks_timestamp_ties_on_event_id_so_paging_cannot_repeat_or_skip_a_decision() {
-        var result = SearchDecisionLogsQueryAdapter.adapt(DecisionLogQuery.builder().decisionPointType("guardian").build());
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, DecisionLogQuery.builder().decisionPointType("guardian").build());
 
         assertThatJson(result)
             .inPath("$.sort[1]")
@@ -91,19 +109,22 @@ class SearchDecisionLogsQueryAdapterTest {
 
     @Test
     void omits_the_timestamp_range_when_no_bound_is_given() {
-        var result = SearchDecisionLogsQueryAdapter.adapt(DecisionLogQuery.builder().decisionPointType("guardian").build());
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, DecisionLogQuery.builder().decisionPointType("guardian").build());
 
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(2);
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(4);
         assertThatJson(result).inPath("$.from").isEqualTo(0);
         assertThatJson(result).inPath("$.size").isEqualTo(20);
     }
 
     @Test
     void keeps_an_open_ended_range_when_only_one_bound_is_given() {
-        var result = SearchDecisionLogsQueryAdapter.adapt(DecisionLogQuery.builder().decisionPointType("guardian").from(1000L).build());
+        var result = SearchDecisionLogsQueryAdapter.adapt(
+            QUERY_CONTEXT,
+            DecisionLogQuery.builder().decisionPointType("guardian").from(1000L).build()
+        );
 
         assertThatJson(result)
-            .inPath("$.query.bool.filter[2].range.@timestamp")
+            .inPath("$.query.bool.filter[4].range.@timestamp")
             .isEqualTo(
                 """
                 { "gte": 1000 }
@@ -113,10 +134,11 @@ class SearchDecisionLogsQueryAdapterTest {
 
     @Test
     void omits_every_optional_clause_when_none_is_requested() {
-        var result = SearchDecisionLogsQueryAdapter.adapt(DecisionLogQuery.builder().decisionPointType("guardian").build());
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, DecisionLogQuery.builder().decisionPointType("guardian").build());
 
-        // Family and phase only: an empty terms clause would match nothing and silently empty the table.
-        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(2);
+        // Tenancy, family and phase only: an empty terms clause would match nothing and silently empty
+        // the table.
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(4);
     }
 
     @Test
@@ -128,7 +150,7 @@ class SearchDecisionLogsQueryAdapterTest {
             .planIds(Set.of("plan-1"))
             .build();
 
-        var result = SearchDecisionLogsQueryAdapter.adapt(query);
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         // By content, not by array position: clause order carries no meaning inside a bool filter, so
         // positional assertions would break on a harmless reorder and pass on a wrong field name.
@@ -147,7 +169,7 @@ class SearchDecisionLogsQueryAdapterTest {
             .statuses(Set.of("error"))
             .build();
 
-        var result = SearchDecisionLogsQueryAdapter.adapt(query);
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
             .inPath("$.query.bool.filter")
@@ -177,7 +199,7 @@ class SearchDecisionLogsQueryAdapterTest {
             .traceIds(Set.of("trace-1"))
             .build();
 
-        var result = SearchDecisionLogsQueryAdapter.adapt(query);
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
             .inPath("$.query.bool.filter")
@@ -198,7 +220,7 @@ class SearchDecisionLogsQueryAdapterTest {
     void matches_a_reason_on_a_fragment_rather_than_the_whole_sentence() {
         var query = DecisionLogQuery.builder().decisionPointType("guardian").reasonContains("did not answer").build();
 
-        var result = SearchDecisionLogsQueryAdapter.adapt(query);
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         assertThatJson(result)
             .inPath("$.query.bool.filter")
@@ -210,7 +232,7 @@ class SearchDecisionLogsQueryAdapterTest {
     void escapes_wildcard_syntax_so_a_reason_needle_cannot_widen_the_search() {
         var query = DecisionLogQuery.builder().decisionPointType("guardian").reasonContains("a*b?c").build();
 
-        var result = SearchDecisionLogsQueryAdapter.adapt(query);
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
 
         // Unescaped, "*" would match every reason while the caller still sees an active filter.
         assertThatJson(result)
