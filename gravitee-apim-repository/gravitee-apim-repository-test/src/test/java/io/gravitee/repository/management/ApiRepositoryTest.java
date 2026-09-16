@@ -50,6 +50,11 @@ import org.junit.Test;
  */
 public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
+    private static final String FEDERATED_API_DEFINITION = """
+        {"id":"federated-api","providerId":"provider-id","name":"Task Management","apiVersion":"v1","definitionVersion":"FEDERATED","server":{"url":"https://testurl.com/Test"}}""";
+    private static final String FEDERATED_API_PICTURE = "data:image/png;base64,federated-api-picture";
+    private static final String FEDERATED_API_BACKGROUND = "data:image/png;base64,federated-api-background";
+
     @Override
     protected String getTestCasesPath() {
         return "/data/api-tests/";
@@ -556,6 +561,70 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             ApiFieldFilter.allFields()
         );
         assertThat(apis).isNotNull().isNotEmpty().hasSize(1);
+    }
+
+    @Test
+    public void should_project_the_payload_columns_of_a_paginated_search_as_the_field_filter_asks() {
+        record Case(
+            String name,
+            ApiFieldFilter fieldFilter,
+            String expectedDefinition,
+            String expectedPicture,
+            String expectedBackground
+        ) {}
+
+        List<Case> cases = List.of(
+            new Case(
+                "an excluded definition is left unread while the images stay readable",
+                new ApiFieldFilter.Builder().excludeDefinition().build(),
+                null,
+                FEDERATED_API_PICTURE,
+                FEDERATED_API_BACKGROUND
+            ),
+            new Case(
+                "an excluded picture takes the background with it while the definition stays readable",
+                new ApiFieldFilter.Builder().excludePicture().build(),
+                FEDERATED_API_DEFINITION,
+                null,
+                null
+            ),
+            new Case(
+                "the exclusions this listing asks for are honored together",
+                new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build(),
+                null,
+                null,
+                null
+            ),
+            new Case(
+                "a caller asking for no filter at all is handed every column",
+                null,
+                FEDERATED_API_DEFINITION,
+                FEDERATED_API_PICTURE,
+                FEDERATED_API_BACKGROUND
+            ),
+            new Case(
+                "an unexcluded column is read whole",
+                ApiFieldFilter.allFields(),
+                FEDERATED_API_DEFINITION,
+                FEDERATED_API_PICTURE,
+                FEDERATED_API_BACKGROUND
+            )
+        );
+
+        for (Case testCase : cases) {
+            Page<Api> page = apiRepository.search(
+                new ApiCriteria.Builder().integrationId("integration-id").build(),
+                null,
+                new PageableBuilder().pageNumber(0).pageSize(10).build(),
+                testCase.fieldFilter()
+            );
+
+            assertThat(page.getContent()).as(testCase.name()).hasSize(1);
+            assertThat(page.getContent().get(0).getId()).as(testCase.name()).isEqualTo("federated-api");
+            assertThat(page.getContent().get(0).getDefinition()).as(testCase.name()).isEqualTo(testCase.expectedDefinition());
+            assertThat(page.getContent().get(0).getPicture()).as(testCase.name()).isEqualTo(testCase.expectedPicture());
+            assertThat(page.getContent().get(0).getBackground()).as(testCase.name()).isEqualTo(testCase.expectedBackground());
+        }
     }
 
     @Test
