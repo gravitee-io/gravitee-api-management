@@ -5409,6 +5409,12 @@ components:
                         type: string
                 listener_type:
                     $ref: "#/components/schemas/ListenerType"
+                callable_from_portal:
+                    type: boolean
+                    description: |
+                        Whether a page of this portal can call the API from the browser with an API key, that is whether
+                        the API CORS lets the portal origin send a POST with the Authorization and Content-Type headers.
+                        Absent when the API has no HTTP listener.
                 labels:
                     description: List of labels linked to this API.
                     type: array

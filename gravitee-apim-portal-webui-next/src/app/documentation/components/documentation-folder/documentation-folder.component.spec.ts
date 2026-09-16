@@ -96,6 +96,7 @@ describe('DocumentationFolderComponent', () => {
       apiType: ApiType;
       agentAccess: AgentSubscriptionAccess | null;
       apiEntrypoints: string[];
+      callableFromPortal: boolean;
     }> = {
       queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
@@ -128,6 +129,7 @@ describe('DocumentationFolderComponent', () => {
           id,
           ...(apiHasMcp ? { mcp: { mcpPath: '/mcp', tools: [] as { toolDefinition: Record<string, unknown> }[] } } : {}),
           ...(params.apiType ? { type: params.apiType } : {}),
+          ...(params.callableFromPortal !== undefined ? { callable_from_portal: params.callableFromPortal } : {}),
         }),
       ),
     };
@@ -687,6 +689,7 @@ describe('DocumentationFolderComponent', () => {
       agentAccess?: AgentSubscriptionAccess | null;
       isAuthenticated?: boolean;
       apiEntrypoints?: string[];
+      callableFromPortal?: boolean;
     }) => {
       const agentItem = makeItem('agent1', 'AGENT', 'Agent 1', 0, undefined);
       const agentPage = makeItem('p-agent1', 'PAGE', 'Agent 1 Documentation', 0, 'agent1');
@@ -745,6 +748,18 @@ describe('DocumentationFolderComponent', () => {
       await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS, apiEntrypoints: [] });
 
       expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should not show the chat button when the portal cannot call the agent', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS, callableFromPortal: false });
+
+      expect(await harness.getChatButton()).toBeNull();
+    });
+
+    it('should show the chat button when the api does not say whether the portal can call it', async () => {
+      await initAgentPage({ apiType: 'A2A_PROXY', agentAccess: AGENT_ACCESS });
+
+      expect(await harness.getChatButton()).not.toBeNull();
     });
 
     it('should keep the conversation when the panel is closed and reopened', async () => {
