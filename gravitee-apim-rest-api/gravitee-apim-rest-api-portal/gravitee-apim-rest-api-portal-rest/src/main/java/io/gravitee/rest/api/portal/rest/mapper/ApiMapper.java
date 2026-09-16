@@ -18,8 +18,12 @@ package io.gravitee.rest.api.portal.rest.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.BrowserCallPermission;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -44,6 +48,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.CategoryNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,6 +69,8 @@ public class ApiMapper {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
+    private static final List<String> BROWSER_CALL_HEADERS = List.of("Authorization", "Content-Type");
+
     @Autowired
     private RatingService ratingService;
 
@@ -75,6 +82,9 @@ public class ApiMapper {
 
     @Autowired
     private ApiEntrypointService apiEntrypointService;
+
+    @Autowired
+    private InstallationAccessQueryService installationAccessQueryService;
 
     public Api convert(ExecutionContext executionContext, GenericApiEntity api) {
         final Api apiItem = new Api();
@@ -136,6 +146,7 @@ public class ApiMapper {
 
         apiItem.setVersion(api.getApiVersion());
         apiItem.setMcp(computeMcp(api));
+        apiItem.setCallableFromPortal(computeCallableFromPortal(executionContext, api));
 
         boolean isCategoryModeEnabled = this.parameterService.findAsBoolean(
             executionContext,
@@ -186,6 +197,44 @@ public class ApiMapper {
             return ApiType.fromValue(asNativeApiEntity.getType().name());
         }
         return null;
+    }
+
+    private Boolean computeCallableFromPortal(ExecutionContext executionContext, GenericApiEntity api) {
+        if (!(api instanceof ApiEntity httpApi) || httpApi.getListeners() == null) {
+            return null;
+        }
+        return httpApi
+            .getListeners()
+            .stream()
+            .filter(HttpListener.class::isInstance)
+            .map(HttpListener.class::cast)
+            .findFirst()
+            .map(listener -> isCallableFromPortal(executionContext, listener.getCors()))
+            .orElse(null);
+    }
+
+    private boolean isCallableFromPortal(ExecutionContext executionContext, Cors cors) {
+        return (
+            cors != null &&
+            cors.isEnabled() &&
+            BrowserCallPermission.allows(cors, portalOrigin(executionContext.getEnvironmentId()), "POST", BROWSER_CALL_HEADERS)
+        );
+    }
+
+    private String portalOrigin(String environmentId) {
+        String portalUrl = installationAccessQueryService.getPortalUrl(environmentId);
+        if (portalUrl == null) {
+            return null;
+        }
+        try {
+            URI uri = URI.create(portalUrl.trim());
+            if (uri.getScheme() == null || uri.getHost() == null) {
+                return null;
+            }
+            return uri.getScheme() + "://" + uri.getHost() + (uri.getPort() == -1 ? "" : ":" + uri.getPort());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private static Map<String, Object> computeMcp(GenericApiEntity api) {

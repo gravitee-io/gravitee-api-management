@@ -31,6 +31,17 @@ describe('isChattableAgent', () => {
     expect(isChattableAgent(fakeApi({ type: 'A2A_PROXY', entrypoints: [] }))).toBe(false);
   });
 
+  it('refuses an agent whose CORS does not let the portal call it', () => {
+    expect(isChattableAgent(fakeApi({ type: 'A2A_PROXY', entrypoints: ['https://gw.test/agent'], callable_from_portal: false }))).toBe(
+      false,
+    );
+  });
+
+  it('accepts an agent the portal can call, or one the api does not say anything about', () => {
+    expect(isChattableAgent(fakeApi({ type: 'A2A_PROXY', entrypoints: ['https://gw.test/agent'], callable_from_portal: true }))).toBe(true);
+    expect(isChattableAgent(anAgent())).toBe(true);
+  });
+
   it('refuses a missing api, which is also what a still-loading one looks like', () => {
     expect(isChattableAgent(undefined)).toBe(false);
     expect(isChattableAgent(null)).toBe(false);

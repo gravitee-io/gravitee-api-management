@@ -22,8 +22,13 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.definition.model.Cors;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -53,6 +58,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -99,6 +105,9 @@ public class ApiMapperTest {
 
     @Mock
     private ApiEntrypointService apiEntrypointService;
+
+    @Mock
+    private InstallationAccessQueryService installationAccessQueryService;
 
     @InjectMocks
     private ApiMapper apiMapper;
@@ -240,6 +249,75 @@ public class ApiMapperTest {
 
         RatingSummary ratingSummary = responseApi.getRatingSummary();
         assertNull(ratingSummary);
+    }
+
+    private io.gravitee.rest.api.model.v4.api.ApiEntity v4ApiWithCors(Cors cors) {
+        var listener = HttpListener.builder().paths(List.of(new Path("/agent"))).entrypoints(List.of()).cors(cors).build();
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId(API_ID);
+        api.setType(io.gravitee.definition.model.v4.ApiType.A2A_PROXY);
+        api.setListeners(List.of(listener));
+        return api;
+    }
+
+    private static Cors corsFor(String origin) {
+        return Cors.builder()
+            .enabled(true)
+            .accessControlAllowOrigin(Set.of(origin))
+            .accessControlAllowMethods(Set.of("POST"))
+            .accessControlAllowHeaders(Set.of("Authorization", "Content-Type"))
+            .build();
+    }
+
+    @Test
+    void should_be_callable_from_portal_when_cors_allows_the_portal_origin() {
+        when(installationAccessQueryService.getPortalUrl(GraviteeContext.getCurrentEnvironment())).thenReturn(
+            "https://portal.example.com/"
+        );
+
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), v4ApiWithCors(corsFor("https://portal.example.com")));
+
+        assertEquals(Boolean.TRUE, responseApi.getCallableFromPortal());
+    }
+
+    @Test
+    void should_not_be_callable_from_portal_when_cors_allows_another_origin() {
+        when(installationAccessQueryService.getPortalUrl(GraviteeContext.getCurrentEnvironment())).thenReturn("https://portal.example.com");
+
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), v4ApiWithCors(corsFor("https://app.example.com")));
+
+        assertEquals(Boolean.FALSE, responseApi.getCallableFromPortal());
+    }
+
+    @Test
+    void should_not_be_callable_from_portal_without_cors() {
+        when(installationAccessQueryService.getPortalUrl(GraviteeContext.getCurrentEnvironment())).thenReturn("https://portal.example.com");
+
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), v4ApiWithCors(null));
+
+        assertEquals(Boolean.FALSE, responseApi.getCallableFromPortal());
+    }
+
+    @Test
+    void should_leave_callable_from_portal_unset_without_http_listener() {
+        var api = new io.gravitee.rest.api.model.v4.api.ApiEntity();
+        api.setId(API_ID);
+        api.setType(io.gravitee.definition.model.v4.ApiType.MESSAGE);
+        api.setListeners(List.of(SubscriptionListener.builder().entrypoints(List.of()).build()));
+
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), api);
+
+        assertNull(responseApi.getCallableFromPortal());
+    }
+
+    @Test
+    void should_leave_callable_from_portal_unset_for_a_v2_api() {
+        apiEntity = new ApiEntity();
+        apiEntity.setId(API_ID);
+
+        Api responseApi = apiMapper.convert(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertNull(responseApi.getCallableFromPortal());
     }
 
     @Test

@@ -17,7 +17,7 @@ import { ChatTarget } from './agent-chat.store';
 import { Api } from '../../entities/api/api';
 
 export function isChattableAgent(api: Api | null | undefined): boolean {
-  return api?.type === 'A2A_PROXY' && !!api.entrypoints?.[0];
+  return api?.type === 'A2A_PROXY' && !!api.entrypoints?.[0] && api.callable_from_portal !== false;
 }
 
 /**

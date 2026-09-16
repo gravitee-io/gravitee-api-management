@@ -56,6 +56,10 @@ export interface Api {
   entrypoints: Array<string>;
   listener_type?: ListenerType;
   /**
+   * Whether this portal can call the API from the browser with an API key. Absent when the API has no HTTP listener.
+   */
+  callable_from_portal?: boolean;
+  /**
    * List of labels linked to this API.
    */
   labels?: Array<string>;
