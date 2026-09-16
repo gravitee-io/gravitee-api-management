@@ -276,7 +276,7 @@
     <gravitee-resource-guardian-agent-gas.version>1.0.0-beta.3</gravitee-resource-guardian-agent-gas.version>
 
     <!-- Gamma plugins -->
-    <gravitee-gamma-module-act.version>1.0.0-guardian-agent-SNAPSHOT</gravitee-gamma-module-act.version>
+    <gravitee-gamma-module-act.version>1.0.0-beta.1</gravitee-gamma-module-act.version>
     <gravitee-gamma-module-aim.version>4.3.0-beta.73</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>1.16.0</gravitee-gamma-module-authz.version>
     <gravitee-gamma-module-edge.version>2.0.0-alpha.12</gravitee-gamma-module-edge.version>
