@@ -27,7 +27,6 @@ import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -52,7 +51,6 @@ class SpecGenNotificationProviderTest {
         verify(portalNotificationService, times(1)).create(any(), eq(NEW_SPEC_GENERATED), eq(List.of(userId)), any());
     }
 
-    @NotNull
     private static ApiSpecGen buildApiSpecGen() {
         return new ApiSpecGen(UuidString.generateRandom(), "name", "desc", "1.0.0", ApiType.PROXY, "env");
     }

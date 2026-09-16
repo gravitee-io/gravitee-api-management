@@ -41,7 +41,6 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -134,7 +133,7 @@ class ScoringProviderImplTest {
                 });
         }
 
-        private @NotNull ScoreRequest aRequest() {
+        private ScoreRequest aRequest() {
             return new ScoreRequest(
                 JOB_ID,
                 ORGANIZATION_ID,

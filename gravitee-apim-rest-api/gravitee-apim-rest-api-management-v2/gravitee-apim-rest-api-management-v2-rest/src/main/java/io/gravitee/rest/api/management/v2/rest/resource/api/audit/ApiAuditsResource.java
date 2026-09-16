@@ -41,7 +41,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
 
 public class ApiAuditsResource extends AbstractResource {
 
@@ -76,7 +75,6 @@ public class ApiAuditsResource extends AbstractResource {
         return new AuditEventsResponse().data(auditEventQueryService.listAllApiAuditEvents());
     }
 
-    @NotNull
     private SearchApiAuditUseCase.Input buildInput(PaginationParam paginationParam, SearchApiAuditsParam params) {
         var executionContext = GraviteeContext.getExecutionContext();
         var query = new ApiAuditQueryFilters(

@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -93,7 +92,6 @@ public class PageMapper {
         return pageItem;
     }
 
-    @NotNull
     private List<PageMedia> getPageMediaList(String apiId, PageEntity page, String mediaUrl) {
         List<MediaEntity> allWithoutContent = apiId == null
             ? mediaService.findAllWithoutContent(GraviteeContext.getExecutionContext(), page.getAttachedMedia())

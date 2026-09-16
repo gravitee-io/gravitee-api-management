@@ -83,7 +83,6 @@ import java.util.function.DoublePredicate;
 import java.util.function.Predicate;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.SoftAssertions;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -1493,7 +1492,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             });
         }
 
-        private static @NotNull HistogramQuery buildHistogramQuery(
+        private static HistogramQuery buildHistogramQuery(
             List<Aggregation> aggregations,
             List<Term> terms,
             String apiId,

@@ -46,7 +46,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 /**
@@ -215,7 +214,6 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
         return new PrimaryOwnerEntity(userService.findById(executionContext, userId));
     }
 
-    @NotNull
     private PrimaryOwnerEntity getFirstPoGroupUserBelongsTo(final ExecutionContext executionContext, final String userId) {
         final Set<GroupEntity> poGroupsOfCurrentUser = groupService
             .findByUser(userId)
@@ -280,7 +278,6 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
             );
     }
 
-    @NotNull
     private String computePrimaryOwnerMailFromGroup(ExecutionContext executionContext, String groupId) {
         final Set<MemberEntity> members = membershipService.getMembersByReference(executionContext, MembershipReferenceType.GROUP, groupId);
         return members

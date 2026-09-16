@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.common;
 
 import java.time.Duration;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author GraviteeSource Team
@@ -57,7 +56,6 @@ public class TimeBoundedCharSequence implements CharSequence {
         return charSequence.charAt(index);
     }
 
-    @NotNull
     @Override
     public CharSequence subSequence(int start, int end) {
         return new TimeBoundedCharSequence(

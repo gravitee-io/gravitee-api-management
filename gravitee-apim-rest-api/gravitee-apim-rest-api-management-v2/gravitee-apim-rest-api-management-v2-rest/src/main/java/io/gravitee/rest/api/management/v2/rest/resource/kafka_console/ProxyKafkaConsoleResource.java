@@ -61,7 +61,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.core.env.Environment;
 
 /**
@@ -85,7 +84,7 @@ public class ProxyKafkaConsoleResource extends AbstractResource {
 
     private final List<String> headerNamesToRemove = List.of("Authorization", "Host");
 
-    private @NotNull MultivaluedMap<String, String> getFilteredHeaders(HttpServletRequest httpRequest) {
+    private MultivaluedMap<String, String> getFilteredHeaders(HttpServletRequest httpRequest) {
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
         httpRequest
             .getHeaderNames()

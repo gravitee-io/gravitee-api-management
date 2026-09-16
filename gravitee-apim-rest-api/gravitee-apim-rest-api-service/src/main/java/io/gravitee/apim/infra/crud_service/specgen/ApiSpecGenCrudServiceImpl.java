@@ -35,7 +35,6 @@ import io.gravitee.rest.api.service.ApiService;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -162,12 +161,10 @@ public class ApiSpecGenCrudServiceImpl implements ApiSpecGenCrudService {
         return deploy;
     }
 
-    @NotNull
     private static Analytics getAnalytics() {
         return Analytics.builder().logging(getLogging()).build();
     }
 
-    @NotNull
     private static Logging getLogging() {
         var logging = new Logging();
         logging.setMode(LoggingMode.builder().build());

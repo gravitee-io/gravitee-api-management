@@ -38,7 +38,6 @@ import java.util.Optional;
 import lombok.CustomLog;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.web.filter.GenericFilterBean;
 
 /**
@@ -89,7 +88,6 @@ public class GraviteeContextFilter extends GenericFilterBean {
         chain.doFilter(request, response);
     }
 
-    @Nullable
     private ExecutionContext resolveFromPath(final ExecutionContext pathExecutionContext) {
         String organizationId;
         if (pathExecutionContext.hasOrganizationId()) {
@@ -121,7 +119,6 @@ public class GraviteeContextFilter extends GenericFilterBean {
         return null;
     }
 
-    @Nullable
     private ExecutionContext resolveFromAccessPoint(
         final ExecutionContext accessPointContext,
         final ExecutionContext pathExecutionContext

@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 @Getter
 @AllArgsConstructor
@@ -54,7 +53,6 @@ public class FakeLicense implements License {
         return expirationDate.before(new Date());
     }
 
-    @NotNull
     @Override
     public Map<String, String> getRawAttributes() {
         return attributes

@@ -41,7 +41,6 @@ import io.reactivex.rxjava3.core.Single;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -92,7 +91,7 @@ class SpecGenProviderTest {
             .assertValue(reply -> UNAVAILABLE.equals(reply.requestState()));
     }
 
-    public static @NotNull Stream<ApiSpecGenOperation> params_that_must_return_state_request_reply_due_to_error() {
+    public static Stream<ApiSpecGenOperation> params_that_must_return_state_request_reply_due_to_error() {
         return Arrays.stream(ApiSpecGenOperation.values());
     }
 

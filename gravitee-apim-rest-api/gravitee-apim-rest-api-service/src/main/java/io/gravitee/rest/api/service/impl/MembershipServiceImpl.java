@@ -130,7 +130,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -490,7 +489,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         }
     }
 
-    private static @NotNull InvalidateRoleCacheCommandEntity getEventData(
+    private static InvalidateRoleCacheCommandEntity getEventData(
         String referenceType,
         String referenceId,
         String memberType,

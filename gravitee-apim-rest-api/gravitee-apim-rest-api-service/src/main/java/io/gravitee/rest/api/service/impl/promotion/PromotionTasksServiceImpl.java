@@ -48,7 +48,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -100,7 +99,6 @@ public class PromotionTasksServiceImpl extends AbstractService implements Promot
         return tasks;
     }
 
-    @NotNull
     private List<TaskEntity> getPromotionTasksForEnvironments(List<EnvironmentEntity> environments, boolean selectUpdatePromotion) {
         if (environments.isEmpty()) {
             return emptyList();

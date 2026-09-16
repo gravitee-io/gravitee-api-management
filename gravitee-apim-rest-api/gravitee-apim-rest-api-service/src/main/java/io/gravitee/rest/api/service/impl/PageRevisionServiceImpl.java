@@ -31,7 +31,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.codec.binary.Hex;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -156,7 +155,6 @@ public class PageRevisionServiceImpl extends TransactionalService implements Pag
         }
     }
 
-    @NotNull
     private String canonicalRevision(PageRevision page) {
         StringBuilder builder = new StringBuilder();
         builder.append(

@@ -156,7 +156,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -330,7 +329,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return searchIds(executionContext, applicationQuery, sortable);
     }
 
-    @NotNull
     private ApplicationQuery buildApplicationQueryForUserAndPermission(
         ExecutionContext executionContext,
         RolePermission rolePermission,
@@ -530,7 +528,6 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
-    @NotNull
     private ApplicationEntity createApplicationForEnvironment(
         final ExecutionContext executionContext,
         String userId,

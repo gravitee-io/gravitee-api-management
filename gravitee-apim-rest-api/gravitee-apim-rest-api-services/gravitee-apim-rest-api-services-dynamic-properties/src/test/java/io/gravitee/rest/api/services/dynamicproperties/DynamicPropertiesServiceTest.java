@@ -55,7 +55,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -304,7 +303,6 @@ public class DynamicPropertiesServiceTest {
         return api;
     }
 
-    @NotNull
     private static io.gravitee.definition.model.Api fakeDefinition() {
         final io.gravitee.definition.model.Api definition = new io.gravitee.definition.model.Api();
         final Proxy proxy = new Proxy();

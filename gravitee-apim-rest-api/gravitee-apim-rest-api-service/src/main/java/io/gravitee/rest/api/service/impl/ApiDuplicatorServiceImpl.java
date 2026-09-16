@@ -101,7 +101,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
 import net.minidev.json.JSONObject;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
@@ -545,7 +544,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
         }
     }
 
-    @NotNull
     protected Set<MemberToImport> getAPICurrentMembers(ExecutionContext executionContext, String apiId) {
         return membershipService
             .getMembersByReference(executionContext, MembershipReferenceType.API, apiId)

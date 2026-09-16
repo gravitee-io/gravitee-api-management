@@ -80,7 +80,6 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.data.Index;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -707,12 +706,10 @@ class DebugApiUseCaseTest {
         );
     }
 
-    @NotNull
     private static DebugApiV2 aDebugApiV2(Api api) {
         return new DebugApiV2(api, new HttpRequest("/", "GET"));
     }
 
-    @NotNull
     private static DebugApiV2 aDebugApiV2(Api api, HttpRequest httpRequest) {
         return new DebugApiV2(api, httpRequest);
     }

@@ -38,7 +38,6 @@ import jakarta.inject.Inject;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 /**
@@ -142,7 +141,7 @@ public class ApiValidationServiceImpl extends AbstractService implements ApiVali
         return convertToValidationResult(api, errors);
     }
 
-    private static @NotNull ApiValidationResult<ApiCRDEntity> convertToValidationResult(ApiCRDEntity api, List<Validator.Error> errors) {
+    private static ApiValidationResult<ApiCRDEntity> convertToValidationResult(ApiCRDEntity api, List<Validator.Error> errors) {
         List<String> severe = new ArrayList<>();
         List<String> warning = new ArrayList<>();
         for (Validator.Error error : errors) {

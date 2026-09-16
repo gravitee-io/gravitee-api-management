@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author Titouan COMPIEGNE (titouan.compiegne at graviteesource.com)
@@ -121,7 +120,6 @@ public class PlatformAnalyticsResource extends AbstractResource {
         return Response.ok(analytics).build();
     }
 
-    @NotNull
     private Set<String> findApiIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {
@@ -134,7 +132,6 @@ public class PlatformAnalyticsResource extends AbstractResource {
             .collect(Collectors.toSet());
     }
 
-    @NotNull
     private Set<String> findApplicationIds() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (isAdmin()) {

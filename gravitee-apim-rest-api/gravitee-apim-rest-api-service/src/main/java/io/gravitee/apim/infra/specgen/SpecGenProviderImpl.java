@@ -34,7 +34,6 @@ import io.gravitee.spec.gen.api.Operation;
 import io.gravitee.spec.gen.api.SpecGenRequest;
 import io.reactivex.rxjava3.core.Single;
 import lombok.CustomLog;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -81,7 +80,6 @@ public class SpecGenProviderImpl implements SpecGenProvider {
             .onErrorResumeWith(Single.just(new ApiSpecGenRequestReply(UNAVAILABLE)));
     }
 
-    @NotNull
     private SpecGenCommandPayload<SpecGenRequest> buildPayload(String apiId, Operation operation, String userId) {
         var context = getExecutionContext();
 

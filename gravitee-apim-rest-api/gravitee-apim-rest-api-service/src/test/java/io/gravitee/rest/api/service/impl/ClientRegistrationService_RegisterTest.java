@@ -41,7 +41,6 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.HashMap;
 import java.util.Map;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -219,10 +218,8 @@ public class ClientRegistrationService_RegisterTest {
         wireMockServer.verify(0, postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.metadata")));
     }
 
-    private @NotNull NewApplicationEntity setupApplicationAndProvider(
-        OAuthClientSettings oAuthClientSettings,
-        String registrationEndpointResponse
-    ) throws TechnicalException {
+    private NewApplicationEntity setupApplicationAndProvider(OAuthClientSettings oAuthClientSettings, String registrationEndpointResponse)
+        throws TechnicalException {
         NewApplicationEntity application = new NewApplicationEntity();
 
         ApplicationSettings applicationSettings = new ApplicationSettings();

@@ -178,7 +178,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1180,7 +1179,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return processedUser;
     }
 
-    @NotNull
     private UserEntity changeUserStatus(ExecutionContext executionContext, String userId, UserStatus newStatus) {
         try {
             Optional<User> optionalUser = this.userRepository.findById(userId);
@@ -2137,7 +2135,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     protected Set<RoleEntity> computeOrganizationRoles(
         ExecutionContext executionContext,
-        @NotNull List<RoleMappingEntity> rolesMapping,
+        List<RoleMappingEntity> rolesMapping,
         String username,
         String userInfo,
         String accessToken,
@@ -2185,7 +2183,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
 
     protected Map<String, Set<RoleEntity>> computeEnvironmentRoles(
         ExecutionContext executionContext,
-        @NotNull List<RoleMappingEntity> rolesMapping,
+        List<RoleMappingEntity> rolesMapping,
         String username,
         String userInfo,
         String accessToken,

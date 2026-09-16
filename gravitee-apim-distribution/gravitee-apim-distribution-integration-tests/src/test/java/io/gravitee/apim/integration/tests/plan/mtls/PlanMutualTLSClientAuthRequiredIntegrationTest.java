@@ -74,7 +74,6 @@ import java.util.stream.Stream;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
 import lombok.SneakyThrows;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -306,7 +305,7 @@ class PlanMutualTLSClientAuthRequiredIntegrationTest extends AbstractGatewayTest
         return getSubscription(api, true);
     }
 
-    private static @NotNull Subscription getSubscription(String api, boolean pkcs7) throws IOException {
+    private static Subscription getSubscription(String api, boolean pkcs7) throws IOException {
         final Subscription subscription = new Subscription();
         subscription.setApi(api);
         subscription.setApplication("application-id");

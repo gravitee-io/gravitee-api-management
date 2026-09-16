@@ -104,7 +104,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 import joptsimple.internal.Strings;
 import org.assertj.core.api.Assertions;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1255,7 +1254,7 @@ public class ApplicationService_UpdateTest {
         verify(clientCertificateCrudService, never()).delete(any());
     }
 
-    private static @NotNull ConsoleConfigEntity getConsoleConfigEntity(boolean enabled) {
+    private static ConsoleConfigEntity getConsoleConfigEntity(boolean enabled) {
         ConsoleConfigEntity consoleConfig = new ConsoleConfigEntity();
         UserGroup userGroup = new UserGroup();
         userGroup.setRequired(new Enabled(enabled));

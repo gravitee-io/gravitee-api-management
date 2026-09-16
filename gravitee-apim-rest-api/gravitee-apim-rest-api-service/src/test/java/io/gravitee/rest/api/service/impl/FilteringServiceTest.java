@@ -43,7 +43,6 @@ import io.gravitee.rest.api.service.impl.filtering.FilteringServiceImpl;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -464,7 +463,7 @@ public class FilteringServiceTest {
         verify(apiSearchService, never()).searchIds(any(), any(), any(), any());
     }
 
-    private static GetCategoryApisUseCase.@NotNull Result resultForApi(String apiId, int order, String category) {
+    private static GetCategoryApisUseCase.Result resultForApi(String apiId, int order, String category) {
         return new GetCategoryApisUseCase.Result(
             ApiCategoryOrder.builder().apiId(apiId).categoryId(category).order(order).build(),
             Api.builder().id(apiId).categories(Set.of(category)).build()

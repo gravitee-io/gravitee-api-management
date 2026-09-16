@@ -58,7 +58,6 @@ import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -583,7 +582,6 @@ public class ApplicationAlertServiceTest {
         return application;
     }
 
-    @NotNull
     private void prepareForCreation(NewAlertTriggerEntity newAlert) {
         // recipients
         when(membershipService.getMembershipsByReference(MembershipReferenceType.APPLICATION, APPLICATION_ID)).thenReturn(

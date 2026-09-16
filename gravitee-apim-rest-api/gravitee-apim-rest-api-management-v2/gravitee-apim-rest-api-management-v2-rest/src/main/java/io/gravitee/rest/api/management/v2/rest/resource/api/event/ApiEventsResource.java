@@ -41,7 +41,6 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.jetbrains.annotations.NotNull;
 
 public class ApiEventsResource extends AbstractResource {
 
@@ -68,7 +67,6 @@ public class ApiEventsResource extends AbstractResource {
             .links(computePaginationLinks(output.total(), paginationParam));
     }
 
-    @NotNull
     private SearchEventsUseCase.Input buildInput(PaginationParam paginationParam, SearchApiEventsParam params) {
         var executionContext = GraviteeContext.getExecutionContext();
         var query = new EventQueryService.SearchQuery(

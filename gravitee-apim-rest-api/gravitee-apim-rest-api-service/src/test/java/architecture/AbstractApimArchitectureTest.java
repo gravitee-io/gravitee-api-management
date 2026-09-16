@@ -21,7 +21,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 
@@ -81,7 +80,6 @@ public class AbstractApimArchitectureTest {
         return classFileImporter.importPackages(packageName);
     }
 
-    @NotNull
     protected String anyPackageThatContains(String subPackage) {
         return ".." + subPackage + "..";
     }

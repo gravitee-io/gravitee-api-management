@@ -55,7 +55,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -513,7 +512,6 @@ class IntegrationAgentImplTest {
         }
     }
 
-    @NotNull
     private static io.gravitee.integration.api.model.Api buildApi(int index) {
         return io.gravitee.integration.api.model.Api.builder()
             .uniqueId("asset-uid-" + index)
