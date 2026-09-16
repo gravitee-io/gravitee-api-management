@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { organizationUserSearchKeys } from '../../../shared/utils/queryKeys';
+import { environmentPortalKeys, organizationUserSearchKeys } from '../../../shared/utils/queryKeys';
 import type { GroupMembershipType } from '../types/group';
 
 export const groupKeys = {
@@ -27,5 +27,5 @@ export const groupKeys = {
         [...groupKeys.all, 'memberships', envId, groupId, type] as const,
     roles: (scope: 'API' | 'APPLICATION' | 'API_PRODUCT' | 'INTEGRATION' | 'CLUSTER' | 'EXPLORER') => ['org-roles', scope] as const,
     userSearch: organizationUserSearchKeys.search,
-    settings: (envId: string) => ['environment-portal', envId] as const,
+    settings: environmentPortalKeys.detail,
 } as const;
