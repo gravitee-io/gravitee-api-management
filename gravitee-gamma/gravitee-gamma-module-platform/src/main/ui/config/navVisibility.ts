@@ -96,6 +96,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     'environment-smtp': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'environment-cors': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'security-plan-types': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
+    'primary-owner-mode': [ENVIRONMENT_SETTINGS_READ_PERMISSION],
     'client-registration': ['environment-client_registration_provider-r'],
     'environment-audit': [ENVIRONMENT_AUDIT_READ_PERMISSION],
     users: ORGANIZATION_USER_ACCESS_PERMISSIONS,

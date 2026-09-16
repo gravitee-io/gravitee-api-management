@@ -114,6 +114,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
             {
                 label: 'System & Security',
                 items: [
+                    { key: 'primary-owner-mode', title: ROUTES['primary-owner-mode'].label, icon: UsersRoundIcon },
                     { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
                     { key: 'gateways', title: ROUTES.gateways.label, icon: ServerIcon },
                     { key: 'alerts', title: ROUTES.alerts.label, icon: BellIcon },
