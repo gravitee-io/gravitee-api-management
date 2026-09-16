@@ -66,7 +66,7 @@ public interface ApiAdapter {
                     ? deserialize(source, EdgeApi.class)
                     : deserialize(source, io.gravitee.definition.model.v4.Api.class);
             case FEDERATED -> deserialize(source, FederatedApi.class);
-            case FEDERATED_AGENT -> null; // TODO ???
+            case FEDERATED_AGENT -> deserializeOrThrow(source, FederatedAgent.class);
             case V2 -> deserialize(source, io.gravitee.definition.model.Api.class);
             case null, default -> deserialize(source, io.gravitee.definition.model.Api.class);
         };
@@ -188,17 +188,32 @@ public interface ApiAdapter {
     Api fromApiEntity(GenericApiEntity apiEntity);
 
     default <T> T deserialize(io.gravitee.repository.management.model.Api api, Class<T> clazz) {
+        try {
+            return readDefinition(api, clazz);
+        } catch (IOException ioe) {
+            log.error("Unexpected error while deserializing {} definition of API {}", clazz.getSimpleName(), api.getId(), ioe);
+            return null;
+        }
+    }
+
+    default <T> T deserializeOrThrow(io.gravitee.repository.management.model.Api api, Class<T> clazz) {
+        try {
+            return readDefinition(api, clazz);
+        } catch (IOException ioe) {
+            throw new RuntimeException(
+                "Unexpected error while deserializing " + clazz.getSimpleName() + " definition of API " + api.getId(),
+                ioe
+            );
+        }
+    }
+
+    private <T> T readDefinition(io.gravitee.repository.management.model.Api api, Class<T> clazz) throws IOException {
         if (api.getDefinition() == null) {
             // This can happen when filtering the definition using ApiFieldFilter
             return null;
         }
 
-        try {
-            return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), clazz);
-        } catch (IOException ioe) {
-            log.error("Unexpected error while deserializing V4 API definition", ioe);
-            return null;
-        }
+        return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), clazz);
     }
 
     default String serializeApiDefinition(Api api) {

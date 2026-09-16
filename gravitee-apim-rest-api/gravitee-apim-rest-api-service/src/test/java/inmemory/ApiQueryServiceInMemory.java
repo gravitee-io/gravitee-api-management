@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
@@ -34,6 +35,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlternative<Api> {
+
+    private static final Comparator<Api> MOST_RECENTLY_UPDATED_FIRST = Comparator.comparing(Api::getUpdatedAt).reversed();
 
     private final List<Api> storage;
 
@@ -140,20 +143,52 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
     @Override
     public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
-        var pageNumber = pageable.getPageNumber();
-        var pageSize = pageable.getPageSize();
+        return pageOf(apisOwnedBy(integrationId).sorted(MOST_RECENTLY_UPDATED_FIRST).toList(), pageable);
+    }
 
-        var matches = storage
+    @Override
+    public Page<Api> searchByIntegrationId(
+        String integrationId,
+        List<DefinitionVersion> definitionVersions,
+        String query,
+        Pageable pageable
+    ) {
+        throw new UnsupportedOperationException("searchByIntegrationId has no in-memory implementation yet");
+    }
+
+    private Stream<Api> apisOwnedBy(String integrationId) {
+        return storage
             .stream()
-            .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte && integrationId.equals(inte.integrationId()))
-            .sorted(Comparator.comparing(Api::getUpdatedAt).reversed())
-            .toList();
+            .filter(api -> api.getOriginContext() instanceof OriginContext.Integration inte && integrationId.equals(inte.integrationId()));
+    }
 
-        var page = matches.size() <= pageSize
-            ? matches
-            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+    private static Page<Api> pageOf(List<Api> matches, Pageable pageable) {
+        var pageNumber = repositoryPageNumberOf(pageable.getPageNumber());
+        var content = withoutApiDefinitions(windowOf(matches, pageNumber, pageable.getPageSize()));
 
-        return new Page<>(page, pageNumber, pageSize, matches.size());
+        return pageOfContent(content, pageNumber, matches.size());
+    }
+
+    private static List<Api> withoutApiDefinitions(List<Api> apis) {
+        return apis.stream().map(ApiQueryServiceInMemory::withoutApiDefinition).toList();
+    }
+
+    private static <T> Page<T> pageOfContent(List<T> content, int repositoryPageNumber, long totalElements) {
+        return new Page<>(content, repositoryPageNumber, content.size(), totalElements);
+    }
+
+    private static int repositoryPageNumberOf(int callersPageNumber) {
+        return Math.max(callersPageNumber - 1, 0);
+    }
+
+    private static <T> List<T> windowOf(List<T> items, int repositoryPageNumber, int pageSize) {
+        var from = Math.min(repositoryPageNumber * pageSize, items.size());
+        var to = Math.min(from + pageSize, items.size());
+        return items.subList(from, to);
+    }
+
+    private static Api withoutApiDefinition(Api api) {
+        return api.toBuilder().apiDefinitionValue(null).build();
     }
 
     @Override
