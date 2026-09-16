@@ -216,6 +216,10 @@ public abstract class AbstractJdbcRepositoryConfiguration implements Application
     private void runLiquibase(DataSource dataSource) {
         log.debug("Running Liquibase on {}", dataSource);
 
+        // Liquibase 4.30 and later report product usage to Liquibase. The flag has no local default:
+        // left unset, Liquibase reads https://config.liquibase.com/analytics.yaml and follows it, so an
+        // APIM install would call out to Liquibase on every start.
+        System.setProperty("liquibase.analytics.enabled", "false");
         System.setProperty("liquibase.databaseChangeLogTableName", prefix + "databasechangelog");
         System.setProperty("liquibase.databaseChangeLogLockTableName", prefix + "databasechangeloglock");
         System.setProperty("gravitee_prefix", prefix);

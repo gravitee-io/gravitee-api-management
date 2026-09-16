@@ -30,8 +30,8 @@
     <description>Common library for reporters. It contains formatters for JSON, Elastic or CSV format.</description>
 
     <properties>
-        <jackson-dataformat-msgpack.version>0.9.11</jackson-dataformat-msgpack.version>
-        <commons-validator.version>1.10.1</commons-validator.version>
+        <jackson-dataformat-msgpack.version>0.9.12</jackson-dataformat-msgpack.version>
+        <commons-validator.version>1.11.0</commons-validator.version>
     </properties>
 
     <dependencies>
