@@ -34,3 +34,12 @@ export const completed = (contextId = 'ctx-1') => frame({ result: { kind: 'statu
 
 export const respondingGateway = (...chunks: string[]) =>
   jest.fn().mockResolvedValue({ ok: true, status: 200, body: sseBody(chunks) } as Response);
+
+/** A gateway answer that is plain JSON rather than a stream, which is how an agent that does not stream replies. */
+export const jsonBody = (payload: unknown) =>
+  ({
+    ok: true,
+    status: 200,
+    headers: { get: (name: string) => (name.toLowerCase() === 'content-type' ? 'application/json' : null) },
+    text: () => Promise.resolve(JSON.stringify(payload)),
+  }) as unknown as Response;

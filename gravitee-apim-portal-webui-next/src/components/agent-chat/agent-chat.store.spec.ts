@@ -16,7 +16,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { AgentChatStore } from './agent-chat.store';
-import { completed, delta, frame, sseBody } from './testing/sse-body';
+import { completed, delta, frame, jsonBody, sseBody } from './testing/sse-body';
 import { ConfigService } from '../../services/config.service';
 
 const TARGET = { endpoint: 'https://gw.test/agent', apiKey: 'key-1' };
@@ -119,6 +119,66 @@ describe('AgentChatStore', () => {
     expect(headers['Authorization']).toBe('Bearer key-1');
     expect(headers['X-Custom-Key']).toBeUndefined();
     expect(headers['X-Gravitee-Api-Key']).toBeUndefined();
+  });
+
+  describe('an agent that does not stream', () => {
+    const refusal = { jsonrpc: '2.0', id: '1', error: { code: -32004, message: 'Streaming is not supported by this agent' } };
+    const answer = (text: string, contextId = 'ctx-1') => ({
+      jsonrpc: '2.0',
+      id: '2',
+      result: { kind: 'task', contextId, status: { state: 'completed' }, artifacts: [{ parts: [{ kind: 'text', text }] }] },
+    });
+    const methods = () => fetchMock.mock.calls.map(call => JSON.parse(call[1].body).method);
+
+    it('asks again with message/send when the agent refuses message/stream, and shows the answer', async () => {
+      fetchMock.mockResolvedValueOnce(jsonBody(refusal)).mockResolvedValueOnce(jsonBody(answer('no streaming here')));
+
+      await store.send('hi', TARGET);
+
+      expect(methods()).toEqual(['message/stream', 'message/send']);
+      expect(fetchMock.mock.calls[1][1].headers['Authorization']).toBe('Bearer key-1');
+      expect(store.turns().map(turn => ({ role: turn.role, text: turn.text, isComplete: turn.isComplete }))).toEqual([
+        { role: 'user', text: 'hi', isComplete: true },
+        { role: 'agent', text: 'no streaming here', isComplete: true },
+      ]);
+      expect(store.error()).toBeNull();
+      expect(store.isStreaming()).toBe(false);
+    });
+
+    it('asks the next question with message/send straight away, keeping the conversation', async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonBody(refusal))
+        .mockResolvedValueOnce(jsonBody(answer('one', 'ctx-7')))
+        .mockResolvedValueOnce(jsonBody(answer('two', 'ctx-7')));
+
+      await store.send('first', TARGET);
+      await store.send('second', TARGET);
+
+      expect(methods()).toEqual(['message/stream', 'message/send', 'message/send']);
+      expect(JSON.parse(fetchMock.mock.calls[2][1].body).params.message.contextId).toBe('ctx-7');
+    });
+
+    it('tries streaming again for another agent', async () => {
+      store.resetFor('agent-1');
+      fetchMock.mockResolvedValueOnce(jsonBody(refusal)).mockResolvedValueOnce(jsonBody(answer('one')));
+      await store.send('first', TARGET);
+
+      store.resetFor('agent-2');
+      respondWith([delta('streamed'), completed()]);
+      await store.send('second', TARGET);
+
+      expect(methods()).toEqual(['message/stream', 'message/send', 'message/stream']);
+    });
+  });
+
+  it('shows an error the gateway answered as plain json instead of a stream', async () => {
+    fetchMock.mockResolvedValueOnce(jsonBody({ jsonrpc: '2.0', id: '1', error: { code: -32603, message: 'model unavailable' } }));
+
+    await store.send('hi', TARGET);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(store.error()).toBe('model unavailable');
+    expect(store.turns().map(turn => turn.role)).toEqual(['user']);
   });
 
   it('carries the context id into the next message, which is what makes it a conversation', async () => {

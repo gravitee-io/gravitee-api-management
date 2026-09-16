@@ -16,7 +16,15 @@
 import { DestroyRef, inject, Injectable, signal } from '@angular/core';
 import type { LocalizeFn } from '@angular/localize/init';
 
-import { A2AEvent, buildStreamRequest, eventFromFrame, splitSseFrames } from './a2a-client';
+import {
+  A2AEvent,
+  buildSendRequest,
+  buildStreamRequest,
+  eventFromFrame,
+  eventsFromResponse,
+  refusesStreaming,
+  splitSseFrames,
+} from './a2a-client';
 import { randomId } from '../../utils/random-id';
 
 declare const $localize: LocalizeFn;
@@ -36,6 +44,8 @@ export interface ChatTarget {
 /** Thrown for a gateway answer we can describe; anything else is reported as unreachable. */
 class GatewayResponseError extends Error {}
 
+const isJson = (response: Response): boolean => (response.headers?.get('content-type') ?? '').includes('application/json');
+
 @Injectable()
 export class AgentChatStore {
   private readonly turnsState = signal<ChatTurn[]>([]);
@@ -43,6 +53,8 @@ export class AgentChatStore {
   private readonly errorState = signal<string | null>(null);
   private contextId: string | undefined;
   private agentId: string | null = null;
+  /** Learnt from the agent refusing message/stream, so later questions skip the refused call. */
+  private streamingRefused = false;
   private inFlight: AbortController | null = null;
   /** Bumped whenever a stream stops being relevant, so its late writes can be discarded. */
   private generation = 0;
@@ -62,6 +74,7 @@ export class AgentChatStore {
     this.agentId = agentId;
     this.abandonStream();
     this.contextId = undefined;
+    this.streamingRefused = false;
     this.turnsState.set([]);
     this.errorState.set(null);
   }
@@ -83,7 +96,11 @@ export class AgentChatStore {
     const generation = this.generation;
 
     try {
-      await this.stream(question, userTurn.id, agentTurnId, target, controller.signal, generation);
+      if (this.streamingRefused) {
+        await this.ask(question, userTurn.id, agentTurnId, target, controller.signal, generation);
+      } else {
+        await this.stream(question, userTurn.id, agentTurnId, target, controller.signal, generation);
+      }
     } catch (cause) {
       if (generation === this.generation) {
         this.errorState.set(
@@ -109,20 +126,28 @@ export class AgentChatStore {
     signal: AbortSignal,
     generation: number,
   ): Promise<void> {
-    // fetch, not HttpClient: the portal interceptors would send the session cookie and two extra
-    // headers to the gateway, which is a different service on a different origin.
-    const response = await fetch(target.endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'text/event-stream',
-        Authorization: `Bearer ${target.apiKey}`,
-      },
-      body: JSON.stringify(buildStreamRequest(question, this.contextId, messageId, randomId())),
+    const response = await this.post(
+      target,
+      'text/event-stream',
+      buildStreamRequest(question, this.contextId, messageId, randomId()),
       signal,
-    });
+    );
 
-    if (!response.ok || !response.body) {
+    if (isJson(response)) {
+      const body = await response.text();
+      if (generation !== this.generation) {
+        return;
+      }
+      if (refusesStreaming(body)) {
+        this.streamingRefused = true;
+        await this.ask(question, messageId, agentTurnId, target, signal, generation);
+        return;
+      }
+      eventsFromResponse(body).forEach(event => this.apply(event, agentTurnId, generation));
+      return;
+    }
+
+    if (!response.body) {
       throw new GatewayResponseError($localize`:@@agentChatGatewayStatus:The gateway answered ${response.status}:status:.`);
     }
 
@@ -144,6 +169,39 @@ export class AgentChatStore {
       buffer = rest;
       frames.forEach(frame => this.apply(eventFromFrame(frame), agentTurnId, generation));
     }
+  }
+
+  /** One question, one whole answer: message/send, for an agent that does not stream. */
+  private async ask(
+    question: string,
+    messageId: string,
+    agentTurnId: string,
+    target: ChatTarget,
+    signal: AbortSignal,
+    generation: number,
+  ): Promise<void> {
+    const response = await this.post(target, 'application/json', buildSendRequest(question, this.contextId, messageId, randomId()), signal);
+    const body = await response.text();
+    eventsFromResponse(body).forEach(event => this.apply(event, agentTurnId, generation));
+  }
+
+  private async post(target: ChatTarget, accept: string, request: object, signal: AbortSignal): Promise<Response> {
+    // fetch, not HttpClient: the portal interceptors would send the session cookie and two extra
+    // headers to the gateway, which is a different service on a different origin.
+    const response = await fetch(target.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: accept,
+        Authorization: `Bearer ${target.apiKey}`,
+      },
+      body: JSON.stringify(request),
+      signal,
+    });
+    if (!response.ok) {
+      throw new GatewayResponseError($localize`:@@agentChatGatewayStatus:The gateway answered ${response.status}:status:.`);
+    }
+    return response;
   }
 
   private consume(buffer: string, agentTurnId: string, generation: number, includeTail: boolean): void {
