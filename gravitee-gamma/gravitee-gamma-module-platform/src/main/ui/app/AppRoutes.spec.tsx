@@ -283,6 +283,10 @@ jest.mock('../pages/EnvironmentCorsSettingsPage', () => ({
     EnvironmentCorsSettingsPage: () => <div data-testid="environment-cors-settings-page" />,
 }));
 
+jest.mock('../pages/PrimaryOwnerModePage', () => ({
+    PrimaryOwnerModePage: () => <div data-testid="primary-owner-mode-page" />,
+}));
+
 jest.mock('../pages/NotificationTemplatesPage', () => ({
     NotificationTemplatesPage: () => <div data-testid="notification-templates-page" />,
 }));
@@ -1973,6 +1977,38 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('security-plan-types');
+    });
+
+    it('routes to Primary Owner Mode', () => {
+        renderPlatform('/primary-owner-mode');
+        expect(screen.getByTestId('primary-owner-mode-page')).not.toBeNull();
+    });
+
+    it('does not render Primary Owner Mode for a pasted URL without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform('/primary-owner-mode');
+
+        expect(screen.queryByTestId('primary-owner-mode-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('hides Primary Owner Mode without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform();
+
+        expect(visibleNavKeys()).not.toContain('primary-owner-mode');
+    });
+
+    it('shows Primary Owner Mode in the Environment nav section', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'primary-owner-mode',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/primary-owner-mode');
+
+        expect(visibleNavKeys()).toContain('primary-owner-mode');
+        expect(navGroupItemKeys('System & Security')[0]).toBe('primary-owner-mode');
     });
 
     it('renders Client Registration from a pasted URL', () => {

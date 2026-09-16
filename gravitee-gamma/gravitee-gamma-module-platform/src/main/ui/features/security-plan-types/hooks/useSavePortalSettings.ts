@@ -19,6 +19,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { notify } from '../../../shared/notify';
+import { environmentPortalKeys } from '../../../shared/utils/queryKeys';
 import type { PortalSettings } from '../services/portalSettings';
 import { savePortalSettings } from '../services/portalSettings';
 import { portalSettingsKeys } from '../utils/queryKeys';
@@ -35,7 +36,9 @@ export function useSavePortalSettings(options?: SavePortalSettingsOptions) {
     return useMutation({
         mutationFn: (payload: PortalSettings) => savePortalSettings(env!.id, payload),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: portalSettingsKeys.env(env?.id ?? '') });
+            const envId = env?.id ?? '';
+            queryClient.invalidateQueries({ queryKey: portalSettingsKeys.env(envId) });
+            queryClient.invalidateQueries({ queryKey: environmentPortalKeys.detail(envId) });
             notify.success(options?.successMessage ?? 'Security plan types saved successfully.');
         },
         onError: error => notify.error(error, options?.errorMessage ?? 'Failed to save security plan types.'),

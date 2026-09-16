@@ -45,3 +45,9 @@ export const organizationUserSearchKeys = {
     all: ['org-user-search'] as const,
     search: (query: string) => [...organizationUserSearchKeys.all, query] as const,
 } as const;
+
+/** `GET /portal` snapshot (primary owner mode, API Score, …). */
+export const environmentPortalKeys = {
+    all: ['environment-portal'] as const,
+    detail: (envId: string) => [...environmentPortalKeys.all, envId] as const,
+} as const;

@@ -201,6 +201,7 @@ describe('platform nav visibility', () => {
                 'environment-smtp',
                 'environment-cors',
                 'security-plan-types',
+                'primary-owner-mode',
                 'api-health-check',
                 'environment-audit',
                 'access-management',

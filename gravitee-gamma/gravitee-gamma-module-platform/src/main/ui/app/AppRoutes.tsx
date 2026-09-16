@@ -104,6 +104,7 @@ import { NotificationTemplatesPage } from '../pages/NotificationTemplatesPage';
 import { OrganizationPolicyStudioPage } from '../pages/OrganizationPolicyStudioPage';
 import { OrgAuditLogsPage } from '../pages/OrgAuditLogsPage';
 import { PlatformNoAccessPage } from '../pages/PlatformNoAccessPage';
+import { PrimaryOwnerModePage } from '../pages/PrimaryOwnerModePage';
 import { RegisterApplicationPage } from '../pages/RegisterApplicationPage';
 import { RoleFormPage } from '../pages/RoleFormPage';
 import { RoleMembersPage } from '../pages/RoleMembersPage';
@@ -595,6 +596,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="environment-cors">
                                         <EnvironmentCorsSettingsPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="primary-owner-mode"
+                                element={
+                                    <NavPermissionGuard itemKey="primary-owner-mode">
+                                        <PrimaryOwnerModePage />
                                     </NavPermissionGuard>
                                 }
                             />
