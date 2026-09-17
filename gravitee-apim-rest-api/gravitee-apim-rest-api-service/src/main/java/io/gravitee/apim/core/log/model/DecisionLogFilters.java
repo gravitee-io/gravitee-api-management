@@ -30,19 +30,28 @@ import lombok.Builder;
  * restriction" — the org and the environment already come from the execution context. An <em>empty</em>
  * set means "the caller may see no api at all" and yields an empty page without reaching the index, so a
  * permission filter that came back empty cannot widen into a read of the whole environment.
+ *
+ * <p>The {@code excluded*} fields negate their twin, on the four dimensions a screen offers as tick boxes.
+ * They do <em>not</em> read like {@link #apiIds}: {@code null} and an empty set both mean nothing is ruled
+ * out, so a list of unticked boxes leaves the page as it was instead of emptying it. A value at once
+ * included and excluded is excluded — the index applies the negation last.
  */
 @Builder
 public record DecisionLogFilters(
     String decisionPointType,
     Set<String> apiIds,
+    Set<String> excludedApiIds,
     Set<String> applicationIds,
+    Set<String> excludedApplicationIds,
     Set<String> planIds,
     Long from,
     Long to,
     Set<String> decisionPointIds,
+    Set<String> excludedDecisionPointIds,
     Set<String> checkpoints,
     Set<String> callers,
     Set<String> outcomes,
+    Set<String> excludedOutcomes,
     Set<String> enforcements,
     Set<String> verdicts,
     Set<String> statuses,

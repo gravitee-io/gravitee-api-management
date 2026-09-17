@@ -174,6 +174,50 @@ class DecisionLogsCrudServiceImplTest {
     }
 
     @Test
+    void carries_the_exclusions_into_the_query() throws Exception {
+        when(metricsRepository.searchDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0L, List.of()));
+
+        service.searchDecisionLogs(
+            CONTEXT,
+            DecisionLogFilters.builder()
+                .decisionPointType("guardian")
+                .excludedApiIds(Set.of("api-3"))
+                .excludedApplicationIds(Set.of("app-3"))
+                .excludedDecisionPointIds(Set.of("noisy-guardian"))
+                .excludedOutcomes(Set.of("ALLOW"))
+                .build(),
+            new PageableImpl(1, 20)
+        );
+
+        var queryCaptor = ArgumentCaptor.forClass(DecisionLogQuery.class);
+        verify(metricsRepository).searchDecisionLogs(any(), queryCaptor.capture());
+
+        var query = queryCaptor.getValue();
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(query.getExcludedApiIds()).containsExactly("api-3");
+            soft.assertThat(query.getExcludedApplicationIds()).containsExactly("app-3");
+            soft.assertThat(query.getExcludedDecisionPointIds()).containsExactly("noisy-guardian");
+            soft.assertThat(query.getExcludedOutcomes()).containsExactly("ALLOW");
+        });
+    }
+
+    @Test
+    void still_reads_the_index_when_the_caller_excludes_no_api() throws Exception {
+        when(metricsRepository.searchDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0L, List.of()));
+
+        service.searchDecisionLogs(
+            CONTEXT,
+            DecisionLogFilters.builder().decisionPointType("guardian").excludedApiIds(Set.<String>of()).build(),
+            new PageableImpl(1, 20)
+        );
+
+        // An empty exclusion rules nothing out, unlike an empty apiIds which short-circuits the read.
+        var queryCaptor = ArgumentCaptor.forClass(DecisionLogQuery.class);
+        verify(metricsRepository).searchDecisionLogs(any(), queryCaptor.capture());
+        assertThat(queryCaptor.getValue().getExcludedApiIds()).isEmpty();
+    }
+
+    @Test
     void maps_the_carrier_record_onto_the_domain_projection() throws Exception {
         when(metricsRepository.searchDecisionLogs(any(), any())).thenReturn(new LogResponse<>(9L, List.of(carrierRecord())));
 
