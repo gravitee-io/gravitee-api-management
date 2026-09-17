@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -231,6 +232,29 @@ public class DictionaryServiceImpl_UpdateTest {
             updateDictionaryEntity.setName("UpdatedName");
             dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
         });
+    }
+
+    @Test
+    public void should_not_update_because_a_property_value_is_null() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        dictionaryInDb.setState(LifecycleState.STOPPED);
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("UpdatedName");
+        updateDictionaryEntity.setType(DictionaryType.MANUAL);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("hostname", null);
+        updateDictionaryEntity.setProperties(properties);
+
+        assertThrows(InvalidDataException.class, () ->
+            dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
+        );
+
+        verify(dictionaryRepository, never()).update(any(Dictionary.class));
     }
 
     @Test

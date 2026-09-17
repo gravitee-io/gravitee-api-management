@@ -29,13 +29,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.MongoOperations;
 
 /**
- * Reproduction: a dictionary saved through the repository with only unencrypted properties must
- * keep the legacy on-disk shape (a bare BSON string per key), not the new typed
- * {@code {value, encrypted}} shape — otherwise any external tooling/index doing scalar equality on
- * {@code properties.<key>} breaks the moment a dictionary is saved through the new code, and the
- * "unencrypted stays a bare string" invariant claimed for the read side never held for writes.
+ * Guards the raw Mongo property encoding used by repository writes. Unencrypted values stay bare
+ * BSON strings for scalar equality compatibility, encrypted values carry their flag, and malformed
+ * null entries are not persisted.
  */
-class DictionaryPropertyWriteShapeReproTest extends AbstractManagementRepositoryTest {
+class MongoDictionaryPropertyWriteShapeTest extends AbstractManagementRepositoryTest {
 
     @Inject
     private MongoOperations mongoOperations;

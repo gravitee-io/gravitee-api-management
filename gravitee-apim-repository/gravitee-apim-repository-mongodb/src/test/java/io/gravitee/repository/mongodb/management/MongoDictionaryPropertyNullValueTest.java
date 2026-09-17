@@ -17,6 +17,7 @@ package io.gravitee.repository.mongodb.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
 import org.bson.Document;
@@ -24,14 +25,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.MongoOperations;
 
 /**
- * Reproduction: inserts a dictionary document directly as raw BSON (bypassing the normal
- * Dictionary/DictionaryMongo write path entirely), so `properties` genuinely contains a bare
- * string the way a pre-existing, never-migrated dictionary actually does on disk — unlike the
- * shared fixture-based tests, whose setup deserializes JSON through Jackson (dual-reading the
- * bare string into a typed DictionaryProperty already) before ever writing it back out, which
- * silently upgrades the stored shape and never exercises this read path.
+ * Guards updates after reading a raw BSON {@code null} property. Spring Data does not invoke a
+ * converter for a null source, so the malformed entry must be dropped rather than dereferenced.
  */
-class LegacyDictionaryPropertyRawBsonReproTest extends AbstractManagementRepositoryTest {
+class MongoDictionaryPropertyNullValueTest extends AbstractManagementRepositoryTest {
 
     @Inject
     private MongoOperations mongoOperations;
@@ -42,23 +39,25 @@ class LegacyDictionaryPropertyRawBsonReproTest extends AbstractManagementReposit
     }
 
     @Test
-    void should_read_a_genuine_legacy_raw_bson_bare_string_property() throws Exception {
+    void should_drop_a_raw_null_property_when_updating_a_dictionary() throws Exception {
         mongoOperations
             .getCollection("test_prefix_dictionaries")
             .insertOne(
                 new Document()
-                    .append("_id", "dic-raw-legacy")
+                    .append("_id", "dic-raw-null")
                     .append("environmentId", "DEFAULT")
-                    .append("name", "Raw Legacy Dic")
-                    .append("key", "dic-raw-legacy")
+                    .append("name", "Raw Null Dictionary")
+                    .append("key", "dic-raw-null")
                     .append("type", "MANUAL")
-                    .append("properties", new Document("legacy-key", "legacy-value"))
+                    .append("state", "STOPPED")
+                    .append("properties", new Document("valid", "value").append("invalid", null))
             );
 
-        var found = dictionaryRepository.findById("dic-raw-legacy");
+        var dictionary = dictionaryRepository.findById("dic-raw-null").orElseThrow();
+        assertThat(dictionary.getProperties().get("invalid")).isNull();
 
-        assertThat(found).isPresent();
-        assertThat(found.get().getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
-        assertThat(found.get().getProperties().get("legacy-key").encrypted()).isFalse();
+        var updated = dictionaryRepository.update(dictionary);
+
+        assertThat(updated.getProperties()).containsEntry("valid", new DictionaryProperty("value", false)).doesNotContainKey("invalid");
     }
 }

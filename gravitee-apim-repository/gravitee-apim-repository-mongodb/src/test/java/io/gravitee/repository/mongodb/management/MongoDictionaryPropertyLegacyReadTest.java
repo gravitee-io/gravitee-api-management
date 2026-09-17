@@ -17,7 +17,6 @@ package io.gravitee.repository.mongodb.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
 import org.bson.Document;
@@ -25,11 +24,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.data.mongodb.core.MongoOperations;
 
 /**
- * Reproduction: a dictionary read with a raw BSON {@code null} property value (bypassing the
- * legacy reading converter entirely, since Spring Data never invokes a converter for a null
- * source) must still be updatable — the malformed entry is dropped rather than dereferenced.
+ * Guards reading a pre-existing bare BSON string by bypassing the normal repository write path.
+ * Shared JSON fixtures dual-read bare strings through Jackson before writing them back, so they do
+ * not exercise the raw-BSON read path covered here.
  */
-class NullDictionaryPropertyRawBsonReproTest extends AbstractManagementRepositoryTest {
+class MongoDictionaryPropertyLegacyReadTest extends AbstractManagementRepositoryTest {
 
     @Inject
     private MongoOperations mongoOperations;
@@ -40,25 +39,23 @@ class NullDictionaryPropertyRawBsonReproTest extends AbstractManagementRepositor
     }
 
     @Test
-    void should_drop_a_raw_null_property_when_updating_a_dictionary() throws Exception {
+    void should_read_a_genuine_legacy_raw_bson_bare_string_property() throws Exception {
         mongoOperations
             .getCollection("test_prefix_dictionaries")
             .insertOne(
                 new Document()
-                    .append("_id", "dic-raw-null")
+                    .append("_id", "dic-raw-legacy")
                     .append("environmentId", "DEFAULT")
-                    .append("name", "Raw Null Dictionary")
-                    .append("key", "dic-raw-null")
+                    .append("name", "Raw Legacy Dic")
+                    .append("key", "dic-raw-legacy")
                     .append("type", "MANUAL")
-                    .append("state", "STOPPED")
-                    .append("properties", new Document("valid", "value").append("invalid", null))
+                    .append("properties", new Document("legacy-key", "legacy-value"))
             );
 
-        var dictionary = dictionaryRepository.findById("dic-raw-null").orElseThrow();
-        assertThat(dictionary.getProperties().get("invalid")).isNull();
+        var found = dictionaryRepository.findById("dic-raw-legacy");
 
-        var updated = dictionaryRepository.update(dictionary);
-
-        assertThat(updated.getProperties()).containsEntry("valid", new DictionaryProperty("value", false)).doesNotContainKey("invalid");
+        assertThat(found).isPresent();
+        assertThat(found.get().getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
+        assertThat(found.get().getProperties().get("legacy-key").encrypted()).isFalse();
     }
 }

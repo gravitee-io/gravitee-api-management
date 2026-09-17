@@ -16,25 +16,20 @@
 package io.gravitee.repository.mongodb.management.converters;
 
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryPropertyMongo;
-import org.bson.Document;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.WritingConverter;
+import org.springframework.data.convert.ReadingConverter;
 
 /**
- * An unencrypted property writes back as a bare string, so its on-disk Mongo shape changes only
- * when the value is genuinely encrypted. {@code DictionaryPropertyEncodingParityTest} keeps this
- * encoding aligned with the definition-model serializer.
+ * A property stored as a bare BSON string is unencrypted. This is both the pre-existing shape and
+ * the shape {@link DictionaryPropertyWritingConverter} keeps producing for unencrypted values.
  *
  * @author GraviteeSource Team
  */
-@WritingConverter
-public class DictionaryPropertyWritingConverter implements Converter<DictionaryPropertyMongo, Object> {
+@ReadingConverter
+public class DictionaryPropertyReadingConverter implements Converter<String, DictionaryPropertyMongo> {
 
     @Override
-    public Object convert(DictionaryPropertyMongo source) {
-        if (!source.encrypted()) {
-            return source.value();
-        }
-        return new Document("value", source.value()).append("encrypted", true);
+    public DictionaryPropertyMongo convert(String source) {
+        return new DictionaryPropertyMongo(source, false);
     }
 }

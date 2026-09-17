@@ -18,17 +18,24 @@ package io.gravitee.repository.mongodb.management.converters;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryPropertyMongo;
+import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
-class LegacyDictionaryPropertyReadingConverterTest {
+class DictionaryPropertyWritingConverterTest {
 
-    private final LegacyDictionaryPropertyReadingConverter cut = new LegacyDictionaryPropertyReadingConverter();
+    private final DictionaryPropertyWritingConverter cut = new DictionaryPropertyWritingConverter();
 
     @Test
-    void should_convert_legacy_bare_string_to_unencrypted_property() {
-        DictionaryPropertyMongo result = cut.convert("localhost");
+    void should_write_an_unencrypted_property_as_a_bare_string() {
+        Object result = cut.convert(new DictionaryPropertyMongo("v", false));
 
-        assertThat(result.value()).isEqualTo("localhost");
-        assertThat(result.encrypted()).isFalse();
+        assertThat(result).isInstanceOf(String.class).isEqualTo("v");
+    }
+
+    @Test
+    void should_write_an_encrypted_property_as_a_value_and_flag_document() {
+        Object result = cut.convert(new DictionaryPropertyMongo("v", true));
+
+        assertThat(result).isInstanceOf(Document.class).isEqualTo(new Document("value", "v").append("encrypted", true));
     }
 }
