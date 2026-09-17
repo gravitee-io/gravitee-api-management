@@ -84,19 +84,11 @@ public class QueryBuilder<T extends Indexable> {
         return this;
     }
 
-<<<<<<< HEAD
-=======
     public QueryBuilder<T> setSearchSortStrategy(SearchSortStrategy searchSortStrategy) {
         query.setSearchSortStrategy(searchSortStrategy);
         return this;
     }
 
-    public QueryBuilder<T> setTypoTolerance(boolean typoTolerance) {
-        query.setTypoTolerance(typoTolerance);
-        return this;
-    }
-
->>>>>>> 4a6b077 (fix(portal): stabilize API search ordering)
     public Query<T> build() {
         return this.query;
     }

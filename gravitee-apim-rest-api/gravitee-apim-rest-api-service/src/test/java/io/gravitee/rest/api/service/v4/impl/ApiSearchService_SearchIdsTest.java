@@ -205,7 +205,6 @@ public class ApiSearchService_SearchIdsTest {
             .setSearchSortStrategy(searchSortStrategy);
         var filters = new HashMap<String, Object>();
         apiEntityQueryBuilder.setFilters(filters);
-        apiEntityQueryBuilder.addExcludedFilter(FIELD_API_TYPE, List.of(DefinitionVersion.V4.name() + "_" + ApiType.EDGE.name()));
 
         when(searchEngineService.search(eq(GraviteeContext.getExecutionContext()), eq(apiEntityQueryBuilder.build()))).thenReturn(
             new SearchResult(List.of("api-id"))
@@ -217,7 +216,6 @@ public class ApiSearchService_SearchIdsTest {
             filters,
             null,
             EnumSet.noneOf(DefinitionVersion.class),
-            false,
             searchSortStrategy
         );
 
