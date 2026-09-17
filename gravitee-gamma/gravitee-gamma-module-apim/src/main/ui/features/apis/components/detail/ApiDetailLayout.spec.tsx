@@ -600,12 +600,13 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
             isLoading: false,
             isError: false,
         });
-        renderLayout();
+        const view = renderLayout();
         renderSidebar();
+        return view;
     }
 
     function renderSidebarForFederatedApi() {
-        renderSidebarForApiOfDefinitionVersion('FEDERATED');
+        return renderSidebarForApiOfDefinitionVersion('FEDERATED');
     }
 
     it('drops the sections a federated API has no backing data for, along with the group headings they empty', () => {
@@ -633,12 +634,33 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
         expect(screen.getByRole('link', { name: /^api score$/i })).toHaveAttribute('href', `${API_BASE_PATH}/api-score`);
     });
 
-    it('shows no API Score row of any kind when the environment has API Score disabled', () => {
+    // The flag is fetched, so an API-Score-enabled environment reports `false` on the first render and `true` only
+    // once the portal configuration arrives. The sidebar reaches the host layout through a deps-keyed publish, so
+    // this is the only case that fails when `apiScoreEnabled` is dropped from the useLayoutConfig dependency array.
+    it('gains the API Score link when the environment flag arrives after the first render', () => {
+        (useApiScoreEnabled as jest.Mock).mockReturnValue({ enabled: false, isFetched: false });
+        const { rerender } = renderSidebarForFederatedApi();
+        expect(screen.queryByRole('link', { name: /^api score$/i })).not.toBeInTheDocument();
+
+        (useApiScoreEnabled as jest.Mock).mockReturnValue({ enabled: true, isFetched: true });
+        rerender(layoutTree('abc-123'));
+        renderSidebar();
+
+        expect(screen.getByRole('link', { name: /^api score$/i })).toHaveAttribute('href', `${API_BASE_PATH}/api-score`);
+    });
+
+    it('removes only the API Score row when the environment has API Score disabled', () => {
         (useApiScoreEnabled as jest.Mock).mockReturnValue({ enabled: false, isFetched: true });
         renderSidebarForFederatedApi();
 
         expect(screen.queryByRole('link', { name: /^api score$/i })).not.toBeInTheDocument();
         expect(screen.queryByText('API Score')).not.toBeInTheDocument();
+        // The group heading is the only 'General' that is not a link, so the selector is what separates it
+        // from the General nav item — an emptied-out sidebar would satisfy the two absences above on its own.
+        expect(screen.getByText('General', { selector: 'p' })).toBeInTheDocument();
+        for (const [label, path] of FEDERATED_KEPT_LINKS) {
+            expect(screen.getByRole('link', { name: new RegExp(`^${label}$`, 'i') })).toHaveAttribute('href', `${API_BASE_PATH}/${path}`);
+        }
     });
 
     // These are the only cases that state a definition version explicitly — every other sidebar case leaves the
