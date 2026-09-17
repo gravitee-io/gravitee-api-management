@@ -60,7 +60,6 @@ public class UpgraderOrder {
     public static final int ENVIRONMENTS_DEFAULT_PORTAL_PAGE_UPGRADER = 711;
     public static final int ENVIRONMENTS_DEFAULT_PORTAL_NAVIGATION_ITEMS_UPGRADER = 712;
     public static final int APPLICATION_CLIENT_CERTIFICATE_MIGRATION_UPGRADER = 713;
-    public static final int ENVIRONMENTS_DEFAULT_SUBSCRIPTION_FORM_UPGRADER = 714;
     public static final int PORTAL_NAVIGATION_ITEM_ROOT_ID_UPGRADER = 715;
     public static final int TAG_KEY_UPGRADER = 716;
     public static final int TENANT_KEY_UPGRADER = 717;

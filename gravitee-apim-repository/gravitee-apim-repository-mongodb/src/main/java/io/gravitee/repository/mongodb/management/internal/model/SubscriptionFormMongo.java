@@ -35,6 +35,11 @@ public class SubscriptionFormMongo {
     private String id;
 
     private String environmentId;
+    private String name;
+
+    /** Trimmed and lowercased {@link #name}, carrying the unique index that keeps names unique per environment. */
+    private String normalizedName;
+
     private String gmdContent;
     private boolean enabled;
 

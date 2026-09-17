@@ -2,13 +2,23 @@
    {
       "id": "sub-form-find-by-id",
       "environmentId": "env-1",
+      "name": "Default",
       "gmdContent": "<gmd-grid columns=\"2\"><gmd-card><gmd-card-title>Info</gmd-card-title><gmd-input name=\"email\" label=\"Email\" fieldKey=\"email\" required=\"true\"/></gmd-card></gmd-grid>",
       "enabled": true,
       "validationConstraints": "{\"email\":[{\"type\":\"required\"}]}"
    },
    {
+      "id": "sub-form-partner",
+      "environmentId": "env-1",
+      "name": "Partner onboarding",
+      "gmdContent": "<gmd-card><gmd-input name=\"company\" label=\"Company\"/></gmd-card>",
+      "enabled": false,
+      "validationConstraints": "{}"
+   },
+   {
       "id": "sub-form-update",
       "environmentId": "env-update",
+      "name": "Default",
       "gmdContent": "<gmd-card><gmd-input name=\"name\" label=\"Name\"/></gmd-card>",
       "enabled": false,
       "validationConstraints": "{}"
@@ -16,6 +26,7 @@
    {
       "id": "sub-form-delete",
       "environmentId": "env-delete",
+      "name": "Default",
       "gmdContent": "<gmd-card><gmd-input name=\"test\" label=\"Test\"/></gmd-card>",
       "enabled": true,
       "validationConstraints": "{}"
@@ -23,6 +34,7 @@
    {
       "id": "sub-form-find-by-env",
       "environmentId": "env-find",
+      "name": "Default",
       "gmdContent": "<gmd-grid columns=\"1\"><gmd-card><gmd-card-title>Subscription</gmd-card-title><gmd-textarea name=\"useCase\" label=\"Use case\"/></gmd-card></gmd-grid>",
       "enabled": true,
       "validationConstraints": "{}"
@@ -30,7 +42,16 @@
    {
       "id": "sub-form-delete-by-env",
       "environmentId": "env-delete-by-env",
+      "name": "Default",
       "gmdContent": "<gmd-card><gmd-input name=\"field\" label=\"Field\"/></gmd-card>",
+      "enabled": true,
+      "validationConstraints": "{}"
+   },
+   {
+      "id": "sub-form-api-products",
+      "environmentId": "env-1",
+      "name": "API products",
+      "gmdContent": "<gmd-card><gmd-input name=\"product\" label=\"Product\"/></gmd-card>",
       "enabled": true,
       "validationConstraints": "{}"
    }

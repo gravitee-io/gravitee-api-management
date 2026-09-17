@@ -22,6 +22,7 @@ import io.gravitee.apim.core.subscription_form.query_service.SubscriptionFormQue
 import io.gravitee.apim.infra.adapter.SubscriptionFormAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -60,12 +61,16 @@ public class SubscriptionFormQueryServiceImpl implements SubscriptionFormQuerySe
     }
 
     @Override
-    public Optional<SubscriptionForm> findDefaultForEnvironmentId(String environmentId) {
+    public List<SubscriptionForm> findAllByEnvironmentId(String environmentId) {
         try {
-            return subscriptionFormRepository.findByEnvironmentId(environmentId).map(subscriptionFormAdapter::toEntity);
+            return subscriptionFormRepository
+                .findAllByEnvironmentId(environmentId)
+                .stream()
+                .map(subscriptionFormAdapter::toEntity)
+                .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(
-                String.format("An error occurred while trying to find a SubscriptionForm for environment: %s", environmentId),
+                String.format("An error occurred while trying to list the SubscriptionForms of environment: %s", environmentId),
                 e
             );
         }

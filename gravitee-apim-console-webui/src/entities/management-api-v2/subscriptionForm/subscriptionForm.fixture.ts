@@ -18,6 +18,7 @@ import { SubscriptionForm } from './subscriptionForm';
 export function fakeSubscriptionForm(attributes?: Partial<SubscriptionForm>): SubscriptionForm {
   const base: SubscriptionForm = {
     id: 'subscription-form-id',
+    name: 'Global Default Form',
     gmdContent: '# Subscription Form\n\n<gmd-input name="name" label="Name" fieldKey="name" required="true"></gmd-input>',
     enabled: false,
   };

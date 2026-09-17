@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
-import io.gravitee.apim.core.subscription_form.use_case.CreateDefaultSubscriptionFormUseCase;
 import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
@@ -66,19 +65,11 @@ public class EnvironmentCommandHandlerTest {
     @Mock
     private CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
 
-    @Mock
-    private CreateDefaultSubscriptionFormUseCase createDefaultSubscriptionFormUseCase;
-
     public EnvironmentCommandHandler cut;
 
     @BeforeEach
     public void before() {
-        cut = new EnvironmentCommandHandler(
-            environmentService,
-            accessPointService,
-            createDefaultPortalNavigationItemsUseCase,
-            createDefaultSubscriptionFormUseCase
-        );
+        cut = new EnvironmentCommandHandler(environmentService, accessPointService, createDefaultPortalNavigationItemsUseCase);
     }
 
     @Test
@@ -225,7 +216,6 @@ public class EnvironmentCommandHandlerTest {
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(createDefaultPortalNavigationItemsUseCase).execute(orgId, envId);
-        verify(createDefaultSubscriptionFormUseCase).execute(envId);
     }
 
     @Test

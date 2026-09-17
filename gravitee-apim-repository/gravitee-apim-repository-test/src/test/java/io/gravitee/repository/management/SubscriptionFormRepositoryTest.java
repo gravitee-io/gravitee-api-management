@@ -18,8 +18,10 @@ package io.gravitee.repository.management;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.SubscriptionForm;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
         SubscriptionForm form = optional.get();
         assertThat(form.getId()).isEqualTo("sub-form-find-by-id");
         assertThat(form.getEnvironmentId()).isEqualTo("env-1");
+        assertThat(form.getName()).isEqualTo("Default");
         assertThat(form.getGmdContent()).contains("gmd-grid");
         assertThat(form.isEnabled()).isTrue();
         assertThat(form.getValidationConstraints()).isEqualTo("{\"email\":[{\"type\":\"required\"}]}");
@@ -53,16 +56,15 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
-    public void shouldFindByEnvironmentId() throws Exception {
-        Optional<SubscriptionForm> optional = subscriptionFormRepository.findByEnvironmentId("env-find");
+    public void shouldFindAllByEnvironmentIdSortedByName() throws Exception {
+        List<SubscriptionForm> forms = subscriptionFormRepository.findAllByEnvironmentId("env-1");
 
-        assertThat(optional).isPresent();
+        assertThat(forms).extracting(SubscriptionForm::getName).containsExactly("API products", "Default", "Partner onboarding");
+    }
 
-        SubscriptionForm form = optional.get();
-        assertThat(form.getId()).isEqualTo("sub-form-find-by-env");
-        assertThat(form.getEnvironmentId()).isEqualTo("env-find");
-        assertThat(form.getGmdContent()).contains("gmd-textarea");
-        assertThat(form.isEnabled()).isTrue();
+    @Test
+    public void shouldFindNoneByEnvironmentIdWhenNotExists() throws Exception {
+        assertThat(subscriptionFormRepository.findAllByEnvironmentId("unknown-env")).isEmpty();
     }
 
     @Test
@@ -84,17 +86,11 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
-    public void shouldNotFindByEnvironmentIdWhenNotExists() throws Exception {
-        Optional<SubscriptionForm> optional = subscriptionFormRepository.findByEnvironmentId("unknown-env");
-
-        assertThat(optional).isNotPresent();
-    }
-
-    @Test
     public void shouldCreate() throws Exception {
         SubscriptionForm form = SubscriptionForm.builder()
             .id("sub-form-new")
             .environmentId("env-new")
+            .name("New form")
             .gmdContent("<gmd-card><gmd-input name=\"field\" label=\"Field\" fieldKey=\"field\"/></gmd-card>")
             .enabled(false)
             .validationConstraints("{\"field\":[]}")
@@ -111,6 +107,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         SubscriptionForm saved = optional.get();
         assertThat(saved.getEnvironmentId()).isEqualTo("env-new");
+        assertThat(saved.getName()).isEqualTo("New form");
         assertThat(saved.getGmdContent()).contains("gmd-input");
         assertThat(saved.isEnabled()).isFalse();
         assertThat(saved.getValidationConstraints()).isEqualTo("{\"field\":[]}");
@@ -126,6 +123,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         SubscriptionForm updated = existing
             .toBuilder()
+            .name("Renamed")
             .gmdContent("<gmd-card><gmd-input name=\"updated\" label=\"Updated\" fieldKey=\"updated\"/></gmd-card>")
             .enabled(true)
             .validationConstraints("{\"updated\":[]}")
@@ -133,6 +131,7 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
         SubscriptionForm result = subscriptionFormRepository.update(updated);
 
+        assertThat(result.getName()).isEqualTo("Renamed");
         assertThat(result.getGmdContent()).contains("updated");
         assertThat(result.isEnabled()).isTrue();
         assertThat(result.getValidationConstraints()).contains("updated");
@@ -172,19 +171,62 @@ public class SubscriptionFormRepositoryTest extends AbstractManagementRepository
 
     @Test
     public void shouldDeleteByEnvironmentId() throws Exception {
-        Optional<SubscriptionForm> before = subscriptionFormRepository.findByEnvironmentId("env-delete-by-env");
-        assertThat(before).as("Subscription form to delete not found").isPresent();
+        assertThat(subscriptionFormRepository.findAllByEnvironmentId("env-delete-by-env"))
+            .as("Subscription form to delete not found")
+            .isNotEmpty();
 
         subscriptionFormRepository.deleteByEnvironmentId("env-delete-by-env");
 
-        Optional<SubscriptionForm> after = subscriptionFormRepository.findByEnvironmentId("env-delete-by-env");
-        assertThat(after).as("Subscription form should have been deleted").isNotPresent();
+        assertThat(subscriptionFormRepository.findAllByEnvironmentId("env-delete-by-env"))
+            .as("Subscription forms should have been deleted")
+            .isEmpty();
+    }
+
+    @Test
+    public void shouldRejectASecondFormWithTheSameNameInTheSameEnvironment() throws Exception {
+        SubscriptionForm sameName = aFormNamed("sub-form-same-name", "env-1", "  partner ONBOARDING  ");
+
+        assertThatThrownBy(() -> subscriptionFormRepository.create(sameName)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-same-name")).isNotPresent();
+    }
+
+    @Test
+    public void shouldRejectRenamingAFormOntoTheNameOfAnotherFormOfTheEnvironment() throws Exception {
+        SubscriptionForm partner = subscriptionFormRepository.findById("sub-form-partner").orElseThrow();
+        SubscriptionForm renamed = partner.toBuilder().name("DEFAULT").build();
+
+        assertThatThrownBy(() -> subscriptionFormRepository.update(renamed)).isInstanceOf(DuplicateKeyException.class);
+        assertThat(subscriptionFormRepository.findById("sub-form-partner"))
+            .get()
+            .extracting(SubscriptionForm::getName)
+            .isEqualTo("Partner onboarding");
+    }
+
+    @Test
+    public void shouldAcceptTheSameNameInAnotherEnvironment() throws Exception {
+        SubscriptionForm sameNameElsewhere = aFormNamed("sub-form-same-name-other-env", "env-other", "Partner onboarding");
+
+        SubscriptionForm created = subscriptionFormRepository.create(sameNameElsewhere);
+
+        assertThat(created.getName()).isEqualTo("Partner onboarding");
+        assertThat(subscriptionFormRepository.findById("sub-form-same-name-other-env")).isPresent();
     }
 
     @Test
     public void shouldFindAll() throws Exception {
         Set<SubscriptionForm> all = subscriptionFormRepository.findAll();
 
-        assertThat(all).hasSize(5);
+        assertThat(all).hasSize(7);
+    }
+
+    private static SubscriptionForm aFormNamed(String id, String environmentId, String name) {
+        return SubscriptionForm.builder()
+            .id(id)
+            .environmentId(environmentId)
+            .name(name)
+            .gmdContent("<gmd-card><gmd-input name=\"field\" label=\"Field\"/></gmd-card>")
+            .enabled(false)
+            .validationConstraints("{}")
+            .build();
     }
 }

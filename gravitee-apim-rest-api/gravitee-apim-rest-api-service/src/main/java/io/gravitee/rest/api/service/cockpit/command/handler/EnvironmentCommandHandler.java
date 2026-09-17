@@ -17,7 +17,6 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationItemsUseCase;
-import io.gravitee.apim.core.subscription_form.use_case.CreateDefaultSubscriptionFormUseCase;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
 import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommandPayload;
@@ -46,7 +45,6 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
     private final EnvironmentService environmentService;
     private final AccessPointCrudService accessPointService;
     private final CreateDefaultPortalNavigationItemsUseCase createDefaultPortalNavigationItemsUseCase;
-    private final CreateDefaultSubscriptionFormUseCase createDefaultSubscriptionFormUseCase;
 
     @Override
     public String supportType() {
@@ -101,7 +99,6 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             // Seed defaults only when Cockpit registers this environment for the first time
             if (existingEnvironment == null) {
                 createDefaultPortalNavigationItemsUseCase.execute(environment.getOrganizationId(), environment.getId());
-                createDefaultSubscriptionFormUseCase.execute(environment.getId());
             }
 
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());

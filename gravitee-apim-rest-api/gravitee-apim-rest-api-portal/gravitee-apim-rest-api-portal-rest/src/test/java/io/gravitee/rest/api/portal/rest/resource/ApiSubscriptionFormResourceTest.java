@@ -21,7 +21,6 @@ import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionFormElResolverInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
-import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -30,11 +29,9 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.portal.rest.model.Error;
 import io.gravitee.rest.api.portal.rest.model.ErrorResponse;
-import io.gravitee.rest.api.portal.rest.model.SubscriptionForm;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,27 +86,10 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    void should_return_200_with_subscription_form_and_resolved_options() {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"env\" options=\"{#api.metadata['envs']}:Prod,Test\"/>"))
-            .build();
-        subscriptionFormQueryService.initWith(List.of(form));
-        subscriptionFormElResolver.withResolved(Map.of("{#api.metadata['envs']}", List.of("Dev", "Staging", "Prod")));
-
-        Response response = target(API_ID + "/subscription-form").request().get();
-
-        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        var result = response.readEntity(SubscriptionForm.class);
-        assertThat(result).isNotNull();
-        assertThat(result.getGmdContent()).isEqualTo(form.getGmdContent().value());
-        assertThat(result.getResolvedOptions()).containsEntry("env", List.of("Dev", "Staging", "Prod"));
-    }
-
-    @Test
-    void should_return_404_when_form_not_found() {
-        subscriptionFormQueryService.initWith(List.of());
+    void should_return_404_when_no_form_applies_to_the_api() {
+        subscriptionFormQueryService.initWith(
+            List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENV_ID).enabled(true).build())
+        );
 
         Response response = target(API_ID + "/subscription-form").request().get();
 
@@ -144,32 +124,5 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
         List<Error> errors = errorResponse.getErrors();
         assertThat(errors).hasSize(1);
         assertThat(errors.getFirst().getCode()).isEqualTo("errors.notFound");
-    }
-
-    @Test
-    void should_return_404_when_form_disabled() {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().environmentId(ENV_ID).enabled(false).build();
-        subscriptionFormQueryService.initWith(List.of(form));
-
-        Response response = target(API_ID + "/subscription-form").request().get();
-
-        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
-    }
-
-    @Test
-    void should_return_fallback_options_when_el_resolver_has_no_resolved_values() {
-        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
-            .environmentId(ENV_ID)
-            .enabled(true)
-            .gmdContent(GraviteeMarkdown.of("<gmd-select fieldKey=\"plan\" options=\"{#api.metadata['plans']}:Free,Pro\"/>"))
-            .build();
-        subscriptionFormQueryService.initWith(List.of(form));
-        // no resolved values → should fall back to "Free,Pro"
-
-        Response response = target(API_ID + "/subscription-form").request().get();
-
-        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-        var result = response.readEntity(SubscriptionForm.class);
-        assertThat(result.getResolvedOptions()).containsEntry("plan", List.of("Free", "Pro"));
     }
 }
