@@ -26,8 +26,8 @@ import com.mongodb.client.vault.ClientEncryptions;
 import io.gravitee.repository.mongodb.common.AbstractRepositoryConfiguration;
 import io.gravitee.repository.mongodb.common.MongoFactory;
 import io.gravitee.repository.mongodb.encryption.EncryptionEnabledCondition;
+import io.gravitee.repository.mongodb.management.converters.DictionaryPropertyReadingConverter;
 import io.gravitee.repository.mongodb.management.converters.DictionaryPropertyWritingConverter;
-import io.gravitee.repository.mongodb.management.converters.LegacyDictionaryPropertyReadingConverter;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.config.MongoUpgraderConfiguration;
 import jakarta.inject.Inject;
 import java.util.Arrays;
@@ -94,8 +94,8 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
     }
 
     @Bean
-    public LegacyDictionaryPropertyReadingConverter legacyDictionaryPropertyReadingConverter() {
-        return new LegacyDictionaryPropertyReadingConverter();
+    public DictionaryPropertyReadingConverter dictionaryPropertyReadingConverter() {
+        return new DictionaryPropertyReadingConverter();
     }
 
     @Bean
@@ -108,7 +108,7 @@ public class MongoTestRepositoryConfiguration extends AbstractRepositoryConfigur
         super.configureConverters(adapter);
         // Mirrors ManagementRepositoryConfiguration's own override — declaring a @Bean alone does not
         // register a Converter with MongoCustomConversions, regardless of profile.
-        adapter.registerConverter(legacyDictionaryPropertyReadingConverter());
+        adapter.registerConverter(dictionaryPropertyReadingConverter());
         adapter.registerConverter(dictionaryPropertyWritingConverter());
     }
 

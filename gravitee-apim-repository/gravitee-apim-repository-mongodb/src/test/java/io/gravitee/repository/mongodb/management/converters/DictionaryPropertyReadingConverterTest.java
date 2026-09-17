@@ -15,22 +15,20 @@
  */
 package io.gravitee.repository.mongodb.management.converters;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryPropertyMongo;
-import org.springframework.core.convert.converter.Converter;
-import org.springframework.data.convert.ReadingConverter;
+import org.junit.jupiter.api.Test;
 
-/**
- * Dictionaries written before this dictionary carried per-property encryption status
- * store {@code properties} as a raw string per key. Read one such value as the
- * (unencrypted) property it always was.
- *
- * @author GraviteeSource Team
- */
-@ReadingConverter
-public class LegacyDictionaryPropertyReadingConverter implements Converter<String, DictionaryPropertyMongo> {
+class DictionaryPropertyReadingConverterTest {
 
-    @Override
-    public DictionaryPropertyMongo convert(String source) {
-        return new DictionaryPropertyMongo(source, false);
+    private final DictionaryPropertyReadingConverter cut = new DictionaryPropertyReadingConverter();
+
+    @Test
+    void should_read_a_bare_string_as_an_unencrypted_property() {
+        DictionaryPropertyMongo result = cut.convert("localhost");
+
+        assertThat(result.value()).isEqualTo("localhost");
+        assertThat(result.encrypted()).isFalse();
     }
 }

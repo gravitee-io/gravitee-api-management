@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
@@ -49,6 +50,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -485,6 +487,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private static Map<String, DictionaryProperty> toTypedProperties(Map<String, String> incoming) {
         if (incoming == null) {
             return null;
+        }
+        if (incoming.values().stream().anyMatch(Objects::isNull)) {
+            throw new InvalidDataException("Dictionary property values must not be null.");
         }
         return incoming
             .entrySet()
