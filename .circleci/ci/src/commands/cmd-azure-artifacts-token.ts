@@ -105,6 +105,10 @@ echo "export AZURE_ARTIFACTS_PAT='\${TOKEN}'" >> "$BASH_ENV"`,
   -u "bot:\${AZURE_ARTIFACTS_PAT}" \\
   "${config.maven.azureFeedUrl}/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom") || CODE=000
 
+# job-setup's Maven check reads this to tell an outage here from its own settings wiring, and
+# print only the cause that applies. A status code, so nothing the shell can expand.
+echo "export AZURE_FEED_HTTP_CODE='\${CODE}'" >> "$BASH_ENV"
+
 case "$CODE" in
   200) echo "The feed resolves the canary." ;;
   401) echo "401 — the feed rejected the token." >&2; exit 1 ;;
