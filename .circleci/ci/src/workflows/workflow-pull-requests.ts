@@ -16,7 +16,7 @@
 import { commands, Config, Job, workflow, Workflow } from '../circleci-config';
 
 import { CircleCIEnvironment } from '../pipelines';
-import { isE2EBranch, isSupportBranchOrMaster } from '../utils';
+import { isE2EBranch, isSnapshotBranch, isSupportBranchOrMaster } from '../utils';
 import { config } from '../config';
 import { BaseExecutor } from '../executors';
 import { DangerJsJob, TestApimChartsJob } from '../jobs';
@@ -24,7 +24,7 @@ import { orbs } from '../orbs';
 import { backendImageJobs } from './groups/backend-image-jobs';
 import { e2eJobs } from './groups/e2e-jobs';
 import { chainguardImageJobs } from './groups/chainguard-image-jobs';
-import { publishAndDeployJobs } from './groups/publish-and-deploy-jobs';
+import { publishAndDeployJobs, publishSnapshotJobs } from './groups/publish-and-deploy-jobs';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
 import { backendJobs } from './groups/backend-jobs';
 import { frontendJobs } from './groups/frontend-jobs';
@@ -116,6 +116,13 @@ export class PullRequestsWorkflow {
     if (!requires.includes('Build backend') && environment.changedFiles.some((file) => file.includes('gravitee-apim-distribution'))) {
       addValidationJob = true;
       requires.push('Build backend');
+    }
+
+    // A branch of config.snapshotBranches publishes its Maven snapshots once everything that ran
+    // is green - the same gate as the validation job below. The publication builds the whole
+    // backend itself, so it does not need a 'Build backend' among them.
+    if (isSnapshotBranch(environment.branch)) {
+      jobs.push(...publishSnapshotJobs(dynamicConfig, environment, requires));
     }
 
     // compute check-workflow job

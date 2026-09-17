@@ -19,6 +19,7 @@ export * from './job-check-graphene-versions';
 export * from './job-community-build-backend';
 export * from './job-nexus-staging';
 export * from './job-publish';
+export * from './job-publish-snapshot-on-azure';
 export * from './job-test-definition';
 export * from './job-test-gamma';
 export * from './job-test-gamma-ui';

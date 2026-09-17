@@ -110,6 +110,17 @@ const yarn = {
   version: '4.1.1',
 };
 
+/**
+ * Branches that publish their Maven snapshots on every push, the way master and the support
+ * branches do, and take nothing else of their path: no docker image, no environment, no SaaS
+ * trigger. Meant for a long-lived integration branch that other repositories build against.
+ *
+ * A branch listed here must build under coordinates of its own — a `<sha1>` qualifier in the
+ * root pom, e.g. `-agent-gateway` for `4.13.0-agent-gateway-SNAPSHOT` — or its snapshots would
+ * overwrite master's.
+ */
+const snapshotBranches = ['agent_gateway'];
+
 const orbs = {
   aikido: '1.0.3',
   artifactory: '1.0.1',
@@ -197,4 +208,5 @@ export const config = {
   ssh,
   yarn,
   docker,
+  snapshotBranches,
 };

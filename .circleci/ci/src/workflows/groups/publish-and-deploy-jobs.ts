@@ -19,12 +19,34 @@ import {
   DeployOnAzureJob,
   DeployOnNextGenIntegrationJob,
   PublishJob,
+  PublishSnapshotOnAzureJob,
   ReleaseHelmJob,
   TriggerSaasDockerImagesJob,
 } from '../../jobs';
 import { CircleCIEnvironment } from '../../pipelines';
 import { isMasterBranch } from '../../utils';
 import { config } from '../../config';
+
+/**
+ * What a branch of config.snapshotBranches publishes: its Maven snapshots, on the Azure feed
+ * alone. Nexus and Artifactory are where master and the support branches still publish until
+ * the feed replaces them; these branches never had an audience there.
+ *
+ * `requires` is what the publication waits for - the jobs that ran, so that nothing red ever
+ * publishes; with nothing to wait for it runs alone.
+ */
+export function publishSnapshotJobs(dynamicConfig: Config, environment: CircleCIEnvironment, requires: string[]): workflow.WorkflowJob[] {
+  const publishOnAzureJob = PublishSnapshotOnAzureJob.create(dynamicConfig, environment);
+  dynamicConfig.addJob(publishOnAzureJob);
+
+  return [
+    new workflow.WorkflowJob(publishOnAzureJob, {
+      name: 'Publish on the Azure feed',
+      context: config.jobContext,
+      ...(requires.length > 0 ? { requires } : {}),
+    }),
+  ];
+}
 
 /**
  * What a push to a default or release branch does on top of refreshing the environment:

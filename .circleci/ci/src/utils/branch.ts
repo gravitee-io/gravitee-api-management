@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { config } from '../config';
+
 export function sanitizeBranch(branch: string) {
   return branch
     .replaceAll(/[~^]+/g, '')
@@ -38,4 +40,9 @@ export function isSupportBranch(branch: string): boolean {
 
 export function isSupportBranchOrMaster(branch: string): boolean {
   return isMasterBranch(branch) || isSupportBranch(branch);
+}
+
+/** A branch listed in config.snapshotBranches: an ordinary branch that also publishes its Maven snapshots. */
+export function isSnapshotBranch(branch: string): boolean {
+  return config.snapshotBranches.includes(branch);
 }

@@ -24,6 +24,7 @@ describe('Pull requests workflow tests', () => {
     ${'4.0.x'}  | ${'mergify/bp/4.0.x/pr-1234'}   | ${['pom.xml']}                                                                 | ${'pull-requests-mergify.yml'}
     ${'master'} | ${'APIM-1234-run-e2e'}          | ${['pom.xml']}                                                                 | ${'pull-requests-run-e2e.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['pom.xml']}                                                                 | ${'pull-requests-custom-branch.yml'}
+    ${'master'} | ${'agent_gateway'}              | ${['pom.xml']}                                                                 | ${'pull-requests-snapshot-branch.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['helm']}                                                                    | ${'pull-requests-custom-branch-helm-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-apim-console-webui']}                                             | ${'pull-requests-custom-branch-console-only.yml'}
     ${'master'} | ${'APIM-1234-my-custom-branch'} | ${['gravitee-gamma']}                                                          | ${'pull-requests-custom-branch-gamma-console-only.yml'}
