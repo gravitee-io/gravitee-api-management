@@ -36,58 +36,67 @@
     </mat-chip-set>
   }
 
-  <gio-table-wrapper
-    [searchLabel]="'Search APIs...'"
+  <mat-form-field class="mapped-apis__search" appearance="outline" subscriptSizing="dynamic">
+    <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>
+    <mat-label>Search APIs...</mat-label>
+    <input matInput type="search" [formControl]="searchControl" data-testid="api-search-input" />
+  </mat-form-field>
+
+  <table mat-table [dataSource]="apis()" aria-label="All available APIs">
+    <ng-container matColumnDef="select">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let api">
+        <span
+          [attr.data-testid]="'api-mapped-elsewhere-' + api.id"
+          [matTooltip]="'Mapped to ' + mappedTo(api)"
+          [matTooltipDisabled]="!mappedTo(api)"
+        >
+          <mat-checkbox
+            [checked]="isSelected(api)"
+            [disabled]="!canUpdate() || !!mappedTo(api)"
+            [attr.data-testid]="'api-checkbox-' + api.id"
+            [aria-label]="'Map ' + api.name"
+            (change)="toggle(api)"
+          ></mat-checkbox>
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>All Available APIs</th>
+      <td mat-cell *matCellDef="let api">{{ api.name }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="version">
+      <th mat-header-cell *matHeaderCellDef>API Version</th>
+      <td mat-cell *matCellDef="let api">{{ api.apiVersion }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="mapped">
+      <th mat-header-cell *matHeaderCellDef>Mapped</th>
+      <td mat-cell *matCellDef="let api">
+        @if (isSelected(api) || mappedTo(api)) {
+          <span class="gio-badge-primary" [attr.data-testid]="'mapped-badge-' + api.id">Mapped</span>
+        }
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let api; columns: displayedColumns" [attr.data-testid]="'api-row-' + api.id"></tr>
+
+    <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No API found.</td>
+    </tr>
+  </table>
+
+  <mat-paginator
     [length]="total()"
-    [filters]="filters()"
-    [paginationPageSizeOptions]="[25, 50, 100]"
-    (filtersChange)="onFiltersChanged($event)"
-  >
-    <table mat-table [dataSource]="apis()" aria-label="All available APIs">
-      <ng-container matColumnDef="select">
-        <th mat-header-cell *matHeaderCellDef></th>
-        <td mat-cell *matCellDef="let api">
-          <span
-            [attr.data-testid]="'api-mapped-elsewhere-' + api.id"
-            [matTooltip]="'Mapped to ' + mappedTo(api)"
-            [matTooltipDisabled]="!mappedTo(api)"
-          >
-            <mat-checkbox
-              [checked]="isSelected(api)"
-              [disabled]="!canUpdate() || !!mappedTo(api)"
-              [attr.data-testid]="'api-checkbox-' + api.id"
-              [aria-label]="'Map ' + api.name"
-              (change)="toggle(api)"
-            ></mat-checkbox>
-          </span>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef>All Available APIs</th>
-        <td mat-cell *matCellDef="let api">{{ api.name }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="version">
-        <th mat-header-cell *matHeaderCellDef>API Version</th>
-        <td mat-cell *matCellDef="let api">{{ api.apiVersion }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="mapped">
-        <th mat-header-cell *matHeaderCellDef>Mapped</th>
-        <td mat-cell *matCellDef="let api">
-          @if (isSelected(api) || mappedTo(api)) {
-            <span class="gio-badge-primary" [attr.data-testid]="'mapped-badge-' + api.id">Mapped</span>
-          }
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let api; columns: displayedColumns" [attr.data-testid]="'api-row-' + api.id"></tr>
-
-      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No API found.</td>
-      </tr>
-    </table>
-  </gio-table-wrapper>
+    [pageSize]="pageSize"
+    [pageIndex]="pageIndex() - 1"
+    [hidePageSize]="true"
+    [showFirstLastButtons]="true"
+    aria-label="Select API page"
+    data-testid="api-paginator"
+    (page)="onPage($event)"
+  ></mat-paginator>
 </section>

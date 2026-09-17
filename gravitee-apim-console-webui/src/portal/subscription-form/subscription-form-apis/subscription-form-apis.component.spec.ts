@@ -20,13 +20,14 @@ import { HttpTestingController, TestRequest } from '@angular/common/http/testing
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatChipRemoveHarness } from '@angular/material/chips/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 import { By } from '@angular/platform-browser';
 
 import { MappedApi, SubscriptionFormApisComponent } from './subscription-form-apis.component';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { fakeProxyApiV4 } from '../../../entities/management-api-v2/api/api.fixture';
 
 describe('SubscriptionFormApisComponent', () => {
@@ -70,6 +71,16 @@ describe('SubscriptionFormApisComponent', () => {
 
   function checkbox(apiId: string): Promise<MatCheckboxHarness> {
     return harnessLoader.getHarness(MatCheckboxHarness.with({ selector: `[data-testid=api-checkbox-${apiId}]` }));
+  }
+
+  function searchInput(): Promise<MatInputHarness> {
+    return harnessLoader.getHarness(MatInputHarness.with({ selector: '[data-testid=api-search-input]' }));
+  }
+
+  function renderedApiIds(): string[] {
+    return fixture.debugElement
+      .queryAll(By.css('[data-testid^=api-row-]'))
+      .map(row => row.nativeElement.getAttribute('data-testid').replace('api-row-', ''));
   }
 
   function mappedBadge(apiId: string) {
@@ -135,11 +146,44 @@ describe('SubscriptionFormApisComponent', () => {
     await init([]);
     expectApiPage();
 
-    const wrapper = await harnessLoader.getHarness(GioTableWrapperHarness);
-    await wrapper.setSearchValue('pay');
+    await (await searchInput()).setValue('pay');
 
     const req = expectApiPage([payments]);
     expect(req.request.body).toEqual({ query: 'pay' });
+  });
+
+  it('should request the next page when the paginator moves', async () => {
+    await init([]);
+    expectApiPage([weather, payments, email], 31);
+
+    await (await harnessLoader.getHarness(MatPaginatorHarness)).goToNextPage();
+
+    const req = expectApiPage([payments], 31);
+    expect(req.request.params.get('page')).toBe('2');
+    expect(req.request.params.get('perPage')).toBe('25');
+    expect(renderedApiIds()).toEqual(['api-payments']);
+  });
+
+  it('should go back to the first page when the search changes', async () => {
+    await init([]);
+    expectApiPage([weather, payments, email], 31);
+    const paginator = await harnessLoader.getHarness(MatPaginatorHarness);
+    await paginator.goToNextPage();
+    expectApiPage([payments], 31);
+
+    await (await searchInput()).setValue('pay');
+
+    const req = expectApiPage([payments]);
+    expect(req.request.params.get('page')).toBe('1');
+    expect(req.request.body).toEqual({ query: 'pay' });
+    expect(await paginator.getRangeLabel()).toBe('1 – 1 of 1');
+  });
+
+  it('should show a single paginator under the table', async () => {
+    await init([]);
+    expectApiPage();
+
+    expect(await harnessLoader.getAllHarnesses(MatPaginatorHarness)).toHaveLength(1);
   });
 
   it('should leave the mapping read-only without the update permission', async () => {
@@ -148,5 +192,17 @@ describe('SubscriptionFormApisComponent', () => {
 
     expect(await (await checkbox('api-payments')).isDisabled()).toBe(true);
     expect(await harnessLoader.getAllHarnesses(MatChipRemoveHarness)).toHaveLength(0);
+  });
+
+  it('should still search and page through the APIs without the update permission', async () => {
+    await init([], {}, false);
+    expectApiPage([weather, payments, email], 31);
+
+    await (await harnessLoader.getHarness(MatPaginatorHarness)).goToNextPage();
+    expect(expectApiPage([email], 31).request.params.get('page')).toBe('2');
+
+    await (await searchInput()).setValue('pay');
+    expect(expectApiPage([payments]).request.body).toEqual({ query: 'pay' });
+    expect(renderedApiIds()).toEqual(['api-payments']);
   });
 });
