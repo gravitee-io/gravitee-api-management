@@ -887,19 +887,41 @@ describe('ApiGeneralPage', () => {
             mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
         });
 
-        it('renders the five supported fields as enabled controls', () => {
-            mockUseEnvCategories.mockReturnValue({ data: ENV_CATEGORIES, isLoading: false });
-            const { container } = renderPage('federated-api-1');
+        const permissionGrants: [string, () => void][] = [
+            ['every api-definition permission', () => mockUseHasPermission.mockReturnValue(true)],
+            [
+                'api-definition-u alone',
+                () => mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => anyOf.includes('api-definition-u')),
+            ],
+        ];
 
-            expect((screen.getByRole('textbox', { name: /name/i }) as HTMLInputElement).disabled).toBe(false);
-            expect((screen.getByRole('textbox', { name: /version/i }) as HTMLInputElement).disabled).toBe(false);
-            expect((screen.getByRole('textbox', { name: /description/i }) as HTMLTextAreaElement).disabled).toBe(false);
+        it.each(permissionGrants)(
+            'renders name, version, description and categories as enabled controls under %s',
+            (_grant, grantPermissions) => {
+                grantPermissions();
+                mockUseEnvCategories.mockReturnValue({ data: ENV_CATEGORIES, isLoading: false });
+                const { container } = renderPage('federated-api-1');
 
-            const labelsInput = screen.getByRole('textbox', { name: /labels/i }) as HTMLInputElement;
+                expect((screen.getByRole('textbox', { name: /name/i }) as HTMLInputElement).disabled).toBe(false);
+                expect((screen.getByRole('textbox', { name: /version/i }) as HTMLInputElement).disabled).toBe(false);
+                expect((screen.getByRole('textbox', { name: /description/i }) as HTMLTextAreaElement).disabled).toBe(false);
+                expect(container.querySelector('button#api-categories')).not.toBeDisabled();
+            },
+        );
+
+        // The fifth supported field's enablement is only observable here: `ChipInput` owns its draft state,
+        // so a typed value lands in the input whether or not the page accepts it — only a committed chip,
+        // which comes back through `form.labels`, proves the page's own read-only guard at
+        // ApiGeneralPage.tsx:361 let the edit through for a federated API.
+        it.each(permissionGrants)('commits a typed label as a chip under %s', (_grant, grantPermissions) => {
+            grantPermissions();
+            renderPage('federated-api-1');
+
+            const labelsInput = screen.getByRole('textbox', { name: /labels/i });
             fireEvent.change(labelsInput, { target: { value: 'beta' } });
-            expect(labelsInput.value).toBe('beta');
+            fireEvent.keyDown(labelsInput, { key: 'Enter' });
 
-            expect(container.querySelector('button#api-categories')).not.toBeDisabled();
+            expect(screen.getByRole('button', { name: 'Remove beta' })).toBeInTheDocument();
         });
 
         const supportedFieldEdits: { field: string; edit: () => void; patch: Record<string, unknown> }[] = [
@@ -952,6 +974,94 @@ describe('ApiGeneralPage', () => {
             );
         });
 
+        it('sends an edit through the update path when api-definition-u is the only permission granted', async () => {
+            mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => anyOf.includes('api-definition-u'));
+            renderPage('federated-api-1');
+
+            fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => expect(apiServices.updateApiGeneral).toHaveBeenCalledTimes(1));
+            expect(apiServices.updateApiGeneral).toHaveBeenCalledWith(
+                'DEFAULT',
+                'federated-api-1',
+                expect.objectContaining({ definitionVersion: 'FEDERATED' }),
+                expect.objectContaining({ name: 'Renamed Federated API' }),
+            );
+        });
+
+        // The counterpart of the enabled cases above: `api-definition-u` is what unlocks the federated form,
+        // not federation itself. `ChipInput` takes no `disabled` prop — its read-only guard sits in the page's
+        // own onChange at ApiGeneralPage.tsx:361 — so only a committed chip, never the typed draft, tells the
+        // two states apart.
+        it('keeps all five supported fields read-only for a federated API when api-definition-u is withheld', () => {
+            mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-u'));
+            mockUseEnvCategories.mockReturnValue({ data: ENV_CATEGORIES, isLoading: false });
+            const { container } = renderPage('federated-api-1');
+
+            expect((screen.getByRole('textbox', { name: /name/i }) as HTMLInputElement).disabled).toBe(true);
+            expect((screen.getByRole('textbox', { name: /version/i }) as HTMLInputElement).disabled).toBe(true);
+            expect((screen.getByRole('textbox', { name: /description/i }) as HTMLTextAreaElement).disabled).toBe(true);
+            expect(container.querySelector('button#api-categories')).toBeDisabled();
+
+            const labelsInput = screen.getByRole('textbox', { name: /labels/i });
+            fireEvent.change(labelsInput, { target: { value: 'beta' } });
+            fireEvent.keyDown(labelsInput, { key: 'Enter' });
+
+            expect(screen.queryByRole('button', { name: 'Remove beta' })).toBeNull();
+            expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+        });
+
+        // `labels` is here alongside a plain text field because the dirty check compares by JSON.stringify,
+        // so a rebaseline that missed the array-valued fields would leave only these two cases dirty.
+        const rebaselinedFields: { field: string; edit: () => void; expectKept: () => void }[] = [
+            {
+                field: 'name',
+                edit: () =>
+                    fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } }),
+                expectKept: () =>
+                    expect((screen.getByRole('textbox', { name: /name/i }) as HTMLInputElement).value).toBe('Renamed Federated API'),
+            },
+            {
+                field: 'labels',
+                edit: () => {
+                    const labelsInput = screen.getByRole('textbox', { name: /labels/i });
+                    fireEvent.change(labelsInput, { target: { value: 'beta' } });
+                    fireEvent.keyDown(labelsInput, { key: 'Enter' });
+                },
+                expectKept: () => expect(screen.getByRole('button', { name: 'Remove beta' })).toBeInTheDocument(),
+            },
+        ];
+
+        it.each(rebaselinedFields)(
+            "keeps an edited $field as the form's new clean baseline once the save resolves",
+            async ({ edit, expectKept }) => {
+                renderPage('federated-api-1');
+
+                edit();
+                fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+                await waitFor(() => expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull());
+                expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
+                expectKept();
+            },
+        );
+
+        // A rebaseline moved out of the save's onSuccess would satisfy the cases above just as well, and
+        // would silently present a refused edit as saved — only a refused save tells the two apart.
+        it('keeps the edited value and the form dirty when the save is refused', async () => {
+            jest.spyOn(apiServices, 'updateApiGeneral').mockRejectedValue(new Error('Save refused'));
+            renderPage('federated-api-1');
+
+            fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Save refused', expect.anything()));
+            expect((screen.getByRole('textbox', { name: /name/i }) as HTMLInputElement).value).toBe('Renamed Federated API');
+            expect(screen.getByRole('button', { name: /save changes/i })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /discard/i })).toBeInTheDocument();
+        });
+
         // No page to reload in a component test; the checkable equivalent is that the detail query is
         // evicted, so the next read of the API comes from the server rather than from the cached value.
         it('invalidates the API detail query once the save resolves', async () => {
@@ -963,6 +1073,21 @@ describe('ApiGeneralPage', () => {
             fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
 
             await waitFor(() => expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-detail', 'DEFAULT', 'federated-api-1'] }));
+        });
+
+        // An eviction moved onto the Save click or onto onSettled would look identical to the case above,
+        // which only ever sees a save that resolved.
+        it('leaves the API detail cache alone when the save is refused', async () => {
+            jest.spyOn(apiServices, 'updateApiGeneral').mockRejectedValue(new Error('Save refused'));
+            const client = makeClient();
+            const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
+            renderPage('federated-api-1', client);
+
+            fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Renamed Federated API' } });
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Save refused', expect.anything()));
+            expect(invalidateQueries).not.toHaveBeenCalledWith({ queryKey: ['api-detail', 'DEFAULT', 'federated-api-1'] });
         });
 
         // ── Complete interactive-control inventory ───────────────────────────
