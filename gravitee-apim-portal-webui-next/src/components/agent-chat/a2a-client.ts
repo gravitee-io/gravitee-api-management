@@ -18,6 +18,11 @@ import type { LocalizeFn } from '@angular/localize/init';
 declare const $localize: LocalizeFn;
 
 export const A2A_STREAM_METHOD = 'message/stream';
+export const A2A_SEND_METHOD = 'message/send';
+
+// UnsupportedOperationError is what the A2A spec has a non-streaming agent answer to message/stream;
+// MethodNotFound is what an agent that never heard of it answers.
+const STREAMING_REFUSED_CODES = [-32004, -32601];
 
 export interface A2ARequestBody {
   jsonrpc: '2.0';
@@ -25,6 +30,7 @@ export interface A2ARequestBody {
   method: string;
   params: {
     message: {
+      kind: 'message';
       role: 'user';
       messageId: string;
       contextId?: string;
@@ -34,12 +40,21 @@ export interface A2ARequestBody {
 }
 
 export function buildStreamRequest(text: string, contextId: string | undefined, messageId: string, requestId: string): A2ARequestBody {
+  return buildRequest(A2A_STREAM_METHOD, text, contextId, messageId, requestId);
+}
+
+export function buildSendRequest(text: string, contextId: string | undefined, messageId: string, requestId: string): A2ARequestBody {
+  return buildRequest(A2A_SEND_METHOD, text, contextId, messageId, requestId);
+}
+
+function buildRequest(method: string, text: string, contextId: string | undefined, messageId: string, requestId: string): A2ARequestBody {
   return {
     jsonrpc: '2.0',
     id: requestId,
-    method: A2A_STREAM_METHOD,
+    method,
     params: {
       message: {
+        kind: 'message',
         role: 'user',
         messageId,
         ...(contextId ? { contextId } : {}),
@@ -83,12 +98,14 @@ interface JsonRpcPart {
 interface JsonRpcFrame {
   result?: {
     kind?: string;
+    id?: string;
     contextId?: string;
     artifact?: { parts?: JsonRpcPart[] };
+    artifacts?: Array<{ parts?: JsonRpcPart[] }>;
     parts?: JsonRpcPart[];
     status?: { state?: string; message?: { parts?: JsonRpcPart[] } };
   };
-  error?: { message?: string };
+  error?: { code?: number; message?: string };
 }
 
 function textOfParts(parts: JsonRpcPart[] | undefined): string {
@@ -147,4 +164,58 @@ export function eventFromFrame(frame: string): A2AEvent {
   }
 
   return { kind: 'ignored' };
+}
+
+function parseResponse(body: string): JsonRpcFrame | null {
+  try {
+    const parsed = JSON.parse(body) as JsonRpcFrame;
+    return typeof parsed === 'object' && parsed !== null ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Whether a plain JSON answer to message/stream means the agent does not stream at all. */
+export function refusesStreaming(body: string): boolean {
+  const code = parseResponse(body)?.error?.code;
+  return code !== undefined && STREAMING_REFUSED_CODES.includes(code);
+}
+
+const WORKING_STATES = ['working', 'submitted'];
+
+/** Returns the task id when the agent acknowledged the request but is still processing. */
+export function workingTaskId(body: string): string | null {
+  const result = parseResponse(body)?.result;
+  if (!result || result.kind !== 'task') return null;
+  const state = result.status?.state ?? '';
+  return WORKING_STATES.includes(state) && result.id ? result.id : null;
+}
+
+export function buildTaskGetRequest(taskId: string, requestId: string) {
+  return { jsonrpc: '2.0', id: requestId, method: 'tasks/get', params: { id: taskId } };
+}
+
+/** Reads a whole JSON-RPC answer, the kind message/send returns: a message, or a task with its artifacts. */
+export function eventsFromResponse(body: string): A2AEvent[] {
+  const parsed = parseResponse(body);
+  if (!parsed || (!parsed.result && !parsed.error)) {
+    return [{ kind: 'error', message: $localize`:@@agentChatUnreadableAnswer:The agent answered in a way the chat cannot read.` }];
+  }
+  if (parsed.error) {
+    return [{ kind: 'error', message: parsed.error.message ?? $localize`:@@agentChatAgentError:The agent returned an error.` }];
+  }
+
+  const result = parsed.result!;
+  const state = result.status?.state ?? '';
+  if (FAILED_STATES.includes(state)) {
+    const reason = textOfParts(result.status?.message?.parts);
+    return [{ kind: 'error', message: reason || $localize`:@@agentChatTaskFailed:The agent stopped before answering.` }];
+  }
+
+  const text =
+    result.kind === 'task'
+      ? (result.artifacts ?? []).map(artifact => textOfParts(artifact.parts)).join('') || textOfParts(result.status?.message?.parts)
+      : textOfParts(result.parts);
+  const answer: A2AEvent[] = text ? [{ kind: 'delta', text, contextId: result.contextId }] : [];
+  return [...answer, { kind: 'completed', contextId: result.contextId }];
 }

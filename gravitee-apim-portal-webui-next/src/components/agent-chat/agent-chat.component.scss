@@ -59,6 +59,14 @@
 
     &__thinking {
       color: app-theme.$paragraph-color;
+
+      &::after {
+        display: inline-block;
+        width: 3ch;
+        text-align: left;
+        content: '';
+        animation: thinking-dots 1.5s step-end infinite;
+      }
     }
   }
 
@@ -77,5 +85,20 @@
     &__field {
       flex: 1;
     }
+  }
+}
+
+@keyframes thinking-dots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
   }
 }

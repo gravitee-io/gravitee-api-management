@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { buildStreamRequest, eventFromFrame, splitSseFrames } from './a2a-client';
+import {
+  buildSendRequest,
+  buildStreamRequest,
+  buildTaskGetRequest,
+  eventFromFrame,
+  eventsFromResponse,
+  refusesStreaming,
+  splitSseFrames,
+  workingTaskId,
+} from './a2a-client';
 
 describe('buildStreamRequest', () => {
   it('builds a jsonrpc message/stream request', () => {
@@ -21,7 +30,7 @@ describe('buildStreamRequest', () => {
       jsonrpc: '2.0',
       id: 'req-1',
       method: 'message/stream',
-      params: { message: { role: 'user', messageId: 'msg-1', parts: [{ kind: 'text', text: 'hello' }] } },
+      params: { message: { kind: 'message', role: 'user', messageId: 'msg-1', parts: [{ kind: 'text', text: 'hello' }] } },
     });
   });
 
@@ -29,6 +38,130 @@ describe('buildStreamRequest', () => {
     const request = buildStreamRequest('hello', 'ctx-9', 'msg-2', 'req-2');
 
     expect(request.params.message.contextId).toBe('ctx-9');
+  });
+});
+
+describe('buildSendRequest', () => {
+  it('builds the same request as message/send, for an agent that does not stream', () => {
+    expect(buildSendRequest('hello', 'ctx-9', 'msg-1', 'req-1')).toEqual({
+      jsonrpc: '2.0',
+      id: 'req-1',
+      method: 'message/send',
+      params: {
+        message: { kind: 'message', role: 'user', messageId: 'msg-1', contextId: 'ctx-9', parts: [{ kind: 'text', text: 'hello' }] },
+      },
+    });
+  });
+});
+
+describe('refusesStreaming', () => {
+  it('recognises the a2a unsupported operation error', () => {
+    expect(
+      refusesStreaming(JSON.stringify({ jsonrpc: '2.0', id: '1', error: { code: -32004, message: 'Streaming is not supported' } })),
+    ).toBe(true);
+  });
+
+  it('recognises an agent that does not know message/stream at all', () => {
+    expect(refusesStreaming(JSON.stringify({ jsonrpc: '2.0', id: '1', error: { code: -32601, message: 'Method not found' } }))).toBe(true);
+  });
+
+  it('does not mistake another error or an answer for a refusal', () => {
+    expect(refusesStreaming(JSON.stringify({ jsonrpc: '2.0', id: '1', error: { code: -32603, message: 'boom' } }))).toBe(false);
+    expect(refusesStreaming(JSON.stringify({ jsonrpc: '2.0', id: '1', result: { kind: 'message', parts: [] } }))).toBe(false);
+    expect(refusesStreaming('not json')).toBe(false);
+  });
+});
+
+describe('workingTaskId', () => {
+  const body = (result: Record<string, unknown>) => JSON.stringify({ jsonrpc: '2.0', id: '1', result });
+
+  it('returns the task id for a working task', () => {
+    expect(workingTaskId(body({ kind: 'task', id: 'task-42', status: { state: 'working' }, artifacts: [] }))).toBe('task-42');
+  });
+
+  it('returns the task id for a submitted task', () => {
+    expect(workingTaskId(body({ kind: 'task', id: 'task-7', status: { state: 'submitted' } }))).toBe('task-7');
+  });
+
+  it('returns null for a completed task', () => {
+    expect(workingTaskId(body({ kind: 'task', id: 'task-1', status: { state: 'completed' }, artifacts: [] }))).toBeNull();
+  });
+
+  it('returns null for a message result', () => {
+    expect(workingTaskId(body({ kind: 'message', parts: [{ kind: 'text', text: 'hi' }] }))).toBeNull();
+  });
+
+  it('returns null when the task has no id', () => {
+    expect(workingTaskId(body({ kind: 'task', status: { state: 'working' } }))).toBeNull();
+  });
+
+  it('returns null for non-json', () => {
+    expect(workingTaskId('not json')).toBeNull();
+  });
+});
+
+describe('buildTaskGetRequest', () => {
+  it('builds a tasks/get request with the task id', () => {
+    expect(buildTaskGetRequest('task-42', 'req-1')).toEqual({
+      jsonrpc: '2.0',
+      id: 'req-1',
+      method: 'tasks/get',
+      params: { id: 'task-42' },
+    });
+  });
+});
+
+describe('eventsFromResponse', () => {
+  const body = (payload: Record<string, unknown>) => JSON.stringify({ jsonrpc: '2.0', id: '1', ...payload });
+
+  it('reads a message answer', () => {
+    expect(
+      eventsFromResponse(body({ result: { kind: 'message', contextId: 'ctx-1', parts: [{ kind: 'text', text: 'all of it' }] } })),
+    ).toEqual([
+      { kind: 'delta', text: 'all of it', contextId: 'ctx-1' },
+      { kind: 'completed', contextId: 'ctx-1' },
+    ]);
+  });
+
+  it('reads a completed task, joining the text of its artifacts', () => {
+    const task = {
+      kind: 'task',
+      contextId: 'ctx-2',
+      status: { state: 'completed' },
+      artifacts: [{ parts: [{ kind: 'text', text: 'first ' }] }, { parts: [{ kind: 'text', text: 'second' }] }],
+    };
+
+    expect(eventsFromResponse(body({ result: task }))).toEqual([
+      { kind: 'delta', text: 'first second', contextId: 'ctx-2' },
+      { kind: 'completed', contextId: 'ctx-2' },
+    ]);
+  });
+
+  it('reads the status message of a task that carries no artifact', () => {
+    const task = {
+      kind: 'task',
+      contextId: 'ctx-3',
+      status: { state: 'completed', message: { parts: [{ kind: 'text', text: 'said here' }] } },
+    };
+
+    expect(eventsFromResponse(body({ result: task }))).toEqual([
+      { kind: 'delta', text: 'said here', contextId: 'ctx-3' },
+      { kind: 'completed', contextId: 'ctx-3' },
+    ]);
+  });
+
+  it('reports a failed task as an error', () => {
+    const task = { kind: 'task', status: { state: 'failed', message: { parts: [{ kind: 'text', text: 'quota exceeded' }] } } };
+
+    expect(eventsFromResponse(body({ result: task }))).toEqual([{ kind: 'error', message: 'quota exceeded' }]);
+  });
+
+  it('reports a jsonrpc error', () => {
+    expect(eventsFromResponse(body({ error: { code: -32603, message: 'boom' } }))).toEqual([{ kind: 'error', message: 'boom' }]);
+  });
+
+  it('reports a body that is not a jsonrpc answer as an error rather than staying silent', () => {
+    expect(eventsFromResponse('<html>bad gateway</html>')).toEqual([{ kind: 'error', message: expect.any(String) }]);
   });
 });
 

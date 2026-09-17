@@ -16,7 +16,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { AgentChatStore } from './agent-chat.store';
-import { completed, delta, frame, sseBody } from './testing/sse-body';
+import { completed, delta, frame, jsonBody, sseBody } from './testing/sse-body';
 import { ConfigService } from '../../services/config.service';
 
 const TARGET = { endpoint: 'https://gw.test/agent', apiKey: 'key-1' };
@@ -119,6 +119,134 @@ describe('AgentChatStore', () => {
     expect(headers['Authorization']).toBe('Bearer key-1');
     expect(headers['X-Custom-Key']).toBeUndefined();
     expect(headers['X-Gravitee-Api-Key']).toBeUndefined();
+  });
+
+  describe('an agent that does not stream', () => {
+    const refusal = { jsonrpc: '2.0', id: '1', error: { code: -32004, message: 'Streaming is not supported by this agent' } };
+    const answer = (text: string, contextId = 'ctx-1') => ({
+      jsonrpc: '2.0',
+      id: '2',
+      result: { kind: 'task', contextId, status: { state: 'completed' }, artifacts: [{ parts: [{ kind: 'text', text }] }] },
+    });
+    const methods = () => fetchMock.mock.calls.map(call => JSON.parse(call[1].body).method);
+
+    it('asks again with message/send when the agent refuses message/stream, and shows the answer', async () => {
+      fetchMock.mockResolvedValueOnce(jsonBody(refusal)).mockResolvedValueOnce(jsonBody(answer('no streaming here')));
+
+      await store.send('hi', TARGET);
+
+      expect(methods()).toEqual(['message/stream', 'message/send']);
+      expect(fetchMock.mock.calls[1][1].headers['Authorization']).toBe('Bearer key-1');
+      expect(store.turns().map(turn => ({ role: turn.role, text: turn.text, isComplete: turn.isComplete }))).toEqual([
+        { role: 'user', text: 'hi', isComplete: true },
+        { role: 'agent', text: 'no streaming here', isComplete: true },
+      ]);
+      expect(store.error()).toBeNull();
+      expect(store.isStreaming()).toBe(false);
+    });
+
+    it('asks the next question with message/send straight away, keeping the conversation', async () => {
+      fetchMock
+        .mockResolvedValueOnce(jsonBody(refusal))
+        .mockResolvedValueOnce(jsonBody(answer('one', 'ctx-7')))
+        .mockResolvedValueOnce(jsonBody(answer('two', 'ctx-7')));
+
+      await store.send('first', TARGET);
+      await store.send('second', TARGET);
+
+      expect(methods()).toEqual(['message/stream', 'message/send', 'message/send']);
+      expect(JSON.parse(fetchMock.mock.calls[2][1].body).params.message.contextId).toBe('ctx-7');
+    });
+
+    it('tries streaming again for another agent', async () => {
+      store.resetFor('agent-1');
+      fetchMock.mockResolvedValueOnce(jsonBody(refusal)).mockResolvedValueOnce(jsonBody(answer('one')));
+      await store.send('first', TARGET);
+
+      store.resetFor('agent-2');
+      respondWith([delta('streamed'), completed()]);
+      await store.send('second', TARGET);
+
+      expect(methods()).toEqual(['message/stream', 'message/send', 'message/stream']);
+    });
+
+    describe('an agent that answers asynchronously (working task)', () => {
+      const working = (taskId = 'task-1', contextId = 'ctx-1') => ({
+        jsonrpc: '2.0',
+        id: '1',
+        result: { kind: 'task', id: taskId, contextId, status: { state: 'working' }, artifacts: [] },
+      });
+      const done = (text: string, taskId = 'task-1', contextId = 'ctx-1') => ({
+        jsonrpc: '2.0',
+        id: '2',
+        result: { kind: 'task', id: taskId, contextId, status: { state: 'completed' }, artifacts: [{ parts: [{ kind: 'text', text }] }] },
+      });
+
+      beforeEach(() => jest.useFakeTimers());
+      afterEach(() => jest.useRealTimers());
+
+      it('polls tasks/get when the agent returns a working task, then shows the answer', async () => {
+        fetchMock
+          .mockResolvedValueOnce(jsonBody(refusal))
+          .mockResolvedValueOnce(jsonBody(working()))
+          .mockResolvedValueOnce(jsonBody(done('polled answer')));
+
+        const sendPromise = store.send('hi', TARGET);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await sendPromise;
+
+        expect(methods()).toEqual(['message/stream', 'message/send', 'tasks/get']);
+        expect(store.turns().map(turn => ({ role: turn.role, text: turn.text, isComplete: turn.isComplete }))).toEqual([
+          { role: 'user', text: 'hi', isComplete: true },
+          { role: 'agent', text: 'polled answer', isComplete: true },
+        ]);
+        expect(store.error()).toBeNull();
+        expect(store.isStreaming()).toBe(false);
+      });
+
+      it('polls more than once when the agent is still working', async () => {
+        fetchMock
+          .mockResolvedValueOnce(jsonBody(refusal))
+          .mockResolvedValueOnce(jsonBody(working()))
+          .mockResolvedValueOnce(jsonBody(working()))
+          .mockResolvedValueOnce(jsonBody(done('after two polls')));
+
+        const sendPromise = store.send('hi', TARGET);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await sendPromise;
+
+        expect(methods()).toEqual(['message/stream', 'message/send', 'tasks/get', 'tasks/get']);
+        expect(store.turns()[1].text).toBe('after two polls');
+      });
+
+      it('carries the context id from the polled answer into the next question', async () => {
+        fetchMock
+          .mockResolvedValueOnce(jsonBody(refusal))
+          .mockResolvedValueOnce(jsonBody(working('task-1', 'ctx-77')))
+          .mockResolvedValueOnce(jsonBody(done('first', 'task-1', 'ctx-77')))
+          .mockResolvedValueOnce(jsonBody(done('second', 'task-2', 'ctx-77')));
+
+        const first = store.send('first', TARGET);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await first;
+
+        jest.useRealTimers();
+        await store.send('second', TARGET);
+
+        expect(JSON.parse(fetchMock.mock.calls[3][1].body).params.message.contextId).toBe('ctx-77');
+      });
+    });
+  });
+
+  it('shows an error the gateway answered as plain json instead of a stream', async () => {
+    fetchMock.mockResolvedValueOnce(jsonBody({ jsonrpc: '2.0', id: '1', error: { code: -32603, message: 'model unavailable' } }));
+
+    await store.send('hi', TARGET);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(store.error()).toBe('model unavailable');
+    expect(store.turns().map(turn => turn.role)).toEqual(['user']);
   });
 
   it('carries the context id into the next message, which is what makes it a conversation', async () => {
