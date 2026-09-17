@@ -299,7 +299,7 @@ export function ApiDetailLayout() {
             viewMode: 'context',
             contextExpanded,
             contextSidebar: (
-                <ContextSidebar header={<ApiInfoHeader api={isAgent ? null : (api ?? null)} isLoading={isLoading} />}>
+                <ContextSidebar header={<ApiInfoHeader api={isError || isAgent ? null : (api ?? null)} isLoading={isLoading} />}>
                     {isError || isAgent ? null : (
                         <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />
                     )}

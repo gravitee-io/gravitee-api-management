@@ -480,6 +480,20 @@ describe('ApiInfoHeader', () => {
         renderSidebar();
         expect(screen.getByText('Payment Gateway')).toBeInTheDocument();
     });
+
+    it('renders no API name once a refetch fails on an already-loaded API', () => {
+        // A failed refetch keeps the last successful data, so isError is the only value that changes — and the
+        // only arrangement in which a denied detail request still has a name in hand to render.
+        const loadedApi = { id: 'abc-123', name: 'Payment Gateway' };
+        (useApiDetail as jest.Mock).mockReturnValue({ data: loadedApi, isLoading: false, isError: false });
+        const { rerender } = renderLayout();
+
+        (useApiDetail as jest.Mock).mockReturnValue({ data: loadedApi, isLoading: false, isError: true });
+        rerender(layoutTree('abc-123'));
+        renderSidebar();
+
+        expect(screen.queryByText('Payment Gateway')).not.toBeInTheDocument();
+    });
 });
 
 // ─── Sidebar navigation ───────────────────────────────────────────────────────
