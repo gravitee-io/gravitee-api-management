@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
+
+$background: map.get(gio.$mat-theme, background);
 
 .mapped-apis {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
   padding: 16px;
 
   &__header {
@@ -36,5 +40,37 @@
   &__subtitle {
     @include mat.m2-typography-level(gio.$mat-typography, body-2);
     color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter40);
+  }
+
+  &__search {
+    width: 100%;
+  }
+
+  // A fixed layout keeps a long API name from widening the panel: the name column wraps instead.
+  table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+
+    .mat-mdc-header-row {
+      background-color: mat.m2-get-color-from-palette($background, 'background');
+    }
+
+    .mat-column-select {
+      width: 80px;
+    }
+
+    .mat-column-name {
+      overflow-wrap: anywhere;
+    }
+
+    .mat-column-version,
+    .mat-column-mapped {
+      width: 120px;
+    }
+  }
+
+  mat-paginator {
+    align-self: flex-end;
   }
 }

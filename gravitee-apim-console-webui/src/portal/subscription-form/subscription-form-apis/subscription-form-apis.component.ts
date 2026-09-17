@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, inject, input, output, signal } from '@angular/core';
-import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { of } from 'rxjs';
-import { catchError, distinctUntilChanged, map, switchMap } from 'rxjs/operators';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { of, Subject } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { isEqual } from 'lodash';
 
 import { Api } from '../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 export interface MappedApi {
   id: string;
@@ -41,7 +42,17 @@ export interface MappedApi {
  */
 @Component({
   selector: 'subscription-form-apis',
-  imports: [MatCheckboxModule, MatChipsModule, MatIconModule, MatTableModule, MatTooltipModule, GioTableWrapperModule],
+  imports: [
+    ReactiveFormsModule,
+    MatCheckboxModule,
+    MatChipsModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatPaginatorModule,
+    MatTableModule,
+    MatTooltipModule,
+  ],
   templateUrl: './subscription-form-apis.component.html',
   styleUrl: './subscription-form-apis.component.scss',
 })
@@ -56,25 +67,37 @@ export class SubscriptionFormApisComponent {
   readonly apiToggled = output<MappedApi>();
 
   readonly displayedColumns = ['select', 'name', 'version', 'mapped'];
-  readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 25 }, searchTerm: '' });
+  readonly pageSize = 25;
+  readonly searchControl = new FormControl('', { nonNullable: true });
+  private readonly pageIndexChanges = new Subject<number>();
 
   private readonly selectedIds = computed(() => new Set(this.selectedApis().map(api => api.id)));
 
   private readonly page = toSignal(
-    toObservable(this.filters).pipe(
-      distinctUntilChanged(isEqual),
-      switchMap(({ pagination, searchTerm }) => {
-        const query = searchTerm?.trim() ? { query: searchTerm.trim() } : {};
-        return this.apiService.search(query, undefined, pagination.index, pagination.size, false).pipe(
-          map(response => ({ apis: response.data ?? [], total: response.pagination?.totalCount ?? 0 })),
-          catchError(() => of({ apis: [] as Api[], total: 0 })),
-        );
-      }),
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      map(term => term.trim()),
+      startWith(''),
+      distinctUntilChanged(),
+      // Restarting the page stream on each search brings a new search back to the first page in a single request.
+      switchMap(term =>
+        this.pageIndexChanges.pipe(
+          startWith(1),
+          map(pageIndex => ({ term, pageIndex })),
+        ),
+      ),
+      switchMap(({ term, pageIndex }) =>
+        this.apiService.search(term ? { query: term } : {}, undefined, pageIndex, this.pageSize, false).pipe(
+          map(response => ({ apis: response.data ?? [], total: response.pagination?.totalCount ?? 0, pageIndex })),
+          catchError(() => of({ apis: [] as Api[], total: 0, pageIndex })),
+        ),
+      ),
     ),
-    { initialValue: { apis: [] as Api[], total: 0 } },
+    { initialValue: { apis: [] as Api[], total: 0, pageIndex: 1 } },
   );
   readonly apis = computed(() => this.page().apis);
   readonly total = computed(() => this.page().total);
+  readonly pageIndex = computed(() => this.page().pageIndex);
 
   isSelected(api: Api): boolean {
     return this.selectedIds().has(api.id);
@@ -88,7 +111,7 @@ export class SubscriptionFormApisComponent {
     this.apiToggled.emit({ id: api.id, name: api.name });
   }
 
-  onFiltersChanged(filters: GioTableWrapperFilters): void {
-    this.filters.set(filters);
+  onPage(event: PageEvent): void {
+    this.pageIndexChanges.next(event.pageIndex + 1);
   }
 }
