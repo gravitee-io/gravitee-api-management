@@ -172,7 +172,10 @@ export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners
     }));
 }
 
-/** A federated API has no gateway definition, no policy flow and no deployment of its own. */
+/**
+ * A federated API is owned by the third-party provider it was discovered from: it has no gateway definition, no policy
+ * flow, no deployment, no APIM-managed authorization and no APIM-mapped error responses of its own.
+ */
 const FEDERATED_OMITTED_PATHS = new Set([
     'overview',
     'properties',
@@ -184,6 +187,8 @@ const FEDERATED_OMITTED_PATHS = new Set([
     'policy-studio',
     'alerts',
     'deployment',
+    'authorization',
+    'response-templates',
 ]);
 
 export function withFederatedRestrictions(groups: DetailNavGroup[], isFederated: boolean): DetailNavGroup[] {

@@ -195,6 +195,8 @@ const FEDERATED_HIDDEN_PATHS = [
     'policy-studio',
     'alerts',
     'deployment',
+    'authorization',
+    'response-templates',
 ];
 
 const FEDERATED_KEPT_PATHS = ['general', 'notifications', 'plans', 'consumers', 'broadcasts', 'user-permissions', 'audit-logs'];
@@ -210,7 +212,7 @@ describe('withFederatedRestrictions', () => {
         expect(withFederatedRestrictions(GROUPS, false)).toBe(GROUPS);
     });
 
-    it('omits the gateway-definition, policy-flow and deployment items for a federated API', () => {
+    it('omits every item that does not apply to a federated API', () => {
         const restricted = withFederatedRestrictions(GROUPS, true);
         const allPaths = restricted.flatMap(group => group.items.map(item => item.path));
 

@@ -566,6 +566,12 @@ const FEDERATED_HIDDEN_LABELS = [
     'Policy Studio',
     'Alerts',
     'Deployment',
+    // Ships as a `comingSoon` row, so it is absent from the nav only if it is filtered out of the item list —
+    // a `role="link"` absence check would pass on a nav that still renders it as a disabled row.
+    'Authorization',
+    // Survives its own permission and API-subtype gates under this render (permission mock true, type 'PROXY'),
+    // so federation has to be what removes it — an assertion taken with the permission denied would prove nothing.
+    'Response Templates',
 ];
 
 const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Gateway', 'Design', 'Operations'];
@@ -578,6 +584,9 @@ const FEDERATED_KEPT_LINKS: [label: string, path: string][] = [
     ['Broadcasts', 'broadcasts'],
     ['User Permissions', 'user-permissions'],
     ['Audit Logs', 'audit-logs'],
+    // Kept for the api-metadata-r holder the default useHasPermission mock stands in for: federation must not be
+    // the thing that removes it, so this entry fails the moment 'metadata' joins the federated omission set.
+    ['Metadata', 'metadata'],
 ];
 
 const API_BASE_PATH = '/apis/abc-123';
@@ -586,6 +595,10 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
     beforeEach(() => {
         (useApiPermissions as jest.Mock).mockReturnValue({ permissionsReady: true });
         (useApiScoreEnabled as jest.Mock).mockReturnValue({ enabled: true, isFetched: true });
+        // The viewer holds api-metadata-r and api-response_templates-r: both items survive their own permission
+        // gate here, so federation is the only thing left that can remove them. Set explicitly rather than left to
+        // the module-level default, which an earlier describe overwrites with false for the rest of the file.
+        mockUseHasPermission.mockReturnValue(true);
     });
 
     afterEach(() => {
@@ -596,7 +609,7 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
 
     function renderSidebarForApiOfDefinitionVersion(definitionVersion: string) {
         (useApiDetail as jest.Mock).mockReturnValue({
-            data: { id: 'abc-123', name: 'My API', definitionVersion },
+            data: { id: 'abc-123', name: 'My API', definitionVersion, type: 'PROXY' },
             isLoading: false,
             isError: false,
         });
@@ -609,7 +622,7 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
         return renderSidebarForApiOfDefinitionVersion('FEDERATED');
     }
 
-    it('drops the sections a federated API has no backing data for, along with the group headings they empty', () => {
+    it('drops the sections that do not apply to a federated API, along with the group headings they empty', () => {
         renderSidebarForFederatedApi();
 
         for (const label of FEDERATED_HIDDEN_LABELS) {
