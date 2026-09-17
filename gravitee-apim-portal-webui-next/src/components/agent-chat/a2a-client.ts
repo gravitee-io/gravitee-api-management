@@ -30,6 +30,7 @@ export interface A2ARequestBody {
   method: string;
   params: {
     message: {
+      kind: 'message';
       role: 'user';
       messageId: string;
       contextId?: string;
@@ -53,6 +54,7 @@ function buildRequest(method: string, text: string, contextId: string | undefine
     method,
     params: {
       message: {
+        kind: 'message',
         role: 'user',
         messageId,
         ...(contextId ? { contextId } : {}),
@@ -96,6 +98,7 @@ interface JsonRpcPart {
 interface JsonRpcFrame {
   result?: {
     kind?: string;
+    id?: string;
     contextId?: string;
     artifact?: { parts?: JsonRpcPart[] };
     artifacts?: Array<{ parts?: JsonRpcPart[] }>;
@@ -176,6 +179,20 @@ function parseResponse(body: string): JsonRpcFrame | null {
 export function refusesStreaming(body: string): boolean {
   const code = parseResponse(body)?.error?.code;
   return code !== undefined && STREAMING_REFUSED_CODES.includes(code);
+}
+
+const WORKING_STATES = ['working', 'submitted'];
+
+/** Returns the task id when the agent acknowledged the request but is still processing. */
+export function workingTaskId(body: string): string | null {
+  const result = parseResponse(body)?.result;
+  if (!result || result.kind !== 'task') return null;
+  const state = result.status?.state ?? '';
+  return WORKING_STATES.includes(state) && result.id ? result.id : null;
+}
+
+export function buildTaskGetRequest(taskId: string, requestId: string) {
+  return { jsonrpc: '2.0', id: requestId, method: 'tasks/get', params: { id: taskId } };
 }
 
 /** Reads a whole JSON-RPC answer, the kind message/send returns: a message, or a task with its artifacts. */

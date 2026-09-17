@@ -20,10 +20,12 @@ import {
   A2AEvent,
   buildSendRequest,
   buildStreamRequest,
+  buildTaskGetRequest,
   eventFromFrame,
   eventsFromResponse,
   refusesStreaming,
   splitSseFrames,
+  workingTaskId,
 } from './a2a-client';
 import { randomId } from '../../utils/random-id';
 
@@ -43,6 +45,9 @@ export interface ChatTarget {
 
 /** Thrown for a gateway answer we can describe; anything else is reported as unreachable. */
 class GatewayResponseError extends Error {}
+
+const POLL_INTERVAL_MS = 2_000;
+const POLL_MAX_ATTEMPTS = 60;
 
 const isJson = (response: Response): boolean => (response.headers?.get('content-type') ?? '').includes('application/json');
 
@@ -182,7 +187,47 @@ export class AgentChatStore {
   ): Promise<void> {
     const response = await this.post(target, 'application/json', buildSendRequest(question, this.contextId, messageId, randomId()), signal);
     const body = await response.text();
+
+    const taskId = workingTaskId(body);
+    if (taskId) {
+      await this.pollTask(taskId, agentTurnId, target, signal, generation);
+      return;
+    }
+
     eventsFromResponse(body).forEach(event => this.apply(event, agentTurnId, generation));
+  }
+
+  private async pollTask(taskId: string, agentTurnId: string, target: ChatTarget, signal: AbortSignal, generation: number): Promise<void> {
+    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt++) {
+      await this.delay(POLL_INTERVAL_MS, signal);
+      if (generation !== this.generation) return;
+
+      const response = await this.post(target, 'application/json', buildTaskGetRequest(taskId, randomId()), signal);
+      const body = await response.text();
+      if (generation !== this.generation) return;
+
+      if (workingTaskId(body)) continue;
+
+      eventsFromResponse(body).forEach(event => this.apply(event, agentTurnId, generation));
+      return;
+    }
+
+    this.apply({ kind: 'error', message: $localize`:@@agentChatPollTimeout:The agent did not answer in time.` }, agentTurnId, generation);
+  }
+
+  private delay(ms: number, signal: AbortSignal): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      if (signal.aborted) return reject(signal.reason);
+      const id = setTimeout(resolve, ms);
+      signal.addEventListener(
+        'abort',
+        () => {
+          clearTimeout(id);
+          reject(signal.reason);
+        },
+        { once: true },
+      );
+    });
   }
 
   private async post(target: ChatTarget, accept: string, request: object, signal: AbortSignal): Promise<Response> {

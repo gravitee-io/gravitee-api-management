@@ -169,6 +169,74 @@ describe('AgentChatStore', () => {
 
       expect(methods()).toEqual(['message/stream', 'message/send', 'message/stream']);
     });
+
+    describe('an agent that answers asynchronously (working task)', () => {
+      const working = (taskId = 'task-1', contextId = 'ctx-1') => ({
+        jsonrpc: '2.0',
+        id: '1',
+        result: { kind: 'task', id: taskId, contextId, status: { state: 'working' }, artifacts: [] },
+      });
+      const done = (text: string, taskId = 'task-1', contextId = 'ctx-1') => ({
+        jsonrpc: '2.0',
+        id: '2',
+        result: { kind: 'task', id: taskId, contextId, status: { state: 'completed' }, artifacts: [{ parts: [{ kind: 'text', text }] }] },
+      });
+
+      beforeEach(() => jest.useFakeTimers());
+      afterEach(() => jest.useRealTimers());
+
+      it('polls tasks/get when the agent returns a working task, then shows the answer', async () => {
+        fetchMock
+          .mockResolvedValueOnce(jsonBody(refusal))
+          .mockResolvedValueOnce(jsonBody(working()))
+          .mockResolvedValueOnce(jsonBody(done('polled answer')));
+
+        const sendPromise = store.send('hi', TARGET);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await sendPromise;
+
+        expect(methods()).toEqual(['message/stream', 'message/send', 'tasks/get']);
+        expect(store.turns().map(turn => ({ role: turn.role, text: turn.text, isComplete: turn.isComplete }))).toEqual([
+          { role: 'user', text: 'hi', isComplete: true },
+          { role: 'agent', text: 'polled answer', isComplete: true },
+        ]);
+        expect(store.error()).toBeNull();
+        expect(store.isStreaming()).toBe(false);
+      });
+
+      it('polls more than once when the agent is still working', async () => {
+        fetchMock
+          .mockResolvedValueOnce(jsonBody(refusal))
+          .mockResolvedValueOnce(jsonBody(working()))
+          .mockResolvedValueOnce(jsonBody(working()))
+          .mockResolvedValueOnce(jsonBody(done('after two polls')));
+
+        const sendPromise = store.send('hi', TARGET);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await sendPromise;
+
+        expect(methods()).toEqual(['message/stream', 'message/send', 'tasks/get', 'tasks/get']);
+        expect(store.turns()[1].text).toBe('after two polls');
+      });
+
+      it('carries the context id from the polled answer into the next question', async () => {
+        fetchMock
+          .mockResolvedValueOnce(jsonBody(refusal))
+          .mockResolvedValueOnce(jsonBody(working('task-1', 'ctx-77')))
+          .mockResolvedValueOnce(jsonBody(done('first', 'task-1', 'ctx-77')))
+          .mockResolvedValueOnce(jsonBody(done('second', 'task-2', 'ctx-77')));
+
+        const first = store.send('first', TARGET);
+        await jest.advanceTimersByTimeAsync(2_000);
+        await first;
+
+        jest.useRealTimers();
+        await store.send('second', TARGET);
+
+        expect(JSON.parse(fetchMock.mock.calls[3][1].body).params.message.contextId).toBe('ctx-77');
+      });
+    });
   });
 
   it('shows an error the gateway answered as plain json instead of a stream', async () => {

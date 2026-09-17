@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { buildSendRequest, buildStreamRequest, eventFromFrame, eventsFromResponse, refusesStreaming, splitSseFrames } from './a2a-client';
+import {
+  buildSendRequest,
+  buildStreamRequest,
+  buildTaskGetRequest,
+  eventFromFrame,
+  eventsFromResponse,
+  refusesStreaming,
+  splitSseFrames,
+  workingTaskId,
+} from './a2a-client';
 
 describe('buildStreamRequest', () => {
   it('builds a jsonrpc message/stream request', () => {
@@ -21,7 +30,7 @@ describe('buildStreamRequest', () => {
       jsonrpc: '2.0',
       id: 'req-1',
       method: 'message/stream',
-      params: { message: { role: 'user', messageId: 'msg-1', parts: [{ kind: 'text', text: 'hello' }] } },
+      params: { message: { kind: 'message', role: 'user', messageId: 'msg-1', parts: [{ kind: 'text', text: 'hello' }] } },
     });
   });
 
@@ -38,7 +47,9 @@ describe('buildSendRequest', () => {
       jsonrpc: '2.0',
       id: 'req-1',
       method: 'message/send',
-      params: { message: { role: 'user', messageId: 'msg-1', contextId: 'ctx-9', parts: [{ kind: 'text', text: 'hello' }] } },
+      params: {
+        message: { kind: 'message', role: 'user', messageId: 'msg-1', contextId: 'ctx-9', parts: [{ kind: 'text', text: 'hello' }] },
+      },
     });
   });
 });
@@ -58,6 +69,45 @@ describe('refusesStreaming', () => {
     expect(refusesStreaming(JSON.stringify({ jsonrpc: '2.0', id: '1', error: { code: -32603, message: 'boom' } }))).toBe(false);
     expect(refusesStreaming(JSON.stringify({ jsonrpc: '2.0', id: '1', result: { kind: 'message', parts: [] } }))).toBe(false);
     expect(refusesStreaming('not json')).toBe(false);
+  });
+});
+
+describe('workingTaskId', () => {
+  const body = (result: Record<string, unknown>) => JSON.stringify({ jsonrpc: '2.0', id: '1', result });
+
+  it('returns the task id for a working task', () => {
+    expect(workingTaskId(body({ kind: 'task', id: 'task-42', status: { state: 'working' }, artifacts: [] }))).toBe('task-42');
+  });
+
+  it('returns the task id for a submitted task', () => {
+    expect(workingTaskId(body({ kind: 'task', id: 'task-7', status: { state: 'submitted' } }))).toBe('task-7');
+  });
+
+  it('returns null for a completed task', () => {
+    expect(workingTaskId(body({ kind: 'task', id: 'task-1', status: { state: 'completed' }, artifacts: [] }))).toBeNull();
+  });
+
+  it('returns null for a message result', () => {
+    expect(workingTaskId(body({ kind: 'message', parts: [{ kind: 'text', text: 'hi' }] }))).toBeNull();
+  });
+
+  it('returns null when the task has no id', () => {
+    expect(workingTaskId(body({ kind: 'task', status: { state: 'working' } }))).toBeNull();
+  });
+
+  it('returns null for non-json', () => {
+    expect(workingTaskId('not json')).toBeNull();
+  });
+});
+
+describe('buildTaskGetRequest', () => {
+  it('builds a tasks/get request with the task id', () => {
+    expect(buildTaskGetRequest('task-42', 'req-1')).toEqual({
+      jsonrpc: '2.0',
+      id: 'req-1',
+      method: 'tasks/get',
+      params: { id: 'task-42' },
+    });
   });
 });
 
