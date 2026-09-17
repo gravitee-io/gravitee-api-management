@@ -1129,22 +1129,45 @@ describe('ApiGeneralPage', () => {
 
         // ── Image uploads ────────────────────────────────────────────────────
 
-        it.each([
+        // Indexing the hidden file inputs is what stops a mis-wired Background picker from passing on the
+        // Picture picker's behaviour — the two sit in the same row and differ only by props.
+        const imagePickers: [string, number][] = [
             ['Picture', 0],
             ['Background', 1],
-        ])('opens the %s file chooser from its upload control', (label, index) => {
+        ];
+
+        // `ImagePicker` exposes no `disabled` or `aria-disabled` attribute on its div[role=button], so
+        // opening the hidden file chooser is the only observable form of "enabled".
+        it.each(imagePickers)('opens the %s file chooser for a user holding only api-definition-u', (label, index) => {
+            mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => anyOf.includes('api-definition-u'));
+            const { container } = renderPage('federated-api-1');
+            const fileInput = container.querySelectorAll('input[type="file"]')[index] as HTMLInputElement;
+            const openChooser = jest.spyOn(fileInput, 'click');
+
+            const uploadControl = screen.getByRole('button', { name: new RegExp(`upload ${label}`, 'i') });
+            expect(uploadControl).toBeInTheDocument();
+            fireEvent.click(uploadControl);
+
+            expect(openChooser).toHaveBeenCalledTimes(1);
+        });
+
+        // Negative control: a picker hard-wired to `disabled={false}` would satisfy the positive case alone.
+        it.each(imagePickers)('leaves the %s upload control inert for a user denied api-definition-u', (label, index) => {
+            mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-u'));
             const { container } = renderPage('federated-api-1');
             const fileInput = container.querySelectorAll('input[type="file"]')[index] as HTMLInputElement;
             const openChooser = jest.spyOn(fileInput, 'click');
 
             fireEvent.click(screen.getByRole('button', { name: new RegExp(`upload ${label}`, 'i') }));
 
-            expect(openChooser).toHaveBeenCalledTimes(1);
+            expect(openChooser).not.toHaveBeenCalled();
         });
 
-        it('persists a selected Picture immediately, with no Save click and no dirty form', async () => {
+        it('persists a selected Picture immediately and evicts the API detail query, with no Save click and no dirty form', async () => {
             const pictureSpy = jest.spyOn(apiServices, 'updateApiPicture').mockResolvedValue(undefined);
-            const { container } = renderPage('federated-api-1');
+            const client = makeClient();
+            const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
+            const { container } = renderPage('federated-api-1', client);
 
             const pictureInput = container.querySelectorAll('input[type="file"]')[0] as HTMLInputElement;
             await act(async () => {
@@ -1154,16 +1177,19 @@ describe('ApiGeneralPage', () => {
             await waitFor(() =>
                 expect(pictureSpy).toHaveBeenCalledWith('DEFAULT', 'federated-api-1', expect.stringMatching(/^data:image\/png;base64,/)),
             );
+            await waitFor(() => expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-detail', 'DEFAULT', 'federated-api-1'] }));
             expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
             expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
         });
 
         // Both pickers sit in the same row and differ only by props, so a mis-wired onSelect would still
         // fire "some" image mutation — the Picture spy is what pins the Background picker to its own call.
-        it('persists a selected Background immediately, leaving the Picture request unsent', async () => {
+        it('persists a selected Background immediately and evicts the API detail query, leaving the Picture request unsent', async () => {
             const backgroundSpy = jest.spyOn(apiServices, 'updateApiBackground').mockResolvedValue(undefined);
             const pictureSpy = jest.spyOn(apiServices, 'updateApiPicture').mockResolvedValue(undefined);
-            const { container } = renderPage('federated-api-1');
+            const client = makeClient();
+            const invalidateQueries = jest.spyOn(client, 'invalidateQueries');
+            const { container } = renderPage('federated-api-1', client);
 
             const backgroundInput = container.querySelectorAll('input[type="file"]')[1] as HTMLInputElement;
             await act(async () => {
@@ -1173,6 +1199,7 @@ describe('ApiGeneralPage', () => {
             await waitFor(() =>
                 expect(backgroundSpy).toHaveBeenCalledWith('DEFAULT', 'federated-api-1', expect.stringMatching(/^data:image\/png;base64,/)),
             );
+            await waitFor(() => expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-detail', 'DEFAULT', 'federated-api-1'] }));
             expect(pictureSpy).not.toHaveBeenCalled();
             expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
             expect(screen.queryByRole('button', { name: /discard/i })).toBeNull();
