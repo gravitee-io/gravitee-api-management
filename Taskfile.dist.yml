@@ -35,7 +35,7 @@ tasks:
   build-engine:
     desc: "Build the engine and install it into your local repository"
     cmds:
-      - mvn clean install -DskipTests -Dskip.validation -T 1C
+      - mvn clean install -DskipTests -Dskip.validation -T 4C
 
   build-distribution:
     desc: "Assemble the distribution against the engine currently installed locally"
@@ -48,7 +48,7 @@ tasks:
     cmds:
       # -nsu: do not go looking for a newer snapshot upstream. You have just built the engine; a
       # published snapshot must not silently take its place.
-      - mvn -f gravitee-apim-distribution/pom.xml clean install -Dapim.core.version={{.CORE_VERSION}} -nsu -DskipTests -Dskip.validation -Dbundle=dev -T 1C
+      - mvn -f gravitee-apim-distribution/pom.xml clean install -Dapim.core.version={{.CORE_VERSION}} -nsu -DskipTests -Dskip.validation -Dbundle=dev -T 4C
       - task: which-engine
 
   which-engine:
