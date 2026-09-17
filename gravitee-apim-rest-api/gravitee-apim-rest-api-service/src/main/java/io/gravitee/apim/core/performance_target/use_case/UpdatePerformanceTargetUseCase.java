@@ -44,8 +44,8 @@ public class UpdatePerformanceTargetUseCase {
             .updatedAt(TimeProvider.now())
             .build()
             .identifyRules(stored.rules(), UuidString::generateRandom);
-        validatePerformanceTargetDomainService.validate(updated);
-        var saved = performanceTargetCrudService.update(updated);
+        var validated = validatePerformanceTargetDomainService.validate(updated);
+        var saved = performanceTargetCrudService.update(validated);
         // A redefined target is a new declaration: it is due at the next tick, whatever backoff the old one had earned.
         scheduleState.reset(saved.id());
         return new Output(saved);

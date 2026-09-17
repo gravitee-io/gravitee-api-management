@@ -27,6 +27,7 @@ import io.gravitee.apim.core.performance_target.model.PerformanceTarget;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +70,11 @@ public class ValidatePerformanceTargetDomainService {
     private final ApiCrudService apiCrudService;
     private final AnalyticsDefinitionQueryService analyticsDefinition;
 
-    public void validate(PerformanceTarget target) {
+    /**
+     * @return the target as it will be stored: every rule validated, and an unscoped rule narrowed to the API types
+     *     its metric can be read on — see {@link #scopedToTheMetric}.
+     */
+    public PerformanceTarget validate(PerformanceTarget target) {
         validateSchedule(target);
         if (target.subject().reference() == null || target.subject().reference().isBlank()) {
             throw new InvalidPerformanceTargetException("A target needs a reference");
@@ -79,13 +84,15 @@ public class ValidatePerformanceTargetDomainService {
         }
 
         var subjectApiTypes = subjectApiTypes(target);
+        var rules = new ArrayList<PerformanceTarget.Rule>(target.rules().size());
         for (int ruleIndex = 0; ruleIndex < target.rules().size(); ruleIndex++) {
             try {
-                validateRule(target.rules().get(ruleIndex), subjectApiTypes);
+                rules.add(validateRule(target.rules().get(ruleIndex), subjectApiTypes));
             } catch (InvalidPerformanceTargetException e) {
                 throw new InvalidPerformanceTargetException(e.getMessage(), ruleIndex);
             }
         }
+        return target.toBuilder().rules(rules).build();
     }
 
     private static void validateSchedule(PerformanceTarget target) {
@@ -117,12 +124,7 @@ public class ValidatePerformanceTargetDomainService {
         return apiTypes;
     }
 
-    private void validateRule(PerformanceTarget.Rule rule, Set<ApiType> subjectApiTypes) {
-        // A rule scoped to API types the subject does not hold right now is accepted: the metric is checked against
-        // the rule's own types, and the evaluator reports it NOT_EVALUABLE until the subject grows an API of that
-        // type. A subject changes as its dependencies come and go, so a scope must not pin it.
-        var ruleApiTypes = rule.apiTypes().isEmpty() ? subjectApiTypes : rule.apiTypes();
-
+    private PerformanceTarget.Rule validateRule(PerformanceTarget.Rule rule, Set<ApiType> subjectApiTypes) {
         var metric = analyticsDefinition
             .findMetric(rule.metric())
             .orElseThrow(() -> new InvalidPerformanceTargetException("Unknown metric " + rule.metric()));
@@ -131,16 +133,60 @@ public class ValidatePerformanceTargetDomainService {
                 "Measure %s is not available for metric %s".formatted(rule.measure(), metric.name())
             );
         }
-        for (var apiType : ruleApiTypes) {
+
+        var scoped = rule.apiTypes().isEmpty() ? scopedToTheMetric(rule, metric, subjectApiTypes) : rule;
+        // A rule scoped to API types the subject does not hold right now is accepted: the metric is checked against
+        // the rule's own types, and the evaluator reports it NOT_EVALUABLE until the subject grows an API of that
+        // type. A subject changes as its dependencies come and go, so a scope must not pin it.
+        for (var apiType : scoped.apiTypes().isEmpty() ? subjectApiTypes : scoped.apiTypes()) {
             if (!metric.apis().contains(ANALYTICS_API_NAMES.get(apiType))) {
                 throw new InvalidPerformanceTargetException("Metric %s is not available for API type %s".formatted(metric.name(), apiType));
             }
         }
-        validateThreshold(rule.threshold(), metric);
+        validateThreshold(scoped.threshold(), metric);
 
-        for (var filter : rule.filters()) {
-            validateFilter(filter, metric, ruleApiTypes);
+        for (var filter : scoped.filters()) {
+            validateFilter(filter, metric, scoped.apiTypes().isEmpty() ? subjectApiTypes : scoped.apiTypes());
         }
+        return scoped;
+    }
+
+    /**
+     * The scope an unscoped rule gets when its metric cannot be read on every API family the subject holds.
+     *
+     * <p>Most metrics belong to one family — of the analytics definition's metrics, only a handful are common to every
+     * API type — while a subject routinely spans several: an agent holds the proxy fronting it and the LLM and MCP
+     * proxies it calls. Reading an unscoped rule as a claim about every API in the subject therefore refused most
+     * metrics on most agents, which is not what the author of such a rule means. They mean the APIs that can answer it.
+     *
+     * <p>The scope taken is the metric's own API types, not the subject's: the subject changes as dependencies come
+     * and go, and a rule about conversations should cover an LLM proxy that joins tomorrow. A rule whose metric no API
+     * in the subject can answer is refused instead — nothing would ever read it, so it is a mistake rather than a
+     * scope. A rule every subject type can answer is left open, so it keeps covering whatever the subject grows into.
+     */
+    private static PerformanceTarget.Rule scopedToTheMetric(PerformanceTarget.Rule rule, MetricSpec metric, Set<ApiType> subjectApiTypes) {
+        if (subjectApiTypes.stream().allMatch(apiType -> metric.apis().contains(ANALYTICS_API_NAMES.get(apiType)))) {
+            return rule;
+        }
+        if (subjectApiTypes.stream().noneMatch(apiType -> metric.apis().contains(ANALYTICS_API_NAMES.get(apiType)))) {
+            throw new InvalidPerformanceTargetException(
+                "Metric %s can be read on %s, and this subject holds only %s".formatted(
+                    metric.name(),
+                    metric.apis().stream().map(Enum::name).sorted().collect(Collectors.joining(", ")),
+                    subjectApiTypes.stream().map(Enum::name).sorted().collect(Collectors.joining(", "))
+                )
+            );
+        }
+        return rule
+            .toBuilder()
+            .apiTypes(
+                ANALYTICS_API_NAMES.entrySet()
+                    .stream()
+                    .filter(entry -> metric.apis().contains(entry.getValue()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet())
+            )
+            .build();
     }
 
     private static void validateThreshold(double threshold, MetricSpec metric) {
