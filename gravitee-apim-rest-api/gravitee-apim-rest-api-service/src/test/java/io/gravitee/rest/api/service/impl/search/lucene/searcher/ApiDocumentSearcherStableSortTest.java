@@ -77,7 +77,7 @@ class ApiDocumentSearcherStableSortTest {
             addDocuments(firstWriter, transformer, apis);
             addDocuments(secondWriter, transformer, apis.reversed());
 
-            var queryBuilder = QueryBuilder.create(ApiEntity.class).setQuery("common").setTypoTolerance(false);
+            var queryBuilder = QueryBuilder.create(ApiEntity.class).setQuery("common");
             if (stableSort) {
                 queryBuilder.setSearchSortStrategy(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS);
             }

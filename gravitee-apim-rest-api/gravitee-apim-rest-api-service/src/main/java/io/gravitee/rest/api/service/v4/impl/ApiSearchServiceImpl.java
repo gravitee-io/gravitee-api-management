@@ -489,7 +489,7 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Sortable sortable,
         Collection<DefinitionVersion> excludeDefinitionVersions
     ) {
-        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, typoTolerance, SearchSortStrategy.DEFAULT);
+        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, SearchSortStrategy.DEFAULT);
     }
 
     @Override
@@ -499,18 +499,12 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final Map<String, Object> filters,
         final Sortable sortable,
         Collection<DefinitionVersion> excludeDefinitionVersions,
-        boolean typoTolerance,
         SearchSortStrategy searchSortStrategy
     ) {
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder.create(GenericApiEntity.class)
             .setSort(sortable)
-<<<<<<< HEAD
-            .setFilters(filters);
-=======
             .setFilters(filters)
-            .setTypoTolerance(typoTolerance)
             .setSearchSortStrategy(searchSortStrategy);
->>>>>>> 4a6b077 (fix(portal): stabilize API search ordering)
         if (isNotEmpty(excludeDefinitionVersions)) {
             searchEngineQueryBuilder.setExcludedFilters(
                 Map.of(FIELD_DEFINITION_VERSION, stream(excludeDefinitionVersions).map(DefinitionVersion::getLabel).toList())

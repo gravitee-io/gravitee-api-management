@@ -78,35 +78,22 @@ public interface ApiSearchService {
         final Sortable sortable
     );
 
+    default Collection<String> searchIds(
+        ExecutionContext executionContext,
+        String query,
+        Map<String, Object> filters,
+        Sortable sortable,
+        Collection<DefinitionVersion> excludeDefinitionVersions,
+        SearchSortStrategy searchSortStrategy
+    ) {
+        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions);
+    }
+
     Collection<String> searchIds(
         ExecutionContext executionContext,
         String query,
         Map<String, Object> filters,
         Sortable sortable,
-<<<<<<< HEAD
-=======
-        Collection<DefinitionVersion> excludeDefinitionVersions,
-        boolean typoTolerance
-    );
-
-    default Collection<String> searchIds(
-        ExecutionContext executionContext,
-        String query,
-        Map<String, Object> filters,
-        Sortable sortable,
-        Collection<DefinitionVersion> excludeDefinitionVersions,
-        boolean typoTolerance,
-        SearchSortStrategy searchSortStrategy
-    ) {
-        return searchIds(executionContext, query, filters, sortable, excludeDefinitionVersions, typoTolerance);
-    }
-
-    default Collection<String> searchIds(
-        final ExecutionContext executionContext,
-        final String query,
-        Map<String, Object> filters,
-        final Sortable sortable,
->>>>>>> 4a6b077 (fix(portal): stabilize API search ordering)
         Collection<DefinitionVersion> excludeDefinitionVersions
     );
 }
