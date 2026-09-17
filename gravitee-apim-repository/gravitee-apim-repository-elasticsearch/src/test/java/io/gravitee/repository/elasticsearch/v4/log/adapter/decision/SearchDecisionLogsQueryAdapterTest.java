@@ -242,6 +242,71 @@ class SearchDecisionLogsQueryAdapterTest {
     }
 
     @Test
+    void rules_out_the_values_the_caller_excludes() {
+        var query = DecisionLogQuery.builder()
+            .decisionPointType("guardian")
+            .excludedApiIds(Set.of("api-2"))
+            .excludedApplicationIds(Set.of("app-2"))
+            .excludedDecisionPointIds(Set.of("noisy-guardian"))
+            .excludedOutcomes(Set.of("ALLOW"))
+            .build();
+
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
+
+        // must_not sits beside the filter in the same bool: the inclusions still narrow, the exclusions
+        // subtract from what is left.
+        assertThatJson(result)
+            .inPath("$.query.bool.must_not")
+            .isArray()
+            .contains(json("{ \"terms\": { \"api-id\": [ \"api-2\" ] } }"))
+            .contains(json("{ \"terms\": { \"app-id\": [ \"app-2\" ] } }"))
+            .contains(json("{ \"terms\": { \"decision-point-id\": [ \"noisy-guardian\" ] } }"))
+            .contains(json("{ \"terms\": { \"outcome\": [ \"ALLOW\" ] } }"));
+        // The exclusions must not leak into the filter, where they would narrow instead of subtract.
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().hasSize(4);
+    }
+
+    @Test
+    void omits_the_negation_entirely_when_nothing_is_excluded() {
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, DecisionLogQuery.builder().decisionPointType("guardian").build());
+
+        assertThatJson(result).inPath("$.query.bool").isObject().doesNotContainKey("must_not");
+    }
+
+    @Test
+    void treats_an_empty_exclusion_as_excluding_nothing() {
+        var query = DecisionLogQuery.builder()
+            .decisionPointType("guardian")
+            .excludedApiIds(Set.<String>of())
+            .excludedApplicationIds(Set.<String>of())
+            .excludedDecisionPointIds(Set.<String>of())
+            .excludedOutcomes(Set.<String>of())
+            .build();
+
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
+
+        // An exclusion the caller computed and that came back empty rules nothing out — unlike apiIds,
+        // where an empty set means the caller may see nothing.
+        assertThatJson(result).inPath("$.query.bool").isObject().doesNotContainKey("must_not");
+    }
+
+    @Test
+    void emits_both_clauses_when_a_value_is_at_once_included_and_excluded() {
+        var query = DecisionLogQuery.builder()
+            .decisionPointType("guardian")
+            .outcomes(Set.of("ALLOW"))
+            .excludedOutcomes(Set.of("ALLOW"))
+            .build();
+
+        var result = SearchDecisionLogsQueryAdapter.adapt(QUERY_CONTEXT, query);
+
+        // Both go to Elasticsearch as written; must_not is the one that wins there, which is what a caller
+        // that narrows then subtracts expects.
+        assertThatJson(result).inPath("$.query.bool.filter").isArray().contains(json("{ \"terms\": { \"outcome\": [ \"ALLOW\" ] } }"));
+        assertThatJson(result).inPath("$.query.bool.must_not").isArray().contains(json("{ \"terms\": { \"outcome\": [ \"ALLOW\" ] } }"));
+    }
+
+    @Test
     void rejects_a_query_that_would_read_across_every_kind_of_decision_point() {
         assertThatThrownBy(() -> DecisionLogQuery.builder().build().validate())
             .isInstanceOf(NullPointerException.class)

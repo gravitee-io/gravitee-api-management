@@ -34,6 +34,15 @@ import lombok.Data;
  * come from the query context, and the repository turns them into predicates of their own, because the
  * data stream is shared by every environment.
  *
+ * <p>The {@code excluded*} fields negate their twin, and they are read differently from {@link #apiIds}:
+ * {@code null} and an empty set say the same thing there — nothing is ruled out. A screen that lets the
+ * user tick values off builds its exclusion list from the ticks, and an untouched list must leave the page
+ * as it was rather than empty it. Only the four dimensions a caller can negate carry a twin; widening the
+ * set is a one-line addition here and in the adapter.
+ *
+ * <p>A value that is at once included and excluded is excluded: the repository hands both clauses to the
+ * index, which applies the negation last.
+ *
  * @author GraviteeSource Team
  */
 @Data
@@ -46,14 +55,18 @@ public class DecisionLogQuery {
     private String decisionPointType;
 
     private Set<String> apiIds;
+    private Set<String> excludedApiIds;
     private Set<String> applicationIds;
+    private Set<String> excludedApplicationIds;
     private Set<String> planIds;
     private Long from;
     private Long to;
     private Set<String> decisionPointIds;
+    private Set<String> excludedDecisionPointIds;
     private Set<String> checkpoints;
     private Set<String> callers;
     private Set<String> outcomes;
+    private Set<String> excludedOutcomes;
     private Set<String> enforcements;
     private Set<String> verdicts;
     private Set<String> statuses;

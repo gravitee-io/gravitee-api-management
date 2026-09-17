@@ -102,6 +102,50 @@ public class MetricsElasticsearchRepositorySearchDecisionLogsTest extends Abstra
     }
 
     @Test
+    void should_drop_the_decisions_whose_value_is_excluded() throws AnalyticsException {
+        var withoutAllow = metricsV4Repository.searchDecisionLogs(
+            queryContext,
+            baseQuery(GUARDIAN).excludedOutcomes(Set.of("ALLOW")).build()
+        );
+
+        // dec-g-001 and dec-g-005 are the settled ALLOW records; what is left is the DENY and the
+        // INDETERMINATE one.
+        assertThat(withoutAllow.total()).isEqualTo(2);
+        assertThat(withoutAllow.data()).extracting(DecisionLog::eventId).containsExactly("dec-g-003", "dec-g-002");
+
+        var withoutApplication = metricsV4Repository.searchDecisionLogs(
+            queryContext,
+            baseQuery(GUARDIAN).excludedApplicationIds(Set.of("app-1")).build()
+        );
+
+        assertThat(withoutApplication.data()).extracting(DecisionLog::eventId).containsExactly("dec-g-003");
+    }
+
+    @Test
+    void should_exclude_nothing_when_the_exclusion_is_empty() throws AnalyticsException {
+        var excludingNothing = metricsV4Repository.searchDecisionLogs(
+            queryContext,
+            baseQuery(GUARDIAN).excludedOutcomes(Set.<String>of()).excludedApiIds(Set.<String>of()).build()
+        );
+
+        // An exclusion the caller computed and that came back empty must not empty the page.
+        assertThat(excludingNothing.total()).isEqualTo(4);
+    }
+
+    @Test
+    void should_let_the_exclusion_win_over_the_same_value_included() throws AnalyticsException {
+        var contradicting = metricsV4Repository.searchDecisionLogs(
+            queryContext,
+            baseQuery(GUARDIAN).outcomes(Set.of("ALLOW")).excludedOutcomes(Set.of("ALLOW")).build()
+        );
+
+        // Elasticsearch applies must_not after filter, so a value both asked for and ruled out is ruled
+        // out. Pinned here because it is the index that decides, not the adapter.
+        assertThat(contradicting.total()).isZero();
+        assertThat(contradicting.data()).isEmpty();
+    }
+
+    @Test
     void should_report_a_field_the_document_does_not_carry_as_null() throws AnalyticsException {
         var result = metricsV4Repository.searchDecisionLogs(queryContext, baseQuery(GUARDIAN).build());
 

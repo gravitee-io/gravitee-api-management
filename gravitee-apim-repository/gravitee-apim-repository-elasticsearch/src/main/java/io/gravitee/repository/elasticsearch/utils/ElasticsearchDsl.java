@@ -25,6 +25,7 @@ public final class ElasticsearchDsl {
         public static final String QUERY = "query";
         public static final String BOOL = "bool";
         public static final String FILTER = "filter";
+        public static final String MUST_NOT = "must_not";
         public static final String AGGS = "aggs";
         public static final String SIZE = "size";
         public static final String TRACK_TOTAL_HITS = "track_total_hits";
