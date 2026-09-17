@@ -414,11 +414,21 @@ public class HttpConnector implements ProxyConnector {
         // from the connection at that point.
         final AtomicLong lastUpstreamActivityNs = new AtomicLong(System.nanoTime());
 
+        // A broken stream does not always mean a truncated body: a backend that writes its last byte then closes
+        // abruptly — an RST rather than a clean FIN — fails the same way as one that stops mid-body. Counting what
+        // was actually read and comparing it to the announced Content-Length separates the two, so that only genuine
+        // data loss is reported as an error.
+        final AtomicLong bytesReceived = new AtomicLong();
+        final long announcedBodyLength = announcedBodyLength(endpointResponse);
+
         // A backend failure while streaming the response body (after status/headers were committed) is recorded on
         // the metrics below so the truncated response is observable instead of reported as a success.
         return endpointResponse
             .toFlowable()
-            .doOnNext(chunk -> lastUpstreamActivityNs.setPlain(System.nanoTime()))
+            .doOnNext(chunk -> {
+                lastUpstreamActivityNs.setPlain(System.nanoTime());
+                bytesReceived.addAndGet(chunk.length());
+            })
             .map(Buffer::buffer)
             .doOnComplete(() ->
                 // Write trailers when chunks are completed
@@ -433,7 +443,14 @@ public class HttpConnector implements ProxyConnector {
                     // the backend failure on the metrics so the (otherwise silent) truncated response is observable.
                     // That call also logs the failure, with the timeout context needed to interpret it.
                     final long silenceMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - lastUpstreamActivityNs.getPlain());
-                    recordBackendResponseStreamFailure(ctx, absoluteUri, silenceMs, throwable);
+                    recordBackendResponseStreamFailure(
+                        ctx,
+                        absoluteUri,
+                        silenceMs,
+                        bytesReceived.getPlain(),
+                        announcedBodyLength,
+                        throwable
+                    );
                 }
                 return Flowable.empty();
             })
@@ -498,11 +515,28 @@ public class HttpConnector implements ProxyConnector {
         final HttpExecutionContext ctx,
         final String absoluteUri,
         final long silenceMs,
+        final long bytesReceived,
+        final long announcedBodyLength,
         final Throwable throwable
     ) {
+        // The backend delivered every byte it announced before the connection broke, so the caller holds a complete
+        // response: only the closure was abrupt, and that costs nothing. Reporting it would raise an error on an
+        // exchange that lost no data — the noisiest kind of false positive, since nothing downstream is affected.
+        if (announcedBodyLength >= 0 && bytesReceived >= announcedBodyLength) {
+            ctx
+                .withLogger(log)
+                .debug(
+                    "Upstream closed the connection abruptly after a complete response body [target={}, bytesReceived={}, announcedContentLength={}]",
+                    absoluteUri,
+                    bytesReceived,
+                    announcedBodyLength
+                );
+            return;
+        }
+
         final var metrics = ctx.metrics();
         final long elapsedMs = elapsedMillis(ctx);
-        final String detail = describeStreamFailure(throwable, elapsedMs, silenceMs);
+        final String detail = describeStreamFailure(throwable, elapsedMs, silenceMs, bytesReceived, announcedBodyLength);
 
         // An earlier error (e.g. a client abort) already recorded — preserve it: it describes why the exchange ended,
         // and the upstream failure observed here is only its consequence.
@@ -533,11 +567,14 @@ public class HttpConnector implements ProxyConnector {
         ctx
             .withLogger(log)
             .warn(
-                "Upstream ended the response body early [target={}, elapsed={}ms, upstreamSilence={}ms, bytesSent={}, " +
+                "Upstream ended the response body early [target={}, elapsed={}ms, upstreamSilence={}ms, " +
+                    "bytesReceived={}, announcedContentLength={}, bytesSent={}, " +
                     "status={}, readTimeout={}ms, idleTimeout={}ms, effectiveIdleTimeout={}ms, errorKey={}]: {}",
                 absoluteUri,
                 elapsedMs,
                 silenceMs,
+                bytesReceived,
+                announcedBodyLength,
                 metrics != null ? metrics.getResponseContentLength() : -1,
                 ctx.response().status(),
                 sharedConfiguration.getHttpOptions().getReadTimeout(),
@@ -547,6 +584,24 @@ public class HttpConnector implements ProxyConnector {
                 detail,
                 throwable
             );
+    }
+
+    /**
+     * The {@code Content-Length} the backend advertised, or {@code -1} when it sent none — a chunked response, or one
+     * framed by the connection close itself. Without it there is nothing to measure the body against, so a broken
+     * stream has to be taken at face value. Chunked responses lose nothing by this: their truncation is already
+     * detected by the missing terminal chunk, which is what breaks the stream in the first place.
+     */
+    private long announcedBodyLength(final HttpClientResponse endpointResponse) {
+        final String header = endpointResponse.getHeader(HttpHeaderNames.CONTENT_LENGTH);
+        if (header == null) {
+            return -1L;
+        }
+        try {
+            return Long.parseLong(header.trim());
+        } catch (NumberFormatException e) {
+            return -1L;
+        }
     }
 
     private long elapsedMillis(final HttpExecutionContext ctx) {
@@ -576,7 +631,13 @@ public class HttpConnector implements ProxyConnector {
      *   {@code idleTimeout}: the idle timer restarts on every byte, so the total elapsed time of the exchange says
      *   nothing about it.
      */
-    private String describeStreamFailure(final Throwable throwable, final long elapsedMs, final long silenceMs) {
+    private String describeStreamFailure(
+        final Throwable throwable,
+        final long elapsedMs,
+        final long silenceMs,
+        final long bytesReceived,
+        final long announcedBodyLength
+    ) {
         final String cause = throwable.getMessage() != null ? throwable.getMessage() : throwable.getClass().getSimpleName();
 
         final StringBuilder message = new StringBuilder("The backend ended the response body before it was complete (" + cause + ")");
@@ -585,6 +646,19 @@ public class HttpConnector implements ProxyConnector {
         }
         if (silenceMs >= 0) {
             message.append(", having received nothing from it for the last ").append(silenceMs).append(" ms");
+        }
+        // Naming the shortfall turns "the body was incomplete" into a measurable claim, and tells the backend team
+        // how much of the response never made it. Absent when the backend announced no Content-Length: the body is
+        // then delimited by the stream itself, and its expected size is unknown.
+        if (announcedBodyLength >= 0) {
+            message
+                .append(". ")
+                .append(bytesReceived)
+                .append(" of the ")
+                .append(announcedBodyLength)
+                .append(" announced bytes were received, so ")
+                .append(announcedBodyLength - bytesReceived)
+                .append(" are missing");
         }
 
         final long readTimeout = sharedConfiguration.getHttpOptions().getReadTimeout();
