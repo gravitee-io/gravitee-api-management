@@ -90,6 +90,10 @@ commands:
               -u "bot:${AZURE_ARTIFACTS_PAT}" \
               "https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1/io/gravitee/canary/feed-canary/1.0.0/feed-canary-1.0.0.pom") || CODE=000
 
+            # job-setup's Maven check reads this to tell an outage here from its own settings wiring, and
+            # print only the cause that applies. A status code, so nothing the shell can expand.
+            echo "export AZURE_FEED_HTTP_CODE='${CODE}'" >> "$BASH_ENV"
+
             case "$CODE" in
               200) echo "The feed resolves the canary." ;;
               401) echo "401 — the feed rejected the token." >&2; exit 1 ;;
@@ -299,15 +303,23 @@ jobs:
       - run:
           name: Check Maven resolves from the feed
           command: |-
-            if ! mvn -B -q -s .gravitee.settings.xml \
+            if ! mvn -B -q -N -s .gravitee.settings.xml \
               org.apache.maven.plugins:maven-dependency-plugin:3.8.1:get \
               -Dartifact=io.gravitee.canary:feed-canary:1.0.0:pom; then
               echo "Maven could not resolve the canary from the feed." >&2
-              echo "The token itself was accepted over HTTPS a step earlier, so what is left is the" >&2
-              echo "settings wiring: a <server> id that does not match the repository id, or" >&2
-              # Single quotes: the shell would try to expand this one, and a dot is not a valid
-              # variable name — the message would come out as a bad substitution instead.
-              echo '${env.AZURE_ARTIFACTS_PAT} not being interpolated.' >&2
+              # The HTTPS check one step above exported what the feed answered, so this prints the one
+              # cause that applies instead of leaving the reader to match two messages against each other.
+              if [ "${AZURE_FEED_HTTP_CODE}" = "200" ]; then
+                echo "The feed answered 200 to that check, so the token is accepted and what is left is the" >&2
+                echo "settings wiring: a <server> id that does not match the repository id, or" >&2
+                # Single quotes: the shell would try to expand this one, and a dot is not a valid
+                # variable name — the message would come out as a bad substitution instead.
+                echo '${env.AZURE_ARTIFACTS_PAT} not being interpolated.' >&2
+              else
+                echo "The feed answered HTTP ${AZURE_FEED_HTTP_CODE} to that check: this is that outage." >&2
+                echo "Artifactory takes over for the rest of the build, which is why that step carried on;" >&2
+                echo "the canary exists on the feed and nowhere else, so nothing can serve it here." >&2
+              fi
               exit 1
             fi
 
