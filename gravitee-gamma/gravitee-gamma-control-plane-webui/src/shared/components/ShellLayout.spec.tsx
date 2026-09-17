@@ -174,7 +174,7 @@ describe('ShellLayout app switcher', () => {
         );
     });
 
-    it('should set Home apart from the products, on a compact row without its description', async () => {
+    it('should set Home apart from the products', async () => {
         const modules: GammaModule[] = [{ id: 'apim', name: 'apim plugin', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' }];
         render(
             <MemoryRouter initialEntries={['/environments/env-1/home']}>
@@ -190,6 +190,5 @@ describe('ShellLayout app switcher', () => {
 
         const menu = await screen.findByRole('menu');
         expect(within(menu).getByRole('separator')).toBeTruthy();
-        expect(within(menu).queryByText('Overview and quick actions')).toBeNull();
     });
 });

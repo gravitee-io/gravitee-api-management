@@ -41,7 +41,6 @@ const GAMMA_APP_KEY = 'gamma-console';
 const hostAppDefinition = {
     key: GAMMA_APP_KEY,
     label: 'Home',
-    description: 'Overview and quick actions',
     icon: <HOME_ICON className="size-5" />,
     pinned: true,
 };
