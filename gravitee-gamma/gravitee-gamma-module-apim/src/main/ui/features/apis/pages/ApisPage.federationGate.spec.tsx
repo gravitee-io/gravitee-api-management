@@ -15,8 +15,8 @@
  */
 import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
-import { http } from 'msw';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router-dom';
 
 import { ApisPage } from './ApisPage';
@@ -50,6 +50,36 @@ const SEARCH_RESPONSE = {
     data: [{ id: 'native-1', name: NATIVE_PROXY_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
     pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
 };
+
+const AGENT_NAME = 'Fraud Detection Agent';
+const FEDERATED_NAME = 'Federated Orders';
+
+// Both APIs really live in the seeded environment; only the search body decides which come back.
+const ENVIRONMENT_APIS = [
+    { id: 'agent-1', name: AGENT_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'FEDERATED_AGENT' },
+    {
+        id: 'federated-1',
+        name: FEDERATED_NAME,
+        apiVersion: '1.0',
+        type: 'PROXY',
+        definitionVersion: 'FEDERATED',
+        originContext: { origin: 'INTEGRATION', provider: 'solace' },
+    },
+];
+
+function respondWithEnvironmentApisMatchingRequestedTypes() {
+    server.use(
+        http.post(SEARCH_PATH, async ({ request }) => {
+            const { apiTypes } = (await request.json()) as { apiTypes: string[] };
+            const data = ENVIRONMENT_APIS.filter(api => apiTypes.includes(api.definitionVersion));
+            return HttpResponse.json({ data, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: data.length } });
+        }),
+    );
+}
+
+function tableRowsContaining(name: string) {
+    return screen.getAllByRole('row').filter(row => within(row).queryByText(name) !== null);
+}
 
 function renderPage() {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -105,5 +135,25 @@ describe('ApisPage federation gate', () => {
         expect(await screen.findByText(NATIVE_PROXY_NAME)).not.toBeNull();
         expect(container.querySelector('[aria-busy="true"]')).toBeNull();
         expect(tracker.lastCall?.body).toEqual({ apiTypes: PROXY_TYPES });
+    });
+});
+
+describe('ApisPage federated agent exclusion', () => {
+    beforeEach(() => {
+        resetApimClientForTests();
+        mockUseHasFeature.mockReturnValue(true);
+    });
+
+    afterEach(() => jest.restoreAllMocks());
+
+    it('lists the federated API in exactly one row and the federated agent in none', async () => {
+        trackHandler('get', ORG_CONSOLE_PATH, { federation: { enabled: true } } satisfies OrgConsoleSettings);
+        respondWithEnvironmentApisMatchingRequestedTypes();
+
+        renderPage();
+
+        expect(await screen.findByText(FEDERATED_NAME)).not.toBeNull();
+        expect(tableRowsContaining(FEDERATED_NAME)).toHaveLength(1);
+        expect(tableRowsContaining(AGENT_NAME)).toHaveLength(0);
     });
 });
