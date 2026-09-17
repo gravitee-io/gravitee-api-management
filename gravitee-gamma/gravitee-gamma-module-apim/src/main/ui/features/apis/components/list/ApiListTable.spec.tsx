@@ -46,6 +46,12 @@ function renderTable(props: Partial<Parameters<typeof ApiListTable>[0]> = {}) {
 
 const federatedOrigin: ApiListOriginContext = { origin: 'INTEGRATION', provider: 'solace' };
 
+// A federated origin context alone leaves `definitionVersion: 'V4'`, which `isFederatedApiListItem`
+// reads as natively-managed — so a row built that way is not the FEDERATED subject these cases mean.
+function makeFederatedApi(overrides: Partial<ApiListItem> = {}): ApiListItem {
+    return makeApi({ definitionVersion: 'FEDERATED', originContext: federatedOrigin, ...overrides });
+}
+
 function cellUnderHeader(row: HTMLElement, headerText: string) {
     // Resolved through getByRole rather than an index scan so a renamed header fails with Testing
     // Library naming the header it could not find, instead of an undefined-cell TypeError.
@@ -236,6 +242,56 @@ describe('ApiListTable', () => {
         expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('../observe/dashboards/http-proxy-overview?'));
     });
 
+    // Counterpart to the all-empty federated row asserted in the Owner cell suite: every dash below is
+    // keyed on an absent value, so a cell renderer switched to an `isFederatedApiListItem` guard would
+    // blank these columns for a row that does carry them while every empty-value case stayed green.
+    it('renders each data column of a federated row from the value it carries, never the em dash', () => {
+        renderTable({
+            apis: [
+                makeFederatedApi({
+                    state: 'STARTED',
+                    deploymentState: 'DEPLOYED',
+                    listeners: [{ type: 'HTTP', paths: [{ path: '/orders' }] }],
+                    tags: ['internal'],
+                    primaryOwner: { displayName: 'Jane Doe' },
+                }),
+            ],
+        });
+        const [, dataRow] = screen.getAllByRole('row');
+        const dataColumns = ['Runtime Status', 'Sync Status', 'Access', 'Sharding Tags', 'Owner'];
+
+        expect(dataColumns.map(header => cellUnderHeader(dataRow, header).textContent)).toEqual([
+            'Started',
+            'In sync',
+            '/orders',
+            'internal',
+            'Jane Doe',
+        ]);
+    });
+
+    // Sync Status and Owner each have a two-row case of their own; the other three empty-value columns
+    // are only ever rendered one row at a time above, so a guard hoisted out of the per-row cell into the
+    // column definition would blank them for the row that does carry the value and stay green everywhere else.
+    it('dashes only the federated row missing each value when a populated federated row is listed alongside', () => {
+        renderTable({
+            apis: [
+                makeFederatedApi({ id: 'federated-empty', name: 'Orders API' }),
+                makeFederatedApi({
+                    id: 'federated-populated',
+                    name: 'Billing API',
+                    state: 'STARTED',
+                    listeners: [{ type: 'HTTP', paths: [{ path: '/billing' }] }],
+                    tags: ['internal'],
+                }),
+            ],
+        });
+        const [, emptyRow, populatedRow] = screen.getAllByRole('row');
+        const columns = ['Runtime Status', 'Access', 'Sharding Tags'];
+
+        expect(columns.map(header => cellUnderHeader(emptyRow, header).textContent)).toEqual(['—', '—', '—']);
+        expect(columns.map(header => cellUnderHeader(populatedRow, header).textContent)).toEqual(['Started', '/billing', 'internal']);
+    });
+
     describe('RuntimeStatusBadge', () => {
         it('shows "Started" badge for STARTED state', () => {
             renderTable({ apis: [makeApi({ state: 'STARTED' })] });
@@ -260,7 +316,7 @@ describe('ApiListTable', () => {
             ['absent', {}],
             ['null', { state: nullState }],
         ])('shows the em dash and no status badge when the state is %s', (_scenario, overrides) => {
-            renderTable({ apis: [makeApi({ originContext: federatedOrigin, ...overrides })] });
+            renderTable({ apis: [makeFederatedApi(overrides)] });
             const [, dataRow] = screen.getAllByRole('row');
             const statusCell = cellUnderHeader(dataRow, 'Runtime Status');
             expect(statusCell.textContent).toBe('—');
@@ -284,14 +340,14 @@ describe('ApiListTable', () => {
         // client either as an absent key or as an explicit JSON null.
         const nullDeploymentState = null as unknown as ApiDeploymentState;
 
-        it.each<[string, Partial<ApiListItem>]>([
-            ['absent on a federated row', { originContext: federatedOrigin }],
-            ['null on a federated row', { originContext: federatedOrigin, deploymentState: nullDeploymentState }],
-            // The dash is keyed on the missing value, not on where the row came from — a guard on
-            // `originContext.origin` would leave this row claiming "In sync" for a state it never received.
-            ['absent on a natively-managed row', { originContext: { origin: 'MANAGEMENT' } }],
-        ])('shows the em dash and no "In sync" badge when the deployment state is %s', (_scenario, overrides) => {
-            renderTable({ apis: [makeApi(overrides)] });
+        it.each<[string, ApiListItem]>([
+            ['absent on a federated row', makeFederatedApi()],
+            ['null on a federated row', makeFederatedApi({ deploymentState: nullDeploymentState })],
+            // The dash is keyed on the missing value, not on the row's kind — a guard on
+            // `definitionVersion` would leave this row claiming "In sync" for a state it never received.
+            ['absent on a natively-managed row', makeApi({ originContext: { origin: 'MANAGEMENT' } })],
+        ])('shows the em dash and no "In sync" badge when the deployment state is %s', (_scenario, api) => {
+            renderTable({ apis: [api] });
             const [, dataRow] = screen.getAllByRole('row');
             const syncCell = cellUnderHeader(dataRow, 'Sync Status');
             expect(syncCell.textContent).toBe('—');
@@ -304,7 +360,7 @@ describe('ApiListTable', () => {
             const fallbackWarning = jest.spyOn(console, 'warn').mockImplementation(() => {});
             const unknownDeploymentState = 'ARCHIVED' as unknown as ApiDeploymentState;
 
-            renderTable({ apis: [makeApi({ originContext: federatedOrigin, deploymentState: unknownDeploymentState })] });
+            renderTable({ apis: [makeFederatedApi({ deploymentState: unknownDeploymentState })] });
 
             const [, dataRow] = screen.getAllByRole('row');
             const syncCell = cellUnderHeader(dataRow, 'Sync Status');
@@ -318,7 +374,7 @@ describe('ApiListTable', () => {
         it('dashes only the row missing a deployment state when both kinds are listed together', () => {
             renderTable({
                 apis: [
-                    makeApi({ id: 'federated', name: 'Orders API', originContext: federatedOrigin }),
+                    makeFederatedApi({ id: 'federated', name: 'Orders API' }),
                     makeApi({ id: 'native', name: 'Payments API', originContext: { origin: 'MANAGEMENT' }, deploymentState: 'DEPLOYED' }),
                 ],
             });
@@ -461,7 +517,7 @@ describe('ApiListTable', () => {
             // A naive `listeners?.length` guard would read a TCP-only API as having an access path.
             ['carrying no HTTP entry', { listeners: [{ type: 'TCP', host: 'tcp.example.com', port: 4082 }] }],
         ])('shows the em dash and no path badge when listeners are %s', (_scenario, overrides) => {
-            renderTable({ apis: [makeApi({ originContext: federatedOrigin, ...overrides })] });
+            renderTable({ apis: [makeFederatedApi(overrides)] });
             const [, dataRow] = screen.getAllByRole('row');
             const accessCell = cellUnderHeader(dataRow, 'Access');
             expect(accessCell.textContent).toBe('—');
@@ -482,7 +538,7 @@ describe('ApiListTable', () => {
             ['absent', {}],
             ['empty', { tags: [] }],
         ])('shows the em dash and no "N more" badge when tags are %s', (_scenario, overrides) => {
-            renderTable({ apis: [makeApi({ originContext: federatedOrigin, ...overrides })] });
+            renderTable({ apis: [makeFederatedApi(overrides)] });
             const [, dataRow] = screen.getAllByRole('row');
             const tagsCell = cellUnderHeader(dataRow, 'Sharding Tags');
             expect(tagsCell.textContent).toBe('—');
@@ -500,11 +556,10 @@ describe('ApiListTable', () => {
         it('keeps the owner of a federated row whose every other data column is empty', () => {
             renderTable({
                 apis: [
-                    makeApi({ id: 'federated-unowned', name: 'Orders API', originContext: federatedOrigin }),
-                    makeApi({
+                    makeFederatedApi({ id: 'federated-unowned', name: 'Orders API' }),
+                    makeFederatedApi({
                         id: 'federated-owned',
                         name: 'Billing API',
-                        originContext: federatedOrigin,
                         primaryOwner: { displayName: 'Jane Doe' },
                     }),
                 ],
