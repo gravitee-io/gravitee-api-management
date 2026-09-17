@@ -1497,7 +1497,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             }
         }
 
-        /** The fixture holds 22 documents on the HTTP entrypoints, two of them on {@code /tools/call}, reported as {@code path-info}. */
+        /** The fixture holds 20 documents on the HTTP entrypoints, two of them on {@code /tools/call}, reported as {@code path-info}. */
         @Nested
         class HTTPPathFilters {
 
@@ -1520,7 +1520,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 13L));
+                    .contains(tuple("/tools/call", 2L), tuple("/chat", 2L), tuple("/", 11L));
             }
         }
 
