@@ -195,7 +195,7 @@ describe('ApisPage', () => {
         rows.forEach(row => expect(screen.getAllByText(row.name)).toHaveLength(1));
     });
 
-    it('renders the table with no API row of either kind when the search is refused with 403', () => {
+    it("renders the table with no API row of either kind and its 'No APIs found' empty state when the search is refused with 403", () => {
         mockUseApiList.mockReturnValue({
             data: undefined,
             isLoading: false,
@@ -211,6 +211,7 @@ describe('ApisPage', () => {
         expect(renderedApiRowCount()).toBe(0);
         expect(screen.queryByText(NATIVE_PROXY_NAME)).toBeNull();
         expect(screen.queryByText(FEDERATED_API_NAME)).toBeNull();
+        expect(screen.queryByText('No APIs found')).not.toBeNull();
         expect(screen.queryByRole('alert')).toBeNull();
     });
 
