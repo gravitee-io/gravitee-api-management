@@ -95,7 +95,7 @@ export function ApiGeneralPage() {
 
     // ── Permissions (mirrors legacy api-general-info.component.ts) ────────────
     // api-definition-r : read form / see export / see allow-in-products toggle
-    // api-definition-u : edit form / save / start / stop / promote
+    // api-definition-u : edit form / save; start / stop / promote also require a non-federated API
     // api-definition-c : import / duplicate
     // api-definition-d : delete
     const canReadDefinition = useHasPermission({ anyOf: ['api-definition-r'] });

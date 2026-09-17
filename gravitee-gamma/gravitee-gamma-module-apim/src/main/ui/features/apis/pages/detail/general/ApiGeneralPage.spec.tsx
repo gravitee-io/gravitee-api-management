@@ -466,6 +466,17 @@ describe('ApiGeneralPage', () => {
         expect(screen.getByRole('button', { name: /delete this api/i })).toBeInTheDocument();
     });
 
+    it('hides the Start/Stop control for a federated API when the user lacks api-definition-u, keeping Delete in the API Events card', () => {
+        mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-u'));
+        renderPage('federated-api-1');
+
+        expect(screen.queryByRole('button', { name: /start api/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /stop api/i })).toBeNull();
+        expect(screen.getByText('API Events')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /delete this api/i })).toBeInTheDocument();
+    });
+
     it('hides the API Events card for a federated API when the user holds update but not delete permission', () => {
         mockUseApiDetailContext.mockReturnValue({ api: FEDERATED_API, isLoading: false, permissionsReady: true });
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-d'));
@@ -575,6 +586,19 @@ describe('ApiGeneralPage', () => {
             permissionsReady: true,
         });
         renderPage();
+        expect(screen.getByRole('button', { name: /delete this api/i })).toBeDisabled();
+    });
+
+    // The published guard is shared with the natively-managed path and carries no API-type term, so a
+    // federated API keeps the control it is entitled to and only loses the ability to press it.
+    it('keeps Delete present but disabled for a published federated API', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...FEDERATED_API, lifecycleState: 'PUBLISHED' },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage('federated-api-1');
+
         expect(screen.getByRole('button', { name: /delete this api/i })).toBeDisabled();
     });
 
