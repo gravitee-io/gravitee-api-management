@@ -22,7 +22,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { ApisPage } from './ApisPage';
 import { resetApimClientForTests } from '../../../shared/api/apimClient';
 import { TEST_CONFIG, TEST_V2_BASE } from '../../../testing/factories';
-import { captureTimeoutSignals, trackHandler } from '../../../testing/helpers';
+import { captureTimeoutSignals, respondWith, trackHandler } from '../../../testing/helpers';
 import { server } from '../../../testing/server';
 import type { OrgConsoleSettings } from '../../settings/services/orgConsoleSettings';
 
@@ -46,6 +46,7 @@ const PROXY_TYPES = ['V4_HTTP_PROXY', 'V4_TCP_PROXY'];
 const PROXY_AND_FEDERATED = ['V4_HTTP_PROXY', 'V4_TCP_PROXY', 'FEDERATED'];
 
 const NATIVE_PROXY_NAME = 'Payments Proxy';
+const FEDERATED_API_NAME = 'Federated Orders';
 const SEARCH_RESPONSE = {
     data: [{ id: 'native-1', name: NATIVE_PROXY_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
     pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
@@ -79,6 +80,42 @@ function respondWithEnvironmentApisMatchingRequestedTypes() {
 
 function tableRowsContaining(name: string) {
     return screen.getAllByRole('row').filter(row => within(row).queryByText(name) !== null);
+}
+
+const TYPE_GATED_APIS = [
+    {
+        apiType: 'V4_HTTP_PROXY',
+        api: { id: 'native-1', name: NATIVE_PROXY_NAME, apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' },
+    },
+    {
+        apiType: 'FEDERATED',
+        api: {
+            id: 'federated-1',
+            name: FEDERATED_API_NAME,
+            apiVersion: '1.0',
+            type: 'PROXY',
+            definitionVersion: 'FEDERATED',
+            originContext: { origin: 'INTEGRATION', provider: 'solace' },
+        },
+    },
+];
+
+const TYPE_GATED_API_NAMES = TYPE_GATED_APIS.map(entry => entry.api.name);
+
+// Answering from one fixed environment that does hold a federated API is what makes a missing federated
+// row attributable to the gate, rather than to a fixture hand-trimmed to match the assertion.
+function serveApisMatchingRequestedTypes() {
+    server.use(
+        http.post(SEARCH_PATH, async ({ request }) => {
+            const { apiTypes } = (await request.json()) as { apiTypes: string[] };
+            const data = TYPE_GATED_APIS.filter(entry => apiTypes.includes(entry.apiType)).map(entry => entry.api);
+            return HttpResponse.json({ data, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: data.length } });
+        }),
+    );
+}
+
+function renderedApiNames() {
+    return TYPE_GATED_API_NAMES.filter(name => screen.queryByText(name) !== null);
 }
 
 function renderPage() {
@@ -117,6 +154,22 @@ describe('ApisPage federation gate', () => {
         expect(await screen.findByText(NATIVE_PROXY_NAME)).not.toBeNull();
         expect(tracker.callCount).toBe(1);
         expect(tracker.lastCall?.body).toEqual({ apiTypes: expectedApiTypes });
+    });
+
+    it.each<[string, OrgConsoleSettings, boolean, string[]]>([
+        ['both the org setting and the license carry federation', { federation: { enabled: true } }, true, TYPE_GATED_API_NAMES],
+        ['the org setting is off while the license carries federation', { federation: { enabled: false } }, true, [NATIVE_PROXY_NAME]],
+        ['the org setting is on while the license lacks federation', { federation: { enabled: true } }, false, [NATIVE_PROXY_NAME]],
+    ])('renders a table row for the federated API only when %s', async (_scenario, settings, isLicensed, expectedNames) => {
+        mockUseHasFeature.mockReturnValue(isLicensed);
+        respondWith('get', ORG_CONSOLE_PATH, settings);
+        serveApisMatchingRequestedTypes();
+
+        renderPage();
+
+        // The native row is what proves the page finished loading rather than failing before rendering anything.
+        expect(await screen.findByText(NATIVE_PROXY_NAME)).not.toBeNull();
+        expect(renderedApiNames()).toEqual(expectedNames);
     });
 
     it('lists the natively-managed proxies and asks for proxies alone when the console settings never answer', async () => {
