@@ -31,18 +31,19 @@ const identity = (current: ResponseTemplatesMap) => current;
 describe('updateApiResponseTemplates', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockFetchV2.mockResolvedValue(undefined);
+        mockFetchV2.mockResolvedValue({ id: 'api-1', responseTemplates: {} });
     });
 
-    it('PATCHes with If-Match from the GET ETag', async () => {
+    it('PATCHes with If-Match from the GET ETag and returns the patched API', async () => {
         mockWithMeta.mockResolvedValue({
             data: { responseTemplates: {}, updatedAt: '2026-01-01T00:00:00.000Z' },
             etag: '"1704067200000"',
         });
+        mockFetchV2.mockResolvedValue({ id: 'api-1', responseTemplates: { DEFAULT: { '*/*': { statusCode: 400 } } } });
 
-        await updateApiResponseTemplates('env-1', 'api-1', identity);
+        const result = await updateApiResponseTemplates('env-1', 'api-1', identity);
 
-        expect(mockWithMeta).toHaveBeenCalledWith('env-1', '/apis/api-1');
+        expect(mockWithMeta).toHaveBeenCalledWith('env-1', '/apis/api-1', { cache: 'no-store' });
         expect(mockFetchV2).toHaveBeenCalledWith('env-1', '/apis/api-1', {
             method: 'PATCH',
             headers: {
@@ -51,6 +52,7 @@ describe('updateApiResponseTemplates', () => {
             },
             body: JSON.stringify([{ op: 'add', path: '/responseTemplates', value: {} }]),
         });
+        expect(result.responseTemplates).toEqual({ DEFAULT: { '*/*': { statusCode: 400 } } });
     });
 
     it('falls back to updatedAt millis when ETag is missing', async () => {
@@ -85,5 +87,18 @@ describe('updateApiResponseTemplates', () => {
             headers: { 'Content-Type': 'application/json-patch+json' },
             body: JSON.stringify([{ op: 'add', path: '/responseTemplates', value: {} }]),
         });
+    });
+
+    it('fills responseTemplates from the PATCH payload when the response omits them', async () => {
+        mockWithMeta.mockResolvedValue({
+            data: { responseTemplates: { OLD: { '*/*': { statusCode: 400 } } } },
+            etag: '"1"',
+        });
+        mockFetchV2.mockResolvedValue({ id: 'api-1', name: 'Petstore' } as never);
+
+        const next = { KEEP: { '*/*': { statusCode: 401 } } };
+        const result = await updateApiResponseTemplates('env-1', 'api-1', () => next);
+
+        expect(result.responseTemplates).toEqual(next);
     });
 });

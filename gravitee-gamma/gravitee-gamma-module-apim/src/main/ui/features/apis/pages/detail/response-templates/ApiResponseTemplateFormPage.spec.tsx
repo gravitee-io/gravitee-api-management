@@ -15,6 +15,7 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -23,6 +24,8 @@ import { ApiResponseTemplateFormPage } from './ApiResponseTemplateFormPage';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiResponseTemplates } from '../../../services/apis';
+import type { ApiDetailDto } from '../../../types';
+import { mergeApiDetailCache } from '../../../utils/apiDetailCache';
 import { toResponseTemplatePath } from '../../../utils/responseTemplates';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -40,23 +43,26 @@ jest.mock('../../../hooks/useApiDetail', () => ({
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
+const mockSetQueryData = jest.fn();
+const mockInvalidateQueries = jest.fn();
+
 jest.mock('@tanstack/react-query', () => ({
     useMutation: jest.fn(config => ({
         mutate: jest.fn(async args => {
             try {
-                await config.mutationFn(args);
-                config.onSuccess?.();
+                const result = await config.mutationFn(args);
+                config.onSuccess?.(result);
             } catch (error) {
                 config.onError?.(error);
             }
         }),
         isPending: false,
     })),
-    useQueryClient: jest.fn(() => ({ invalidateQueries: jest.fn() })),
+    useQueryClient: jest.fn(),
 }));
 
 jest.mock('../../../services/apis', () => ({
-    updateApiResponseTemplates: jest.fn(() => Promise.resolve()),
+    updateApiResponseTemplates: jest.fn(() => Promise.resolve({ id: 'api-1', responseTemplates: {} })),
 }));
 
 jest.mock('../../../../../shared/notify', () => ({
@@ -66,6 +72,8 @@ jest.mock('../../../../../shared/notify', () => ({
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetail = useApiDetail as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
+const mockUseMutation = useMutation as jest.Mock;
+const mockUseQueryClient = useQueryClient as jest.Mock;
 const mockUpdate = updateApiResponseTemplates as jest.Mock;
 
 const EXISTING = {
@@ -111,10 +119,27 @@ describe('ApiResponseTemplateFormPage', () => {
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
         mockUseApiDetailContext.mockReturnValue({ permissionsReady: true });
+        mockSetQueryData.mockReset();
+        mockInvalidateQueries.mockReset();
+        mockUseQueryClient.mockReturnValue({
+            setQueryData: mockSetQueryData,
+            invalidateQueries: mockInvalidateQueries,
+        });
+        mockUseMutation.mockImplementation(config => ({
+            mutate: jest.fn(async args => {
+                try {
+                    const result = await config.mutationFn(args);
+                    config.onSuccess?.(result);
+                } catch (error) {
+                    config.onError?.(error);
+                }
+            }),
+            isPending: false,
+        }));
         mockUpdate.mockClear();
         mockUpdate.mockImplementation((_env, _id, updater) => {
             updater(EXISTING);
-            return Promise.resolve();
+            return Promise.resolve({ id: 'api-1', responseTemplates: EXISTING });
         });
     });
 
@@ -124,6 +149,71 @@ describe('ApiResponseTemplateFormPage', () => {
         expect(screen.getByDisplayValue('*/*')).toBeInTheDocument();
         expect(screen.getByDisplayValue('400')).toBeInTheDocument();
         expect(screen.getByText('BAD_REQUEST')).toBeInTheDocument();
+        expect(screen.queryByLabelText('Header name')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /add header/i })).toBeInTheDocument();
+    });
+
+    it('offers Console header-name autocomplete suggestions after adding a header', async () => {
+        const user = userEvent.setup();
+        renderForm('/apis/api-1/response-templates/new');
+        await screen.findByRole('heading', { name: /create a new response template/i });
+
+        await user.click(screen.getByRole('button', { name: /add header/i }));
+        const headerName = screen.getByLabelText('Header name');
+        await user.click(headerName);
+        expect(await screen.findByRole('option', { name: 'Accept' })).toBeInTheDocument();
+        expect(screen.getByRole('option', { name: 'Accept-Charset' })).toBeInTheDocument();
+
+        await user.type(headerName, 'Content-Type');
+        expect(await screen.findByRole('option', { name: 'Content-Type' })).toBeInTheDocument();
+        await user.click(screen.getByRole('option', { name: 'Content-Type' }));
+        expect(headerName).toHaveValue('Content-Type');
+    });
+
+    it('blocks save when a header name contains spaces (classic gio-form-headers pattern)', async () => {
+        const user = userEvent.setup();
+        renderForm('/apis/api-1/response-templates/new');
+        await screen.findByRole('heading', { name: /create a new response template/i });
+
+        await user.click(screen.getByRole('combobox', { name: /template key/i }));
+        await user.click(await screen.findByText('API_KEY_MISSING'));
+
+        await user.click(screen.getByRole('button', { name: /add header/i }));
+        await user.type(screen.getByLabelText('Header name'), 'Bad Name');
+        expect(screen.queryByText(/must not contain spaces/i)).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: /^create$/i }));
+        expect(screen.getByText(/must not contain spaces/i)).toBeInTheDocument();
+        expect(mockUpdate).not.toHaveBeenCalled();
+    });
+
+    it('merges PATCH response into API detail cache after save', async () => {
+        const user = userEvent.setup();
+        const AFTER_SAVE = {
+            id: 'api-1',
+            responseTemplates: { NEW: { '*/*': { statusCode: 400 } } },
+        } as ApiDetailDto;
+        mockUpdate.mockResolvedValue(AFTER_SAVE);
+
+        renderForm('/apis/api-1/response-templates/new');
+        await screen.findByRole('heading', { name: /create a new response template/i });
+
+        await user.click(screen.getByRole('combobox', { name: /template key/i }));
+        await user.click(await screen.findByText('API_KEY_MISSING'));
+        await user.click(screen.getByRole('button', { name: /^create$/i }));
+
+        await waitFor(() => expect(mockSetQueryData).toHaveBeenCalled());
+        const updater = mockSetQueryData.mock.calls.at(-1)![1] as (prev: ApiDetailDto | undefined) => ApiDetailDto;
+        const prev = {
+            id: 'api-1',
+            responseTemplates: EXISTING,
+            deploymentState: 'DEPLOYED',
+        } as ApiDetailDto;
+        expect(updater(prev)).toEqual(mergeApiDetailCache(prev, AFTER_SAVE));
+        expect(updater(prev)).toMatchObject({
+            responseTemplates: AFTER_SAVE.responseTemplates,
+            deploymentState: 'DEPLOYED',
+        });
     });
 
     it('loads an existing template from two independently encoded path segments', async () => {

@@ -15,13 +15,17 @@
  */
 
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { render, screen } from '@testing-library/react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { ApiResponseTemplatesPage } from './ApiResponseTemplatesPage';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiDetail } from '../../../hooks/useApiDetail';
+import { updateApiResponseTemplates } from '../../../services/apis';
+import type { ApiDetailDto } from '../../../types';
+import { mergeApiDetailCache } from '../../../utils/apiDetailCache';
 import { toResponseTemplatePath } from '../../../utils/responseTemplates';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -39,18 +43,40 @@ jest.mock('../../../hooks/useApiDetail', () => ({
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
+const mockSetQueryData = jest.fn();
+const mockInvalidateQueries = jest.fn();
+
 jest.mock('@tanstack/react-query', () => ({
-    useMutation: jest.fn(() => ({ mutateAsync: jest.fn(), isPending: false })),
-    useQueryClient: jest.fn(() => ({ invalidateQueries: jest.fn() })),
+    useMutation: jest.fn(),
+    useQueryClient: jest.fn(),
 }));
 
 jest.mock('../../../services/apis', () => ({
-    updateApiResponseTemplates: jest.fn(() => Promise.resolve()),
+    updateApiResponseTemplates: jest.fn(),
+}));
+
+jest.mock('../../../../../shared/notify', () => ({
+    notify: { success: jest.fn(), error: jest.fn() },
 }));
 
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetail = useApiDetail as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
+const mockUseMutation = useMutation as jest.Mock;
+const mockUseQueryClient = useQueryClient as jest.Mock;
+const mockUpdate = updateApiResponseTemplates as jest.Mock;
+
+const TWO_TEMPLATES = {
+    DEFAULT: { 'application/json': { statusCode: 400 } },
+    API_KEY_MISSING: { 'application/json': { statusCode: 401 } },
+};
+
+const AFTER_DELETE: ApiDetailDto = {
+    id: 'api-1',
+    responseTemplates: {
+        API_KEY_MISSING: { 'application/json': { statusCode: 401 } },
+    },
+} as ApiDetailDto;
 
 function renderPage(apiOverrides: Record<string, unknown> = {}) {
     mockUseApiDetail.mockReturnValue({
@@ -58,10 +84,8 @@ function renderPage(apiOverrides: Record<string, unknown> = {}) {
             id: 'api-1',
             name: 'Petstore',
             listeners: [{ type: 'HTTP' }],
-            responseTemplates: {
-                DEFAULT: { 'application/json': { statusCode: 400 } },
-                API_KEY_MISSING: { 'application/json': { statusCode: 401 } },
-            },
+            responseTemplates: TWO_TEMPLATES,
+            deploymentState: 'NEED_REDEPLOY',
             ...apiOverrides,
         },
         isLoading: false,
@@ -82,14 +106,29 @@ function renderPage(apiOverrides: Record<string, unknown> = {}) {
         { initialEntries: ['/apis/api-1/response-templates'] },
     );
 
-    render(<RouterProvider router={router} />);
-    return router;
+    const view = render(<RouterProvider router={router} />);
+    return { router, ...view };
 }
 
 describe('ApiResponseTemplatesPage', () => {
     beforeEach(() => {
         mockUseHasPermission.mockReturnValue(true);
         mockUseApiDetailContext.mockReturnValue({ permissionsReady: true });
+        mockSetQueryData.mockReset();
+        mockInvalidateQueries.mockReset();
+        mockUpdate.mockReset();
+        mockUseQueryClient.mockReturnValue({
+            setQueryData: mockSetQueryData,
+            invalidateQueries: mockInvalidateQueries,
+        });
+        mockUseMutation.mockImplementation(config => ({
+            mutateAsync: jest.fn(async args => {
+                const result = await config.mutationFn(args);
+                config.onSuccess?.(result);
+                return result;
+            }),
+            isPending: false,
+        }));
     });
 
     it('lists templates with key, content-type, and status', () => {
@@ -103,11 +142,47 @@ describe('ApiResponseTemplatesPage', () => {
 
     it('navigates with Gamma encodeURIComponent route pattern', async () => {
         const user = userEvent.setup();
-        const router = renderPage();
+        const { router } = renderPage();
         await user.click(screen.getByText('DEFAULT'));
         expect(router.state.location.pathname).toBe(
             `/apis/api-1/response-templates/${toResponseTemplatePath('DEFAULT', 'application/json')}`,
         );
+    });
+
+    it('merges PATCH response into API detail cache after delete and drops the row', async () => {
+        const user = userEvent.setup();
+        mockUpdate.mockResolvedValue(AFTER_DELETE);
+
+        const { unmount } = renderPage();
+        expect(screen.getByText('DEFAULT')).toBeInTheDocument();
+        expect(screen.getByText('API_KEY_MISSING')).toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: /actions for default application\/json/i }));
+        await user.click(await screen.findByRole('menuitem', { name: /^delete$/i }));
+
+        const dialog = await screen.findByRole('dialog');
+        await user.click(within(dialog).getByRole('button', { name: /^delete$/i }));
+
+        expect(mockSetQueryData).toHaveBeenCalled();
+        const updater = mockSetQueryData.mock.calls[0][1] as (prev: ApiDetailDto | undefined) => ApiDetailDto;
+        const prev = {
+            id: 'api-1',
+            responseTemplates: TWO_TEMPLATES,
+            deploymentState: 'NEED_REDEPLOY',
+        } as ApiDetailDto;
+        const merged = mergeApiDetailCache(prev, AFTER_DELETE);
+        expect(updater(prev)).toEqual(merged);
+        expect(updater(prev).responseTemplates).toEqual(AFTER_DELETE.responseTemplates);
+        expect(updater(prev).deploymentState).toBe('NEED_REDEPLOY');
+
+        unmount();
+        renderPage({
+            responseTemplates: merged.responseTemplates,
+            deploymentState: merged.deploymentState,
+        });
+
+        expect(screen.queryByText('DEFAULT')).not.toBeInTheDocument();
+        expect(screen.getByText('API_KEY_MISSING')).toBeInTheDocument();
     });
 
     it('shows an educational empty state with create CTA when none exist', () => {

@@ -342,20 +342,23 @@ export async function updateApiResponseTemplates(
     environmentId: string,
     apiId: string,
     updater: (current: ResponseTemplatesMap) => ResponseTemplatesMap,
-): Promise<void> {
+): Promise<ApiDetailDto> {
     const { data: current, etag } = await apimFetchJsonV2WithMeta<{
         responseTemplates?: ResponseTemplatesMap;
         updatedAt?: string | number;
-    }>(environmentId, `/apis/${encodeURIComponent(apiId)}`);
+    }>(environmentId, `/apis/${encodeURIComponent(apiId)}`, { cache: 'no-store' });
     const responseTemplates = updater(current.responseTemplates ?? {});
     const ifMatch = etag ?? ifMatchFromUpdatedAt(current.updatedAt);
     const headers: Record<string, string> = { 'Content-Type': 'application/json-patch+json' };
     if (ifMatch) {
         headers['If-Match'] = ifMatch;
     }
-    await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
+    return apimFetchJsonV2<ApiDetailDto>(environmentId, `/apis/${encodeURIComponent(apiId)}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify([{ op: 'add', path: '/responseTemplates', value: responseTemplates }]),
-    });
+    }).then(patched => ({
+        ...patched,
+        responseTemplates: patched.responseTemplates ?? responseTemplates,
+    }));
 }
