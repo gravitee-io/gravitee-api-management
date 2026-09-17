@@ -65,6 +65,7 @@ public class Audit {
         CATEGORY,
         PARAMETER,
         DICTIONARY,
+        DICTIONARY_ENCRYPTED,
         API_HEADER,
         IDENTITY_PROVIDER,
         ENTRYPOINT,
