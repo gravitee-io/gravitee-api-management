@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.performance_target.domain_service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -107,13 +108,18 @@ class ValidatePerformanceTargetDomainServiceTest {
         assertThatCode(() -> service.validate(target)).doesNotThrowAnyException();
     }
 
+    /**
+     * Was a refusal until the scoping below existed: an unscoped rule was read as a claim about every API in the
+     * subject, so an LLM metric was refused the moment the subject also held a proxy of another family — which is
+     * every agent. It now scopes itself to the family that can answer it.
+     */
     @Test
-    void should_reject_an_llm_metric_on_a_mixed_subject_when_the_rule_is_not_restricted() {
+    void should_scope_an_llm_metric_to_the_llm_apis_of_a_mixed_subject() {
         var target = aTarget(List.of(A2A_API, LLM_API), aRule(MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST, MetricSpec.Measure.AVG, 0.01));
 
-        assertThatThrownBy(() -> service.validate(target))
-            .isInstanceOf(InvalidPerformanceTargetException.class)
-            .hasMessageContaining("A2A_PROXY");
+        var validated = service.validate(target);
+
+        assertThat(validated.rules()).singleElement().extracting(PerformanceTarget.Rule::apiTypes).isEqualTo(Set.of(ApiType.LLM_PROXY));
     }
 
     @Test
@@ -334,6 +340,57 @@ class ValidatePerformanceTargetDomainServiceTest {
         var target = aTarget(List.of(), aRule(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 2000));
 
         assertThatCode(() -> service.validate(target)).doesNotThrowAnyException();
+    }
+
+    /**
+     * A subject that spans API families is the ordinary case — an agent holds the proxy fronting it and the LLM and
+     * MCP proxies it calls — and most metrics belong to one family. An unscoped rule over such a metric is a rule
+     * about the APIs that can answer it, not a claim that every API in the subject can.
+     */
+    @Test
+    void should_scope_an_unscoped_rule_to_the_api_types_its_metric_is_available_for() {
+        var target = aTarget(List.of(A2A_API, LLM_API, MCP_API), aRule(MetricSpec.Name.LLM_CONVERSATIONS, MetricSpec.Measure.COUNT, 100));
+
+        var validated = service.validate(target);
+
+        assertThat(validated.rules()).singleElement().extracting(PerformanceTarget.Rule::apiTypes).isEqualTo(Set.of(ApiType.LLM_PROXY));
+    }
+
+    /** Nothing in the subject can ever answer it: that is a mistake worth refusing, and the message says so. */
+    @Test
+    void should_refuse_a_metric_no_api_in_the_subject_can_answer() {
+        var target = aTarget(List.of(MCP_API), aRule(MetricSpec.Name.LLM_CONVERSATIONS, MetricSpec.Measure.COUNT, 100));
+
+        assertThatThrownBy(() -> service.validate(target))
+            .isInstanceOf(InvalidPerformanceTargetException.class)
+            .hasMessageContaining("LLM_CONVERSATIONS")
+            .hasMessageContaining("this subject holds only MCP_PROXY");
+    }
+
+    /** An unscoped rule every subject type can answer keeps its scope open, so the subject may still grow into it. */
+    @Test
+    void should_leave_an_unscoped_rule_open_when_every_subject_type_answers_its_metric() {
+        var target = aTarget(
+            List.of(A2A_API, LLM_API, MCP_API),
+            aRule(MetricSpec.Name.HTTP_GATEWAY_RESPONSE_TIME, MetricSpec.Measure.P95, 2000)
+        );
+
+        var validated = service.validate(target);
+
+        assertThat(validated.rules()).singleElement().extracting(PerformanceTarget.Rule::apiTypes).isEqualTo(Set.of());
+    }
+
+    /** A scope the caller named is theirs: naming a type the metric cannot answer stays a refusal, not a correction. */
+    @Test
+    void should_still_refuse_a_named_scope_the_metric_is_not_available_for() {
+        var target = aTarget(
+            List.of(LLM_API, MCP_API),
+            aRule(MetricSpec.Name.LLM_CONVERSATIONS, MetricSpec.Measure.COUNT, 100).toBuilder().apiTypes(Set.of(ApiType.MCP_PROXY)).build()
+        );
+
+        assertThatThrownBy(() -> service.validate(target))
+            .isInstanceOf(InvalidPerformanceTargetException.class)
+            .hasMessageContaining("is not available for API type MCP_PROXY");
     }
 
     private static PerformanceTarget aTarget(List<String> apiIds, PerformanceTarget.Rule... rules) {

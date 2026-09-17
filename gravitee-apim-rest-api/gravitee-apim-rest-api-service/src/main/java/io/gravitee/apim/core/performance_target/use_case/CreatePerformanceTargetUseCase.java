@@ -43,8 +43,8 @@ public class CreatePerformanceTargetUseCase {
             .updatedAt(now)
             .build()
             .identifyRules(List.of(), UuidString::generateRandom);
-        validatePerformanceTargetDomainService.validate(target);
-        return new Output(performanceTargetCrudService.create(target));
+        var validated = validatePerformanceTargetDomainService.validate(target);
+        return new Output(performanceTargetCrudService.create(validated));
     }
 
     /**
