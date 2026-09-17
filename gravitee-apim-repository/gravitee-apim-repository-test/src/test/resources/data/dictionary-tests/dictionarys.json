@@ -128,5 +128,19 @@
     "createdAt": 1000000000000,
     "updatedAt": 1111111111111,
     "deployedAt": 1111111111111
+  },
+  {
+     "id":"dic-mixed",
+     "environmentId": "MIXED_ENV",
+     "name":"My mixed dic",
+     "key": "dic-mixed",
+     "description": "Legacy plaintext alongside a value already marked encrypted",
+     "type": "MANUAL",
+     "createdAt": 1000000000000,
+     "updatedAt": 1111111111111,
+     "properties" : {
+        "plain-legacy" : "plain-value",
+        "already-encrypted" : { "value": "ENC(cipher)", "encrypted": true }
+     }
   }
 ]

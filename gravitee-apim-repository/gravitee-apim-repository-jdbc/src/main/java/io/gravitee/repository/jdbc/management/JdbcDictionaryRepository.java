@@ -19,6 +19,7 @@ import static io.gravitee.repository.jdbc.common.AbstractJdbcRepositoryConfigura
 import static io.gravitee.repository.jdbc.orm.JdbcColumn.getDBName;
 import static java.lang.String.format;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
@@ -33,7 +34,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,13 +82,13 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
     }
 
     private static final JdbcHelper.ChildAdder<Dictionary> CHILD_ADDER = (Dictionary parent, ResultSet rs) -> {
-        Map<String, String> properties = parent.getProperties();
+        Map<String, DictionaryProperty> properties = parent.getProperties();
         if (properties == null) {
             properties = new HashMap<>();
             parent.setProperties(properties);
         }
         if (rs.getString("k") != null) {
-            properties.put(rs.getString("k"), rs.getString("v"));
+            properties.put(rs.getString("k"), new DictionaryProperty(rs.getString("v"), rs.getBoolean("encrypted")));
         }
     };
 
@@ -235,25 +235,36 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         if (deleteFirst) {
             jdbcTemplate.update("delete from " + DICTIONARY_PROPERTY + " where dictionary_id = ?", dictionary.getId());
         }
-        if (dictionary.getProperties() != null && !dictionary.getProperties().isEmpty()) {
-            List<Map.Entry<String, String>> entries = new ArrayList<>(dictionary.getProperties().entrySet());
-            jdbcTemplate.batchUpdate(
-                "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v ) values ( ?, ?, ? )",
-                new BatchPreparedStatementSetter() {
-                    @Override
-                    public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        ps.setString(1, dictionary.getId());
-                        ps.setString(2, entries.get(i).getKey());
-                        ps.setString(3, entries.get(i).getValue());
-                    }
-
-                    @Override
-                    public int getBatchSize() {
-                        return entries.size();
-                    }
-                }
-            );
+        if (dictionary.getProperties() == null) {
+            return;
         }
+        // A malformed persisted entry can be null; drop it rather than dereference it, as MongoDictionaryRepository does.
+        List<Map.Entry<String, DictionaryProperty>> entries = dictionary
+            .getProperties()
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null)
+            .toList();
+        if (entries.isEmpty()) {
+            return;
+        }
+        jdbcTemplate.batchUpdate(
+            "insert into " + DICTIONARY_PROPERTY + " ( dictionary_id, k, v, encrypted ) values ( ?, ?, ?, ? )",
+            new BatchPreparedStatementSetter() {
+                @Override
+                public void setValues(PreparedStatement ps, int i) throws SQLException {
+                    ps.setString(1, dictionary.getId());
+                    ps.setString(2, entries.get(i).getKey());
+                    ps.setString(3, entries.get(i).getValue().value());
+                    ps.setBoolean(4, entries.get(i).getValue().encrypted());
+                }
+
+                @Override
+                public int getBatchSize() {
+                    return entries.size();
+                }
+            }
+        );
     }
 
     @Override
