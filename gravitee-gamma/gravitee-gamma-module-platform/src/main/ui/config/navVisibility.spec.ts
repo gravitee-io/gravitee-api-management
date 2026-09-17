@@ -96,6 +96,7 @@ const ORGANIZATION_ADMIN = [
     'organization-user-u',
     'organization-user-d',
     'organization-notification_templates-r',
+    'organization-custom_user_fields-r',
 ] as const;
 
 const ENTITLED_LICENSE: License = { tier: 'enterprise', packs: [], features: [], isExpired: false };
@@ -371,6 +372,14 @@ describe('platform nav visibility', () => {
             anyOf: ['organization-tenant-r'],
             alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
         });
+    });
+
+    it('gates User Fields on organization-custom_user_fields-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('user-fields')).toBe(false);
+        expect(pageGuardForNavItem('user-fields')).toEqual({ anyOf: ['organization-custom_user_fields-r'] });
+        expect(isNavItemVisible('user-fields', visibility(['organization-custom_user_fields-r']))).toBe(true);
+        expect(isNavItemVisible('user-fields', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
+        expect(isNavItemVisible('user-fields', visibility([...ORGANIZATION_ADMIN, ...ENVIRONMENT_ADMIN]))).toBe(true);
     });
 
     it('gates Broadcasts on environment-message-c without the org settings gate', () => {

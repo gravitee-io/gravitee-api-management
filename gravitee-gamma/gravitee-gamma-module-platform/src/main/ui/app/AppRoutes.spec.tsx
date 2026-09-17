@@ -200,6 +200,10 @@ jest.mock('../pages/RolesPage', () => ({
     RolesPage: () => <div data-testid="roles-page" />,
 }));
 
+jest.mock('../pages/UserFieldsPage', () => ({
+    UserFieldsPage: () => <div data-testid="user-fields-page" />,
+}));
+
 jest.mock('../pages/RoleFormPage', () => ({
     RoleFormPage: () => <div data-testid="role-form-page" />,
 }));
@@ -627,6 +631,7 @@ describe('AppRoutes', () => {
             'integrations',
             'metadata',
             'dictionaries',
+            'user-fields',
             'shared-policy-groups',
             'broadcasts',
         ]);
@@ -646,6 +651,7 @@ describe('AppRoutes', () => {
             'integrations',
             'metadata',
             'dictionaries',
+            'user-fields',
             'shared-policy-groups',
             'broadcasts',
         ]);
@@ -1110,6 +1116,37 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(visibleNavKeys()).not.toContain('dictionaries');
+    });
+
+    it('routes to the User Fields page under the platform module', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'user-fields',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/user-fields');
+
+        expect(screen.getByTestId('user-fields-page')).not.toBeNull();
+    });
+
+    it('shows the User Fields nav item when the user has read permission', () => {
+        renderPlatform();
+
+        expect(visibleNavKeys()).toContain('user-fields');
+    });
+
+    it('hides the User Fields nav item and bounces a direct visit when the user lacks organization-custom_user_fields-r', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'user-fields',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('organization-custom_user_fields-r'));
+
+        renderPlatform('/user-fields');
+
+        expect(visibleNavKeys()).not.toContain('user-fields');
+        expect(screen.queryByTestId('user-fields-page')).toBeNull();
     });
 
     it('shows the Metadata nav item when the user has read permission', () => {
