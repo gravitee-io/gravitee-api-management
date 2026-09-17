@@ -137,6 +137,9 @@ class HttpConnectorTest {
     private static final String UPSTREAM_TARGET = "http://backend:8080/team";
     /** Silence unknown: keeps the message free of any timing claim, for the cases that do not test the timing. */
     private static final long NO_SILENCE_MEASURED = -1;
+    /** No Content-Length on the response: the body is framed by the stream, so its expected size is unknown. */
+    private static final long NO_CONTENT_LENGTH_ANNOUNCED = -1;
+    private static final long NO_BYTES_COUNTED = 0;
     /**
      * Path of the stubs that answer late. Their serve outlives the test that started it and re-enters the request
      * journal after the class-level reset, so it is kept off the path every other test counts requests on.
@@ -262,7 +265,14 @@ class HttpConnectorTest {
     void should_record_backend_connection_reset_on_metrics_when_response_stream_fails() {
         when(metrics.getErrorKey()).thenReturn(null);
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new IOException("Connection reset by peer"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new IOException("Connection reset by peer")
+        );
 
         // A reset is a genuine backend fault, so it keeps its own key: only a clean close mid-body is re-keyed.
         verify(metrics).setErrorKey("GATEWAY_CLIENT_CONNECTION_RESET");
@@ -276,7 +286,14 @@ class HttpConnectorTest {
     void should_not_overwrite_an_already_recorded_error_on_response_stream_failure() {
         when(metrics.getErrorKey()).thenReturn("CLIENT_ABORTED_DURING_RESPONSE_ERROR");
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new IOException("Connection reset by peer"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new IOException("Connection reset by peer")
+        );
 
         verify(metrics, never()).setErrorKey(anyString());
         verify(metrics, never()).setErrorMessage(anyString());
@@ -290,7 +307,14 @@ class HttpConnectorTest {
     void should_report_a_stream_cut_short_under_its_own_key_rather_than_as_a_connection_failure() {
         when(metrics.getErrorKey()).thenReturn(null);
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new HttpClosedException("Connection was closed"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new HttpClosedException("Connection was closed")
+        );
 
         // The caller already received status and headers, so this is a truncated response, not a failed request:
         // reporting it as GATEWAY_CLIENT_CONNECTION_CLOSED is what makes streaming APIs look like they are failing.
@@ -302,7 +326,14 @@ class HttpConnectorTest {
     void should_report_a_stream_cut_short_through_metrics_only_and_not_as_a_second_diagnostic() {
         when(metrics.getErrorKey()).thenReturn(null);
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new HttpClosedException("Connection was closed"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new HttpClosedException("Connection was closed")
+        );
 
         // The reporter already turns errorKey/errorMessage into the Diagnostic carried by the metrics, attributed to
         // the ENDPOINT component. Raising an ExecutionWarn on top would emit a duplicate for the very same event —
@@ -317,7 +348,14 @@ class HttpConnectorTest {
         sharedConfiguration.getHttpOptions().setIdleTimeout(12_200);
         sharedConfiguration.getHttpOptions().setReadTimeout(24_000);
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 12_000, new HttpClosedException("Connection was closed"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            12_000,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new HttpClosedException("Connection was closed")
+        );
 
         assertThat(errorMessageRecorded())
             .contains("having received nothing from it for the last 12000 ms")
@@ -336,7 +374,14 @@ class HttpConnectorTest {
         // the trailing silence can be compared to it. Matching on the total elapsed time would never fire here.
         when(metrics.timestamp()).thenReturn(Instant.now().minusMillis(600_000));
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 12_000, new HttpClosedException("Connection was closed"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            12_000,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new HttpClosedException("Connection was closed")
+        );
 
         assertThat(errorMessageRecorded()).contains("This matches the endpoint idleTimeout (12200 ms, applied as 12000 ms)");
     }
@@ -347,7 +392,14 @@ class HttpConnectorTest {
         sharedConfiguration.getHttpOptions().setIdleTimeout(12_200);
         sharedConfiguration.getHttpOptions().setReadTimeout(24_000);
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 3_000, new HttpClosedException("Connection was closed"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            3_000,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new HttpClosedException("Connection was closed")
+        );
 
         // Scattered durations point at the backend: claiming a timeout match here would send operators the wrong way.
         assertThat(errorMessageRecorded()).doesNotContain("idleTimeout").contains("having received nothing from it for the last 3000 ms");
@@ -359,16 +411,105 @@ class HttpConnectorTest {
         sharedConfiguration.getHttpOptions().setIdleTimeout(12_200);
         sharedConfiguration.getHttpOptions().setReadTimeout(8_000);
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, 12_000, new HttpClosedException("Connection was closed"));
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            12_000,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new HttpClosedException("Connection was closed")
+        );
 
         assertThat(errorMessageRecorded()).contains("This matches the endpoint idleTimeout").doesNotContain("readTimeout");
+    }
+
+    @Test
+    void should_not_report_a_failure_when_the_backend_delivered_every_announced_byte() {
+        // No stubbing of getErrorKey: the early return fires before the metrics are ever consulted.
+
+        // The backend wrote all 2048 bytes it announced, then closed abruptly instead of cleanly. The caller holds a
+        // complete response, so raising an error here would flag an exchange that lost nothing.
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            2_048,
+            2_048,
+            new HttpClosedException("Connection was closed")
+        );
+
+        verify(metrics, never()).setErrorKey(anyString());
+        verify(metrics, never()).setErrorMessage(anyString());
+        verify(ctx, never()).warnWith(any());
+        verify(response, never()).status(anyInt());
+    }
+
+    @Test
+    void should_not_report_a_failure_when_more_bytes_arrived_than_announced() {
+        // Same as above: nothing is read from the metrics on this path.
+
+        // A body longer than advertised is a backend framing bug, but nothing was lost on the way to the caller.
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            4_096,
+            2_048,
+            new HttpClosedException("Connection was closed")
+        );
+
+        verify(metrics, never()).setErrorKey(anyString());
+    }
+
+    @Test
+    void should_name_the_missing_bytes_when_the_body_was_actually_truncated() {
+        when(metrics.getErrorKey()).thenReturn(null);
+
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            1_500,
+            4_000,
+            new HttpClosedException("Connection was closed")
+        );
+
+        verify(metrics).setErrorKey("GATEWAY_CLIENT_STREAM_ENDED_EARLY");
+        // The shortfall makes the data loss measurable instead of merely asserted.
+        assertThat(errorMessageRecorded()).contains("1500 of the 4000 announced bytes were received, so 2500 are missing");
+    }
+
+    @Test
+    void should_still_report_a_truncation_when_the_backend_announced_no_content_length() {
+        when(metrics.getErrorKey()).thenReturn(null);
+
+        // A chunked response carries no Content-Length, so nothing can be compared. It loses nothing by it: the
+        // stream only breaks because the terminal chunk never came, which is the truncation itself.
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            1_500,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new HttpClosedException("Connection was closed")
+        );
+
+        verify(metrics).setErrorKey("GATEWAY_CLIENT_STREAM_ENDED_EARLY");
+        assertThat(errorMessageRecorded()).doesNotContain("announced bytes");
     }
 
     @Test
     void should_describe_the_failure_by_type_when_the_cause_carries_no_message() {
         when(metrics.getErrorKey()).thenReturn(null);
 
-        cut.recordBackendResponseStreamFailure(ctx, UPSTREAM_TARGET, NO_SILENCE_MEASURED, new ClosedChannelException());
+        cut.recordBackendResponseStreamFailure(
+            ctx,
+            UPSTREAM_TARGET,
+            NO_SILENCE_MEASURED,
+            NO_BYTES_COUNTED,
+            NO_CONTENT_LENGTH_ANNOUNCED,
+            new ClosedChannelException()
+        );
 
         assertThat(errorMessageRecorded()).isEqualTo("The backend ended the response body before it was complete (ClosedChannelException)");
     }
