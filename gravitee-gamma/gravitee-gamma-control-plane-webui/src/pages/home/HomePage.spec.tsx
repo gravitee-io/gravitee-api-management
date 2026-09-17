@@ -110,7 +110,6 @@ describe('HomePage', () => {
                 'Agent Management',
                 'API Management',
                 'Platform Management',
-                'Developer Portals',
                 'Authorization Management',
                 'Event Stream Management',
             ]) {
@@ -118,6 +117,7 @@ describe('HomePage', () => {
             }
         });
 
+        expect(screen.queryByRole('heading', { level: 3, name: 'Developer Portals' })).toBeNull();
         expect(screen.queryByText('Coming soon')).toBeNull();
     });
 
@@ -135,7 +135,6 @@ describe('HomePage', () => {
             'Event Stream Management',
             'Authorization Management',
             'Guardian Agent',
-            'Developer Portals',
             'Edge Management',
             'Platform Management',
         ]);
@@ -239,16 +238,14 @@ describe('HomePage', () => {
             expect(within(appsSection).getAllByText('Add Integration')).toHaveLength(1);
             expect(within(appsSection).getByText('Create your first API')).toBeTruthy();
             expect(within(appsSection).getByText('Register an application')).toBeTruthy();
-            expect(within(appsSection).getByText('Open Developer Portals')).toBeTruthy();
             expect(within(appsSection).getByText('Create your first policy')).toBeTruthy();
         });
+
+        expect(within(appsSection).queryByText('Open Developer Portals')).toBeNull();
 
         // Agent Management empty-state CTA links to the aim module home, not a removed sub-route.
         const aimCta = within(appsSection).getByText('Add Integration').closest('a');
         expect(aimCta?.getAttribute('href')).toBe('/environments/env-1/aim');
-
-        const portalsCta = within(appsSection).getByText('Open Developer Portals').closest('a');
-        expect(portalsCta?.getAttribute('href')).toBe('/environments/env-1/portals');
     });
 
     it('should show metric view with Open CTA when module has data', async () => {

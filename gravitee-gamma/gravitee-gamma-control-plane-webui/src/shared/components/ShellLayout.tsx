@@ -32,7 +32,7 @@ import { useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { useEnvHrid, getPrimaryHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
-import { HOME_ICON, MODULE_ICONS, findModuleProduct, orderByCatalog } from '../../features/modules';
+import { HOME_ICON, MODULE_ICONS, excludeHiddenModules, findModuleProduct, orderByCatalog } from '../../features/modules';
 import { PendingTasksBadge } from '../../pages/tasks';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
@@ -54,7 +54,7 @@ function moduleIcon(moduleId: string): ReactNode {
 function buildAppDefinitions(modules: readonly GammaModule[]) {
     return [
         hostAppDefinition,
-        ...orderByCatalog(modules).map(m => {
+        ...orderByCatalog(excludeHiddenModules(modules)).map(m => {
             const product = findModuleProduct(m.id);
             return {
                 key: m.id,

@@ -168,7 +168,6 @@ describe('ShellLayout app switcher', () => {
                 'Event Stream Management',
                 'Authorization Management',
                 'Guardian Agent',
-                'Developer Portals',
                 'Edge Management',
                 'Platform Management',
             ].map(label => expect.stringMatching(`^${label}`)),

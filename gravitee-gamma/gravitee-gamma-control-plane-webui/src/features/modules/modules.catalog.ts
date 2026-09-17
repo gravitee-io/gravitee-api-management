@@ -21,6 +21,8 @@ interface ModuleProduct {
     readonly label: string;
     /** One line for the app switcher; the Home page card carries its own, longer description. */
     readonly tagline: string;
+    /** When true, labels and icons stay in the catalog but the product is omitted from the console. */
+    readonly hidden?: true;
 }
 
 /**
@@ -34,7 +36,8 @@ export const MODULE_CATALOG = [
     { id: 'esm', label: 'Event Stream Management', tagline: 'Manage Kafka clusters, services, and event mesh' },
     { id: 'authz', label: 'Authorization Management', tagline: 'Fine-grained authorization policies' },
     { id: 'act', label: 'Guardian Agent', tagline: 'Build, equip, and watch the agents that guard your platform' },
-    { id: 'portals', label: 'Developer Portals', tagline: 'Design and manage developer portal experiences' },
+    // Empty product; hide from the console until it ships.
+    { id: 'portals', label: 'Developer Portals', tagline: 'Design and manage developer portal experiences', hidden: true },
     { id: 'edge', label: 'Edge Management', tagline: 'Monitor and manage Edge Daemons' },
     { id: 'platform', label: 'Platform Management', tagline: 'Apps, subscriptions, and usage' },
 ] as const satisfies readonly ModuleProduct[];
@@ -51,6 +54,11 @@ export function findModuleProduct(moduleId: string): ModuleProduct | undefined {
 export function orderByCatalog(modules: readonly GammaModule[]): GammaModule[] {
     const position = (moduleId: string) => CATALOG_POSITION.get(moduleId) ?? MODULE_CATALOG.length;
     return [...modules].sort((a, b) => position(a.id) - position(b.id) || a.id.localeCompare(b.id));
+}
+
+/** Drops catalog products marked hidden; uncatalogued modules stay so a newly deployed plugin remains reachable. */
+export function excludeHiddenModules(modules: readonly GammaModule[]): GammaModule[] {
+    return modules.filter(module => !findModuleProduct(module.id)?.hidden);
 }
 
 export function getModuleLabel(moduleId: string, fallbackName?: string): string {
