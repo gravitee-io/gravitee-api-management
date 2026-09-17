@@ -32,7 +32,9 @@ import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiResponseTemplates } from '../../../services/apis';
+import type { ApiDetailDto } from '../../../types';
 import type { ResponseTemplateRow } from '../../../types/responseTemplate';
+import { mergeApiDetailCache } from '../../../utils/apiDetailCache';
 import { hasTcpListeners, supportsResponseTemplates } from '../../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 import {
@@ -74,8 +76,10 @@ export function ApiResponseTemplatesPage() {
     const mutation = useMutation({
         mutationFn: (row: ResponseTemplateRow) =>
             updateApiResponseTemplates(env!.id, apiId!, current => removeResponseTemplate(current, row)),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
+        onSuccess: (updatedApi: ApiDetailDto) => {
+            queryClient.setQueryData(apiDetailKeys.detail(env?.id ?? '', apiId ?? ''), (prev: ApiDetailDto | undefined) =>
+                mergeApiDetailCache(prev, updatedApi),
+            );
             setDeleting(null);
         },
     });
@@ -94,7 +98,7 @@ export function ApiResponseTemplatesPage() {
             notify.success(`Response Template ${deleting.key} - ${deleting.contentType} successfully deleted!`);
         } catch (error) {
             if (error instanceof ApimApiError && error.status === 412) {
-                queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
+                await queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             }
             notify.error(error, 'Failed to delete response template');
         }

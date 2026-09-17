@@ -43,6 +43,7 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { FeatureUnavailableNotice } from './FeatureUnavailableNotice';
+import { HeaderNameAutocomplete, isValidHttpHeaderName } from './HeaderNameAutocomplete';
 import { KubernetesManagedReadOnlyAlert } from './KubernetesManagedReadOnlyAlert';
 import { TcpProxyUnavailableNotice } from './TcpProxyUnavailableNotice';
 import { ApimApiError } from '../../../../../shared/api/apimClient';
@@ -50,7 +51,8 @@ import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiResponseTemplates } from '../../../services/apis';
-import type { ResponseTemplateRow } from '../../../types/responseTemplate';
+import type { ApiDetailDto, ResponseTemplateRow } from '../../../types';
+import { mergeApiDetailCache } from '../../../utils/apiDetailCache';
 import { hasTcpListeners, supportsResponseTemplates } from '../../../utils/apiHttpProxy';
 import { findHttpStatusCode, HTTP_STATUS_CODES, isValidHttpStatusCode } from '../../../utils/httpStatusCodes';
 import { apiDetailKeys } from '../../../utils/queryKeys';
@@ -104,7 +106,7 @@ function ApiResponseTemplateForm() {
     const [key, setKey] = useState('');
     const [acceptHeader, setAcceptHeader] = useState('*/*');
     const [statusCode, setStatusCode] = useState('400');
-    const [headers, setHeaders] = useState<HeaderEntry[]>(() => [newHeaderRow()]);
+    const [headers, setHeaders] = useState<HeaderEntry[]>(() => []);
     const [body, setBody] = useState('');
     const [propagateErrorKeyToLogs, setPropagateErrorKeyToLogs] = useState(false);
     const [keyOpen, setKeyOpen] = useState(false);
@@ -128,7 +130,7 @@ function ApiResponseTemplateForm() {
             setAcceptHeader(editing.contentType);
             setStatusCode(String(editing.statusCode ?? 400));
             const existingHeaders = headersFromRecord(editing.headers);
-            setHeaders(existingHeaders.length > 0 ? existingHeaders : [newHeaderRow()]);
+            setHeaders(existingHeaders);
             setBody(editing.body ?? '');
             setPropagateErrorKeyToLogs(editing.propagateErrorKeyToLogs ?? false);
         }
@@ -152,19 +154,21 @@ function ApiResponseTemplateForm() {
         statusError = `Invalid status code: ${statusCode}.`;
     }
 
-    const canSubmit = !readOnly && !keyError && !acceptError && !statusError;
+    const canSubmit = !readOnly && !keyError && !acceptError && !statusError && headers.every(h => isValidHttpHeaderName(h.name));
 
     const mutation = useMutation({
         mutationFn: (toSave: ResponseTemplateRow) =>
             updateApiResponseTemplates(env!.id, apiId!, current => upsertResponseTemplate(current, toSave, editingIdentity)),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
+        onSuccess: (updatedApi: ApiDetailDto) => {
+            queryClient.setQueryData(apiDetailKeys.detail(env?.id ?? '', apiId ?? ''), (prev: ApiDetailDto | undefined) =>
+                mergeApiDetailCache(prev, updatedApi),
+            );
             notify.success('Configuration successfully saved!');
             navigate('..');
         },
         onError: (error: unknown) => {
             if (error instanceof ApimApiError && error.status === 412) {
-                queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
+                void queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env?.id ?? '', apiId ?? '') });
             }
             notify.error(error, 'Failed to save response template');
         },
@@ -430,24 +434,20 @@ function ApiResponseTemplateForm() {
                     <div className="space-y-2">
                         <Label>HTTP Headers</Label>
                         <div className="space-y-2">
-                            <div className="flex items-center gap-2 px-0.5">
-                                <span className="flex-1 text-xs font-medium text-muted-foreground">Header name</span>
-                                <span className="flex-1 text-xs font-medium text-muted-foreground">Value</span>
-                                <span className="size-8 shrink-0" aria-hidden />
-                            </div>
+                            {headers.length > 0 ? (
+                                <div className="flex items-center gap-2 px-0.5">
+                                    <span className="flex-1 text-xs font-medium text-muted-foreground">Header name</span>
+                                    <span className="flex-1 text-xs font-medium text-muted-foreground">Value</span>
+                                    <span className="size-8 shrink-0" aria-hidden />
+                                </div>
+                            ) : null}
                             {headers.map(h => (
                                 <div key={h._id} className="flex items-center gap-2">
-                                    <Input
+                                    <HeaderNameAutocomplete
                                         value={h.name}
-                                        placeholder="Header name"
-                                        onChange={e =>
-                                            setHeaders(prev =>
-                                                prev.map(row => (row._id === h._id ? { ...row, name: e.target.value } : row)),
-                                            )
-                                        }
-                                        className="flex-1"
                                         disabled={readOnly}
-                                        aria-label="Header name"
+                                        showInvalid={attemptedSubmit}
+                                        onChange={name => setHeaders(prev => prev.map(row => (row._id === h._id ? { ...row, name } : row)))}
                                     />
                                     <Input
                                         value={h.value}
@@ -468,11 +468,7 @@ function ApiResponseTemplateForm() {
                                             variant="ghost"
                                             className="size-8 shrink-0 p-0 text-destructive hover:text-destructive"
                                             aria-label="Remove header"
-                                            onClick={() =>
-                                                setHeaders(prev =>
-                                                    prev.length <= 1 ? [newHeaderRow()] : prev.filter(row => row._id !== h._id),
-                                                )
-                                            }
+                                            onClick={() => setHeaders(prev => prev.filter(row => row._id !== h._id))}
                                         >
                                             <Trash2Icon className="size-3.5" aria-hidden />
                                         </Button>
