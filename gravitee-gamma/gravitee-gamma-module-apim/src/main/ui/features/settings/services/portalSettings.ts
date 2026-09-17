@@ -22,6 +22,7 @@ export interface EnvironmentPortalSettings {
 /** Subset of GET /environments/{envId}/portal (classic Console EnvSettings). */
 export interface EnvironmentPortalConfiguration {
     apiScore?: { enabled?: boolean };
+    apiReview?: { enabled?: boolean };
 }
 
 export async function getEnvironmentPortalSettings(environmentId: string): Promise<EnvironmentPortalSettings> {

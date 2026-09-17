@@ -60,6 +60,9 @@ interface ApiTypeConfig {
 }
 
 const API_MANAGEMENT_AREA: TaskArea = { key: 'apim', label: 'API Management' };
+
+/** Mirrors `OPEN_REVIEW_SEARCH_PARAM` in the apim module's `ApiDetailLayout`. */
+const OPEN_REVIEW_SEARCH_PARAM = 'review';
 const USERS_AREA: TaskArea = { key: 'users', label: 'Users' };
 
 const EVENT_STREAM_AREA: TaskArea = { key: 'esm', label: 'Event Stream Management' };
@@ -268,7 +271,9 @@ export function toTaskView(entity: TaskEntity, metadata: TaskMetadata, resolveEn
             const config = configFor(apiType, undefined);
             const comment = str(data.comment);
             const envHrid = resolveEnvHrid(metaField(metadata, referenceId, 'environmentId'));
-            const to = resolveApiTarget(config, envHrid, referenceId);
+            const target = resolveApiTarget(config, envHrid, referenceId);
+            // The apim module opens its review sheet when the API is reached with this parameter.
+            const to = type === 'IN_REVIEW' && config.moduleId === 'apim' && referenceId ? `${target}?${OPEN_REVIEW_SEARCH_PARAM}` : target;
             return {
                 ...base,
                 id: `${type}:${referenceId}`,

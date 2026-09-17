@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { useEnvironmentPortalConfiguration } from './useEnvironmentPortalConfiguration';
-import { isApiScoreEnabled } from '../utils/scoring';
+import { isApiReviewEnabled } from '../utils/apiReview';
 
-export function useApiScoreEnabled(): { enabled: boolean; isFetched: boolean } {
+export function useApiReviewEnabled(): { enabled: boolean; isFetched: boolean } {
     const query = useEnvironmentPortalConfiguration();
     return {
-        enabled: isApiScoreEnabled(query.data),
+        enabled: isApiReviewEnabled(query.data),
         isFetched: query.isFetched,
     };
 }
