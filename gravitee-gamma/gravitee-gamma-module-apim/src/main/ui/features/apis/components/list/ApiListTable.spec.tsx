@@ -411,6 +411,8 @@ describe('ApiListTable', () => {
             ['absent from the display-name map', 'mycompany-gateway'],
             // A bare object index would resolve this key on Object.prototype and render a function instead.
             ['colliding with an Object.prototype member', 'toString'],
+            ['spelled as the Solace display name rather than as its map key', 'Solace'],
+            ['near-missing the aws-api-gateway key a loosened match would absorb', 'aws-apigateway'],
         ])('shows a provider code %s verbatim', (_scenario, provider) => {
             renderTable({ apis: [makeApi({ originContext: { origin: 'INTEGRATION', provider } })] });
             expect(screen.getByTestId('api-origin-indicator').textContent).toBe(provider);
