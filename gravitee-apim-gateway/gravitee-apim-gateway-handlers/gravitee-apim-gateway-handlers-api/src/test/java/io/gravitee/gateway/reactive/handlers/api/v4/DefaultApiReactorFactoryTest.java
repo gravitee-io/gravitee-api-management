@@ -51,6 +51,7 @@ import io.gravitee.gateway.dictionary.EnvironmentDictionaryTemplateVariableProvi
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
+import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.policy.impl.PolicyLoader;
 import io.gravitee.gateway.reactive.core.connection.ConnectionDrainManager;
@@ -58,6 +59,7 @@ import io.gravitee.gateway.reactive.core.connection.DefaultConnectionDrainManage
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.handlers.api.ApiPolicyManager;
 import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
+import io.gravitee.gateway.reactive.handlers.api.el.CredentialsTemplateVariableProvider;
 import io.gravitee.gateway.reactive.platform.organization.policy.OrganizationPolicyChainFactoryManager;
 import io.gravitee.gateway.reactive.policy.PolicyFactory;
 import io.gravitee.gateway.reactive.policy.PolicyFactoryManager;
@@ -272,6 +274,7 @@ class DefaultApiReactorFactoryTest {
             resourcePluginManager = registerResourcePluginManager();
             policyPluginManager = registerPolicyPluginManager();
             registeredApiTemplateVariableProvider = registerApiTemplateVariableProvider(List.of(mock(TemplateVariableProvider.class)));
+            lenient().when(applicationContext.getBeanNamesForType(CredentialResolver.class)).thenReturn(new String[0]);
         }
 
         @Test
@@ -372,6 +375,22 @@ class DefaultApiReactorFactoryTest {
                             .findFirst()
                     ).isPresent();
                 });
+        }
+
+        @Test
+        void should_create_api_reactor_with_a_credentials_TemplateVariableProvider_when_credentials_can_be_resolved() {
+            when(dictionaryManager.createTemplateVariableProvider(any())).thenReturn(
+                mock(EnvironmentDictionaryTemplateVariableProvider.class)
+            );
+            when(applicationContext.getBeanNamesForType(CredentialResolver.class)).thenReturn(new String[] { "credentialResolver" });
+            when(applicationContext.getBean("credentialResolver", CredentialResolver.class)).thenReturn(mock(CredentialResolver.class));
+
+            var reactor = cut.create(anApi());
+
+            assertThat(reactor).isInstanceOf(DefaultApiReactor.class);
+            assertThat(((DefaultApiReactor) reactor).getCtxTemplateVariableProviders())
+                .hasSize(4 + registeredApiTemplateVariableProvider.size())
+                .anyMatch(p -> p instanceof CredentialsTemplateVariableProvider);
         }
 
         private List<TemplateVariableProvider> registerApiTemplateVariableProvider(List<TemplateVariableProvider> providers) {

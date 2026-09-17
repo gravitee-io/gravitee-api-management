@@ -45,6 +45,20 @@ class RepositorySyncConfigurationTest {
         assertThat(beanMethod("authzReplayResponder")).isNull();
     }
 
+    @Test
+    void declares_credential_mapper_bean_under_gamma_condition() {
+        Method bean = beanMethod("credentialMapper");
+        assertThat(bean).isNotNull();
+        assertThat(isGammaConditional(bean)).isTrue();
+    }
+
+    @Test
+    void declares_credential_synchronizer_bean_under_gamma_condition() {
+        Method bean = beanMethod("credentialSynchronizer");
+        assertThat(bean).isNotNull();
+        assertThat(isGammaConditional(bean)).isTrue();
+    }
+
     private static Method beanMethod(String name) {
         return Arrays.stream(RepositorySyncConfiguration.class.getDeclaredMethods())
             .filter(m -> m.getName().equals(name) && m.isAnnotationPresent(Bean.class))

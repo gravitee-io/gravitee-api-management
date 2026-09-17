@@ -106,6 +106,14 @@ public class EnvironmentService {
         }
     }
 
+    public String organizationIdOf(final String environmentId) {
+        if (environmentId == null) {
+            return null;
+        }
+        Environment environment = loadEnvironment(environmentId);
+        return environment != null ? environment.getOrganizationId() : null;
+    }
+
     // The blocking repository calls are intentionally performed outside of ConcurrentHashMap#computeIfAbsent:
     // holding a bin lock across I/O could starve other sync threads. A rare redundant fetch under contention
     // is harmless, and a partial environment (organization not resolved) is never memoized.

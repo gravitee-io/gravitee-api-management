@@ -221,4 +221,18 @@ class EventGroupKeyHelperTest {
             assertThat(result.referenceId()).isEqualTo("schema-1");
         }
     }
+
+    @Test
+    void should_group_credential_events_by_credential_id() {
+        EventType[] credentialEventTypes = { EventType.PUBLISH_CREDENTIAL, EventType.UNPUBLISH_CREDENTIAL };
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.CREDENTIAL_ID.getValue(), "credential-1");
+
+        for (EventType eventType : credentialEventTypes) {
+            EventRepository.EventToCleanGroup result = EventRepository.EventGroupKeyHelper.determineGroup(eventType, properties);
+            assertThat(result).as("non-null group for %s", eventType).isNotNull();
+            assertThat(result.type()).isEqualTo(eventType.name());
+            assertThat(result.referenceId()).isEqualTo("credential-1");
+        }
+    }
 }
