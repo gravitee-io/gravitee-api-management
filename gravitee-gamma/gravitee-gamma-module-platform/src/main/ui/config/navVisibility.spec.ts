@@ -200,6 +200,7 @@ describe('platform nav visibility', () => {
                 'environment-smtp',
                 'environment-cors',
                 'security-plan-types',
+                'api-review',
                 'api-health-check',
                 'environment-audit',
                 'access-management',
@@ -371,6 +372,14 @@ describe('platform nav visibility', () => {
             anyOf: ['organization-tenant-r'],
             alsoAnyOf: ['organization-settings-r', 'organization-settings-u'],
         });
+    });
+
+    it('gates API Review on environment-settings-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('api-review')).toBe(false);
+        expect(pageGuardForNavItem('api-review')).toEqual({ anyOf: ['environment-settings-r'] });
+        expect(isNavItemVisible('api-review', visibility(['environment-settings-r']))).toBe(true);
+        expect(isNavItemVisible('api-review', visibility(['environment-quality_rule-r']))).toBe(false);
+        expect(isNavItemVisible('api-review', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
     });
 
     it('gates Broadcasts on environment-message-c without the org settings gate', () => {

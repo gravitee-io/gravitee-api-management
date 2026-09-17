@@ -299,6 +299,10 @@ jest.mock('../features/security-plan-types/SecurityPlanTypesPage', () => ({
     SecurityPlanTypesPage: () => <div data-testid="security-plan-types-page" />,
 }));
 
+jest.mock('../pages/ApiReviewSettingsPage', () => ({
+    ApiReviewSettingsPage: () => <div data-testid="api-review-settings-page" />,
+}));
+
 jest.mock('../pages/ApiHealthCheckPage', () => ({
     ApiHealthCheckPage: () => <div data-testid="api-health-check-page" />,
 }));
@@ -1749,6 +1753,29 @@ describe('AppRoutes', () => {
     it('routes to environment-scoped CORS settings', () => {
         renderPlatform('/environment/cors');
         expect(screen.getByTestId('environment-cors-settings-page')).not.toBeNull();
+    });
+
+    it('routes to the environment API Review settings', () => {
+        renderPlatform('/api-review');
+        expect(screen.getByTestId('api-review-settings-page')).not.toBeNull();
+    });
+
+    it('blocks API Review without environment-settings-r', () => {
+        denyPermissions('environment-settings-r');
+        renderPlatform('/api-review');
+        expect(screen.queryByTestId('api-review-settings-page')).toBeNull();
+        expect(screen.getByTestId('applications-page')).not.toBeNull();
+    });
+
+    it('shows API Review in the Environment nav section', () => {
+        mockUseModuleRouting.mockReturnValue({
+            activeNavKey: 'api-review',
+            navigateToKey: jest.fn(),
+            rootPath: '/platform',
+        });
+        renderPlatform('/api-review');
+
+        expect(visibleNavKeys()).toContain('api-review');
     });
 
     it('shows environment SMTP in the Environment nav section', () => {

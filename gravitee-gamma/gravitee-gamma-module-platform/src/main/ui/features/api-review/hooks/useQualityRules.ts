@@ -17,17 +17,15 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-import { getEnvironmentPortalConfiguration } from '../services/environmentPortal';
+import { listQualityRules } from '../services/qualityRules';
+import { qualityRuleKeys } from '../utils/queryKeys';
 
-export const ENVIRONMENT_PORTAL_CONFIGURATION_QUERY_KEY = ['environment-portal-configuration'] as const;
-
-export function useEnvironmentPortalConfiguration() {
+export function useQualityRules() {
     const env = useEnvironment();
 
     return useQuery({
-        queryKey: [...ENVIRONMENT_PORTAL_CONFIGURATION_QUERY_KEY, env?.id ?? ''],
-        queryFn: () => getEnvironmentPortalConfiguration(env!.id),
-        enabled: Boolean(env?.id),
-        staleTime: 60_000,
+        queryKey: qualityRuleKeys.list(env?.id ?? ''),
+        queryFn: () => listQualityRules(env!.id),
+        enabled: Boolean(env),
     });
 }
