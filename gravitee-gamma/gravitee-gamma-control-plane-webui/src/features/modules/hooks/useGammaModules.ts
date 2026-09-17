@@ -18,6 +18,7 @@ import { useState, useEffect } from 'react';
 
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { useAuthStore } from '../../auth/auth.store';
+import { excludeHiddenModules } from '../modules.catalog';
 import { useModulesStore } from '../modules.store';
 import { type GammaModule, type GammaModuleResponse, hasUi, parseModule } from '../modules.types';
 
@@ -68,7 +69,7 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
                 return res.json() as Promise<GammaModuleResponse[]>;
             })
             .then(data => {
-                const parsed = Array.isArray(data) ? data.filter(hasUi).map(parseModule) : [];
+                const parsed = excludeHiddenModules(Array.isArray(data) ? data.filter(hasUi).map(parseModule) : []);
                 const remotes = parsed.map(m => ({
                     name: m.remoteName,
                     entry:

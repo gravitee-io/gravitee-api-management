@@ -51,4 +51,29 @@ describe('useGammaModules', () => {
             { force: true },
         );
     });
+
+    it('does not store or register a catalog product marked hidden, even when the backend returns it', async () => {
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [
+            { id: 'apim', name: 'APIM', version: '1.0.0', mfManifest: { name: 'apim', exposes: [{ name: './Module' }] } },
+            {
+                id: 'portals',
+                name: 'Developer Portals',
+                version: '1.0.0',
+                mfManifest: { name: 'portals', exposes: [{ name: './App' }] },
+            },
+        ]);
+
+        const { result } = renderHook(() => useGammaModules());
+
+        await waitFor(() => expect(result.current.loading).toBe(false));
+
+        expect(result.current.error).toBeNull();
+        expect(result.current.modules).toEqual([
+            { id: 'apim', name: 'APIM', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' },
+        ]);
+        expect(mockRegisterRemotes).toHaveBeenCalledWith(
+            [{ name: 'apim', entry: `${TEST_GAMMA_BASE}/modules/apim/assets/mf-manifest.json` }],
+            { force: true },
+        );
+    });
 });

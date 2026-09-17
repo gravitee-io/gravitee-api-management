@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getModuleLabel, orderByCatalog } from './modules.catalog';
+import { excludeHiddenModules, getModuleLabel, orderByCatalog } from './modules.catalog';
 import type { GammaModule } from './modules.types';
 
 function moduleWithId(id: string): GammaModule {
@@ -31,6 +31,20 @@ describe('orderByCatalog', () => {
         const backendOrder = ['zeta', 'apim', 'beta'].map(moduleWithId);
 
         expect(orderByCatalog(backendOrder).map(m => m.id)).toEqual(['apim', 'beta', 'zeta']);
+    });
+});
+
+describe('excludeHiddenModules', () => {
+    it('should omit catalog products marked hidden, and keep the rest in the order they arrived', () => {
+        const backendOrder = ['edge', 'act', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(moduleWithId);
+
+        expect(excludeHiddenModules(backendOrder).map(m => m.id)).toEqual(['edge', 'act', 'aim', 'apim', 'esm', 'platform', 'authz']);
+    });
+
+    it('should keep modules missing from the catalog', () => {
+        const backendOrder = ['zeta', 'portals', 'apim'].map(moduleWithId);
+
+        expect(excludeHiddenModules(backendOrder).map(m => m.id)).toEqual(['zeta', 'apim']);
     });
 });
 

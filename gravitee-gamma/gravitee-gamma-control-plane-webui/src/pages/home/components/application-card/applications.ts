@@ -127,10 +127,10 @@ const CARD_CONTENT: Record<ModuleId, CardContent> = {
 };
 
 /**
- * One card per catalog product, in catalog order — the same order as the app switcher.
+ * One card per visible catalog product, in catalog order — the same order as the app switcher.
  * A license-gated card whose `moduleId` is absent from `GET /organizations/{orgId}/modules` renders locked.
  */
-export const APPLICATIONS: readonly Application[] = MODULE_CATALOG.map(product => ({
+export const APPLICATIONS: readonly Application[] = MODULE_CATALOG.filter(product => !('hidden' in product)).map(product => ({
     title: product.label,
     moduleId: product.id,
     Icon: MODULE_ICONS[product.id],
