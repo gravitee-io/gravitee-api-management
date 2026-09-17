@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { aikido } from './aikido';
-import { artifactory } from './artifactory';
 import { awsCli } from './aws-cli';
 import { awsS3 } from './aws-s3';
 import { github } from './github';
@@ -25,7 +24,6 @@ import { slack } from './slack';
 
 export const orbs = {
   aikido,
-  artifactory,
   awsCli,
   awsS3,
   github,
