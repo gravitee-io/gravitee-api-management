@@ -26,7 +26,7 @@ import { e2eJobs } from './groups/e2e-jobs';
 import { chainguardImageJobs } from './groups/chainguard-image-jobs';
 import { publishAndDeployJobs, publishSnapshotJobs } from './groups/publish-and-deploy-jobs';
 import { devEnvironmentJobs } from './groups/dev-environment-jobs';
-import { backendJobs } from './groups/backend-jobs';
+import { backendJobs, BUILD_DISTRIBUTION } from './groups/backend-jobs';
 import { frontendJobs } from './groups/frontend-jobs';
 import { shouldBuildHelm } from './groups/changed-files';
 
@@ -119,10 +119,19 @@ export class PullRequestsWorkflow {
     }
 
     // A branch of config.snapshotBranches publishes its Maven snapshots once everything that ran
-    // is green - the same gate as the validation job below. The publication builds the whole
-    // backend itself, so it does not need a 'Build backend' among them.
+    // is green - the gate of the validation job below, minus the distribution: its plugins are
+    // built against this engine, so it can only assemble once the engine is published and they
+    // have followed, and waiting on it would be the chicken and egg the split exists to break.
+    // The distribution still gates the workflow's status. The publication builds the whole engine
+    // itself, so it does not need a 'Build backend' among what it waits on.
     if (isSnapshotBranch(environment.branch)) {
-      jobs.push(...publishSnapshotJobs(dynamicConfig, environment, requires));
+      jobs.push(
+        ...publishSnapshotJobs(
+          dynamicConfig,
+          environment,
+          requires.filter((job) => job !== BUILD_DISTRIBUTION),
+        ),
+      );
     }
 
     // compute check-workflow job

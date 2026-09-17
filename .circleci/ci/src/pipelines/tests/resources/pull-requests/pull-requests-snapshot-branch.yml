@@ -336,7 +336,7 @@ jobs:
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-validate
-  job-build:
+  job-build-engine:
     docker:
       - image: cimg/openjdk:25.0.3-node
     resource_class: xlarge
@@ -345,7 +345,7 @@ jobs:
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
-          jobName: job-build
+          jobName: job-build-engine
       - cmd-install-yarn
       - cmd-azure-artifacts-token
       - run:
@@ -355,11 +355,6 @@ jobs:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
-            MAVEN_OPTS: -Xmx2048m
-      - run:
-          name: Build distribution
-          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=4.2.0 -DwithJavadoc
-          environment:
             MAVEN_OPTS: -Xmx2048m
       - cmd-notify-on-failure
       - save_cache:
@@ -377,13 +372,11 @@ jobs:
           key: gravitee-api-management-v15-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
-          jobName: job-build
+          jobName: job-build-engine
       - persist_to_workspace:
           root: ./
           paths:
             - ./gravitee-apim-rest-api/gravitee-apim-rest-api-management/gravitee-apim-rest-api-management-rest/target/classes/console-openapi.*
-            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
-            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-check-graphene-versions:
     docker:
       - image: cimg/node:24.18.0
@@ -407,6 +400,33 @@ jobs:
           name: Check graphene versions across bundled Gamma modules
           command: npx ts-node src/graphene-versions/check.ts
           working_directory: .circleci/ci
+  job-build-distribution:
+    docker:
+      - image: cimg/openjdk:25.0.3-node
+    resource_class: xlarge
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-restore-maven-job-cache:
+          jobName: job-build-distribution
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+      - cmd-azure-artifacts-token
+      - run:
+          name: Build distribution
+          command: mvn -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml clean install --no-transfer-progress -nsu -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -Dbundle=dev -Pintegration-tests-modules -Dapim.core.version=4.2.0 -DwithJavadoc
+          environment:
+            MAVEN_OPTS: -Xmx2048m
+      - cmd-notify-on-failure
+      - cmd-save-maven-job-cache:
+          jobName: job-build-distribution
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-rest-api/target/distribution
+            - ./gravitee-apim-distribution/gravitee-apim-distribution-standalone/gravitee-apim-distribution-standalone-gateway/target/distribution
   job-test-definition:
     docker:
       - image: cimg/openjdk:25.0.3
@@ -1027,7 +1047,7 @@ workflows:
             - cicd-orchestrator
           requires:
             - Setup
-      - job-build:
+      - job-build-engine:
           name: Build backend
           context:
             - cicd-orchestrator
@@ -1035,6 +1055,12 @@ workflows:
             - Validate backend
       - job-check-graphene-versions:
           name: Check graphene versions
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
+      - job-build-distribution:
+          name: Build distribution
           context:
             - cicd-orchestrator
           requires:
@@ -1245,6 +1271,7 @@ workflows:
             - Helm Chart - Lint & Test
             - Build backend
             - Check graphene versions
+            - Build distribution
             - Test definition
             - Test gateway
             - Test rest-api
