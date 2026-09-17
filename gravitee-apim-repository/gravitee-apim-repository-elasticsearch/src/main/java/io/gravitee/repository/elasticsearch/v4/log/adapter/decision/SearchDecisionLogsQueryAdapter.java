@@ -18,6 +18,7 @@ package io.gravitee.repository.elasticsearch.v4.log.adapter.decision;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Aggs.SORT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.BOOL;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.FILTER;
+import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.MUST_NOT;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.QUERY;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.SIZE;
 import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Keys.TIMESTAMP;
@@ -53,6 +54,10 @@ import java.util.Set;
  *       and once when it ends, and only the second carries the outcome. Without it one settled consultation
  *       shows as two rows, one of them still pending.
  * </ol>
+ *
+ * <p>The caller's exclusions become a {@code must_not} beside that {@code filter} in the same {@code bool},
+ * so a value both asked for and ruled out is ruled out — Elasticsearch subtracts the negation from what the
+ * filter kept.
  *
  * @author GraviteeSource Team
  */
@@ -132,6 +137,15 @@ public final class SearchDecisionLogsQueryAdapter {
         addTermsIfAny(filters, DecisionLogFields.TRACE_ID, query.getTraceIds());
         addContainsIfAny(filters, DecisionLogFields.REASONS, query.getReasonContains());
 
+        // The same terms clauses, on the other side of the bool. An empty exclusion is dropped by
+        // addTermsIfAny, which is exactly the wanted reading: ruling out nothing, not ruling out
+        // everything — the opposite of what an empty inclusion means.
+        ArrayNode exclusions = MAPPER.createArrayNode();
+        addTermsIfAny(exclusions, DecisionLogFields.API_ID, query.getExcludedApiIds());
+        addTermsIfAny(exclusions, DecisionLogFields.APP_ID, query.getExcludedApplicationIds());
+        addTermsIfAny(exclusions, DecisionLogFields.DECISION_POINT_ID, query.getExcludedDecisionPointIds());
+        addTermsIfAny(exclusions, DecisionLogFields.OUTCOME, query.getExcludedOutcomes());
+
         if (query.getFrom() != null || query.getTo() != null) {
             ObjectNode bounds = MAPPER.createObjectNode();
             if (query.getFrom() != null) {
@@ -143,8 +157,15 @@ public final class SearchDecisionLogsQueryAdapter {
             filters.add(MAPPER.createObjectNode().set(RANGE, MAPPER.createObjectNode().set(TIMESTAMP, bounds)));
         }
 
+        ObjectNode bool = MAPPER.createObjectNode();
+        bool.set(FILTER, filters);
+        if (!exclusions.isEmpty()) {
+            // Left out when nothing is excluded: an empty must_not is noise in the query the cluster logs.
+            bool.set(MUST_NOT, exclusions);
+        }
+
         ObjectNode root = MAPPER.createObjectNode();
-        root.set(QUERY, MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));
+        root.set(QUERY, MAPPER.createObjectNode().set(BOOL, bool));
         root.put(FROM, (query.getPage() - 1) * query.getSize());
         root.put(SIZE, query.getSize());
         root.put(TRACK_TOTAL_HITS, true);
