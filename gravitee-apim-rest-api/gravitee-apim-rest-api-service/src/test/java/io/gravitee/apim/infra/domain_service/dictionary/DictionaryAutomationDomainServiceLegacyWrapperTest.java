@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.infra.domain_service.dictionary;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.dictionary.model.Dictionary;
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
@@ -28,6 +30,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -60,6 +63,18 @@ class DictionaryAutomationDomainServiceLegacyWrapperTest {
         "secret-key",
         DictionaryPropertyOptions.builder().encrypted(true).build()
     );
+
+    @Test
+    void should_skip_a_null_property_when_reading_typed_properties() {
+        Map<String, io.gravitee.definition.model.dictionary.DictionaryProperty> stored = new HashMap<>();
+        stored.put("valid", new io.gravitee.definition.model.dictionary.DictionaryProperty("value", false));
+        stored.put("invalid", null);
+        when(dictionaryService.findTypedPropertiesById(GraviteeContext.getExecutionContext(), "dic-1")).thenReturn(stored);
+
+        var properties = wrapper.findTypedPropertiesById(GraviteeContext.getExecutionContext(), "dic-1");
+
+        assertThat(properties).containsOnlyKeys("valid");
+    }
 
     @Test
     void should_pass_encrypted_flag_to_the_create_entity() {

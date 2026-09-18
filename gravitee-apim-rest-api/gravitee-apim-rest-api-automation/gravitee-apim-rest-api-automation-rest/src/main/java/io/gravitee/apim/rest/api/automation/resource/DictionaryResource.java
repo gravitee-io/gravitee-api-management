@@ -61,7 +61,7 @@ public class DictionaryResource extends AbstractResource {
 
         DictionaryEntity entity = dictionaryService.findById(executionContext, id).orElseThrow(() -> new HRIDNotFoundException(hrid));
 
-        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, executionContext);
+        DictionaryState state = DictionaryMapper.INSTANCE.toDictionaryState(entity, executionContext, dictionaryService);
 
         boolean canWrite = hasPermission(
             executionContext,

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.configuration.dictionary;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.NewDictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntity;
@@ -48,4 +49,10 @@ public interface DictionaryService {
     DictionaryEntity start(ExecutionContext executionContext, String id);
 
     DictionaryEntity stop(ExecutionContext executionContext, String id);
+
+    /**
+     * Returns the stored properties with their real value — ciphertext for an encrypted key, never
+     * masked. Used by the Automation API, which must round-trip real ciphertext for GitOps reconcile.
+     */
+    Map<String, DictionaryProperty> findTypedPropertiesById(ExecutionContext executionContext, String id);
 }

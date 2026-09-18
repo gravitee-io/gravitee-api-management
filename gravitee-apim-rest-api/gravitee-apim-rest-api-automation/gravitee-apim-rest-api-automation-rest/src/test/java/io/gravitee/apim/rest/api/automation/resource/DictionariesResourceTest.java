@@ -23,7 +23,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
@@ -35,9 +37,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -51,9 +51,12 @@ class DictionariesResourceTest extends AbstractResourceTest {
     @Inject
     private ValidateDictionaryDomainService validateDictionaryDomainService;
 
+    @Inject
+    private DictionaryAutomationDomainService dictionaryAutomationDomainService;
+
     @AfterEach
     void tearDown() {
-        reset(createOrUpdateDictionaryUseCase, validateDictionaryDomainService);
+        reset(createOrUpdateDictionaryUseCase, validateDictionaryDomainService, dictionaryAutomationDomainService);
     }
 
     @Override
@@ -110,6 +113,9 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 .deployedAt(new Date())
                 .build();
             when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+            when(dictionaryAutomationDomainService.findTypedPropertiesById(any(), any())).thenReturn(
+                Map.of("key1", DictionaryProperty.builder().value("value1").build())
+            );
 
             try (
                 var response = rootTarget()
@@ -188,6 +194,15 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 .updatedAt(new Date())
                 .build();
             when(createOrUpdateDictionaryUseCase.execute(any())).thenReturn(new CreateOrUpdateDictionaryUseCase.Output(entity));
+            // The state read goes through the unmasked typed read, so it has to be stubbed too.
+            when(dictionaryAutomationDomainService.findTypedPropertiesById(any(), any())).thenReturn(
+                Map.of(
+                    "url",
+                    DictionaryProperty.builder().key("url").value("https://backend").build(),
+                    "apiKey",
+                    DictionaryProperty.builder().key("apiKey").value("cipher").encrypted(true).build()
+                )
+            );
 
             try (
                 var response = rootTarget()

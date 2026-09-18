@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.use_case.DeleteDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
@@ -40,7 +41,6 @@ import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryNotF
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -86,6 +86,9 @@ class DictionaryResourceTest extends AbstractResourceTest {
                 .deployedAt(new Date())
                 .build();
             when(dictionaryAutomationDomainService.findById(any(), eq(id))).thenReturn(Optional.of(entity));
+            when(dictionaryAutomationDomainService.findTypedPropertiesById(any(), eq(id))).thenReturn(
+                Map.of("key1", DictionaryProperty.builder().value("value1").build())
+            );
 
             try (var response = rootTarget("my-dict").request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(200);

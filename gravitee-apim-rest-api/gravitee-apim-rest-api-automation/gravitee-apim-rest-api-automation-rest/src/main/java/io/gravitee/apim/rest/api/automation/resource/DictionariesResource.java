@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
+import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.mapper.DictionaryMapper;
@@ -55,6 +56,9 @@ public class DictionariesResource extends AbstractResource {
     @Inject
     private CreateOrUpdateDictionaryUseCase createOrUpdateDictionaryCRDUseCase;
 
+    @Inject
+    private DictionaryAutomationDomainService dictionaryAutomationDomainService;
+
     @Path("/{hrid}")
     public DictionaryResource getDictionaryResource() {
         return resourceContext.getResource(DictionaryResource.class);
@@ -78,6 +82,8 @@ public class DictionariesResource extends AbstractResource {
             new CreateOrUpdateDictionaryUseCase.Input(executionContext, dictionary, spec.getDeployed())
         );
 
-        return Response.ok(DictionaryMapper.INSTANCE.toDictionaryState(result.dictionary(), executionContext)).build();
+        return Response.ok(
+            DictionaryMapper.INSTANCE.toDictionaryState(result.dictionary(), executionContext, dictionaryAutomationDomainService)
+        ).build();
     }
 }
