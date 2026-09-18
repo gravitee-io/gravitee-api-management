@@ -517,3 +517,13 @@ describe('GioSideNavComponent', () => {
     httpTestingController.expectOne(`${LICENSE_CONFIGURATION_TESTING.resourceURL}`).flush(license);
   }
 });
+
+// Outside the component suite: the Portal Settings entry is gated on this list alone, and a role holding only
+// the subscription form permissions must reach the screen the nav item and the route now require.
+describe('PORTAL_SETTINGS_PERMISSIONS', () => {
+  it('should let a subscription form manager reach Portal Settings', () => {
+    expect(PORTAL_SETTINGS_PERMISSIONS).toEqual(
+      expect.arrayContaining(['environment-subscription_form-r', 'environment-subscription_form-u']),
+    );
+  });
+});

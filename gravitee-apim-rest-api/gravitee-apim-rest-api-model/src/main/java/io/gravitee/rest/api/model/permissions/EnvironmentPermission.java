@@ -64,7 +64,8 @@ public enum EnvironmentPermission implements Permission {
     EXPLORER("EXPLORER", 5200),
     AI_WORKSPACE("AI_WORKSPACE", 5300),
     AUTHZ_SCIM_CONNECTION("AUTHZ_SCIM_CONNECTION", 5400),
-    AUTHZ_SCIM_SYNC("AUTHZ_SCIM_SYNC", 5500);
+    AUTHZ_SCIM_SYNC("AUTHZ_SCIM_SYNC", 5500),
+    SUBSCRIPTION_FORM("SUBSCRIPTION_FORM", 5600);
 
     String name;
     int mask;
