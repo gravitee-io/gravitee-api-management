@@ -23,6 +23,7 @@ import io.gravitee.rest.api.service.impl.search.SearchResult;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentSearcher;
 import io.gravitee.rest.api.service.impl.search.lucene.analyzer.CustomWhitespaceAnalyzer;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -43,6 +44,7 @@ import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TopFieldCollectorManager;
 import org.apache.lucene.search.TopScoreDocCollectorManager;
 import org.slf4j.Logger;
 
@@ -119,18 +121,61 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                     : searcher.search(query, Integer.MAX_VALUE, luceneSort);
             }
 
-            final Set<String> results = new LinkedHashSet<>();
-
             log.debug("Found {} total matching documents", topDocs.totalHits);
-            for (ScoreDoc doc : topDocs.scoreDocs) {
-                String reference = searcher.storedFields().document(doc.doc).get(fieldReference);
-                results.add(reference);
-            }
 
-            return new SearchResult(results, topDocs.totalHits.value());
+            return new SearchResult(referencesOf(searcher, topDocs.scoreDocs, fieldReference), topDocs.totalHits.value());
         } catch (IOException ioe) {
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);
         }
+    }
+
+    /**
+     * Sorts in the index and returns the requested page alone, so a caller never has to hold — nor hand to a database —
+     * every matched id. A null pageable means the whole match set. The total hit count stays exact whatever the window
+     * size: the collector is built with no early termination threshold, unlike {@link IndexSearcher#search(Query, int,
+     * Sort)}, which stops counting past its first thousand hits.
+     */
+    protected SearchResult searchWindow(Query query, Sort sort, Pageable pageable) throws TechnicalException {
+        log.debug("Searching for: {}", query.toString());
+
+        try {
+            IndexSearcher searcher = getIndexSearcher();
+            int offset = offsetOf(pageable);
+            int windowEnd = windowEndOf(pageable, offset);
+            int collectedHits = Math.max(1, Math.min(windowEnd, searcher.getIndexReader().maxDoc()));
+
+            TopDocs topDocs = searcher.search(query, new TopFieldCollectorManager(sort, collectedHits, null, Integer.MAX_VALUE));
+
+            int from = Math.min(offset, topDocs.scoreDocs.length);
+            int to = Math.max(from, Math.min(windowEnd, topDocs.scoreDocs.length));
+            var window = Arrays.copyOfRange(topDocs.scoreDocs, from, to);
+
+            log.debug("Found {} total matching documents", topDocs.totalHits);
+
+            return new SearchResult(referencesOf(searcher, window, FIELD_ID), topDocs.totalHits.value());
+        } catch (IOException ioe) {
+            throw new TechnicalException("An error occurs while getting documents from search result", ioe);
+        }
+    }
+
+    private static int offsetOf(Pageable pageable) {
+        if (pageable == null) {
+            return 0;
+        }
+        long offset = (long) (pageable.getPageNumber() - 1) * pageable.getPageSize();
+        return Math.clamp(offset, 0, Integer.MAX_VALUE);
+    }
+
+    private static int windowEndOf(Pageable pageable, int offset) {
+        return pageable == null ? Integer.MAX_VALUE : (int) Math.min((long) offset + pageable.getPageSize(), Integer.MAX_VALUE);
+    }
+
+    private static Collection<String> referencesOf(IndexSearcher searcher, ScoreDoc[] scoreDocs, String fieldReference) throws IOException {
+        final Set<String> references = new LinkedHashSet<>();
+        for (ScoreDoc doc : scoreDocs) {
+            references.add(searcher.storedFields().document(doc.doc).get(fieldReference));
+        }
+        return references;
     }
 
     protected Sort convert(Sortable sort) {

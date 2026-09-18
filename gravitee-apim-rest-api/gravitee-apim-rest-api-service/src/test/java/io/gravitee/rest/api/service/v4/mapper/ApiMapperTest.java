@@ -903,4 +903,57 @@ public class ApiMapperTest {
         assertThat(nativeEntity.getFlows()).isNotNull();
         assertThat(nativeEntity.getFlows().size()).isEqualTo(2);
     }
+
+    @Test
+    public void should_degrade_gracefully_when_federated_agent_definition_is_malformed() {
+        // Given
+        var api = new Api();
+        api.setId("api-id");
+        api.setName("api-name");
+        api.setEnvironmentId("environment-id");
+        api.setIntegrationId("integration-id");
+        api.setDefinitionVersion(DefinitionVersion.FEDERATED_AGENT);
+        api.setDefinition("not-json");
+        api.setUpdatedAt(new Date());
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build();
+
+        // When
+        var result = apiMapper.federatedAgentToEntity(api, primaryOwner);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo("api-id");
+        assertThat(result.getName()).isEqualTo("api-name");
+        assertThat(result.getUpdatedAt()).isEqualTo(api.getUpdatedAt());
+        assertThat(result.getSkills()).isNull();
+        assertThat(result.getCapabilities()).isNull();
+    }
+
+    @Test
+    public void should_degrade_gracefully_when_federated_agent_definition_is_malformed_with_execution_context() {
+        // Given
+        var api = new Api();
+        api.setId("api-id");
+        api.setName("api-name");
+        api.setEnvironmentId("environment-id");
+        api.setIntegrationId("integration-id");
+        api.setDefinitionVersion(DefinitionVersion.FEDERATED_AGENT);
+        api.setDefinition("not-json");
+        api.setUpdatedAt(new Date());
+
+        var primaryOwner = PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build();
+        var executionContext = new ExecutionContext("organization-id", "environment-id");
+
+        // When
+        var result = apiMapper.federatedAgentToEntity(executionContext, api, primaryOwner);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo("api-id");
+        assertThat(result.getName()).isEqualTo("api-name");
+        assertThat(result.getUpdatedAt()).isEqualTo(api.getUpdatedAt());
+        assertThat(result.getSkills()).isNull();
+        assertThat(result.getCapabilities()).isNull();
+    }
 }

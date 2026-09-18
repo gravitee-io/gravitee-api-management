@@ -19,8 +19,10 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static java.util.stream.Collectors.*;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.ReferenceContext;
@@ -122,6 +124,12 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         FIELD_ALLOW_IN_API_PRODUCTS,
     };
 
+    private static final List<String> FREE_TEXT_SEARCH_FIELDS = List.of(
+        FIELD_NAME_LOWERCASE,
+        FIELD_DESCRIPTION_LOWERCASE,
+        FIELD_PROVIDER_ORGANIZATION_LOWERCASE
+    );
+
     /** Short tokens (e.g. brand names like "IoT") intentionally skip fuzzy expansion. */
     private static final int MIN_FUZZY_TOKEN_LENGTH = 4;
 
@@ -158,6 +166,77 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         var idSort = new SortField(FIELD_ID_SORTED, SortField.Type.STRING);
         idSort.setMissingValue(SortField.STRING_LAST);
         return new Sort(SortField.FIELD_SCORE, nameSort, idSort);
+    }
+
+    /**
+     * The two caller-supplied strings are deliberately handled in opposite ways. The integration id is turned into a
+     * {@link Term} verbatim rather than routed through {@link #buildFilterQuery}, which runs a String-valued filter
+     * through {@link QueryParserBase#escape} and would look up {@code int\-a} for the indexed term {@code int-a}. The
+     * free text query is instead trimmed, escaped and lower-cased into a leading-and-trailing {@link WildcardQuery}
+     * term, so it matches as a literal case-insensitive substring of one whole field value — never tokenized and
+     * OR'd across fields the way the {@link MultiFieldQueryParser}-based builders in this class do.
+     * <p>
+     * A non-null integration id and null-free definition versions are trusted here: they are validated at the
+     * {@code ApiQueryService#searchByIntegrationId} port this searcher is reached through.
+     */
+    public SearchResult searchByIntegrationId(
+        String environmentId,
+        String integrationId,
+        List<DefinitionVersion> definitionVersions,
+        String query,
+        Pageable pageable
+    ) throws TechnicalException {
+        var apiQuery = new BooleanQuery.Builder()
+            .add(new TermQuery(new Term(FIELD_TYPE, FIELD_API_TYPE_VALUE)), BooleanClause.Occur.FILTER)
+            .add(buildEnvCriteria(environmentId), BooleanClause.Occur.FILTER)
+            .add(new TermQuery(new Term(FIELD_INTEGRATION_ID, integrationId)), BooleanClause.Occur.FILTER);
+
+        if (!CollectionUtils.isEmpty(definitionVersions)) {
+            apiQuery.add(anyOfDefinitionVersions(definitionVersions), BooleanClause.Occur.FILTER);
+        }
+
+        if (!isBlank(query)) {
+            apiQuery.add(anyFreeTextFieldContaining(query.trim()), BooleanClause.Occur.FILTER);
+        }
+
+        return searchWindow(apiQuery.build(), mostRecentlyUpdatedFirst(), pageable);
+    }
+
+    private Sort mostRecentlyUpdatedFirst() {
+        var updatedAtSort = new SortField(FIELD_UPDATED_AT_SORTED, SortField.Type.LONG, true);
+        updatedAtSort.setMissingValue(Long.MIN_VALUE);
+        var nameSort = new SortField(FIELD_NAME_SORTED, SortField.Type.STRING);
+        nameSort.setMissingValue(SortField.STRING_LAST);
+        var idSort = new SortField(FIELD_ID_SORTED, SortField.Type.STRING);
+        idSort.setMissingValue(SortField.STRING_LAST);
+        return new Sort(updatedAtSort, nameSort, idSort);
+    }
+
+    private static BooleanQuery anyFreeTextFieldContaining(String query) {
+        String containedTerm = '*' + escapeWildcardMetacharacters(query).toLowerCase() + '*';
+        var anyField = new BooleanQuery.Builder();
+        FREE_TEXT_SEARCH_FIELDS.forEach(field ->
+            anyField.add(new WildcardQuery(new Term(field, containedTerm)), BooleanClause.Occur.SHOULD)
+        );
+        return anyField.build();
+    }
+
+    /**
+     * Only the three characters {@link WildcardQuery}'s grammar reserves. Every other code point — including the
+     * {@code % _ [ . $} that a SQL {@code LIKE} or a regex would reserve — reaches {@code Automata.makeChar} as a
+     * literal, so escaping it would make the backslash itself part of the searched term. The backslash pass must run
+     * first, or it would re-escape the backslashes the other two passes introduce.
+     */
+    private static String escapeWildcardMetacharacters(String query) {
+        return query.replace("\\", "\\\\").replace("*", "\\*").replace("?", "\\?");
+    }
+
+    private static BooleanQuery anyOfDefinitionVersions(List<DefinitionVersion> definitionVersions) {
+        var anyVersion = new BooleanQuery.Builder();
+        definitionVersions.forEach(definitionVersion ->
+            anyVersion.add(new TermQuery(new Term(FIELD_DEFINITION_VERSION, definitionVersion.getLabel())), BooleanClause.Occur.SHOULD)
+        );
+        return anyVersion.build();
     }
 
     private BooleanQuery.Builder buildApiQuery(ExecutionContext executionContext, Optional<Query> filterQuery) {
@@ -529,9 +608,13 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     }
 
     private BooleanQuery buildEnvCriteria(ExecutionContext executionContext) {
+        return buildEnvCriteria(executionContext.getEnvironmentId());
+    }
+
+    private BooleanQuery buildEnvCriteria(String environmentId) {
         return new BooleanQuery.Builder()
             .add(new TermQuery(new Term(FIELD_REFERENCE_TYPE, ReferenceContext.Type.ENVIRONMENT.name())), BooleanClause.Occur.FILTER)
-            .add(new TermQuery(new Term(FIELD_REFERENCE_ID, executionContext.getEnvironmentId())), BooleanClause.Occur.FILTER)
+            .add(new TermQuery(new Term(FIELD_REFERENCE_ID, environmentId)), BooleanClause.Occur.FILTER)
             .build();
     }
 

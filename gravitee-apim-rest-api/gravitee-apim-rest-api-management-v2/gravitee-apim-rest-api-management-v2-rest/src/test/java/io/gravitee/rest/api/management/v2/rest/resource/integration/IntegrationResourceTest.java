@@ -493,7 +493,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(200)
                 .asEntity(IngestedApisResponse.class)
                 .extracting(IngestedApisResponse::getPagination)
-                .isEqualTo(new Pagination().page(2).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L));
+                .isEqualTo(new Pagination().page(2).perPage(10).pageItemsCount(5).pageCount(2).totalCount(15L));
         }
 
         @Test
