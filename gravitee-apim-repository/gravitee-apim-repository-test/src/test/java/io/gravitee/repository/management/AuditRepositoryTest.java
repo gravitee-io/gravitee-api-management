@@ -30,6 +30,7 @@ import io.gravitee.repository.management.model.Plan;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -117,6 +118,65 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, auditPage.getPageElements(), "page elements");
         assertEquals(0, auditPage.getPageNumber(), "page number");
         assertEquals("searchable2", auditPage.getContent().getFirst().getId(), "find audit with id 'searchable2'");
+    }
+
+    @Test
+    public void shouldSearchWithProperty() {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.PLAN.name(), "123").build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+
+        assertNotNull(auditPage);
+        assertEquals(2, auditPage.getTotalElements(), "total elements");
+        assertEquals(
+            Set.of("new", "searchable1"),
+            auditPage.getContent().stream().map(Audit::getId).collect(Collectors.toSet()),
+            "audits carrying PLAN=123"
+        );
+    }
+
+    @Test
+    public void shouldSearchWithPropertyMatchingNothing() {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.PLAN.name(), "nope").build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+
+        assertNotNull(auditPage);
+        assertEquals(0, auditPage.getTotalElements(), "total elements");
+    }
+
+    @Test
+    public void shouldSearchWithPropertyCombinedWithAnotherCriterion() {
+        AuditCriteria auditCriteria = new AuditCriteria.Builder()
+            .environmentIds(List.of("DEFAULT"))
+            .property(Audit.AuditProperties.PLAN.name(), "123")
+            .build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+
+        assertNotNull(auditPage);
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals("new", auditPage.getContent().getFirst().getId(), "find audit with id 'new'");
+    }
+
+    @Test
+    public void shouldKeepEveryPropertyOfAMatchedAudit() throws Exception {
+        auditRepository.create(multiPropertyAudit());
+
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.PLAN.name(), "789").build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals(
+            Map.of(Audit.AuditProperties.PLAN.name(), "789", Audit.AuditProperties.API.name(), "456"),
+            auditPage.getContent().getFirst().getProperties(),
+            "every property of the matched audit"
+        );
     }
 
     @Test
