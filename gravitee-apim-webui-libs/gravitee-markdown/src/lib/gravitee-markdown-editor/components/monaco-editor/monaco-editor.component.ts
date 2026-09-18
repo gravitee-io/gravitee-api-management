@@ -76,6 +76,8 @@ export class MonacoEditorComponent implements OnDestroy {
         if (currentValue !== newValue && this.shouldUpdateTextModel()) {
           this.isUpdatingFromParent.set(true);
           this.textModel.setValue(newValue);
+          // The parent value now supersedes the last emission: left stale, a later value equal to it would be ignored.
+          this.lastEmittedValue.set(newValue);
 
           this.autoFormatValue();
 
