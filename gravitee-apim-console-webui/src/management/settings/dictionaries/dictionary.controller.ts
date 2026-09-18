@@ -21,6 +21,8 @@ import { cloneDeep, filter, forEach } from 'lodash';
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';
 
+const ENCRYPTED_VALUE_MASK = '•'.repeat(12);
+
 class DictionaryController {
   private dictionary: any;
   private initialDictionary: any;
@@ -328,9 +330,9 @@ class DictionaryController {
     return Object.entries((this.dictionary && this.dictionary.properties) || {}).map(entry => {
       const result: any = {};
       result.key = entry[0];
-      result.value = entry[1];
       result.encrypted = this.isEncrypted(entry[0]);
       result.encryptable = this.isEncryptable(entry[0]);
+      result.value = result.encrypted ? ENCRYPTED_VALUE_MASK : entry[1];
       return result;
     });
   };
@@ -378,7 +380,7 @@ class DictionaryController {
       .then(property => {
         if (property) {
           this.dictionary.properties[key] = property.value;
-          this.dictionary.propertyOptions[key] = { encryptable: true };
+          this.dictionary.propertyOptions[key] = { ...this.dictionary.propertyOptions[key], encryptable: true };
           this.dictProperties = this.computeProperties();
           this.propertiesDirty = true;
         }
