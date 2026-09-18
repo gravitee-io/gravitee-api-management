@@ -18,7 +18,6 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyOptions;
 import io.gravitee.apim.rest.api.automation.model.DictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
@@ -33,6 +32,7 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.impl.configuration.dictionary.InvalidDictionaryPropertyOptionsException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -100,7 +100,7 @@ public interface DictionaryMapper {
             .filter(key -> !properties.containsKey(key))
             .findFirst()
             .ifPresent(key -> {
-                throw new ValidationDomainException("Dictionary propertyOptions name '" + key + "', which is not declared in properties.");
+                throw new InvalidDictionaryPropertyOptionsException(key, "there is no such property");
             });
     }
 

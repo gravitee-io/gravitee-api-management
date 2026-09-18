@@ -1674,7 +1674,9 @@ components:
             leave the property's current classification untouched.
           type: boolean
         encryptable:
-          description: When the input value needs to be encrypted.
+          description: >-
+            When the input value needs to be encrypted. Not honoured yet: a request that sets it is
+            rejected, so that a value asking to be encrypted is never stored as plaintext instead.
           type: boolean
           writeOnly: true
     DynamicDictionarySpec:

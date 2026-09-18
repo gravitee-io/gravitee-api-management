@@ -94,6 +94,19 @@ class MultiEnvironmentDictionaryManagerTest {
         }
 
         @Test
+        void should_skip_a_property_whose_value_is_null() {
+            Dictionary dictionary = dictionary("idp-server-details", null, ENV, "first-value", 1L);
+            Map<String, DictionaryProperty> properties = new HashMap<>(dictionary.getProperties());
+            properties.put("VALUELESS_PROP", new DictionaryProperty(null, false));
+            dictionary.setProperties(properties);
+
+            cut.deploy(dictionary);
+
+            assertThat(property(ENV, "idp-server-details")).isEqualTo("first-value");
+            assertThat(cut.getDictionaries(ENV).get("idp-server-details")).doesNotContainKey("VALUELESS_PROP");
+        }
+
+        @Test
         void should_deploy_without_throwing_when_a_property_value_is_null() {
             Dictionary dictionary = dictionary("idp-server-details", null, ENV, "first-value", 1L);
             Map<String, DictionaryProperty> properties = new HashMap<>(dictionary.getProperties());

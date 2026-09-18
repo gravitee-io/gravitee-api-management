@@ -102,6 +102,22 @@ class DictionaryMapperTest {
     }
 
     @Test
+    void should_skip_only_the_null_property_of_a_legacy_payload() {
+        Event event = new Event();
+        event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"null-key\":null}}");
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(dictionary -> {
+                assertThat(dictionary.getProperties()).containsOnlyKeys("legacy-key");
+                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
     void should_map_dictionary_with_typed_properties() throws JsonProcessingException {
         Event event = new Event();
         event.setPayload("{\"properties\":{\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");

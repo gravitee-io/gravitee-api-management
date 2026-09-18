@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyOptions;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
@@ -27,7 +26,9 @@ import io.gravitee.apim.rest.api.automation.model.DictionaryType;
 import io.gravitee.apim.rest.api.automation.model.ManualDictionarySpec;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.impl.configuration.dictionary.InvalidDictionaryPropertyOptionsException;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,7 @@ class DictionaryMapperTest {
         DictionarySpec spec = manualSpec(Map.of("hostname", "api.example.com"), Map.of("ghost", options(true, null)));
 
         assertThatThrownBy(() -> DictionaryMapper.INSTANCE.toDictionary(spec))
-            .isInstanceOf(ValidationDomainException.class)
+            .isInstanceOf(InvalidDictionaryPropertyOptionsException.class)
             .hasMessageContaining("ghost");
     }
 
@@ -110,10 +111,7 @@ class DictionaryMapperTest {
             .name("My dic")
             .type(io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL)
             .properties(
-                dictionary
-                    .getProperties()
-                    .stream()
-                    .collect(java.util.stream.Collectors.toMap(DictionaryProperty::getKey, DictionaryProperty::getValue))
+                dictionary.getProperties().stream().collect(Collectors.toMap(DictionaryProperty::getKey, DictionaryProperty::getValue))
             )
             .propertyOptions(
                 Map.of(
