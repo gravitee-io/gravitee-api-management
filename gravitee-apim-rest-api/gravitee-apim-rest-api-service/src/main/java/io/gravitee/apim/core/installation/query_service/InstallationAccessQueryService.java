@@ -18,6 +18,7 @@ package io.gravitee.apim.core.installation.query_service;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import jakarta.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -56,6 +57,15 @@ public interface InstallationAccessQueryService {
     List<String> getGammaUrls(final String organizationId);
 
     String getGammaUrl(final String organizationId);
+
+    /**
+     * The organization's Gamma URL as it was actually configured, empty when nothing configures one.
+     *
+     * <p>Unlike {@link #getGammaUrl(String)}, which substitutes {@link #DEFAULT_GAMMA_URL} so a caller always has
+     * somewhere to send a browser, this distinguishes "not configured" from "configured to the default value".
+     * Callers that must refuse to act without a real URL -- rather than fall back to one -- use this.
+     */
+    Optional<String> findGammaUrl(final String organizationId);
 
     @Nullable
     String getGammaAPIUrl(final String organizationId);
