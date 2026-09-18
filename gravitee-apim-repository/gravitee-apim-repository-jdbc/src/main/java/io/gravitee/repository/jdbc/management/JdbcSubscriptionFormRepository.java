@@ -147,8 +147,7 @@ public class JdbcSubscriptionFormRepository
             jdbcTemplate.update("delete from " + SUBSCRIPTION_FORM_APIS + " where form_id = ?", id);
             jdbcTemplate.update(getOrm().getDeleteSql(), id);
         } catch (final Exception ex) {
-            log.error("Failed to delete subscription form: {}", id, ex);
-            throw new TechnicalException("Failed to delete subscription form", ex);
+            throw new TechnicalException("Failed to delete subscription form [" + id + "]", ex);
         }
     }
 
@@ -205,8 +204,10 @@ public class JdbcSubscriptionFormRepository
             }
             return list.isEmpty() ? Optional.empty() : Optional.of(list.getFirst());
         } catch (final Exception ex) {
-            log.error("Failed to find subscription form by environment id and api id: {}, {}", environmentId, apiId, ex);
-            throw new TechnicalException("Failed to find subscription form by environment id and api id", ex);
+            throw new TechnicalException(
+                "Failed to find subscription form of API [" + apiId + "] in environment [" + environmentId + "]",
+                ex
+            );
         }
     }
 
