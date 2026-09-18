@@ -1,0 +1,18 @@
+{
+  "hrid": "mixed-dict",
+  "name": "Mixed Dictionary",
+  "description": "A dictionary with one plain and one encrypted property",
+  "type": "MANUAL",
+  "deployed": false,
+  "manual": {
+    "properties": {
+      "url": "https://backend",
+      "apiKey": "cipher"
+    },
+    "propertyOptions": {
+      "apiKey": {
+        "encrypted": true
+      }
+    }
+  }
+}

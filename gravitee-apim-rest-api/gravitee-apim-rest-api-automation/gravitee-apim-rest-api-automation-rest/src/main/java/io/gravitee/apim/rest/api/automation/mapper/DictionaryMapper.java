@@ -17,6 +17,8 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
+import io.gravitee.apim.rest.api.automation.model.DictionaryPropertyOptions;
 import io.gravitee.apim.rest.api.automation.model.DictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
@@ -30,7 +32,12 @@ import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.impl.configuration.dictionary.InvalidDictionaryPropertyOptionsException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -47,10 +54,55 @@ public interface DictionaryMapper {
     // ===== DictionarySpec → Dictionary (core) =====
 
     @Mapping(source = "type", target = "type")
-    @Mapping(source = "manual.properties", target = "properties")
+    @Mapping(target = "properties", expression = "java(mapManualProperties(spec))")
     @Mapping(source = "dynamic.provider", target = "provider")
     @Mapping(source = "dynamic.trigger", target = "trigger")
     Dictionary toDictionary(DictionarySpec spec);
+
+    /**
+     * Zips the manifest's property map with its options map.
+     *
+     * <p>Values come from {@code properties}; {@code propertyOptions} only classifies them, and a key
+     * it does not mention keeps whatever classification the stored property already has. A manifest
+     * written before {@code propertyOptions} existed therefore applies unchanged.
+     */
+    default List<DictionaryProperty> mapManualProperties(DictionarySpec spec) {
+        if (spec.getManual() == null || spec.getManual().getProperties() == null) {
+            return null;
+        }
+        Map<String, DictionaryPropertyOptions> options = spec.getManual().getPropertyOptions();
+        rejectOptionsWithoutProperty(spec.getManual().getProperties(), options);
+        return spec
+            .getManual()
+            .getProperties()
+            .entrySet()
+            .stream()
+            .map(entry -> toCoreProperty(entry, options == null ? null : options.get(entry.getKey())))
+            .toList();
+    }
+
+    private static DictionaryProperty toCoreProperty(Map.Entry<String, String> property, DictionaryPropertyOptions options) {
+        return DictionaryProperty.builder()
+            .key(property.getKey())
+            .value(property.getValue())
+            .encrypted(options == null ? null : options.getEncrypted())
+            .encryptable(options == null ? null : options.getEncryptable())
+            .build();
+    }
+
+    private static void rejectOptionsWithoutProperty(Map<String, String> properties, Map<String, DictionaryPropertyOptions> options) {
+        if (options == null) {
+            return;
+        }
+        options
+            .keySet()
+            .stream()
+            .filter(key -> !properties.containsKey(key))
+            .findFirst()
+            .ifPresent(key -> {
+                throw new InvalidDictionaryPropertyOptionsException(key, "there is no such property");
+            });
+    }
 
     io.gravitee.apim.core.dictionary.model.DictionaryType toCoreType(DictionaryType type);
 
@@ -69,6 +121,23 @@ public interface DictionaryMapper {
         return null;
     }
 
+    default Map<String, DictionaryPropertyOptions> toSpecPropertyOptions(
+        Map<String, io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions> options
+    ) {
+        if (options == null) {
+            return Map.of();
+        }
+        return options
+            .entrySet()
+            .stream()
+            .collect(
+                LinkedHashMap::new,
+                (specOptions, entry) ->
+                    specOptions.put(entry.getKey(), new DictionaryPropertyOptions().encrypted(entry.getValue().getEncrypted())),
+                LinkedHashMap::putAll
+            );
+    }
+
     // ===== DictionaryEntity → DictionaryState =====
 
     default DictionaryState toDictionaryState(DictionaryEntity entity, ExecutionContext executionContext) {
@@ -85,7 +154,8 @@ public interface DictionaryMapper {
         if (entity.getType() == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             state.setDeployed(entity.getDeployedAt() != null);
             ManualDictionarySpec manual = new ManualDictionarySpec();
-            manual.setProperties(entity.getProperties() != null ? entity.getProperties() : Map.of());
+            manual.setProperties(entity.getProperties() == null ? Map.of() : entity.getProperties());
+            manual.setPropertyOptions(toSpecPropertyOptions(entity.getPropertyOptions()));
             state.setManual(manual);
         } else {
             state.setDeployed(isEntityStarted(entity));

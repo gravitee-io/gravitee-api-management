@@ -64,4 +64,72 @@ class DictionaryMapperTest {
         event.setPayload(objectMapper.writeValueAsString("wrong"));
         cut.to(event).test().assertNoValues().assertComplete();
     }
+
+    @Test
+    void should_map_dictionary_with_legacy_bare_string_properties() throws JsonProcessingException {
+        Event event = new Event();
+        event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\"}}");
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(dictionary -> {
+                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
+                assertThat(dictionary.getProperties().get("legacy-key").encrypted()).isFalse();
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
+    void should_map_dictionary_mixing_legacy_and_typed_properties() throws JsonProcessingException {
+        // The rolling-upgrade payload: a dictionary saved before the typed shape existed, with one
+        // property since encrypted.
+        Event event = new Event();
+        event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(dictionary -> {
+                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
+                assertThat(dictionary.getProperties().get("legacy-key").encrypted()).isFalse();
+                assertThat(dictionary.getProperties().get("typed-key").value()).isEqualTo("cipher");
+                assertThat(dictionary.getProperties().get("typed-key").encrypted()).isTrue();
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
+    void should_skip_only_the_null_property_of_a_legacy_payload() {
+        Event event = new Event();
+        event.setPayload("{\"properties\":{\"legacy-key\":\"legacy-value\",\"null-key\":null}}");
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(dictionary -> {
+                assertThat(dictionary.getProperties()).containsOnlyKeys("legacy-key");
+                assertThat(dictionary.getProperties().get("legacy-key").value()).isEqualTo("legacy-value");
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @Test
+    void should_map_dictionary_with_typed_properties() throws JsonProcessingException {
+        Event event = new Event();
+        event.setPayload("{\"properties\":{\"typed-key\":{\"value\":\"cipher\",\"encrypted\":true}}}");
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(dictionary -> {
+                assertThat(dictionary.getProperties().get("typed-key").value()).isEqualTo("cipher");
+                assertThat(dictionary.getProperties().get("typed-key").encrypted()).isTrue();
+                return true;
+            })
+            .assertComplete();
+    }
 }
