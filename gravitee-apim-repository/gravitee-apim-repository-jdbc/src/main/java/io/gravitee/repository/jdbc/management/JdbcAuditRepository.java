@@ -233,8 +233,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         addStringsWhereClause(filter.getEvents(), "event", argsList, builder, started);
 
         String whereClause = builder.toString();
-        String countSql =
-            "SELECT COUNT(*) FROM " + this.tableName + " a LEFT JOIN " + AUDIT_PROPERTIES + " ap ON a.id = ap.audit_id " + whereClause;
+        String countSql = "SELECT COUNT(*) FROM " + this.tableName + " a " + whereClause;
         log.debug("Count SQL: {}", countSql);
         Long total = jdbcTemplate.queryForObject(countSql, argsList.toArray(), Long.class);
         log.debug("Total records found: {}", total);
