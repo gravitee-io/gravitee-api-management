@@ -34,5 +34,5 @@ export interface CreateSubscriptionForm {
 export interface UpdateSubscriptionForm {
   name: string;
   gmdContent: string;
-  apiIds?: string[];
+  apiIds: string[];
 }
