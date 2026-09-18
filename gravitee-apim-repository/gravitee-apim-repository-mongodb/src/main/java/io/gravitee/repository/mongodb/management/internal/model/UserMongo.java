@@ -72,6 +72,9 @@ public class UserMongo extends DeprecatedAuditable {
     private Boolean newsletterSubscribed;
     private Boolean isServiceAccount;
 
+    /** Stored as a string, as {@code status} is: an unrecognised value read back is a mapping failure, not a crash. */
+    private String registrationOrigin;
+
     @ToString.Exclude // may carry PII from IdP claims — keep it out of logs
     private Map<String, String> idpClaims;
 }

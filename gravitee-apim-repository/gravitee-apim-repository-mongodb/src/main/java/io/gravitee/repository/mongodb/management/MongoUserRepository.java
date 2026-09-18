@@ -245,6 +245,7 @@ public class MongoUserRepository implements UserRepository {
         userMongo.setFirstConnectionAt(user.getFirstConnectionAt());
         userMongo.setNewsletterSubscribed(user.getNewsletterSubscribed());
         userMongo.setIsServiceAccount(user.getIsServiceAccount());
+        userMongo.setRegistrationOrigin(user.getRegistrationOrigin() == null ? null : user.getRegistrationOrigin().name());
         userMongo.setIdpClaims(encodeClaimKeys(user.getIdpClaims()));
         UserMongo userUpdated = internalUserRepo.save(userMongo);
         return toModel(userUpdated);
