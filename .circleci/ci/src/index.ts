@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { changedFiles, isBlank, isSupportBranchOrMaster } from './utils';
+import { changedFiles, isBlank, isSupportBranchOrMaster, remoteSupportBranches, remoteTags } from './utils';
 import { argv } from 'node:process';
 import { buildCIPipeline, CircleCIEnvironment } from './pipelines';
 import * as fs from 'fs';
@@ -43,21 +43,34 @@ if (isBlank(CIRCLE_SHA1)) {
  */
 const changed = isSupportBranchOrMaster(CIRCLE_BRANCH) ? Promise.resolve([]) : changedFiles(GIT_COMMON_COMMIT_HASH ?? GIT_BASE_BRANCH);
 
-changed
+const action = CI_ACTION ?? 'pull_requests';
+
+/**
+ * What the bridge compatibility matrix is derived from: which lines have released, and which ones
+ * have a support branch. Neither can be answered from the working tree, and both are read for this
+ * action only.
+ */
+const isBridgeRun = action === 'bridge_compatibility_tests';
+const releasedTags = isBridgeRun ? remoteTags() : Promise.resolve(undefined);
+const supportBranches = isBridgeRun ? remoteSupportBranches() : Promise.resolve(undefined);
+
+Promise.all([changed, releasedTags, supportBranches])
   .then(
-    (changes) =>
+    ([changes, tags, branches]) =>
       ({
         baseBranch: GIT_BASE_BRANCH,
         branch: CIRCLE_BRANCH,
         buildNum: CIRCLE_BUILD_NUM, // TODO merge this line with the next one when everything is working on the CI
         buildId: CIRCLE_BUILD_NUM,
         sha1: CIRCLE_SHA1,
-        action: CI_ACTION ?? 'pull_requests',
+        action,
         isDryRun: CI_DRY_RUN !== 'false',
         graviteeioVersion: CI_GRAVITEEIO_VERSION,
         changedFiles: changes,
         apimVersionPath: APIM_VERSION_PATH ?? '/home/circleci/project/pom.xml',
         dockerTagAsLatest: CI_DOCKER_TAG_AS_LATEST === 'true',
+        releasedTags: tags,
+        supportBranches: branches,
       }) as CircleCIEnvironment,
   )
   .then((environment: CircleCIEnvironment) => buildCIPipeline(environment))
