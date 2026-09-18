@@ -120,6 +120,34 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldNotInflateTotalElementsForAnAuditWithSeveralProperties() throws Exception {
+        auditRepository.create(multiPropertyAudit());
+
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("multi-property-env")).build();
+        Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
+
+        Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
+
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals(1, auditPage.getPageElements(), "page elements");
+    }
+
+    private static Audit multiPropertyAudit() {
+        final Audit audit = new Audit();
+        audit.setId("multiProperty");
+        audit.setOrganizationId("multi-property-org");
+        audit.setEnvironmentId("multi-property-env");
+        audit.setReferenceType(Audit.AuditReferenceType.API);
+        audit.setReferenceId("1");
+        audit.setEvent(Plan.AuditEvent.PLAN_CREATED.name());
+        audit.setProperties(Map.of(Audit.AuditProperties.PLAN.name(), "789", Audit.AuditProperties.API.name(), "456"));
+        audit.setUser("JohnDoe");
+        audit.setPatch("diff");
+        audit.setCreatedAt(new Date(1486771200000L));
+        return audit;
+    }
+
+    @Test
     public void shouldSearchAll() {
         AuditCriteria auditCriteria = new AuditCriteria.Builder().build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
