@@ -40,7 +40,7 @@ public interface SubscriptionFormCrudService {
     SubscriptionForm update(SubscriptionForm subscriptionForm);
 
     /**
-     * Deletes a subscription form and the page content holding its definition.
+     * Deletes a subscription form, including its content and its API mappings.
      *
      * @param subscriptionForm the form to delete
      */
