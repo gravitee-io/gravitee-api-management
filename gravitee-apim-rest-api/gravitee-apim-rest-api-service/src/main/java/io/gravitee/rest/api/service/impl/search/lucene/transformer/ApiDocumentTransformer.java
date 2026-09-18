@@ -28,6 +28,7 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.NumericDocValuesField;
 import org.apache.lucene.document.SortedDocValuesField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
@@ -86,6 +88,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_CATEGORIES_SPLIT = "categories_split";
     public static final String FIELD_CREATED_AT = "createdAt";
     public static final String FIELD_UPDATED_AT = "updatedAt";
+    public static final String FIELD_UPDATED_AT_SORTED = "updatedAt_sorted";
     public static final String FIELD_PATHS = "paths";
     public static final String FIELD_PATHS_LOWERCASE = "paths_lowercase";
     public static final String FIELD_HOSTS = "hosts";
@@ -112,6 +115,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_VISIBILITY = "visibility";
     public static final String FIELD_VISIBILITY_SORTED = "visibility_sorted";
     public static final String FIELD_ALLOW_IN_API_PRODUCTS = "allow_in_api_products";
+    public static final String FIELD_INTEGRATION_ID = "integration_id";
+    public static final String FIELD_PROVIDER_ORGANIZATION_LOWERCASE = "provider_organization_lowercase";
 
     private final ApiService apiService;
     private final Collator collator = Collator.getInstance(Locale.ENGLISH);
@@ -132,7 +137,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         if (api.getDefinitionVersion() == null && api.getName() == null) {
             return doc;
         }
-        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+        if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED && api.getDefinitionVersion() != DefinitionVersion.FEDERATED_AGENT) {
             doc.add(new StringField(FIELD_STATUS, api.getState().name(), Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_STATUS_SORTED, toSortedValue(api.getState().name())));
         }
@@ -146,8 +151,11 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         doc.add(new StringField(FIELD_VISIBILITY, api.getVisibility().name(), Field.Store.NO));
         doc.add(new SortedDocValuesField(FIELD_VISIBILITY_SORTED, toSortedValue(api.getVisibility().name())));
 
+        LuceneTransformerUtils.appendDefinitionVersion(doc, api.getDefinitionVersion());
+
+        // The V2 fallback in appendDefinitionVersion deliberately stops there: generateApiType dereferences the
+        // version, so a legacy row keeps carrying no api_type term.
         if (api.getDefinitionVersion() != null) {
-            doc.add(new StringField(FIELD_DEFINITION_VERSION, api.getDefinitionVersion().getLabel(), Field.Store.NO));
             String apiType = LuceneTransformerUtils.generateApiType(api);
             doc.add(new StringField(FIELD_API_TYPE, apiType, Field.Store.NO));
             doc.add(new SortedDocValuesField(FIELD_API_TYPE_SORTED, toSortedValue(apiType)));
@@ -168,6 +176,10 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             doc.add(new StringField(FIELD_DESCRIPTION, api.getDescription(), Field.Store.NO));
             doc.add(new StringField(FIELD_DESCRIPTION_LOWERCASE, api.getDescription().toLowerCase(), Field.Store.NO));
             doc.add(new TextField(FIELD_DESCRIPTION_SPLIT, api.getDescription(), Field.Store.NO));
+        }
+
+        if (api instanceof FederatedApiAgentEntity agentEntity && agentEntity.getProvider() != null) {
+            LuceneTransformerUtils.appendProviderOrganization(doc, agentEntity.getProvider().organization(), api.getId());
         }
 
         PrimaryOwnerEntity primaryOwner = api.getPrimaryOwner();
@@ -240,6 +252,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         }
         if (api.getUpdatedAt() != null) {
             doc.add(new LongPoint(FIELD_UPDATED_AT, api.getUpdatedAt().getTime()));
+            doc.add(new NumericDocValuesField(FIELD_UPDATED_AT_SORTED, api.getUpdatedAt().getTime()));
         }
 
         // metadata
@@ -256,6 +269,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
         if (api.getOriginContext() != null && api.getOriginContext().name() != null) {
             doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().name(), NO));
         }
+
+        LuceneTransformerUtils.appendIntegrationId(doc, api.getOriginContext(), api.getId());
 
         return doc;
     }
