@@ -69,6 +69,20 @@ public enum ObservabilityEntrypoints {
     MCP("mcp", "gravitee-entrypoint-mcp-tool-server", Scope.HTTP),
     MCP_STUDIO("mcp-studio", "gravitee-entrypoint-mcp-studio", Scope.HTTP),
     AGENT_TO_AGENT("agent-to-agent", "gravitee-entrypoint-agent-to-agent", Scope.HTTP),
+    /*
+     * The entrypoints an Agent API is called through, from the agent reactor. Every one of them is
+     * REQUEST_RESPONSE on the HTTP listener, so they carry the same traffic as AGENT_TO_AGENT above and
+     * follow its decision.
+     */
+    AGENT_A2A("agent-a2a", "gravitee-agent-entrypoint-a2a", Scope.HTTP),
+    AGENT_AG_UI("agent-ag-ui", "gravitee-agent-entrypoint-ag-ui", Scope.HTTP),
+    AGENT_GUARDIAN("agent-guardian", "gravitee-agent-entrypoint-guardian", Scope.HTTP),
+    AGENT_HTTP("agent-http", "gravitee-agent-entrypoint-http", Scope.HTTP),
+    /** The plugin id differs from the artifact name: {@code plugin.properties} says {@code agent-openai-responses}. */
+    AGENT_OPENAI_RESPONSES("agent-openai-responses", "gravitee-agent-entrypoint-openresponses", Scope.HTTP),
+    AGENT_PLAYGROUND("agent-playground", "gravitee-agent-entrypoint-playground", Scope.HTTP),
+    AGENT_SLACK("agent-slack", "gravitee-agent-entrypoint-slack", Scope.HTTP),
+    AGENT_WEB_AI_ASSISTANT("agent-web-ai-assistant", "gravitee-agent-entrypoint-web-ai-assistant", Scope.HTTP),
 
     NATIVE_KAFKA("native-kafka", "gravitee-entrypoint-native-kafka", Scope.LOGS_ONLY),
 

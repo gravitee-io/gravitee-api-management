@@ -280,10 +280,14 @@
     <gravitee-resource-ai-model-token-classification.version>2.0.0</gravitee-resource-ai-model-token-classification.version>
 
     <!-- Gamma plugins -->
+    <gravitee-gamma-module-act.version>1.0.0-agent-gateway-SNAPSHOT</gravitee-gamma-module-act.version>
     <gravitee-gamma-module-aim.version>4.3.0-alpha.51</gravitee-gamma-module-aim.version>
     <gravitee-gamma-module-authz.version>2.8.0</gravitee-gamma-module-authz.version>
     <gravitee-gamma-module-edge.version>2.0.0-alpha.13</gravitee-gamma-module-edge.version>
     <gravitee-gamma-module-esm.version>1.5.0-alpha.19</gravitee-gamma-module-esm.version>
+
+    <!-- Agent plugins, all released together from gravitee-reactor-agent -->
+    <gravitee-reactor-agent.version>1.0.0-agent-gateway-SNAPSHOT</gravitee-reactor-agent.version>
 
     <!-- Authz plugins -->
     <gravitee-service-authz-pdp.version>3.0.1</gravitee-service-authz-pdp.version>
