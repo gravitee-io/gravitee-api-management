@@ -52,6 +52,7 @@ public class SubscriptionFormCrudServiceImpl implements SubscriptionFormCrudServ
                 .gmdContent(subscriptionForm.getGmdContent())
                 .enabled(subscriptionForm.isEnabled())
                 .validationConstraints(subscriptionForm.getValidationConstraints())
+                .apiIds(subscriptionForm.getApiIds())
                 .build()
             : subscriptionForm;
         try {

@@ -29,6 +29,7 @@ import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.SubscriptionFormRepository;
 import io.gravitee.repository.management.model.SubscriptionForm;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -95,6 +96,17 @@ class SubscriptionFormCrudServiceImplTest {
             assertThat(result.getId()).isNotNull();
             verify(repository).create(captor.capture());
             assertThat(captor.getValue().getId()).isEqualTo(result.getId().toString());
+        }
+
+        @Test
+        void should_keep_the_mapped_apis_when_generating_the_id() throws TechnicalException {
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionFormBuilder().id(null).apiIds(List.of("api-1", "api-2")).build();
+
+            var result = service.create(subscriptionForm);
+
+            verify(repository).create(captor.capture());
+            assertThat(captor.getValue().getApiIds()).containsExactly("api-1", "api-2");
+            assertThat(result.getApiIds()).containsExactly("api-1", "api-2");
         }
 
         @Test
