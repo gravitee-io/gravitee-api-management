@@ -48,7 +48,7 @@ describe('SubscriptionFormComponent', () => {
 
   const baseUrl = `${CONSTANTS_TESTING.env.v2BaseURL}/subscription-forms`;
 
-  const init = async (canUpdate: boolean) => {
+  const init = async (canUpdate: boolean, canDelete = canUpdate) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, SubscriptionFormComponent],
       providers: [
@@ -56,7 +56,7 @@ describe('SubscriptionFormComponent', () => {
         {
           provide: GioPermissionService,
           useValue: {
-            hasAnyMatching: jest.fn().mockReturnValue(canUpdate),
+            hasAnyMatching: jest.fn((permissions: string[]) => (permissions.includes('environment-metadata-d') ? canDelete : canUpdate)),
           },
         },
       ],
@@ -658,6 +658,16 @@ describe('SubscriptionFormComponent', () => {
       expectGet(firstForm);
       expectApiSearches();
       expect(fixture.componentInstance.selectedForm()?.id).toBe('form-a');
+    });
+
+    it('should not offer to delete a form without the delete permission, even with the update one', async () => {
+      await init(true, false);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A' });
+      expectList([form]);
+      expectGet(form);
+      expectApiSearches();
+
+      expect(fixture.debugElement.query(By.css('[data-testid=delete-form-button-form-a]'))).toBeNull();
     });
   });
 
