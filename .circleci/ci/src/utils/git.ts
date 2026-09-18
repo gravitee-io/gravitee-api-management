@@ -53,3 +53,47 @@ export const changedFiles = async (from: string, to = 'HEAD'): Promise<string[]>
 const diffCommand = (from: string, to: string) => `git --no-pager diff --name-only ${from} ${to}`;
 const keepFirstPathItem = (path: string) => path.split('/')[0];
 const removeDuplicate = (path: string, index: number, arr: string[]) => arr.indexOf(path) === index;
+
+export const remoteTags = async (): Promise<string[]> => {
+  const stdout = await run('git', ['ls-remote', '--tags', '--refs', 'origin']);
+  return stdout
+    .split('\n')
+    .map((line) => line.split('refs/tags/')[1]?.trim())
+    .filter((tag): tag is string => !!tag);
+};
+
+/**
+ * The support branches the remote carries, as `<major>.<minor>.x`.
+ *
+ * Asked of the remote for the same reason as the tags above: a CI checkout holds the one branch it
+ * was started on, so a local listing would answer that no line has been cut yet.
+ */
+export const remoteSupportBranches = async (): Promise<string[]> => {
+  const stdout = await run('git', ['ls-remote', '--heads', 'origin', '*.x']);
+  return stdout
+    .split('\n')
+    .map((line) => line.split('refs/heads/')[1]?.trim())
+    .filter((branch): branch is string => !!branch && /^\d+\.\d+\.x$/.test(branch));
+};
+
+/**
+ * Runs a command and resolves its whole stdout, rejecting on a non-zero exit.
+ *
+ * Waiting for `close` rather than resolving on the first `data`: a pipe hands over 64 KB at a time,
+ * and a wide diff arrives in several chunks. Resolving on the first one dropped every path after it
+ * — silently, and always the same ones, since git sorts them.
+ */
+const run = (command: string, args: string[]): Promise<string> =>
+  new Promise((resolve, reject) => {
+    console.log(`Running "${command} ${args.join(' ')}"`);
+    const child = spawn(command, args);
+
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (data: Buffer) => (stdout += data.toString()));
+    child.stderr.on('data', (data: Buffer) => (stderr += data.toString()));
+    child.on('error', reject);
+    child.on('close', (code) =>
+      code === 0 ? resolve(stdout) : reject(new Error(stderr.trim().length > 0 ? stderr.trim() : `${command} exited with code ${code}`)),
+    );
+  });

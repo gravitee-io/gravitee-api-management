@@ -18,6 +18,7 @@ import { BuildBackendJob, SetupJob } from '../jobs';
 import { E2EGenerateSDKJob, E2ELintBuildJob, E2ETestJob } from '../jobs/e2e';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
+import { bridgeClientTags, computeApimVersion } from '../utils';
 import { ValidateJob } from '../jobs/backend';
 
 export class BridgeCompatibilityTestsWorkflow {
@@ -61,16 +62,7 @@ export class BridgeCompatibilityTestsWorkflow {
         matrix: {
           execution_mode: ['v3', 'v4-emulation-engine'],
           database: ['bridge'],
-          apim_client_tag: [
-            '4.10.x-latest',
-            'graviteeio@4.10.0',
-            '4.9.x-latest',
-            'graviteeio@4.9.0',
-            'graviteeio@4.8',
-            'graviteeio@4.8.0',
-            'graviteeio@4.7',
-            'graviteeio@4.7.0',
-          ],
+          apim_client_tag: bridgeClientTags(computeApimVersion(environment), environment.supportBranches, environment.releasedTags),
         },
       }),
     ];
