@@ -60,6 +60,7 @@ import io.gravitee.repository.management.api.MembershipRepository;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.model.Membership;
+import io.gravitee.repository.management.model.RegistrationOrigin;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -802,14 +803,20 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
      */
     @Override
     public UserEntity create(ExecutionContext executionContext, NewExternalUserEntity newExternalUserEntity, boolean addDefaultRole) {
-        return create(executionContext, newExternalUserEntity, addDefaultRole, true);
+        return create(executionContext, newExternalUserEntity, addDefaultRole, true, null);
     }
 
+    /**
+     * @param registrationOrigin the product the user signed themselves up on, or {@code null} when they did not --
+     *     an administrator created them. Recorded because the activation email of a registration awaiting approval
+     *     is built by a later request, which has no other way of knowing which front door to send them back to.
+     */
     private UserEntity create(
         ExecutionContext executionContext,
         NewExternalUserEntity newExternalUserEntity,
         boolean addDefaultRole,
-        boolean autoRegistrationEnabled
+        boolean autoRegistrationEnabled,
+        RegistrationOrigin registrationOrigin
     ) {
         try {
             String organizationId = executionContext.getOrganizationId();
@@ -836,6 +843,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user.setId(UuidString.generateRandom());
             user.setOrganizationId(organizationId);
             user.setStatus(autoRegistrationEnabled ? UserStatus.ACTIVE : UserStatus.PENDING);
+            user.setRegistrationOrigin(registrationOrigin);
             user.setIsServiceAccount(false);
             if (newExternalUserEntity instanceof NewPreRegisterUserEntity preRegisterUser) {
                 user.setIsServiceAccount(preRegisterUser.isService());
@@ -891,7 +899,12 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final NewExternalUserEntity newExternalUserEntity,
         final String confirmationPageUrl
     ) {
-        return doRegister(executionContext, newExternalUserEntity, () -> sanitizePortalRedirectUrl(executionContext, confirmationPageUrl));
+        return doRegister(
+            executionContext,
+            newExternalUserEntity,
+            () -> sanitizePortalRedirectUrl(executionContext, confirmationPageUrl),
+            RegistrationOrigin.PORTAL
+        );
     }
 
     @Override
@@ -901,15 +914,18 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final String registrationTarget
     ) {
         if (registrationTarget == null || registrationTarget.isBlank()) {
-            return register(executionContext, newExternalUserEntity, null);
+            return doRegister(executionContext, newExternalUserEntity, () -> null, RegistrationOrigin.CONSOLE);
         }
 
         if (GAMMA_TARGET.equalsIgnoreCase(registrationTarget.trim())) {
             // Built from installation configuration rather than from the caller, so it deliberately does
             // not pass through sanitizePortalRedirectUrl: that whitelist exists for caller-supplied portal
             // URLs and would drop a trusted one built here.
-            return doRegister(executionContext, newExternalUserEntity, () ->
-                buildGammaRegistrationPageUrl(executionContext.getOrganizationId())
+            return doRegister(
+                executionContext,
+                newExternalUserEntity,
+                () -> buildGammaRegistrationPageUrl(executionContext.getOrganizationId()),
+                RegistrationOrigin.GAMMA
             );
         }
 
@@ -925,7 +941,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     private UserEntity doRegister(
         ExecutionContext executionContext,
         final NewExternalUserEntity newExternalUserEntity,
-        final Supplier<String> confirmationPageUrl
+        final Supplier<String> confirmationPageUrl,
+        final RegistrationOrigin registrationOrigin
     ) {
         final ReferenceContext currentContext = executionContext.getReferenceContext();
 
@@ -938,7 +955,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             USER_REGISTRATION,
             confirmationPageUrl.get(),
             autoRegistrationEnabled,
-            false
+            false,
+            registrationOrigin
         );
     }
 
@@ -967,7 +985,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             USER_CREATION,
             null,
             true,
-            newPreRegisterUserEntity.isService()
+            newPreRegisterUserEntity.isService(),
+            null
         );
     }
 
@@ -987,7 +1006,8 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         final ACTION action,
         final String confirmationPageUrl,
         final boolean autoRegistrationEnabled,
-        final boolean isServiceUser
+        final boolean isServiceUser,
+        final RegistrationOrigin registrationOrigin
     ) {
         if (
             (!isServiceUser || StringUtils.isNotEmpty(newExternalUserEntity.getEmail())) &&
@@ -1047,7 +1067,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             throw new TechnicalManagementException(e.getMessage(), e);
         }
 
-        final UserEntity userEntity = create(executionContext, newExternalUserEntity, true, autoRegistrationEnabled);
+        final UserEntity userEntity = create(executionContext, newExternalUserEntity, true, autoRegistrationEnabled, registrationOrigin);
 
         if (userEntity == null) {
             throw new TechnicalManagementException("An error occurs while trying to create user");
@@ -1131,14 +1151,46 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return portalUrl + PORTAL_REGISTRATION_CONFIRMATION_PATH;
     }
 
+    /**
+     * The page the activation link opens once a registration is approved, chosen by the front door the user signed
+     * up on. Only the origin can answer this: the approval is a separate request from the sign-up, and configuration
+     * describes the organization where the question is about the person.
+     *
+     * @return {@code null} for the classic console, whose link {@link #getTokenRegistrationParams} builds itself.
+     */
+    private String registrationConfirmationUrl(ExecutionContext executionContext, String userId) {
+        final RegistrationOrigin origin = registrationOrigin(userId);
+        if (RegistrationOrigin.GAMMA == origin) {
+            return buildGammaRegistrationPageUrl(executionContext.getOrganizationId());
+        }
+        if (RegistrationOrigin.CONSOLE == origin) {
+            return null;
+        }
+        // PORTAL, and null for accounts that registered before the origin was recorded: both resolve the portal of
+        // the environment, which is what every approval did before there was an origin to read.
+        return portalRegistrationConfirmationUrl(executionContext, userId);
+    }
+
+    private RegistrationOrigin registrationOrigin(String userId) {
+        try {
+            return userRepository.findById(userId).map(User::getRegistrationOrigin).orElse(null);
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException("An error occurs while trying to find user using its ID " + userId, ex);
+        }
+    }
+
     @Override
     public UserEntity processRegistration(ExecutionContext executionContext, String userId, boolean accepted) {
         UserEntity userToProcess = findById(executionContext, userId);
-        UserEntity processedUser = this.changeUserStatus(executionContext, userId, accepted ? UserStatus.ACTIVE : UserStatus.REJECTED);
-        final Map<String, Object> params = new NotificationParamsBuilder().user(processedUser).build();
         // An accepted user still having to choose a password gets the registration email instead: telling them they can
         // sign in would be misleading, and the registration email is the one carrying the activation link.
-        final boolean registrationEmailToSend = accepted && !processedUser.isHasPassword();
+        final boolean registrationEmailToSend = accepted && !userToProcess.isHasPassword();
+        // Resolved before the status changes, so an unresolvable destination leaves the user PENDING and re-approvable.
+        // Resolving afterwards would leave them ACTIVE with no activation link and no way to reissue one.
+        final String confirmationPageUrl = registrationEmailToSend ? registrationConfirmationUrl(executionContext, userId) : null;
+
+        UserEntity processedUser = this.changeUserStatus(executionContext, userId, accepted ? UserStatus.ACTIVE : UserStatus.REJECTED);
+        final Map<String, Object> params = new NotificationParamsBuilder().user(processedUser).build();
         if (!registrationEmailToSend) {
             emailService.sendAsyncEmailNotification(
                 executionContext,
@@ -1166,13 +1218,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                 executionContext,
                 processedUser,
                 USER_REGISTRATION,
-                getTokenRegistrationParams(
-                    executionContext,
-                    processedUser,
-                    REGISTRATION_PATH,
-                    USER_REGISTRATION,
-                    portalRegistrationConfirmationUrl(executionContext, userId)
-                )
+                getTokenRegistrationParams(executionContext, processedUser, REGISTRATION_PATH, USER_REGISTRATION, confirmationPageUrl)
             );
         }
 
