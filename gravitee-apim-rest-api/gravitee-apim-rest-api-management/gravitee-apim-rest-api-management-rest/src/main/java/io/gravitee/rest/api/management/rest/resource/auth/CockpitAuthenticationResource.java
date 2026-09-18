@@ -18,7 +18,6 @@ package io.gravitee.rest.api.management.rest.resource.auth;
 import static io.gravitee.rest.api.management.rest.resource.PortalRedirectResource.PROPERTY_HTTP_API_PORTAL_ENTRYPOINT;
 import static io.gravitee.rest.api.management.rest.resource.PortalRedirectResource.PROPERTY_HTTP_API_PORTAL_PROXY_PATH;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -33,7 +32,6 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.model.UserEntity;
-import io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.MembershipService;
@@ -41,7 +39,6 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
-import io.gravitee.rest.api.service.configuration.identity.CloudIdentityProviderResolver;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.annotation.PostConstruct;
@@ -63,7 +60,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -118,11 +114,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
 
-    @Autowired(required = false)
-    private CloudIdentityProviderResolver cloudIdentityProviderResolver;
-
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     @PostConstruct
     public void afterPropertiesSet() {
         enabled = getProperty("cockpit.enabled", "cloud.enabled", Boolean.class, false);
@@ -168,9 +159,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             // Retrieve the user.
             final UserEntity user = userService.findBySource(organizationId, COCKPIT_SOURCE, jwtClaimsSet.getSubject(), true);
 
-            // Connect the user to update his last connection date and create default application if configured.
-            userService.connect(GraviteeContext.getExecutionContext(), user.getId());
-
             //set user to Authentication Context
             final Set<GrantedAuthority> authorities = authoritiesProvider.retrieveAuthorities(user.getId(), organizationId, environmentId);
 
@@ -184,9 +172,6 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             final String gcat = jwtClaimsSet.getStringClaim(JWTHelper.Claims.GCAT);
             Map<String, String> additionalClaims = gcat != null ? Map.of(JWTHelper.Claims.GCAT, gcat) : null;
             super.connectUser(user, httpResponse, additionalClaims);
-
-            // Apply Cloud Identity Provider group/role mappings if user_claims and config are available.
-            applyCloudIdentityProviderMappings(new ExecutionContext(organizationId, null), user.getId(), jwtClaimsSet);
 
             final String application = jwtClaimsSet.getStringClaim(APPLICATION_CLAIM);
             if (APPLICATION_PORTAL.equalsIgnoreCase(application)) {
@@ -268,49 +253,5 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             value = environment.getProperty(fallback, targetType);
         }
         return value != null ? value : defaultValue;
-    }
-
-    /**
-     * Apply group/role mappings from the Cloud Identity Provider configuration (provided by the Gamma Cloud Module).
-     * Uses the user_claims from the Cockpit JWT to evaluate SpEL conditions.
-     * If the Gamma Cloud Module is not deployed, cloudIdentityProviderResolver is null and this is a no-op.
-     */
-    private void applyCloudIdentityProviderMappings(ExecutionContext executionContext, String userId, JWTClaimsSet jwtClaimsSet) {
-        if (cloudIdentityProviderResolver == null) {
-            return;
-        }
-
-        try {
-            // Skip mapping for Cockpit account primary owners (gcpo = Gravitee Cloud Primary Owner).
-            Boolean primaryOwner = jwtClaimsSet.getBooleanClaim("gcpo");
-            if (Boolean.TRUE.equals(primaryOwner)) {
-                log.debug("Skipping Cloud Identity Provider mappings for primary owner user {}", userId);
-                return;
-            }
-
-            Map<String, Object> userClaims = jwtClaimsSet.getJSONObjectClaim("user_claims");
-            if (userClaims == null || userClaims.isEmpty()) {
-                return;
-            }
-
-            Optional<SocialIdentityProviderEntity> cloudIdp = cloudIdentityProviderResolver.findByOrganizationId(
-                executionContext.getOrganizationId()
-            );
-            if (cloudIdp.isEmpty()) {
-                return;
-            }
-
-            // Create a fake JWT containing the user claims as payload so that
-            // #profile, #accessToken, and #idToken all resolve to the same claims.
-            String userClaimsJson = OBJECT_MAPPER.writeValueAsString(userClaims);
-            String fakeJwtPayload = Base64.getUrlEncoder().withoutPadding().encodeToString(userClaimsJson.getBytes());
-            String fakeJwt = "eyJhbGciOiJub25lIn0." + fakeJwtPayload + ".";
-
-            // Apply mappings to the existing Cockpit user (no user creation/update).
-            // The Cloud IdP (cloud-idp) carries provider id "cockpit", used as membership source: mappings share the Cockpit-synced pool.
-            userService.applyIdentityProviderMappings(executionContext, userId, cloudIdp.get(), userClaimsJson, fakeJwt, fakeJwt);
-        } catch (Exception e) {
-            log.warn("Failed to apply Cloud Identity Provider mappings", e);
-        }
     }
 }

@@ -1837,10 +1837,57 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             throw new EmailRequiredException(attrs.get(SocialIdentityProviderEntity.UserProfile.ID));
         }
 
-        TokenPayloads payloads = decodeTokenPayloads(accessToken, idToken);
+        String idTokenPayloadAsString = null;
+        if (idToken != null) {
+            try {
+                idTokenPayloadAsString = new String(Base64.getUrlDecoder().decode(JWT.decode(idToken).getPayload()));
+            } catch (Exception e) {
+                log.debug("IdToken  \"{}\" is not valid.", idToken, e);
+            }
+        }
 
-        // Compute group and role mappings BEFORE creating/updating user
-        MappingResult mappings = evaluateMappings(executionContext, socialProvider, email, userInfo, payloads);
+        String accessTokenPayloadAsString = null;
+        if (accessToken != null) {
+            try {
+                accessTokenPayloadAsString = new String(Base64.getUrlDecoder().decode(JWT.decode(accessToken).getPayload()));
+            } catch (Exception e) {
+                //access token is opaque, do nothing
+                log.debug("AccessToken  \"{}\" is not valid.", accessToken, e);
+            }
+        }
+
+        // Compute group and role mappings
+        // This is done BEFORE updating or creating the user account to ensure this one is properly created with correct
+        // information (ie. mappings)
+        Set<GroupEntity> userGroups = computeUserGroups(
+            email,
+            socialProvider.getGroupMappings(),
+            userInfo,
+            accessTokenPayloadAsString,
+            idTokenPayloadAsString,
+            executionContext
+        );
+
+        List<RoleMappingEntity> rolesMapping = socialProvider.getRoleMappings() == null || socialProvider.getRoleMappings().isEmpty()
+            ? emptyList()
+            : socialProvider.getRoleMappings();
+
+        Set<RoleEntity> userOrganizationRoles = this.computeOrganizationRoles(
+            executionContext,
+            rolesMapping,
+            email,
+            userInfo,
+            accessTokenPayloadAsString,
+            idTokenPayloadAsString
+        );
+        Map<String, Set<RoleEntity>> userEnvironmentRoles = this.computeEnvironmentRoles(
+            executionContext,
+            rolesMapping,
+            email,
+            userInfo,
+            accessTokenPayloadAsString,
+            idTokenPayloadAsString
+        );
 
         UserEntity user = null;
         boolean created = false;
@@ -1851,165 +1898,65 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             user = createNewExternalUser(executionContext, socialProvider, userInfo, attrs, email);
         }
 
-        applyMemberships(
+        // Memberships must be refreshed only when it is a user creation context or mappings should be synced during
+        // later authentication
+        List<MembershipService.Membership> groupMemberships = refreshUserGroups(
             executionContext,
             user.getId(),
             socialProvider.getId(),
-            socialProvider,
-            mappings,
-            created || socialProvider.isSyncMappings()
+            userGroups
         );
-
-        persistWhitelistedClaims(
-            socialProvider.getPersistedClaimsWhitelist(),
-            user.getId(),
-            userInfo,
-            payloads.accessToken(),
-            payloads.idToken()
-        );
-
-        return user;
-    }
-
-    @Override
-    public void applyIdentityProviderMappings(
-        ExecutionContext executionContext,
-        String userId,
-        SocialIdentityProviderEntity provider,
-        String userInfo,
-        String accessToken,
-        String idToken
-    ) {
-        // Apply user profile mapping if configured (update firstname, lastname, picture, email)
-        if (provider.getUserProfileMapping() != null && !provider.getUserProfileMapping().isEmpty()) {
-            HashMap<String, String> attrs = getUserProfileAttrs(provider.getUserProfileMapping(), userInfo);
-            UpdateUserEntity updateUser = buildUpdateFromProfileAttrs(attrs);
-            if (updateUser != null) {
-                this.update(executionContext, userId, updateUser);
-            }
-        }
-
-        // Apply group and role mappings
-        TokenPayloads payloads = decodeTokenPayloads(accessToken, idToken);
-        MappingResult mappings = evaluateMappings(executionContext, provider, userId, userInfo, payloads);
-        applyMemberships(executionContext, userId, provider.getId(), provider, mappings, provider.isSyncMappings());
-    }
-
-    // ── Shared helpers for mapping evaluation and membership application ──
-
-    private record TokenPayloads(String accessToken, String idToken) {}
-
-    private TokenPayloads decodeTokenPayloads(String accessToken, String idToken) {
-        String idTokenPayload = null;
-        if (idToken != null) {
-            try {
-                idTokenPayload = new String(Base64.getUrlDecoder().decode(JWT.decode(idToken).getPayload()));
-            } catch (Exception e) {
-                log.debug("IdToken is not valid.", e);
-            }
-        }
-
-        String accessTokenPayload = null;
-        if (accessToken != null) {
-            try {
-                accessTokenPayload = new String(Base64.getUrlDecoder().decode(JWT.decode(accessToken).getPayload()));
-            } catch (Exception e) {
-                log.debug("AccessToken is not valid.", e);
-            }
-        }
-
-        return new TokenPayloads(accessTokenPayload, idTokenPayload);
-    }
-
-    private record MappingResult(
-        Set<GroupEntity> groups,
-        Set<RoleEntity> organizationRoles,
-        Map<String, Set<RoleEntity>> environmentRoles
-    ) {}
-
-    private MappingResult evaluateMappings(
-        ExecutionContext executionContext,
-        SocialIdentityProviderEntity provider,
-        String userIdentifier,
-        String userInfo,
-        TokenPayloads payloads
-    ) {
-        Set<GroupEntity> groups = computeUserGroups(
-            userIdentifier,
-            provider.getGroupMappings(),
-            userInfo,
-            payloads.accessToken(),
-            payloads.idToken(),
-            executionContext
-        );
-
-        List<RoleMappingEntity> rolesMapping = provider.getRoleMappings() == null || provider.getRoleMappings().isEmpty()
-            ? emptyList()
-            : provider.getRoleMappings();
-
-        Set<RoleEntity> orgRoles = this.computeOrganizationRoles(
-            executionContext,
-            rolesMapping,
-            userIdentifier,
-            userInfo,
-            payloads.accessToken(),
-            payloads.idToken()
-        );
-        Map<String, Set<RoleEntity>> envRoles = this.computeEnvironmentRoles(
-            executionContext,
-            rolesMapping,
-            userIdentifier,
-            userInfo,
-            payloads.accessToken(),
-            payloads.idToken()
-        );
-
-        return new MappingResult(groups, orgRoles, envRoles);
-    }
-
-    private void applyMemberships(
-        ExecutionContext executionContext,
-        String userId,
-        String sourceId,
-        SocialIdentityProviderEntity provider,
-        MappingResult result,
-        boolean shouldSync
-    ) {
-        List<MembershipService.Membership> groupMemberships = refreshUserGroups(executionContext, userId, sourceId, result.groups());
         List<MembershipService.Membership> roleOrganizationMemberships = refreshUserOrganizationRoles(
             executionContext,
-            userId,
-            sourceId,
-            result.organizationRoles()
+            user.getId(),
+            socialProvider.getId(),
+            userOrganizationRoles
         );
         List<MembershipService.Membership> roleEnvironmentMemberships = refreshUserEnvironmentRoles(
-            userId,
-            sourceId,
-            result.environmentRoles()
+            user.getId(),
+            socialProvider.getId(),
+            userEnvironmentRoles
         );
 
-        if (shouldSync) {
-            final boolean hasGroupMapping = provider.getGroupMappings() != null && !provider.getGroupMappings().isEmpty();
-            refreshUserMemberships(executionContext, userId, sourceId, groupMemberships, hasGroupMapping, MembershipReferenceType.GROUP);
-
-            final boolean hasRoleMapping = provider.getRoleMappings() != null && !provider.getRoleMappings().isEmpty();
+        if (created || socialProvider.isSyncMappings()) {
+            final boolean hasGroupMapping = socialProvider.getGroupMappings() != null && !socialProvider.getGroupMappings().isEmpty();
             refreshUserMemberships(
                 executionContext,
-                userId,
-                sourceId,
+                user.getId(),
+                socialProvider.getId(),
+                groupMemberships,
+                hasGroupMapping,
+                MembershipReferenceType.GROUP
+            );
+
+            final boolean hasRoleMapping = socialProvider.getRoleMappings() != null && !socialProvider.getRoleMappings().isEmpty();
+            refreshUserMemberships(
+                executionContext,
+                user.getId(),
+                socialProvider.getId(),
                 roleOrganizationMemberships,
                 hasRoleMapping,
                 MembershipReferenceType.ORGANIZATION
             );
             refreshUserMemberships(
                 executionContext,
-                userId,
-                sourceId,
+                user.getId(),
+                socialProvider.getId(),
                 roleEnvironmentMemberships,
                 hasRoleMapping,
                 MembershipReferenceType.ENVIRONMENT
             );
         }
+
+        persistWhitelistedClaims(
+            socialProvider.getPersistedClaimsWhitelist(),
+            user.getId(),
+            userInfo,
+            accessTokenPayloadAsString,
+            idTokenPayloadAsString
+        );
+
+        return user;
     }
 
     @Override
@@ -2154,34 +2101,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return this.create(executionContext, newUser, false);
     }
 
-    /**
-     * Build an UpdateUserEntity from profile attributes extracted via userProfileMapping.
-     * Returns null if no fields are set.
-     */
-    private UpdateUserEntity buildUpdateFromProfileAttrs(HashMap<String, String> attrs) {
-        UpdateUserEntity update = new UpdateUserEntity();
-        boolean hasUpdate = false;
-
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
-            update.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
-            hasUpdate = true;
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
-            update.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
-            hasUpdate = true;
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
-            update.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
-            hasUpdate = true;
-        }
-        if (attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL) != null) {
-            update.setEmail(attrs.get(SocialIdentityProviderEntity.UserProfile.EMAIL));
-            hasUpdate = true;
-        }
-
-        return hasUpdate ? update : null;
-    }
-
     private UserEntity refreshExistingUser(
         ExecutionContext executionContext,
         final SocialIdentityProviderEntity socialProvider,
@@ -2198,9 +2117,16 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         userId = registeredUser.getId();
 
         // User refresh
-        UpdateUserEntity user = buildUpdateFromProfileAttrs(attrs);
-        if (user == null) {
-            user = new UpdateUserEntity();
+        UpdateUserEntity user = new UpdateUserEntity();
+
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME) != null) {
+            user.setLastname(attrs.get(SocialIdentityProviderEntity.UserProfile.LASTNAME));
+        }
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME) != null) {
+            user.setFirstname(attrs.get(SocialIdentityProviderEntity.UserProfile.FIRSTNAME));
+        }
+        if (attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE) != null) {
+            user.setPicture(attrs.get(SocialIdentityProviderEntity.UserProfile.PICTURE));
         }
         user.setEmail(email);
 

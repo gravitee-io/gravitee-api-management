@@ -126,15 +126,6 @@ public interface UserService {
         String idToken
     );
 
-    void applyIdentityProviderMappings(
-        ExecutionContext executionContext,
-        String userId,
-        SocialIdentityProviderEntity provider,
-        String userInfo,
-        String accessToken,
-        String idToken
-    );
-
     void updateUserRoles(
         ExecutionContext executionContext,
         String userId,
