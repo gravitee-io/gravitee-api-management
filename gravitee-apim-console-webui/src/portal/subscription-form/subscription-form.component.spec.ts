@@ -153,6 +153,24 @@ describe('SubscriptionFormComponent', () => {
     expect(snackBarService.error).toHaveBeenCalledWith('Load failed');
   });
 
+  it('should toggle the preview from the editor header', async () => {
+    await init(true);
+    const form = fakeSubscriptionForm({ id: 'form-a', gmdContent: 'Form A content' });
+    expectList([form]);
+    expectGet(form);
+    expectApiSearches();
+
+    const editorHarness = await harnessLoader.getHarness(GmdFormEditorHarness);
+    expect(await editorHarness.isPreviewVisible()).toBe(true);
+
+    const toggleButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=toggle-preview-button]' }));
+    await toggleButton.click();
+    expect(await editorHarness.isPreviewVisible()).toBe(false);
+
+    await toggleButton.click();
+    expect(await editorHarness.isPreviewVisible()).toBe(true);
+  });
+
   describe('permissions', () => {
     it('should hide the create button and disable editing when user lacks permission', async () => {
       await init(false);

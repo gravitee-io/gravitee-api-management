@@ -74,6 +74,7 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
   private readonly MAX_PANEL_WIDTH = 600;
   private readonly PANEL_RESIZE_STEP = 20;
   panelWidth = signal(500);
+  readonly isPreviewVisible = signal(true);
 
   readonly canUpdate = signal(this.gioPermissionService.hasAnyMatching(['environment-metadata-u']));
   private readonly refreshList = new BehaviorSubject<void>(undefined);
@@ -233,6 +234,10 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
           this.contentControl.reset(template.gmdContent, { emitEvent: true });
         });
     });
+  }
+
+  togglePreview(): void {
+    this.isPreviewVisible.update(visible => !visible);
   }
 
   save(): void {
