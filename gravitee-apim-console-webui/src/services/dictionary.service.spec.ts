@@ -67,5 +67,17 @@ describe('DictionaryService', () => {
 
       expect($http.put.mock.calls[0][1].propertyOptions).toEqual({ apiKey: { encryptable: true } });
     });
+
+    it('should drop propertyOptions whose key is no longer among the properties', () => {
+      service.update({
+        id: 'dic-1',
+        name: 'Dynamic dictionary',
+        type: 'DYNAMIC',
+        properties: { url: 'https://backend' },
+        propertyOptions: { url: { encrypted: true }, vanished: { encrypted: true } },
+      });
+
+      expect($http.put.mock.calls[0][1].propertyOptions).toEqual({ url: { encrypted: true } });
+    });
   });
 });

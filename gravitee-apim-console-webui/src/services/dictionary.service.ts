@@ -47,7 +47,12 @@ class DictionaryService {
     if (!dictionary.propertyOptions) {
       return dictionary.propertyOptions;
     }
-    return Object.fromEntries(Object.entries(dictionary.propertyOptions).map(([key, options]) => [key, this.toWireOptions(options)]));
+    const properties = dictionary.properties || {};
+    return Object.fromEntries(
+      Object.entries(dictionary.propertyOptions)
+        .filter(([key]) => key in properties)
+        .map(([key, options]) => [key, this.toWireOptions(options)]),
+    );
   }
 
   private toWireOptions(options) {
