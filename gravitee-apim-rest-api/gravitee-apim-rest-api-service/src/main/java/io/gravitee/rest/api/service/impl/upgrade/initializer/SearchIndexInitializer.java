@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api_product.domain_service.ApiProductIndexerDomainS
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiProductAdapter;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiProductsRepository;
@@ -220,10 +221,16 @@ public class SearchIndexInitializer implements Initializer {
                 return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             }
 
-            indexable = apiIndexerDomainService.toIndexableApi(
-                new Indexer.IndexationContext(organizationId, environmentId),
-                ApiAdapter.INSTANCE.toCoreModel(api)
-            );
+            var coreApi = ApiAdapter.INSTANCE.toCoreModel(api);
+            if (
+                api.getDefinitionVersion() == DefinitionVersion.FEDERATED_AGENT &&
+                api.getDefinition() != null &&
+                coreApi.getApiDefinitionValue() == null
+            ) {
+                throw new IllegalStateException("Unable to deserialize the federated agent card of API " + api.getId());
+            }
+
+            indexable = apiIndexerDomainService.toIndexableApi(new Indexer.IndexationContext(organizationId, environmentId), coreApi);
             return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
         } catch (Exception e) {
             log.error("Failed to convert API {} to indexable", api.getId(), e);

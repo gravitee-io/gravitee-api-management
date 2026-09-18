@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.domain_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -76,6 +77,7 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -411,6 +413,23 @@ class ApiExportDomainServiceImplTest {
         assertThat(export.pages()).contains(EXPECTED_MARKDOWN_PAGE);
         assertThat(export.members()).hasSize(1);
         assertThat(export.members()).contains(EXPECTED_MEMBER);
+    }
+
+    @Test
+    void export_service_must_reject_federated_agent() {
+        // Given an api backed by a federated agent definition
+        String apiId = UUID.randomUUID().toString();
+        Api api = ApiFixtures.aFederatedAgent();
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+
+        // When exporting it
+        var throwable = catchThrowable(() -> sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class)));
+
+        // Then the export is refused as an unsupported definition version
+        assertThat(throwable).isInstanceOf(ApiDefinitionVersionNotSupportedException.class);
+        var exception = (ApiDefinitionVersionNotSupportedException) throwable;
+        assertThat(exception.getParameters()).containsEntry("definitionVersion", "FEDERATED_AGENT");
+        assertThat(exception.getHttpStatusCode()).isEqualTo(400);
     }
 
     @Test

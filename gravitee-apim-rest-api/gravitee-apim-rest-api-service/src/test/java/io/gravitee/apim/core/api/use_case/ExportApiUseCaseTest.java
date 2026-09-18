@@ -49,6 +49,7 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.api.ApiExportDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
@@ -236,6 +237,19 @@ class ExportApiUseCaseTest {
         assertThat(throwable).isInstanceOf(ApiDefinitionVersionNotSupportedException.class);
     }
 
+    @Test
+    void should_not_export_federated_agent_API() {
+        // Given an api backed by a federated agent definition
+        apiCrudService.initWith(List.of(federatedAgentApi()));
+        var input = ExportApiUseCase.Input.of(API_ID, auditInfo, Set.of());
+
+        // When exporting it
+        var throwable = catchThrowable(() -> sut.execute(input));
+
+        // Then the export is refused as an unsupported definition version
+        assertThat(throwable).isInstanceOf(ApiDefinitionVersionNotSupportedException.class);
+    }
+
     /**
      * It’s not the current behaviour of ApiExportDomainService, but it can become in future
      */
@@ -261,6 +275,17 @@ class ExportApiUseCaseTest {
             .type(ApiType.PROXY)
             .definitionVersion(DefinitionVersion.FEDERATED)
             .federatedApiDefinition(FederatedApi.builder().apiVersion(API_VERSION).build())
+            .build();
+    }
+
+    private static Api federatedAgentApi() {
+        return Api.builder()
+            .id(API_ID)
+            .version(API_VERSION)
+            .name(API_NAME)
+            .type(ApiType.PROXY)
+            .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
+            .apiDefinitionValue(FederatedAgent.builder().name(API_NAME).version(API_VERSION).build())
             .build();
     }
 

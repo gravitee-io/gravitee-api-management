@@ -177,7 +177,7 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
                 var api = DEFINITION_ADAPTER.mapFederated(api1, apiPrimaryOwner, workflowState, groups, metadata, integ);
                 yield GraviteeDefinition.from(api, members, metadata, pages, plans, medias, api1.getPicture(), api1.getBackground());
             }
-            case FEDERATED_AGENT -> null; // TODO
+            case FEDERATED_AGENT -> throw unsupportedDefinitionVersion(api1);
         };
     }
 
@@ -247,10 +247,14 @@ public class ApiExportDomainServiceImpl implements ApiExportDomainService {
             case FederatedApi federatedApi -> ValidatedType.FEDERATED;
             case FederatedAgent federatedAgent -> ValidatedType.FEDERATED_AGENT;
             case io.gravitee.definition.model.Api api -> ValidatedType.V2;
-            case null, default -> throw new ApiDefinitionVersionNotSupportedException(
-                api1.getDefinitionVersion() != null ? api1.getDefinitionVersion().getLabel() : null
-            );
+            case null, default -> throw unsupportedDefinitionVersion(api1);
         };
+    }
+
+    private ApiDefinitionVersionNotSupportedException unsupportedDefinitionVersion(Api api) {
+        return new ApiDefinitionVersionNotSupportedException(
+            api.getDefinitionVersion() != null ? api.getDefinitionVersion().getLabel() : null
+        );
     }
 
     @Nullable

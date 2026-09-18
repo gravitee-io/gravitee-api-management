@@ -21,11 +21,17 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
+import java.util.stream.Stream;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class GetIngestedApisUseCaseTest {
 
@@ -53,16 +59,47 @@ class GetIngestedApisUseCaseTest {
 
     @Test
     void should_return_page_with_default_pageable() {
-        var apis = List.of(ApiFixtures.aFederatedApi());
-        apiQueryServiceInMemory.initWith(apis);
+        apiQueryServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
 
         var input = new GetIngestedApisUseCase.Input(INTEGRATION_ID);
 
         var ingestedApis = usecase.execute(input).ingestedApis();
 
-        AssertionsForClassTypes.assertThat(ingestedApis).isNotNull();
         AssertionsForClassTypes.assertThat(ingestedApis)
-            .extracting(Page::getContent, Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
-            .containsExactly(apis, 1, ingestedApis.getPageElements(), (long) ingestedApis.getContent().size());
+            .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+            .containsExactly(0, 1L, 1L);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void should_return_an_empty_page_when_the_requested_page_starts_past_the_last_match(
+        List<Api> ingestedApis,
+        Pageable pageable,
+        int expectedPageNumber,
+        long expectedTotalElements
+    ) {
+        apiQueryServiceInMemory.initWith(ingestedApis);
+
+        var input = new GetIngestedApisUseCase.Input(INTEGRATION_ID, pageable);
+
+        var output = usecase.execute(input).ingestedApis();
+
+        assertThat(output.getContent()).isEmpty();
+        AssertionsForClassTypes.assertThat(output)
+            .extracting(Page::getPageNumber, Page::getPageElements, Page::getTotalElements)
+            .containsExactly(expectedPageNumber, 0L, expectedTotalElements);
+    }
+
+    private static Stream<Arguments> should_return_an_empty_page_when_the_requested_page_starts_past_the_last_match() {
+        return Stream.of(
+            Arguments.of(federatedApis("api-1"), new PageableImpl(2, 10), 1, 1L),
+            Arguments.of(federatedApis("api-1", "api-2", "api-3"), new PageableImpl(3, 2), 2, 3L)
+        );
+    }
+
+    private static List<Api> federatedApis(String... ids) {
+        return Stream.of(ids)
+            .<Api>map(id -> ApiFixtures.aFederatedApi().toBuilder().id(id).build())
+            .toList();
     }
 }

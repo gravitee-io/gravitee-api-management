@@ -402,15 +402,7 @@ public class ApiMapper {
     }
 
     public FederatedApiAgentEntity federatedAgentToEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
-        try {
-            api.setCategories(categoryMapper.toCategoryKey(api.getEnvironmentId(), api.getCategories()));
-            var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
-            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
-            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
-        } catch (JsonProcessingException e) {
-            log.warn("Unable to parse api definition for agent {}", api.getId(), e);
-            return null;
-        }
+        return federatedAgentToEntity(api.getEnvironmentId(), api, primaryOwner);
     }
 
     public FederatedApiAgentEntity federatedAgentToEntity(
@@ -418,11 +410,29 @@ public class ApiMapper {
         final Api api,
         final PrimaryOwnerEntity primaryOwner
     ) {
+        return federatedAgentToEntity(executionContext.getEnvironmentId(), api, primaryOwner);
+    }
+
+    private FederatedApiAgentEntity federatedAgentToEntity(
+        final String environmentId,
+        final Api api,
+        final PrimaryOwnerEntity primaryOwner
+    ) {
+        api.setCategories(categoryMapper.toCategoryKey(environmentId, api.getCategories()));
+        FederatedAgent agent = readFederatedAgent(api);
+        OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
+        return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+    }
+
+    /**
+     * A stored agent card that fails to parse must not sink the whole API: id, name, updatedAt and
+     * primary owner are still valid and come straight from {@code api}, independently of the agent
+     * card. Returning null here degrades only the agent-card-derived fields, mirroring how
+     * {@link io.gravitee.rest.api.service.converter.ApiConverter} already handles a malformed V2 definition.
+     */
+    private FederatedAgent readFederatedAgent(final Api api) {
         try {
-            api.setCategories(categoryMapper.toCategoryKey(executionContext.getEnvironmentId(), api.getCategories()));
-            var agent = objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
-            OriginContext.Integration a2a = new OriginContext.Integration(api.getIntegrationId(), api.getIntegrationId(), "A2A");
-            return ApiAdapter.INSTANCE.toFederatedAgentEntity(api, agent, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner), a2a);
+            return objectMapper.readValue(api.getDefinition(), FederatedAgent.class);
         } catch (JsonProcessingException e) {
             log.warn("Unable to parse api definition for agent {}", api.getId(), e);
             return null;

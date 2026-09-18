@@ -20,7 +20,9 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.common.Pageable;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -31,4 +33,20 @@ public interface ApiQueryService {
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
 
     Page<Api> findByIntegrationId(String integrationId, Pageable pageable);
+
+    /**
+     * @param environmentId the environment to scope the search to, required and non-blank
+     * @param integrationId the integration owning the searched apis, required and non-blank
+     * @param definitionVersions the definition versions to narrow the search to; {@code null} or empty means every
+     *                           version, but the list must not hold a {@code null} element
+     * @throws IllegalArgumentException if {@code environmentId} or {@code integrationId} is blank, or if
+     *                                  {@code definitionVersions} holds a {@code null} element
+     */
+    Page<Api> searchByIntegrationId(
+        String environmentId,
+        String integrationId,
+        List<DefinitionVersion> definitionVersions,
+        String query,
+        Pageable pageable
+    );
 }
