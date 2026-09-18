@@ -1593,11 +1593,23 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         return buildGammaPageUrl(organizationId, GAMMA_REGISTRATION_PATH);
     }
 
+    /**
+     * Asks what the organization actually configured rather than {@code getGammaUrl}, which substitutes
+     * {@code DEFAULT_GAMMA_URL} so a caller always has somewhere to send a browser. This link carries a signed
+     * token, so an unconfigured organization has to be refused instead of defaulted -- and an organization that
+     * genuinely serves Gamma on the default URL must still be served.
+     */
     private String buildGammaPageUrl(final String organizationId, final String path) {
-        String gammaUrl = installationAccessQueryService.getGammaUrl(organizationId);
-        if (gammaUrl == null || gammaUrl.isBlank()) {
-            throw new ValidationDomainException("Gamma URL is not configured for organization: " + organizationId);
-        }
+        String gammaUrl = installationAccessQueryService
+            .findGammaUrl(organizationId)
+            .filter(url -> !url.isBlank())
+            .orElseThrow(() ->
+                new ValidationDomainException(
+                    "No Gamma URL is configured for organization " +
+                        organizationId +
+                        ". Set 'installation.standalone.gamma-console.url', or the organization's Gamma console access point on a multi-tenant installation."
+                )
+            );
         if (gammaUrl.endsWith("/")) {
             gammaUrl = gammaUrl.substring(0, gammaUrl.length() - 1);
         }

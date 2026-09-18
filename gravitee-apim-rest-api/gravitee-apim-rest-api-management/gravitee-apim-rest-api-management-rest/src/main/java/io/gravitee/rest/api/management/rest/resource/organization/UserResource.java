@@ -212,7 +212,7 @@ public class UserResource extends AbstractResource {
         description = "User must have the ORGANIZATION_USERS[UPDATE] permission to use this service"
     )
     @ApiResponse(responseCode = "204", description = "User's password reset")
-    @ApiResponse(responseCode = "400", description = "Unsupported reset target")
+    @ApiResponse(responseCode = "400", description = "Unsupported reset target, or no Gamma URL configured")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(
