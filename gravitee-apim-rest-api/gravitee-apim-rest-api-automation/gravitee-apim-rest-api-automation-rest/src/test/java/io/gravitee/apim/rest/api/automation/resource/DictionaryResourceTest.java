@@ -28,7 +28,9 @@ import io.gravitee.apim.core.dictionary.use_case.DeleteDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
@@ -52,6 +54,8 @@ import org.mockito.Mockito;
 
 class DictionaryResourceTest extends AbstractResourceTest {
 
+    private static final ObjectMapper MAPPER = new GraviteeMapper();
+
     @Inject
     private DictionaryAutomationDomainService dictionaryAutomationDomainService;
 
@@ -72,7 +76,7 @@ class DictionaryResourceTest extends AbstractResourceTest {
     class GetByHrid {
 
         @Test
-        void should_return_dictionary_state() {
+        void should_return_dictionary_state() throws Exception {
             var id = HRIDToUUID.dictionary().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("my-dict").id();
             var entity = DictionaryEntity.builder()
                 .id(id)
@@ -89,7 +93,10 @@ class DictionaryResourceTest extends AbstractResourceTest {
 
             try (var response = rootTarget("my-dict").request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                var state = response.readEntity(DictionaryState.class);
+                var body = response.readEntity(String.class);
+                assertThat(body).doesNotContain("encryptedProperties");
+
+                var state = MAPPER.readValue(body, DictionaryState.class);
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(state.getId()).isEqualTo(id);
                     soft.assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
@@ -100,8 +107,35 @@ class DictionaryResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getManual()).isNotNull();
                     soft.assertThat(state.getManual().getProperties()).isNotNull();
                     soft.assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("key1", "value1"));
-                    soft.assertThat(state.getManual().getPropertyOptions()).isEmpty();
                 });
+            }
+        }
+
+        @Test
+        void should_return_an_encrypted_property_without_its_value() throws Exception {
+            var id = HRIDToUUID.dictionary().context(new ExecutionContext(ORGANIZATION, ENVIRONMENT)).hrid("my-dict").id();
+            var entity = DictionaryEntity.builder()
+                .id(id)
+                .name("My Dictionary")
+                .key("my-dict")
+                .type(DictionaryType.MANUAL)
+                .state(Lifecycle.State.STOPPED)
+                .properties(Map.of("url", "https://backend", "apiKey", "cipher"))
+                .propertyOptions(Map.of("apiKey", DictionaryPropertyOptions.builder().encrypted(true).build()))
+                .createdAt(new Date())
+                .updatedAt(new Date())
+                .build();
+            when(dictionaryAutomationDomainService.findById(any(), eq(id))).thenReturn(Optional.of(entity));
+
+            try (var response = rootTarget("my-dict").request().accept(MediaType.APPLICATION_JSON_TYPE).get()) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                var body = response.readEntity(String.class);
+                assertThat(body).doesNotContain("cipher");
+
+                var state = MAPPER.readValue(body, DictionaryState.class);
+                assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("url", "https://backend"));
+                assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
+                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
             }
         }
 

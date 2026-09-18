@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -342,7 +343,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
                 return convert(dictionary);
             }
-            dictionary.setProperties(toFetchedProperties(properties, dictionary.getProperties()));
+            dictionary.setProperties(toFetchedProperties(id, properties, dictionary.getProperties()));
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
@@ -557,30 +558,65 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         Map<String, DictionaryProperty> existing
     ) {
         DictionaryProperty stored = existing == null ? null : existing.get(property.getKey());
-        boolean storedEncrypted = stored != null && stored.encrypted();
         if (options == null) {
-            return new DictionaryProperty(property.getValue(), storedEncrypted);
+            return keepStoredClassification(dictionaryId, property, stored);
         }
-        if (Boolean.TRUE.equals(options.getEncrypted()) && Boolean.TRUE.equals(options.getEncryptable())) {
-            throw new InvalidDictionaryPropertyOptionsException(
-                property.getKey(),
-                "'encrypted' and 'encryptable' cannot both be true — the value is either already ciphertext or plaintext to encrypt"
-            );
+        rejectContradictoryOptions(property.getKey(), options);
+        rejectUnsupportedEncryptable(property.getKey(), options);
+        if (options.getEncrypted() == null) {
+            return keepStoredClassification(dictionaryId, property, stored);
         }
-        if (Boolean.FALSE.equals(options.getEncrypted()) && storedEncrypted) {
+        if (Boolean.FALSE.equals(options.getEncrypted()) && stored != null && stored.encrypted()) {
             throw new DictionaryPropertyEncryptedToPlainException(dictionaryId, property.getKey());
         }
-        boolean encrypted = options.getEncrypted() == null ? storedEncrypted : options.getEncrypted();
-        return new DictionaryProperty(property.getValue(), encrypted);
+        return new DictionaryProperty(property.getValue(), options.getEncrypted());
     }
 
     /**
-     * Re-applies each key's stored classification to the value the provider just fetched. The fetch
-     * carries plaintext only, so it can neither declare nor change a classification. A fetch that
-     * yields a property without a value fails the refresh, for the same reason the write path
-     * rejects one.
+     * Applies the stored classification to a property the caller said nothing about. An encrypted
+     * property keeps that classification only while its value is the stored ciphertext: a different
+     * value is plaintext the caller supplied, and nothing on this path encrypts, so carrying the flag
+     * over would label a live plaintext value as ciphertext.
+     */
+    private static DictionaryProperty keepStoredClassification(
+        String dictionaryId,
+        Map.Entry<String, String> property,
+        DictionaryProperty stored
+    ) {
+        boolean storedEncrypted = stored != null && stored.encrypted();
+        if (storedEncrypted && !Objects.equals(stored.value(), property.getValue())) {
+            throw new DictionaryPropertyEncryptedToPlainException(dictionaryId, property.getKey());
+        }
+        return new DictionaryProperty(property.getValue(), storedEncrypted);
+    }
+
+    private static void rejectContradictoryOptions(String propertyKey, DictionaryPropertyOptions options) {
+        if (Boolean.TRUE.equals(options.getEncrypted()) && Boolean.TRUE.equals(options.getEncryptable())) {
+            throw new InvalidDictionaryPropertyOptionsException(
+                propertyKey,
+                "'encrypted' and 'encryptable' cannot both be true — the value is either already ciphertext or plaintext to encrypt"
+            );
+        }
+    }
+
+    private static void rejectUnsupportedEncryptable(String propertyKey, DictionaryPropertyOptions options) {
+        if (Boolean.TRUE.equals(options.getEncryptable())) {
+            throw new InvalidDictionaryPropertyOptionsException(
+                propertyKey,
+                "'encryptable' is not supported yet — a submitted value is stored as it arrives; supply an already-encrypted value with 'encrypted' set to true instead"
+            );
+        }
+    }
+
+    /**
+     * Re-applies each key's stored classification to the value the provider just fetched. A fetch
+     * declares no classification of its own, so it lands on the same rule as a caller that said
+     * nothing: the stored one stands, and an encrypted property whose value the fetch would replace
+     * fails the refresh rather than labelling the fetched plaintext as ciphertext. A fetch that
+     * yields a property without a value fails it too, for the same reason the write path rejects one.
      */
     private static Map<String, DictionaryProperty> toFetchedProperties(
+        String dictionaryId,
         Map<String, String> fetched,
         Map<String, DictionaryProperty> existing
     ) {
@@ -592,10 +628,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .entrySet()
             .stream()
             .collect(
-                Collectors.toMap(Map.Entry::getKey, entry -> {
-                    DictionaryProperty stored = existing == null ? null : existing.get(entry.getKey());
-                    return new DictionaryProperty(entry.getValue(), stored != null && stored.encrypted());
-                })
+                Collectors.toMap(Map.Entry::getKey, entry ->
+                    keepStoredClassification(dictionaryId, entry, existing == null ? null : existing.get(entry.getKey()))
+                )
             );
     }
 

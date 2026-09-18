@@ -1740,30 +1740,27 @@ components:
           description: Dictionary data are key/value pairs for `MANUAL` properties
           additionalProperties:
             type: string
-        propertyOptions:
+        encryptedProperties:
           type: object
           description: >-
-            Per-property encryption options, keyed by the property key. A key omitted here carries no
-            statement about its encryption: whatever the property already is, it stays. Every key
-            named here must exist in `properties`.
+            Secret properties, keyed by the property key. Their values are write-only: they are never
+            returned, so a client can compare a `GET` against its manifest without seeing a difference
+            on a value it cannot read back. A key must not appear in both `properties` and
+            `encryptedProperties`.
           additionalProperties:
-            $ref: "#/components/schemas/DictionaryPropertyOptions"
-      required:
-        - properties
-    DictionaryPropertyOptions:
-      description: Encryption options for a single dictionary property.
+            $ref: "#/components/schemas/EncryptableValue"
+    EncryptableValue:
+      description: A secret property value.
       type: object
       properties:
-        encrypted:
+        value:
           description: >-
-            The value in `properties` is the stored ciphertext. Supply it to declare a value that is
-            already encrypted, so it is stored verbatim instead of being encrypted again. Omit it to
-            leave the property's current classification untouched.
-          type: boolean
-        encryptable:
-          description: When the input value needs to be encrypted.
-          type: boolean
+            The plaintext value to encrypt on save. Not honoured yet: a request that supplies it is
+            rejected, so that a value asking to be encrypted is never stored as plaintext instead.
+          type: string
           writeOnly: true
+      required:
+        - value
     DynamicDictionarySpec:
       description: A dynamic dictionary populated from an external provider on a schedule.
       type: object

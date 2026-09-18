@@ -26,6 +26,7 @@ import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
@@ -78,7 +79,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         dictionaryInDb.setUpdatedAt(new Date());
         dictionaryInDb.setState(LifecycleState.STARTED);
         dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
-        dictionaryInDb.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        dictionaryInDb.setType(DictionaryType.DYNAMIC);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
 
         Dictionary updatedDictionary = new Dictionary();
@@ -86,7 +87,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         updatedDictionary.setUpdatedAt(new Date());
         updatedDictionary.setState(LifecycleState.STARTED);
         updatedDictionary.setEnvironmentId(ENVIRONMENT_ID);
-        updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        updatedDictionary.setType(DictionaryType.DYNAMIC);
         when(dictionaryRepository.update(any(Dictionary.class))).thenReturn(updatedDictionary);
 
         EnvironmentEntity environment = new EnvironmentEntity();
@@ -117,16 +118,9 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     @Test
     public void should_reapply_stored_classification_to_freshly_fetched_values() throws TechnicalException {
-        Dictionary dictionaryInDb = new Dictionary();
-        dictionaryInDb.setId(DICTIONARY_ID);
-        dictionaryInDb.setCreatedAt(new Date());
-        dictionaryInDb.setState(LifecycleState.STARTED);
-        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
-        dictionaryInDb.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
-        Map<String, DictionaryProperty> stored = new HashMap<>();
-        stored.put("secret", new DictionaryProperty("previous-cipher", true));
-        stored.put("plain", new DictionaryProperty("previous-value", false));
-        dictionaryInDb.setProperties(stored);
+        Dictionary dictionaryInDb = startedDynamicDictionaryWith(
+            Map.of("secret", new DictionaryProperty("previous-cipher", true), "plain", new DictionaryProperty("previous-value", false))
+        );
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
         when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -135,17 +129,39 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         environment.setOrganizationId(ORGANIZATION_ID);
         when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
 
-        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-secret", "plain", "fetched-plain"));
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "previous-cipher", "plain", "fetched-plain"));
 
         verify(dictionaryRepository).update(
             argThat(
                 dict ->
                     dict.getProperties().get("secret").encrypted() &&
-                    dict.getProperties().get("secret").value().equals("fetched-secret") &&
+                    dict.getProperties().get("secret").value().equals("previous-cipher") &&
                     !dict.getProperties().get("plain").encrypted() &&
                     dict.getProperties().get("plain").value().equals("fetched-plain")
             )
         );
+    }
+
+    @Test
+    public void should_reject_a_fetched_value_replacing_an_encrypted_property() throws TechnicalException {
+        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("previous-cipher", true)));
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+
+        assertThatThrownBy(() -> dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-plaintext")))
+            .isInstanceOf(DictionaryPropertyEncryptedToPlainException.class)
+            .hasMessageContaining("secret");
+        verify(dictionaryRepository, never()).update(any(Dictionary.class));
+    }
+
+    private static Dictionary startedDynamicDictionaryWith(Map<String, DictionaryProperty> properties) {
+        Dictionary dictionary = new Dictionary();
+        dictionary.setId(DICTIONARY_ID);
+        dictionary.setCreatedAt(new Date());
+        dictionary.setState(LifecycleState.STARTED);
+        dictionary.setEnvironmentId(ENVIRONMENT_ID);
+        dictionary.setType(DictionaryType.DYNAMIC);
+        dictionary.setProperties(new HashMap<>(properties));
+        return dictionary;
     }
 
     @Test
@@ -155,7 +171,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         dictionaryInDb.setCreatedAt(new Date());
         dictionaryInDb.setState(LifecycleState.STARTED);
         dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
-        dictionaryInDb.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        dictionaryInDb.setType(DictionaryType.DYNAMIC);
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
 
         Map<String, String> fetched = new HashMap<>();

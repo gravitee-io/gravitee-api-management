@@ -394,23 +394,70 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_keep_the_encrypted_flag_when_the_value_is_edited_without_options() throws TechnicalException {
+    public void should_reject_a_new_plaintext_value_for_an_encrypted_property() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        givenStoredDictionaryWithoutUpdateStub(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "renewed-plaintext"), null);
+
+        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
+            .isInstanceOf(DictionaryPropertyEncryptedToPlainException.class)
+            .hasMessageContaining("secret");
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_reject_a_new_plaintext_value_when_the_options_state_no_classification() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        givenStoredDictionaryWithoutUpdateStub(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "renewed-plaintext"),
+            Map.of("secret", DictionaryPropertyOptions.builder().build())
+        );
+
+        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
+            .isInstanceOf(DictionaryPropertyEncryptedToPlainException.class)
+            .hasMessageContaining("secret");
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_store_a_renewed_ciphertext_when_the_options_declare_it_encrypted() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
         givenStoredDictionary(stored);
 
-        // The Console edits the value and sends no options: the property stays classified as
-        // encrypted, and the encryption story is what turns the new plaintext into ciphertext.
-        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "renewed-plaintext"), null);
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "renewed-cipher"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build())
+        );
 
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
 
         verify(dictionaryRepository).update(
             argThat(
                 dict ->
-                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("renewed-plaintext")
+                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("renewed-cipher")
             )
         );
+    }
+
+    @Test
+    public void should_reject_options_asking_for_encryptable() throws TechnicalException {
+        givenStoredDictionaryWithoutUpdateStub(new HashMap<>());
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "plaintext"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build())
+        );
+
+        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
+            .isInstanceOf(InvalidDictionaryPropertyOptionsException.class)
+            .hasMessageContaining("not supported yet");
+        verify(dictionaryRepository, never()).update(any());
     }
 
     private void givenStoredDictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {

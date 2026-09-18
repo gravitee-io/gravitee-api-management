@@ -5,12 +5,9 @@
   "type": "MANUAL",
   "deployed": false,
   "manual": {
-    "properties": {
-      "secret-key": "cipher"
-    },
-    "propertyOptions": {
+    "encryptedProperties": {
       "secret-key": {
-        "encrypted": true
+        "value": "my secret API key"
       }
     }
   }

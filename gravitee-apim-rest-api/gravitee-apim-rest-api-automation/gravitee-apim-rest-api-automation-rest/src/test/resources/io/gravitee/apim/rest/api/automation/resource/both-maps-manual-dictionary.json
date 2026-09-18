@@ -1,12 +1,12 @@
 {
-  "hrid": "mixed-dict",
-  "name": "Mixed Dictionary",
-  "description": "A dictionary with one plain and one encrypted property",
+  "hrid": "both-maps-dict",
+  "name": "Both Maps Dictionary",
+  "description": "A dictionary declaring the same key as plain and as encrypted",
   "type": "MANUAL",
   "deployed": false,
   "manual": {
     "properties": {
-      "url": "https://backend"
+      "apiKey": "plain"
     },
     "encryptedProperties": {
       "apiKey": {

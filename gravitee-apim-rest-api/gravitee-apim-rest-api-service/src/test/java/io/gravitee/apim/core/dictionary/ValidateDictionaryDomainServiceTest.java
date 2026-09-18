@@ -137,7 +137,7 @@ class ValidateDictionaryDomainServiceTest {
 
             assertThatThrownBy(() -> service.validate(dictionary))
                 .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("must not be null");
+                .hasMessageContaining("hostname");
         }
 
         @Test

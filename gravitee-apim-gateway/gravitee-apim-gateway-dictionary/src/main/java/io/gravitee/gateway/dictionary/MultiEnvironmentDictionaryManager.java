@@ -65,7 +65,7 @@ public class MultiEnvironmentDictionaryManager implements DictionaryManager {
             Map<String, String> flattenedProperties = new HashMap<>((propertyCount * 4) / 3 + 1);
             for (Map.Entry<String, DictionaryProperty> entry : dictionary.getProperties().entrySet()) {
                 DictionaryProperty property = entry.getValue();
-                if (property != null) {
+                if (property != null && property.value() != null) {
                     flattenedProperties.put(entry.getKey(), property.value());
                 }
             }

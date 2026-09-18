@@ -23,11 +23,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.domain_service.ValidateDictionaryDomainService;
 import io.gravitee.apim.core.dictionary.use_case.CreateOrUpdateDictionaryUseCase;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
@@ -44,6 +46,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class DictionariesResourceTest extends AbstractResourceTest {
+
+    private static final ObjectMapper MAPPER = new GraviteeMapper();
 
     @Inject
     private CreateOrUpdateDictionaryUseCase createOrUpdateDictionaryUseCase;
@@ -79,6 +83,21 @@ class DictionariesResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_not_echo_a_submitted_secret_value() {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("mixed-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(response.readEntity(String.class)).doesNotContain("my secret API key");
+                verifyNoInteractions(createOrUpdateDictionaryUseCase);
+            }
+        }
+
+        @Test
         void should_return_400_when_dictionary_is_invalid() {
             try (
                 var response = rootTarget()
@@ -97,7 +116,7 @@ class DictionariesResourceTest extends AbstractResourceTest {
     class Run {
 
         @Test
-        void should_create_or_update_manual_dictionary() {
+        void should_create_or_update_manual_dictionary() throws Exception {
             var entity = DictionaryEntity.builder()
                 .id("dict-id")
                 .name("My Dictionary")
@@ -121,7 +140,10 @@ class DictionariesResourceTest extends AbstractResourceTest {
                 verify(validateDictionaryDomainService).validate(any());
                 verify(createOrUpdateDictionaryUseCase).execute(any(CreateOrUpdateDictionaryUseCase.Input.class));
 
-                var state = response.readEntity(DictionaryState.class);
+                var body = response.readEntity(String.class);
+                assertThat(body).doesNotContain("encryptedProperties");
+
+                var state = MAPPER.readValue(body, DictionaryState.class);
                 SoftAssertions.assertSoftly(soft -> {
                     soft.assertThat(state.getId()).isEqualTo("dict-id");
                     soft.assertThat(state.getHrid()).isEqualTo("my-dict");
@@ -130,13 +152,12 @@ class DictionariesResourceTest extends AbstractResourceTest {
                     soft.assertThat(state.getDeployed()).isTrue();
                     soft.assertThat(state.getManual()).isNotNull();
                     soft.assertThat(state.getManual().getProperties()).containsExactlyEntriesOf(Map.of("key1", "value1"));
-                    soft.assertThat(state.getManual().getPropertyOptions()).isEmpty();
                 });
             }
         }
 
         @Test
-        void should_apply_a_manifest_written_before_property_options_existed() {
+        void should_apply_a_manifest_written_before_encrypted_properties_existed() {
             var entity = DictionaryEntity.builder()
                 .id("dict-id")
                 .name("My Dictionary")
@@ -167,7 +188,8 @@ class DictionariesResourceTest extends AbstractResourceTest {
                                 property ->
                                     "key1".equals(property.getKey()) &&
                                     "value1".equals(property.getValue()) &&
-                                    property.getEncrypted() == null
+                                    property.getEncrypted() == null &&
+                                    property.getEncryptable() == null
                             )
                     )
                 );
@@ -175,7 +197,7 @@ class DictionariesResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_apply_a_manifest_mixing_plain_and_encrypted_properties() {
+        void should_apply_a_manifest_mixing_plain_and_encrypted_properties() throws Exception {
             var entity = DictionaryEntity.builder()
                 .id("dict-id")
                 .name("Mixed Dictionary")
@@ -211,16 +233,21 @@ class DictionariesResourceTest extends AbstractResourceTest {
                             .orElseThrow();
                         return (
                             plain.getEncrypted() == null &&
+                            plain.getEncryptable() == null &&
                             "https://backend".equals(plain.getValue()) &&
-                            Boolean.TRUE.equals(encrypted.getEncrypted()) &&
-                            "cipher".equals(encrypted.getValue())
+                            Boolean.TRUE.equals(encrypted.getEncryptable()) &&
+                            "my secret API key".equals(encrypted.getValue())
                         );
                     })
                 );
 
-                var state = response.readEntity(DictionaryState.class);
-                assertThat(state.getManual().getProperties()).containsOnlyKeys("url", "apiKey");
-                assertThat(state.getManual().getPropertyOptions()).containsOnlyKeys("apiKey");
+                var body = response.readEntity(String.class);
+                assertThat(body).doesNotContain("my secret API key").doesNotContain("cipher");
+
+                var state = MAPPER.readValue(body, DictionaryState.class);
+                assertThat(state.getManual().getProperties()).containsOnlyKeys("url");
+                assertThat(state.getManual().getEncryptedProperties()).containsOnlyKeys("apiKey");
+                assertThat(state.getManual().getEncryptedProperties().get("apiKey").getValue()).isNull();
             }
         }
 
@@ -279,11 +306,37 @@ class DictionariesResourceTest extends AbstractResourceTest {
                             .anyMatch(
                                 property ->
                                     "secret-key".equals(property.getKey()) &&
-                                    Boolean.TRUE.equals(property.getEncrypted()) &&
-                                    "cipher".equals(property.getValue())
+                                    Boolean.TRUE.equals(property.getEncryptable()) &&
+                                    "my secret API key".equals(property.getValue())
                             )
                     )
                 );
+            }
+        }
+
+        @Test
+        void should_return_400_when_a_key_is_declared_in_both_property_maps() {
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("both-maps-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+                verifyNoInteractions(createOrUpdateDictionaryUseCase);
+            }
+        }
+
+        @Test
+        void should_return_400_when_an_encrypted_property_has_no_value() {
+            try (
+                var response = rootTarget()
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("valueless-encrypted-manual-dictionary.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+                verifyNoInteractions(createOrUpdateDictionaryUseCase);
             }
         }
     }
