@@ -114,6 +114,14 @@ describe('SubscriptionFormApisComponent', () => {
     expect(fixture.debugElement.query(By.css('[data-testid=api-chip-api-weather]')).nativeElement.textContent).toContain('Weather API');
   });
 
+  it('should label each checkbox with the action it performs', async () => {
+    await init([{ id: 'api-weather', name: 'Weather API' }]);
+    expectApiPage();
+
+    expect(await (await checkbox('api-weather')).getAriaLabel()).toEqual('Unmap Weather API');
+    expect(await (await checkbox('api-payments')).getAriaLabel()).toEqual('Map Payments API');
+  });
+
   it('should disable an API already mapped to another form and say which one', async () => {
     await init([], { 'api-email': 'Partner onboarding' });
     expectApiPage();

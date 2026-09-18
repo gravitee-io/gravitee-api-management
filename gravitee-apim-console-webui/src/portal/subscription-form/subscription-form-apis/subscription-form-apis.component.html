@@ -36,6 +36,8 @@
     </mat-chip-set>
   }
 
+  <!-- Not a gio-table-wrapper: its header bar (search + full paginator) overflows this panel and adds a second
+       horizontal scrollbar, so the search sits above the table and a single paginator below it. -->
   <mat-form-field class="mapped-apis__search" appearance="outline" subscriptSizing="dynamic">
     <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>
     <mat-label>Search APIs...</mat-label>
@@ -55,7 +57,7 @@
             [checked]="isSelected(api)"
             [disabled]="!canUpdate() || !!mappedTo(api)"
             [attr.data-testid]="'api-checkbox-' + api.id"
-            [aria-label]="'Map ' + api.name"
+            [aria-label]="(isSelected(api) ? 'Unmap ' : 'Map ') + api.name"
             (change)="toggle(api)"
           ></mat-checkbox>
         </span>
