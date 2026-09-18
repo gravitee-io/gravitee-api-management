@@ -10,10 +10,10 @@ td.md-cell.dictionary-property-value {
 .dictionary-property-actions {
   width: 90px;
   white-space: nowrap;
+}
 
-  ng-md-icon svg {
-    width: 24px;
-  }
+td.md-cell.dictionary-property-actions ng-md-icon svg {
+  width: 24px;
 }
 
 md-dialog.dictionary-add-property-dialog {
