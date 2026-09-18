@@ -41,6 +41,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -100,7 +101,7 @@ class UserServiceResetPasswordTargetTest {
 
     @Test
     void should_build_gamma_reset_password_page_url_from_installation_config() {
-        when(installationAccessQueryService.getGammaUrl("DEFAULT")).thenReturn("http://gamma.example.com/");
+        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.of("http://gamma.example.com/"));
 
         String resetPageUrl = ReflectionTestUtils.invokeMethod(userService, "buildGammaResetPasswordPageUrl", "DEFAULT");
 
@@ -109,11 +110,33 @@ class UserServiceResetPasswordTargetTest {
 
     @Test
     void should_reject_reset_when_gamma_url_is_not_configured() {
-        when(installationAccessQueryService.getGammaUrl("DEFAULT")).thenReturn(null);
+        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.resetPasswordWithTarget(EXECUTION_CONTEXT, "user-id", "gamma"))
             .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("Gamma URL is not configured");
+            .hasMessageContaining("No Gamma URL is configured");
+    }
+
+    @Test
+    void should_reject_reset_when_gamma_url_is_blank() {
+        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.of("  "));
+
+        assertThatThrownBy(() -> userService.resetPasswordWithTarget(EXECUTION_CONTEXT, "user-id", "gamma"))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("No Gamma URL is configured");
+    }
+
+    @Test
+    void should_build_the_reset_page_url_when_gamma_is_configured_on_the_default_url() {
+        // The default URL is what an unconfigured organization is *given*, not a reserved value: an organization
+        // that genuinely serves Gamma there has configured it, and must be served rather than refused.
+        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(
+            Optional.of(InstallationAccessQueryService.DEFAULT_GAMMA_URL)
+        );
+
+        String resetPageUrl = ReflectionTestUtils.invokeMethod(userService, "buildGammaResetPasswordPageUrl", "DEFAULT");
+
+        assertThat(resetPageUrl).isEqualTo(InstallationAccessQueryService.DEFAULT_GAMMA_URL + "/reset-password");
     }
 
     @Test
@@ -125,7 +148,7 @@ class UserServiceResetPasswordTargetTest {
 
     @Test
     void should_reset_password_with_gamma_target_and_build_registration_url() throws TechnicalException {
-        when(installationAccessQueryService.getGammaUrl("DEFAULT")).thenReturn("http://gamma.example.com");
+        when(installationAccessQueryService.findGammaUrl("DEFAULT")).thenReturn(Optional.of("http://gamma.example.com"));
         when(environment.getProperty("jwt.secret")).thenReturn(JWT_SECRET);
         when(
             environment.getProperty("user.creation.token.expire-after", Integer.class, DEFAULT_JWT_EMAIL_REGISTRATION_EXPIRE_AFTER)

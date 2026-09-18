@@ -38,6 +38,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import lombok.CustomLog;
 import lombok.NonNull;
@@ -405,6 +406,14 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         } else {
             return getGammaUrlFromEnv(organizationId);
         }
+    }
+
+    @Override
+    public Optional<String> findGammaUrl(final String organizationId) {
+        if (installationTypeDomainService.isMultiTenant()) {
+            return Optional.ofNullable(buildHttpUrl(accessPointQueryService.getGammaConsoleAccessPoint(organizationId)));
+        }
+        return Optional.ofNullable(gammaUrls.get(organizationId));
     }
 
     @NonNull
