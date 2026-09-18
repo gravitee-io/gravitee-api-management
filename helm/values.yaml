@@ -364,6 +364,7 @@ es:
       request: my_policy ## ILM policy for the gravitee-request-* indexes
       health: my_policy ## ILM policy for the gravitee-health-* indexes
       log: my_policy ## ILM policy for the gravitee-log-* indexes
+      eventMetrics: "" ## ILM policy for the gravitee-event-metrics-* data streams (unset by default)
     # http:
       # timeout: 10000
   ssl:
