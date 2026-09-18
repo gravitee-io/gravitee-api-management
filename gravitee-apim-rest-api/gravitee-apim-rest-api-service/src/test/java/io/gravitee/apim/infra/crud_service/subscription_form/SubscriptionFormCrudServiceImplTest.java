@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.subscription_form;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -175,6 +176,27 @@ class SubscriptionFormCrudServiceImplTest {
             assertThatThrownBy(() -> service.update(subscriptionForm))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while trying to update a SubscriptionForm with id: " + SubscriptionFormFixtures.FORM_ID);
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_the_row() throws TechnicalException {
+            service.delete(SubscriptionFormFixtures.aSubscriptionForm());
+
+            verify(repository).delete(SubscriptionFormFixtures.FORM_ID);
+        }
+
+        @Test
+        void should_throw_when_the_row_cannot_be_deleted() throws TechnicalException {
+            doThrow(new TechnicalException("Database error")).when(repository).delete(SubscriptionFormFixtures.FORM_ID);
+            var subscriptionForm = SubscriptionFormFixtures.aSubscriptionForm();
+
+            assertThatThrownBy(() -> service.delete(subscriptionForm))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while trying to delete a SubscriptionForm with id: " + SubscriptionFormFixtures.FORM_ID);
         }
     }
 }

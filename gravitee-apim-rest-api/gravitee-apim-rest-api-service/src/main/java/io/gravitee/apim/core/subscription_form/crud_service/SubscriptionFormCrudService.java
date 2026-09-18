@@ -38,4 +38,11 @@ public interface SubscriptionFormCrudService {
      * @return the updated form
      */
     SubscriptionForm update(SubscriptionForm subscriptionForm);
+
+    /**
+     * Deletes a subscription form, including its content and its API mappings.
+     *
+     * @param subscriptionForm the form to delete
+     */
+    void delete(SubscriptionForm subscriptionForm);
 }

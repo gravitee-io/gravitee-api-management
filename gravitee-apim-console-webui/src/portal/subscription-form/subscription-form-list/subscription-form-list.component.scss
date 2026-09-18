@@ -20,3 +20,25 @@ tr[mat-row] {
     background-color: mat.m2-get-color-from-palette(gio.$mat-accent-palette, lighter20);
   }
 }
+
+$delete-icon-size: 20px;
+
+.delete-cell button {
+  @include mat.icon-button-overrides(
+    (
+      state-layer-size: 32px,
+      icon-size: $delete-icon-size,
+    )
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  // .mat-icon keeps a 24px box around the smaller SVG, which then sits above the center.
+  mat-icon {
+    display: flex;
+    width: $delete-icon-size;
+    height: $delete-icon-size;
+  }
+}
