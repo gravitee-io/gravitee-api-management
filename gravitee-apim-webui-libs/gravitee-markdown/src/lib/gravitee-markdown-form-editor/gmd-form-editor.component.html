@@ -17,7 +17,7 @@
 -->
 <div class="container">
   <gmd-form-host [content]="value">
-    <div class="container__editor-preview">
+    <div class="container__editor-preview" [class.container__editor-preview--editor-only]="!showPreview()">
       <gmd-monaco-editor
         class="container__inner-border"
         [value]="value"
@@ -25,8 +25,9 @@
         (valueChange)="onValueChange($event)"
         (touched)="onTouched()"
       />
-      <hr class="hr" />
-      <div class="container__inner-border">
+      <!-- Hidden, never removed: the fields the preview renders are what the validation panel reads. -->
+      <hr class="hr" [hidden]="!showPreview()" />
+      <div class="container__inner-border container__preview" [hidden]="!showPreview()">
         <gmd-viewer [content]="value" />
       </div>
     </div>

@@ -22,12 +22,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.SubscriptionFormFixtures;
 import fixtures.core.model.SubscriptionFormSchemaFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
+import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormApiAlreadyMappedException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormDefinitionValidationException;
 import io.gravitee.apim.core.subscription_form.exception.SubscriptionFormNameAlreadyExistsException;
 import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
@@ -45,12 +48,19 @@ class SubscriptionFormDefinitionDomainServiceTest {
 
     private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
     private final SubscriptionFormSchemaGenerator schemaGenerator = mock(SubscriptionFormSchemaGenerator.class);
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private SubscriptionFormDefinitionDomainService service;
 
     @BeforeEach
     void setUp() {
         queryService.reset();
-        service = new SubscriptionFormDefinitionDomainService(new GraviteeMarkdownValidator(), schemaGenerator, queryService);
+        apiCrudService.reset();
+        service = new SubscriptionFormDefinitionDomainService(
+            new GraviteeMarkdownValidator(),
+            schemaGenerator,
+            queryService,
+            apiCrudService
+        );
     }
 
     @Nested
@@ -132,5 +142,70 @@ class SubscriptionFormDefinitionDomainServiceTest {
 
     private static SubscriptionFormSchema.InputField anInput(String fieldKey, boolean required) {
         return new SubscriptionFormSchema.InputField(fieldKey, required, null, null, null, null);
+    }
+
+    @Nested
+    class ValidateApiIds {
+
+        @Test
+        void should_accept_no_apis() {
+            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, null, null)).isEmpty();
+            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of(), null)).isEmpty();
+            assertThat(service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of(" ", ""), null)).isEmpty();
+        }
+
+        @Test
+        void should_return_the_distinct_apis_of_the_environment() {
+            apiCrudService.initWith(List.of(anApi("api-1"), anApi("api-2")));
+
+            var result = service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1", " api-2 ", "api-1"), null);
+
+            assertThat(result).containsExactly("api-1", "api-2");
+        }
+
+        @Test
+        void should_reject_an_api_that_does_not_exist() {
+            apiCrudService.initWith(List.of(anApi("api-1")));
+
+            assertThatThrownBy(() -> service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1", "ghost"), null))
+                .isInstanceOf(SubscriptionFormDefinitionValidationException.class)
+                .hasMessageContaining("ghost");
+        }
+
+        @Test
+        void should_reject_an_api_of_another_environment() {
+            apiCrudService.initWith(List.of(anApi("api-1").toBuilder().environmentId("other-env").build()));
+
+            assertThatThrownBy(() -> service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1"), null)).isInstanceOf(
+                SubscriptionFormDefinitionValidationException.class
+            );
+        }
+
+        @Test
+        void should_reject_an_api_already_mapped_to_another_form() {
+            apiCrudService.initWith(List.of(anApi("api-1")));
+            queryService.initWith(
+                List.of(SubscriptionFormFixtures.aSubscriptionFormBuilder().name("Partners").apiIds(List.of("api-1")).build())
+            );
+
+            assertThatThrownBy(() ->
+                service.validateApiIds(SubscriptionFormFixtures.ENVIRONMENT_ID, List.of("api-1"), SubscriptionFormId.random())
+            )
+                .isInstanceOf(SubscriptionFormApiAlreadyMappedException.class)
+                .hasMessageContaining("Partners");
+        }
+
+        @Test
+        void should_accept_an_api_already_mapped_to_the_form_being_updated() {
+            apiCrudService.initWith(List.of(anApi("api-1")));
+            var form = SubscriptionFormFixtures.aSubscriptionFormBuilder().apiIds(List.of("api-1")).build();
+            queryService.initWith(List.of(form));
+
+            assertThat(service.validateApiIds(form.getEnvironmentId(), List.of("api-1"), form.getId())).containsExactly("api-1");
+        }
+
+        private static io.gravitee.apim.core.api.model.Api anApi(String id) {
+            return ApiFixtures.aProxyApiV4().toBuilder().id(id).environmentId(SubscriptionFormFixtures.ENVIRONMENT_ID).build();
+        }
     }
 }

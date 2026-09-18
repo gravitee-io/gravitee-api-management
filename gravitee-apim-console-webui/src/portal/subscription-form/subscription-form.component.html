@@ -36,7 +36,7 @@
 
     <div class="sections-panel__tree__container">
       <subscription-form-list
-        [forms]="forms()"
+        [forms]="listedForms()"
         [selectedFormId]="selectedForm()?.id ?? null"
         [canUpdate]="canUpdate()"
         (selectForm)="selectForm($event)"
@@ -79,8 +79,20 @@
           </mat-form-field>
         </div>
       }
-      <div class="panel-header__actions" *gioPermission="{ anyOf: ['environment-metadata-u'] }">
+      <div class="panel-header__actions">
+        @if (hasSelection()) {
+          <button
+            mat-stroked-button
+            type="button"
+            data-testid="toggle-preview-button"
+            [attr.aria-pressed]="isPreviewVisible()"
+            (click)="togglePreview()"
+          >
+            Toggle preview
+          </button>
+        }
         <button
+          *gioPermission="{ anyOf: ['environment-metadata-u'] }"
           mat-flat-button
           color="primary"
           type="button"
@@ -94,7 +106,13 @@
     </header>
 
     @if (hasSelection()) {
-      <gmd-form-editor [formControl]="contentControl" />
+      <gmd-form-editor [formControl]="contentControl" [showPreview]="isPreviewVisible()" />
+      <subscription-form-apis
+        [selectedApis]="selectedApis()"
+        [mappedElsewhere]="apisMappedElsewhere()"
+        [canUpdate]="canUpdate()"
+        (apiToggled)="toggleApi($event)"
+      />
     } @else {
       <div class="empty-editor">
         <mat-card appearance="outlined" class="empty-state">

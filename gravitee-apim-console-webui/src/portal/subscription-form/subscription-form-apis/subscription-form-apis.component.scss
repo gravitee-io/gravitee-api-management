@@ -1,0 +1,76 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+$background: map.get(gio.$mat-theme, background);
+
+.mapped-apis {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__title {
+    margin: 0;
+    @include mat.m2-typography-level(gio.$mat-typography, subtitle-2);
+  }
+
+  &__subtitle {
+    @include mat.m2-typography-level(gio.$mat-typography, body-2);
+    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter40);
+  }
+
+  &__search {
+    width: 100%;
+  }
+
+  // A fixed layout keeps a long API name from widening the panel: the name column wraps instead.
+  table {
+    width: 100%;
+    min-width: 0;
+    table-layout: fixed;
+
+    .mat-mdc-header-row {
+      background-color: mat.m2-get-color-from-palette($background, 'background');
+    }
+
+    .mat-column-select {
+      width: 80px;
+    }
+
+    .mat-column-name {
+      overflow-wrap: anywhere;
+    }
+
+    .mat-column-version,
+    .mat-column-mapped {
+      width: 120px;
+    }
+  }
+
+  mat-paginator {
+    align-self: flex-end;
+  }
+}

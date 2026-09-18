@@ -18,16 +18,14 @@ package io.gravitee.apim.core.subscription_form.exception;
 import io.gravitee.apim.core.exception.ConflictDomainException;
 
 /**
- * Raised when the persistence layer rejects a form colliding with another form of its environment (a name already
- * taken, or an API already mapped to another form), which the use cases check beforehand: only a concurrent write gets
- * here, which is why the message does not name the colliding constraint.
+ * Thrown when an API is assigned to a subscription form while another form of the environment
+ * already claims it: an API is mapped to at most one form.
  *
  * @author Gravitee.io Team
  */
-public class SubscriptionFormConflictException extends ConflictDomainException {
+public class SubscriptionFormApiAlreadyMappedException extends ConflictDomainException {
 
-    public SubscriptionFormConflictException(Throwable cause) {
-        super("The subscription form conflicts with another form of its environment.");
-        initCause(cause);
+    public SubscriptionFormApiAlreadyMappedException(String apiId, String formName) {
+        super("API '" + apiId + "' is already mapped to the subscription form '" + formName + "'.", apiId);
     }
 }

@@ -17,6 +17,12 @@ package io.gravitee.apim.core.subscription_form.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.SubscriptionFormFixtures;
+import inmemory.SubscriptionFormQueryServiceInMemory;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionFormId;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -24,10 +30,55 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class SubscriptionFormResolutionDomainServiceTest {
 
-    private final SubscriptionFormResolutionDomainService service = new SubscriptionFormResolutionDomainService();
+    private static final String ENVIRONMENT_ID = SubscriptionFormFixtures.ENVIRONMENT_ID;
+    private static final String API_ID = "api-1";
+
+    private final SubscriptionFormQueryServiceInMemory queryService = new SubscriptionFormQueryServiceInMemory();
+    private SubscriptionFormResolutionDomainService service;
+
+    @BeforeEach
+    void setUp() {
+        queryService.reset();
+        service = new SubscriptionFormResolutionDomainService(queryService);
+    }
 
     @Test
-    void should_resolve_no_form_as_forms_are_not_dedicated_to_apis_yet() {
-        assertThat(service.resolveForApi("env-id", "api-id")).isEmpty();
+    void should_resolve_the_enabled_form_dedicated_to_the_api() {
+        var dedicated = aDedicatedForm(true);
+        queryService.initWith(List.of(anUnmappedForm(), dedicated));
+
+        assertThat(service.resolveForApi(ENVIRONMENT_ID, API_ID)).contains(dedicated);
+    }
+
+    @Test
+    void should_return_nothing_when_the_api_has_no_dedicated_form() {
+        queryService.initWith(List.of(anUnmappedForm()));
+
+        assertThat(service.resolveForApi(ENVIRONMENT_ID, API_ID)).isEmpty();
+    }
+
+    @Test
+    void should_return_nothing_when_the_dedicated_form_is_disabled() {
+        queryService.initWith(List.of(anUnmappedForm(), aDedicatedForm(false)));
+
+        assertThat(service.resolveForApi(ENVIRONMENT_ID, API_ID)).isEmpty();
+    }
+
+    @Test
+    void should_return_nothing_when_the_environment_has_no_form() {
+        assertThat(service.resolveForApi(ENVIRONMENT_ID, API_ID)).isEmpty();
+    }
+
+    private static SubscriptionForm anUnmappedForm() {
+        return SubscriptionFormFixtures.aSubscriptionFormBuilder().enabled(true).build();
+    }
+
+    private static SubscriptionForm aDedicatedForm(boolean enabled) {
+        return SubscriptionFormFixtures.aSubscriptionFormBuilder()
+            .id(SubscriptionFormId.random())
+            .name("Dedicated")
+            .enabled(enabled)
+            .apiIds(List.of(API_ID))
+            .build();
     }
 }

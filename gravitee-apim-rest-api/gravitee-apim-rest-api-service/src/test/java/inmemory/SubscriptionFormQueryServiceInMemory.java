@@ -49,6 +49,14 @@ public class SubscriptionFormQueryServiceInMemory implements SubscriptionFormQue
     }
 
     @Override
+    public Optional<SubscriptionForm> findByApiId(String environmentId, String apiId) {
+        return storage
+            .stream()
+            .filter(form -> form.getEnvironmentId().equals(environmentId) && form.getApiIds().contains(apiId))
+            .findFirst();
+    }
+
+    @Override
     public void initWith(List<SubscriptionForm> items) {
         storage.addAll(items);
     }

@@ -41,6 +41,7 @@ public class SubscriptionFormCrudServiceInMemory implements SubscriptionFormCrud
                 .name(subscriptionForm.getName())
                 .gmdContent(subscriptionForm.getGmdContent())
                 .enabled(subscriptionForm.isEnabled())
+                .apiIds(subscriptionForm.getApiIds())
                 .validationConstraints(subscriptionForm.getValidationConstraints())
                 .build()
             : subscriptionForm;

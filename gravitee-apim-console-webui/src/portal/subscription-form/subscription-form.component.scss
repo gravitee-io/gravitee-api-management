@@ -87,9 +87,13 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
     )
   );
 
+  // The mapped APIs sit under the editor: the panel scrolls rather than crushing the editor to make room for them.
+  overflow-y: auto;
+
   gmd-form-editor {
     flex-grow: 1;
-    min-height: 0;
+    flex-shrink: 0;
+    min-height: 560px;
   }
 
   &__header {

@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import java.util.List;
 import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -58,6 +59,12 @@ public class SubscriptionForm {
      * Whether the form is enabled and visible to API consumers.
      */
     private boolean enabled;
+
+    /**
+     * Identifiers of the APIs this form is dedicated to. An API is mapped to at most one form.
+     */
+    @Builder.Default
+    private List<String> apiIds = List.of();
 
     /**
      * JSON string of validation constraints per field key, derived from the GMD content.

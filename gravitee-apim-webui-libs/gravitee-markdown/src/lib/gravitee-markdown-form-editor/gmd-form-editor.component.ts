@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, forwardRef, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, forwardRef, inject, input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { isString } from 'lodash';
 
@@ -45,6 +45,8 @@ import { GraviteeMarkdownViewerModule } from '../gravitee-markdown-viewer/gravit
 })
 export class GmdFormEditorComponent implements ControlValueAccessor {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  readonly showPreview = input(true);
 
   value = '';
   isDisabled = false;

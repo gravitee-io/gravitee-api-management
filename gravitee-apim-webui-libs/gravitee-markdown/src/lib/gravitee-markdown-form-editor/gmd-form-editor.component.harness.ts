@@ -53,6 +53,11 @@ export class GmdFormEditorHarness extends ComponentHarness {
     return disabled !== null;
   }
 
+  async isPreviewVisible(): Promise<boolean> {
+    const preview = await this.locatorForOptional('.container__preview')();
+    return preview !== null && (await preview.getProperty<boolean>('hidden')) === false;
+  }
+
   async getStatusLabelText(): Promise<string | null> {
     try {
       const label = await this.locatorFor('.form-status__label')();
