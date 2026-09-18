@@ -47,9 +47,10 @@ class DictionaryService {
     if (!dictionary.propertyOptions) {
       return dictionary.propertyOptions;
     }
+    const properties = dictionary.properties || {};
     return Object.fromEntries(
       Object.entries<{ encrypted?: boolean; encryptable?: boolean }>(dictionary.propertyOptions)
-        .filter(([, options]) => options?.encryptable)
+        .filter(([key, options]) => options?.encryptable && Object.prototype.hasOwnProperty.call(properties, key))
         .map(([key]) => [key, { encryptable: true }]),
     );
   }

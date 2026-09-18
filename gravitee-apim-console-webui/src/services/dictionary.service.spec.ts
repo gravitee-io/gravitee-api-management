@@ -79,5 +79,29 @@ describe('DictionaryService', () => {
 
       expect($http.put.mock.calls[0][1].propertyOptions).toEqual({});
     });
+
+    it('should drop an option whose key is no longer among the properties', () => {
+      service.update({
+        id: 'dic-1',
+        name: 'Dynamic dictionary',
+        type: 'DYNAMIC',
+        properties: { url: 'https://backend' },
+        propertyOptions: { url: { encryptable: true }, vanished: { encryptable: true } },
+      });
+
+      expect($http.put.mock.calls[0][1].propertyOptions).toEqual({ url: { encryptable: true } });
+    });
+
+    it('should drop a vanished key that happens to name an Object prototype member', () => {
+      service.update({
+        id: 'dic-1',
+        name: 'Dynamic dictionary',
+        type: 'DYNAMIC',
+        properties: { url: 'https://backend' },
+        propertyOptions: { constructor: { encryptable: true }, toString: { encryptable: true } },
+      });
+
+      expect($http.put.mock.calls[0][1].propertyOptions).toEqual({});
+    });
   });
 });
