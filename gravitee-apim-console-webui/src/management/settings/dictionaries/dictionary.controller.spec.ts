@@ -40,6 +40,7 @@ describe('DictionaryController', () => {
 
     controller = new DictionaryController($mdDialog, NotificationService, DictionaryService, ngRouter);
     controller['dictionary'] = {
+      type: 'MANUAL',
       properties: {
         large_value: 'short',
       },
@@ -308,6 +309,17 @@ describe('DictionaryController', () => {
         await controller.editProperty({ stopPropagation: jest.fn() }, 'apiKey', row.value);
 
         expect(controller['dictionary'].properties.apiKey).toBe('real-secret');
+      });
+    });
+
+    describe('a dynamic dictionary is read-only', () => {
+      it('should refuse to edit a plain value, since the provider owns it', async () => {
+        controller['dictionary'] = { type: 'DYNAMIC', properties: { url: 'https://backend' } };
+
+        await controller.editProperty({ stopPropagation: jest.fn() }, 'url', 'https://backend');
+
+        expect($mdDialog.show).not.toHaveBeenCalled();
+        expect(controller['dictionary'].properties.url).toBe('https://backend');
       });
     });
 

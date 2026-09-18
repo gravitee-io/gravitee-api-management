@@ -297,7 +297,7 @@
                 <th md-column md-order-by="name" ng-click="reverse = !reverse">Key</th>
                 <th md-column>Value</th>
                 <th md-column>Characteristic</th>
-                <th md-column class="dictionary-property-actions" ng-if="$ctrl.dictionary.type === 'MANUAL'"></th>
+                <th md-column class="dictionary-property-actions"></th>
               </tr>
             </thead>
             <tbody md-body>
@@ -313,7 +313,7 @@
                 <td
                   md-cell
                   class="dictionary-property-value"
-                  ng-click="$ctrl.isMasked(entry) || $ctrl.editProperty($event, entry.key, entry.value)"
+                  ng-click="$ctrl.isValueEditable(entry) && $ctrl.editProperty($event, entry.key, entry.value)"
                   ng-class="{'gravitee-placeholder': entry.value}"
                 >
                   {{entry.value || 'Set value'}}
@@ -326,7 +326,7 @@
                   <span ng-if="!entry.encryptable && !entry.encrypted" class="gio-badge-neutral">Unencrypted</span>
                   <span ng-if="$ctrl.dictionary.type === 'DYNAMIC'" class="gio-badge-neutral">Dynamic</span>
                 </td>
-                <td md-cell class="dictionary-property-actions" ng-if="$ctrl.dictionary.type === 'MANUAL'">
+                <td md-cell class="dictionary-property-actions">
                   <ng-md-icon
                     ng-if="!entry.encrypted && !entry.encryptable"
                     permission
@@ -346,7 +346,7 @@
                     title="Do not encrypt this value"
                   ></ng-md-icon>
                   <ng-md-icon
-                    ng-if="entry.encrypted || entry.encryptable"
+                    ng-if="(entry.encrypted || entry.encryptable) && $ctrl.dictionary.type === 'MANUAL'"
                     permission
                     permission-only="['environment-dictionary-u']"
                     ng-click="$ctrl.renewProperty($event, entry.key)"
@@ -355,6 +355,7 @@
                     title="Replace this value"
                   ></ng-md-icon>
                   <ng-md-icon
+                    ng-if="$ctrl.dictionary.type === 'MANUAL'"
                     permission
                     permission-only="['environment-dictionary-u']"
                     ng-click="$ctrl.deleteProperty(entry.key)"
@@ -385,7 +386,7 @@
           create-mode="!$ctrl.updateMode"
         ></gravitee-empty-state>
 
-        <div layout="column" ng-if="$ctrl.dictionary.type === 'MANUAL'">
+        <div layout="column" ng-if="$ctrl.dictionary.type === 'MANUAL' || $ctrl.hasProperties()">
           <div class="hint" ng-if="$ctrl.propertiesDirty" style="position: static; margin: 0 8px 8px">
             Edited properties are not saved until you click Save properties.
           </div>
@@ -397,6 +398,7 @@
             <md-button
               class="md-raised md-warn float-right"
               type="button"
+              ng-if="$ctrl.dictionary.type === 'MANUAL'"
               ng-click="$ctrl.deleteSelectedProperties()"
               permission
               permission-only="['environment-dictionary-u']"

@@ -249,7 +249,7 @@ class DictionaryController {
   editProperty(event, key, value) {
     event.stopPropagation();
 
-    if (this.isMaskedKey(key)) {
+    if (!this.isValueEditableKey(key)) {
       return;
     }
 
@@ -348,6 +348,10 @@ class DictionaryController {
     return this.isMaskedKey(entry.key);
   }
 
+  isValueEditable(entry) {
+    return this.isValueEditableKey(entry.key);
+  }
+
   isEncrypted(key: string) {
     return this.propertyOption(key).encrypted === true;
   }
@@ -396,6 +400,10 @@ class DictionaryController {
 
   private isMaskedKey(key: string) {
     return this.isEncrypted(key) || this.isEncryptable(key);
+  }
+
+  private isValueEditableKey(key: string) {
+    return this.dictionary.type === 'MANUAL' && !this.isMaskedKey(key);
   }
 
   private propertyOptions() {
