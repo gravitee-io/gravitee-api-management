@@ -33,19 +33,22 @@ import { mavenParallelism } from '../../utils';
  * master's plain one gets the branch name, so that master's snapshots are never overwritten.
  * 4.13.0-SNAPSHOT on agent_gateway publishes as 4.13.0-agent-gateway-SNAPSHOT.
  *
- * Exported for its test, which runs it against a stub mvn.
+ * The pom is CI-friendly, so the name goes in as its `sha1` qualifier on the command line - what
+ * that property is for - rather than by rewriting the poms. Exported for its test, which runs it
+ * against a stub mvn.
  */
 export const versionSnapshotsAfterBranch = `currentVersion=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -s ${config.maven.settingsFile})
 if [[ "$currentVersion" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+-SNAPSHOT$ ]]; then
   # 's/[^a-z0-9]+/-/gi' => replace all non alphanumerical character with '-'
   # 's/-$//' => remove potential trailing '-'
   cleanBranchName=$(echo "$CIRCLE_BRANCH" | sed -r 's/[^a-z0-9]+/-/gi' | sed -r 's/-$//')
-  branchVersion="\${currentVersion%-SNAPSHOT}-\${cleanBranchName}-SNAPSHOT"
-  echo "Publishing $currentVersion as $branchVersion"
-  mvn versions:set -DnewVersion=$branchVersion -DgenerateBackupPoms=false --no-transfer-progress -s ${config.maven.settingsFile}
+  echo "Publishing $currentVersion as \${currentVersion%-SNAPSHOT}-\${cleanBranchName}-SNAPSHOT"
+  echo "export SNAPSHOT_VERSION_ARGS='-Dsha1=-\${cleanBranchName}'" >> $BASH_ENV
 else
   echo "Publishing $currentVersion as it is"
-fi`;
+  echo "export SNAPSHOT_VERSION_ARGS=''" >> $BASH_ENV
+fi
+`;
 
 export class PublishSnapshotOnAzureJob {
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -79,7 +82,7 @@ export class PublishSnapshotOnAzureJob {
         //
         // Fatal: a swallowed failure here would leave the feed silently short of a snapshot while
         // the build stayed green, and the repositories built on this branch would not see it.
-        command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl} \\
+        command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true \${SNAPSHOT_VERSION_ARGS} ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl} \\
   -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl}`,
       }),
       new reusable.ReusedCommand(notifyOnFailureCmd),

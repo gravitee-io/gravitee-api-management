@@ -978,22 +978,22 @@ jobs:
       - cmd-azure-artifacts-token
       - run:
           name: Version the snapshots after the branch
-          command: |-
+          command: |
             currentVersion=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -s .gravitee.settings.xml)
             if [[ "$currentVersion" =~ ^[0-9]+\.[0-9]+\.[0-9]+-SNAPSHOT$ ]]; then
               # 's/[^a-z0-9]+/-/gi' => replace all non alphanumerical character with '-'
               # 's/-$//' => remove potential trailing '-'
               cleanBranchName=$(echo "$CIRCLE_BRANCH" | sed -r 's/[^a-z0-9]+/-/gi' | sed -r 's/-$//')
-              branchVersion="${currentVersion%-SNAPSHOT}-${cleanBranchName}-SNAPSHOT"
-              echo "Publishing $currentVersion as $branchVersion"
-              mvn versions:set -DnewVersion=$branchVersion -DgenerateBackupPoms=false --no-transfer-progress -s .gravitee.settings.xml
+              echo "Publishing $currentVersion as ${currentVersion%-SNAPSHOT}-${cleanBranchName}-SNAPSHOT"
+              echo "export SNAPSHOT_VERSION_ARGS='-Dsha1=-${cleanBranchName}'" >> $BASH_ENV
             else
               echo "Publishing $currentVersion as it is"
+              echo "export SNAPSHOT_VERSION_ARGS=''" >> $BASH_ENV
             fi
       - run:
           name: Maven deploy to the Azure feed (snapshots)
           command: |-
-            mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true -T 8 -s .gravitee.settings.xml -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1 \
+            mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${SNAPSHOT_VERSION_ARGS} -T 8 -s .gravitee.settings.xml -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1 \
               -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
