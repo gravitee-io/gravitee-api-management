@@ -240,6 +240,31 @@ describe('DictionaryController', () => {
       });
     });
 
+    describe('masking', () => {
+      it('should mask an encrypted value whatever the API returned', () => {
+        controller['dictionary'] = {
+          properties: { apiKey: 'hK3nB2xQ-raw-ciphertext', url: 'https://backend' },
+          propertyOptions: { apiKey: { encrypted: true } },
+        };
+
+        const rows = controller.computeProperties();
+
+        expect(rows).toContainEqual({ key: 'apiKey', value: '\u2022'.repeat(12), encrypted: true, encryptable: false });
+        expect(rows).toContainEqual({ key: 'url', value: 'https://backend', encrypted: false, encryptable: false });
+      });
+
+      it('should not let the mask reach the values that are sent back', () => {
+        controller['dictionary'] = {
+          properties: { apiKey: 'hK3nB2xQ-raw-ciphertext' },
+          propertyOptions: { apiKey: { encrypted: true } },
+        };
+
+        controller.computeProperties();
+
+        expect(controller['dictionary'].properties.apiKey).toBe('hK3nB2xQ-raw-ciphertext');
+      });
+    });
+
     describe('encryptProperty', () => {
       it('should mark a plain property as encryptable without touching its value', () => {
         controller.encryptProperty('url');
@@ -289,8 +314,19 @@ describe('DictionaryController', () => {
         await controller.renewProperty(event, 'apiKey');
 
         expect(controller['dictionary'].properties.apiKey).toBe('newS3cr3t');
-        expect(controller['dictionary'].propertyOptions.apiKey).toEqual({ encryptable: true });
+        expect(controller['dictionary'].propertyOptions.apiKey).toEqual({ encrypted: true, encryptable: true });
         expect(controller['propertiesDirty']).toBe(true);
+      });
+
+      it('should keep the stored encrypted state so a renewed row cannot be downgraded', async () => {
+        const event = { stopPropagation: jest.fn() };
+        $mdDialog.show.mockResolvedValue({ value: 'newS3cr3t' });
+        await controller.renewProperty(event, 'apiKey');
+
+        controller.undoEncryptProperty('apiKey');
+
+        expect(controller['dictionary'].propertyOptions.apiKey).toEqual({ encrypted: true, encryptable: true });
+        expect(controller.isEncrypted('apiKey')).toBe(true);
       });
 
       it('should never hand the stored value to the dialog', async () => {

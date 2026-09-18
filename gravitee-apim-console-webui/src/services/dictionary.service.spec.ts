@@ -55,5 +55,17 @@ describe('DictionaryService', () => {
 
       expect($http.put.mock.calls[0][1].propertyOptions).toBeUndefined();
     });
+
+    it('should send only encryptable for a renewed property, since the new value is plaintext', () => {
+      service.update({
+        id: 'dic-1',
+        name: 'My dictionary',
+        type: 'MANUAL',
+        properties: { apiKey: 'newS3cr3t' },
+        propertyOptions: { apiKey: { encrypted: true, encryptable: true } },
+      });
+
+      expect($http.put.mock.calls[0][1].propertyOptions).toEqual({ apiKey: { encryptable: true } });
+    });
   });
 });
