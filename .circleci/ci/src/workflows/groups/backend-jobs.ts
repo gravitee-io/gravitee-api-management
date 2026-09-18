@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 import { Config, Job, workflow } from '../../circleci-config';
-import {
-  BuildBackendJob,
-  BuildDistributionJob,
-  BuildEngineJob,
-  CheckGrapheneVersionsJob,
-  SetupJob,
-  SonarCloudAnalysisJob,
-  ValidateJob,
-} from '../../jobs';
+import { BuildBackendJob, CheckGrapheneVersionsJob, SetupJob, SonarCloudAnalysisJob, ValidateJob } from '../../jobs';
 import { analysisJobFor, BACKEND_SUITES, suiteJobFor } from './analysed-projects';
 import { CircleCIEnvironment } from '../../pipelines';
 import { config } from '../../config';
 import { shouldBuildBackend } from './changed-files';
-import { isSnapshotBranch } from '../../utils';
-
-/**
- * The workflow name of the distribution assembly when it is a job of its own (a snapshot branch):
- * what a gate that must not wait on it filters out.
- */
-export const BUILD_DISTRIBUTION = 'Build distribution';
 
 /**
  * Setup, validation, the engine build and the per-module test suites.
@@ -60,14 +45,7 @@ export function backendJobs(
   const validateBackendJob = ValidateJob.create(dynamicConfig, environment);
   dynamicConfig.addJob(validateBackendJob);
 
-  // A snapshot branch builds the engine and the distribution as two jobs, so that the engine's
-  // publication can wait on the first alone (see BuildDistributionJob). The engine job keeps the
-  // 'Build backend' name: it is what the test suites and everything else downstream wait on, and
-  // what they need - the engine in the workflow's cache - is what it produces.
-  const splitDistribution = isSnapshotBranch(environment.branch);
-  const buildBackendJob = splitDistribution
-    ? BuildEngineJob.create(dynamicConfig, environment)
-    : BuildBackendJob.create(dynamicConfig, environment);
+  const buildBackendJob = BuildBackendJob.create(dynamicConfig, environment);
   dynamicConfig.addJob(buildBackendJob);
 
   const checkGrapheneVersionsJob = CheckGrapheneVersionsJob.create();
@@ -92,19 +70,6 @@ export function backendJobs(
     }),
   );
   requires.push('Build backend', 'Check graphene versions');
-
-  if (splitDistribution) {
-    const buildDistributionJob = BuildDistributionJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(buildDistributionJob);
-    jobs.push(
-      new workflow.WorkflowJob(buildDistributionJob, {
-        name: BUILD_DISTRIBUTION,
-        context: config.jobContext,
-        requires: ['Build backend'],
-      }),
-    );
-    requires.push(BUILD_DISTRIBUTION);
-  }
 
   // Created on the first project that survives the predicate: a pipeline that analyses nothing
   // must not emit an analysis job definition no workflow references.
