@@ -167,6 +167,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             criteria.events(query.getEvents());
         }
 
+        if (query.getProperties() != null) {
+            query.getProperties().forEach(criteria::property);
+        }
+
         Page<Audit> auditPage = auditRepository.search(
             criteria.build(),
             new PageableBuilder().pageNumber(query.getPage() - 1).pageSize(query.getSize()).build()

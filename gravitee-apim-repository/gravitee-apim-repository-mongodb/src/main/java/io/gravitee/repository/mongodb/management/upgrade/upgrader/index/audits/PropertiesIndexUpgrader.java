@@ -31,6 +31,10 @@ public class PropertiesIndexUpgrader extends IndexUpgrader {
      */
     @Override
     protected Index buildIndex() {
-        return Index.builder().collection("audits").name("p1").key("properties.$**", ascending()).build();
+        return Index.builder()
+            .collection("audits")
+            .name("p1")
+            .key("properties.$**", ascending())
+            .build();
     }
 }

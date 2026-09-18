@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY_ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -581,6 +582,17 @@ public class DictionaryServiceImpl_UpdateTest {
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(Map.of(), null));
 
         verify(dictionaryRepository).update(argThat(dict -> dict.getProperties().isEmpty()));
+    }
+
+    @Test
+    public void should_mark_audit_as_encrypted_when_the_update_clears_the_last_encrypted_property() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(Map.of(), null));
+
+        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(DICTIONARY_ENCRYPTED))));
     }
 
     @Test

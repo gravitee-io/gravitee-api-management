@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -26,6 +27,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
+import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dashboard;
 import io.gravitee.rest.api.model.UserEntity;
@@ -35,11 +37,13 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -182,6 +186,43 @@ class AuditServiceImplTest {
             auditService.anonymizeData(diff, List.of("/clientId"));
 
             assertThat(diff).isEqualTo(mapper.readTree(data));
+        }
+    }
+
+    @Nested
+    class PropertiesFilter {
+
+        private final ExecutionContext executionContext = new ExecutionContext("DEFAULT", "DEFAULT");
+
+        @Test
+        void should_pass_properties_to_the_search_criteria() {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+            AuditQuery query = new AuditQuery();
+            query.setPage(1);
+            query.setSize(10);
+            query.setProperties(Map.of("DICTIONARY_ENCRYPTED", "true"));
+
+            auditService.search(executionContext, query);
+
+            ArgumentCaptor<AuditCriteria> criteria = ArgumentCaptor.forClass(AuditCriteria.class);
+            verify(auditRepository).search(criteria.capture(), any());
+            assertThat(criteria.getValue().getProperties()).containsEntry("DICTIONARY_ENCRYPTED", "true");
+        }
+
+        @Test
+        void should_not_set_any_property_criteria_when_none_requested() {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+
+            AuditQuery query = new AuditQuery();
+            query.setPage(1);
+            query.setSize(10);
+
+            auditService.search(executionContext, query);
+
+            ArgumentCaptor<AuditCriteria> criteria = ArgumentCaptor.forClass(AuditCriteria.class);
+            verify(auditRepository).search(criteria.capture(), any());
+            assertThat(criteria.getValue().getProperties()).isEmpty();
         }
     }
 
