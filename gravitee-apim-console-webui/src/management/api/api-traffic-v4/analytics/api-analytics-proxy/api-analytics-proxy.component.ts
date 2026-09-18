@@ -81,6 +81,7 @@ type WidgetDataConfig = {
   statsField?: StatsField;
   ranges?: Range[];
   orderBy?: string;
+  mergeGroupByUriPath?: boolean;
   filterQueryParams?: (queryParams: ApiAnalyticsWidgetUrlParamsData) => ApiAnalyticsWidgetUrlParamsData;
   mapQueryParams?: (queryParams: ApiAnalyticsWidgetUrlParamsData) => UrlQueryParamsData;
   tableData?: {
@@ -299,7 +300,8 @@ export class ApiAnalyticsProxyComponent implements OnInit, OnDestroy {
       title: 'Top Paths',
       tooltip: 'Most frequently hit API paths',
       shouldSortBuckets: false,
-      groupByField: 'path-info.keyword',
+      groupByField: 'uri',
+      mergeGroupByUriPath: true,
       analyticsType: 'GROUP_BY',
       orderBy: '-count:_count',
       isClickable: false,
