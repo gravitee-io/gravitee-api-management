@@ -54,5 +54,7 @@ public record ScoreRequest(
         GRAVITEE_FEDERATED,
         GRAVITEE_NATIVE,
         GRAVITEE_V2,
+        OPENAPI,
+        ASYNCAPI,
     }
 }

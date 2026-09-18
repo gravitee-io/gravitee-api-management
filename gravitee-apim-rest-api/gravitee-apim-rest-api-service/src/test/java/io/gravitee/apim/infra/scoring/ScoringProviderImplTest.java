@@ -108,11 +108,14 @@ class ScoringProviderImplTest {
                         ENVIRONMENT_ID,
                         INSTALLATION_ID,
                         new ScoringRequest(
-                            List.of(new AssetToAnalyze("page-id", AssetType.OPEN_API, "echo-oas.json", "{}", ContentType.JSON)),
+                            List.of(
+                                new AssetToAnalyze("page-id", AssetType.OPEN_API, "echo-oas.json", "{}", ContentType.JSON, Format.OPENAPI)
+                            ),
                             null,
                             List.of(
                                 new CustomRuleset("custom-ruleset-payload"),
-                                new CustomRuleset(Format.GRAVITEE_PROXY, "gravitee-format-ruleset")
+                                new CustomRuleset(Format.GRAVITEE_PROXY, "gravitee-format-ruleset"),
+                                new CustomRuleset(Format.OPENAPI, "openapi-format-ruleset")
                             ),
                             List.of()
                         )
@@ -141,11 +144,17 @@ class ScoringProviderImplTest {
                 ENVIRONMENT_ID,
                 API_ID,
                 List.of(
-                    new ScoreRequest.AssetToScore("page-id", new ScoreRequest.AssetType(ScoringAssetType.SWAGGER), "echo-oas.json", "{}")
+                    new ScoreRequest.AssetToScore(
+                        "page-id",
+                        new ScoreRequest.AssetType(ScoringAssetType.SWAGGER, ScoreRequest.Format.OPENAPI),
+                        "echo-oas.json",
+                        "{}"
+                    )
                 ),
                 List.of(
                     new ScoreRequest.CustomRuleset("custom-ruleset-payload"),
-                    new ScoreRequest.CustomRuleset("gravitee-format-ruleset", ScoreRequest.Format.GRAVITEE_PROXY)
+                    new ScoreRequest.CustomRuleset("gravitee-format-ruleset", ScoreRequest.Format.GRAVITEE_PROXY),
+                    new ScoreRequest.CustomRuleset("openapi-format-ruleset", ScoreRequest.Format.OPENAPI)
                 ),
                 List.of()
             );
