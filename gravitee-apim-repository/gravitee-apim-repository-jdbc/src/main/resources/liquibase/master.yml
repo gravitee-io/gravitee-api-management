@@ -433,3 +433,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_13_0/22_add_subscription_form_apis_table.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/23_dedicate_the_global_default_subscription_form_to_its_apis.yml
+    - include:
+        - file: liquibase/changelogs/v4_13_0/24_add_registration_origin_to_users.yml

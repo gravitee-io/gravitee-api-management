@@ -74,6 +74,13 @@ public class User {
     private Boolean isServiceAccount;
 
     /**
+     * The product the user signed up on, or {@code null} when they did not sign themselves up and when they predate
+     * this being recorded. Read when an approved registration's activation email is built, long after the sign-up
+     * request that knew the answer has ended.
+     */
+    private RegistrationOrigin registrationOrigin;
+
+    /**
      * IdP claims captured at login (whitelisted on the identity provider), for later use such as DCR injection.
      *
      * <p>{@code null} and an empty map are not interchangeable, and callers rely on the difference: {@code null} means
@@ -101,6 +108,7 @@ public class User {
         this.firstConnectionAt = cloned.firstConnectionAt;
         this.newsletterSubscribed = cloned.newsletterSubscribed;
         this.isServiceAccount = cloned.isServiceAccount;
+        this.registrationOrigin = cloned.registrationOrigin;
         this.idpClaims = cloned.idpClaims != null ? new HashMap<>(cloned.idpClaims) : null;
     }
 

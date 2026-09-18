@@ -26,6 +26,7 @@ import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.UserRepository;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.UserCriteria;
+import io.gravitee.repository.management.model.RegistrationOrigin;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import java.io.IOException;
@@ -104,6 +105,7 @@ public class JdbcUserRepository extends JdbcAbstractCrudRepository<User, String>
             .addColumn("first_connection_at", Types.TIMESTAMP, Date.class)
             .addColumn("newsletter_subscribed", Types.BOOLEAN, Boolean.class)
             .addColumn("is_service_account", Types.BOOLEAN, Boolean.class)
+            .addColumn("registration_origin", Types.NVARCHAR, RegistrationOrigin.class)
             .addColumn(
                 "idp_claims",
                 Types.NCLOB,

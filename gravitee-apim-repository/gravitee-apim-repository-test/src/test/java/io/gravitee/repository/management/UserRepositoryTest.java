@@ -23,6 +23,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.UserCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
+import io.gravitee.repository.management.model.RegistrationOrigin;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import java.util.Date;
@@ -116,6 +117,54 @@ public class UserRepositoryTest extends AbstractManagementRepositoryTest {
         Optional<User> cleared = userRepository.findById("user-idp-claims");
         assertTrue(cleared.isPresent(), "Unable to find user after clearing claims");
         assertNull(cleared.get().getIdpClaims(), "idp claims should be cleared when updated to null");
+    }
+
+    @Test
+    public void should_persist_and_read_registration_origin() throws Exception {
+        User user = new User();
+        user.setId("user-registration-origin");
+        user.setOrganizationId("DEFAULT");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(user.getCreatedAt());
+        user.setEmail("user-registration-origin@gravitee.io");
+        user.setStatus(UserStatus.PENDING);
+        user.setSource("gravitee");
+        user.setSourceId("user-registration-origin");
+        user.setRegistrationOrigin(RegistrationOrigin.PORTAL);
+
+        userRepository.create(user);
+
+        Optional<User> optional = userRepository.findById("user-registration-origin");
+        assertTrue(optional.isPresent(), "Unable to find saved user");
+        assertEquals(RegistrationOrigin.PORTAL, optional.get().getRegistrationOrigin(), "Invalid saved registration origin.");
+
+        final User toUpdate = optional.get();
+        toUpdate.setRegistrationOrigin(RegistrationOrigin.GAMMA);
+        userRepository.update(toUpdate);
+
+        Optional<User> updated = userRepository.findById("user-registration-origin");
+        assertTrue(updated.isPresent(), "Unable to find updated user");
+        assertEquals(RegistrationOrigin.GAMMA, updated.get().getRegistrationOrigin(), "Invalid updated registration origin.");
+    }
+
+    @Test
+    public void should_return_null_registration_origin_when_user_has_none() throws Exception {
+        User user = new User();
+        user.setId("user-without-registration-origin");
+        user.setOrganizationId("DEFAULT");
+        user.setCreatedAt(new Date());
+        user.setUpdatedAt(user.getCreatedAt());
+        user.setEmail("user-without-registration-origin@gravitee.io");
+        user.setStatus(UserStatus.ACTIVE);
+        user.setSource("gravitee");
+        user.setSourceId("user-without-registration-origin");
+        // no registrationOrigin set: an administrator created them, or they predate it being recorded
+
+        userRepository.create(user);
+
+        Optional<User> optional = userRepository.findById("user-without-registration-origin");
+        assertTrue(optional.isPresent(), "Unable to find saved user");
+        assertNull(optional.get().getRegistrationOrigin(), "registration origin must be null when never set");
     }
 
     @Test
