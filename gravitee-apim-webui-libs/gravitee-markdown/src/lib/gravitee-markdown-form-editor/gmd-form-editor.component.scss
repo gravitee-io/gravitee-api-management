@@ -43,6 +43,14 @@ $outline-color: token-utils.slot(outline-color, $token-mapping);
     flex: 0 0 auto;
   }
 
+  &__editor-preview--editor-only &__inner-border {
+    width: 100%;
+  }
+
+  [hidden] {
+    display: none;
+  }
+
   &__inner-border {
     position: relative;
     overflow: auto;

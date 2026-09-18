@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, inject, Input, OnDestroy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { GmdFormEditorComponent } from './gmd-form-editor.component';
 import { GraviteeMarkdownViewerModule } from '../gravitee-markdown-viewer/gravitee-markdown-viewer.module';
-import { provideGmdFormStore } from '../services/gmd-form-state.store';
+import { GMD_FORM_STATE_STORE, provideGmdFormStore } from '../services/gmd-form-state.store';
 
 @Component({
   selector: 'gmd-monaco-editor',
@@ -35,8 +35,15 @@ class MockMonacoEditorComponent {
   template: '<div class="mock-viewer">{{ content }}</div>',
   standalone: true,
 })
-class MockGmdViewerComponent {
+/** Mimics a rendered GMD field: the preview owns the field, and unregisters it when destroyed. */
+class MockGmdViewerComponent implements OnDestroy {
+  private readonly store = inject(GMD_FORM_STATE_STORE);
+
   @Input() content = '';
+
+  ngOnDestroy(): void {
+    this.store.removeField('field-1');
+  }
 }
 
 describe('GmdFormEditorComponent', () => {
@@ -76,6 +83,36 @@ describe('GmdFormEditorComponent', () => {
   it('should render gmd-viewer component inside host', () => {
     const viewerElement = fixture.nativeElement.querySelector('gmd-viewer');
     expect(viewerElement).toBeTruthy();
+  });
+
+  it('should hide the preview when the consumer turns it off', () => {
+    fixture.componentRef.setInput('showPreview', false);
+    fixture.detectChanges();
+
+    const preview: HTMLElement = fixture.nativeElement.querySelector('.container__preview');
+    expect(preview.hidden).toBe(true);
+    expect(fixture.nativeElement.querySelector('gmd-monaco-editor')).toBeTruthy();
+  });
+
+  it('should keep the form fields registered when the preview is hidden', () => {
+    const store = TestBed.inject(GMD_FORM_STATE_STORE);
+    store.updateField({
+      id: 'field-1',
+      fieldKey: 'app_name',
+      valid: false,
+      value: '',
+      required: true,
+      touched: false,
+      validationErrors: [],
+      configErrors: [],
+    });
+    expect(store.requiredFieldsCount()).toBe(1);
+
+    fixture.componentRef.setInput('showPreview', false);
+    fixture.detectChanges();
+
+    expect(store.requiredFieldsCount()).toBe(1);
+    expect(store.formValid()).toBe(false);
   });
 
   it('should pass content to gmd-form-host', () => {
