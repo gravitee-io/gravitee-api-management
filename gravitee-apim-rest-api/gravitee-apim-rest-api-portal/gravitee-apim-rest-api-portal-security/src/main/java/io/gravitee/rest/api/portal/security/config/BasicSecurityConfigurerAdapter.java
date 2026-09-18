@@ -300,6 +300,9 @@ public class BasicSecurityConfigurerAdapter implements SecureHeadersConfigurer {
             // Portal Navigation Items
             .requestMatchers(HttpMethod.GET, uriPrefix + "/portal-navigation-items/**")
             .permitAll()
+            // Agents
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/agents/**")
+            .permitAll()
             /* Others requests
              * i.e. :
              *   - /auth/login
