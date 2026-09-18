@@ -44,7 +44,7 @@ class CredentialsTemplateVariableProviderTest {
     private static final String EXPRESSION = "{#credentials.get('credential-1', 'clientSecret', #secret_field_access_control_var)}";
     private static final SecretFieldAccessControl SECRET_FIELD = new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
     private static final String ALLOW_LIST_ENTRY =
-        "method io.gravitee.gateway.reactive.handlers.api.el.EvaluatedCredentialsMethods get java.lang.String java.lang.String io.gravitee.secrets.api.el.SecretFieldAccessControl";
+        "method io.gravitee.secrets.api.el.SecretFieldReferenceMethods get java.lang.String java.lang.String io.gravitee.secrets.api.el.SecretFieldAccessControl";
 
     @Mock
     private CredentialResolver credentialResolver;
