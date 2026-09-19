@@ -236,13 +236,38 @@ const TCP_ENDPOINT = {
     name: 'default-tcp',
     type: 'tcp-proxy',
     weight: 1,
+    inheritConfiguration: false,
     configuration: { target: { host: 'backend.example.com', port: 9090, secured: false } },
+    sharedConfigurationOverride: {
+        tcp: {
+            connectTimeout: 4000,
+            reconnectAttempts: 2,
+            reconnectInterval: 500,
+            idleTimeout: 0,
+            readIdleTimeout: 0,
+            writeIdleTimeout: 0,
+        },
+        proxy: { enabled: true, useSystemProxy: true },
+        ssl: { hostnameVerifier: true, trustAll: false },
+    },
 };
 
 const TCP_GROUP: EndpointGroupDto = {
     name: 'tcp-group',
     type: 'tcp-proxy',
     loadBalancer: { type: 'ROUND_ROBIN' },
+    sharedConfiguration: {
+        tcp: {
+            connectTimeout: 3000,
+            reconnectAttempts: 3,
+            reconnectInterval: 1000,
+            idleTimeout: 0,
+            readIdleTimeout: 0,
+            writeIdleTimeout: 0,
+        },
+        proxy: { enabled: true, useSystemProxy: true },
+        ssl: { hostnameVerifier: true, trustAll: false },
+    },
     endpoints: [TCP_ENDPOINT],
 };
 
@@ -485,6 +510,49 @@ describe('ApiEndpointsPage', () => {
         });
     });
 
+    // ── TCP endpoint groups ────────────────────────────────────────────────────
+
+    describe('tcp-proxy endpoint group editing', () => {
+        it('shows TCP configuration fields instead of HTTP configuration when editing a tcp-proxy group', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit group tcp-group' }));
+            advanceGroupWizardPastGeneral();
+
+            expect(screen.getByText('TCP configuration')).toBeInTheDocument();
+            expect(screen.getByLabelText(/connection timeout/i)).toHaveValue(3000);
+            expect(screen.getByLabelText(/reconnect attempts/i)).toHaveValue(3);
+            expect(screen.queryByText('HTTP configuration')).not.toBeInTheDocument();
+            expect(screen.getByText('Proxy')).toBeInTheDocument();
+            expect(screen.queryByText('HTTP headers')).not.toBeInTheDocument();
+        });
+
+        it('persists tcp sharedConfiguration when saving a tcp-proxy group edit', () => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
+            renderPage();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit group tcp-group' }));
+            advanceGroupWizardPastGeneral();
+            fireEvent.change(screen.getByLabelText(/connection timeout/i), { target: { value: '5000' } });
+            fireEvent.click(screen.getByRole('button', { name: /save endpoint group/i }));
+
+            const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
+            const savedGroup = savedGroups.find(g => g.name === 'tcp-group');
+            expect(savedGroup?.type).toBe('tcp-proxy');
+            expect(savedGroup?.sharedConfiguration?.tcp).toEqual({
+                connectTimeout: 5000,
+                reconnectAttempts: 3,
+                reconnectInterval: 1000,
+                idleTimeout: 0,
+                readIdleTimeout: 0,
+                writeIdleTimeout: 0,
+            });
+            expect(savedGroup?.sharedConfiguration).not.toHaveProperty('http');
+            expect(savedGroup?.sharedConfiguration?.proxy).toEqual({ enabled: true, useSystemProxy: true });
+        });
+    });
+
     // ── TCP endpoints ──────────────────────────────────────────────────────────
 
     describe('tcp-proxy endpoint editing', () => {
@@ -495,32 +563,50 @@ describe('ApiEndpointsPage', () => {
             fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint default-tcp' }));
 
             expect(screen.getByLabelText(/^host/i)).toHaveValue('backend.example.com');
-            expect(screen.getByPlaceholderText('5432')).toHaveValue('9090');
+            expect(screen.getByPlaceholderText('5432')).toHaveAttribute('type', 'number');
+            expect(screen.getByPlaceholderText('5432')).toHaveValue(9090);
             expect(screen.queryByLabelText(/^target url/i)).not.toBeInTheDocument();
         });
 
-        it('does not show the Configuration or Health-check steps for a tcp-proxy endpoint', () => {
+        it('shows Configuration but not Health-check for a tcp-proxy endpoint', () => {
             mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
             renderPage();
 
             fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint default-tcp' }));
 
-            expect(screen.queryByRole('button', { name: /^next$/i })).not.toBeInTheDocument();
-            expect(screen.getByRole('button', { name: /save endpoint/i })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /^next$/i })).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /2 configuration/i })).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: /health-check/i })).not.toBeInTheDocument();
         });
 
-        it('saves a tcp-proxy endpoint with a {host, port, secured} configuration.target object', () => {
+        it('saves a tcp-proxy endpoint with its target and TCP-shaped configuration override', () => {
             mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false });
             renderPage();
 
             fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint default-tcp' }));
             fireEvent.change(screen.getByLabelText(/^host/i), { target: { value: 'new-backend.example.com' } });
             fireEvent.change(screen.getByPlaceholderText('5432'), { target: { value: '5432' } });
+            fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
+            fireEvent.change(screen.getByLabelText(/connection timeout/i), { target: { value: '6000' } });
             fireEvent.click(screen.getByRole('button', { name: /save endpoint/i }));
 
             const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
             const savedEndpoint = savedGroups[0].endpoints?.[0];
             expect(savedEndpoint?.configuration?.target).toEqual({ host: 'new-backend.example.com', port: 5432, secured: false });
+            expect(savedEndpoint?.sharedConfigurationOverride).toEqual({
+                tcp: {
+                    connectTimeout: 6000,
+                    reconnectAttempts: 2,
+                    reconnectInterval: 500,
+                    idleTimeout: 0,
+                    readIdleTimeout: 0,
+                    writeIdleTimeout: 0,
+                },
+                proxy: { enabled: true, useSystemProxy: true },
+                ssl: { hostnameVerifier: true, trustAll: false },
+            });
+            expect(savedEndpoint?.sharedConfigurationOverride).not.toHaveProperty('http');
+            expect(savedEndpoint?.sharedConfigurationOverride).not.toHaveProperty('headers');
         });
 
         it('defaults a newly-added endpoint in an existing tcp-proxy group to type tcp-proxy', () => {

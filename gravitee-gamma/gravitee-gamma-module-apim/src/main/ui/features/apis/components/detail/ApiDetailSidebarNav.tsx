@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { cn, Skeleton, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
+import { cn, Collapsible, CollapsibleContent, CollapsibleTrigger, Skeleton, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@gravitee/graphene-core';
 import {
     ActivityIcon,
     AlignLeftIcon,
     BellIcon,
+    ChevronDownIcon,
     ClockIcon,
     DatabaseIcon,
     ExternalLinkIcon,
@@ -42,8 +43,9 @@ import {
     UsersRoundIcon,
     WorkflowIcon,
 } from '@gravitee/graphene-core/icons';
-import type { ComponentType } from 'react';
-import { NavLink } from 'react-router-dom';
+import type { ComponentType, ReactNode } from 'react';
+import { useEffect, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -65,6 +67,8 @@ export interface DetailNavItem {
     comingSoon?: boolean;
     /** Tooltip text for a `comingSoon` item. Defaults to "Coming soon". */
     comingSoonReason?: string;
+    /** Nested links rendered under a collapsible parent (Gamma Baby gateway / deployment groups). */
+    children?: DetailNavItem[];
 }
 
 export interface DetailNavGroup {
@@ -138,29 +142,95 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     },
 ];
 
-/** Classic console parity (`api-v4-menu.service.ts`, `hasTcpListeners`) — TCP has no HTTP policy-chain semantics. */
-const TCP_UNSUPPORTED_PATHS = new Set(['policy-studio', 'cors', 'response-templates']);
-const TCP_UNSUPPORTED_REASON = 'Coming soon for V4 APIs';
+const TCP_OMITTED_PATHS = new Set([
+    'authorization',
+    'cors',
+    'consumers',
+    'endpoints/failover',
+    'endpoints/health-check-dashboard',
+    'documentation',
+    'metadata',
+    'observe-dashboard',
+    'observe-logs',
+    'policy-studio',
+    'reporter-settings',
+    'response-templates',
+]);
 
-/**
- * Classic console never adds these menu entries for TCP APIs at all — omitted, not just disabled.
- * The observability deep links join them: the console disables API Traffic and Logs for TCP too.
- */
-const TCP_OMITTED_PATHS = new Set(['endpoints/failover', 'endpoints/health-check-dashboard', 'observe-dashboard', 'observe-logs']);
+function findNavItem(groups: DetailNavGroup[], path: string): DetailNavItem | undefined {
+    return groups.flatMap(group => group.items).find(item => item.path === path);
+}
 
-/** Overlays `comingSoon` on the items TCP Proxy APIs don't support, and omits the entries that don't exist for TCP — matching classic console. */
+function pickNavItem(groups: DetailNavGroup[], path: string, overrides: Partial<DetailNavItem> = {}): DetailNavItem | undefined {
+    const found = findNavItem(groups, path);
+    if (!found) return undefined;
+    return { ...found, ...overrides };
+}
+
+function reorganizeForTcpProxy(groups: DetailNavGroup[]): DetailNavGroup[] {
+    const deploymentConfiguration = pickNavItem(groups, 'deployment/configuration', { label: 'Configuration' });
+    const deploymentHistory = pickNavItem(groups, 'deployment/history', { label: 'History' });
+
+    return dropEmptyGroups([
+        {
+            label: 'General',
+            items: [
+                pickNavItem(groups, 'overview'),
+                pickNavItem(groups, 'general', { label: 'General' }),
+                pickNavItem(groups, 'properties'),
+                pickNavItem(groups, 'resources'),
+                pickNavItem(groups, 'notifications'),
+                pickNavItem(groups, 'api-score'),
+            ].filter((item): item is DetailNavItem => item !== undefined),
+        },
+        {
+            label: 'Gateway',
+            items: [pickNavItem(groups, 'entrypoints'), pickNavItem(groups, 'endpoints/list', { label: 'Endpoints' })].filter(
+                (item): item is DetailNavItem => item !== undefined,
+            ),
+        },
+        {
+            label: 'Consumer Access',
+            items: [pickNavItem(groups, 'plans'), pickNavItem(groups, 'broadcasts')].filter(
+                (item): item is DetailNavItem => item !== undefined,
+            ),
+        },
+        {
+            label: 'Security',
+            items: [pickNavItem(groups, 'user-permissions')].filter((item): item is DetailNavItem => item !== undefined),
+        },
+        {
+            label: 'Monitoring',
+            items: [pickNavItem(groups, 'alerts'), pickNavItem(groups, 'audit-logs')].filter(
+                (item): item is DetailNavItem => item !== undefined,
+            ),
+        },
+        {
+            label: 'Operations',
+            items:
+                deploymentConfiguration && deploymentHistory
+                    ? [
+                          {
+                              path: 'deployment-section',
+                              label: 'Deployment',
+                              icon: RocketIcon,
+                              children: [deploymentConfiguration, deploymentHistory],
+                          } satisfies DetailNavItem,
+                      ]
+                    : [deploymentConfiguration, deploymentHistory].filter((item): item is DetailNavItem => item !== undefined),
+        },
+    ]);
+}
+
 export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners: boolean): DetailNavGroup[] {
     if (!apiHasTcpListeners) return groups;
-    return dropEmptyGroups(
+    const filtered = dropEmptyGroups(
         groups.map(group => ({
             ...group,
-            items: group.items
-                .filter(item => !TCP_OMITTED_PATHS.has(item.path))
-                .map(item =>
-                    TCP_UNSUPPORTED_PATHS.has(item.path) ? { ...item, comingSoon: true, comingSoonReason: TCP_UNSUPPORTED_REASON } : item,
-                ),
+            items: group.items.filter(item => !TCP_OMITTED_PATHS.has(item.path)),
         })),
     );
+    return reorganizeForTcpProxy(filtered);
 }
 
 /** Deep links into the Observability section, pre-filtered on this API. Sits between Monitoring and Operations. */
@@ -236,6 +306,50 @@ function ComingSoonRow({ icon: Icon, label, reason, indented }: ComingSoonRowPro
     );
 }
 
+// ─── Collapsible nav parent ───────────────────────────────────────────────────
+
+interface NavCollapsibleItemProps {
+    item: DetailNavItem;
+    basePath: string;
+    renderLeaf: (item: DetailNavItem, indented?: boolean) => ReactNode;
+}
+
+function NavCollapsibleItem({ item, basePath, renderLeaf }: NavCollapsibleItemProps) {
+    const location = useLocation();
+    const childHrefs = item.children!.map(child => `${basePath}/${child.path}`);
+    const isChildActive = childHrefs.some(href => location.pathname === href || location.pathname.startsWith(`${href}/`));
+    const [open, setOpen] = useState(isChildActive);
+
+    useEffect(() => {
+        if (isChildActive) {
+            setOpen(true);
+        }
+    }, [isChildActive]);
+
+    const Icon = item.icon;
+
+    return (
+        <Collapsible open={open} onOpenChange={setOpen}>
+            <CollapsibleTrigger asChild>
+                <button
+                    type="button"
+                    className={cn(
+                        'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
+                        isChildActive
+                            ? 'text-foreground font-medium'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )}
+                >
+                    <Icon className="size-4 shrink-0" aria-hidden />
+                    <span className="flex-1 text-left">{item.label}</span>
+                    <ChevronDownIcon className={cn('size-4 shrink-0 transition-transform', open && 'rotate-180')} aria-hidden />
+                </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent>{item.children!.map(child => renderLeaf(child, true))}</CollapsibleContent>
+        </Collapsible>
+    );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface ApiDetailSidebarNavProps {
@@ -258,6 +372,62 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
         );
     }
 
+    const renderLeaf = (item: DetailNavItem, indented = false) => {
+        if (item.comingSoon) {
+            return (
+                <ComingSoonRow
+                    key={item.path}
+                    icon={item.icon}
+                    label={item.label}
+                    reason={item.comingSoonReason ?? DEFAULT_COMING_SOON_REASON}
+                    indented={indented}
+                />
+            );
+        }
+        const Icon = item.icon;
+        if (item.externalHref) {
+            return (
+                <a
+                    key={item.path}
+                    href={item.externalHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    // The icon is decorative, so the change of context has to be said out loud
+                    // (WCAG 3.2.5). An explicit label rather than an `sr-only` span: the
+                    // accessible-name computation concatenates text nodes without a separator.
+                    aria-label={`${item.label} (opens in a new tab)`}
+                    className={cn(
+                        'flex items-center gap-2.5 rounded-lg py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+                        indented ? 'ml-6 px-3' : 'px-3',
+                    )}
+                >
+                    <Icon className="size-4 shrink-0" aria-hidden />
+                    {item.label}
+                    <ExternalLinkIcon className="ml-auto size-3.5 shrink-0" aria-hidden />
+                </a>
+            );
+        }
+        return (
+            <NavLink
+                end={item.end !== false}
+                key={item.path}
+                to={`${basePath}/${item.path}`}
+                className={({ isActive }) =>
+                    cn(
+                        'flex items-center gap-2.5 rounded-lg py-2 text-sm transition-colors',
+                        indented ? 'ml-6 px-3' : 'px-3',
+                        isActive
+                            ? 'bg-accent text-foreground font-medium'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )
+                }
+            >
+                <Icon className="size-4 shrink-0" aria-hidden />
+                {item.label}
+            </NavLink>
+        );
+    };
+
     return (
         <TooltipProvider delayDuration={200}>
             <div className="space-y-0.5 px-2 py-2">
@@ -265,54 +435,10 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
                     <div key={group.label} className="pt-4 first:pt-0">
                         <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
                         {group.items.map(item => {
-                            if (item.comingSoon) {
-                                return (
-                                    <ComingSoonRow
-                                        key={item.path}
-                                        icon={item.icon}
-                                        label={item.label}
-                                        reason={item.comingSoonReason ?? DEFAULT_COMING_SOON_REASON}
-                                    />
-                                );
+                            if (item.children?.length) {
+                                return <NavCollapsibleItem key={item.path} item={item} basePath={basePath} renderLeaf={renderLeaf} />;
                             }
-                            const Icon = item.icon;
-                            if (item.externalHref) {
-                                return (
-                                    <a
-                                        key={item.path}
-                                        href={item.externalHref}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        // The icon is decorative, so the change of context has to be said out loud
-                                        // (WCAG 3.2.5). An explicit label rather than an `sr-only` span: the
-                                        // accessible-name computation concatenates text nodes without a separator.
-                                        aria-label={`${item.label} (opens in a new tab)`}
-                                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                    >
-                                        <Icon className="size-4 shrink-0" aria-hidden />
-                                        {item.label}
-                                        <ExternalLinkIcon className="ml-auto size-3.5 shrink-0" aria-hidden />
-                                    </a>
-                                );
-                            }
-                            return (
-                                <NavLink
-                                    end={item.end !== false}
-                                    key={item.path}
-                                    to={`${basePath}/${item.path}`}
-                                    className={({ isActive }) =>
-                                        cn(
-                                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
-                                            isActive
-                                                ? 'bg-accent text-foreground font-medium'
-                                                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                                        )
-                                    }
-                                >
-                                    <Icon className="size-4 shrink-0" aria-hidden />
-                                    {item.label}
-                                </NavLink>
-                            );
+                            return renderLeaf(item);
                         })}
                     </div>
                 ))}
