@@ -364,9 +364,7 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
         ClientRegistrationRequest clientRegistrationRequest = convert(application);
 
-        if (provider.getSoftwareId() != null && !provider.getSoftwareId().isEmpty()) {
-            clientRegistrationRequest.setSoftwareId(provider.getSoftwareId());
-        }
+        applyProviderSoftwareId(clientRegistrationRequest, provider);
 
         Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
 
@@ -419,6 +417,21 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
                     "DCR field path '" + fieldPath + "' targets a standard registration field; only extension fields are injectable"
                 );
             }
+        }
+    }
+
+    /**
+     * Applies the provider-wide {@code software_id} as a <b>default</b>: an application that carries its own value
+     * through {@code additional_client_metadata} selects its own DCR template and must win over the environment-wide
+     * one. This mirrors the update path, where the application's value is applied last, so an application no longer
+     * switches template on its first update.
+     */
+    private static void applyProviderSoftwareId(ClientRegistrationRequest request, ClientRegistrationProviderEntity provider) {
+        if (request.getSoftwareId() != null && !request.getSoftwareId().isEmpty()) {
+            return;
+        }
+        if (provider.getSoftwareId() != null && !provider.getSoftwareId().isEmpty()) {
+            request.setSoftwareId(provider.getSoftwareId());
         }
     }
 
@@ -533,6 +546,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
 
             ClientRegistrationRequest registrationRequest = mapper.readValue(previousRegistrationResponse, ClientRegistrationRequest.class);
 
+            // The request is rebuilt from the previous registration response, which already echoes a software_id, so the
+            // provider default has to replace it outright here. The application's own value is re-applied right after by
+            // the additional_client_metadata merge in convert(), which keeps the same precedence as register().
             registrationRequest.setSoftwareId(provider.getSoftwareId());
 
             Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
