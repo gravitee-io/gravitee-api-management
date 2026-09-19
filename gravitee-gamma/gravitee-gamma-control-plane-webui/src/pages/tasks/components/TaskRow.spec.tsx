@@ -124,12 +124,13 @@ describe('TaskRow promotion review', () => {
         jest.restoreAllMocks();
     });
 
-    it('opens the review dialog instead of navigating when a promotion task is clicked', () => {
+    it('opens the review sheet instead of navigating when a promotion task is clicked', () => {
         renderRow(makePromotionTask());
 
         fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
 
         expect(screen.getByRole('dialog')).toBeTruthy();
+        expect(screen.getByText('API promotion request')).toBeTruthy();
         expect(screen.getByTestId('location').textContent).toBe('/start');
     });
 
@@ -142,7 +143,7 @@ describe('TaskRow promotion review', () => {
         expect(screen.getByRole('button', { name: /^Reject$/ })).toBeTruthy();
     });
 
-    it('accepts a promotion, toasts success, and closes the dialog', async () => {
+    it('accepts a promotion, toasts success, and closes the sheet', async () => {
         const onProcessPromotion = jest.fn().mockResolvedValue(undefined);
         renderRow(makePromotionTask(), onProcessPromotion);
 
@@ -154,7 +155,7 @@ describe('TaskRow promotion review', () => {
         expect(toast.success).toHaveBeenCalledWith('API promotion accepted.');
     });
 
-    it('requires confirmation before rejecting a promotion, then toasts success and closes the dialog', async () => {
+    it('requires confirmation before rejecting a promotion, then toasts success and closes the sheet', async () => {
         const onProcessPromotion = jest.fn().mockResolvedValue(undefined);
         renderRow(makePromotionTask(), onProcessPromotion);
 
@@ -183,7 +184,28 @@ describe('TaskRow promotion review', () => {
         expect(screen.getByRole('button', { name: /^Reject$/ })).toBeTruthy();
     });
 
-    it('shows an error and keeps the task open when processing fails', async () => {
+    it('shows an error when a promotion task is missing required review fields', () => {
+        const errorSpy = jest.spyOn(toast, 'error').mockImplementation(() => '');
+        renderRow(
+            makePromotionTask(
+                {},
+                {
+                    promotionId: 'promo-1',
+                    apiName: 'Loyalty API',
+                    sourceEnvironmentName: 'Staging',
+                    targetEnvironmentName: '',
+                },
+            ),
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: /Review promotion/ }));
+
+        expect(errorSpy).toHaveBeenCalledWith('This promotion task is missing required details.');
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/start');
+    });
+
+    it('shows an error and keeps the sheet open when processing fails', async () => {
         const onProcessPromotion = jest.fn().mockRejectedValue(new Error('Target already has a newer promotion'));
         renderRow(makePromotionTask(), onProcessPromotion);
 
