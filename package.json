@@ -154,7 +154,7 @@
         "@rspack/core": "1.5.0",
         "@rspack/dev-server": "1.1.4",
         "@rspack/plugin-react-refresh": "1.0.0",
-        "@schematics/angular": "20.3.36",
+        "@schematics/angular": "20.3.37",
         "@storybook/addon-docs": "10.6.0",
         "@storybook/addon-links": "10.6.0",
         "@storybook/angular": "10.6.0",
