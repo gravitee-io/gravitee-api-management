@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Button, cn, PageFocused, Skeleton } from '@gravitee/graphene-core';
-import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
+import { ArrowLeftIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 
 import { AlertsTab } from './AlertsTab';
 import { HistoryTab } from './HistoryTab';
@@ -25,6 +25,7 @@ export function AlertFormPage() {
     const {
         isUpdate,
         canEdit,
+        hasAlertPlugins,
         name,
         setName,
         description,
@@ -44,12 +45,15 @@ export function AlertFormPage() {
         notifications,
         addNotification,
         removeNotification,
-        updateNotificationTarget,
+        setNotificationType,
+        updateNotification,
         timeframes,
         addTimeframe,
         removeTimeframe,
         toggleTimeframeDay,
         updateTimeframeHour,
+        setTimeframeDays,
+        updateTimeframeHours,
         dampening,
         setDampening,
         errors,
@@ -59,13 +63,27 @@ export function AlertFormPage() {
         isDirty,
         saveError,
         historyPage,
+        historyPageNumber,
+        historyPageSize,
+        setHistoryPageNumber,
+        setHistoryPageSize,
+        isRefreshingHistory,
         isLoadingAlert,
+        isAlertListError,
+        hydrateError,
+        alertNotFound,
         isPending,
+        canSubmit,
+        notificationsIncompleteReason,
         selectedRule,
+        visibleRuleCategories,
+        ruleLabel,
         metricsForRule,
+        filterMetrics,
         handleSave,
         handleCancel,
         markDirty,
+        refreshHistory,
     } = useAlertForm();
 
     if (isUpdate && isLoadingAlert) {
@@ -78,10 +96,34 @@ export function AlertFormPage() {
         );
     }
 
+    if (isUpdate && (isAlertListError || hydrateError)) {
+        return (
+            <div className="space-y-4">
+                <Button variant="ghost" size="sm" className="-ml-2 text-muted-foreground" onClick={handleCancel}>
+                    <ArrowLeftIcon className="size-4" />
+                    Back to alerts
+                </Button>
+                <p className="text-sm text-destructive">Failed to load this alert. Please try again.</p>
+            </div>
+        );
+    }
+
+    if (alertNotFound) {
+        return (
+            <div className="space-y-4">
+                <Button variant="ghost" size="sm" className="-ml-2 text-muted-foreground" onClick={handleCancel}>
+                    <ArrowLeftIcon className="size-4" />
+                    Back to alerts
+                </Button>
+                <h1 className="text-2xl font-semibold">Alert not found</h1>
+                <p className="text-sm text-muted-foreground">This alert does not exist or was deleted.</p>
+            </div>
+        );
+    }
+
     return (
         <PageFocused>
             <div className="space-y-6">
-                {/* ─── Header ─────────────────────────────────────────────────── */}
                 <div>
                     <Button variant="ghost" size="sm" className="-ml-2 mb-3 text-muted-foreground" onClick={handleCancel}>
                         <ArrowLeftIcon className="size-4" />
@@ -94,7 +136,18 @@ export function AlertFormPage() {
                     </p>
                 </div>
 
-                {/* ─── Save error ──────────────────────────────────────────────── */}
+                {!hasAlertPlugins && (
+                    <div
+                        className="flex items-start gap-3 rounded-lg p-4"
+                        style={{ background: 'hsl(var(--warning) / 0.08)', border: '1px solid hsl(var(--warning) / 0.3)' }}
+                    >
+                        <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-warning" />
+                        <p className="text-sm text-muted-foreground">
+                            No alert plugin is installed. Please install a plugin before being able to define alert rules.
+                        </p>
+                    </div>
+                )}
+
                 {saveError && (
                     <div
                         className="rounded-lg p-3"
@@ -105,7 +158,6 @@ export function AlertFormPage() {
                 )}
 
                 <div>
-                    {/* ── Tab bar ──────────────────────────────────────────────── */}
                     <div role="tablist" className="flex gap-1 border-b">
                         {(isUpdate ? (['alerts', 'notifications', 'history'] as const) : (['alerts', 'notifications'] as const)).map(
                             tab => (
@@ -128,7 +180,6 @@ export function AlertFormPage() {
                         )}
                     </div>
 
-                    {/* ── Tab panels ───────────────────────────────────────────── */}
                     {activeTab === 'alerts' && (
                         <AlertsTab
                             name={name}
@@ -141,6 +192,7 @@ export function AlertFormPage() {
                             setEnabled={setEnabled}
                             ruleId={ruleId}
                             handleRuleChange={handleRuleChange}
+                            ruleCategories={visibleRuleCategories}
                             isUpdate={isUpdate}
                             canEdit={canEdit}
                             errors={errors}
@@ -151,14 +203,18 @@ export function AlertFormPage() {
                             removeTimeframe={removeTimeframe}
                             toggleTimeframeDay={toggleTimeframeDay}
                             updateTimeframeHour={updateTimeframeHour}
+                            setTimeframeDays={setTimeframeDays}
+                            updateTimeframeHours={updateTimeframeHours}
                             conditions={conditions}
                             updateCondition={updateCondition}
                             metricsForRule={metricsForRule}
+                            filterMetrics={filterMetrics}
                             filters={filters}
                             addFilter={addFilter}
                             updateFilter={updateFilter}
                             removeFilter={removeFilter}
                             selectedRule={selectedRule}
+                            ruleLabel={ruleLabel}
                         />
                     )}
 
@@ -169,22 +225,40 @@ export function AlertFormPage() {
                             notifications={notifications}
                             addNotification={addNotification}
                             removeNotification={removeNotification}
-                            updateNotificationTarget={updateNotificationTarget}
+                            setNotificationType={setNotificationType}
+                            updateNotification={updateNotification}
                             canEdit={canEdit}
                             markDirty={markDirty}
+                            channelError={errors.notifications}
+                            dampeningError={errors.dampening}
                         />
                     )}
 
-                    {isUpdate && activeTab === 'history' && <HistoryTab historyPage={historyPage} />}
+                    {isUpdate && activeTab === 'history' && (
+                        <HistoryTab
+                            historyPage={historyPage}
+                            onRefresh={refreshHistory}
+                            isRefreshing={isRefreshingHistory}
+                            page={historyPageNumber}
+                            pageSize={historyPageSize}
+                            onPageChange={setHistoryPageNumber}
+                            onPageSizeChange={size => {
+                                setHistoryPageSize(size);
+                                setHistoryPageNumber(1);
+                            }}
+                        />
+                    )}
                 </div>
 
-                {/* ─── Save bar ────────────────────────────────────────────────── */}
                 {canEdit && isDirty && (
                     <div className="sticky bottom-0 z-10 -mx-6 flex items-center justify-end gap-3 border-t bg-background px-6 py-3">
+                        {notificationsIncompleteReason && (
+                            <p className="mr-auto text-xs text-destructive">{notificationsIncompleteReason}</p>
+                        )}
                         <Button variant="outline" onClick={handleCancel}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={isPending}>
+                        <Button onClick={handleSave} disabled={isPending || !canSubmit}>
                             {isPending ? 'Saving…' : isUpdate ? 'Save' : 'Create'}
                         </Button>
                     </div>
@@ -192,10 +266,13 @@ export function AlertFormPage() {
 
                 {canEdit && !isDirty && !isUpdate && (
                     <div className="flex items-center justify-end gap-3 pt-2">
+                        {notificationsIncompleteReason && (
+                            <p className="mr-auto text-xs text-destructive">{notificationsIncompleteReason}</p>
+                        )}
                         <Button variant="outline" onClick={handleCancel}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={isPending}>
+                        <Button onClick={handleSave} disabled={isPending || !canSubmit}>
                             {isPending ? 'Creating…' : 'Create'}
                         </Button>
                     </div>

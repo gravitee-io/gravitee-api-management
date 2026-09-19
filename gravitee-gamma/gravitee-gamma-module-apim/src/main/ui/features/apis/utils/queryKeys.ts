@@ -109,7 +109,14 @@ export const apiScoringKeys = {
 export const apiAlertKeys = {
     all: ['api-alerts'] as const,
     list: (envId: string, apiId: string) => [...apiAlertKeys.all, envId, apiId] as const,
-    history: (envId: string, apiId: string, alertId: string) => [...apiAlertKeys.all, 'history', envId, apiId, alertId] as const,
+    history: (envId: string, apiId: string, alertId: string, page = 1, size = 10) =>
+        [...apiAlertKeys.all, 'history', envId, apiId, alertId, page, size] as const,
+    notifiers: (envId: string) => [...apiAlertKeys.all, 'notifiers', envId] as const,
+    notifierSchema: (envId: string, notifierId: string) => [...apiAlertKeys.all, 'notifier-schema', envId, notifierId] as const,
+    status: (envId: string, apiId: string) => [...apiAlertKeys.all, 'status', envId, apiId] as const,
+    tenants: (envId: string) => [...apiAlertKeys.all, 'tenants', envId] as const,
+    lookupApplications: (envId: string, apiId: string) => [...apiAlertKeys.all, 'lookup-applications', envId, apiId] as const,
+    lookupPlans: (envId: string, apiId: string) => [...apiAlertKeys.all, 'lookup-plans', envId, apiId] as const,
 };
 
 export const apiAnalyticsKeys = {
