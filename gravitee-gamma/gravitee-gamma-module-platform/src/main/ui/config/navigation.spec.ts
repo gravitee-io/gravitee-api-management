@@ -23,6 +23,7 @@ import {
     SettingsIcon,
     ShieldCheckIcon,
     ShieldIcon,
+    UserIcon,
     UsersIcon,
     UsersRoundIcon,
 } from '@gravitee/graphene-core/icons';
@@ -92,8 +93,9 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
+    it('places Primary Owner Mode, Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
+            'primary-owner-mode',
             'access-management',
             'gateways',
             'alerts',
@@ -109,11 +111,19 @@ describe('platform navigation config', () => {
         const systemItems =
             NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')?.items ??
             [];
+        expect(systemItems.find(item => item.key === 'primary-owner-mode')?.title).toBe('Primary Owner Mode');
+        expect(systemItems.find(item => item.key === 'primary-owner-mode')?.icon).toBe(UserIcon);
         expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
         expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
         expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
+    });
+
+    it('declares the primary-owner-mode route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('primary-owner-mode');
+        expect(ROUTES['primary-owner-mode']).toEqual({ path: 'primary-owner-mode', label: 'Primary Owner Mode' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'primary-owner-mode')).toBe('environment');
     });
 
     it('declares the client-registration route in platform routing config', () => {

@@ -58,6 +58,11 @@ export interface PortalSettingsApplication {
     };
 }
 
+export interface PortalSettingsPrimaryOwner {
+    primaryOwnerMode?: string;
+    [key: string]: unknown;
+}
+
 export interface PortalSettings {
     metadata?: PortalSettingsMetadata;
     cors?: PortalSettingsCors;
@@ -66,6 +71,8 @@ export interface PortalSettings {
         [key: string]: unknown;
     };
     application?: PortalSettingsApplication;
+    api?: PortalSettingsPrimaryOwner;
+    apiProduct?: PortalSettingsPrimaryOwner;
     [key: string]: unknown;
 }
 
