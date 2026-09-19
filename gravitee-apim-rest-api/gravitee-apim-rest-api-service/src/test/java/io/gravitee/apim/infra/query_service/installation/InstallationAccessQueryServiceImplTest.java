@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
+import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -220,6 +221,28 @@ class InstallationAccessQueryServiceImplTest {
 
         assertThat(cut.getGammaUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://gamma.url");
         assertThat(cut.getGammaUrls(DEFAULT_ORGANIZATION_ID)).containsOnly("http://gamma.url");
+        assertThat(cut.findGammaUrl(DEFAULT_ORGANIZATION_ID)).contains("http://gamma.url");
+    }
+
+    @Test
+    void should_not_find_a_gamma_url_when_nothing_configures_one() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.getGammaUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo(InstallationAccessQueryService.DEFAULT_GAMMA_URL);
+        assertThat(cut.findGammaUrl(DEFAULT_ORGANIZATION_ID)).isEmpty();
+    }
+
+    @Test
+    void should_find_the_gamma_url_an_organization_configured_even_when_it_is_the_default_one() {
+        // getGammaUrl cannot tell these apart -- it hands the default to everyone -- which is why findGammaUrl exists.
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        environment.withProperty("installation.standalone.gamma-console.url", InstallationAccessQueryService.DEFAULT_GAMMA_URL);
+
+        cut.afterPropertiesSet();
+
+        assertThat(cut.findGammaUrl(DEFAULT_ORGANIZATION_ID)).contains(InstallationAccessQueryService.DEFAULT_GAMMA_URL);
     }
 
     @Test

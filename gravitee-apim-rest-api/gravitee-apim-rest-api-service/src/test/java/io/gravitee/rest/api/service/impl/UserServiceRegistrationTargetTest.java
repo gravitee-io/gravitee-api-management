@@ -73,6 +73,6 @@ class UserServiceRegistrationTargetTest {
             userService.registerWithTarget(EXECUTION_CONTEXT, new NewExternalUserEntity(), "https://attacker.example.com")
         ).isInstanceOf(ValidationDomainException.class);
 
-        verify(installationAccessQueryService, never()).getGammaUrl(any());
+        verify(installationAccessQueryService, never()).findGammaUrl(any());
     }
 }

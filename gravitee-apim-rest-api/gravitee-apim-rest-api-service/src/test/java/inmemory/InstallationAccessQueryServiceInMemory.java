@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -98,6 +99,11 @@ public class InstallationAccessQueryServiceInMemory implements InstallationAcces
     @Override
     public String getGammaUrl(final String organizationId) {
         return null;
+    }
+
+    @Override
+    public Optional<String> findGammaUrl(final String organizationId) {
+        return Optional.empty();
     }
 
     @Override

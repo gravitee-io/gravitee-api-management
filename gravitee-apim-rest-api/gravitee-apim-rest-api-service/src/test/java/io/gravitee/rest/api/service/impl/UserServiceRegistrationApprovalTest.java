@@ -39,11 +39,13 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.user.domain_service.AssignUserDefaultRolesDomainService;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.UserRepository;
+import io.gravitee.repository.management.model.RegistrationOrigin;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.repository.management.model.UserStatus;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
+import io.gravitee.rest.api.model.NewPreRegisterUserEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -99,6 +101,7 @@ class UserServiceRegistrationApprovalTest {
     private static final String CONSOLE_URL = "https://console.example.com";
     private static final String OTHER_ENVIRONMENT = "production";
     private static final String OTHER_PORTAL_URL = "https://portal.production.example.com";
+    private static final String GAMMA_URL = "https://gamma.example.com";
 
     @InjectMocks
     private UserServiceImpl userService = new UserServiceImpl();
@@ -324,7 +327,7 @@ class UserServiceRegistrationApprovalTest {
     @Test
     void should_link_the_registration_email_to_gamma_when_the_gamma_target_is_named() throws TechnicalException {
         givenUserRegistrationEnabled(true);
-        when(installationAccessQueryService.getGammaUrl(ORGANIZATION)).thenReturn("https://gamma.example.com");
+        when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.of("https://gamma.example.com"));
 
         userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), "gamma");
 
@@ -342,11 +345,11 @@ class UserServiceRegistrationApprovalTest {
     @Test
     void should_reject_the_gamma_target_when_no_gamma_url_is_configured() throws TechnicalException {
         givenUserRegistrationEnabled(true);
-        when(installationAccessQueryService.getGammaUrl(ORGANIZATION)).thenReturn(null);
+        when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), "gamma"))
             .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("Gamma URL is not configured");
+            .hasMessageContaining("No Gamma URL is configured");
 
         verify(userRepository, never()).create(any(User.class));
     }
@@ -366,7 +369,102 @@ class UserServiceRegistrationApprovalTest {
             .orElseThrow(() -> new AssertionError("no registration email has been sent"));
 
         assertThat((String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL)).startsWith(CONSOLE_URL + REGISTRATION_PATH);
-        verify(installationAccessQueryService, never()).getGammaUrl(any());
+        verify(installationAccessQueryService, never()).findGammaUrl(any());
+    }
+
+    @Test
+    void should_record_the_portal_origin_when_registering_from_the_portal() throws TechnicalException {
+        givenUserRegistrationEnabled(false);
+
+        userService.register(PORTAL_CONTEXT, newExternalUser(), null);
+
+        verify(userRepository).create(argThat(user -> user.getRegistrationOrigin() == RegistrationOrigin.PORTAL));
+    }
+
+    @Test
+    void should_record_the_console_origin_when_no_target_is_named() throws TechnicalException {
+        givenConsoleUserRegistrationEnabled(false);
+
+        userService.registerWithTarget(CONSOLE_CONTEXT, newExternalUser(), null);
+
+        verify(userRepository).create(argThat(user -> user.getRegistrationOrigin() == RegistrationOrigin.CONSOLE));
+    }
+
+    @Test
+    void should_record_the_gamma_origin_when_the_gamma_target_is_named() throws TechnicalException {
+        givenUserRegistrationEnabled(false);
+        when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.of(GAMMA_URL));
+
+        userService.registerWithTarget(PORTAL_CONTEXT, newExternalUser(), "gamma");
+
+        verify(userRepository).create(argThat(user -> user.getRegistrationOrigin() == RegistrationOrigin.GAMMA));
+    }
+
+    @Test
+    void should_record_no_origin_when_an_administrator_creates_the_user() throws TechnicalException {
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.empty());
+        when(userRepository.create(any(User.class))).thenAnswer(returnsFirstArg());
+
+        userService.create(CONSOLE_CONTEXT, newPreRegisterUser());
+
+        verify(userRepository).create(argThat(user -> user.getRegistrationOrigin() == null));
+    }
+
+    @Test
+    void should_link_the_approved_registration_email_to_gamma_when_the_user_signed_up_on_gamma() throws TechnicalException {
+        givenPendingUser(null, RegistrationOrigin.GAMMA);
+        when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.of(GAMMA_URL));
+
+        userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
+
+        assertThat(registrationUrl()).startsWith(GAMMA_URL + "/registration/");
+    }
+
+    @Test
+    void should_link_the_approved_registration_email_to_the_console_when_the_user_signed_up_on_the_console() throws TechnicalException {
+        givenPendingUser(null, RegistrationOrigin.CONSOLE);
+        when(installationAccessQueryService.getConsoleUrl(ORGANIZATION)).thenReturn(CONSOLE_URL);
+
+        userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
+
+        assertThat(registrationUrl()).startsWith(CONSOLE_URL + REGISTRATION_PATH);
+        // the console destination is a property of the person, so no portal lookup decides it
+        verify(installationAccessQueryService, never()).getPortalUrl(any());
+    }
+
+    @Test
+    void should_link_the_approved_registration_email_to_the_portal_when_the_user_signed_up_on_the_portal() throws TechnicalException {
+        givenPendingUser(null, RegistrationOrigin.PORTAL);
+        when(installationAccessQueryService.getPortalUrl(ENVIRONMENT)).thenReturn(PORTAL_URL);
+
+        userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true);
+
+        assertThat(registrationUrl()).startsWith(PORTAL_URL + "/user/registration/confirm/");
+    }
+
+    @Test
+    void should_keep_the_user_pending_when_the_organization_has_no_gamma_url_configured() throws TechnicalException {
+        givenPendingUser(null, RegistrationOrigin.GAMMA);
+        when(installationAccessQueryService.findGammaUrl(ORGANIZATION)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.processRegistration(CONSOLE_CONTEXT, USER_ID, true))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("No Gamma URL is configured");
+
+        // the destination is resolved before the status changes, so the user stays re-approvable
+        verify(userRepository, never()).update(any(User.class));
+        verify(emailService, never()).sendAsyncEmailNotification(any(), any());
+    }
+
+    @Test
+    void should_not_resolve_a_destination_when_the_registration_is_rejected() throws TechnicalException {
+        givenPendingUser(null, RegistrationOrigin.GAMMA);
+
+        userService.processRegistration(CONSOLE_CONTEXT, USER_ID, false);
+
+        verify(installationAccessQueryService, never()).findGammaUrl(any());
+        assertThat(capturedEmails()).noneMatch(this::isRegistrationEmail);
     }
 
     private void givenUserRegistrationEnabled(boolean automaticValidation) throws TechnicalException {
@@ -386,8 +484,36 @@ class UserServiceRegistrationApprovalTest {
         when(userRepository.create(any(User.class))).thenAnswer(returnsFirstArg());
     }
 
+    /** Console registration arrives on an organization reference context, so it reads the CONSOLE_* parameters. */
+    private void givenConsoleUserRegistrationEnabled(boolean automaticValidation) throws TechnicalException {
+        when(
+            parameterService.findAsBoolean(
+                CONSOLE_CONTEXT,
+                Key.CONSOLE_USERCREATION_ENABLED,
+                ORGANIZATION,
+                ParameterReferenceType.ORGANIZATION
+            )
+        ).thenReturn(Boolean.TRUE);
+        when(
+            parameterService.findAsBoolean(
+                CONSOLE_CONTEXT,
+                Key.CONSOLE_USERCREATION_AUTOMATICVALIDATION_ENABLED,
+                ORGANIZATION,
+                ParameterReferenceType.ORGANIZATION
+            )
+        ).thenReturn(automaticValidation);
+        when(organizationService.findById(ORGANIZATION)).thenReturn(new OrganizationEntity());
+        when(userRepository.findBySource("gravitee", EMAIL, ORGANIZATION)).thenReturn(Optional.empty());
+        when(userRepository.create(any(User.class))).thenAnswer(returnsFirstArg());
+    }
+
     private void givenPendingUser(String password) throws TechnicalException {
+        givenPendingUser(password, null);
+    }
+
+    private void givenPendingUser(String password, RegistrationOrigin registrationOrigin) throws TechnicalException {
         User user = pendingUser(password);
+        user.setRegistrationOrigin(registrationOrigin);
         when(userRepository.findById(USER_ID)).thenReturn(of(user));
         when(userRepository.update(any(User.class))).thenAnswer(returnsFirstArg());
     }
@@ -406,6 +532,23 @@ class UserServiceRegistrationApprovalTest {
         user.setCreatedAt(new Date());
         user.setUpdatedAt(user.getCreatedAt());
         return user;
+    }
+
+    private NewPreRegisterUserEntity newPreRegisterUser() {
+        NewPreRegisterUserEntity newPreRegisterUserEntity = new NewPreRegisterUserEntity();
+        newPreRegisterUserEntity.setEmail(EMAIL);
+        newPreRegisterUserEntity.setFirstname("Joe");
+        newPreRegisterUserEntity.setLastname("Bar");
+        return newPreRegisterUserEntity;
+    }
+
+    private String registrationUrl() {
+        EmailNotification registrationEmail = capturedEmails()
+            .stream()
+            .filter(this::isRegistrationEmail)
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("no registration email has been sent"));
+        return (String) registrationEmail.getParams().get(PARAM_REGISTRATION_URL);
     }
 
     private NewExternalUserEntity newExternalUser() {

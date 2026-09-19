@@ -338,6 +338,7 @@ public class UserResource extends AbstractResource {
         description = "Processed user",
         content = @Content(mediaType = APPLICATION_JSON, schema = @Schema(implementation = UserEntity.class))
     )
+    @ApiResponse(responseCode = "400", description = "No Gamma URL is configured, so the activation link cannot be built")
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response validateRegistration(boolean accepted) {
