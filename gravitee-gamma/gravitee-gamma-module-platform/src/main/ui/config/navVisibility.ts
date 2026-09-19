@@ -25,6 +25,7 @@ import { ORGANIZATION_NOTIFICATION_TEMPLATES_READ } from '../features/notificati
 import { ORGANIZATION_POLICIES_ACCESS_PERMISSIONS } from '../features/platform-policies/utils/platformPolicyPermissions';
 import { ORGANIZATION_ROLE_READ_PERMISSION } from '../features/roles/utils/rolePermissionConstants';
 import { ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION } from '../features/shared-policy-groups/utils/sharedPolicyGroupPermissions';
+import { ORGANIZATION_CUSTOM_USER_FIELD_READ_PERMISSION } from '../features/user-fields/utils/userFieldPermissions';
 import { ORGANIZATION_USER_ACCESS_PERMISSIONS } from '../features/users/utils/userPermissions';
 
 export const ORGANIZATION_SETTINGS_READ_PERMISSION = 'organization-settings-r' as const;
@@ -85,6 +86,7 @@ export const NAV_ITEM_PERMISSIONS: Readonly<Record<string, readonly string[]>> =
     integrations: [ENVIRONMENT_INTEGRATION_READ_PERMISSION],
     metadata: ['environment-metadata-r'],
     dictionaries: ['environment-dictionary-r'],
+    'user-fields': [ORGANIZATION_CUSTOM_USER_FIELD_READ_PERMISSION],
     'shared-policy-groups': [ENVIRONMENT_SHARED_POLICY_GROUP_READ_PERMISSION],
     broadcasts: ['environment-message-c'],
     gateways: ['environment-instance-r'],

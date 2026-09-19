@@ -114,6 +114,7 @@ import { SharedPolicyGroupStudioPage } from '../pages/SharedPolicyGroupStudioPag
 import { SmtpSettingsPage } from '../pages/SmtpSettingsPage';
 import { TenantsPage } from '../pages/TenantsPage';
 import { UserDetailPage } from '../pages/UserDetailPage';
+import { UserFieldsPage } from '../pages/UserFieldsPage';
 import { UsersPage } from '../pages/UsersPage';
 import { retryTransientRequest } from '../shared/api/queryRetry';
 import { ConsoleSettingsProvider } from '../shared/console-settings';
@@ -683,6 +684,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="metadata">
                                         <MetadataPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="user-fields"
+                                element={
+                                    <NavPermissionGuard itemKey="user-fields">
+                                        <UserFieldsPage />
                                     </NavPermissionGuard>
                                 }
                             />
