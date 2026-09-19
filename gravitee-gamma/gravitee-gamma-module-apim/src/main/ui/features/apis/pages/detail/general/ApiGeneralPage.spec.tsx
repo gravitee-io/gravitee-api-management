@@ -163,6 +163,16 @@ jest.mock('../../../utils/queryKeys', () => ({
     },
 }));
 
+const mockUseApiReviewEnabled = jest.fn(() => ({ enabled: false, isFetched: true }));
+jest.mock('../../../hooks/useApiReviewEnabled', () => ({
+    useApiReviewEnabled: () => mockUseApiReviewEnabled(),
+}));
+
+const mockAskReviewMutate = jest.fn();
+jest.mock('../../../hooks/useApiReviewMutations', () => ({
+    useAskApiReview: () => ({ mutate: mockAskReviewMutate, isPending: false }),
+}));
+
 jest.mock('../../../hooks/useEnvCategories', () => ({
     useEnvCategories: jest.fn(() => ({ data: [], isLoading: false })),
 }));
@@ -714,5 +724,83 @@ describe('ApiGeneralPage', () => {
         fireEvent.change(screen.getByRole('textbox', { name: /name/i }), { target: { value: 'Changed' } });
         // Input is disabled so value won't actually change, but even if it did, save must not appear
         expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+    });
+});
+
+describe('ApiGeneralPage — API review', () => {
+    function withApi(overrides: Record<string, unknown>) {
+        mockUseApiDetailContext.mockReturnValue({ api: { ...STUB_API, ...overrides }, isLoading: false, permissionsReady: true });
+    }
+
+    beforeEach(() => {
+        mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' });
+        mockUseHasPermission.mockReturnValue(true);
+        mockUseApiReviewEnabled.mockReturnValue({ enabled: true, isFetched: true });
+        jest.spyOn(apiServices, 'getPromotionTargets').mockResolvedValue([]);
+        jest.spyOn(apiServices, 'getPendingPromotions').mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        jest.restoreAllMocks();
+    });
+
+    it('offers no review action while review is disabled', () => {
+        mockUseApiReviewEnabled.mockReturnValue({ enabled: false, isFetched: true });
+        withApi({ workflowState: 'DRAFT' });
+        renderPage();
+        expect(screen.queryByRole('button', { name: /ask for a review/i })).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /start api/i })).toBeInTheDocument();
+    });
+
+    it('replaces Start with Ask for a review on a draft and asks after confirmation', () => {
+        withApi({ workflowState: 'DRAFT' });
+        renderPage();
+
+        expect(screen.queryByRole('button', { name: /start api/i })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: /ask for a review/i }));
+        expect(screen.getByRole('dialog')).toHaveTextContent('Are you sure you want to ask for a review of the API?');
+        fireEvent.click(screen.getByRole('button', { name: 'Ask for review' }));
+        expect(mockAskReviewMutate).toHaveBeenCalledWith(undefined, expect.objectContaining({ onSuccess: expect.any(Function) }));
+
+        const options = mockAskReviewMutate.mock.calls[0]?.[1] as { onSuccess: () => void };
+        act(() => options.onSuccess());
+        expect(toast.success).toHaveBeenCalledWith('Review has been asked.', expect.anything());
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('offers neither Start nor Ask while the review is in progress', () => {
+        withApi({ workflowState: 'IN_REVIEW' });
+        renderPage();
+        expect(screen.queryByRole('button', { name: /start api/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /ask for a review/i })).not.toBeInTheDocument();
+    });
+
+    it('lets the author ask again after changes were requested', () => {
+        withApi({ workflowState: 'REQUEST_FOR_CHANGES' });
+        renderPage();
+        expect(screen.getByRole('button', { name: /ask for a review/i })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /start api/i })).not.toBeInTheDocument();
+    });
+
+    it('restores Start once the review is accepted', () => {
+        withApi({ workflowState: 'REVIEW_OK' });
+        renderPage();
+        expect(screen.getByRole('button', { name: /start api/i })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /ask for a review/i })).not.toBeInTheDocument();
+    });
+
+    it('keeps Start for an API created before review was enabled, and still lets it be reviewed', () => {
+        withApi({ workflowState: undefined });
+        renderPage();
+        expect(screen.getByRole('button', { name: /start api/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /ask for a review/i })).toBeInTheDocument();
+    });
+
+    it('hides Ask for a review without api-definition-u', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-u'));
+        withApi({ workflowState: 'DRAFT' });
+        renderPage();
+        expect(screen.queryByRole('button', { name: /ask for a review/i })).not.toBeInTheDocument();
     });
 });

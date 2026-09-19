@@ -16,6 +16,7 @@
 import {
     ActivityIcon,
     CloudIcon,
+    EyeIcon,
     FileTextIcon,
     GlobeIcon,
     MailIcon,
@@ -92,9 +93,10 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
     });
 
-    it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
+    it('places Access Management, API Review, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'access-management',
+            'api-review',
             'gateways',
             'alerts',
             'notification-settings',
@@ -110,10 +112,18 @@ describe('platform navigation config', () => {
             NAV_SECTIONS.find(section => section.key === 'environment')?.groups.find(group => group.label === 'System & Security')?.items ??
             [];
         expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
+        expect(systemItems.find(item => item.key === 'api-review')?.icon).toBe(EyeIcon);
+        expect(systemItems.find(item => item.key === 'api-review')?.title).toBe('API Review');
         expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
         expect(systemItems.find(item => item.key === 'environment-cors')?.icon).toBe(GlobeIcon);
+    });
+
+    it('declares the api-review route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('api-review');
+        expect(ROUTES['api-review']).toEqual({ path: 'api-review', label: 'API Review' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'api-review')).toBe('environment');
     });
 
     it('declares the client-registration route in platform routing config', () => {

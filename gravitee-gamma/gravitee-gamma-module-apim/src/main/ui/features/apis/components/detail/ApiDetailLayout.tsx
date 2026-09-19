@@ -37,8 +37,8 @@ import {
 } from '@gravitee/graphene-core';
 import { CircleCheckIcon, CircleStopIcon, CircleXIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useId, useState } from 'react';
-import { Navigate, Outlet, useParams } from 'react-router-dom';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { Navigate, Outlet, useLocation, useParams, useSearchParams } from 'react-router-dom';
 
 import {
     API_PROXY_NAV_GROUPS,
@@ -49,19 +49,29 @@ import {
     withResponseTemplatesPermission,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
+import { ApiReviewBanner } from './ApiReviewBanner';
+import { ApiReviewSheet } from './ApiReviewSheet';
+import { ConfirmDialog } from '../../../../shared/components';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
+import { notify } from '../../../../shared/notify';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
+import { useApiReviewEnabled } from '../../hooks/useApiReviewEnabled';
+import { useAskApiReview } from '../../hooks/useApiReviewMutations';
 import { useApiScoreEnabled } from '../../hooks/useApiScoreEnabled';
 import { deployApi } from '../../services/apis';
 import type { ApiDetailDto } from '../../types';
 import { buildApiDashboardHref, buildApiLogsHref } from '../../utils/analyticsDeepLink';
 import { hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
+import { apiReviewBannerCopy, canAskForReview, isAwaitingReviewerDecision, isReviewClearedForLifecycle } from '../../utils/apiReview';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
 const DEPLOYMENT_LABEL_MAX_LENGTH = 32;
+
+/** Tasks & Approvals opens the API with this query parameter so the reviewer lands straight in the review sheet. */
+export const OPEN_REVIEW_SEARCH_PARAM = 'review';
 
 function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state']; deploymentState?: string }) {
     if (state === 'STARTED' && deploymentState === 'NEED_REDEPLOY') {
@@ -260,13 +270,18 @@ export function ApiDetailLayout() {
     const { data: api, isLoading, isError } = useApiDetail(apiId);
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
+    const isApiReviewer = useHasPermission({ anyOf: ['api-reviews-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
     const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
     const showResponseTemplates = Boolean(api) && canReadResponseTemplates && supportsResponseTemplates(api);
     const { enabled: apiScoreEnabled } = useApiScoreEnabled();
+    const { enabled: apiReviewEnabled } = useApiReviewEnabled();
     const queryClient = useQueryClient();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [contextExpanded, setContextExpanded] = useState(true);
     const [showDeployDialog, setShowDeployDialog] = useState(false);
+    const [showReviewSheet, setShowReviewSheet] = useState(false);
+    const [showAskReviewDialog, setShowAskReviewDialog] = useState(false);
 
     const deployMutation = useMutation({
         mutationFn: (deploymentLabel?: string) => {
@@ -281,7 +296,43 @@ export function ApiDetailLayout() {
         },
     });
 
-    const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy;
+    const askReviewMutation = useAskApiReview(apiId);
+    const handleAskForReview = () =>
+        askReviewMutation.mutate(undefined, {
+            onSuccess: () => {
+                setShowAskReviewDialog(false);
+                notify.success('Review has been asked.');
+            },
+            onError: error => notify.error(error, 'Review has not been asked.'),
+        });
+
+    const workflowState = api?.workflowState;
+    const reviewClearsLifecycle = isReviewClearedForLifecycle(apiReviewEnabled, workflowState);
+    // Memoized: it feeds useLayoutConfig's dependency list, and a fresh object every render re-registers the layout forever.
+    const reviewBannerCopy = useMemo(
+        () =>
+            !isError && api && apiReviewEnabled && permissionsReady
+                ? apiReviewBannerCopy({
+                      workflowState,
+                      isReviewer: isApiReviewer,
+                      canAsk: canDeploy && canAskForReview(apiReviewEnabled, workflowState),
+                  })
+                : null,
+        [isError, api, apiReviewEnabled, permissionsReady, workflowState, isApiReviewer, canDeploy],
+    );
+    // Deploying while a review is pending would bypass the reviewer, so the out-of-sync banner waits for the review.
+    const showDeployBanner = !isError && api?.deploymentState === 'NEED_REDEPLOY' && canDeploy && reviewClearsLifecycle;
+
+    const openReviewRequested = searchParams.has(OPEN_REVIEW_SEARCH_PARAM);
+    const canOpenReviewFromLink =
+        Boolean(api) && permissionsReady && isApiReviewer && isAwaitingReviewerDecision(apiReviewEnabled, workflowState);
+    useEffect(() => {
+        if (!openReviewRequested || !canOpenReviewFromLink) return;
+        setShowReviewSheet(true);
+        const next = new URLSearchParams(searchParams);
+        next.delete(OPEN_REVIEW_SEARCH_PARAM);
+        setSearchParams(next, { replace: true });
+    }, [openReviewRequested, canOpenReviewFromLink, searchParams, setSearchParams]);
     // The observability section hangs off the module root, one level above `/apis/:apiId`.
     const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
     const navGroups = withTcpRestrictions(
@@ -309,9 +360,22 @@ export function ApiDetailLayout() {
                 { label: 'API Proxies', href: `${moduleRoot}/apis` },
                 { label: api?.name ? (api.name.length > 40 ? `${api.name.slice(0, 40).trimEnd()}…` : api.name) : 'Loading…' },
             ],
-            banner: showDeployBanner ? (
-                <DeployBanner onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />
-            ) : null,
+            banner:
+                reviewBannerCopy || showDeployBanner ? (
+                    <div>
+                        {reviewBannerCopy ? (
+                            <ApiReviewBanner
+                                copy={reviewBannerCopy}
+                                isPending={askReviewMutation.isPending}
+                                onAskForReview={() => setShowAskReviewDialog(true)}
+                                onReview={() => setShowReviewSheet(true)}
+                            />
+                        ) : null}
+                        {showDeployBanner ? (
+                            <DeployBanner onDeploy={() => setShowDeployDialog(true)} isPending={deployMutation.isPending} />
+                        ) : null}
+                    </div>
+                ) : null,
             bannerSticky: true,
         },
         [
@@ -322,6 +386,8 @@ export function ApiDetailLayout() {
             permissionsReady,
             showDeployBanner,
             deployMutation.isPending,
+            reviewBannerCopy,
+            askReviewMutation.isPending,
             canReadMetadata,
             showResponseTemplates,
             apiScoreEnabled,
@@ -345,12 +411,25 @@ export function ApiDetailLayout() {
                 onConfirm={label => deployMutation.mutate(label || undefined)}
                 onOpenChange={setShowDeployDialog}
             />
+            {apiId ? <ApiReviewSheet apiId={apiId} open={showReviewSheet} onOpenChange={setShowReviewSheet} /> : null}
+            <ConfirmDialog
+                open={showAskReviewDialog}
+                onOpenChange={setShowAskReviewDialog}
+                title="Review API"
+                description="Are you sure you want to ask for a review of the API?"
+                confirmLabel="Ask for review"
+                pendingLabel="Asking…"
+                isPending={askReviewMutation.isPending}
+                onConfirm={handleAskForReview}
+            />
         </ApiDetailContext.Provider>
     );
 }
 
 export function ApiDetailIndexRedirect() {
     const { apiId } = useParams<{ apiId: string }>();
+    const { search } = useLocation();
     const basePath = useDetailBasePath('apis', apiId);
-    return <Navigate to={`${basePath}/overview`} replace />;
+    // Keep the query string: Tasks & Approvals deep-links to the API root with `?review`.
+    return <Navigate to={{ pathname: `${basePath}/overview`, search }} replace />;
 }

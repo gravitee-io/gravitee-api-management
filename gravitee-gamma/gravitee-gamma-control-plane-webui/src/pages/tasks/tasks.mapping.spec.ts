@@ -188,7 +188,7 @@ describe('toTaskView', () => {
         expect(view.to).toBe('/environments/prod/apim/apis/api-legacy/consumers/sub-api-legacy');
     });
 
-    it('builds a review task linking to the API page', () => {
+    it('builds a review task that opens the API straight into its review sheet', () => {
         const entity: TaskEntity = { type: 'IN_REVIEW', created_at: 1, data: { referenceId: 'api-http' } };
 
         const view = toTaskView(entity, metadata, resolveEnvHrid);
@@ -196,7 +196,7 @@ describe('toTaskView', () => {
         expect(view.category).toBe('API_REVIEW');
         expect(view.title).toBe('Flight Status API');
         expect(view.subtitle).toBe('Ready to be reviewed');
-        expect(view.to).toBe('/environments/prod/apim/apis/api-http');
+        expect(view.to).toBe('/environments/prod/apim/apis/api-http?review');
         expect(view.toModuleId).toBe('apim');
     });
 

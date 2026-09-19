@@ -100,6 +100,12 @@ export const portalSettingsKeys = {
     portalConfig: (envId: string) => [...portalSettingsKeys.all, 'portal-config', envId] as const,
 };
 
+export const apiReviewKeys = {
+    all: ['api-review'] as const,
+    qualityRules: (envId: string) => [...apiReviewKeys.all, 'quality-rules', envId] as const,
+    apiQualityRules: (envId: string, apiId: string) => [...apiReviewKeys.all, 'api-quality-rules', envId, apiId] as const,
+};
+
 export const apiScoringKeys = {
     all: ['api-scoring'] as const,
     report: (envId: string, apiId: string) => [...apiScoringKeys.all, 'report', envId, apiId] as const,

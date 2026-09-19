@@ -83,6 +83,8 @@ export interface ApiProxyDraft {
     oauth2ResourceValid: boolean;
     mtlsPlanName: string;
     deployImmediately: boolean;
+    /** Only meaningful while API Review is enabled for the environment; see `resolveCreationOutcome`. */
+    askForReview: boolean;
 }
 
 export type ValidationErrors = Record<string, string>;

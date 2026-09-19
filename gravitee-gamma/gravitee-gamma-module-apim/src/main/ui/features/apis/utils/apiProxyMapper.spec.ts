@@ -51,6 +51,7 @@ const BASE: ApiProxyDraft = {
     oauth2ResourceValid: true,
     mtlsPlanName: 'mTLS Plan',
     deployImmediately: true,
+    askForReview: false,
 };
 
 function form(overrides: Partial<ApiProxyDraft> = {}): ApiProxyDraft {
