@@ -37,9 +37,21 @@ class DictionaryService {
       description: dictionary.description,
       type: dictionary.type,
       properties: dictionary.properties,
+      propertyOptions: this.toWirePropertyOptions(dictionary),
       provider: dictionary.provider,
       trigger: dictionary.trigger,
     });
+  }
+
+  private toWirePropertyOptions(dictionary) {
+    if (!dictionary.propertyOptions) {
+      return dictionary.propertyOptions;
+    }
+    return Object.fromEntries(Object.entries(dictionary.propertyOptions).map(([key, options]) => [key, this.toWireOptions(options)]));
+  }
+
+  private toWireOptions(options) {
+    return options?.encryptable ? { encryptable: true } : options;
   }
 
   delete(dictionary: any) {

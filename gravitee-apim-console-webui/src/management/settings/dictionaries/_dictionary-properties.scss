@@ -7,6 +7,30 @@ td.md-cell.dictionary-property-value {
   white-space: nowrap;
 }
 
+.dictionary-property-actions {
+  width: 90px;
+  white-space: nowrap;
+}
+
+td.md-cell.dictionary-property-actions ng-md-icon svg {
+  width: 24px;
+}
+
+md-dialog.dictionary-add-property-dialog {
+  .dictionary-encrypt-field {
+    margin: 0;
+    padding-top: 0;
+
+    md-switch {
+      margin: 0 0 4px;
+    }
+
+    .hint {
+      position: static;
+    }
+  }
+}
+
 md-dialog.dictionary-edit-property-dialog {
   width: min(720px, 90vw);
   max-width: 90vw;

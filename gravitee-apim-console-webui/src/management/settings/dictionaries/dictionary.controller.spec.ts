@@ -73,7 +73,7 @@ describe('DictionaryController', () => {
 
       expect(controller['dictionary'].properties.large_value).toBe(longValue);
       expect(controller['dictionary'].properties.large_value.length).toBeGreaterThan(160);
-      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: longValue }]);
+      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: longValue, encrypted: false, encryptable: false }]);
       expect(controller['propertiesDirty']).toBe(true);
     });
 
@@ -102,7 +102,7 @@ describe('DictionaryController', () => {
       expect(DictionaryService.update).toHaveBeenCalled();
       expect(NotificationService.show).toHaveBeenCalledWith('Properties has been updated');
       expect(controller['propertiesDirty']).toBe(false);
-      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'saved' }]);
+      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'saved', encrypted: false, encryptable: false }]);
     });
   });
 
@@ -120,7 +120,7 @@ describe('DictionaryController', () => {
       controller.reset();
 
       expect(controller['propertiesDirty']).toBe(false);
-      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'initial' }]);
+      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'initial', encrypted: false, encryptable: false }]);
       expect(controller['formDictionary'].$setPristine).toHaveBeenCalled();
     });
 
@@ -135,7 +135,7 @@ describe('DictionaryController', () => {
 
       expect(DictionaryService.update).toHaveBeenCalled();
       expect(controller['propertiesDirty']).toBe(false);
-      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'updated' }]);
+      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'updated', encrypted: false, encryptable: false }]);
     });
 
     it('should clear propertiesDirty after deploy reloads dictionary state', async () => {
@@ -149,7 +149,7 @@ describe('DictionaryController', () => {
 
       expect(DictionaryService.deploy).toHaveBeenCalled();
       expect(controller['propertiesDirty']).toBe(false);
-      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'deployed' }]);
+      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'deployed', encrypted: false, encryptable: false }]);
     });
   });
 
@@ -169,8 +169,8 @@ describe('DictionaryController', () => {
       expect(controller['propertiesDirty']).toBe(true);
       expect(controller['dictProperties']).toEqual(
         expect.arrayContaining([
-          { key: 'large_value', value: 'short' },
-          { key: 'new_key', value: 'new_value' },
+          { key: 'large_value', value: 'short', encrypted: false, encryptable: false },
+          { key: 'new_key', value: 'new_value', encrypted: false, encryptable: false },
         ]),
       );
     });
@@ -209,7 +209,169 @@ describe('DictionaryController', () => {
       expect(controller['selectedProperties'].remove).toBeUndefined();
       expect(controller['query'].total).toBe(1);
       expect(controller['propertiesDirty']).toBe(true);
-      expect(controller['dictProperties']).toEqual([{ key: 'keep', value: '1' }]);
+      expect(controller['dictProperties']).toEqual([{ key: 'keep', value: '1', encrypted: false, encryptable: false }]);
+    });
+  });
+
+  describe('encryption', () => {
+    beforeEach(() => {
+      controller['dictionary'] = {
+        properties: { url: 'https://backend', apiKey: '\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022' },
+        propertyOptions: { apiKey: { encrypted: true } },
+      };
+      controller['dictProperties'] = controller.computeProperties();
+      controller['query'] = { total: 2 };
+    });
+
+    describe('computeProperties', () => {
+      it('should carry the encrypted state onto the row', () => {
+        const rows = controller.computeProperties();
+
+        expect(rows).toEqual([
+          { key: 'url', value: 'https://backend', encrypted: false, encryptable: false },
+          { key: 'apiKey', value: expect.any(String), encrypted: true, encryptable: false },
+        ]);
+      });
+
+      it('should treat every property as plain when no options are present', () => {
+        controller['dictionary'] = { properties: { url: 'https://backend' } };
+
+        expect(controller.computeProperties()).toEqual([{ key: 'url', value: 'https://backend', encrypted: false, encryptable: false }]);
+      });
+    });
+
+    describe('masking', () => {
+      it('should mask an encrypted value whatever the API returned', () => {
+        controller['dictionary'] = {
+          properties: { apiKey: 'hK3nB2xQ-raw-ciphertext', url: 'https://backend' },
+          propertyOptions: { apiKey: { encrypted: true } },
+        };
+
+        const rows = controller.computeProperties();
+
+        expect(rows).toContainEqual({ key: 'apiKey', value: '\u2022'.repeat(12), encrypted: true, encryptable: false });
+        expect(rows).toContainEqual({ key: 'url', value: 'https://backend', encrypted: false, encryptable: false });
+      });
+
+      it('should not let the mask reach the values that are sent back', () => {
+        controller['dictionary'] = {
+          properties: { apiKey: 'hK3nB2xQ-raw-ciphertext' },
+          propertyOptions: { apiKey: { encrypted: true } },
+        };
+
+        controller.computeProperties();
+
+        expect(controller['dictionary'].properties.apiKey).toBe('hK3nB2xQ-raw-ciphertext');
+      });
+    });
+
+    describe('encryptProperty', () => {
+      it('should mark a plain property as encryptable without touching its value', () => {
+        controller.encryptProperty('url');
+
+        expect(controller['dictionary'].propertyOptions.url).toEqual({ encryptable: true });
+        expect(controller['dictionary'].properties.url).toBe('https://backend');
+        expect(controller['propertiesDirty']).toBe(true);
+      });
+
+      it('should create the options map when the dictionary has none', () => {
+        controller['dictionary'] = { properties: { url: 'https://backend' } };
+
+        controller.encryptProperty('url');
+
+        expect(controller['dictionary'].propertyOptions).toEqual({ url: { encryptable: true } });
+      });
+
+      it('should expose the pending mark on the row', () => {
+        controller.encryptProperty('url');
+
+        expect(controller['dictProperties']).toContainEqual(expect.objectContaining({ key: 'url', encrypted: false, encryptable: true }));
+      });
+    });
+
+    describe('undoEncryptProperty', () => {
+      it('should clear a pending mark', () => {
+        controller.encryptProperty('url');
+
+        controller.undoEncryptProperty('url');
+
+        expect(controller['dictionary'].propertyOptions.url).toBeUndefined();
+        expect(controller['dictProperties']).toContainEqual(expect.objectContaining({ key: 'url', encryptable: false }));
+      });
+
+      it('should not clear an already stored encrypted state', () => {
+        controller.undoEncryptProperty('apiKey');
+
+        expect(controller['dictionary'].propertyOptions.apiKey).toEqual({ encrypted: true });
+      });
+    });
+
+    describe('renewProperty', () => {
+      it('should replace the value and ask for re-encryption', async () => {
+        const event = { stopPropagation: jest.fn() };
+        $mdDialog.show.mockResolvedValue({ value: 'newS3cr3t' });
+
+        await controller.renewProperty(event, 'apiKey');
+
+        expect(controller['dictionary'].properties.apiKey).toBe('newS3cr3t');
+        expect(controller['dictionary'].propertyOptions.apiKey).toEqual({ encrypted: true, encryptable: true });
+        expect(controller['propertiesDirty']).toBe(true);
+      });
+
+      it('should keep the stored encrypted state so a renewed row cannot be downgraded', async () => {
+        const event = { stopPropagation: jest.fn() };
+        $mdDialog.show.mockResolvedValue({ value: 'newS3cr3t' });
+        await controller.renewProperty(event, 'apiKey');
+
+        controller.undoEncryptProperty('apiKey');
+
+        expect(controller['dictionary'].propertyOptions.apiKey).toEqual({ encrypted: true, encryptable: true });
+        expect(controller.isEncrypted('apiKey')).toBe(true);
+      });
+
+      it('should never hand the stored value to the dialog', async () => {
+        const event = { stopPropagation: jest.fn() };
+        $mdDialog.show.mockResolvedValue(null);
+
+        await controller.renewProperty(event, 'apiKey');
+
+        expect($mdDialog.show).toHaveBeenCalledWith(expect.objectContaining({ locals: { key: 'apiKey', value: '' } }));
+      });
+    });
+
+    describe('deleteProperty', () => {
+      it('should drop the options entry along with the property', () => {
+        controller.deleteProperty('apiKey');
+
+        expect(controller['dictionary'].properties.apiKey).toBeUndefined();
+        expect(controller['dictionary'].propertyOptions.apiKey).toBeUndefined();
+      });
+    });
+
+    describe('addProperty', () => {
+      it('should mark a new property as encryptable when the dialog asks for it', async () => {
+        $mdDialog.show.mockResolvedValue({ key: 'token', value: 's3cr3t', encryptable: true });
+
+        await controller.addProperty();
+
+        expect(controller['dictionary'].properties.token).toBe('s3cr3t');
+        expect(controller['dictionary'].propertyOptions.token).toEqual({ encryptable: true });
+      });
+
+      it('should leave a new property plain when the dialog does not ask for encryption', async () => {
+        $mdDialog.show.mockResolvedValue({ key: 'token', value: 'plain', encryptable: false });
+
+        await controller.addProperty();
+
+        expect(controller['dictionary'].propertyOptions.token).toBeUndefined();
+      });
+    });
+
+    describe('isEncrypted', () => {
+      it('should report a stored encrypted property', () => {
+        expect(controller.isEncrypted('apiKey')).toBe(true);
+        expect(controller.isEncrypted('url')).toBe(false);
+      });
     });
   });
 });
