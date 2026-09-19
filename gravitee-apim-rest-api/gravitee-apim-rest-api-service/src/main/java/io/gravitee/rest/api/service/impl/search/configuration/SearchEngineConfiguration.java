@@ -40,8 +40,8 @@ public class SearchEngineConfiguration {
     private String indexDirectory;
 
     @Bean
-    public SearchEngineIndexer searchEngineIndexer() {
-        return new SearchEngineIndexer();
+    public SearchEngineIndexer searchEngineIndexer(IndexWriter indexWriter) {
+        return new SearchEngineIndexer(indexWriter);
     }
 
     @Bean
