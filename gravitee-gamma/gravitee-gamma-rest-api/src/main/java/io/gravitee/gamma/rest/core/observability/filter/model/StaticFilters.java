@@ -66,7 +66,10 @@ public enum StaticFilters {
     API("API", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, ApiType.ALL),
     APPLICATION("Application", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.APP_TYPES),
     PLAN("Plan", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.APP_TYPES),
-    API_PRODUCT("API Product", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Set.of(ApiType.HTTP_PROXY)),
+    // Every kind a product can front, not HTTP alone: an AI Workspace is a product over LLM APIs, and
+    // scoping this to HTTP left the filter unlistable there — its values endpoint answers "filter not
+    // found", so the picker on an LLM dashboard came back empty.
+    API_PRODUCT("API Product", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.HTTP_LLM_MCP_A2A),
     GATEWAY("Gateway", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
     TENANT("Tenant", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.GATEWAY_TYPES),
     ZONE("Zone", FilterType.KEYWORD, Defs.EQ_IN, null, null, Defs.ANALYTICS, Defs.GATEWAY_TYPES),
