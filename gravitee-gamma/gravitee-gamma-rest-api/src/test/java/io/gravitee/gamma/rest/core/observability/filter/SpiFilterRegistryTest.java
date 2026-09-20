@@ -87,6 +87,21 @@ class SpiFilterRegistryTest {
     }
 
     @Test
+    void should_offer_the_api_product_filter_wherever_a_product_routes_traffic() {
+        FilterRegistry registry = registryWith();
+
+        // An API product fronts LLM, MCP and A2A APIs as well as HTTP ones — an AI Workspace is one. Leaving
+        // those out left the filter unlistable there: its values endpoint answers "filter not found", so the
+        // picker on an LLM dashboard came back empty.
+        for (ApiType apiType : List.of(ApiType.HTTP_PROXY, ApiType.LLM, ApiType.MCP, ApiType.A2A)) {
+            assertThat(registry.getFilters(null, Set.of(apiType)))
+                .as("API_PRODUCT on %s", apiType)
+                .extracting(FilterSpec::name)
+                .contains("API_PRODUCT");
+        }
+    }
+
+    @Test
     void should_offer_the_decisions_screen_only_what_the_decision_search_can_apply() {
         FilterRegistry registry = registryWith();
 
