@@ -83,6 +83,9 @@
       }
       <div class="panel-header__actions">
         @if (hasSelection()) {
+          <button mat-stroked-button type="button" data-testid="assign-apis-button" [disabled]="!isEditable()" (click)="openAssignApis()">
+            Assign APIs
+          </button>
           <button
             mat-stroked-button
             type="button"
@@ -109,12 +112,6 @@
 
     @if (hasSelection()) {
       <gmd-form-editor [formControl]="contentControl" [showPreview]="isPreviewVisible()" />
-      <subscription-form-apis
-        [selectedApis]="selectedApis()"
-        [mappedElsewhere]="apisMappedElsewhere()"
-        [canUpdate]="canUpdate()"
-        (apiToggled)="toggleApi($event)"
-      />
     } @else {
       <div class="empty-editor">
         <mat-card appearance="outlined" class="empty-state">

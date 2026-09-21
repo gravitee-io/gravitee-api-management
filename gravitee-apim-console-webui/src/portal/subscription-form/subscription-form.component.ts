@@ -29,7 +29,8 @@ import { MatInputModule } from '@angular/material/input';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { SubscriptionFormListComponent } from './subscription-form-list/subscription-form-list.component';
-import { MappedApi, SubscriptionFormApisComponent } from './subscription-form-apis/subscription-form-apis.component';
+import { MappedApi } from './subscription-form-apis/subscription-form-apis.component';
+import { AssignApisDialogComponent, AssignApisDialogData, AssignApisDialogResult } from './assign-apis-dialog/assign-apis-dialog.component';
 
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -53,7 +54,6 @@ import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/cont
     MatInputModule,
     GioPermissionModule,
     GmdFormEditorComponent,
-    SubscriptionFormApisComponent,
     SubscriptionFormListComponent,
   ],
   templateUrl: './subscription-form.component.html',
@@ -140,7 +140,8 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     const form = this.selectedFormDetail();
     return form?.id === this.selectedFormId() ? form : null;
   });
-  private readonly isEditable = computed(() => this.isCreating() || this.loadedForm() !== null);
+  /** A form is only editable once loaded: until then its mapping is unknown and must not be edited. */
+  readonly isEditable = computed(() => this.isCreating() || this.loadedForm() !== null);
 
   /** The catalog as listed, the edited form counting its APIs as currently selected rather than as last saved. */
   readonly listedForms = computed<SubscriptionForm[]>(() => {
@@ -247,10 +248,30 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     save$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
   }
 
-  toggleApi(api: MappedApi): void {
-    this.selectedApis.update(apis =>
-      apis.some(selected => selected.id === api.id) ? apis.filter(selected => selected.id !== api.id) : [...apis, api],
-    );
+  openAssignApis(): void {
+    // Opening a form still loading would capture an empty draft, and applying it would unmap every API.
+    if (!this.isEditable()) return;
+
+    const data: AssignApisDialogData = {
+      selectedApis: this.selectedApis(),
+      mappedElsewhere: this.apisMappedElsewhere(),
+      canUpdate: this.canUpdate(),
+    };
+
+    this.matDialog
+      .open<AssignApisDialogComponent, AssignApisDialogData, AssignApisDialogResult>(AssignApisDialogComponent, {
+        width: GIO_DIALOG_WIDTH.LARGE,
+        data,
+        role: 'dialog',
+        id: 'assignApisDialog',
+      })
+      .afterClosed()
+      .pipe(
+        // The mapping is applied to the edited form, not saved: the form's Save button sends it.
+        filter((apis): apis is AssignApisDialogResult => !!apis),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(apis => this.selectedApis.set(apis));
   }
 
   onEnabledToggle(listedForm: SubscriptionForm): void {

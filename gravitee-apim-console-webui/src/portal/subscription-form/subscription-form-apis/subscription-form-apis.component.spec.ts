@@ -19,7 +19,6 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { MatChipRemoveHarness } from '@angular/material/chips/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 import { MatTooltipHarness } from '@angular/material/tooltip/testing';
@@ -103,7 +102,7 @@ describe('SubscriptionFormApisComponent', () => {
     ]);
   });
 
-  it('should check the APIs of the form, flag them as mapped and list them as chips', async () => {
+  it('should check the APIs of the form and flag them as mapped', async () => {
     await init([{ id: 'api-weather', name: 'Weather API' }]);
     expectApiPage();
 
@@ -111,7 +110,6 @@ describe('SubscriptionFormApisComponent', () => {
     expect(await (await checkbox('api-payments')).isChecked()).toBe(false);
     expect(mappedBadge('api-weather')).toBeTruthy();
     expect(mappedBadge('api-payments')).toBeFalsy();
-    expect(fixture.debugElement.query(By.css('[data-testid=api-chip-api-weather]')).nativeElement.textContent).toContain('Weather API');
   });
 
   it('should label each checkbox with the action it performs', async () => {
@@ -136,13 +134,12 @@ describe('SubscriptionFormApisComponent', () => {
     expect(await tooltip.getTooltipText()).toBe('Mapped to Partner onboarding');
   });
 
-  it('should toggle an API from its checkbox or from its chip', async () => {
+  it('should toggle an API from its checkbox, both ways', async () => {
     await init([{ id: 'api-weather', name: 'Weather API' }]);
     expectApiPage();
 
     await (await checkbox('api-payments')).check();
-    const removeChip = await harnessLoader.getHarness(MatChipRemoveHarness);
-    await removeChip.click();
+    await (await checkbox('api-weather')).uncheck();
 
     expect(toggled).toEqual([
       { id: 'api-payments', name: 'Payments API' },
@@ -199,7 +196,7 @@ describe('SubscriptionFormApisComponent', () => {
     expectApiPage();
 
     expect(await (await checkbox('api-payments')).isDisabled()).toBe(true);
-    expect(await harnessLoader.getAllHarnesses(MatChipRemoveHarness)).toHaveLength(0);
+    expect(await (await checkbox('api-weather')).isDisabled()).toBe(true);
   });
 
   it('should still search and page through the APIs without the update permission', async () => {

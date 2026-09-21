@@ -24,29 +24,12 @@ $background: map.get(gio.$mat-theme, background);
   flex-direction: column;
   gap: 16px;
   min-width: 0;
-  padding: 16px;
-
-  &__header {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  &__title {
-    margin: 0;
-    @include mat.m2-typography-level(gio.$mat-typography, subtitle-2);
-  }
-
-  &__subtitle {
-    @include mat.m2-typography-level(gio.$mat-typography, body-2);
-    color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter40);
-  }
 
   &__search {
     width: 100%;
   }
 
-  // A fixed layout keeps a long API name from widening the panel: the name column wraps instead.
+  // A fixed layout keeps a long API name from widening the dialog: the name column wraps instead.
   table {
     width: 100%;
     min-width: 0;
