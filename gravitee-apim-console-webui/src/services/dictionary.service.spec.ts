@@ -67,5 +67,17 @@ describe('DictionaryService', () => {
 
       expect($http.put.mock.calls[0][1].propertyOptions).toEqual({ apiKey: { encryptable: true } });
     });
+
+    it('should never send encrypted, since the Console only ever submits plaintext', () => {
+      service.update({
+        id: 'dic-1',
+        name: 'My dictionary',
+        type: 'MANUAL',
+        properties: { apiKey: 'newSecret' },
+        propertyOptions: { apiKey: { encrypted: true } },
+      });
+
+      expect($http.put.mock.calls[0][1].propertyOptions).toEqual({});
+    });
   });
 });

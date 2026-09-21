@@ -223,6 +223,9 @@ class DictionaryController {
         controllerAs: 'dialogDictionaryAddPropertyCtrl',
         template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
         clickOutsideToClose: true,
+        locals: {
+          existingKeys: Object.keys(this.dictionary.properties || {}),
+        },
       })
       .then(property => {
         if (this.dictionary.properties === undefined) {
@@ -245,6 +248,10 @@ class DictionaryController {
 
   editProperty(event, key, value) {
     event.stopPropagation();
+
+    if (this.isMaskedKey(key)) {
+      return;
+    }
 
     return this.$mdDialog
       .show({
@@ -332,10 +339,14 @@ class DictionaryController {
       result.key = entry[0];
       result.encrypted = this.isEncrypted(entry[0]);
       result.encryptable = this.isEncryptable(entry[0]);
-      result.value = result.encrypted ? ENCRYPTED_VALUE_MASK : entry[1];
+      result.value = this.isMaskedKey(entry[0]) ? ENCRYPTED_VALUE_MASK : entry[1];
       return result;
     });
   };
+
+  isMasked(entry) {
+    return this.isMaskedKey(entry.key);
+  }
 
   isEncrypted(key: string) {
     return this.propertyOption(key).encrypted === true;
@@ -346,19 +357,14 @@ class DictionaryController {
   }
 
   encryptProperty(key: string) {
-    if (this.dictionary.propertyOptions === undefined) {
-      this.dictionary.propertyOptions = {};
-    }
-    this.dictionary.propertyOptions[key] = { encryptable: true };
-    this.dictProperties = this.computeProperties();
-    this.propertiesDirty = true;
+    this.setPropertyOption(key, { encryptable: true });
   }
 
   undoEncryptProperty(key: string) {
     if (this.isEncrypted(key)) {
       return;
     }
-    delete this.dictionary.propertyOptions[key];
+    delete this.propertyOptions()[key];
     this.dictProperties = this.computeProperties();
     this.propertiesDirty = true;
   }
@@ -380,12 +386,29 @@ class DictionaryController {
       .then(property => {
         if (property) {
           this.dictionary.properties[key] = property.value;
-          this.dictionary.propertyOptions[key] = { ...this.dictionary.propertyOptions[key], encryptable: true };
+          this.setPropertyOption(key, { ...this.propertyOption(key), encryptable: true });
           this.dictProperties = this.computeProperties();
           this.propertiesDirty = true;
         }
       })
       .catch(() => {});
+  }
+
+  private isMaskedKey(key: string) {
+    return this.isEncrypted(key) || this.isEncryptable(key);
+  }
+
+  private propertyOptions() {
+    if (this.dictionary.propertyOptions === undefined) {
+      this.dictionary.propertyOptions = {};
+    }
+    return this.dictionary.propertyOptions;
+  }
+
+  private setPropertyOption(key: string, options) {
+    this.propertyOptions()[key] = options;
+    this.dictProperties = this.computeProperties();
+    this.propertiesDirty = true;
   }
 
   private propertyOption(key: string) {

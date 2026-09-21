@@ -313,7 +313,7 @@
                 <td
                   md-cell
                   class="dictionary-property-value"
-                  ng-click="entry.encrypted || $ctrl.editProperty($event, entry.key, entry.value)"
+                  ng-click="$ctrl.isMasked(entry) || $ctrl.editProperty($event, entry.key, entry.value)"
                   ng-class="{'gravitee-placeholder': entry.value}"
                 >
                   {{entry.value || 'Set value'}}
