@@ -1539,8 +1539,15 @@ components:
           default: []
         additionalClientMetadata:
           type: object
+          description: |
+            Additional Dynamic Client Registration metadata sent to the client registration provider,
+            as a flat map of DCR field name to value. Only fields defined by the registration request
+            are forwarded, the others are ignored. Use `software_id` to select a client template on
+            the provider; a value set here takes precedence over the provider-wide one.
           additionalProperties:
             type: string
+          examples:
+            - { "software_id": "3d5a2f0e-1c4b-4c8a-9f7e-2b6d8e0a1c34" }
       required:
         - applicationType
         - redirectUris
