@@ -17,6 +17,7 @@ package io.gravitee.repository.elasticsearch.configuration;
 
 import io.gravitee.common.util.EnvironmentUtils;
 import io.gravitee.elasticsearch.config.Endpoint;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,6 +58,28 @@ public class RepositoryConfiguration {
      */
     @Value("${analytics.elasticsearch.index_mode:daily}")
     private String indexMode;
+
+    /**
+     * How far back the message join looks for a connection document, on top of the query's own window.
+     *
+     * <p>A message query filtering on a connection dimension — plan, application, entrypoint — resolves
+     * the matching connections first. That phase applies the query's time range to the <em>connection</em>
+     * document, so a stream opened before the window and still running is missed and its messages, which
+     * are inside the window, are dropped with it. For SSE, WebSocket and webhook entrypoints a connection
+     * routinely outlives a dashboard window, so this is the common case rather than an edge one.
+     *
+     * <p>Extending the lookback finds those connections. It cannot over-count: the joined result is a
+     * subset of the unjoined one, so a wider connection window only ever adds messages back. What it does
+     * cost is ids — the connection phase pages them into a single {@code terms} clause bounded by
+     * {@code index.max_terms_count} (65,536 by default) — which is why this is bounded and tunable rather
+     * than removed outright.
+     *
+     * <p>In seconds, matching {@code requestTimeout} above — this context has no String-to-Duration
+     * converter, so an ISO-8601 property would fail the whole repository at startup. {@code 0} restores
+     * the previous behaviour.
+     */
+    @Value("${analytics.elasticsearch.message_connection_lookback_seconds:86400}")
+    private long messageConnectionLookbackSeconds;
 
     /**
      * Elasticsearch basic oauth login.
@@ -168,6 +191,11 @@ public class RepositoryConfiguration {
 
     public void setEndpoints(List<Endpoint> endpoints) {
         this.endpoints = endpoints;
+    }
+
+    /** @see #messageConnectionLookbackSeconds */
+    public Duration getMessageConnectionLookback() {
+        return Duration.ofSeconds(Math.max(0, messageConnectionLookbackSeconds));
     }
 
     public String getIndexName() {

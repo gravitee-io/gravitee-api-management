@@ -271,18 +271,24 @@ public class FilterAdapter {
      *
      * <ul>
      *   <li><em>Straddling connections</em> — a stream opened before {@code from} and still running.
-     *       For SSE, WebSocket or {@code http-get} against a short dashboard window that is the
-     *       normal case, not an edge case.</li>
+     *       For SSE, WebSocket or webhook entrypoints against a short dashboard window that is the
+     *       normal case, not an edge case. <strong>Largely closed since:</strong> the connection phase
+     *       now looks back {@code analytics.elasticsearch.message_connection_lookback_seconds} further
+     *       than the caller asked (24h by default), so the join finds these connections too and the
+     *       two paths agree on them. A stream older than the lookback is still missed, which is why
+     *       the setting is tunable.</li>
      *   <li><em>Orphaned messages</em> — no connection document at all: sampling, retention, index
-     *       rollover.</li>
+     *       rollover. <strong>Still open:</strong> no lookback can find a document that is gone, so
+     *       these are counted on the direct path and never on the joined one. Closing it means
+     *       carrying the connection dimensions on the message documents themselves — tracked as
+     *       ESM-236.</li>
      * </ul>
      *
-     * <p>Both were silently dropped before and are counted now. This is held to be a correction
-     * rather than a regression — a message that flowed inside the window did flow inside the window,
-     * whatever became of the document describing its connection — but it does move the numbers
-     * operators read, and it makes a board internally inconsistent in one direction: adding a plan
-     * filter restores the join, so the count drops for a reason unrelated to the plan. Pinned by
-     * {@code AnalyticsElasticsearchRepositoryTest}'s straddling-connection case.
+     * <p>Both were silently dropped before. This is held to be a correction rather than a regression —
+     * a message that flowed inside the window did flow inside the window, whatever became of the
+     * document describing its connection — but it does move the numbers operators read. Pinned by
+     * {@code AnalyticsElasticsearchRepositoryTest}'s straddling-connection case, and by
+     * {@code MessageConnectionLookbackDisabledTest} for what the lookback is worth.
      */
     public boolean isFullyAppliedOnMessages(Query query) {
         return query.filters().stream().allMatch(this::shouldAdaptForMessage);

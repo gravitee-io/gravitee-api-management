@@ -1960,20 +1960,22 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             }
 
             /**
-             * Pins the one behaviour this change does alter, which is not a filter restatement.
+             * The straddling-connection case, which the two paths now agree on.
              *
-             * <p>The join applied the query's time range to the <em>connection</em> document as well
-             * ({@code FilterAdapter#adaptForMessageConnexion} opens with it). Connection
-             * {@code 5fc3b3e5} opens at 06:54:30 and carries three messages at 06:55:39, 06:56:44 and
-             * 06:57:44 worth 31 messages between them. Queried from 06:55:00 the connection falls
-             * outside the window while its messages do not: the join dropped all 31, the direct path
-             * keeps them.
+             * <p>Connection {@code 5fc3b3e5} opens at 06:54:30 and carries three messages at 06:55:39,
+             * 06:56:44 and 06:57:44, worth 31 messages between them. Queried from 06:55:00 the
+             * connection falls outside the window while its messages do not.
              *
-             * <p>A stream opened before the window and still running is the normal case for SSE,
-             * WebSocket and {@code http-get} against a short dashboard window, so this is the
-             * difference operators will actually see. Adding the entrypoint condition restores the
-             * join, and with it the old number — which is also why a board can look inconsistent:
-             * adding a connection-side filter lowers the count for a reason unrelated to that filter.
+             * <p>The join applies the query's time range to the <em>connection</em> document as well
+             * ({@code FilterAdapter#adaptForMessageConnexion} opens with it), so it used to drop all 31
+             * and report 374 where the direct path reported 405 — a board whose count fell when a plan
+             * filter was added, for a reason unrelated to the plan. The connection phase now looks back
+             * {@code analytics.elasticsearch.message_connection_lookback_seconds} further than the
+             * caller asked (24h by default), finds the connection, and both paths report 405.
+             *
+             * <p>Asserting both rather than the total alone: the lookback must not widen what the
+             * <em>message</em> phase counts, so the direct figure has to stay put while the joined one
+             * rises to meet it.
              */
             @Test
             void should_count_messages_whose_connection_opened_before_the_window() {
@@ -1991,7 +1993,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 var joined = cut.searchMessageMeasures(QUERY_CONTEXT, new MeasuresQuery(window, List.of(api, everyEntrypoint), metrics));
 
                 assertThat(messagesOf(direct)).isEqualTo(405L);
-                assertThat(messagesOf(joined)).isEqualTo(374L);
+                assertThat(messagesOf(joined)).isEqualTo(405L);
             }
         }
 

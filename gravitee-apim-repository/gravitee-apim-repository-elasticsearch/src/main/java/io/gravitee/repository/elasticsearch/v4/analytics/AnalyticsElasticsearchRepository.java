@@ -18,8 +18,11 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
+import io.gravitee.repository.analytics.engine.api.query.TimeRange;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
 import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
@@ -36,6 +39,7 @@ import io.gravitee.repository.log.v4.model.analytics.*;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonObject;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -72,8 +76,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final FilterValuesQueryAdapter filterValuesQueryAdapter = new FilterValuesQueryAdapter();
     private final FilterValuesResponseAdapter filterValuesResponseAdapter = new FilterValuesResponseAdapter();
 
+    private final Duration messageConnectionLookback;
+
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
+        messageConnectionLookback = configuration.getMessageConnectionLookback();
     }
 
     @Override
@@ -524,6 +531,38 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             .blockingGet();
     }
 
+    /**
+     * The same query seen with its window extended backwards by {@link #messageConnectionLookback}.
+     *
+     * <p>A view rather than a copy: {@link Query} is an interface, and the alternative — rebuilding the
+     * concrete MeasuresQuery / FacetsQuery / TimeSeriesQuery — would need one branch per type and would
+     * drift the day a fourth appears. Only {@code timeRange()} differs; filters and metrics are the
+     * caller's, untouched.
+     */
+    private Query withConnectionLookback(Query query) {
+        if (messageConnectionLookback == null || messageConnectionLookback.isZero()) {
+            return query;
+        }
+        var window = query.timeRange();
+        var widened = new TimeRange(window.from().minus(messageConnectionLookback), window.to());
+        return new Query() {
+            @Override
+            public TimeRange timeRange() {
+                return widened;
+            }
+
+            @Override
+            public List<Filter> filters() {
+                return query.filters();
+            }
+
+            @Override
+            public List<MetricMeasuresQuery> metrics() {
+                return query.metrics();
+            }
+        };
+    }
+
     private Set<String> searchMessageConnectionRequestIDs(Query query, String httpIndex) {
         return searchMessageConnectionRequestIDs(query, httpIndex, null, new HashSet<>(), 0);
     }
@@ -545,7 +584,12 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             return accumulatedRequestIDs;
         }
 
-        var httpQuery = httpFacetsQueryAdapter.adaptRequestIDsQuery(query, afterKey);
+        // The connection phase alone looks further back than the caller asked for. See
+        // `RepositoryConfiguration#messageConnectionLookback`: a stream opened before the window and
+        // still running has its messages inside it, and the join would otherwise drop them along with
+        // the connection document it cannot see. The message phase below keeps the original window —
+        // only the resolution of *which* connections count is widened.
+        var httpQuery = httpFacetsQueryAdapter.adaptRequestIDsQuery(withConnectionLookback(query), afterKey);
 
         log.debug("Message - HTTP connexions requests query {}", httpQuery);
 
