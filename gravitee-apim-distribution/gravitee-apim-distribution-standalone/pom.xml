@@ -2315,7 +2315,7 @@
                     </exclusions>
                 </dependency>
                 <dependency>
-                    <groupId>com.graviteesource.gamma</groupId>
+                    <groupId>com.graviteesource.policy</groupId>
                     <artifactId>gravitee-policy-authz-pep</artifactId>
                     <version>${gravitee-policy-authz-pep.version}</version>
                     <type>zip</type>
