@@ -37,15 +37,22 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  // The actions carry the only way to save: they wrap onto a second line rather than overflow the panel.
+  flex-wrap: wrap;
+  gap: 8px;
 
   &__title {
     display: flex;
     flex-direction: row;
     gap: 12px;
     align-items: center;
+    // Narrows down to 120px before the actions wrap: the header gives the name field away, not its second line.
+    flex: 1 1 120px;
+    min-width: 0;
 
     &__field {
-      width: 280px;
+      width: 100%;
+      max-width: 280px;
     }
   }
 
@@ -53,6 +60,7 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
   }
 }
 
@@ -87,7 +95,7 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
     )
   );
 
-  // The mapped APIs sit under the editor: the panel scrolls rather than crushing the editor to make room for them.
+  // The editor keeps a minimum height: the panel scrolls rather than crushing it on a short viewport.
   overflow-y: auto;
 
   gmd-form-editor {
@@ -97,7 +105,15 @@ $outline-color: mat.m2-get-color-from-palette(gio.$mat-space-palette, lighter80)
   }
 
   &__header {
-    padding: 16px 16px 0 16px;
+    padding: 8px 16px 0 16px;
+
+    // The name field is a title bar rather than a form: kept at density -3 so it leaves the editor its height.
+    @include mat.form-field-overrides(
+      (
+        container-height: 44px,
+        container-vertical-padding: 10px,
+      )
+    );
   }
 }
 

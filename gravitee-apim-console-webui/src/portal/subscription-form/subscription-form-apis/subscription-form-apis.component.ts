@@ -19,7 +19,6 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { of, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap } from 'rxjs/operators';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -36,8 +35,8 @@ export interface MappedApi {
 }
 
 /**
- * The APIs a subscription form is shown for: the mapped ones as chips, and a searchable page of every API of the
- * environment to map or unmap. An API belongs to a single form, so one mapped elsewhere cannot be picked here.
+ * The APIs a subscription form is shown for: a searchable page of every API of the environment, each row mapping or
+ * unmapping its API. An API belongs to a single form, so one mapped elsewhere cannot be picked here.
  * The selection itself is owned by the parent, which receives every toggle.
  */
 @Component({
@@ -45,7 +44,6 @@ export interface MappedApi {
   imports: [
     ReactiveFormsModule,
     MatCheckboxModule,
-    MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,

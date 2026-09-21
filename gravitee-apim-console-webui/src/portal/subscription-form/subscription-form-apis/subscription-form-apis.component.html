@@ -16,27 +16,7 @@
 
 -->
 <section class="mapped-apis" data-testid="subscription-form-apis">
-  <header class="mapped-apis__header">
-    <h4 class="mapped-apis__title">Mapped APIs</h4>
-    <span class="mapped-apis__subtitle">This form will be shown to subscribers of the selected APIs</span>
-  </header>
-
-  @if (selectedApis().length > 0) {
-    <mat-chip-set aria-label="Mapped APIs">
-      @for (api of selectedApis(); track api.id) {
-        <mat-chip [attr.data-testid]="'api-chip-' + api.id" [removable]="canUpdate()" (removed)="apiToggled.emit(api)">
-          {{ api.name }}
-          @if (canUpdate()) {
-            <button matChipRemove [attr.aria-label]="'Unmap ' + api.name">
-              <mat-icon>cancel</mat-icon>
-            </button>
-          }
-        </mat-chip>
-      }
-    </mat-chip-set>
-  }
-
-  <!-- Not a gio-table-wrapper: its header bar (search + full paginator) overflows this panel and adds a second
+  <!-- Not a gio-table-wrapper: its header bar (search + full paginator) overflows the dialog and adds a second
        horizontal scrollbar, so the search sits above the table and a single paginator below it. -->
   <mat-form-field class="mapped-apis__search" appearance="outline" subscriptSizing="dynamic">
     <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>

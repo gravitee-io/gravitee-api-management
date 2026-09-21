@@ -675,27 +675,38 @@ describe('SubscriptionFormComponent', () => {
     const weather = { id: 'api-weather', name: 'Weather API' };
     const payments = { id: 'api-payments', name: 'Payments API' };
 
+    /** The mapping table lives in the Assign APIs dialog: its checkboxes are in the overlay, not in the page. */
     function checkbox(apiId: string): Promise<MatCheckboxHarness> {
-      return harnessLoader.getHarness(MatCheckboxHarness.with({ selector: `[data-testid=api-checkbox-${apiId}]` }));
+      return rootLoader.getHarness(MatCheckboxHarness.with({ selector: `[data-testid=api-checkbox-${apiId}]` }));
     }
 
-    function chip(apiId: string) {
-      return fixture.debugElement.query(By.css(`[data-testid=api-chip-${apiId}]`));
+    async function openAssignApis(apis = [weather, payments]): Promise<void> {
+      await (await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=assign-apis-button]' }))).click();
+      fixture.detectChanges();
+      // The dialog searches the APIs of the environment to fill its table.
+      expectApiSearches(apis);
     }
 
-    it('should show the APIs a form is mapped to under the editor, with their names', async () => {
+    async function clickInDialog(testId: string): Promise<void> {
+      await (await rootLoader.getHarness(MatButtonHarness.with({ selector: `[data-testid=${testId}]` }))).click();
+      fixture.detectChanges();
+    }
+
+    it('should check the APIs a form is mapped to when assigning them', async () => {
       await init(true);
       const form = fakeSubscriptionForm({ id: 'form-a', apiIds: ['api-weather'] });
       expectList([form]);
       expectGet(form);
       expectApiSearches([weather, payments]);
 
-      expect(fixture.debugElement.query(By.css('[data-testid=api-chip-api-weather]')).nativeElement.textContent).toContain('Weather API');
+      await openAssignApis();
+
       expect(await (await checkbox('api-weather')).isChecked()).toBe(true);
+      expect(await (await checkbox('api-payments')).isChecked()).toBe(false);
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
     });
 
-    it('should show a mapping change right away, and send it on save', async () => {
+    it('should apply a mapping change to the edited form, and send it on save', async () => {
       await init(true);
       const form = fakeSubscriptionForm({
         id: 'form-a',
@@ -706,12 +717,11 @@ describe('SubscriptionFormComponent', () => {
       expectList([form]);
       expectGet(form);
       expectApiSearches([weather, payments]);
-      expect(chip('api-payments')).toBeFalsy();
 
+      await openAssignApis();
       await (await checkbox('api-payments')).check();
-      fixture.detectChanges();
+      await clickInDialog('assign-apis-apply-button');
 
-      expect(chip('api-payments').nativeElement.textContent).toContain('Payments API');
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
 
       const saveButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }));
@@ -725,6 +735,38 @@ describe('SubscriptionFormComponent', () => {
       expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
     });
 
+    it('should leave the form untouched when the dialog is cancelled', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', apiIds: ['api-weather'] });
+      expectList([form]);
+      expectGet(form);
+      expectApiSearches([weather, payments]);
+
+      await openAssignApis();
+      await (await checkbox('api-payments')).check();
+      await clickInDialog('assign-apis-cancel-button');
+
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
+
+      await openAssignApis();
+      expect(await (await checkbox('api-payments')).isChecked()).toBe(false);
+    });
+
+    it('should not let the APIs be assigned before the selected form has loaded', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', apiIds: ['api-weather'] });
+      expectList([form]);
+
+      // The detail request is still in flight: the mapping to edit is not known yet.
+      const assignButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=assign-apis-button]' }));
+      expect(await assignButton.isDisabled()).toBe(true);
+
+      expectGet(form);
+      expectApiSearches([weather, payments]);
+
+      expect(await assignButton.isDisabled()).toBe(false);
+    });
+
     it('should not let an API be mapped when another form already has it', async () => {
       await init(true);
       const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', apiIds: [] });
@@ -732,6 +774,8 @@ describe('SubscriptionFormComponent', () => {
       expectList([form, partners]);
       expectGet(form);
       expectApiSearches([weather, payments]);
+
+      await openAssignApis();
 
       expect(await (await checkbox('api-payments')).isDisabled()).toBe(true);
       expect(await (await checkbox('api-weather')).isDisabled()).toBe(false);
