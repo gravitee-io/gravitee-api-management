@@ -139,6 +139,20 @@ describe('SubscriptionFormListComponent', () => {
     expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-global]'))).toBeFalsy();
   });
 
+  it('should reach the forms beyond the first page', async () => {
+    const forms = Array.from({ length: 12 }, (_, index) => fakeSubscriptionForm({ id: `form-${index}`, name: `Form ${index}` }));
+    await init(forms);
+
+    const table = await harnessLoader.getHarness(MatTableHarness);
+    expect(await table.getRows().then(rows => rows.length)).toBe(10);
+
+    const wrapper = await harnessLoader.getHarness(GioTableWrapperHarness);
+    await (await wrapper.getPaginator('footer')).goToNextPage();
+
+    expect(await table.getRows().then(rows => rows.length)).toBe(2);
+    expect(fixture.debugElement.query(By.css('[data-testid=subscription-form-row-form-11]'))).toBeTruthy();
+  });
+
   it('should offer to delete every form', async () => {
     await init([globalForm, partnerForm]);
     const deleted: SubscriptionForm[] = [];

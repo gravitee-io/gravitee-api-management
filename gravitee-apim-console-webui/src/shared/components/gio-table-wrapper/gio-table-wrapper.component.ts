@@ -29,7 +29,7 @@ import {
 import { UntypedFormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { isEqual } from 'lodash';
+import { compact, isEqual } from 'lodash';
 import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, scan, startWith, takeUntil } from 'rxjs/operators';
 
@@ -174,9 +174,8 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
             searchTerm: this.inputSearch.value,
             ...(this.sort ? { sort: { active: this.sort.active, direction: this.sort.direction } } : {}),
             pagination: {
-              // paginatorTop is used as master. keep it in sync before
-              index: (this.paginatorTop?.pageIndex ?? 0) + 1,
-              size: this.paginatorTop?.pageSize ?? 10,
+              index: (this.masterPaginator?.pageIndex ?? 0) + 1,
+              size: this.masterPaginator?.pageSize ?? 10,
             },
           };
           return filters;
@@ -218,12 +217,17 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  /** The paginator the emitted filters are read from: `disablePaginator` drops the top one, the bottom one then leads. */
+  private get masterPaginator(): MatPaginator | undefined {
+    return this.paginatorTop ?? this.paginatorBottom;
+  }
+
   private initPaginator(pagination: GioTableWrapperFilters['pagination']) {
-    if (this.paginatorTop && this.paginatorBottom && pagination) {
-      this.paginatorTop.pageIndex = pagination.index - 1;
-      this.paginatorTop.pageSize = pagination.size;
-      this.paginatorBottom.pageIndex = pagination.index - 1;
-      this.paginatorBottom.pageSize = pagination.size;
+    if (pagination) {
+      compact([this.paginatorTop, this.paginatorBottom]).forEach(paginator => {
+        paginator.pageIndex = pagination.index - 1;
+        paginator.pageSize = pagination.size;
+      });
     }
   }
 
