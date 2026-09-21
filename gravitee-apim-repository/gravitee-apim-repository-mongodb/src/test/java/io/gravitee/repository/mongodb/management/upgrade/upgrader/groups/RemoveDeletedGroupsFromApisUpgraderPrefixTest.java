@@ -16,6 +16,7 @@
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.groups;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assume.assumeTrue;
 
 import io.gravitee.repository.management.AbstractManagementRepositoryTest;
 import jakarta.inject.Inject;
@@ -110,8 +111,18 @@ public class RemoveDeletedGroupsFromApisUpgraderPrefixTest extends AbstractManag
         return api == null ? null : api.getList(ATTR_GROUPS, String.class);
     }
 
+    /**
+     * The upgrader refuses anything below MongoDB 5 and logs a skip without touching a single document, so the cases
+     * exercising upgrade() have nothing to assert there. The repository test matrix still runs on MongoDB 4.4.
+     */
+    private void assumeTheUpgraderRunsOnThisDatabase() {
+        var buildInfo = mongoTemplate.executeCommand(new Document("buildInfo", 1));
+        assumeTrue("the upgrader only supports MongoDB 5 and above", upgrader.checkDatabaseCompatibility(buildInfo));
+    }
+
     @Test
     public void upgrade_should_keep_groups_that_still_exist() throws Exception {
+        assumeTheUpgraderRunsOnThisDatabase();
         givenGroups(EXISTING_GROUP, ANOTHER_EXISTING_GROUP);
         givenApi("api-1", EXISTING_GROUP, ANOTHER_EXISTING_GROUP);
         givenApi("api-2", EXISTING_GROUP);
@@ -124,6 +135,7 @@ public class RemoveDeletedGroupsFromApisUpgraderPrefixTest extends AbstractManag
 
     @Test
     public void upgrade_should_remove_only_the_groups_that_no_longer_exist() throws Exception {
+        assumeTheUpgraderRunsOnThisDatabase();
         givenGroups(EXISTING_GROUP);
         givenApi("api-1", EXISTING_GROUP, DELETED_GROUP);
         givenApi("api-2", DELETED_GROUP);
@@ -136,6 +148,7 @@ public class RemoveDeletedGroupsFromApisUpgraderPrefixTest extends AbstractManag
 
     @Test
     public void upgrade_should_keep_assignments_when_not_a_single_group_would_survive() throws Exception {
+        assumeTheUpgraderRunsOnThisDatabase();
         givenApi("api-1", EXISTING_GROUP, ANOTHER_EXISTING_GROUP);
         givenApi("api-2", EXISTING_GROUP);
 
@@ -161,6 +174,7 @@ public class RemoveDeletedGroupsFromApisUpgraderPrefixTest extends AbstractManag
 
     @Test
     public void upgrade_should_remove_only_the_groups_that_no_longer_exist_when_no_prefix_is_configured() throws Exception {
+        assumeTheUpgraderRunsOnThisDatabase();
         var unprefixedUpgrader = new RemoveDeletedGroupsFromApisUpgrader();
         unprefixedUpgrader.setMongoTemplate(mongoTemplate);
         unprefixedUpgrader.setEnvironment(new MockEnvironment());
