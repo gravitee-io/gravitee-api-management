@@ -51,6 +51,18 @@
                 "connector-id": {
                     "type": "keyword"
                 },
+                "plan-id": {
+                    "type": "keyword"
+                },
+                "application-id": {
+                    "type": "keyword"
+                },
+                "entrypoint-id": {
+                    "type": "keyword"
+                },
+                "schema-version": {
+                    "type": "short"
+                },
                 "content-length": {
                     "type": "integer"
                 },
