@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.el;
 import io.gravitee.el.spel.context.DeferredFunctionHolder;
 import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.secrets.api.el.SecretFieldAccessControl;
+import io.gravitee.secrets.api.el.SecretFieldReferenceMethods;
 import io.reactivex.rxjava3.core.Single;
 
 /**
@@ -28,7 +29,7 @@ import io.reactivex.rxjava3.core.Single;
  * without it. EL only calls allow-listed methods, so {@link #get} must be listed in the expression language
  * whitelist for this expression to evaluate.
  */
-public final class EvaluatedCredentialsMethods implements DeferredFunctionHolder {
+public final class EvaluatedCredentialsMethods implements DeferredFunctionHolder, SecretFieldReferenceMethods {
 
     private final String environmentId;
     private final String apiId;
@@ -40,6 +41,7 @@ public final class EvaluatedCredentialsMethods implements DeferredFunctionHolder
         this.credentialResolver = credentialResolver;
     }
 
+    @Override
     public Single<String> get(String credentialId, String field, SecretFieldAccessControl accessControl) {
         return Single.fromCallable(() -> credentialResolver.resolve(environmentId, apiId, credentialId, field, accessControl));
     }

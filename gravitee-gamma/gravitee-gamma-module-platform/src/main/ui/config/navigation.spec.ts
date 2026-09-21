@@ -23,6 +23,7 @@ import {
     SettingsIcon,
     ShieldCheckIcon,
     ShieldIcon,
+    UserIcon,
     UsersIcon,
     UsersRoundIcon,
 } from '@gravitee/graphene-core/icons';
@@ -74,13 +75,14 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'templates')?.icon).toBe(FileTextIcon);
     });
 
-    it('places Applications, API Score, Integrations, Metadata, Dictionaries, Shared Policy Groups, then Broadcasts under Environment / APIs & Assets', () => {
+    it('places Applications, API Score, Integrations, Metadata, Dictionaries, User Fields, Shared Policy Groups, then Broadcasts under Environment / APIs & Assets', () => {
         expect(sectionKeys('Environment', 'APIs & Assets')).toEqual([
             'applications',
             'api-score',
             'integrations',
             'metadata',
             'dictionaries',
+            'user-fields',
             'shared-policy-groups',
             'broadcasts',
         ]);
@@ -90,6 +92,14 @@ describe('platform navigation config', () => {
         expect(assetItems.find(item => item.key === 'api-score')?.title).toBe('API Score');
         expect(assetItems.find(item => item.key === 'broadcasts')?.icon).toBe(MessageSquareIcon);
         expect(assetItems.find(item => item.key === 'broadcasts')?.title).toBe('Broadcasts');
+        expect(assetItems.find(item => item.key === 'user-fields')?.icon).toBe(UserIcon);
+        expect(assetItems.find(item => item.key === 'user-fields')?.title).toBe('User Fields');
+    });
+
+    it('declares the user-fields route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('user-fields');
+        expect(ROUTES['user-fields']).toEqual({ path: 'user-fields', label: 'User Fields' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'user-fields')).toBe('environment');
     });
 
     it('places Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {

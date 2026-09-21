@@ -43,8 +43,8 @@ class CredentialsTemplateVariableProviderTest {
 
     private static final String EXPRESSION = "{#credentials.get('credential-1', 'clientSecret', #secret_field_access_control_var)}";
     private static final SecretFieldAccessControl SECRET_FIELD = new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
-    private static final String ALLOW_LIST_ENTRY =
-        "method io.gravitee.gateway.reactive.handlers.api.el.EvaluatedCredentialsMethods get java.lang.String java.lang.String io.gravitee.secrets.api.el.SecretFieldAccessControl";
+    private static final String UNRELATED_ALLOW_LIST_ENTRY =
+        "method io.gravitee.secrets.api.el.EvaluatedSecretsMethods get java.lang.String";
 
     @Mock
     private CredentialResolver credentialResolver;
@@ -55,11 +55,11 @@ class CredentialsTemplateVariableProviderTest {
     }
 
     @Nested
-    class WithTheAllowListEntry {
+    class WithTheBuiltInAllowList {
 
         @BeforeEach
-        void allowCredentials() {
-            SecuredResolver.initialize(new MockEnvironment().withProperty("el.whitelist.list[0]", ALLOW_LIST_ENTRY));
+        void builtInAllowListOnly() {
+            SecuredResolver.initialize(null);
         }
 
         @Test
@@ -107,8 +107,14 @@ class CredentialsTemplateVariableProviderTest {
     class WithoutTheAllowListEntry {
 
         @BeforeEach
-        void builtInAllowListOnly() {
-            SecuredResolver.initialize(null);
+        void allowListWithoutTheAccessor() {
+            // 'replace' drops the built-in list, which allows the accessor from 4.6.0 on: without it there is
+            // no way to express an allow list that omits the method.
+            SecuredResolver.initialize(
+                new MockEnvironment()
+                    .withProperty("el.whitelist.mode", "replace")
+                    .withProperty("el.whitelist.list[0]", UNRELATED_ALLOW_LIST_ENTRY)
+            );
         }
 
         @Test
