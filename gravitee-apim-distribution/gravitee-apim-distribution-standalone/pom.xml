@@ -2464,7 +2464,7 @@
 
                 <!-- Services -->
                 <dependency>
-                    <groupId>com.graviteesource.gamma</groupId>
+                    <groupId>com.graviteesource.service</groupId>
                     <artifactId>gravitee-service-authz-pdp</artifactId>
                     <version>${gravitee-service-authz-pdp.version}</version>
                     <type>zip</type>
