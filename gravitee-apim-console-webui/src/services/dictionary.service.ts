@@ -47,11 +47,11 @@ class DictionaryService {
     if (!dictionary.propertyOptions) {
       return dictionary.propertyOptions;
     }
-    return Object.fromEntries(Object.entries(dictionary.propertyOptions).map(([key, options]) => [key, this.toWireOptions(options)]));
-  }
-
-  private toWireOptions(options) {
-    return options?.encryptable ? { encryptable: true } : options;
+    return Object.fromEntries(
+      Object.entries<{ encrypted?: boolean; encryptable?: boolean }>(dictionary.propertyOptions)
+        .filter(([, options]) => options?.encryptable)
+        .map(([key]) => [key, { encryptable: true }]),
+    );
   }
 
   delete(dictionary: any) {

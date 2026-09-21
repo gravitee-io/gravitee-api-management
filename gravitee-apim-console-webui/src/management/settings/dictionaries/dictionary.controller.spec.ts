@@ -265,6 +265,52 @@ describe('DictionaryController', () => {
       });
     });
 
+    describe('masking a pending secret', () => {
+      it('should mask a value that is only marked for encryption, as it already does for a stored one', () => {
+        controller['dictionary'] = { properties: { apiKey: 'just-typed-secret' }, propertyOptions: {} };
+
+        controller.encryptProperty('apiKey');
+
+        expect(controller['dictProperties']).toContainEqual({
+          key: 'apiKey',
+          value: '\u2022'.repeat(12),
+          encrypted: false,
+          encryptable: true,
+        });
+        expect(controller['dictionary'].properties.apiKey).toBe('just-typed-secret');
+      });
+    });
+
+    describe('editing a masked row', () => {
+      it('should treat a pending mark as masked, so the table cannot offer to edit it', () => {
+        controller['dictionary'] = { properties: { apiKey: 'real-secret' }, propertyOptions: {} };
+        controller.encryptProperty('apiKey');
+
+        const row = controller['dictProperties'].find(entry => entry.key === 'apiKey');
+
+        expect(controller.isMasked(row)).toBe(true);
+      });
+
+      it('should not mask a plain row', () => {
+        controller['dictionary'] = { properties: { url: 'https://backend' } };
+
+        const row = controller.computeProperties().find(entry => entry.key === 'url');
+
+        expect(controller.isMasked(row)).toBe(false);
+      });
+
+      it('should never hand the mask to the edit dialog', async () => {
+        controller['dictionary'] = { properties: { apiKey: 'real-secret' }, propertyOptions: {} };
+        controller.encryptProperty('apiKey');
+        const row = controller['dictProperties'].find(entry => entry.key === 'apiKey');
+        $mdDialog.show.mockResolvedValue({ value: row.value });
+
+        await controller.editProperty({ stopPropagation: jest.fn() }, 'apiKey', row.value);
+
+        expect(controller['dictionary'].properties.apiKey).toBe('real-secret');
+      });
+    });
+
     describe('encryptProperty', () => {
       it('should mark a plain property as encryptable without touching its value', () => {
         controller.encryptProperty('url');

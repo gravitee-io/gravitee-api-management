@@ -22,6 +22,7 @@
       <md-input-container>
         <label>Name</label>
         <input ng-model="property.name" id="key" required />
+        <div class="hint" ng-if="dialogDictionaryAddPropertyCtrl.isDuplicate(property.name)">Name already exists.</div>
       </md-input-container>
       <md-input-container>
         <label>Value</label>
@@ -35,7 +36,13 @@
 
     <md-dialog-actions layout="row">
       <md-button ng-click="dialogDictionaryAddPropertyCtrl.hide()"> Cancel </md-button>
-      <md-button type="submit" class="md-raised md-primary" ng-disabled="formDictionaryProperty.$invalid"> Add </md-button>
+      <md-button
+        type="submit"
+        class="md-raised md-primary"
+        ng-disabled="formDictionaryProperty.$invalid || dialogDictionaryAddPropertyCtrl.isDuplicate(property.name)"
+      >
+        Add
+      </md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>
