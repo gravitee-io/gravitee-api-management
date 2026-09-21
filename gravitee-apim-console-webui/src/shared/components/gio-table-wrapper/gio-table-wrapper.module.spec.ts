@@ -221,6 +221,99 @@ describe('GioTableWrapperComponent', () => {
     });
   });
 
+  describe('with the top paginator disabled', () => {
+    @Component({
+      template: `
+        <gio-table-wrapper [length]="length" [filters]="filters" [disablePaginator]="true" (filtersChange)="filtersChange($event)">
+          <table mat-table [dataSource]="dataSource">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </gio-table-wrapper>
+      `,
+      standalone: false,
+    })
+    class TestComponentWithoutTopPaginator {
+      length = 100;
+      dataSource = [{ name: '🦊' }, { name: '🐙' }, { name: '🐶' }];
+      displayedColumns = ['name'];
+      filters: GioTableWrapperFilters;
+      filtersChange = jest.fn();
+    }
+
+    let component: TestComponentWithoutTopPaginator;
+    let fixture: ComponentFixture<TestComponentWithoutTopPaginator>;
+    let loader: HarnessLoader;
+
+    beforeEach(() => {
+      TestBed.configureTestingModule({
+        declarations: [TestComponentWithoutTopPaginator],
+        imports: [NoopAnimationsModule, GioTableWrapperModule, MatTableModule, MatSortModule, MatIconTestingModule],
+      });
+      fixture = TestBed.createComponent(TestComponentWithoutTopPaginator);
+      component = fixture.componentInstance;
+      loader = TestbedHarnessEnvironment.loader(fixture);
+    });
+
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should apply the initial pagination on the footer paginator', async () => {
+      component.filters = {
+        pagination: { index: 2, size: 25 },
+        searchTerm: '',
+      };
+      fixture.detectChanges();
+      const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
+
+      expect(await (await tableWrapper.getPaginator('footer')).getRangeLabel()).toEqual('26 – 50 of 100');
+    });
+
+    it('should emit when the footer pagination changes', async () => {
+      component.filters = {
+        pagination: { index: 1, size: 25 },
+        searchTerm: '',
+      };
+      fixture.detectChanges();
+      const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
+
+      // initial filtersChange
+      expect(component.filtersChange).toHaveBeenCalledTimes(1);
+
+      await (await tableWrapper.getPaginator('footer')).goToNextPage();
+
+      expect(component.filtersChange).toHaveBeenCalledTimes(2);
+      expect(component.filtersChange).toHaveBeenNthCalledWith(2, {
+        pagination: { index: 2, size: 25 },
+        searchTerm: '',
+      });
+    });
+
+    it('should reset the footer pagination when the search term changes', async () => {
+      component.filters = {
+        pagination: { index: 4, size: 10 },
+        searchTerm: 'fox',
+      };
+      fixture.detectChanges();
+      const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
+
+      await tableWrapper.setSearchValue('Fox');
+
+      expect(component.filtersChange).toHaveBeenNthCalledWith(3, {
+        pagination: { index: 1, size: 10 },
+        searchTerm: 'Fox',
+      });
+      expect(await (await tableWrapper.getPaginator('footer')).getRangeLabel()).toEqual('1 – 10 of 100');
+    });
+  });
+
   describe('with sort usage', () => {
     @Component({
       template: `
