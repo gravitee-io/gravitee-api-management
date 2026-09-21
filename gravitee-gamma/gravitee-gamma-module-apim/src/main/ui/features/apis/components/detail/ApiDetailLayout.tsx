@@ -44,6 +44,7 @@ import {
     API_PROXY_NAV_GROUPS,
     ApiDetailSidebarNav,
     withApiScoreEnabled,
+    withFederatedRestrictions,
     withMetadataPermission,
     withObservabilityLinks,
     withResponseTemplatesPermission,
@@ -64,6 +65,7 @@ import type { ApiDetailDto } from '../../types';
 import { buildApiDashboardHref, buildApiLogsHref } from '../../utils/analyticsDeepLink';
 import { getApiProxyTypeLabel, hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
 import { apiReviewBannerCopy, canAskForReview, isAwaitingReviewerDecision, isReviewClearedForLifecycle } from '../../utils/apiReview';
+import { isFederatedAgentApi, isFederatedApi } from '../../utils/federatedApi';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
 /** Classic console caps the deployment label at 32 characters. */
@@ -267,6 +269,7 @@ export function ApiDetailLayout() {
     const env = useEnvironment();
     const basePath = useDetailBasePath('apis', apiId);
     const { data: api, isLoading, isError } = useApiDetail(apiId);
+    const isAgent = isFederatedAgentApi(api);
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const isApiReviewer = useHasPermission({ anyOf: ['api-reviews-u'] });
@@ -329,15 +332,18 @@ export function ApiDetailLayout() {
     }, [openReviewRequested, canOpenReviewFromLink, setSearchParams]);
     // The observability section hangs off the module root, one level above `/apis/:apiId`.
     const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
-    const navGroups = withMetadataPermission(
-        withTcpRestrictions(
-            withObservabilityLinks(
-                withResponseTemplatesPermission(withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled), showResponseTemplates),
-                apiId ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) } : {},
+    const navGroups = withFederatedRestrictions(
+        withMetadataPermission(
+            withTcpRestrictions(
+                withObservabilityLinks(
+                    withResponseTemplatesPermission(withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled), showResponseTemplates),
+                    apiId ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) } : {},
+                ),
+                hasTcpListeners(api),
             ),
-            hasTcpListeners(api),
+            canReadMetadata,
         ),
-        canReadMetadata,
+        isFederatedApi(api),
     );
 
     useLayoutConfig(
@@ -345,8 +351,10 @@ export function ApiDetailLayout() {
             viewMode: 'context',
             contextExpanded,
             contextSidebar: (
-                <ContextSidebar header={<ApiInfoHeader api={api ?? null} isLoading={isLoading} />}>
-                    <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />
+                <ContextSidebar header={<ApiInfoHeader api={isError || isAgent ? null : (api ?? null)} isLoading={isLoading} />}>
+                    {isError || isAgent ? null : (
+                        <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />
+                    )}
                 </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
@@ -376,6 +384,7 @@ export function ApiDetailLayout() {
             contextExpanded,
             api,
             isLoading,
+            isError,
             basePath,
             permissionsReady,
             showDeployBanner,
@@ -392,6 +401,14 @@ export function ApiDetailLayout() {
         return (
             <div className="flex items-center justify-center p-8">
                 <p className="text-sm text-muted-foreground">Failed to load API. It may have been deleted or you may not have access.</p>
+            </div>
+        );
+    }
+
+    if (isAgent) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <p className="text-sm text-muted-foreground">This API type is not available in API Proxies.</p>
             </div>
         );
     }
@@ -415,6 +432,14 @@ export function ApiDetailIndexRedirect() {
     const { apiId } = useParams<{ apiId: string }>();
     const { search } = useLocation();
     const basePath = useDetailBasePath('apis', apiId);
+    const { data: api, isPending } = useApiDetail(apiId);
+
+    // A `replace` redirect cannot be undone once it has fired, so redirecting before the API is known
+    // would strand a federated API on `overview` — a route its nav does not contain. `isPending`, not
+    // `isLoading`: the query is disabled until the environment resolves, and a disabled query reports
+    // `isLoading: false` with no data.
+    if (isPending) return null;
+
     // Keep the query string: Tasks & Approvals deep-links to the API root with `?review`.
-    return <Navigate to={{ pathname: `${basePath}/overview`, search }} replace />;
+    return <Navigate to={{ pathname: `${basePath}/${isFederatedApi(api) ? 'general' : 'overview'}`, search }} replace />;
 }

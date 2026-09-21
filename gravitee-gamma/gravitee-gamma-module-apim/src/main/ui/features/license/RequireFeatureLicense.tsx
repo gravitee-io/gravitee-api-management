@@ -17,7 +17,7 @@ import { useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { useModuleRouting } from '@gravitee/gamma-modules-sdk/routing';
 import { useState, type ReactNode } from 'react';
 
-import { APIM_FEATURE_UPGRADES, type ApimLicenseFeatureId } from './apimFeatures';
+import { APIM_FEATURE_UPGRADES, type ApimUpgradeFeatureId } from './apimFeatures';
 import { APIM_ROUTE_CONFIG, type RouteKey } from '../../config/routes';
 import { FeatureUpgradeDialog } from '../../shared/components/FeatureUpgradeDialog';
 
@@ -34,7 +34,7 @@ export function RequireFeatureLicense({
     fallbackRouteKey = 'quick-start',
     children,
 }: {
-    readonly feature: ApimLicenseFeatureId;
+    readonly feature: ApimUpgradeFeatureId;
     readonly fallbackRouteKey?: RouteKey;
     readonly children: ReactNode;
 }) {

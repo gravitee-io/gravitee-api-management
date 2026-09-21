@@ -77,6 +77,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
     const [stepIndex, setStepIndex] = useState(0);
     const [generalErrors, setGeneralErrors] = useState<Partial<Record<keyof GeneralFormData, string>>>({});
     const [securityErrors, setSecurityErrors] = useState<SecurityStepErrors>({});
+    const [submitError, setSubmitError] = useState<string | null>(null);
     const initialized = useRef(false);
 
     useEffect(() => {
@@ -88,7 +89,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
 
     const createMutation = useCreatePlan(ctx);
     const updateMutation = useUpdatePlan(ctx);
-    const mutationError = (createMutation.error ?? updateMutation.error)?.message ?? null;
+    const formError = submitError ?? (createMutation.error ?? updateMutation.error)?.message ?? null;
     const isPending = createMutation.isPending || updateMutation.isPending;
 
     const steps = buildWizardSteps(securityType, ctx.type, stepIndex);
@@ -129,7 +130,16 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
             }
         }
         if (isEdit && planId) {
-            updateMutation.mutate({ planId, form }, { onSuccess: () => navigate('..') });
+            const fetchedVersion = existingPlan?.definitionVersion;
+            // Only an API's plan carries a definitionVersion: the API Product plan response never serializes one
+            // (openapi-api-products.yaml), and its update endpoint ignores the field, so V4 is what it has always sent.
+            if (ctx.type === 'api' && !fetchedVersion) {
+                console.error('[PlanForm] Plan data unavailable or missing its definition version, update blocked:', planId);
+                setSubmitError('This plan could not be loaded completely, so it cannot be saved. Reload the page and try again.');
+                return;
+            }
+            setSubmitError(null);
+            updateMutation.mutate({ planId, form, definitionVersion: fetchedVersion ?? 'V4' }, { onSuccess: () => navigate('..') });
         } else {
             createMutation.mutate(form, { onSuccess: () => navigate('..') });
         }
@@ -209,10 +219,9 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
                     />
                 )}
 
-                {/* Mutation error */}
-                {mutationError && (
+                {formError && (
                     <Alert variant="destructive">
-                        <AlertDescription>{mutationError}</AlertDescription>
+                        <AlertDescription>{formError}</AlertDescription>
                     </Alert>
                 )}
 

@@ -16,6 +16,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
+import { useFederationEnabled } from '../../license/useFederationEnabled';
 import { searchApis } from '../services/apiList';
 import { apiListKeys } from '../utils/queryKeys';
 
@@ -32,25 +33,28 @@ export interface ApiStats {
 export function useApiStats(query?: string): ApiStats {
     const env = useEnvironment();
     const envId = env?.id ?? '';
+    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
+    // Waiting for the gate keeps the counts from disagreeing with the list they sit above.
+    const isEnabled = Boolean(env) && isFederationResolved;
 
     const totalQuery = useQuery({
-        queryKey: apiListKeys.count(envId, { query }),
-        queryFn: () => searchApis(envId, { query }, STATS_PAGE, STATS_PER_PAGE),
-        enabled: Boolean(env),
+        queryKey: apiListKeys.count(envId, { query }, includeFederated),
+        queryFn: () => searchApis(envId, { query }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        enabled: isEnabled,
         staleTime: 60_000,
     });
 
     const privateQuery = useQuery({
-        queryKey: apiListKeys.count(envId, { query, visibilities: ['PRIVATE'] }),
-        queryFn: () => searchApis(envId, { query, visibilities: ['PRIVATE'] }, STATS_PAGE, STATS_PER_PAGE),
-        enabled: Boolean(env),
+        queryKey: apiListKeys.count(envId, { query, visibilities: ['PRIVATE'] }, includeFederated),
+        queryFn: () => searchApis(envId, { query, visibilities: ['PRIVATE'] }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        enabled: isEnabled,
         staleTime: 60_000,
     });
 
     const publishedQuery = useQuery({
-        queryKey: apiListKeys.count(envId, { query, published: ['PUBLISHED'] }),
-        queryFn: () => searchApis(envId, { query, published: ['PUBLISHED'] }, STATS_PAGE, STATS_PER_PAGE),
-        enabled: Boolean(env),
+        queryKey: apiListKeys.count(envId, { query, published: ['PUBLISHED'] }, includeFederated),
+        queryFn: () => searchApis(envId, { query, published: ['PUBLISHED'] }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        enabled: isEnabled,
         staleTime: 60_000,
     });
 

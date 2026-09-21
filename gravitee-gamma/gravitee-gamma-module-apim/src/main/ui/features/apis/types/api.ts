@@ -143,6 +143,15 @@ export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
 /** Review status of the API when the environment has API Review enabled; absent on APIs created while it was off. */
 export type ApiWorkflowState = 'DRAFT' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | 'REVIEW_OK';
 
+export type ApiOrigin = 'MANAGEMENT' | 'KUBERNETES' | 'INTEGRATION';
+
+export interface ApiListOriginContext {
+    origin?: ApiOrigin;
+    integrationId?: string;
+    integrationName?: string;
+    provider?: string;
+}
+
 export type DuplicateFilteredField = 'GROUPS' | 'MEMBERS' | 'PAGES' | 'PLANS';
 
 export interface DuplicateApiOptions {
@@ -180,7 +189,7 @@ export interface ApiListItem {
     apiVersion: string;
     description?: string;
     type: ApiType;
-    definitionVersion: 'V4' | 'V2';
+    definitionVersion: 'V4' | 'V2' | 'FEDERATED';
     state?: ApiState;
     deploymentState?: ApiDeploymentState;
     lifecycleState?: ApiLifecycleState;
@@ -189,6 +198,7 @@ export interface ApiListItem {
     /** Sharding tags assigned to this API (controls gateway deployment). */
     tags?: string[];
     primaryOwner?: { id?: string; displayName?: string; email?: string };
+    originContext?: ApiListOriginContext;
     picture?: string | null;
     _links?: {
         pictureUrl?: string;
@@ -368,7 +378,7 @@ export interface ApiDetailDto {
     deploymentState?: ApiDeploymentState;
     type?: ApiType;
     apiVersion?: string;
-    definitionVersion?: 'V4' | 'V4_NATIVE';
+    definitionVersion?: 'V4' | 'V4_NATIVE' | 'FEDERATED' | 'FEDERATED_AGENT';
     lifecycleState?: ApiLifecycleState;
     workflowState?: ApiWorkflowState;
     visibility?: ApiVisibility;

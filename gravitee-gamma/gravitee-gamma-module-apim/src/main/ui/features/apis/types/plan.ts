@@ -56,7 +56,7 @@ export interface ManagedPlan {
     excludedGroups?: string[];
     tags?: string[];
     flows?: PolicyFlow[];
-    definitionVersion?: string;
+    definitionVersion?: 'V2' | 'V4' | 'FEDERATED';
     mode?: 'STANDARD' | 'PUSH';
 }
 

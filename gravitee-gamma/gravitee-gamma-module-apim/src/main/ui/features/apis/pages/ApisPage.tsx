@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { type DataTableProps } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, type DataTableProps } from '@gravitee/graphene-core';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -23,6 +23,7 @@ import { ApisPageSkeleton } from '../components/ApisPageSkeleton';
 import { ApisListView } from '../components/list';
 import { toApiListSortBy } from '../components/list/ApiListTable';
 import { useApiList } from '../hooks/useApiList';
+import { isForbiddenError } from '../utils/apiRequestError';
 
 type SortingState = NonNullable<DataTableProps<unknown>['sorting']>;
 
@@ -45,7 +46,17 @@ export function ApisPage() {
     }, [search]);
 
     const sortBy = toApiListSortBy(sorting);
-    const { data, isLoading, isPlaceholderData } = useApiList({ query: debouncedSearch, page, perPage, sortBy });
+    const { data, isLoading, isPlaceholderData, isError, error } = useApiList({ query: debouncedSearch, page, perPage, sortBy });
+
+    useEffect(() => {
+        if (isError && error) {
+            if (isForbiddenError(error)) {
+                console.warn('User lacks permission to list API proxies', error);
+            } else {
+                console.error('Failed to load API proxies', error);
+            }
+        }
+    }, [isError, error]);
 
     const apis = data?.data ?? [];
     const totalCount = data?.pagination?.totalCount ?? 0;
@@ -71,7 +82,15 @@ export function ApisPage() {
         return <ApisPageSkeleton />;
     }
 
-    const hasNoApis = !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
+    if (isError && !isForbiddenError(error)) {
+        return (
+            <Alert variant="destructive">
+                <AlertDescription>Failed to load API proxies. Please refresh and try again.</AlertDescription>
+            </Alert>
+        );
+    }
+
+    const hasNoApis = !isError && !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
     if (hasNoApis) {
         return <ApisEmptyLanding onCreateProxy={handleCreateProxy} canCreate={canCreate} />;
     }

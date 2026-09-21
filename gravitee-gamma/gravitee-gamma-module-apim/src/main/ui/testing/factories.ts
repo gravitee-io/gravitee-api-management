@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { License } from '@gravitee/gamma-modules-sdk/types';
 
 export const TEST_CONFIG = {
     gammaBaseURL: 'http://api.test/gamma',
@@ -23,3 +24,7 @@ export const TEST_CONFIG = {
 
 /** Base URL for APIM V2 environment-scoped endpoints. */
 export const TEST_V2_BASE = `${TEST_CONFIG.managementBaseURL}/v2/environments/${TEST_CONFIG.environmentId}`;
+
+// Federation is entitled by tier, so `features` stays empty on both: no license ever carries a federation id.
+export const ENTERPRISE_LICENSE: License = { tier: 'enterprise', isExpired: false, features: [], packs: [] };
+export const OSS_LICENSE: License = { tier: 'oss', isExpired: false, features: [], packs: [] };

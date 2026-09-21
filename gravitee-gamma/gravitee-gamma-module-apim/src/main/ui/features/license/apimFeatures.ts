@@ -40,8 +40,12 @@ export interface FeatureUpgradeContent {
     readonly features: readonly string[];
 }
 
-/** Upsell content for license-gated APIM features. */
-export const APIM_FEATURE_UPGRADES: Record<ApimLicenseFeatureId, FeatureUpgradeContent> = {
+/**
+ * Upsell content for the license-gated APIM features that block a route with a dialog.
+ * A feature that only widens behaviour in place has no entry, so this map is deliberately
+ * partial and its keys — not every `ApimLicenseFeature` — form `ApimUpgradeFeatureId`.
+ */
+export const APIM_FEATURE_UPGRADES = {
     [ApimLicenseFeature.API_PRODUCTS]: {
         featureId: ApimLicenseFeature.API_PRODUCTS,
         title: 'API Products',
@@ -53,4 +57,6 @@ export const APIM_FEATURE_UPGRADES: Record<ApimLicenseFeatureId, FeatureUpgradeC
             'Give developers unified access through the portal',
         ],
     },
-};
+} satisfies Partial<Record<ApimLicenseFeatureId, FeatureUpgradeContent>>;
+
+export type ApimUpgradeFeatureId = keyof typeof APIM_FEATURE_UPGRADES;

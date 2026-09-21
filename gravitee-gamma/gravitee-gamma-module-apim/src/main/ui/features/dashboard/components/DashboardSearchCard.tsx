@@ -25,6 +25,7 @@ import { apiProductKeys } from '../../api-products/utils/queryKeys';
 import { searchApis } from '../../apis/services/apiList';
 import type { ApiListItem } from '../../apis/types';
 import { apiListKeys } from '../../apis/utils/queryKeys';
+import { useFederationEnabled } from '../../license/useFederationEnabled';
 
 const MAX_RESULTS = 5;
 
@@ -65,6 +66,7 @@ interface DashboardSearchCardProps {
 export function DashboardSearchCard({ onNavigateToApi, onNavigateToProduct }: DashboardSearchCardProps) {
     const env = useEnvironment();
     const envId = env?.id ?? '';
+    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
     const enabled = Boolean(envId);
 
     const [input, setInput] = useState('');
@@ -73,9 +75,10 @@ export function DashboardSearchCard({ onNavigateToApi, onNavigateToProduct }: Da
     const hasQuery = query.length > 0;
 
     const apisQuery = useQuery({
-        queryKey: apiListKeys.search(envId, query, 1, MAX_RESULTS),
-        queryFn: () => searchApis(envId, { query }, 1, MAX_RESULTS),
-        enabled: enabled && hasQuery,
+        queryKey: apiListKeys.search(envId, query, 1, MAX_RESULTS, includeFederated),
+        queryFn: () => searchApis(envId, { query }, 1, MAX_RESULTS, undefined, includeFederated),
+        // Waiting for the gate keeps the card from listing federation-free results it would replace milliseconds later.
+        enabled: enabled && hasQuery && isFederationResolved,
     });
 
     const productsQuery = useQuery({
@@ -86,7 +89,9 @@ export function DashboardSearchCard({ onNavigateToApi, onNavigateToProduct }: Da
 
     const apis: ApiListItem[] = apisQuery.data?.data ?? [];
     const products: ApiProductListItem[] = productsQuery.data?.data ?? [];
-    const isSearching = hasQuery && (apisQuery.isFetching || productsQuery.isFetching);
+    // The API search is disabled until the gate resolves, so without that first term the card would
+    // announce "no results" as soon as the products search settled — before the APIs were even asked for.
+    const isSearching = hasQuery && (!isFederationResolved || apisQuery.isFetching || productsQuery.isFetching);
     const hasResults = apis.length > 0 || products.length > 0;
 
     return (

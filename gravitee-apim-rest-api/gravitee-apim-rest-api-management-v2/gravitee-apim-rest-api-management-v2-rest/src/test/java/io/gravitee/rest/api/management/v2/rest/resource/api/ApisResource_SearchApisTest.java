@@ -44,6 +44,8 @@ import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.federation.FederatedApiEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
@@ -97,6 +99,16 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
     public void should_not_search_if_no_params() {
         final Response response = rootTarget().request().post(null);
         assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400);
+    }
+
+    @Test
+    public void should_return_403_when_user_has_no_environment_api_read_permission() {
+        var apiSearchQuery = new ApiSearchQuery();
+        apiSearchQuery.setQuery("");
+
+        shouldReturn403(RolePermission.ENVIRONMENT_API, ENVIRONMENT, RolePermissionAction.READ, () ->
+            rootTarget().request().post(Entity.json(apiSearchQuery))
+        );
     }
 
     @Test

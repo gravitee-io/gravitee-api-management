@@ -36,6 +36,9 @@ interface PlansPageProps {
     canUpdate: boolean;
     canDelete: boolean;
     isTcpApi?: boolean;
+    isFederated?: boolean;
+    /** True while the API type is still unknown — withhold the creation control until it is known whether the API is federated. */
+    isApiTypeUnknown?: boolean;
 }
 
 function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; canUpdate: boolean }) {
@@ -99,8 +102,17 @@ function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; ca
     );
 }
 
-export function PlansPage({ ctx, canRead, canCreate, canUpdate, isTcpApi = false }: Readonly<PlansPageProps>) {
+export function PlansPage({
+    ctx,
+    canRead,
+    canCreate,
+    canUpdate,
+    isTcpApi = false,
+    isFederated = false,
+    isApiTypeUnknown = false,
+}: Readonly<PlansPageProps>) {
     const counts = usePlanStatusCounts(ctx);
+    const canOfferPlanCreation = canCreate && !isFederated && !isApiTypeUnknown;
 
     if (!canRead) {
         return (
@@ -118,7 +130,7 @@ export function PlansPage({ ctx, canRead, canCreate, canUpdate, isTcpApi = false
                     <h1 className="text-2xl font-semibold tracking-tight">Plans</h1>
                     <p className="text-sm text-muted-foreground">Manage subscription plans and their lifecycle.</p>
                 </div>
-                {canCreate && <CreatePlanDropdown ctx={ctx} restrictToKeyless={isTcpApi} />}
+                {canOfferPlanCreation && <CreatePlanDropdown ctx={ctx} restrictToKeyless={isTcpApi} />}
             </div>
 
             {/* Allow multi JWT/OAuth2 subscriptions — API only */}

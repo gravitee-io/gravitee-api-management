@@ -55,6 +55,7 @@ import type { ApiDetailDto } from '../../../types';
 import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntryMode } from '../../../utils/apiGeneralDuplicate';
 import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 import { canAskForReview, isReviewClearedForLifecycle } from '../../../utils/apiReview';
+import { isFederatedApi } from '../../../utils/federatedApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -102,7 +103,7 @@ export function ApiGeneralPage() {
 
     // ── Permissions (mirrors legacy api-general-info.component.ts) ────────────
     // api-definition-r : read form / see export / see allow-in-products toggle
-    // api-definition-u : edit form / save / start / stop / promote
+    // api-definition-u : edit form / save; start / stop / promote also require a non-federated API
     // api-definition-c : import / duplicate
     // api-definition-d : delete
     const canReadDefinition = useHasPermission({ anyOf: ['api-definition-r'] });
@@ -111,6 +112,7 @@ export function ApiGeneralPage() {
     const canDeleteDefinition = useHasPermission({ anyOf: ['api-definition-d'] });
 
     const isKubernetesManaged = api?.definitionContext?.origin === 'KUBERNETES';
+    const isFederated = isFederatedApi(api);
 
     // Form is read-only until permissions are resolved, if user lacks update rights,
     // or if the API is managed by the Kubernetes operator.
@@ -442,7 +444,7 @@ export function ApiGeneralPage() {
                                 />
                             </div>
 
-                            {canReadDefinition && (
+                            {canReadDefinition && !isFederated && (
                                 <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
                                     <div className="flex items-start gap-3">
                                         <BoxesIcon className="size-4 text-primary mt-0.5 shrink-0" />
@@ -568,55 +570,59 @@ export function ApiGeneralPage() {
                     </div>
 
                     {/* ─ Action strip ─ */}
-                    <Separator className="my-5" />
-                    <div className="flex flex-wrap items-center gap-2">
-                        {canReadDefinition && (
-                            <Button type="button" variant="outline" size="sm" onClick={() => setExportOpen(true)}>
-                                <DownloadIcon className="size-3.5" /> Export
-                            </Button>
-                        )}
-                        {canCreateDefinition && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setImportOpen(true)}
-                                disabled={isKubernetesManaged}
-                            >
-                                <FileUpIcon className="size-3.5" /> Import
-                            </Button>
-                        )}
-                        {canCreateDefinition && api?.type !== 'NATIVE' && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDuplicateOpen(true)}
-                                disabled={isKubernetesManaged}
-                            >
-                                <CopyIcon className="size-3.5" /> Duplicate
-                            </Button>
-                        )}
-                        {canEditDefinition && (
-                            <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                    promoteMutation.reset();
-                                    setPromoteOpen(true);
-                                }}
-                                disabled={isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
-                            >
-                                <ExternalLinkIcon className="size-3.5" /> Promote
-                            </Button>
-                        )}
-                    </div>
+                    {!isFederated && (
+                        <>
+                            <Separator className="my-5" />
+                            <div className="flex flex-wrap items-center gap-2">
+                                {canReadDefinition && (
+                                    <Button type="button" variant="outline" size="sm" onClick={() => setExportOpen(true)}>
+                                        <DownloadIcon className="size-3.5" /> Export
+                                    </Button>
+                                )}
+                                {canCreateDefinition && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setImportOpen(true)}
+                                        disabled={isKubernetesManaged}
+                                    >
+                                        <FileUpIcon className="size-3.5" /> Import
+                                    </Button>
+                                )}
+                                {canCreateDefinition && api?.type !== 'NATIVE' && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setDuplicateOpen(true)}
+                                        disabled={isKubernetesManaged}
+                                    >
+                                        <CopyIcon className="size-3.5" /> Duplicate
+                                    </Button>
+                                )}
+                                {canEditDefinition && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => {
+                                            promoteMutation.reset();
+                                            setPromoteOpen(true);
+                                        }}
+                                        disabled={isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
+                                    >
+                                        <ExternalLinkIcon className="size-3.5" /> Promote
+                                    </Button>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </CardContent>
             </Card>
 
             {/* ── API Events ──────────────────────────────────────────────── */}
-            {(canEditDefinition || canDeleteDefinition) && (
+            {((canEditDefinition && !isFederated) || canDeleteDefinition) && (
                 <Card>
                     <CardContent className="pt-5 pb-5">
                         <div className="space-y-4">
@@ -650,7 +656,7 @@ export function ApiGeneralPage() {
                                         </div>
                                     </button>
                                 )}
-                                {canEditDefinition && reviewClearsLifecycle && (
+                                {canEditDefinition && reviewClearsLifecycle && !isFederated && (
                                     <button
                                         type="button"
                                         className={cn(

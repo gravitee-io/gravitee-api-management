@@ -29,7 +29,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { ButtonHarnessFilters, MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -42,7 +42,16 @@ import { ApiGeneralInfoQualityHarness } from './api-general-info-quality/api-gen
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Category } from '../../../entities/category/Category';
-import { Api, DefinitionVersion, fakeApiV2, fakeApiV4, fakeProxyTcpApiV4, fakeApiFederated } from '../../../entities/management-api-v2';
+import {
+  Api,
+  DefinitionVersion,
+  fakeApiV2,
+  fakeApiV4,
+  fakeProxyApiV4,
+  fakeProxyTcpApiV4,
+  fakeApiFederated,
+  fakeApiFederatedAgent,
+} from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { Promotion, PromotionTarget } from '../../../entities/promotion';
@@ -1068,6 +1077,98 @@ describe('ApiGeneralInfoComponent', () => {
         }),
       );
     });
+
+    it('should not display api action buttons for a federated agent api', async () => {
+      const api = fakeApiFederatedAgent({
+        id: API_ID,
+        primaryOwner: { id: 'owner-1', displayName: 'Owner', email: 'owner@gravitee.io' },
+        _links: { pictureUrl: null, backgroundUrl: null },
+      } as any);
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      await waitImageCheck();
+      expectIntegrationGetRequest();
+
+      await Promise.all(
+        [/Import/, /Export/, /Duplicate/, /Promote/].map(async btnText => {
+          const button = await loader.getHarnessOrNull(MatButtonHarness.with({ text: btnText }));
+          expect(button).toBeNull();
+        }),
+      );
+    });
+
+    it('should not display Allow in API Products toggle', async () => {
+      const api = fakeApiFederated({
+        id: API_ID,
+        primaryOwner: { id: 'owner-1', displayName: 'Owner', email: 'owner@gravitee.io' },
+        _links: { pictureUrl: null, backgroundUrl: null },
+      } as any);
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+      await waitImageCheck();
+      expectIntegrationGetRequest();
+
+      const allowInProductToggle = await loader.getHarnessOrNull(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowedInApiProducts"]' }),
+      );
+      expect(allowInProductToggle).toBeNull();
+    });
+  });
+
+  describe('API V4 action strip permission gating', () => {
+    const actionButtons: { button: string; permission: string; harnessFilter: ButtonHarnessFilters }[] = [
+      { button: 'Export', permission: 'api-definition-r', harnessFilter: { selector: '[data-testid="api_info_export_menu"]' } },
+      { button: 'Import', permission: 'api-definition-c', harnessFilter: { text: /Import/ } },
+      { button: 'Duplicate', permission: 'api-definition-c', harnessFilter: { selector: '[data-testid="api_info_duplicate_menu"]' } },
+      { button: 'Promote', permission: 'api-definition-u', harnessFilter: { selector: '[data-testid="api_info_promote"]' } },
+    ];
+
+    it.each(actionButtons)('should display the $button action button with $permission', async ({ permission, harnessFilter }) => {
+      await renderProxyApiV4With([permission]);
+
+      expect(await loader.getHarnessOrNull(MatButtonHarness.with(harnessFilter))).not.toBeNull();
+    });
+
+    it('should not display any action button without api-definition permissions', async () => {
+      await renderProxyApiV4With([]);
+
+      await Promise.all(
+        actionButtons.map(async ({ harnessFilter }) => {
+          expect(await loader.getHarnessOrNull(MatButtonHarness.with(harnessFilter))).toBeNull();
+        }),
+      );
+    });
+
+    it('should display Allow in API Products toggle with api-definition-r', async () => {
+      await renderProxyApiV4With(['api-definition-r']);
+
+      const allowInProductToggle = await loader.getHarnessOrNull(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowedInApiProducts"]' }),
+      );
+      expect(allowInProductToggle).not.toBeNull();
+    });
+
+    it('should not display Allow in API Products toggle without api-definition-r', async () => {
+      await renderProxyApiV4With(['api-definition-c']);
+
+      const allowInProductToggle = await loader.getHarnessOrNull(
+        MatSlideToggleHarness.with({ selector: '[formControlName="allowedInApiProducts"]' }),
+      );
+      expect(allowInProductToggle).toBeNull();
+    });
+
+    async function renderProxyApiV4With(permissions: string[]) {
+      initComponent('standalone', permissions);
+      expectApiGetRequest(fakeProxyApiV4({ id: API_ID }));
+      expectCategoriesGetRequest();
+      await waitImageCheck();
+      fixture.detectChanges();
+
+      const apiProductsUsageIsLoaded = permissions.includes('api-definition-r');
+      if (apiProductsUsageIsLoaded) {
+        expectApiProductsRequest();
+      }
+    }
   });
 
   function expectApiProductsRequest(apiId: string = API_ID, data: { data: unknown[] } = { data: [] }) {

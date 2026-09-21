@@ -177,6 +177,35 @@ function dropEmptyGroups(groups: DetailNavGroup[]): DetailNavGroup[] {
     return groups.filter(group => group.items.length > 0);
 }
 
+/**
+ * A federated API is owned by the third-party provider it was discovered from: it has no gateway definition, no policy
+ * flow, no deployment, no APIM-managed authorization and no APIM-mapped error responses of its own. An allow-list
+ * (rather than an omit-list) so a new nav item added later is hidden by default until someone confirms it applies.
+ */
+const FEDERATED_ALLOWED_PATHS = new Set([
+    'general',
+    'user-permissions',
+    'metadata',
+    'plans',
+    'consumers',
+    'broadcasts',
+    'notifications',
+    'audit-logs',
+    'api-score',
+    'observe-dashboard',
+    'observe-logs',
+]);
+
+export function withFederatedRestrictions(groups: DetailNavGroup[], isFederated: boolean): DetailNavGroup[] {
+    if (!isFederated) return groups;
+    return groups
+        .map(group => ({
+            ...group,
+            items: group.items.filter(item => FEDERATED_ALLOWED_PATHS.has(item.path)),
+        }))
+        .filter(group => group.items.length > 0);
+}
+
 export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata: boolean): DetailNavGroup[] {
     if (canReadMetadata) return groups;
     return groups.map(group => ({
