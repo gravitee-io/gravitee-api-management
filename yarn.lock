@@ -4835,9 +4835,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-charts@npm:3.19.1":
-  version: 3.19.1
-  resolution: "@gravitee/graphene-charts@npm:3.19.1"
+"@gravitee/graphene-charts@npm:3.21.0":
+  version: 3.21.0
+  resolution: "@gravitee/graphene-charts@npm:3.21.0"
   dependencies:
     "@dagrejs/dagre": "npm:3.0.0"
     d3-array: "npm:3.2.4"
@@ -4857,13 +4857,13 @@ __metadata:
       optional: true
     tailwindcss:
       optional: true
-  checksum: 10c0/30f075c7f20c9cea140864d40abacdf6afb0c91324598589f5008c5d3e0b15cffc4fe9a67d8152ce2ed1fed236e3e695ae60cf35a70fccac6b159bb1a6063056
+  checksum: 10c0/f4546a2773719c68436c579fe5d5b53203b1eba88cff675f4800cdb379568238eade32d46f17a8900a02598993f160e34cbb1cd63a4807c836ee843213c620a1
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:3.19.1":
-  version: 3.19.1
-  resolution: "@gravitee/graphene-core@npm:3.19.1"
+"@gravitee/graphene-core@npm:3.21.0":
+  version: 3.21.0
+  resolution: "@gravitee/graphene-core@npm:3.21.0"
   dependencies:
     "@base-ui/react": "npm:1.4.1"
     "@tailwindcss/cli": "npm:4.3.0"
@@ -4934,13 +4934,13 @@ __metadata:
   bin:
     graphene-check-classes: scripts/check-classes.mjs
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/7e99eba3e596f133f28a5f5d995bb8497e2a8be223cec7fee60fb88da7b5bca1bdbba290a29a62318cf4408df4b29bcedcc8c5d5d5ed6141b6d1b97d7472ebc3
+  checksum: 10c0/c77adab9ec02e9c7faba15ef9d726faab13c95f8430ae9e2c97f2ba94fb9519dd193c8813bea140d41b38c1cbde1460f4cfdb994c87d70960406a0ba4efb3818
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-policy-studio@npm:3.19.1":
-  version: 3.19.1
-  resolution: "@gravitee/graphene-policy-studio@npm:3.19.1"
+"@gravitee/graphene-policy-studio@npm:3.21.0":
+  version: 3.21.0
+  resolution: "@gravitee/graphene-policy-studio@npm:3.21.0"
   dependencies:
     "@asciidoctor/core": "npm:3.0.4"
     "@dnd-kit/core": "npm:6.3.1"
@@ -4963,7 +4963,7 @@ __metadata:
   peerDependenciesMeta:
     tailwindcss:
       optional: true
-  checksum: 10c0/052c825b9e123e6691a7c1e9a6acab4fe1aa5a925ad6764aa68c0ba51c3963506b12b022ea8a0a1dc44b8e932820f4e1b0b166f00249890d0b1ff19db63909c6
+  checksum: 10c0/0810fe6bc88a751ef778053660236833c02159268ffe8b4fba0852fb015331080bd4af31ebc836fcdee58fc58e2bbc50d69d7ad8d6a8e268379a3de3fea878ae
   languageName: node
   linkType: hard
 
@@ -21284,9 +21284,9 @@ __metadata:
     "@fontsource/roboto": "npm:5.3.0"
     "@gravitee/gamma-lib-observability": "npm:3.5.1"
     "@gravitee/gamma-modules-sdk": "npm:1.2.1"
-    "@gravitee/graphene-charts": "npm:3.19.1"
-    "@gravitee/graphene-core": "npm:3.19.1"
-    "@gravitee/graphene-policy-studio": "npm:3.19.1"
+    "@gravitee/graphene-charts": "npm:3.21.0"
+    "@gravitee/graphene-core": "npm:3.21.0"
+    "@gravitee/graphene-policy-studio": "npm:3.21.0"
     "@gravitee/ui-analytics": "npm:18.0.0"
     "@gravitee/ui-components": "npm:5.0.0"
     "@gravitee/ui-particles-angular": "npm:18.0.0"
