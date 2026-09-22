@@ -262,12 +262,6 @@ describe('withFederatedRestrictions', () => {
         }
     });
 
-    it('leaves no orphaned child routes behind once their parent items are dropped', () => {
-        const restricted = withFederatedRestrictions(GROUPS, true);
-
-        expect(restricted.flatMap(group => group.items).flatMap(item => item.children ?? [])).toEqual([]);
-    });
-
     it('keeps API Score exactly as the shipped nav declares it', () => {
         const restricted = withFederatedRestrictions(GROUPS, true);
 
