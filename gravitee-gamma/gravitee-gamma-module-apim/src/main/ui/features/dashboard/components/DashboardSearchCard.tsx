@@ -17,13 +17,14 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { Card, CardContent, Input } from '@gravitee/graphene-core';
 import { ArchiveIcon, RadioIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useQuery } from '@tanstack/react-query';
-import { useDeferredValue, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 
 import { searchApiProducts } from '../../api-products/services/apiProduct';
 import type { ApiProductListItem } from '../../api-products/types/apiProduct';
 import { apiProductKeys } from '../../api-products/utils/queryKeys';
 import { searchApis } from '../../apis/services/apiList';
 import type { ApiListItem } from '../../apis/types';
+import { isForbiddenError } from '../../apis/utils/apiRequestError';
 import { apiListKeys } from '../../apis/utils/queryKeys';
 import { useFederationEnabled } from '../../license/useFederationEnabled';
 
@@ -86,6 +87,15 @@ export function DashboardSearchCard({ onNavigateToApi, onNavigateToProduct }: Da
         queryFn: () => searchApiProducts(envId, { query }, 1, MAX_RESULTS),
         enabled: enabled && hasQuery,
     });
+
+    useEffect(() => {
+        if (!apisQuery.isError) return;
+        if (isForbiddenError(apisQuery.error)) {
+            console.warn('[DashboardSearch] User lacks permission to search APIs in environment', envId, apisQuery.error);
+        } else {
+            console.error('[DashboardSearch] Failed to search APIs in environment', envId, apisQuery.error);
+        }
+    }, [apisQuery.isError, apisQuery.error, envId]);
 
     const apis: ApiListItem[] = apisQuery.data?.data ?? [];
     const products: ApiProductListItem[] = productsQuery.data?.data ?? [];
