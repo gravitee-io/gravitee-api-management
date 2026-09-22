@@ -1158,8 +1158,8 @@ describe('ApiGeneralPage', () => {
 
         // The fifth supported field's enablement is only observable here: `ChipInput` owns its draft state,
         // so a typed value lands in the input whether or not the page accepts it — only a committed chip,
-        // which comes back through `form.labels`, proves the page's own read-only guard at
-        // ApiGeneralPage.tsx:361 let the edit through for a federated API.
+        // which comes back through `form.labels`, proves the page's own read-only `onChange` guard on the
+        // Labels `ChipInput` in ApiGeneralPage.tsx let the edit through for a federated API.
         it.each(permissionGrants)('commits a typed label as a chip under %s', (_grant, grantPermissions) => {
             grantPermissions();
             renderPage('federated-api-1');
@@ -1239,8 +1239,8 @@ describe('ApiGeneralPage', () => {
 
         // The counterpart of the enabled cases above: `api-definition-u` is what unlocks the federated form,
         // not federation itself. `ChipInput` takes no `disabled` prop — its read-only guard sits in the page's
-        // own onChange at ApiGeneralPage.tsx:361 — so only a committed chip, never the typed draft, tells the
-        // two states apart.
+        // own `onChange` on the Labels `ChipInput` in ApiGeneralPage.tsx — so only a committed chip, never the
+        // typed draft, tells the two states apart.
         it('keeps all five supported fields read-only for a federated API when api-definition-u is withheld', () => {
             mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-u'));
             mockUseEnvCategories.mockReturnValue({ data: ENV_CATEGORIES, isLoading: false });
