@@ -242,6 +242,34 @@ describe('ApisPage', () => {
         expect(screen.queryByText('Why add an API proxy?')).toBeNull();
     });
 
+    function expectBlankEmptyStateCell() {
+        const [, emptyRow] = screen.getAllByRole('row');
+        expect(within(emptyRow).getByRole('cell').textContent).toBe('');
+        expect(screen.queryByText('No APIs found')).toBeNull();
+    }
+
+    it.each<[string, unknown]>([
+        ['a server error', new ApimApiError(500, 'Boom')],
+        ['a transport failure carrying no status', new Error('Network request failed')],
+    ])('leaves the table empty state blank instead of the no-match message when the search fails with %s', (_case, error) => {
+        mockUseApiList.mockReturnValue(failedSearch(error));
+        renderPage();
+
+        expectBlankEmptyStateCell();
+        expect(screen.getByRole('alert')).not.toBeNull();
+    });
+
+    it('leaves the table empty state blank instead of the no-match message when a search term fails to load', async () => {
+        mockUseApiList.mockReturnValue(failedSearch(new ApimApiError(500, 'Boom')));
+        renderPage();
+
+        fireEvent.change(screen.getByPlaceholderText('Search APIs...'), { target: { value: 'payments' } });
+        await waitFor(() => expect(lastRequest().query).toBe('payments'));
+
+        expectBlankEmptyStateCell();
+        expect(screen.getByRole('alert')).not.toBeNull();
+    });
+
     it('sends the edited search term when the user types after the search failed', async () => {
         mockUseApiList.mockReturnValue(failedSearch(new ApimApiError(500, 'Boom')));
         renderPage();

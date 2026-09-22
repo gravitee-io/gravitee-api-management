@@ -247,6 +247,7 @@ interface ApiListTableProps {
     readonly onPageChange?: (page: number) => void;
     readonly onPageSizeChange?: (pageSize: number) => void;
     readonly toolbar?: React.ReactNode;
+    readonly loadFailed?: boolean;
 }
 
 export function ApiListTable({
@@ -261,6 +262,7 @@ export function ApiListTable({
     onPageChange,
     onPageSizeChange,
     toolbar,
+    loadFailed = false,
 }: ApiListTableProps) {
     const navigate = useNavigate();
     const columns = buildColumns(navigate);
@@ -290,12 +292,14 @@ export function ApiListTable({
                     : undefined
             }
             emptyMessage={
-                <DataTableEmptyState
-                    variant="no-results"
-                    icon={<SearchIcon />}
-                    title="No APIs found"
-                    description="Try adjusting your search."
-                />
+                loadFailed ? null : (
+                    <DataTableEmptyState
+                        variant="no-results"
+                        icon={<SearchIcon />}
+                        title="No APIs found"
+                        description="Try adjusting your search."
+                    />
+                )
             }
         />
     );

@@ -82,6 +82,14 @@ describe('ApiListTable', () => {
         expect(screen.queryByText(/no apis found/i)).not.toBeNull();
     });
 
+    it('renders a blank empty-state cell instead of the no-match message when the list failed to load', () => {
+        renderTable({ apis: [], isLoading: false, loadFailed: true });
+
+        const [, emptyRow] = screen.getAllByRole('row');
+        expect(within(emptyRow).getByRole('cell').textContent).toBe('');
+        expect(screen.queryByText('No APIs found')).toBeNull();
+    });
+
     it('renders a row for each API with the name', () => {
         const api = makeApi({ name: 'My Service' });
         renderTable({ apis: [api] });

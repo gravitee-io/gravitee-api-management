@@ -110,6 +110,7 @@ export function ApisPage() {
                 onPerPageChange={handlePerPageChange}
                 onCreateProxy={handleCreateProxy}
                 canCreate={canCreate}
+                loadFailed={hasLoadFailure}
             />
         </div>
     );

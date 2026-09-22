@@ -28,7 +28,7 @@ jest.mock('../../hooks/useApiStats');
 
 const mockUseApiStats = useApiStats as jest.Mock;
 
-const STUB_STATS = { total: 5, private: 2, published: 3, isLoading: false };
+const STUB_STATS = { total: 5, private: 2, published: 3, isLoading: false, failed: { total: false, private: false, published: false } };
 
 const DEFAULT_PROPS = {
     apis: [],

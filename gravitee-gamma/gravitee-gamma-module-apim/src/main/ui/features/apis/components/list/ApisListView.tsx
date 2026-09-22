@@ -36,6 +36,7 @@ interface ApisListViewProps {
     readonly onPerPageChange: (perPage: number) => void;
     readonly onCreateProxy: () => void;
     readonly canCreate: boolean;
+    readonly loadFailed?: boolean;
 }
 
 export function ApisListView({
@@ -53,6 +54,7 @@ export function ApisListView({
     onPerPageChange,
     onCreateProxy,
     canCreate,
+    loadFailed = false,
 }: ApisListViewProps) {
     const searchInputId = useId();
 
@@ -103,6 +105,7 @@ export function ApisListView({
                 onPageChange={onPageChange}
                 onPageSizeChange={onPerPageChange}
                 toolbar={toolbar}
+                loadFailed={loadFailed}
             />
         </div>
     );
