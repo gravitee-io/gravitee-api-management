@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractNonAdminResourceTest;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -37,7 +36,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminResourceTest {
+public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiResourceTest {
 
     private static final String API_NAME = "my-federated-api";
     private static final String API_GROUP = "api-group";

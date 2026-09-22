@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource;
+package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.management.v2.rest.UserDetails;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.SecurityContext;
@@ -29,11 +30,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Jersey harness for resource tests that must run as a plain user: the default {@code AuthenticationFilter} answers
+ * Jersey harness for API resource tests that must run as a plain user: the default {@code AuthenticationFilter} answers
  * {@code true} to every {@code isUserInRole} check, which makes the caller an org admin and short-circuits the
- * permission and membership gates such a test exists to exercise.
+ * membership gates driven by {@code AbstractResource.isAdmin()} ({@code canManageApi}, {@code canReadApi},
+ * {@code canReadAPIConfiguration}) that such a test exists to exercise. {@code @Permissions} gates are unaffected by
+ * the role: {@code PermissionsFilter} relies solely on {@code permissionService.hasPermission(...)}, which
+ * {@code AbstractResourceTest.setUp} stubs to {@code true} for every resource test.
  */
-public abstract class AbstractNonAdminResourceTest extends ApiResourceTest {
+public abstract class AbstractNonAdminApiResourceTest extends ApiResourceTest {
 
     @Override
     protected void decorate(ResourceConfig resourceConfig) {
@@ -45,6 +49,7 @@ public abstract class AbstractNonAdminResourceTest extends ApiResourceTest {
                 @Override
                 protected void configure() {
                     bind(mockResponse).to(HttpServletResponse.class);
+                    bind(new GraviteeMapper()).to(ObjectMapper.class);
                 }
             }
         );

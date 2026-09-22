@@ -31,7 +31,7 @@ import io.gravitee.repository.analytics.engine.api.result.MeasuresResult;
 import io.gravitee.repository.analytics.engine.api.result.MetricMeasuresResult;
 import io.gravitee.repository.common.query.QueryContext;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractNonAdminResourceTest;
+import io.gravitee.rest.api.management.v2.rest.resource.api.AbstractNonAdminApiResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -50,7 +50,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author GraviteeSource Team
  */
-class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminResourceTest {
+class AnalyticsComputationResourcePermissionsTest extends AbstractNonAdminApiResourceTest {
 
     @Autowired
     AnalyticsRepository analyticsRepository;
