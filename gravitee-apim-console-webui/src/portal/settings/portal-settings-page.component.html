@@ -1,0 +1,124 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<portal-header title="Settings" subtitle="Configure shared settings for your Developer Portals." />
+
+@if (settingsResource.isLoading() && !settingsForm()) {
+  <div class="loading" data-testid="settings-loading"><gio-loader /></div>
+} @else if (settingsResource.error() && !settingsForm()) {
+  <gio-banner-error data-testid="settings-load-error">
+    Portal settings could not be loaded.
+    <span gioBannerBody>Retry the request or contact your administrator if the problem persists.</span>
+    <div gioBannerAction>
+      <button mat-stroked-button type="button" data-testid="settings-retry" (click)="retry()">Retry</button>
+    </div>
+  </gio-banner-error>
+} @else if (settingsForm(); as form) {
+  <form class="settings-form" [formGroup]="form" (ngSubmit)="save()">
+    <div formGroupName="portal">
+      <mat-card appearance="outlined" class="settings-card">
+        <mat-card-header>
+          <mat-card-title>General</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="settings-card__content">
+          <mat-form-field
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isSystemReadonly('portal.apikey.header')"
+          >
+            <mat-label>API key Header</mat-label>
+            <input formControlName="apikeyHeader" matInput type="text" />
+            <mat-hint>Header used by the portals when displaying API key examples.</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isSystemReadonly('portal.kafka.saslMechanisms')"
+          >
+            <mat-label>Permitted Kafka SASL Mechanisms</mat-label>
+            <mat-select formControlName="kafkaSaslMechanisms" multiple data-testid="kafka-sasl-mechanisms">
+              @for (mechanism of availableKafkaMechanisms; track mechanism) {
+                <mat-option [value]="mechanism">{{ mechanism }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field [matTooltip]="'Configuration provided by the system'" [matTooltipDisabled]="!isSystemReadonly('portal.url')">
+            <mat-label>Portal URL</mat-label>
+            <input formControlName="url" matInput type="text" />
+          </mat-form-field>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card appearance="outlined" class="settings-card" formGroupName="userCreation">
+        <mat-card-header>
+          <mat-card-title>Registration</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="settings-card__content settings-card__content--toggles">
+          <gio-form-slide-toggle
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isSystemReadonly('portal.userCreation.enabled')"
+          >
+            <gio-form-label>Allow User Registration</gio-form-label>
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="Allow User Registration"
+              data-testid="user-registration-toggle"
+            />
+          </gio-form-slide-toggle>
+
+          <div class="nested-setting" formGroupName="automaticValidation">
+            <gio-form-slide-toggle
+              [matTooltip]="'Configuration provided by the system'"
+              [matTooltipDisabled]="!isSystemReadonly('portal.userCreation.automaticValidation.enabled')"
+            >
+              <gio-form-label>Enable automatic validation of registration requests</gio-form-label>
+              <mat-slide-toggle
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="Enable automatic validation of registration requests"
+                data-testid="automatic-validation-toggle"
+              />
+            </gio-form-slide-toggle>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card appearance="outlined" class="settings-card" formGroupName="openAPIDocViewer">
+      <mat-card-header>
+        <mat-card-title>API documentation</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="settings-card__content" formGroupName="openAPIDocType">
+        <div
+          class="viewer-setting"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isSystemReadonly('open.api.doc.type.default')"
+        >
+          <div id="default-openapi-viewer-label" class="viewer-setting__label">Default OpenAPI Viewer</div>
+          <div class="viewer-setting__hint">Used when an OpenAPI page does not define its own viewer.</div>
+          <mat-radio-group class="viewer-setting__options" formControlName="defaultType" aria-labelledby="default-openapi-viewer-label">
+            <mat-radio-button value="Swagger" [disabled]="!isSwaggerEnabled()" data-testid="swagger-viewer"> Swagger UI </mat-radio-button>
+            <mat-radio-button value="Redoc" [disabled]="!isRedocEnabled()" data-testid="redoc-viewer">Redoc</mat-radio-button>
+          </mat-radio-group>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <gio-save-bar [form]="form" [formInitialValues]="formInitialValues()" (resetClicked)="reset()" />
+  </form>
+}

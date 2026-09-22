@@ -252,7 +252,7 @@ export interface PortalSettingsOpenAPIDocViewer {
     swagger: {
       enabled: boolean;
     };
-    defaultType: any;
+    defaultType: 'Swagger' | 'Redoc';
     redoc: {
       enabled: boolean;
     };

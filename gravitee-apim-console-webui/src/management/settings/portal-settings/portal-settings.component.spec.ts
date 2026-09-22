@@ -463,6 +463,7 @@ describe('PortalSettingsComponent', () => {
 
       expect(await openWebsiteButton.isDisabled()).toEqual(false);
       expect(await openSettingsButton.isDisabled()).toEqual(false);
+      expect(await (await openSettingsButton.host()).getAttribute('href')).toEqual('/DEFAULT/_portal/settings');
     });
 
     it('display settings form and edit CORS fields', async () => {

@@ -16,7 +16,7 @@
 import { ComponentHarness, TestElement } from '@angular/cdk/testing';
 
 export class NewPortalBadgeHarness extends ComponentHarness {
-  static hostSelector = 'both-portals-badge';
+  static hostSelector = 'new-portal-badge';
 
   private badgeWarningLocator = this.locatorFor('[data-testid="badge-accept"]');
   private badgeIconLocator = this.locatorFor('[data-testid="badge-icon"]');

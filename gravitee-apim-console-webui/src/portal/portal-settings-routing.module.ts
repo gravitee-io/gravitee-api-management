@@ -22,10 +22,9 @@ import { PortalNavigationItemsComponent } from './navigation-items/portal-naviga
 import { PortalCatalogComponent } from './catalog/portal-catalog.component';
 import { CategoryCatalogComponent } from './catalog/category/category.component';
 import { CategoryListComponent } from './catalog/category-list/category-list.component';
-import { PortalApiComponent } from './api/portal-api.component';
-import { PortalApiListComponent } from './api/api-list/portal-api-list.component';
 import { HomepageComponent } from './homepage/homepage.component';
 import { SubscriptionFormComponent } from './subscription-form/subscription-form.component';
+import { PortalSettingsPageComponent } from './settings/portal-settings-page.component';
 
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
@@ -83,21 +82,6 @@ const portalRoutes: Routes = [
         ],
       },
       {
-        path: 'api',
-        component: PortalApiComponent,
-        children: [
-          {
-            path: '',
-            component: PortalApiListComponent,
-            data: {
-              permissions: {
-                anyOf: ['environment-settings-r', 'environment-settings-u'],
-              },
-            },
-          },
-        ],
-      },
-      {
         path: 'theme',
         component: PortalThemeComponent,
         data: {
@@ -123,6 +107,16 @@ const portalRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['environment-metadata-r', 'environment-metadata-u'],
+          },
+        },
+      },
+      {
+        path: 'settings',
+        component: PortalSettingsPageComponent,
+        canDeactivate: [HasUnsavedChangesGuard],
+        data: {
+          permissions: {
+            anyOf: ['environment-settings-r', 'environment-settings-u'],
           },
         },
       },
