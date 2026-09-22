@@ -48,7 +48,7 @@ public class MessageTimeSeriesQueryAdapter {
      * says the join ran and matched nothing.
      */
     public String adapt(TimeSeriesQuery query) {
-        return json(query, boolAdapter.messageFilter(query)).toString();
+        return json(query, boolAdapter.enrichedMessageFilter(query)).toString();
     }
 
     private JsonObject json(TimeSeriesQuery query, JsonObject boolQuery) {
