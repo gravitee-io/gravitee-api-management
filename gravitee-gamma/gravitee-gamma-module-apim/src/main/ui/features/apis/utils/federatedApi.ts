@@ -26,5 +26,16 @@ export function isFederatedAgentApi(api: ApiDetailDto | null | undefined): boole
 // Keyed on the row's own `definitionVersion` rather than on `originContext.origin`, which a
 // FEDERATED_AGENT row also carries as INTEGRATION and which therefore cannot tell the two apart.
 export function isFederatedApiListItem(api: ApiListItem): boolean {
-    return api.definitionVersion === 'FEDERATED';
+    switch (api.definitionVersion) {
+        case 'FEDERATED':
+            return true;
+        case 'FEDERATED_AGENT':
+        case 'V4':
+        case 'V2':
+            return false;
+        default: {
+            const unhandled: never = api.definitionVersion;
+            return unhandled;
+        }
+    }
 }

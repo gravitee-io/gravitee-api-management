@@ -145,6 +145,11 @@ export type ApiWorkflowState = 'DRAFT' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | '
 
 export type ApiOrigin = 'MANAGEMENT' | 'KUBERNETES' | 'INTEGRATION';
 
+/**
+ * `integrationId`, `integrationName` and `provider` are only meaningful when `origin` is `'INTEGRATION'`.
+ * `origin === 'INTEGRATION'` alone cannot tell a FEDERATED row from a FEDERATED_AGENT row — both carry it —
+ * so branch on `ApiListItem.definitionVersion` instead (see `isFederatedApiListItem` in `utils/federatedApi.ts`).
+ */
 export interface ApiListOriginContext {
     origin?: ApiOrigin;
     integrationId?: string;
@@ -189,7 +194,7 @@ export interface ApiListItem {
     apiVersion: string;
     description?: string;
     type: ApiType;
-    definitionVersion: 'V4' | 'V2' | 'FEDERATED';
+    definitionVersion: 'V4' | 'V2' | 'FEDERATED' | 'FEDERATED_AGENT';
     state?: ApiState;
     deploymentState?: ApiDeploymentState;
     lifecycleState?: ApiLifecycleState;
