@@ -65,6 +65,7 @@ import type { ApiDetailDto } from '../../types';
 import { buildApiDashboardHref, buildApiLogsHref } from '../../utils/analyticsDeepLink';
 import { getApiProxyTypeLabel, hasTcpListeners, supportsResponseTemplates } from '../../utils/apiHttpProxy';
 import { apiReviewBannerCopy, canAskForReview, isAwaitingReviewerDecision, isReviewClearedForLifecycle } from '../../utils/apiReview';
+import { isForbiddenError } from '../../utils/apiRequestError';
 import { isFederatedAgentApi, isFederatedApi } from '../../utils/federatedApi';
 import { apiDetailKeys } from '../../utils/queryKeys';
 
@@ -268,7 +269,17 @@ export function ApiDetailLayout() {
     const { apiId } = useParams<{ apiId: string }>();
     const env = useEnvironment();
     const basePath = useDetailBasePath('apis', apiId);
-    const { data: api, isLoading, isError } = useApiDetail(apiId);
+    const { data: api, isLoading, isError, error } = useApiDetail(apiId);
+
+    useEffect(() => {
+        if (!isError) return;
+        if (isForbiddenError(error)) {
+            console.warn('[ApiDetail] User lacks permission to read API', apiId, error);
+        } else {
+            console.error('[ApiDetail] Failed to load API', apiId, error);
+        }
+    }, [isError, error, apiId]);
+
     const isAgent = isFederatedAgentApi(api);
     const { permissionsReady } = useApiPermissions(apiId);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });

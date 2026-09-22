@@ -1009,3 +1009,60 @@ describe('ApiDetailLayout — federated agent API', () => {
         expect(screen.queryByText('This API type is not available in API Proxies.')).not.toBeInTheDocument();
     });
 });
+
+// ─── Detail request failure logging ───────────────────────────────────────────
+
+describe('ApiDetailLayout — detail request failure logging', () => {
+    let warnSpy: jest.SpyInstance;
+    let errorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+        warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        warnSpy.mockRestore();
+        errorSpy.mockRestore();
+        (useApiDetail as jest.Mock).mockReturnValue({ data: null, isLoading: false });
+    });
+
+    it('warns with the api id when the detail request is forbidden', () => {
+        const forbidden = { status: 403 };
+        (useApiDetail as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isError: true, error: forbidden });
+
+        renderLayout('abc-123');
+
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        expect(warnSpy).toHaveBeenCalledWith('[ApiDetail] User lacks permission to read API', 'abc-123', forbidden);
+        expect(errorSpy).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['a server error', { status: 500 }],
+        ['a not-found error', { status: 404 }],
+        ['a missing error object', null],
+    ])('logs an error with the api id for %s', (_label, failure) => {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isError: true, error: failure });
+
+        renderLayout('abc-123');
+
+        expect(errorSpy).toHaveBeenCalledTimes(1);
+        expect(errorSpy).toHaveBeenCalledWith('[ApiDetail] Failed to load API', 'abc-123', failure);
+        expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('logs nothing when the detail request succeeds', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'My API' },
+            isLoading: false,
+            isError: false,
+            error: null,
+        });
+
+        renderLayout('abc-123');
+
+        expect(warnSpy).not.toHaveBeenCalled();
+        expect(errorSpy).not.toHaveBeenCalled();
+    });
+});
