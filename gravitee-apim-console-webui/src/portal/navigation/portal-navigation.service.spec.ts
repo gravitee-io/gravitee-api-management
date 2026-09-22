@@ -59,11 +59,6 @@ describe('PortalNavigationService', () => {
           icon: 'gio:page',
         },
         {
-          displayName: 'API',
-          routerLink: 'api',
-          icon: 'gio:cloud-settings',
-        },
-        {
           displayName: 'Theme',
           routerLink: 'theme',
           icon: 'gio:color-picker',
@@ -77,6 +72,11 @@ describe('PortalNavigationService', () => {
           displayName: 'Subscription Form',
           routerLink: 'subscription-form',
           icon: 'gio:list-check',
+        },
+        {
+          displayName: 'Settings',
+          routerLink: 'settings',
+          icon: 'gio:settings',
         },
       ]);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);

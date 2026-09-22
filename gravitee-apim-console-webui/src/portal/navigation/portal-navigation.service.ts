@@ -51,12 +51,6 @@ export class PortalNavigationService {
       permissions: ['environment-settings-r', 'environment-settings-u'],
     },
     {
-      displayName: 'API',
-      routerLink: 'api',
-      icon: 'gio:cloud-settings',
-      permissions: ['environment-settings-r', 'environment-settings-u'],
-    },
-    {
       displayName: 'Theme',
       routerLink: 'theme',
       icon: 'gio:color-picker',
@@ -73,6 +67,12 @@ export class PortalNavigationService {
       routerLink: 'subscription-form',
       icon: 'gio:list-check',
       permissions: ['environment-metadata-r', 'environment-metadata-u'],
+    },
+    {
+      displayName: 'Settings',
+      routerLink: 'settings',
+      icon: 'gio:settings',
+      permissions: ['environment-settings-r', 'environment-settings-u'],
     },
   ];
 

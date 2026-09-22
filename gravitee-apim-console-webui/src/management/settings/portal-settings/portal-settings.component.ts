@@ -144,7 +144,7 @@ interface PortalForm {
       redoc: FormGroup<{
         enabled: FormControl<boolean>;
       }>;
-      defaultType: FormControl<string>;
+      defaultType: FormControl<'Swagger' | 'Redoc'>;
     }>;
   }>;
   cors: FormGroup<{
