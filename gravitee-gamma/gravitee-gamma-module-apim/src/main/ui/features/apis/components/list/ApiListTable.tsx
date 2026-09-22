@@ -171,7 +171,7 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
         },
         {
             id: 'Origin',
-            accessorFn: (row: ApiListItem) => row.originContext?.provider ?? '',
+            accessorFn: (row: ApiListItem) => (row.originContext?.origin === 'INTEGRATION' ? (row.originContext.provider ?? '') : ''),
             header: 'Origin',
             enableSorting: false,
             cell: ({ row }: ColCell<ApiListItem>) => <OriginIndicator originContext={row.original.originContext} />,

@@ -427,7 +427,8 @@ describe('ApiListTable', () => {
             [0, 'a row carrying no origin context', {}],
             // BaseOriginContext declares no required members, so the discriminator can be absent on the wire;
             // the indicator is gated on `origin`, never inferred from a `provider` arriving without it.
-            [0, 'a row carrying a provider but no origin discriminator', { originContext: { provider: 'solace' } }],
+            // The cast models that off-contract payload, which ApiListOriginContext rightly rejects.
+            [0, 'a row carrying a provider but no origin discriminator', { originContext: { provider: 'solace' } as ApiListOriginContext }],
         ])('renders %i origin indicator element for %s', (expectedCount, _scenario, overrides) => {
             renderTable({ apis: [makeApi(overrides)] });
             expect(screen.queryAllByTestId('api-origin-indicator')).toHaveLength(expectedCount);
