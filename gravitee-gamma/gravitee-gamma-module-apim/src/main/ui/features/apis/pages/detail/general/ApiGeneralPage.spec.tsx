@@ -1020,6 +1020,32 @@ describe('ApiGeneralPage', () => {
         await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Remove picture refused', expect.anything()));
     });
 
+    it('removes the background through deleteApiBackground, leaving the picture request unsent', async () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, _links: { backgroundUrl: 'https://example.com/background.png' } },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        const backgroundSpy = jest.spyOn(apiServices, 'deleteApiBackground').mockResolvedValue(undefined);
+        const pictureSpy = jest.spyOn(apiServices, 'deleteApiPicture').mockResolvedValue(undefined);
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^remove$/i }));
+        await waitFor(() => expect(backgroundSpy).toHaveBeenCalledWith('DEFAULT', 'api-1'));
+        expect(pictureSpy).not.toHaveBeenCalled();
+    });
+
+    it('shows an error toast when removing the background is refused', async () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, _links: { backgroundUrl: 'https://example.com/background.png' } },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        jest.spyOn(apiServices, 'deleteApiBackground').mockRejectedValue(new Error('Remove background refused'));
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^remove$/i }));
+        await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Remove background refused', expect.anything()));
+    });
+
     // ── Permission-gated rendering ────────────────────────────────────────────
 
     it('hides Export button when user lacks api-definition-r permission', () => {
