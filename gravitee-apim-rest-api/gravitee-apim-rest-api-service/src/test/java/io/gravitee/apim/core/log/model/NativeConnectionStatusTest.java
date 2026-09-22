@@ -27,6 +27,7 @@ class NativeConnectionStatusTest {
     @Test
     void fromString_returns_value_for_known_status() {
         assertThat(NativeConnectionStatus.fromString("CONNECTED")).contains(NativeConnectionStatus.CONNECTED);
+        assertThat(NativeConnectionStatus.fromString("DISCONNECTED")).contains(NativeConnectionStatus.DISCONNECTED);
         assertThat(NativeConnectionStatus.fromString("CONNECTION_ERROR")).contains(NativeConnectionStatus.CONNECTION_ERROR);
         assertThat(NativeConnectionStatus.fromString("SESSION_ERROR")).contains(NativeConnectionStatus.SESSION_ERROR);
         assertThat(NativeConnectionStatus.fromString("INTERNAL_ERROR")).contains(NativeConnectionStatus.INTERNAL_ERROR);

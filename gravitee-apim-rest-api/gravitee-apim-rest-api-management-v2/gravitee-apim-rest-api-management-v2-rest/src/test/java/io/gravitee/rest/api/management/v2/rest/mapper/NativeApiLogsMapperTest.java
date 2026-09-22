@@ -18,8 +18,10 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import static fixtures.core.model.NativeApiLogFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.core.log.model.NativeConnectionStatus;
 import io.gravitee.apim.core.log.use_case.NativeApiLogSummaryUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.NativeApiLog;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -96,5 +98,16 @@ class NativeApiLogsMapperTest {
         assertThat(first.getConnectionDurationMs()).isEqualTo(CONNECTION_DURATION_MS);
         assertThat(first.getClientId()).isNull();
         assertThat(first.getBrokerId()).isNull();
+    }
+
+    @Test
+    void the_core_and_generated_connection_status_enums_declare_the_same_constants() {
+        // The two lists have to agree, and only one direction of the disagreement breaks the build: MapStruct
+        // fails on a core constant it cannot map, so adding one here without adding it to openapi-apis.yaml is
+        // a compile error. The other direction is silent — a status declared only in the spec is a value the
+        // API documents and can never return.
+        assertThat(
+            Arrays.stream(NativeApiLog.ConnectionStatusEnum.values()).map(NativeApiLog.ConnectionStatusEnum::getValue).toList()
+        ).containsExactlyInAnyOrderElementsOf(Arrays.stream(NativeConnectionStatus.values()).map(Enum::name).toList());
     }
 }
