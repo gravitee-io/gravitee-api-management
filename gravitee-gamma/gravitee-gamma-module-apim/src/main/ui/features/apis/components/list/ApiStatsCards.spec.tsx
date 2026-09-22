@@ -198,6 +198,8 @@ describe('ApiStatsCards', () => {
         await settleOutstandingRequests();
         expect(bodies).toHaveLength(0);
         expect(screen.queryAllByText(ANY_RENDERED_COUNT)).toHaveLength(0);
+        expect(loadingPlaceholderIn('total')).not.toBeNull();
+        expect(within(cardBody('total')).queryByText('—')).toBeNull();
         // Firing the bound the gate opened stands in for waiting out its wall-clock delay.
         timeoutControllers.forEach(controller => controller.abort(new DOMException('signal timed out', 'TimeoutError')));
 
@@ -206,7 +208,8 @@ describe('ApiStatsCards', () => {
         expect(await within(cardBody('total')).findByText('7')).not.toBeNull();
     });
 
-    it('shows the totals that came back and holds the card whose search failed on its loading placeholder', async () => {
+    it('shows the totals that came back and marks the card whose search failed as unavailable rather than loading', async () => {
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
         trackHandler('get', ORG_CONSOLE_PATH, { federation: { enabled: true } });
         stubCountSearches('published');
 
@@ -214,10 +217,8 @@ describe('ApiStatsCards', () => {
 
         expect(await within(cardBody('total')).findByText('7')).not.toBeNull();
         expect(await within(cardBody('private')).findByText('3')).not.toBeNull();
-        await settleOutstandingRequests();
+        expect(await within(cardBody('published')).findByText('—')).not.toBeNull();
+        expect(loadingPlaceholderIn('published')).toBeNull();
         expect(within(cardBody('published')).queryByText(ANY_RENDERED_COUNT)).toBeNull();
-        // A placeholder, not an error indicator: surfacing count failures to the user is out of this deliverable's scope.
-        expect(loadingPlaceholderIn('published')).not.toBeNull();
-        expect(loadingPlaceholderIn('total')).toBeNull();
     });
 });

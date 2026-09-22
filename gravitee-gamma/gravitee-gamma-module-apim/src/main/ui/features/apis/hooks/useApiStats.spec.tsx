@@ -71,4 +71,35 @@ describe('useApiStats', () => {
         expect(result.current.private).toBe(WITH_FEDERATED_COUNT);
         expect(result.current.published).toBe(WITH_FEDERATED_COUNT);
     });
+
+    it('flags only the count whose search failed and keeps the other counts', async () => {
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        mockSearchApis.mockImplementation((_envId, filters) =>
+            filters.published ? Promise.reject(new Error('search failed')) : Promise.resolve(countOf(PROXY_ONLY_COUNT)),
+        );
+
+        const { result } = renderHook(() => useApiStats(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.failed.published).toBe(true));
+        await waitFor(() => expect(result.current.total).toBe(PROXY_ONLY_COUNT));
+        expect(result.current.failed).toEqual({ total: false, private: false, published: true });
+        expect(result.current.private).toBe(PROXY_ONLY_COUNT);
+        expect(result.current.published).toBeNull();
+        expect(result.current.isError).toBe(true);
+    });
+
+    it('does not flag a count still in flight as failed when a sibling count fails', async () => {
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        mockSearchApis.mockImplementation((_envId, filters) =>
+            filters.published ? Promise.reject(new Error('search failed')) : new Promise(() => {}),
+        );
+
+        const { result } = renderHook(() => useApiStats(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.failed.published).toBe(true));
+        expect(result.current.failed.total).toBe(false);
+        expect(result.current.failed.private).toBe(false);
+        expect(result.current.total).toBeNull();
+        expect(result.current.isLoading).toBe(true);
+    });
 });

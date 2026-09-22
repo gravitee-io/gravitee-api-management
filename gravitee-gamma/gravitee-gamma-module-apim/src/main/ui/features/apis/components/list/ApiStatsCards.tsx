@@ -23,17 +23,31 @@ const STAT_CARDS = [
     { key: 'published' as const, label: 'Published' },
 ] as const;
 
-function StatCard({ label, value, isLoading }: { label: string; value: number | null; isLoading: boolean }) {
+function StatCard({
+    label,
+    value,
+    isLoading,
+    isUnavailable,
+}: {
+    label: string;
+    value: number | null;
+    isLoading: boolean;
+    isUnavailable: boolean;
+}) {
     return (
         <Card style={{ flex: 1 }}>
             <CardContent className="pt-5 pb-4">
                 <p className="text-sm font-medium text-muted-foreground">{label}</p>
-                {value === null ? (
-                    <Skeleton className="mt-1.5 h-7 w-10 rounded" />
-                ) : (
+                {value !== null ? (
                     <p className={`text-2xl font-semibold mt-0.5 transition-opacity duration-200${isLoading ? ' opacity-50' : ''}`}>
                         {value.toLocaleString()}
                     </p>
+                ) : isUnavailable ? (
+                    <p className="text-2xl font-semibold mt-0.5 text-muted-foreground" aria-label="Count unavailable">
+                        —
+                    </p>
+                ) : (
+                    <Skeleton className="mt-1.5 h-7 w-10 rounded" />
                 )}
             </CardContent>
         </Card>
@@ -46,7 +60,7 @@ export function ApiStatsCards({ query }: { query?: string }) {
     return (
         <div className="flex gap-4">
             {STAT_CARDS.map(({ key, label }) => (
-                <StatCard key={key} label={label} value={stats[key]} isLoading={stats.isLoading} />
+                <StatCard key={key} label={label} value={stats[key]} isLoading={stats.isLoading} isUnavailable={stats.failed[key]} />
             ))}
         </div>
     );

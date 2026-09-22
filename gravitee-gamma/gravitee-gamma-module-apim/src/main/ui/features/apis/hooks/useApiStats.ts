@@ -15,7 +15,9 @@
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
+import { ApimApiError } from '../../../shared/api/apimClient';
 import { useFederationEnabled } from '../../license/useFederationEnabled';
 import { searchApis } from '../services/apiList';
 import { apiListKeys } from '../utils/queryKeys';
@@ -23,11 +25,23 @@ import { apiListKeys } from '../utils/queryKeys';
 const STATS_PAGE = 1;
 const STATS_PER_PAGE = 1;
 
+export type ApiStatKey = 'total' | 'private' | 'published';
+
 export interface ApiStats {
     total: number | null;
     private: number | null;
     published: number | null;
     isLoading: boolean;
+    failed: Readonly<Record<ApiStatKey, boolean>>;
+    isError: boolean;
+}
+
+function useWarnOnCountFailure(card: ApiStatKey, error: Error | null): void {
+    useEffect(() => {
+        if (!error) return;
+        const failure = error instanceof ApimApiError ? `HTTP ${error.status}` : error.name;
+        console.warn(`[ApiStats] ${card} count query failed (${failure}), count unavailable:`, error);
+    }, [card, error]);
 }
 
 export function useApiStats(query?: string): ApiStats {
@@ -58,10 +72,18 @@ export function useApiStats(query?: string): ApiStats {
         staleTime: 60_000,
     });
 
+    useWarnOnCountFailure('total', totalQuery.error);
+    useWarnOnCountFailure('private', privateQuery.error);
+    useWarnOnCountFailure('published', publishedQuery.error);
+
+    const failed = { total: totalQuery.isError, private: privateQuery.isError, published: publishedQuery.isError };
+
     return {
         total: totalQuery.data?.pagination?.totalCount ?? null,
         private: privateQuery.data?.pagination?.totalCount ?? null,
         published: publishedQuery.data?.pagination?.totalCount ?? null,
         isLoading: totalQuery.isLoading || privateQuery.isLoading || publishedQuery.isLoading,
+        failed,
+        isError: failed.total || failed.private || failed.published,
     };
 }
