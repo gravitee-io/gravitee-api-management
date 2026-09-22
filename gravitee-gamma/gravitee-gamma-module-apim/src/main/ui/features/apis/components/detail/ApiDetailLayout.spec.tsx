@@ -171,6 +171,7 @@ jest.mock('../../utils/analyticsDeepLink', () => ({
 }));
 
 import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';
+import { API_PROXY_NAV_GROUPS } from './ApiDetailSidebarNav';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
 import { notify } from '../../../../shared/notify';
 import { useApiDetail } from '../../hooks/useApiDetail';
@@ -829,37 +830,10 @@ const FEDERATED_SHOWN_LABELS = [
     'Logs',
 ];
 
-// The same enumeration for an API that is not federated: every row of the canonical nav under this suite's mocks
-// (permissions granted, API Score enabled, HTTP PROXY, no TCP listeners). 'Response Templates' survives its own
-// permission and API-subtype gates here, so federation is what removes it from the list above.
-const NON_FEDERATED_SHOWN_LABELS = [
-    'Overview',
-    'Settings',
-    'User Permissions',
-    'Authorization',
-    'Metadata',
-    'Entrypoints',
-    'Policy Studio',
-    'Endpoints',
-    'Failover',
-    'Response Templates',
-    'Resources',
-    'API Properties',
-    'CORS',
-    'Plans',
-    'Subscriptions',
-    'Broadcasts',
-    'Notifications',
-    'Alerts',
-    'Audit Logs',
-    'Health Check Dashboard',
-    'API Score',
-    'Dashboard',
-    'Logs',
-    'Sharding Tags',
-    'Deployment History',
-    'Reporter Settings',
-];
+// Everything the canonical nav declares, plus the two deep links withObservabilityLinks inserts at render time.
+// Derived rather than typed out: the claim under test is that federation filtered nothing, not that the nav holds
+// some particular set of rows — API_PROXY_NAV_GROUPS' own contents are asserted in ApiDetailSidebarNav.spec.tsx.
+const NON_FEDERATED_SHOWN_LABELS = [...API_PROXY_NAV_GROUPS.flatMap(group => group.items.map(item => item.label)), 'Dashboard', 'Logs'];
 
 const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Design', 'Operations'];
 
