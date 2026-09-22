@@ -223,6 +223,7 @@ const FEDERATED_HIDDEN_PATHS = [
     'endpoints/health-check-dashboard',
     'reporter-settings',
     'policy-studio',
+    'notifications',
     'alerts',
     'deployment/configuration',
     'deployment/history',
@@ -230,7 +231,7 @@ const FEDERATED_HIDDEN_PATHS = [
     'response-templates',
 ];
 
-const FEDERATED_KEPT_PATHS = ['general', 'notifications', 'plans', 'consumers', 'broadcasts', 'user-permissions', 'audit-logs'];
+const FEDERATED_KEPT_PATHS = ['general', 'plans', 'consumers', 'broadcasts', 'user-permissions', 'audit-logs'];
 
 // Snapshotted at module load, and by value rather than by reference: API_PROXY_NAV_GROUPS is one structure shared
 // by every call, so a filter that pruned or re-shaped it in place would leave any expected value read later —

@@ -815,6 +815,7 @@ const FEDERATED_HIDDEN_LABELS = [
     'Endpoints',
     'Reporter Settings',
     'Policy Studio',
+    'Notifications',
     'Alerts',
     'Sharding Tags',
     // Ships as a `comingSoon` row, so it is absent from the nav only if it is filtered out of the item list —
@@ -829,7 +830,6 @@ const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Design', 'Operations'];
 
 const FEDERATED_KEPT_LINKS: [label: string, path: string][] = [
     ['Settings', 'general'],
-    ['Notifications', 'notifications'],
     ['Plans', 'plans'],
     ['Subscriptions', 'consumers'],
     ['Broadcasts', 'broadcasts'],

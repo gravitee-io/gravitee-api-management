@@ -189,7 +189,6 @@ const FEDERATED_ALLOWED_PATHS = new Set([
     'plans',
     'consumers',
     'broadcasts',
-    'notifications',
     'audit-logs',
     'api-score',
     'observe-dashboard',
