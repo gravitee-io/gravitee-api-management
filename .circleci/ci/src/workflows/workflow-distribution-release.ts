@@ -347,8 +347,8 @@ export class DistributionReleaseWorkflow {
       new workflow.WorkflowJob(triggerApimApiDocsPipelineJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
         name: 'Trigger APIM API docs ingestion',
-        // Not the core's publication, which is another lane's now: the docs pipeline polls Maven
-        // Central itself, for up to an hour, so it only has to be told once this release is real.
+        // Not the core's publication, which is another lane's now: the docs pipeline resolves
+        // the jars from the feed itself, so it only has to be told once this release is real.
         requires: ['Trigger SaaS Docker images creation'],
       }),
 
