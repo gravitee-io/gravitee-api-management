@@ -141,4 +141,16 @@ describe('useDashboardStats', () => {
         expect(result.current.isError).toBe(false);
         expect(result.current.totalProducts).toBe(0);
     });
+
+    it('should mark the dashboard as errored when the licensed products query fails', async () => {
+        mockUseHasFeature.mockReturnValue(true);
+        mockSearchApiProducts.mockRejectedValue(new Error('forbidden'));
+
+        const { result } = renderHook(() => useDashboardStats(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+
+        expect(result.current.totalApis).toBe(2);
+        expect(result.current.totalProducts).toBeNull();
+    });
 });
