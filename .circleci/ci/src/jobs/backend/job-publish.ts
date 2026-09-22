@@ -42,13 +42,15 @@ export class PublishJob {
         name: 'Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)',
         command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
       }),
-      // Reuses the target/ the step above produced — maven-jar-plugin leaves a jar alone when its
-      // classes have not changed — so the feed gets the bytes Artifactory got, not a rebuild.
-      // altDeploymentRepository overrides what the profile sets, leaving profiles and signing alone.
+      // This deploys a second time rather than reusing what the step above produced: the
+      // OpenAPI generator rewrites its sources on every run — 868 files on the management-v2
+      // model alone — so the compiler finds them newer than the classes and rebuilds. The two
+      // repositories end up with equivalent jars, not identical bytes; comparing checksums
+      // between them proves nothing.
       //
-      // Fatal, like the deploy to Artifactory above. A swallowed failure here would leave the
-      // feed silently short of a snapshot while the build stayed green, and nothing would
-      // surface it until Artifactory is switched off. This step goes when Artifactory does.
+      // altDeploymentRepository overrides what the profile sets, leaving profiles and signing
+      // alone. Fatal on failure, like the deploy above.
+
       new commands.Run({
         name: 'Maven deploy to the Azure feed (snapshots)',
         // Both flags on purpose: for a SNAPSHOT version maven-deploy-plugin reads
