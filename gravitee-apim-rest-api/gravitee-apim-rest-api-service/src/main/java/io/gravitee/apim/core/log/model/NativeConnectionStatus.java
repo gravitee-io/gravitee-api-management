@@ -23,6 +23,8 @@ import java.util.Optional;
  */
 public enum NativeConnectionStatus {
     CONNECTED,
+    /** Clean close of an established connection. Carries a duration and never an error, so it is not a failure. */
+    DISCONNECTED,
     CONNECTION_ERROR,
     SESSION_ERROR,
     INTERNAL_ERROR;

@@ -29,7 +29,12 @@ export interface NativeConnectionStatusMeta {
 // Record forces compile-time exhaustiveness — adding a new status to the union without an entry here is a build error.
 export const NATIVE_STATUS_META: Record<NativeConnectionStatus, NativeConnectionStatusMeta> = {
   CONNECTED: { label: 'Connected', badgeClass: 'gio-badge-success', icon: 'gio:check-circled-outline', isErrored: false },
-  SESSION_ERROR: { label: 'Disconnected', badgeClass: 'gio-badge-warning', icon: 'gio:alert-circle', isErrored: true },
+  // A clean close, reported by the gateway since the connection-events work. Neutral rather than success:
+  // it is the end of something that worked, not an outcome to celebrate twice.
+  DISCONNECTED: { label: 'Disconnected', badgeClass: 'gio-badge-neutral', icon: 'gio:power', isErrored: false },
+  // Was labelled 'Disconnected' while nothing emitted the real status. It is a mid-session failure that cut
+  // the connection, so it keeps the warning tone and takes a name that does not collide.
+  SESSION_ERROR: { label: 'Interrupted', badgeClass: 'gio-badge-warning', icon: 'gio:alert-circle', isErrored: true },
   CONNECTION_ERROR: { label: 'Failed', badgeClass: 'gio-badge-error', icon: 'gio:error', isErrored: true },
   INTERNAL_ERROR: { label: 'Unknown', badgeClass: 'gio-badge-accent', icon: 'gio:shield-alert', isErrored: true },
 };
@@ -42,5 +47,8 @@ export const NATIVE_CONNECTION_STATUSES: { value: NativeConnectionStatus; label:
 // auto-appears in the summary widget at the position it was inserted at (healthy → degraded → fatal).
 export const NATIVE_SUMMARY_STATUSES = Object.keys(NATIVE_STATUS_META) as NativeConnectionStatus[];
 
+// Optional chaining on a Record that is exhaustive at compile time, because the value comes off the wire:
+// a gateway newer than this console can report a status this table does not know yet, and the detail page
+// calls this before anything else. It used to throw there and the page failed to render.
 export const isNativeConnectionErrored = (status: NativeConnectionStatus | undefined): boolean =>
-  status != null && NATIVE_STATUS_META[status].isErrored;
+  status != null && (NATIVE_STATUS_META[status]?.isErrored ?? false);

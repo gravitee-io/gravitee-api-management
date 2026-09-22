@@ -2911,7 +2911,7 @@ paths:
                       type: array
                       items:
                           type: string
-                          enum: [CONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
+                          enum: [CONNECTED, DISCONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
                       example:
                           - CONNECTED
                           - CONNECTION_ERROR
@@ -7901,7 +7901,7 @@ components:
             properties:
                 countByConnectionStatus:
                     type: object
-                    description: Number of native connection lifecycle events keyed by connection status (CONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR).
+                    description: Number of native connection lifecycle events keyed by connection status (CONNECTED, DISCONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR).
                     additionalProperties:
                         type: integer
                         format: int64
@@ -7958,7 +7958,7 @@ components:
                     description: The error message when the connection terminated with an error.
                 connectionStatus:
                     type: string
-                    enum: [CONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
+                    enum: [CONNECTED, DISCONNECTED, CONNECTION_ERROR, SESSION_ERROR, INTERNAL_ERROR]
                     description: The connection lifecycle status of the native API connection.
                 clientId:
                     type: string

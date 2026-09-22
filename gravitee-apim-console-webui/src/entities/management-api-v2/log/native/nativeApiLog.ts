@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export type NativeConnectionStatus = 'CONNECTED' | 'CONNECTION_ERROR' | 'SESSION_ERROR' | 'INTERNAL_ERROR';
+export type NativeConnectionStatus = 'CONNECTED' | 'DISCONNECTED' | 'CONNECTION_ERROR' | 'SESSION_ERROR' | 'INTERNAL_ERROR';
 
 export interface NativeApiLog {
   timestamp?: string;

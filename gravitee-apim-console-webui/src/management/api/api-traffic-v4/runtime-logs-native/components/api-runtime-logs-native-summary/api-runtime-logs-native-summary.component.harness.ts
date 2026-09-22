@@ -17,7 +17,7 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 import { NativeConnectionStatus } from '../../../../../../entities/management-api-v2';
 
-const STATUSES: NativeConnectionStatus[] = ['CONNECTED', 'SESSION_ERROR', 'CONNECTION_ERROR', 'INTERNAL_ERROR'];
+const STATUSES: NativeConnectionStatus[] = ['CONNECTED', 'DISCONNECTED', 'SESSION_ERROR', 'CONNECTION_ERROR', 'INTERNAL_ERROR'];
 
 export class ApiRuntimeLogsNativeSummaryHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-native-summary';

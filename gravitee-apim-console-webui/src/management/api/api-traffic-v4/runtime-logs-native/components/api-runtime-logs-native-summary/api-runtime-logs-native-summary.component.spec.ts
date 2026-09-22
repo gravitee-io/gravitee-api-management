@@ -55,7 +55,13 @@ describe('ApiRuntimeLogsNativeSummaryComponent', () => {
     setup({ from: null, to: null });
     httpTestingController.expectNone(req => req.url.endsWith('/logs/native/summary'));
     const harness = await getHarness();
-    expect(await harness.getCounts()).toEqual({ CONNECTED: '—', SESSION_ERROR: '—', CONNECTION_ERROR: '—', INTERNAL_ERROR: '—' });
+    expect(await harness.getCounts()).toEqual({
+      CONNECTED: '—',
+      DISCONNECTED: '—',
+      SESSION_ERROR: '—',
+      CONNECTION_ERROR: '—',
+      INTERNAL_ERROR: '—',
+    });
   });
 
   it('renders counts from the summary endpoint when from/to are set', async () => {
@@ -65,7 +71,13 @@ describe('ApiRuntimeLogsNativeSummaryComponent', () => {
       .flush(fakeNativeApiLogsSummary());
     fixture.detectChanges();
     const harness = await getHarness();
-    expect(await harness.getCounts()).toEqual({ CONNECTED: '184', SESSION_ERROR: '32', CONNECTION_ERROR: '28', INTERNAL_ERROR: '4' });
+    expect(await harness.getCounts()).toEqual({
+      CONNECTED: '184',
+      DISCONNECTED: '0',
+      SESSION_ERROR: '32',
+      CONNECTION_ERROR: '28',
+      INTERNAL_ERROR: '4',
+    });
   });
 
   it('falls back to 0 for statuses missing in the response', async () => {
@@ -75,7 +87,13 @@ describe('ApiRuntimeLogsNativeSummaryComponent', () => {
       .flush({ countByConnectionStatus: { CONNECTED: 5 } });
     fixture.detectChanges();
     const harness = await getHarness();
-    expect(await harness.getCounts()).toEqual({ CONNECTED: '5', SESSION_ERROR: '0', CONNECTION_ERROR: '0', INTERNAL_ERROR: '0' });
+    expect(await harness.getCounts()).toEqual({
+      CONNECTED: '5',
+      DISCONNECTED: '0',
+      SESSION_ERROR: '0',
+      CONNECTION_ERROR: '0',
+      INTERNAL_ERROR: '0',
+    });
   });
 
   it('refetches when from/to change', async () => {
@@ -88,14 +106,20 @@ describe('ApiRuntimeLogsNativeSummaryComponent', () => {
     fixture.componentRef.setInput('from', 3000);
     fixture.componentRef.setInput('to', 4000);
     fixture.detectChanges();
-    httpTestingController
-      .expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary?from=3000&to=4000`)
-      .flush(
-        fakeNativeApiLogsSummary({ countByConnectionStatus: { CONNECTED: 1, SESSION_ERROR: 2, CONNECTION_ERROR: 3, INTERNAL_ERROR: 4 } }),
-      );
+    httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/logs/native/summary?from=3000&to=4000`).flush(
+      fakeNativeApiLogsSummary({
+        countByConnectionStatus: { CONNECTED: 1, DISCONNECTED: 5, SESSION_ERROR: 2, CONNECTION_ERROR: 3, INTERNAL_ERROR: 4 },
+      }),
+    );
     fixture.detectChanges();
     const harness = await getHarness();
-    expect(await harness.getCounts()).toEqual({ CONNECTED: '1', SESSION_ERROR: '2', CONNECTION_ERROR: '3', INTERNAL_ERROR: '4' });
+    expect(await harness.getCounts()).toEqual({
+      CONNECTED: '1',
+      DISCONNECTED: '5',
+      SESSION_ERROR: '2',
+      CONNECTION_ERROR: '3',
+      INTERNAL_ERROR: '4',
+    });
   });
 
   it('shows a retry button when the summary endpoint errors, and re-fetches on click', async () => {
@@ -115,6 +139,12 @@ describe('ApiRuntimeLogsNativeSummaryComponent', () => {
       .flush(fakeNativeApiLogsSummary());
     fixture.detectChanges();
     const harness = await getHarness();
-    expect(await harness.getCounts()).toEqual({ CONNECTED: '184', SESSION_ERROR: '32', CONNECTION_ERROR: '28', INTERNAL_ERROR: '4' });
+    expect(await harness.getCounts()).toEqual({
+      CONNECTED: '184',
+      DISCONNECTED: '0',
+      SESSION_ERROR: '32',
+      CONNECTION_ERROR: '28',
+      INTERNAL_ERROR: '4',
+    });
   });
 });
