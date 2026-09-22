@@ -179,8 +179,9 @@ function dropEmptyGroups(groups: DetailNavGroup[]): DetailNavGroup[] {
 
 /**
  * A federated API is owned by the third-party provider it was discovered from: it has no gateway definition, no policy
- * flow, no deployment, no APIM-managed authorization and no APIM-mapped error responses of its own. An allow-list
- * (rather than an omit-list) so a new nav item added later is hidden by default until someone confirms it applies.
+ * flow, no deployment, no APIM-managed authorization, no APIM-mapped error responses of its own, and no gateway traffic
+ * for the Observability dashboard and logs to report. An allow-list (rather than an omit-list) so a new nav item added
+ * later is hidden by default until someone confirms it applies.
  */
 const FEDERATED_ALLOWED_PATHS = new Set([
     'general',
@@ -191,8 +192,6 @@ const FEDERATED_ALLOWED_PATHS = new Set([
     'broadcasts',
     'audit-logs',
     'api-score',
-    'observe-dashboard',
-    'observe-logs',
 ]);
 
 export function withFederatedRestrictions(groups: DetailNavGroup[], isFederated: boolean): DetailNavGroup[] {

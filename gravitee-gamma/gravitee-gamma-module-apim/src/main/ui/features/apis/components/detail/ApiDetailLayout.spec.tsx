@@ -825,12 +825,9 @@ const FEDERATED_SHOWN_LABELS = [
     'Broadcasts',
     'Audit Logs',
     'API Score',
-    // The two Observability deep links, which survive federation.
-    'Dashboard',
-    'Logs',
 ];
 
-const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Design', 'Operations'];
+const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Design', 'Operations', 'Observability'];
 
 const FEDERATED_KEPT_LINKS: [label: string, path: string][] = [
     ['Settings', 'general'],

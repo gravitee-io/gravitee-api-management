@@ -282,6 +282,12 @@ describe('withFederatedRestrictions', () => {
         );
     });
 
+    it('drops the whole Observability group for a federated API, which never runs on the Gravitee gateway', () => {
+        const restricted = withFederatedRestrictions(withObservabilityLinks(GROUPS, OBSERVABILITY_LINKS), true);
+
+        expect(restricted.map(group => group.label)).not.toContain('Observability');
+    });
+
     it('keeps exactly the groups that still have items, dropping the ones the omitted items leave empty', () => {
         const restricted = withFederatedRestrictions(GROUPS, true);
 
