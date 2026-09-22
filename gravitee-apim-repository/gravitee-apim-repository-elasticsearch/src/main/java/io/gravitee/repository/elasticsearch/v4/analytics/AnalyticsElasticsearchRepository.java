@@ -16,8 +16,11 @@
 package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -36,7 +39,12 @@ import io.gravitee.repository.log.v4.model.analytics.*;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Maybe;
 import io.vertx.core.json.JsonObject;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
@@ -76,6 +84,63 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     );
     private final FilterValuesQueryAdapter filterValuesQueryAdapter = new FilterValuesQueryAdapter();
     private final FilterValuesResponseAdapter filterValuesResponseAdapter = new FilterValuesResponseAdapter();
+
+    /** Field whose presence marks a message document as carrying the connection dimensions. */
+    private static final String ENRICHMENT_MARKER_FIELD = "schema-version";
+
+    /** Aggregation naming the newest message document written before the dimensions existed. */
+    private static final String WATERMARK_AGG_NAME = "newest_unenriched";
+
+    /** The stamped dimensions, as Elasticsearch field names. Each must be a keyword to be filterable. */
+    private static final List<String> CONNECTION_DIMENSION_FIELDS = List.of("plan-id", "application-id", "entrypoint-id");
+
+    /**
+     * How long the direct-path readiness of an index is reused, and the safety margin applied to its
+     * watermark.
+     *
+     * <p>Both, deliberately: a cached watermark describes the data as it stood when it was computed,
+     * so while a fleet still holds gateways that do not stamp the dimensions, the true watermark keeps
+     * advancing and the cached one falls behind. Requiring a window to start later than
+     * {@code watermark + TTL} rather than later than the watermark itself covers that drift for a
+     * gateway reporting at least once per interval — which is the fleet-wide upgrade case this is
+     * written for.
+     *
+     * <p>Three things it does <strong>not</strong> cover, all of which undercount rather than fail. A
+     * gateway that stays silent longer than the interval and then resumes: a low-traffic API still
+     * served by an old one can leave the watermark stale by its own reporting gap. Ingest lag — the
+     * watermark only sees what is already indexed and searchable, so an unstamped document flushed
+     * late, after a reporter buffered through an Elasticsearch outage, can land behind a watermark
+     * already computed without it. And the field the watermark reads is the message timestamp, not the
+     * write time: an old gateway draining a backlog writes unstamped documents wherever their messages
+     * were produced, which can be inside a window the watermark already calls stamped.
+     *
+     * <p>Raising this value widens the margin in the same motion, which is the lever for all three: set
+     * it above the reporting and buffering horizon of the slowest gateway in the fleet.
+     *
+     * <p>A field rather than a constant so a test can shorten it; nothing in production writes it.
+     */
+    protected Duration enrichmentWatermarkTtl = Duration.ofMinutes(1);
+
+    private final Map<String, Probe> directPathReadiness = new ConcurrentHashMap<>();
+
+    /**
+     * @param newestUnenriched {@code null} when every message document carries the marker.
+     * @param dimensionsAreKeyword false when any index covering the window maps one of them otherwise,
+     *     and also when the probe itself failed — either way the join is the answer.
+     */
+    private record DirectPathReadiness(Instant newestUnenriched, boolean dimensionsAreKeyword) {}
+
+    /** Unusable until proven otherwise: what a failed or unfinished probe answers. */
+    private static final DirectPathReadiness KEEP_THE_JOIN = new DirectPathReadiness(null, false);
+
+    /**
+     * One probe per index per interval, shared by everyone who asks while it runs.
+     *
+     * <p>The answer is held as a future rather than a value so the map entry can be published before
+     * the searches behind it finish. {@code startedAt} ages the entry from the moment the probe began,
+     * not from the moment it answered, so a slow probe cannot extend its own lease.
+     */
+    private record Probe(Instant startedAt, CompletableFuture<DirectPathReadiness> readiness) {}
 
     public AnalyticsElasticsearchRepository(RepositoryConfiguration configuration) {
         clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
@@ -477,7 +542,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
         // skipping it changes in the counted set.
-        if (messageFilterAdapter.isFullyAppliedOnMessages(query)) {
+        if (canReadMessagesDirectly(queryContext, query, messageIndex, List.of())) {
             var unjoined = messageMeasuresQueryAdapter.adapt(query);
             log.debug("Message - unjoined Measures query: {}", unjoined);
             return client
@@ -510,7 +575,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
         // skipping it changes in the counted set.
-        if (messageFilterAdapter.isFullyAppliedOnMessages(query)) {
+        if (canReadMessagesDirectly(queryContext, query, messageIndex, query.facets())) {
             var unjoined = messageFacetsQueryAdapter.adapt(query);
             log.debug("Message - unjoined Facets query: {}", unjoined);
             return client
@@ -543,7 +608,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
         // See FilterAdapter#isFullyAppliedOnMessages for why the join is skipped here, and for what
         // skipping it changes in the counted set.
-        if (messageFilterAdapter.isFullyAppliedOnMessages(query)) {
+        if (canReadMessagesDirectly(queryContext, query, messageIndex, query.facets())) {
             var unjoined = messageTimeSeriesQueryAdapter.adapt(query);
             log.debug("Message - unjoined Time series query: {}", unjoined);
             return client
@@ -566,6 +631,206 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
             .search(messageIndex, null, messageQuery)
             .map(response -> timeSeriesResponseAdapter.adapt(response, query))
             .blockingGet();
+    }
+
+    /**
+     * Whether this query can read the message documents on their own, without resolving the
+     * connections first.
+     *
+     * <p>Three conditions, and the last two are transitional. Every filter has to name a field a
+     * message document carries. When one of them is a dimension of the connection, the index must
+     * also map that dimension as a keyword, and the window must hold no document written before the
+     * gateway started stamping it. A query naming only the dimensions a message always carried —
+     * operation, connector, api — needs neither check.
+     *
+     * <p>Anything unknown answers false and keeps the join, which works on every document whatever
+     * wrote it. That is the safe direction: the join is slower, never wrong.
+     */
+    private boolean canReadMessagesDirectly(QueryContext queryContext, Query query, String messageIndex, Collection<Facet> facets) {
+        if (!messageFilterAdapter.isFullyAppliedOnMessages(query)) {
+            return false;
+        }
+        if (!readsConnectionDimension(query, facets)) {
+            return true;
+        }
+
+        var readiness = directPathReadiness(windowIndex(queryContext, query), messageIndex);
+        if (!readiness.dimensionsAreKeyword()) {
+            return false;
+        }
+        var watermark = readiness.newestUnenriched();
+        return watermark == null || query.timeRange().from().isAfter(watermark.plus(enrichmentWatermarkTtl));
+    }
+
+    /**
+     * The indices the window actually reads, which is what the mapping has to be asked about.
+     *
+     * <p>Asking the wildcard instead would let the one index that existed at upgrade time — where the
+     * dimensions are mapped dynamically, as {@code text} — close the direct path for every window,
+     * including windows entirely inside indices created since. That kept the join for a whole retention
+     * period after an upgrade, which is about as long as it takes for the join to stop being needed at
+     * all.
+     *
+     * <p>Under ILM the name is a rollover alias rather than a date, so this resolves to the same
+     * indices as the wildcard and the gate stays as conservative as it was.
+     */
+    private String windowIndex(QueryContext queryContext, Query query) {
+        var names = this.indexNameGenerator.getIndexName(
+            queryContext.placeholder(),
+            Type.V4_MESSAGE_METRICS,
+            query.timeRange().from().toEpochMilli(),
+            query.timeRange().to().toEpochMilli(),
+            clusters
+        );
+
+        // Widened into patterns because the generator names one index per period, exactly, and the
+        // mapping endpoint behind getFieldTypes has no ignore_unavailable: a period with no traffic has
+        // no index, and asking about it by name answers index_not_found_exception for the whole call.
+        // The pattern also covers the per-leg indices of the period, which carry a suffix the generator
+        // does not produce and which are message indices like any other.
+        return Arrays.stream(names.split(","))
+            .map(String::trim)
+            .filter(name -> !name.isEmpty())
+            .map(name -> name.endsWith("*") ? name : name + "*")
+            .collect(Collectors.joining(","));
+    }
+
+    /** Whether this query filters or breaks down on a dimension the message documents carry only once stamped. */
+    private static boolean readsConnectionDimension(Query query, Collection<Facet> facets) {
+        var filtered = query
+            .filters()
+            .stream()
+            .anyMatch(filter -> FilterAdapter.isConnectionDimension(filter.name()));
+        if (filtered) {
+            return true;
+        }
+        return facets != null && facets.stream().anyMatch(FilterAdapter::isConnectionDimension);
+    }
+
+    /**
+     * What the direct path needs to be safe on this index, computed and cached as one answer.
+     *
+     * <p>Two questions, and both have to hold. <em>Is the dimension usable</em> — an index template
+     * only applies when an index is created, so the period current at upgrade time keeps its old
+     * mapping and maps the new fields dynamically, as {@code text}. A term filter on an analysed UUID
+     * matches nothing, and the documents landing there do carry the marker, so the watermark alone
+     * would happily open the direct path over an index that cannot answer. The same guard is applied
+     * to {@code entrypoint-id} elsewhere in this class, for the same reason.
+     *
+     * <p><em>Is the data new enough</em> — the newest message carrying no marker, after which the
+     * documents can be read on their own. Cached rather than probed per query: a probe asking "is
+     * there still an unstamped document in this window" is cheap only while the answer is yes, and
+     * the steady state, where nothing matches and Elasticsearch has to prove absence, would become
+     * the expensive one on every query.
+     *
+     * <p>A failing probe answers "unusable" and is cached as such for the interval, rather than
+     * propagating. A watermark is an optimisation gate: its failure must mean "take the join", never
+     * "fail the request the join would have served" — and an uncached failure would be re-run by
+     * every request, each paying the client timeout before falling back anyway.
+     */
+    private DirectPathReadiness directPathReadiness(String windowIndex, String messageIndex) {
+        var mine = new CompletableFuture<DirectPathReadiness>();
+        var previousWatermark = new AtomicReference<Instant>();
+
+        // Only the future is created under the bin lock, never the searches behind it: these are
+        // blocking calls with no timeout of their own, and ConcurrentHashMap#compute holds the lock for
+        // the whole mapping function — probing inside it would serve every message query on this index
+        // one at a time, behind the slowest Elasticsearch call. Publishing the future instead gives
+        // single-flight without that queue: the first caller probes, the rest wait on its answer.
+        var probe = directPathReadiness.compute(windowIndex, (key, existing) -> {
+            if (existing != null && existing.startedAt().isAfter(Instant.now().minus(enrichmentWatermarkTtl))) {
+                return existing;
+            }
+            if (existing != null) {
+                var answered = existing.readiness().getNow(null);
+                if (answered != null) {
+                    previousWatermark.set(answered.newestUnenriched());
+                }
+            }
+            return new Probe(Instant.now(), mine);
+        });
+
+        if (probe.readiness() == mine) {
+            try {
+                mine.complete(
+                    new DirectPathReadiness(
+                        newestUnenrichedMessage(messageIndex, previousWatermark.get()),
+                        dimensionsAreKeyword(windowIndex)
+                    )
+                );
+            } catch (RuntimeException e) {
+                // Answered as unusable rather than left absent: a failing probe that is not remembered
+                // is re-run by every request, each paying the client timeout before falling back anyway.
+                log.warn("Cannot establish whether {} can be read without the connection join; keeping the join", windowIndex, e);
+            } finally {
+                // No-op once completed above. Without it, a caller that threw something other than a
+                // RuntimeException would leave everyone waiting on this future forever.
+                mine.complete(KEEP_THE_JOIN);
+            }
+        }
+
+        return probe.readiness().join();
+    }
+
+    /** Every stamped dimension must be a keyword on every index covering the window, or none of them is usable. */
+    private boolean dimensionsAreKeyword(String windowIndex) {
+        for (var field : CONNECTION_DIMENSION_FIELDS) {
+            // Non-empty as well as all-keyword: `allMatch` is vacuously true on an empty set, which
+            // would read "every index maps it correctly" as "no index maps it at all" — the one case
+            // where the direct path is guaranteed to return nothing.
+            var types = this.client.getFieldTypes(windowIndex, field).blockingGet();
+            if (types == null || types.isEmpty()) {
+                // A cross-cluster prefix lands here every time: the mapping endpoint behind
+                // getFieldTypes does not resolve remote indices, so it answers nothing rather than
+                // failing. The join still works there, which is why this only keeps the join.
+                log.debug("Message - {} is not mapped on any {} index; keeping the join", field, windowIndex);
+                return false;
+            }
+            if (!types.stream().allMatch(KEYWORD::equals)) {
+                log.debug("Message - {} is {} rather than a keyword on {}; keeping the join", field, types, windowIndex);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Newest message document carrying no marker, or {@code null} when every one of them does.
+     *
+     * <p>{@code since} bounds the search at the last answer, so the steady state costs a slice of one
+     * period rather than a scan of the whole retention. The bound is only sound because the answer is
+     * clamped never to move backwards: a document written below {@code since} would be missed by the
+     * bounded search, and reporting {@code null} for it would open the direct path over a window that
+     * still holds unstamped documents. Clamping keeps the error on the side of the join.
+     *
+     * <p>The cost of the clamp is that the watermark stays where it is once retention deletes the
+     * documents that set it, so windows reaching back that far keep the join for good. They predate
+     * stamping, so the join is the right answer for them anyway.
+     */
+    private Instant newestUnenrichedMessage(String messageIndex, Instant since) {
+        var unstamped = new JsonObject().put("must_not", JsonObject.of("exists", JsonObject.of("field", ENRICHMENT_MARKER_FIELD)));
+        if (since != null) {
+            unstamped.put("filter", JsonObject.of("range", JsonObject.of("@timestamp", JsonObject.of("gte", since.toEpochMilli()))));
+        }
+
+        var watermarkQuery = new JsonObject()
+            .put("size", 0)
+            .put("query", JsonObject.of("bool", unstamped))
+            .put("aggs", JsonObject.of(WATERMARK_AGG_NAME, JsonObject.of("max", JsonObject.of("field", "@timestamp"))));
+
+        log.debug("Message - enrichment watermark query: {}", watermarkQuery);
+
+        var response = client.search(messageIndex, null, watermarkQuery.toString()).blockingGet();
+
+        return newest(response) == null ? since : newest(response);
+    }
+
+    private static Instant newest(SearchResponse response) {
+        if (response.getAggregations() == null) {
+            return null;
+        }
+        var aggregation = response.getAggregations().get(WATERMARK_AGG_NAME);
+        return aggregation == null || aggregation.getValue() == null ? null : Instant.ofEpochMilli(aggregation.getValue().longValue());
     }
 
     private Set<String> searchMessageConnectionRequestIDs(Query query, String httpIndex) {
