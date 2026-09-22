@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { planFormToPayload } from './planTransformers';
+import { planFormToPayload, planToFormValue } from './planTransformers';
 import { EMPTY_GENERAL, EMPTY_RESTRICTIONS, EMPTY_SECURITY } from '../types/plan';
-import type { PlanContext, PlanFormValue } from '../types/plan';
+import type { ManagedPlan, PlanContext, PlanFormValue } from '../types/plan';
 
 const API_CTX: PlanContext = { type: 'api', entityId: 'api-1' };
 const API_PRODUCT_CTX: PlanContext = { type: 'api-product', entityId: 'product-1' };
+
+const SAVED_PLAN: ManagedPlan = {
+    id: 'plan-1',
+    name: 'Restricted Gold',
+    status: 'PUBLISHED',
+    order: 1,
+    validation: 'MANUAL',
+    security: { type: 'API_KEY', configuration: {} },
+};
 
 const FEDERATED_PLAN_FORM: PlanFormValue = {
     securityType: 'API_KEY',
@@ -183,5 +192,156 @@ describe('planFormToPayload', () => {
                 ],
             },
         ]);
+    });
+});
+
+describe('planToFormValue', () => {
+    it('reads every restriction setting back out of the saved policy flows', () => {
+        const plan: ManagedPlan = {
+            ...SAVED_PLAN,
+            flows: [
+                {
+                    enabled: true,
+                    request: [
+                        {
+                            policy: 'rate-limit',
+                            enabled: true,
+                            configuration: {
+                                errorStrategy: 'BLOCK_ON_INTERNAL_ERROR',
+                                async: true,
+                                addHeaders: false,
+                                rate: {
+                                    key: "#request.headers['X-Tenant']",
+                                    useKeyOnly: true,
+                                    limit: 37,
+                                    dynamicLimit: '{#context.attributes.rateMax}',
+                                    periodTime: 45,
+                                    periodTimeUnit: 'SECONDS',
+                                    dynamicPeriodTime: '{#context.attributes.ratePeriod}',
+                                },
+                            },
+                        },
+                    ],
+                },
+                {
+                    enabled: true,
+                    request: [
+                        {
+                            policy: 'quota',
+                            enabled: true,
+                            configuration: {
+                                errorStrategy: 'FALLBACK_PASS_TROUGH',
+                                async: false,
+                                addHeaders: true,
+                                quota: {
+                                    key: "#request.headers['X-Account']",
+                                    useKeyOnly: false,
+                                    limit: 9000,
+                                    dynamicLimit: '{#context.attributes.quotaMax}',
+                                    periodTime: 3,
+                                    periodTimeUnit: 'MONTHS',
+                                    dynamicPeriodTime: '{#context.attributes.quotaPeriod}',
+                                },
+                            },
+                        },
+                    ],
+                },
+                {
+                    enabled: true,
+                    request: [
+                        {
+                            policy: 'resource-filtering',
+                            enabled: true,
+                            configuration: {
+                                whitelist: [{ pattern: '/public/**', methods: ['GET'] }],
+                                blacklist: [{ pattern: '/admin/**', methods: ['POST', 'DELETE'] }],
+                                normalizeRequestPath: true,
+                                decodeEncodedSlash: true,
+                            },
+                        },
+                    ],
+                },
+            ],
+        };
+
+        expect(planToFormValue(plan).restrictions).toEqual({
+            rateLimitEnabled: true,
+            rateLimit: {
+                errorStrategy: 'BLOCK_ON_INTERNAL_ERROR',
+                async: true,
+                addHeaders: false,
+                key: "#request.headers['X-Tenant']",
+                useKeyOnly: true,
+                max: 37,
+                dynamicLimit: '{#context.attributes.rateMax}',
+                period: 45,
+                unit: 'SECONDS',
+                dynamicPeriodTime: '{#context.attributes.ratePeriod}',
+            },
+            quotaEnabled: true,
+            quota: {
+                errorStrategy: 'FALLBACK_PASS_TROUGH',
+                async: false,
+                addHeaders: true,
+                key: "#request.headers['X-Account']",
+                useKeyOnly: false,
+                max: 9000,
+                dynamicLimit: '{#context.attributes.quotaMax}',
+                period: 3,
+                unit: 'MONTHS',
+                dynamicPeriodTime: '{#context.attributes.quotaPeriod}',
+            },
+            resourceFilteringEnabled: true,
+            resourceFiltering: [
+                { whitelist: true, pattern: '/public/**', methods: ['GET'] },
+                { whitelist: false, pattern: '/admin/**', methods: ['POST', 'DELETE'] },
+            ],
+            normalizeRequestPath: true,
+            decodeEncodedSlash: true,
+        });
+    });
+
+    it('offers the wizard defaults when the plan carries no policy flow', () => {
+        expect(planToFormValue({ ...SAVED_PLAN, flows: [] }).restrictions).toEqual({
+            rateLimitEnabled: false,
+            rateLimit: {
+                errorStrategy: 'FALLBACK_PASS_TROUGH',
+                async: false,
+                addHeaders: false,
+                key: '',
+                useKeyOnly: false,
+                max: 10,
+                dynamicLimit: '',
+                period: 1,
+                unit: 'SECONDS',
+                dynamicPeriodTime: '',
+            },
+            quotaEnabled: false,
+            quota: {
+                errorStrategy: 'FALLBACK_PASS_TROUGH',
+                async: false,
+                addHeaders: true,
+                key: '',
+                useKeyOnly: false,
+                max: 100,
+                dynamicLimit: '',
+                period: 1,
+                unit: 'HOURS',
+                dynamicPeriodTime: '',
+            },
+            resourceFilteringEnabled: false,
+            resourceFiltering: [],
+            normalizeRequestPath: false,
+            decodeEncodedSlash: false,
+        });
+    });
+
+    it('offers the wizard defaults when the plan has no flows key at all', () => {
+        const restrictions = planToFormValue(SAVED_PLAN).restrictions;
+
+        expect(restrictions.rateLimitEnabled).toBe(false);
+        expect(restrictions.quotaEnabled).toBe(false);
+        expect(restrictions.resourceFilteringEnabled).toBe(false);
+        expect(restrictions.resourceFiltering).toEqual([]);
     });
 });
