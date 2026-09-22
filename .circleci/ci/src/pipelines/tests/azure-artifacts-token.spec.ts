@@ -146,7 +146,7 @@ describe('Azure Artifacts token', () => {
         'repositories-tests/job-elastic-test-container',
         'repositories-tests/job-redis-test-container',
         'full-release/job-backend-build-and-publish-on-download-website',
-        'full-release/job-nexus-staging',
+        'full-release/job-publish-release',
       ]),
     );
   });
