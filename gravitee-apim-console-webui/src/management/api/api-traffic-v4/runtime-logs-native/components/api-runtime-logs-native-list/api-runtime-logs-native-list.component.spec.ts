@@ -54,6 +54,46 @@ describe('ApiRuntimeLogsNativeListComponent', () => {
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiRuntimeLogsNativeListHarness);
   };
 
+  describe('when more logs matched than the store will page to', () => {
+    const setupBounded = async (totalCount: number, reachableCount?: number) => {
+      TestBed.configureTestingModule({
+        imports: [ApiRuntimeLogsNativeListComponent, MatIconTestingModule, GioTestingModule],
+        providers: [provideAnimationsAsync('noop'), { provide: GioTestingPermissionProvider, useValue: ['api-native_analytics-r'] }],
+      });
+      fixture = TestBed.createComponent(ApiRuntimeLogsNativeListComponent);
+      component = fixture.componentInstance;
+      fixture.componentRef.setInput('logs', [fakeNativeApiLog()]);
+      fixture.componentRef.setInput('pagination', { page: 1, perPage: 10, totalCount });
+      fixture.componentRef.setInput('reachableCount', reachableCount);
+      fixture.detectChanges();
+    };
+
+    it('drives the paginator from what is reachable, not from the count', async () => {
+      // The count is honest; the paginator has to respect what the store will actually serve, or it offers
+      // pages the API answers with a 400.
+      await setupBounded(50_000, 10_000);
+
+      expect(component.pageableCount()).toBe(10_000);
+      expect(component.unreachableCount()).toBe(40_000);
+    });
+
+    it('explains the gap rather than leaving it to be discovered by clicking', async () => {
+      await setupBounded(50_000, 10_000);
+
+      const banner = fixture.nativeElement.querySelector('[data-testid="native_logs_reachable_banner"]');
+      expect(banner).toBeTruthy();
+      expect(banner.textContent).toContain('Narrow the time range or add a filter');
+    });
+
+    it('says nothing when every match is reachable', async () => {
+      await setupBounded(42);
+
+      expect(component.pageableCount()).toBe(42);
+      expect(component.unreachableCount()).toBe(0);
+      expect(fixture.nativeElement.querySelector('[data-testid="native_logs_reachable_banner"]')).toBeNull();
+    });
+  });
+
   it('renders application name when id is in the resolved set', async () => {
     await setup([fakeNativeApiLog({ applicationId: 'app-1' })]);
     expect(component.applicationName('app-1')).toBe('Order Service');

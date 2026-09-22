@@ -18,4 +18,16 @@ package io.gravitee.repository.log.v4.model;
 import io.gravitee.repository.analytics.query.response.Response;
 import java.util.List;
 
-public record LogResponse<T>(long total, List<T> data) implements Response {}
+/**
+ * @param total how many documents matched, which is the honest count.
+ * @param maxReachableTotal how many of them a caller can actually page to, or {@code null} when the store
+ *     imposes no such limit. Elasticsearch refuses a from/size page past {@code index.max_result_window}, so
+ *     on a busy API the two numbers differ and a paginator driven by {@code total} alone offers pages that
+ *     come back as an error. Kept separate rather than clamping {@code total}, because the count is useful
+ *     even where the rows are out of reach.
+ */
+public record LogResponse<T>(long total, List<T> data, Long maxReachableTotal) implements Response {
+    public LogResponse(long total, List<T> data) {
+        this(total, data, null);
+    }
+}

@@ -10267,6 +10267,14 @@ components:
                                     $ref: "#/components/schemas/NativeApiLog"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
+                            reachableCount:
+                                type: integer
+                                format: int64
+                                description: |-
+                                    How many of the matching logs can actually be paged to, when that is fewer than `pagination.totalCount`.
+                                    The analytics store refuses to page past a fixed window, so on a busy API the count is honest but the rows beyond the window are out of reach — narrow the time range or the filters to bring them into it.
+                                    Absent when every matching log is reachable. A client driving a paginator should use this rather than `totalCount`, or it will offer pages the API answers with a 400.
+                                example: 10000
                             links:
                                 $ref: "#/components/schemas/Links"
         NativeApiLogResponse:

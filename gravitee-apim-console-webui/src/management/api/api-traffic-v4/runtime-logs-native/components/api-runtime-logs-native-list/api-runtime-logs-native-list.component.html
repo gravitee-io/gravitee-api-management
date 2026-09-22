@@ -15,12 +15,18 @@
     limitations under the License.
 
 -->
+@if (unreachableCount() > 0) {
+  <gio-banner-info class="reachable-banner" data-testid="native_logs_reachable_banner">
+    Showing the first {{ pageableCount() | number }} of {{ pagination().totalCount | number }} connections
+    <span class="mat-body">Narrow the time range or add a filter to bring the rest into view.</span>
+  </gio-banner-info>
+}
 <gio-table-wrapper
   class="table-wrapper"
   [disableSearchInput]="true"
   [paginationPageSizeOptions]="pageSizeOptions"
   [filters]="gioTableWrapperFilters()"
-  [length]="pagination().totalCount"
+  [length]="pageableCount()"
   (filtersChange)="onFiltersChanged($event)"
 >
   <table mat-table [dataSource]="logs()" id="nativeLogsTable" aria-label="Native API logs table" class="table">

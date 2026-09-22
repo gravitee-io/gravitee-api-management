@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.log;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService;
 import io.gravitee.apim.core.log.model.NativeApiLog;
 import io.gravitee.apim.core.log.model.NativeConnectionStatus;
@@ -77,7 +78,16 @@ class NativeApiLogCrudServiceImpl implements NativeApiLogCrudService {
                 .size(size)
                 .build();
             var response = metricsRepository.searchNativeApiMetrics(executionContext.getQueryContext(), query);
-            return new SearchLogsResponse<>(response.total(), response.data().stream().map(NativeApiLogCrudServiceImpl::map).toList());
+            return new SearchLogsResponse<>(
+                response.total(),
+                response.data().stream().map(NativeApiLogCrudServiceImpl::map).toList(),
+                response.maxReachableTotal()
+            );
+        } catch (IllegalArgumentException e) {
+            // The query layer rejecting the caller's own pagination, not a search that went wrong. Translated
+            // here, at the boundary where infrastructure exceptions become domain ones, so the resource answers
+            // 400 with the message naming the page rather than 500 with a stack trace.
+            throw new ValidationDomainException(e.getMessage(), e);
         } catch (AnalyticsException e) {
             log.error("An error occurs while trying to search native connection logs [apiId={}]", apiId, e);
             throw new TechnicalManagementException("Error while searching native connection logs " + apiId, e);

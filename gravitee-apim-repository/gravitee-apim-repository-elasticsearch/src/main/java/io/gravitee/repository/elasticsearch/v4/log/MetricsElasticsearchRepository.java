@@ -135,10 +135,15 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
             queryContext,
             List.of(DefinitionVersion.V4)
         );
+        // Built before the try on purpose. The adapter refuses a page past the cluster's result window with an
+        // IllegalArgumentException, and that is the caller's mistake, not a search failure: wrapping it as an
+        // AnalyticsException turns a 400 into a 500 and buries the message that says which page was too deep.
+        var searchQuery = NativeApiMetricsSearchQueryAdapter.adapt(query, configuration.getMaxResultWindow());
         try {
-            return this.client.search(indexes, null, NativeApiMetricsSearchQueryAdapter.adapt(query))
-                .map(NativeApiMetricsSearchResponseAdapter::adapt)
-                .blockingGet();
+            var response = this.client.search(indexes, null, searchQuery).map(NativeApiMetricsSearchResponseAdapter::adapt).blockingGet();
+            // The count is truthful; how far it can be paged is not the same number. Handed up rather than
+            // used to clamp the total, so the caller can say "10 000 of 50 000" instead of just "10 000".
+            return new LogResponse<>(response.total(), response.data(), (long) configuration.getMaxResultWindow());
         } catch (RuntimeException e) {
             log.error("Failed to search native metrics [apiId={}]", query.getApiId(), e);
             throw new AnalyticsException("Failed to search native metrics for api " + query.getApiId(), e);

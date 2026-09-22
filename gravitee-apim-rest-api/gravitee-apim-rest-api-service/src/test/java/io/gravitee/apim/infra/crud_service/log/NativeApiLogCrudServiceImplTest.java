@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.log.crud_service.NativeApiLogCrudService;
 import io.gravitee.apim.core.log.model.NativeApiLog;
 import io.gravitee.apim.core.log.model.NativeConnectionStatus;
@@ -259,6 +260,24 @@ class NativeApiLogCrudServiceImplTest {
             stubRepositoryThrowing(new AnalyticsException("Simulated Elasticsearch failure"));
 
             assertThatThrownBy(this::searchWithDefaults).isInstanceOf(TechnicalManagementException.class).hasMessageContaining(API_ID);
+        }
+
+        @Test
+        void translates_a_rejected_page_into_a_validation_failure() throws AnalyticsException {
+            // The query layer refuses a page past the cluster's result window with an IllegalArgumentException.
+            // That is the caller's own pagination, not a search that went wrong, and the translation here is
+            // the whole reason it reaches the client as a 400 rather than a 500 with a stack trace: the
+            // resource layer maps ValidationDomainException, and nothing else in this chain would.
+            when(metricsRepository.searchNativeApiMetrics(any(), any(NativeApiMetricsQuery.class))).thenThrow(
+                new IllegalArgumentException("page 5000 of size 10 reaches beyond the first 10000 connection events")
+            );
+
+            assertThatThrownBy(this::searchWithDefaults)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("page 5000")
+                .isNot(
+                    new org.assertj.core.api.Condition<>(t -> t instanceof TechnicalManagementException, "wrapped as a technical failure")
+                );
         }
 
         private SearchLogsResponse<NativeApiLog> searchWithDefaults() {

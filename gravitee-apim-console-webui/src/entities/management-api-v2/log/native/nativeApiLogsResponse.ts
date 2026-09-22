@@ -33,4 +33,11 @@ export interface NativeApiLogsResponse {
   data?: NativeApiLog[];
   pagination?: Pagination;
   links?: Links;
+  /**
+   * How many of the matching logs can actually be paged to, when that is fewer than `pagination.totalCount`.
+   *
+   * Absent when every match is reachable, which is the common case. The analytics store refuses to page past
+   * a fixed window, so a paginator driven by `totalCount` would offer pages the API answers with a 400.
+   */
+  reachableCount?: number;
 }
