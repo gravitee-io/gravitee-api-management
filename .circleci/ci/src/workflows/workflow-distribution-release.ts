@@ -343,7 +343,7 @@ export class DistributionReleaseWorkflow {
       }),
 
       // Trigger gravitee-apim-api-docs ingestion (fire-and-forget; the docs
-      // pipeline absorbs the Sonatype → Maven Central propagation delay).
+      // pipeline resolves the jars from the Azure feed on its side).
       new workflow.WorkflowJob(triggerApimApiDocsPipelineJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
         name: 'Trigger APIM API docs ingestion',
