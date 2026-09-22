@@ -38,4 +38,32 @@ describe('federatedProviderLabel', () => {
         expect(federatedProviderLabel('AWS')).toBe(federatedProviderLabel('aws-api-gateway'));
         expect(federatedProviderLabel('AWS')).toBe('AWS API Gateway');
     });
+
+    describe('unmapped provider warning', () => {
+        let warn: jest.SpyInstance;
+
+        beforeEach(() => {
+            warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            warn.mockRestore();
+        });
+
+        it.each<[string, string]>([
+            ['has no map entry', 'mycompany-gateway'],
+            ['collides with an Object.prototype member', 'toString'],
+        ])('warns once with a provider code that %s', (_scenario, provider) => {
+            federatedProviderLabel(provider);
+
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith(expect.any(String), provider);
+        });
+
+        it.each(['aws-api-gateway', 'AWS'])('does not warn for the mapped provider code %s', provider => {
+            federatedProviderLabel(provider);
+
+            expect(warn).not.toHaveBeenCalled();
+        });
+    });
 });

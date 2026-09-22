@@ -27,5 +27,9 @@ const FEDERATED_PROVIDER_LABELS: Record<string, string> = {
 };
 
 export function federatedProviderLabel(provider: string): string {
-    return Object.prototype.hasOwnProperty.call(FEDERATED_PROVIDER_LABELS, provider) ? FEDERATED_PROVIDER_LABELS[provider] : provider;
+    if (Object.prototype.hasOwnProperty.call(FEDERATED_PROVIDER_LABELS, provider)) {
+        return FEDERATED_PROVIDER_LABELS[provider];
+    }
+    console.warn('[ApiList] Unmapped federated provider code, rendering it verbatim:', provider);
+    return provider;
 }
