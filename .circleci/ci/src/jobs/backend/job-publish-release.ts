@@ -66,13 +66,6 @@ export class PublishReleaseJob {
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Maven deploy to the Azure feed (releases)',
-        // `gio-release`, not `gravitee-release`. The latter declares
-        // central-publishing-maven-plugin with extensions=true, and that extension takes the
-        // deploy phase away from maven-deploy-plugin — the parent POM says so itself. Under it
-        // altDeploymentRepository would be a parameter of a plugin that never runs, and the
-        // step would offer Central a bundle instead of filling the feed. `gio-release` carries
-        // the same enforcer, GPG signing, sources and javadoc, and nothing else.
-        //
         // `gio-release`, not `gravitee-release`: the latter takes the deploy phase away from
         // maven-deploy-plugin, and altDeploymentRepository would then be a parameter of a
         // plugin that never runs. Same enforcer, GPG signing, sources and javadoc.

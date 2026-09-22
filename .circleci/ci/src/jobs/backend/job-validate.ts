@@ -49,7 +49,7 @@ export class ValidateJob {
         // On master that is the branch's own snapshot, republished on every merge. Elsewhere it is a
         // release. What this depends on is that the pin never names a version nobody produces any
         // more: a branch whose code freeze left the pin behind would make every pull request here
-        // rest on Nexus not purging a snapshot. BX-383 is what closes that.
+        // rest on the snapshot repository not purging it. BX-383 is what closes that.
         name: 'Validate distribution',
         command: `mvn -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml validate -nsu -Dgravitee.archrules.skip=true --no-transfer-progress -Pintegration-tests-modules ${mavenParallelism('large')}`,
       }),

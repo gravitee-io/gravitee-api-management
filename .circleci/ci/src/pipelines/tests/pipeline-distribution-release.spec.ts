@@ -84,7 +84,7 @@ describe('Distribution release tests', () => {
   );
 
   // The specs live in the core's jars, the site publishes them under the product's number. Sent one
-  // version, the docs pipeline polls Maven Central for a jar that will never exist.
+  // version, the docs pipeline looks up a jar that will never exist.
   it('should send the docs site the pin to fetch and the release to publish under', () => {
     const generated = generateDistributionReleaseConfig({
       action: 'distribution_release',
