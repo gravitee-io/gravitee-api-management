@@ -830,11 +830,6 @@ const FEDERATED_SHOWN_LABELS = [
     'Logs',
 ];
 
-// Everything the canonical nav declares, plus the two deep links withObservabilityLinks inserts at render time.
-// Derived rather than typed out: the claim under test is that federation filtered nothing, not that the nav holds
-// some particular set of rows — API_PROXY_NAV_GROUPS' own contents are asserted in ApiDetailSidebarNav.spec.tsx.
-const NON_FEDERATED_SHOWN_LABELS = [...API_PROXY_NAV_GROUPS.flatMap(group => group.items.map(item => item.label)), 'Dashboard', 'Logs'];
-
 const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Design', 'Operations'];
 
 const FEDERATED_KEPT_LINKS: [label: string, path: string][] = [
@@ -940,7 +935,12 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
     it.each(['V4', 'V4_NATIVE'])('keeps every section for a %s API, which is not federated', definitionVersion => {
         renderSidebarForApiOfDefinitionVersion(definitionVersion);
 
-        expect(renderedNavLabels()).toEqual([...NON_FEDERATED_SHOWN_LABELS].sort());
+        // Everything the canonical nav declares, plus the two deep links withObservabilityLinks inserts at render
+        // time. Derived rather than typed out: the claim is that federation filtered nothing, not that the nav
+        // holds some particular set of rows — API_PROXY_NAV_GROUPS' contents are asserted in its own spec.
+        expect(renderedNavLabels()).toEqual(
+            [...API_PROXY_NAV_GROUPS.flatMap(group => group.items.map(item => item.label)), 'Dashboard', 'Logs'].sort(),
+        );
         for (const heading of FEDERATED_EMPTIED_GROUP_HEADINGS) {
             expect(screen.getByText(heading)).toBeInTheDocument();
         }
