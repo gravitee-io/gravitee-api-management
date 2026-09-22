@@ -21,8 +21,8 @@ import { CircleCIEnvironment } from '../../pipelines';
 import { mavenParallelism } from '../../utils';
 
 export class PublishJob {
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, target: 'nexus' | 'artifactory'): Job {
-    const jobName = `job-publish-on-${target}`;
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+    const jobName = 'job-publish-snapshot';
 
     const restoreMavenJobCacheCmd = RestoreMavenJobCacheCommand.get(environment);
     const saveMavenJobCacheCmd = SaveMavenJobCacheCommand.get();
@@ -38,18 +38,10 @@ export class PublishJob {
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCmd, { jobName }),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
-      target === 'nexus'
-        ? new commands.Run({
-            name: 'Maven Package and deploy to Nexus Snapshots',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U`,
-          })
-        : new commands.Run({
-            name: 'Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)',
-            command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
-          }),
-      // Only this target publishes to the feed, not the Nexus one: both run on the same push and
-      // deploy the same snapshot, and an Azure feed is immutable, so the second would take a 409.
-      //
+      new commands.Run({
+        name: 'Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)',
+        command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot`,
+      }),
       // Reuses the target/ the step above produced — maven-jar-plugin leaves a jar alone when its
       // classes have not changed — so the feed gets the bytes Artifactory got, not a rebuild.
       // altDeploymentRepository overrides what the profile sets, leaving profiles and signing alone.
@@ -57,19 +49,15 @@ export class PublishJob {
       // Fatal, like the deploy to Artifactory above. A swallowed failure here would leave the
       // feed silently short of a snapshot while the build stayed green, and nothing would
       // surface it until Artifactory is switched off. This step goes when Artifactory does.
-      ...(target === 'nexus'
-        ? []
-        : [
-            new commands.Run({
-              name: 'Maven deploy to the Azure feed (snapshots)',
-              // Both flags on purpose: for a SNAPSHOT version maven-deploy-plugin reads
-              // altSnapshotDeploymentRepository first, so a profile setting it would win over
-              // altDeploymentRepository alone. No profile does today; this keeps the command
-              // line authoritative if one ever does.
-              command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl} \\
+      new commands.Run({
+        name: 'Maven deploy to the Azure feed (snapshots)',
+        // Both flags on purpose: for a SNAPSHOT version maven-deploy-plugin reads
+        // altSnapshotDeploymentRepository first, so a profile setting it would win over
+        // altDeploymentRepository alone. No profile does today; this keeps the command
+        // line authoritative if one ever does.
+        command: `mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true ${mavenParallelism('large')} -s ${config.maven.settingsFile} -U -P gio-artifactory-snapshot -DaltDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl} \\
   -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::${config.maven.azureSnapshotsFeedUrl}`,
-            }),
-          ]),
+      }),
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new reusable.ReusedCommand(saveMavenJobCacheCmd, { jobName }),
     ];

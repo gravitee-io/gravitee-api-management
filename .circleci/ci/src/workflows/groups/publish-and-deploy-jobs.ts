@@ -36,11 +36,8 @@ import { config } from '../../config';
  * snapshot repositories has been tested before merge, not after it.
  */
 export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-  const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, environment, 'artifactory');
-  dynamicConfig.addJob(publishOnArtifactoryJob);
-
-  const publishOnNexusJob = PublishJob.create(dynamicConfig, environment, 'nexus');
-  dynamicConfig.addJob(publishOnNexusJob);
+  const publishSnapshotJob = PublishJob.create(dynamicConfig, environment);
+  dynamicConfig.addJob(publishSnapshotJob);
 
   const releaseHelmDryRunJob = ReleaseHelmJob.create(dynamicConfig, environment);
   dynamicConfig.addJob(releaseHelmDryRunJob);
@@ -86,13 +83,8 @@ export function publishAndDeployJobs(dynamicConfig: Config, environment: CircleC
       context: config.jobContext,
       requires: ['Trigger SaaS Docker images creation'],
     }),
-    new workflow.WorkflowJob(publishOnArtifactoryJob, {
-      name: 'Publish on artifactory',
-      context: config.jobContext,
-      requires: ['Build backend'],
-    }),
-    new workflow.WorkflowJob(publishOnNexusJob, {
-      name: 'Publish on nexus',
+    new workflow.WorkflowJob(publishSnapshotJob, {
+      name: 'Publish snapshot',
       context: config.jobContext,
       requires: ['Build backend'],
     }),
