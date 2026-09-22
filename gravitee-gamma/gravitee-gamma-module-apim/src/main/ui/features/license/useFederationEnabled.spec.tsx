@@ -16,7 +16,7 @@
 import { licenseService } from '@gravitee/gamma-modules-sdk';
 import type { License } from '@gravitee/gamma-modules-sdk/types';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 import { useFederationEnabled } from './useFederationEnabled';
@@ -25,11 +25,12 @@ import { fetchOrgConsoleSettings, type OrgConsoleSettings } from '../settings/se
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
-    licenseService: { subscribe: () => () => {}, getSnapshot: jest.fn() },
+    licenseService: { subscribe: jest.fn(() => () => {}), getSnapshot: jest.fn() },
 }));
 jest.mock('../settings/services/orgConsoleSettings', () => ({ fetchOrgConsoleSettings: jest.fn() }));
 
 const mockLicenseSnapshot = jest.mocked(licenseService.getSnapshot);
+const mockLicenseSubscribe = jest.mocked(licenseService.subscribe);
 const mockFetchOrgConsoleSettings = jest.mocked(fetchOrgConsoleSettings);
 
 const EXPIRED_ENTERPRISE_LICENSE: License = { ...ENTERPRISE_LICENSE, isExpired: true };
@@ -73,6 +74,21 @@ describe('useFederationEnabled', () => {
 
         await waitFor(() => expect(result.current.isResolved).toBe(true));
         expect(result.current.enabled).toBe(false);
+    });
+
+    it('enables federation when the host pushes an entitled license after first render', async () => {
+        mockLicenseSnapshot.mockReturnValue(OSS_LICENSE);
+        mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
+
+        const { result } = renderHook(() => useFederationEnabled(), { wrapper: createWrapper() });
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+        expect(result.current.enabled).toBe(false);
+
+        mockLicenseSnapshot.mockReturnValue(ENTERPRISE_LICENSE);
+        const notifyLicenseChanged = mockLicenseSubscribe.mock.calls.at(-1)![0];
+        act(() => notifyLicenseChanged());
+
+        await waitFor(() => expect(result.current.enabled).toBe(true));
     });
 
     it('keeps federation off when the license entitles it but the org setting is off', async () => {
