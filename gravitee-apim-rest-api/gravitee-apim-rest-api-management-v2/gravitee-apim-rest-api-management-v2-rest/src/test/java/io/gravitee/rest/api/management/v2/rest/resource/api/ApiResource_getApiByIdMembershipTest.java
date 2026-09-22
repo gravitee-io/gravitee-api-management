@@ -51,7 +51,7 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
     }
 
     @Test
-    public void should_return_403_when_user_is_neither_admin_nor_direct_member_nor_group_member() {
+    void should_return_403_when_user_is_neither_admin_nor_direct_member_nor_group_member() {
         givenAFederatedApiOwnedByAGroup();
         when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Set.of());
         when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP)).thenReturn(Set.of());
@@ -62,7 +62,7 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
     }
 
     @Test
-    public void should_return_the_api_when_user_is_a_member_through_the_api_group() {
+    void should_return_the_api_when_user_is_a_member_through_the_api_group() {
         givenAFederatedApiOwnedByAGroup();
         when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Set.of());
         when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP)).thenReturn(
