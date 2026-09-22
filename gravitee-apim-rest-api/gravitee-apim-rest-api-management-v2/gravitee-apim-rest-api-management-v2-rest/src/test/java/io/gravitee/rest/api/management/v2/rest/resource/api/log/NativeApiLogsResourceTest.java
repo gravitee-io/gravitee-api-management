@@ -200,6 +200,48 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     }
 
     @Test
+    void getFilteredLogs_never_links_to_a_page_the_store_would_refuse() {
+        // track_total_hits makes the count honest, and on a busy API the honest count runs past the window
+        // Elasticsearch will page to. A `last` link computed from the count alone points at a page that comes
+        // back as a 400, so the links are bounded by what is reachable while the count stays as it is.
+        givenPermission(RolePermission.API_NATIVE_LOG, true);
+        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(10))).thenReturn(
+            new SearchLogsResponse<>(50_000L, filteredLogs(), 10_000L)
+        );
+
+        Response response = rootTarget()
+            .queryParam("from", FROM_MILLIS)
+            .queryParam("to", TO_MILLIS)
+            .queryParam("perPage", 10)
+            .request()
+            .get();
+
+        assertThat(response).hasStatus(OK_200);
+        var body = response.readEntity(NativeApiLogsResponse.class);
+        assertThat(body.getPagination().getTotalCount()).as("the count stays truthful").isEqualTo(50_000L);
+        assertThat(body.getLinks().getLast()).as("the last link stops at the last servable page").contains("page=1000");
+    }
+
+    @Test
+    void getFilteredLogs_links_to_every_page_when_the_store_sets_no_window() {
+        // The no-op repository, or any store that pages without a window, reports no bound at all.
+        givenPermission(RolePermission.API_NATIVE_LOG, true);
+        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(10))).thenReturn(
+            new SearchLogsResponse<>(50_000L, filteredLogs())
+        );
+
+        Response response = rootTarget()
+            .queryParam("from", FROM_MILLIS)
+            .queryParam("to", TO_MILLIS)
+            .queryParam("perPage", 10)
+            .request()
+            .get();
+
+        var body = response.readEntity(NativeApiLogsResponse.class);
+        assertThat(body.getLinks().getLast()).contains("page=5000");
+    }
+
+    @Test
     void getFilteredLogs_returns_filtered_logs_when_permitted() {
         givenPermission(RolePermission.API_NATIVE_LOG, true);
         var logs = filteredLogs();

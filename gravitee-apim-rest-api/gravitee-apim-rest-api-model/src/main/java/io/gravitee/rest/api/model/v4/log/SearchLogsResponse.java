@@ -17,4 +17,14 @@ package io.gravitee.rest.api.model.v4.log;
 
 import java.util.List;
 
-public record SearchLogsResponse<T>(long total, List<T> logs) {}
+/**
+ * @param total how many logs matched.
+ * @param maxReachableTotal how many of them can actually be paged to, or {@code null} when unlimited. See
+ *     {@code LogResponse} — the store can refuse pages beyond a window, and the paginator has to respect that
+ *     while the count stays truthful.
+ */
+public record SearchLogsResponse<T>(long total, List<T> logs, Long maxReachableTotal) {
+    public SearchLogsResponse(long total, List<T> logs) {
+        this(total, logs, null);
+    }
+}

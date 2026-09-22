@@ -45,9 +45,31 @@ class NativeApiMetricsFindQueryAdapterTest {
                     { "range": { "@timestamp": { "gte": 1700000000000, "lte": 1700003600000 } } }
                   ]
                 }
-              }
+              },
+              "sort": [
+                { "@timestamp": { "order": "desc" } }
+              ]
             }
             """
         );
+    }
+
+    @Test
+    void sorts_newest_first_so_the_terminal_document_wins() {
+        // Documents written before each event got its own id share one request-id across a connection, and
+        // the lookup can still match several of them — but not within one index: `v4-metrics.ftl` writes the
+        // request-id verbatim as the document `_id`, so two documents sharing one overwrite rather than
+        // coexist. The multi-hit case is therefore across daily indices, a connection opened one day and
+        // closed the next, which is exactly the long-lived connection this feature is about. Without a sort
+        // Elasticsearch returns an arbitrary one and the detail page shows different data on each reload.
+        var json = NativeApiMetricsFindQueryAdapter.adapt(API_ID, REQUEST_ID, FROM, TO);
+
+        assertThatJson(json)
+            .node("sort")
+            .isEqualTo(
+                """
+                [ { "@timestamp": { "order": "desc" } } ]
+                """
+            );
     }
 }

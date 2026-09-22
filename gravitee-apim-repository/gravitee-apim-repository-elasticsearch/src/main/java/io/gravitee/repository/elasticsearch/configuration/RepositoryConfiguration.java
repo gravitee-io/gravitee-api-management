@@ -104,6 +104,16 @@ public class RepositoryConfiguration {
     @Value("${analytics.elasticsearch.http.timeout:10000}")
     private Long requestTimeout;
 
+    /**
+     * The cluster's {@code index.max_result_window}, past which Elasticsearch refuses a from/size page.
+     *
+     * <p>Configurable because it is an index setting, not a protocol limit: operators routinely raise it on
+     * log and metrics indices, and a query layer that assumed the default would refuse pages the cluster
+     * would happily serve. The default here is Elasticsearch's own.
+     */
+    @Value("${analytics.elasticsearch.index.max_result_window:10000}")
+    private int maxResultWindow;
+
     @Value("${analytics.elasticsearch.http.proxy.type:HTTP}")
     private String proxyType;
 
@@ -137,6 +147,10 @@ public class RepositoryConfiguration {
     private List<Endpoint> endpoints;
 
     private Map<String, String> crossClusterMapping;
+
+    public int getMaxResultWindow() {
+        return maxResultWindow;
+    }
 
     public String getUsername() {
         return username;

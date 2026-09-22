@@ -15,11 +15,11 @@
  */
 
 import { Component, computed, inject, input, output } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { NATIVE_STATUS_META } from '../../api-runtime-logs-native.models';
 import { GioPermissionService } from '../../../../../../shared/components/gio-permission/gio-permission.service';
@@ -39,13 +39,32 @@ const BASE_COLUMNS = ['timestamp', 'application', 'plan', 'clientIdentifier', 'c
   templateUrl: './api-runtime-logs-native-list.component.html',
   styleUrls: ['./api-runtime-logs-native-list.component.scss'],
   standalone: true,
-  imports: [GioTableWrapperModule, MatTableModule, MatButtonModule, MatIconModule, GioIconsModule, DatePipe, FormatDurationPipe],
+  imports: [
+    GioTableWrapperModule,
+    MatTableModule,
+    MatButtonModule,
+    MatIconModule,
+    GioIconsModule,
+    GioBannerModule,
+    DatePipe,
+    DecimalPipe,
+    FormatDurationPipe,
+  ],
 })
 export class ApiRuntimeLogsNativeListComponent {
   private readonly permissionService = inject(GioPermissionService);
 
   logs = input.required<NativeApiLog[]>();
   pagination = input.required<Pagination>();
+  /**
+   * How many of the matching logs the API can actually serve, when that is fewer than the total.
+   *
+   * The count is honest — a busy API really did have that many connection events in the window — but the
+   * analytics store refuses to page past a fixed window. Driving the paginator from the total would offer
+   * pages the API answers with a 400, so it is driven from this instead, and the gap is explained above the
+   * table rather than discovered by clicking.
+   */
+  reachableCount = input<number | undefined>(undefined);
   applications = input<Application[]>([]);
   plans = input<Plan[]>([]);
 
@@ -55,6 +74,14 @@ export class ApiRuntimeLogsNativeListComponent {
   protected readonly statusMeta = NATIVE_STATUS_META;
   protected readonly canViewDetail = this.permissionService.hasAnyMatching(['api-native_analytics-r']);
   displayedColumns = this.canViewDetail ? [...BASE_COLUMNS, 'view'] : BASE_COLUMNS;
+
+  readonly pageableCount = computed(() => this.reachableCount() ?? this.pagination().totalCount);
+
+  readonly unreachableCount = computed(() => {
+    const total = this.pagination().totalCount;
+    const reachable = this.reachableCount();
+    return reachable == null || reachable >= total ? 0 : total - reachable;
+  });
 
   readonly gioTableWrapperFilters = computed(() => {
     const pagination = this.pagination();

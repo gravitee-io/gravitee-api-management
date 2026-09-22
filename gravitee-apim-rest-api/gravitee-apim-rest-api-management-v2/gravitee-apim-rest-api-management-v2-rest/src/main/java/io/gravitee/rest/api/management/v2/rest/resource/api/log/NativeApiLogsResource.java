@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchNati
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.log.SearchLogsResponse;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -75,10 +76,18 @@ public class NativeApiLogsResource extends AbstractResource {
             )
         );
         var data = NativeApiLogsMapper.INSTANCE.mapList(output.response().logs());
+        // The total stays honest — an operator wants to know a busy API had 50 000 connection events in the
+        // window. The links do not: Elasticsearch refuses a from/size page past its result window, so a `last`
+        // link computed from the real total would point at a page that answers 400. Bounding it here keeps
+        // every page the API advertises a page the API can serve.
+        long reachable = reachableTotal(output.response());
         return new NativeApiLogsResponse()
             .data(data)
             .pagination(computePaginationInfo(output.response().total(), data.size(), paginationParam))
-            .links(computePaginationLinks(output.response().total(), paginationParam));
+            .links(computePaginationLinks(reachable, paginationParam))
+            // Only when it bites. Sending it on every response would have every client carry a branch for a
+            // case most APIs never reach.
+            .reachableCount(reachable < output.response().total() ? reachable : null);
     }
 
     @GET
@@ -111,5 +120,15 @@ public class NativeApiLogsResource extends AbstractResource {
             .nativeApiLog()
             .map(NativeApiLogsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No native log found for api: " + apiId + " and requestId: " + requestId));
+    }
+
+    /**
+     * How many of the matching logs can actually be paged to.
+     *
+     * <p>Absent means the store imposes no window — the no-op repository, or an implementation that pages
+     * without one — and then every matching log is reachable.
+     */
+    private static long reachableTotal(SearchLogsResponse<?> response) {
+        return response.maxReachableTotal() == null ? response.total() : Math.min(response.total(), response.maxReachableTotal());
     }
 }

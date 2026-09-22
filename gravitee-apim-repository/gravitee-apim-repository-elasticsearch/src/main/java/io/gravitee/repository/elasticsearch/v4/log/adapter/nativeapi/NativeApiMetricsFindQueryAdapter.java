@@ -31,7 +31,18 @@ public final class NativeApiMetricsFindQueryAdapter {
             term(RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics(), requestId),
             timestampRange(from, to)
         );
-        var query = JsonObject.of("size", 1, "query", JsonObject.of("bool", JsonObject.of("must", JsonArray.of(must.toArray()))));
+        // Kept for documents written before the gateway gave each connection event its own request id.
+        // Those share one id per connection, so this lookup can still match several of them, and newest-first
+        // makes the terminal one win — the document carrying the duration and the outcome. Newer documents
+        // match exactly one hit, and the sort costs nothing.
+        var query = JsonObject.of(
+            "size",
+            1,
+            "query",
+            JsonObject.of("bool", JsonObject.of("must", JsonArray.of(must.toArray()))),
+            "sort",
+            JsonArray.of(JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")))
+        );
         return query.encode();
     }
 
