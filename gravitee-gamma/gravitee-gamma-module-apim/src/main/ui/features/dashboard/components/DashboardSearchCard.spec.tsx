@@ -139,17 +139,27 @@ function stubSearchByRequestedApiTypes(): SearchBody[] {
     return bodies;
 }
 
+type NavigationCallback = 'onNavigateToApi' | 'onNavigateToProduct';
+
+type NavigationCase = [string, string, NavigationCallback, string, NavigationCallback];
+
+const NAVIGATION_CASES: NavigationCase[] = [
+    ['API', 'Orders Proxy', 'onNavigateToApi', 'proxy-2', 'onNavigateToProduct'],
+    ['API Product', 'Orders Product', 'onNavigateToProduct', 'product-1', 'onNavigateToApi'],
+];
+
 function renderCard() {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const navigation = { onNavigateToApi: jest.fn(), onNavigateToProduct: jest.fn() };
     // A fresh element each time, since React bails out of re-rendering the identical one; the client is kept so a
     // cache filled under one gate state is still there under the next.
     const tree = () => (
         <QueryClientProvider client={queryClient}>
-            <DashboardSearchCard onNavigateToApi={jest.fn()} onNavigateToProduct={jest.fn()} />
+            <DashboardSearchCard onNavigateToApi={navigation.onNavigateToApi} onNavigateToProduct={navigation.onNavigateToProduct} />
         </QueryClientProvider>
     );
     const { rerender } = render(tree());
-    return { rerenderCard: () => rerender(tree()) };
+    return { navigation, rerenderCard: () => rerender(tree()) };
 }
 
 describe('DashboardSearchCard', () => {
@@ -230,6 +240,24 @@ describe('DashboardSearchCard', () => {
         // Each keystroke issues its own search, so the assertion waits for the one carrying the whole term.
         await waitFor(() => expect(apiSearches.lastCall?.body).toEqual({ query: SEARCH_TERM, apiTypes: PROXY_TYPES }));
     });
+
+    it.each(NAVIGATION_CASES)(
+        'navigates to the clicked %s result by its own id and not to the other kind',
+        async (_kind, rowName, expectedCallback, expectedId, otherCallback) => {
+            const user = userEvent.setup();
+            trackHandler('get', ORG_CONSOLE_PATH, { federation: { enabled: false } });
+            trackHandler('post', SEARCH_PATH, { data: [PROXY_API], pagination: { page: 1, perPage: 5, pageCount: 1, totalCount: 1 } });
+            stubProductSearch([MATCHING_PRODUCT]);
+
+            const { navigation } = renderCard();
+            await user.type(screen.getByPlaceholderText(SEARCH_PLACEHOLDER), SEARCH_TERM);
+            await user.click(await screen.findByRole('button', { name: new RegExp(rowName) }));
+
+            expect(navigation[expectedCallback]).toHaveBeenCalledTimes(1);
+            expect(navigation[expectedCallback]).toHaveBeenCalledWith(expectedId);
+            expect(navigation[otherCallback]).not.toHaveBeenCalled();
+        },
+    );
 
     it('keeps saying it is searching rather than announcing no results while the federation gate is still resolving', async () => {
         const user = userEvent.setup();
