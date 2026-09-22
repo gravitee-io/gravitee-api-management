@@ -211,4 +211,29 @@ describe('ShellLayout app switcher', () => {
         const menu = await screen.findByRole('menu');
         expect(within(menu).getByRole('separator')).toBeTruthy();
     });
+
+    it('should open Developer Portals in a new tab on the classic console portal editor', async () => {
+        const open = jest.spyOn(window, 'open').mockImplementation(() => null);
+
+        const modules: GammaModule[] = [
+            { id: 'apim', name: 'API Management', version: '1.0.0', remoteName: 'apim', exposedModule: 'Module' },
+            { id: 'portals', name: 'Developer Portals', version: '1.0.0', remoteName: 'portals', exposedModule: 'Module' },
+        ];
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        const user = userEvent.setup();
+        await user.click(screen.getByRole('button', { name: 'Home' }));
+        await user.click(await screen.findByRole('menuitem', { name: /Developer Portals/ }));
+
+        expect(open).toHaveBeenCalledWith('http://console.test/#!/env-1/_portal/navigation', '_blank', 'noopener,noreferrer');
+        open.mockRestore();
+    });
 });

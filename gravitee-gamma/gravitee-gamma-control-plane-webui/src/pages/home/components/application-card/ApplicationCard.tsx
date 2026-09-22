@@ -36,6 +36,12 @@ export interface CardMetrics {
 
 const HOVER_RING = `0 0 0 1px color-mix(in oklab, var(--color-muted-foreground) 40%, transparent), 0 4px 16px 0 rgb(0 0 0 / 0.08)`;
 
+const CARD_LINK_CLASS = 'cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+
+function isAbsoluteHttpUrl(href: string): boolean {
+    return href.startsWith('http://') || href.startsWith('https://');
+}
+
 function formatCompact(n: number): string {
     if (n >= 10_000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}k`;
     return n.toLocaleString('en-US');
@@ -140,18 +146,31 @@ export function ApplicationCard({
         );
     }
 
+    const href = isEmptyState && emptyState.ctaPath ? `${to}/${emptyState.ctaPath}` : to;
+    const hoverHandlers = {
+        onMouseEnter: () => setIsHovered(true),
+        onMouseLeave: () => setIsHovered(false),
+        onFocus: () => setIsHovered(true),
+        onBlur: () => setIsHovered(false),
+    };
+
+    const card = (
+        <Card className="h-full transition-shadow duration-150" style={{ boxShadow: isHovered ? HOVER_RING : undefined }}>
+            {inner}
+        </Card>
+    );
+
+    if (isAbsoluteHttpUrl(href)) {
+        return (
+            <a href={href} target="_blank" rel="noopener noreferrer" className={CARD_LINK_CLASS} {...hoverHandlers}>
+                {card}
+            </a>
+        );
+    }
+
     return (
-        <Link
-            to={ctaTarget!}
-            className="cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-            onFocus={() => setIsHovered(true)}
-            onBlur={() => setIsHovered(false)}
-        >
-            <Card className="h-full transition-shadow duration-150" style={{ boxShadow: isHovered ? HOVER_RING : undefined }}>
-                {inner}
-            </Card>
+        <Link to={href} className={CARD_LINK_CLASS} {...hoverHandlers}>
+            {card}
         </Link>
     );
 }

@@ -34,7 +34,8 @@ import {
 import { useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { useEnvHrid } from '../../features/environment/environment.utils';
-import type { GammaModule, ModuleId } from '../../features/modules';
+import { PORTALS_MODULE_ID, buildPortalNextEditorUrl, type GammaModule, type ModuleId } from '../../features/modules';
+import { useBootstrapStore } from '../../shared/config/bootstrap.store';
 
 function pluralize(count: number | null, singular: string, plural: string): string {
     return count === 1 ? singular : plural;
@@ -50,6 +51,7 @@ interface HomePageProps {
 export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
     const user = useUser();
     const envHrid = useEnvHrid();
+    const consoleUrl = useBootstrapStore(s => s.config?.consoleUrl);
     const envName = useEnvironmentStore(s => s.currentEnvironment?.name);
     const firstName = user?.firstname?.trim() || user?.displayName?.split(' ')[0] || '';
 
@@ -154,7 +156,14 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
                 ) : (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {APPLICATIONS.map(app => {
-                            const to = isAvailable(app.moduleId) || !app.upgrade ? buildModulePath(envHrid, app.moduleId) : null;
+                            let to = null;
+                            if (isAvailable(app.moduleId) && app.moduleId === PORTALS_MODULE_ID) {
+                                // portals module redirects to portal-next editor in classic console
+                                to = consoleUrl ? buildPortalNextEditorUrl(consoleUrl, envHrid) : null;
+                            } else if (isAvailable(app.moduleId) || !app.upgrade) {
+                                // other modules redirect to the module path
+                                to = buildModulePath(envHrid, app.moduleId);
+                            }
                             return (
                                 <ApplicationCard key={app.title} app={app} to={to} metrics={to ? moduleMetrics[app.moduleId] : undefined} />
                             );

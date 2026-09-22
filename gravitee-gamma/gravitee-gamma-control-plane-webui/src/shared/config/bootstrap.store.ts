@@ -23,6 +23,8 @@ export interface BootstrapConfig {
     managementBaseURL: string;
     gammaBaseURL: string;
     organizationId: string;
+    /** Classic console origin, used to deep-link features that still live there. */
+    consoleUrl: string;
     identityProviders: SocialIdentityProvider[];
     localLoginEnabled: boolean;
     registrationEnabled: boolean;
@@ -144,6 +146,7 @@ export const useBootstrapStore = create<BootstrapState>()(
 
                     const managementBaseURL = sanitizeBaseURL(bootstrap.managementBaseURL);
                     const organizationId = bootstrap.organizationId as string;
+                    const consoleUrl = sanitizeBaseURL(bootstrap.consoleUrl);
                     const loginMethods = await loadLoginMethods(managementBaseURL, organizationId);
                     const loginMethodsFetchedAt =
                         loginMethods.identityProviders !== undefined && loginMethods.consoleSettings !== undefined ? Date.now() : null;
@@ -153,6 +156,7 @@ export const useBootstrapStore = create<BootstrapState>()(
                             managementBaseURL,
                             gammaBaseURL: sanitizeBaseURL(bootstrap.gammaBaseURL),
                             organizationId,
+                            consoleUrl,
                             identityProviders: loginMethods.identityProviders ?? [],
                             ...(loginMethods.consoleSettings ?? UNREAD_CONSOLE_ACCESS_SETTINGS),
                         },

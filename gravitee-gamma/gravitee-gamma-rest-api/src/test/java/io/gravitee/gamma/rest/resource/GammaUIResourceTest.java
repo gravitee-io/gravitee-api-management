@@ -111,5 +111,23 @@ class GammaUIResourceTest extends AbstractResourceTest {
             var body = response.readEntity(GammaUIResource.GammaBootstrap.class);
             assertThat(body.managementBaseURL()).isEqualTo("http://api.gamma.management.example.com/management");
         }
+
+        @Test
+        void should_return_console_url_from_service() {
+            installationAccessQueryService.setConsoleUrl("https://console.example.com");
+
+            final Response response = rootTarget().request().get();
+
+            var body = response.readEntity(GammaUIResource.GammaBootstrap.class);
+            assertThat(body.consoleUrl()).isEqualTo("https://console.example.com");
+        }
+
+        @Test
+        void should_fall_back_to_default_console_url_when_service_returns_null() {
+            final Response response = rootTarget().request().get();
+
+            var body = response.readEntity(GammaUIResource.GammaBootstrap.class);
+            assertThat(body.consoleUrl()).isEqualTo("http://localhost:4000");
+        }
     }
 }

@@ -24,8 +24,15 @@ import { UserMenu } from './UserMenu';
 import { useAvatarCacheBust, useLogout, useUser } from '../../features/auth';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
-import type { GammaModule } from '../../features/modules';
-import { HOME_ICON, MODULE_ICONS, findModuleProduct, orderByCatalog } from '../../features/modules';
+import {
+    PORTALS_MODULE_ID,
+    HOME_ICON,
+    MODULE_ICONS,
+    buildPortalNextEditorUrl,
+    findModuleProduct,
+    orderByCatalog,
+    type GammaModule,
+} from '../../features/modules';
 import { currentUserAvatarUrl } from '../../pages/my-account/myAccount.mapping';
 import { PendingTasksBadge } from '../../pages/tasks';
 import { useBootstrapStore } from '../config/bootstrap.store';
@@ -102,9 +109,15 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
                 navigate(`/environments/${envHrid}/home`);
                 return;
             }
+            if (key === PORTALS_MODULE_ID) {
+                if (config?.consoleUrl) {
+                    window.open(buildPortalNextEditorUrl(config.consoleUrl, envHrid), '_blank', 'noopener,noreferrer');
+                }
+                return;
+            }
             navigate(`/environments/${envHrid}/${key}`);
         },
-        [envHrid, navigate],
+        [config?.consoleUrl, envHrid, navigate],
     );
 
     // `search` and `hash` are dropped along with the sub-path -- they carry filters and tabs that

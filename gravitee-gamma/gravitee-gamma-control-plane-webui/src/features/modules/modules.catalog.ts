@@ -23,6 +23,9 @@ interface ModuleProduct {
     readonly tagline: string;
 }
 
+/** Module id for the Developer Portals module. Portal editor in classic console is used until Gamma owns the editor. */
+export const PORTALS_MODULE_ID = 'portals' as const;
+
 /**
  * Gravitee products, in the order the app switcher and the home page present them: the products of the
  * gravitee.io Platform menu first, in its order, then the other modules.
@@ -33,7 +36,7 @@ export const MODULE_CATALOG = [
     { id: 'apim', label: 'API Management', tagline: 'Design, deploy, and govern HTTP APIs' },
     { id: 'esm', label: 'Event Stream Management', tagline: 'Manage Kafka clusters, services, and event mesh' },
     { id: 'authz', label: 'Authorization Management', tagline: 'Fine-grained authorization policies' },
-    { id: 'portals', label: 'Developer Portals', tagline: 'Design and manage developer portal experiences' },
+    { id: PORTALS_MODULE_ID, label: 'Developer Portals', tagline: 'Design and manage developer portal experiences' },
     { id: 'edge', label: 'Edge Management', tagline: 'Monitor and manage Edge Daemons' },
     { id: 'platform', label: 'Platform Management', tagline: 'Apps, subscriptions, and usage' },
 ] as const satisfies readonly ModuleProduct[];

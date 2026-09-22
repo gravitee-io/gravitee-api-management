@@ -84,8 +84,13 @@ public class GammaUIResource {
                 .toUriString();
         }
 
-        return Response.ok(new GammaBootstrap(gammaApiUrl, managementApiUrl, organizationId)).build();
+        String consoleUrl = installationAccessQueryService.getConsoleUrl(organizationId);
+        if (consoleUrl == null || consoleUrl.isBlank()) {
+            consoleUrl = InstallationAccessQueryService.DEFAULT_CONSOLE_URL;
+        }
+
+        return Response.ok(new GammaBootstrap(gammaApiUrl, managementApiUrl, organizationId, consoleUrl)).build();
     }
 
-    public record GammaBootstrap(String gammaBaseURL, String managementBaseURL, String organizationId) {}
+    public record GammaBootstrap(String gammaBaseURL, String managementBaseURL, String organizationId, String consoleUrl) {}
 }
