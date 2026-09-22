@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -42,9 +43,24 @@ jest.mock('@gravitee/graphene-core', () => ({
     DialogTitle: ({ children }: { children?: ReactNode }) => <h2>{children}</h2>,
     Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
     Skeleton: () => <div data-testid="skeleton" />,
-    Switch: ({ checked, disabled }: { checked?: boolean; disabled?: boolean }) => (
-        <input type="checkbox" checked={checked} disabled={disabled} readOnly />
-    ),
+    Switch: ({
+        id,
+        checked,
+        disabled,
+        onCheckedChange,
+    }: {
+        id?: string;
+        checked?: boolean;
+        disabled?: boolean;
+        onCheckedChange?: (checked: boolean) => void;
+    }) => <input type="checkbox" id={id} checked={checked} disabled={disabled} onChange={e => onCheckedChange?.(e.target.checked)} />,
+}));
+
+jest.mock('../../../../../shared/notify', () => ({ notify: { success: jest.fn(), error: jest.fn() } }));
+
+jest.mock('../../../services/apis', () => ({
+    ...jest.requireActual<object>('../../../services/apis'),
+    updateAllowMultiJwtOauth2Subscriptions: jest.fn(),
 }));
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
@@ -66,7 +82,15 @@ jest.mock('../../../hooks/usePlans', () => ({
 }));
 
 import { PlansPage } from './PlansPage';
+import { notify } from '../../../../../shared/notify';
+import { useApiDetail } from '../../../hooks/useApiDetail';
+import { updateAllowMultiJwtOauth2Subscriptions } from '../../../services/apis';
 import type { PlanContext } from '../../../types/plan';
+
+const mockUseApiDetail = useApiDetail as jest.Mock;
+const mockUpdateAllowMultiJwtOauth2Subscriptions = updateAllowMultiJwtOauth2Subscriptions as jest.Mock;
+const mockNotifySuccess = notify.success as jest.Mock;
+const mockNotifyError = notify.error as jest.Mock;
 
 const API_CTX: PlanContext = { type: 'api', entityId: 'api-1' };
 const API_PRODUCT_CTX: PlanContext = { type: 'api-product', entityId: 'product-1' };
@@ -104,5 +128,67 @@ describe('PlansPage without the plan read permission', () => {
         expect(screen.getByText(/don't have permission to view plans/i)).toBeInTheDocument();
         expect(screen.queryByTestId('plans-list')).toBeNull();
         expect(screen.queryByRole('button', { name: /create plan/i })).toBeNull();
+    });
+});
+
+describe('PlansPage allow multi JWT/OAuth2 subscriptions toggle', () => {
+    function givenMultiSubscriptionsAllowed(allowed: boolean) {
+        mockUseApiDetail.mockReturnValue({ data: { id: 'api-1', allowMultiJwtOauth2Subscriptions: allowed } });
+    }
+
+    function multiSubscriptionsSwitch() {
+        return screen.getByRole('checkbox', { name: /allow multi jwt\/oauth2 subscriptions per application/i });
+    }
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        mockUseApiDetail.mockReturnValue({ data: undefined });
+    });
+
+    it('asks for confirmation before turning the setting on, then saves it as allowed', async () => {
+        givenMultiSubscriptionsAllowed(false);
+        mockUpdateAllowMultiJwtOauth2Subscriptions.mockResolvedValue({ id: 'api-1', allowMultiJwtOauth2Subscriptions: true });
+        renderPlansPage(API_CTX);
+
+        await userEvent.click(multiSubscriptionsSwitch());
+
+        const dialog = screen.getByRole('dialog');
+        expect(mockUpdateAllowMultiJwtOauth2Subscriptions).not.toHaveBeenCalled();
+
+        await userEvent.click(within(dialog).getByRole('button', { name: 'Enable' }));
+
+        await waitFor(() => expect(mockNotifySuccess).toHaveBeenCalledTimes(1));
+        expect(mockUpdateAllowMultiJwtOauth2Subscriptions).toHaveBeenCalledTimes(1);
+        expect(mockUpdateAllowMultiJwtOauth2Subscriptions).toHaveBeenCalledWith('DEFAULT', 'api-1', true);
+        expect(mockNotifyError).not.toHaveBeenCalled();
+    });
+
+    it('turns the setting off straight away without asking for confirmation', async () => {
+        givenMultiSubscriptionsAllowed(true);
+        mockUpdateAllowMultiJwtOauth2Subscriptions.mockResolvedValue({ id: 'api-1', allowMultiJwtOauth2Subscriptions: false });
+        renderPlansPage(API_CTX);
+
+        await userEvent.click(multiSubscriptionsSwitch());
+
+        await waitFor(() => expect(mockNotifySuccess).toHaveBeenCalledTimes(1));
+        expect(mockUpdateAllowMultiJwtOauth2Subscriptions).toHaveBeenCalledTimes(1);
+        expect(mockUpdateAllowMultiJwtOauth2Subscriptions).toHaveBeenCalledWith('DEFAULT', 'api-1', false);
+        expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('reports the failure instead of a success when saving the setting fails', async () => {
+        const failure = new Error('update rejected');
+        givenMultiSubscriptionsAllowed(true);
+        mockUpdateAllowMultiJwtOauth2Subscriptions.mockRejectedValue(failure);
+        renderPlansPage(API_CTX);
+
+        await userEvent.click(multiSubscriptionsSwitch());
+
+        await waitFor(() => expect(mockNotifyError).toHaveBeenCalledTimes(1));
+        expect(mockNotifyError.mock.calls[0][0]).toBe(failure);
+        expect(mockNotifySuccess).not.toHaveBeenCalled();
     });
 });
