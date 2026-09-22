@@ -282,6 +282,7 @@ export function ApiDetailLayout() {
 
     const isAgent = isFederatedAgentApi(api);
     const { permissionsReady } = useApiPermissions(apiId);
+    const sidebarNavReady = permissionsReady && Boolean(api);
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const isApiReviewer = useHasPermission({ anyOf: ['api-reviews-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
@@ -364,7 +365,7 @@ export function ApiDetailLayout() {
             contextSidebar: (
                 <ContextSidebar header={<ApiInfoHeader api={isError || isAgent ? null : (api ?? null)} isLoading={isLoading} />}>
                     {isError || isAgent ? null : (
-                        <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={permissionsReady} />
+                        <ApiDetailSidebarNav groups={navGroups} basePath={basePath} permissionsReady={sidebarNavReady} />
                     )}
                 </ContextSidebar>
             ),
@@ -397,7 +398,7 @@ export function ApiDetailLayout() {
             isLoading,
             isError,
             basePath,
-            permissionsReady,
+            sidebarNavReady,
             showDeployBanner,
             deployMutation.isPending,
             reviewBannerCopy,

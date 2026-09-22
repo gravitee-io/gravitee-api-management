@@ -801,6 +801,19 @@ describe('ApiDetailSidebarNav in the detail layout', () => {
             expect(screen.queryAllByRole(role)).toHaveLength(0);
         }
     });
+
+    it.each([
+        ['in flight', { data: undefined, isLoading: true, isError: false }],
+        ['disabled until the environment resolves', { data: undefined, isLoading: false, isError: false }],
+    ])('renders no navigation item while the API detail request is %s after permissions resolved', (_state, detailResult) => {
+        (useApiDetail as jest.Mock).mockReturnValue(detailResult);
+        renderLayout();
+        renderSidebar();
+
+        for (const role of NAV_ITEM_ROLES) {
+            expect(screen.queryAllByRole(role)).toHaveLength(0);
+        }
+    });
 });
 
 // ─── Sidebar navigation — federated APIs ──────────────────────────────────────
@@ -881,6 +894,21 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
         for (const heading of FEDERATED_EMPTIED_GROUP_HEADINGS) {
             expect(screen.queryByText(heading)).not.toBeInTheDocument();
         }
+    });
+
+    it('shows only the federated sections once the detail request resolves after the permissions request', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: undefined, isLoading: true, isError: false });
+        const { rerender } = renderLayout();
+
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'My API', definitionVersion: 'FEDERATED', type: 'PROXY' },
+            isLoading: false,
+            isError: false,
+        });
+        rerender(layoutTree('abc-123'));
+        renderSidebar();
+
+        expect(renderedNavLabels()).toEqual([...FEDERATED_SHOWN_LABELS].sort());
     });
 
     it('keeps the sections a federated API does have backing data for as navigable links', () => {
