@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Config, Workflow, workflow } from '@circleci/circleci-config-sdk';
-import { NexusStagingJob, ReleaseCommitAndPrepareNextVersionJob, SetupJob } from '../jobs';
+import { PublishReleaseJob, ReleaseCommitAndPrepareNextVersionJob, SetupJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
 
@@ -28,8 +28,8 @@ export class WorkflowMavenRelease {
     const releaseCommitAndPrepareNextVersionJob = ReleaseCommitAndPrepareNextVersionJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseCommitAndPrepareNextVersionJob);
 
-    const nexusStagingJob = NexusStagingJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(nexusStagingJob);
+    const publishReleaseJob = PublishReleaseJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(publishReleaseJob);
 
     return new Workflow(WorkflowMavenRelease.workflowName, [
       // Setup
@@ -43,9 +43,9 @@ export class WorkflowMavenRelease {
       }),
 
       // Build and deploy JARs to Maven Central
-      new workflow.WorkflowJob(nexusStagingJob, {
+      new workflow.WorkflowJob(publishReleaseJob, {
         context: config.jobContext,
-        name: 'Nexus staging',
+        name: 'Publish release',
         requires: ['Commit and prepare next version'],
       }),
     ]);

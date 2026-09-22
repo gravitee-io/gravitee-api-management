@@ -928,7 +928,7 @@ jobs:
                 }
               ]
             }
-  job-nexus-staging:
+  job-publish-release:
     docker:
       - image: cimg/openjdk:21.0.9-node
     resource_class: xlarge
@@ -938,19 +938,16 @@ jobs:
           name: Checkout tag 4.2.0-hotfix.1
           command: git checkout 4.2.0-hotfix.1
       - cmd-restore-maven-job-cache:
-          jobName: job-nexus-staging
+          jobName: job-publish-release
       - attach_workspace:
           at: .
       - cmd-prepare-gpg
       - cmd-azure-artifacts-token
       - run:
-          name: Release on Nexus
-          command: mvn clean deploy --activate-profiles gravitee-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots
-      - run:
           name: Maven deploy to the Azure feed (releases)
-          command: mvn deploy --activate-profiles gio-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots -DaltDeploymentRepository=azure-artifacts-gravitee::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1
+          command: mvn clean deploy --activate-profiles gio-release --batch-mode -T 4 -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=true --settings .gravitee.settings.xml --update-snapshots -DaltDeploymentRepository=azure-artifacts-gravitee::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee/maven/v1
       - cmd-save-maven-job-cache:
-          jobName: job-nexus-staging
+          jobName: job-publish-release
   job-trigger-saas-docker-images:
     docker:
       - image: cimg/base:stable
@@ -1330,10 +1327,10 @@ workflows:
             - Build APIM Portal chainguard-fips docker image for APIM 4.2.0-hotfix.1
             - Build APIM Console chainguard-fips docker image for APIM 4.2.0-hotfix.1
             - Build Gamma Console chainguard-fips docker image for APIM 4.2.0-hotfix.1
-      - job-nexus-staging:
+      - job-publish-release:
           context:
             - cicd-orchestrator
-          name: Nexus staging
+          name: Publish release
           requires:
             - Trigger SaaS Docker images creation
       - job-trigger-apim-api-docs-pipeline:
@@ -1342,7 +1339,7 @@ workflows:
             - keeper-orb-publishing
           name: Trigger APIM API docs ingestion
           requires:
-            - Nexus staging
+            - Publish release
       - job-release-helm:
           context:
             - cicd-orchestrator
@@ -1362,7 +1359,7 @@ workflows:
           name: Announce release is completed
           message: 🎆 APIM - 4.2.0-hotfix.1 released!
           requires:
-            - Nexus staging
+            - Publish release
             - Release Helm Chart
             - Trigger APIM API docs ingestion
             - Build and push RPM packages for APIM 4.2.0-hotfix.1
