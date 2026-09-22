@@ -22,6 +22,7 @@ public class ConfigurableInstallationAccessQueryService extends InstallationAcce
     private String gammaAPIUrl;
     private String gammaManagementAPIUrl;
     private String consoleAPIUrl;
+    private String consoleUrl;
 
     @Override
     public String getGammaAPIUrl(String organizationId) {
@@ -38,6 +39,11 @@ public class ConfigurableInstallationAccessQueryService extends InstallationAcce
         return consoleAPIUrl;
     }
 
+    @Override
+    public String getConsoleUrl(String organizationId) {
+        return consoleUrl;
+    }
+
     public void setGammaAPIUrl(String gammaAPIUrl) {
         this.gammaAPIUrl = gammaAPIUrl;
     }
@@ -50,8 +56,13 @@ public class ConfigurableInstallationAccessQueryService extends InstallationAcce
         this.consoleAPIUrl = consoleAPIUrl;
     }
 
+    public void setConsoleUrl(String consoleUrl) {
+        this.consoleUrl = consoleUrl;
+    }
+
     public void reset() {
         this.gammaAPIUrl = null;
         this.consoleAPIUrl = null;
+        this.consoleUrl = null;
     }
 }

@@ -25,7 +25,7 @@ import {
     SignUpPage,
 } from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
-import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
+import { PORTALS_MODULE_ID, PortalNextEditorRedirect, type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
 import { HomePage } from '../pages/home';
 import { MyAccountPage } from '../pages/my-account';
 import { TasksPage } from '../pages/tasks';
@@ -80,9 +80,10 @@ export function AppRoutes() {
                             <Route path="tasks" element={<TasksPage />} />
                             <Route path="my-account" element={<MyAccountPage />} />
                         </Route>
-                        {modules.map((m: GammaModule) => (
-                            <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
-                        ))}
+                        {modules.map((m: GammaModule) => {
+                            const element = m.id === PORTALS_MODULE_ID ? <PortalNextEditorRedirect /> : <RemoteModuleRoute module={m} />;
+                            return <Route key={m.id} path={`${m.id}/*`} element={element} />;
+                        })}
                         <Route index element={<Navigate to="home" replace />} />
                     </Route>
                 </Route>

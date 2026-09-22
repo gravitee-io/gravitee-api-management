@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type { GammaModule, GammaModuleResponse } from './modules.types';
-export { HOME_ICON, MODULE_ICONS } from './modules.icons';
-export { useGammaModules } from './hooks/useGammaModules';
-export { useModulesStore } from './modules.store';
-export { MODULE_CATALOG, PORTALS_MODULE_ID, findModuleProduct, getModuleLabel, orderByCatalog, type ModuleId } from './modules.catalog';
-export { RemoteModuleRoute } from './components/RemoteModuleRoute';
-export { PortalNextEditorRedirect } from './components/PortalNextEditorRedirect';
-export { buildPortalNextEditorUrl, redirectToPortalNextEditor } from './portal-next';
+
+/** Builds the URL to the portal-next editor for the given environment. */
+export function buildPortalNextEditorUrl(consoleUrl: string, envHrid: string): string {
+    const origin = consoleUrl.endsWith('/') ? consoleUrl.slice(0, -1) : consoleUrl;
+    return `${origin}/#!/${encodeURIComponent(envHrid)}/_portal/navigation`;
+}
+
+/** Replaces the current page with the portal-next editor in the classic console. */
+export function redirectToPortalNextEditor(consoleUrl: string, envHrid: string): void {
+    window.location.replace(buildPortalNextEditorUrl(consoleUrl, envHrid));
+}

@@ -220,7 +220,9 @@ describe('HomePage', () => {
         expect(aimCta?.getAttribute('href')).toBe('/environments/env-1/aim');
 
         const portalsCta = within(appsSection).getByText('Open Developer Portals').closest('a');
-        expect(portalsCta?.getAttribute('href')).toBe('/environments/env-1/portals');
+        expect(portalsCta?.getAttribute('href')).toBe('http://console.test/#!/env-1/_portal/navigation');
+        expect(portalsCta?.getAttribute('target')).toBe('_blank');
+        expect(portalsCta?.getAttribute('rel')).toBe('noopener noreferrer');
     });
 
     it('should show metric view with Open CTA when module has data', async () => {
