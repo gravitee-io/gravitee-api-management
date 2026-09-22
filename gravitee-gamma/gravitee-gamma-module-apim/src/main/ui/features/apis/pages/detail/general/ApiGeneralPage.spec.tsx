@@ -833,6 +833,26 @@ describe('ApiGeneralPage', () => {
         exportSpy.mockRestore();
     });
 
+    it('exports the CRD definition as a -crd.yml download from the CRD tab of the export dialog', async () => {
+        const crdSpy = jest
+            .spyOn(apiServices, 'exportApiCrd')
+            .mockResolvedValue(new Blob(['kind: ApiV4Definition'], { type: 'text/yaml' }));
+        const definitionSpy = jest.spyOn(apiServices, 'exportApiDefinition');
+        const downloadedFileNames: string[] = [];
+        jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+            downloadedFileNames.push(this.download);
+        });
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /export/i }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.click(within(dialog).getByRole('tab', { name: /CRD API Definition/i }));
+        fireEvent.click(within(dialog).getByRole('button', { name: /^export$/i }));
+
+        await waitFor(() => expect(downloadedFileNames).toEqual(['My-Test-API-v1-0-crd.yml']));
+        expect(crdSpy).toHaveBeenCalledWith('DEFAULT', 'api-1');
+        expect(definitionSpy).not.toHaveBeenCalled();
+    });
+
     it('shows an inline error in the export sheet when the export request is refused', async () => {
         const exportSpy = jest.spyOn(apiServices, 'exportApiDefinition').mockRejectedValue(new Error('Export refused'));
         renderPage();
