@@ -29,5 +29,15 @@ import java.io.Serializable;
  *             A catch-all route ({@code *} or {@code /*}) explicitly sends all of the app's traffic to its
  *             {@code apiPath}.
  * @param apiPath gateway api_path the matched traffic is forwarded to
+ * @param apiId id of the target API behind {@code apiPath}, or {@code null}. Read by the Edge reactor, never
+ *              sent to the daemon.
+ * @param planId id of the target API's plan this route declares, or {@code null}. Read by the Edge reactor, never
+ *               sent to the daemon.
+ * @param subscriptionId id of the subscription to {@code planId} the route obtains its OAuth2 client from, or
+ *                       {@code null}. Read by the Edge reactor, never sent to the daemon.
  */
-public record RouteMapping(String path, String apiPath) implements Serializable {}
+public record RouteMapping(String path, String apiPath, String apiId, String planId, String subscriptionId) implements Serializable {
+    public RouteMapping(String path, String apiPath) {
+        this(path, apiPath, null, null, null);
+    }
+}
