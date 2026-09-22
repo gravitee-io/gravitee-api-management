@@ -20,7 +20,7 @@ import {
   BuildDockerBackendImageJob,
   BuildDockerWebUiImageJob,
   ConsoleWebuiBuildJob,
-  NexusStagingJob,
+  PublishReleaseJob,
   PackageBundleJob,
   PortalWebuiBuildJob,
   PublishRpmPackagesJob,
@@ -74,8 +74,8 @@ export class FullReleaseWorkflow {
     const releaseNoteApimJob = ReleaseNotesApimJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseNoteApimJob);
 
-    const nexusStagingJob = NexusStagingJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(nexusStagingJob);
+    const publishReleaseJob = PublishReleaseJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(publishReleaseJob);
 
     const runTriggerSaasDockerImagesJob = TriggerSaasDockerImagesJob.create(environment, 'prod');
     dynamicConfig.addJob(runTriggerSaasDockerImagesJob);
@@ -178,10 +178,10 @@ export class FullReleaseWorkflow {
         ],
       }),
 
-      // Nexus staging
-      new workflow.WorkflowJob(nexusStagingJob, {
+      // Publish release
+      new workflow.WorkflowJob(publishReleaseJob, {
         context: config.jobContext,
-        name: 'Nexus staging',
+        name: 'Publish release',
         requires: ['Trigger SaaS Docker images creation'],
       }),
 
@@ -190,7 +190,7 @@ export class FullReleaseWorkflow {
       new workflow.WorkflowJob(triggerApimApiDocsPipelineJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
         name: 'Trigger APIM API docs ingestion',
-        requires: ['Nexus staging'],
+        requires: ['Publish release'],
       }),
 
       // Release Helm chart
@@ -216,7 +216,7 @@ export class FullReleaseWorkflow {
         name: 'Announce release is completed',
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
         requires: [
-          'Nexus staging',
+          'Publish release',
           'Release Helm Chart',
           'Trigger APIM API docs ingestion',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
