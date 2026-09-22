@@ -102,7 +102,7 @@ public class ApisResource_SearchApisTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_return_403_when_user_has_no_environment_api_read_permission() {
+    void should_return_403_when_user_has_no_environment_api_read_permission() {
         var apiSearchQuery = new ApiSearchQuery();
         apiSearchQuery.setQuery("");
 
