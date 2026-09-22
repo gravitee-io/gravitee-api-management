@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Config, Workflow, workflow } from '../circleci-config';
-import { NexusStagingJob, PinCoreJob, SetupJob } from '../jobs';
+import { PublishReleaseJob, PinCoreJob, SetupJob } from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
 import { CORE_TAG_FILTER } from '../utils';
@@ -43,8 +43,8 @@ export class WorkflowCoreRelease {
     const setupJob = SetupJob.create(dynamicConfig);
     dynamicConfig.addJob(setupJob);
 
-    const nexusStagingJob = NexusStagingJob.create(dynamicConfig, environment, environment.tag);
-    dynamicConfig.addJob(nexusStagingJob);
+    const publishReleaseJob = PublishReleaseJob.create(dynamicConfig, environment, environment.tag);
+    dynamicConfig.addJob(publishReleaseJob);
 
     const pinCoreJob = PinCoreJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(pinCoreJob);
@@ -52,9 +52,9 @@ export class WorkflowCoreRelease {
     return new Workflow(WorkflowCoreRelease.workflowName, [
       new workflow.WorkflowJob(setupJob, { context: config.jobContext, name: 'Setup', filters: WorkflowCoreRelease.tagOnly }),
 
-      new workflow.WorkflowJob(nexusStagingJob, {
+      new workflow.WorkflowJob(publishReleaseJob, {
         context: config.jobContext,
-        name: 'Nexus staging',
+        name: 'Publish release',
         requires: ['Setup'],
         filters: WorkflowCoreRelease.tagOnly,
       }),
@@ -64,7 +64,7 @@ export class WorkflowCoreRelease {
       new workflow.WorkflowJob(pinCoreJob, {
         context: config.jobContext,
         name: 'Open the pinning pull request',
-        requires: ['Nexus staging'],
+        requires: ['Publish release'],
         filters: WorkflowCoreRelease.tagOnly,
       }),
     ]);

@@ -70,7 +70,7 @@ describe('Core release workflow tests', () => {
   it('should open it only after the core has been published', function () {
     const generated = generateCoreReleaseConfig(environment).stringify();
 
-    expect(generated.indexOf('Open the pinning pull request')).toBeGreaterThan(generated.indexOf('Nexus staging'));
+    expect(generated.indexOf('Open the pinning pull request')).toBeGreaterThan(generated.indexOf('Publish release'));
   });
 
   it('should refuse to believe a pin edit that did not take', function () {
