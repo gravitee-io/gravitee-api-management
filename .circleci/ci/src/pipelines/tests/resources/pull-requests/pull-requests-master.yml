@@ -916,7 +916,7 @@ jobs:
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-community-build
-  job-publish-on-artifactory:
+  job-publish-snapshot:
     docker:
       - image: cimg/openjdk:21.0.5
     resource_class: large
@@ -925,7 +925,7 @@ jobs:
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
-          jobName: job-publish-on-artifactory
+          jobName: job-publish-snapshot
       - cmd-azure-artifacts-token
       - run:
           name: Maven Package and deploy to Artifactory ([gravitee-snapshots] repository)
@@ -937,24 +937,7 @@ jobs:
               -DaltSnapshotDeploymentRepository=azure-artifacts-gravitee-snapshots::https://pkgs.dev.azure.com/graviteeio/packages/_packaging/gravitee-snapshots/maven/v1
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
-          jobName: job-publish-on-artifactory
-  job-publish-on-nexus:
-    docker:
-      - image: cimg/openjdk:21.0.5
-    resource_class: large
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - cmd-restore-maven-job-cache:
-          jobName: job-publish-on-nexus
-      - cmd-azure-artifacts-token
-      - run:
-          name: Maven Package and deploy to Nexus Snapshots
-          command: mvn deploy --no-transfer-progress -DskipTests -Dskip.validation=true -T 8 -s .gravitee.settings.xml -U
-      - cmd-notify-on-failure
-      - cmd-save-maven-job-cache:
-          jobName: job-publish-on-nexus
+          jobName: job-publish-snapshot
   job-release-helm:
     docker:
       - image: cimg/node:20.11.1
@@ -1456,18 +1439,8 @@ workflows:
             - cicd-orchestrator
           requires:
             - Trigger SaaS Docker images creation
-      - job-publish-on-artifactory:
-          name: Publish on artifactory
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test definition
-            - Test gateway
-            - Test plugins
-            - Test repository
-            - Test rest-api
-      - job-publish-on-nexus:
-          name: Publish on nexus
+      - job-publish-snapshot:
+          name: Publish snapshot
           context:
             - cicd-orchestrator
           requires:
