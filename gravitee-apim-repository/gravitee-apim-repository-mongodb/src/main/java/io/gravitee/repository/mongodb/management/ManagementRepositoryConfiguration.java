@@ -85,7 +85,8 @@ public class ManagementRepositoryConfiguration extends AbstractRepositoryConfigu
         super.configureConverters(adapter);
         // AbstractMongoClientConfiguration never scans the context for @ReadingConverter/@WritingConverter
         // beans on its own — declaring one with @Bean alone does not register it with MongoCustomConversions.
-        // Every custom Converter bean in this class must also be added here explicitly.
+        // Every custom Converter bean in this class must also be added here explicitly: bsonUndefinedToNull
+        // silently stopped being applied when this class moved to @Bean-only wiring.
         adapter.registerConverter(bsonUndefinedToNullReadingConverter());
         adapter.registerConverter(dictionaryPropertyReadingConverter());
         adapter.registerConverter(dictionaryPropertyWritingConverter());
