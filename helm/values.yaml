@@ -947,6 +947,22 @@ api:
     login:
       defaultApplication: true
     anonymizeOnDelete: false
+    # Password policy applied to local accounts. Nothing is rendered unless set, and the API falls back to its own shipped defaults.
+    # password:
+    #   policy:
+    #     # Your own explanation of the policy. GET /configuration/password-policy
+    #     # carries it exactly as written here, and carries it empty when you leave
+    #     # it blank -- Gravitee never writes one for you. The response also carries
+    #     # the rules derived from the pattern below, which will not cover a
+    #     # requirement the pattern states in a way the parser cannot read. Set one
+    #     # whenever you change the pattern: changing it without writing a
+    #     # description logs a warning at startup and users see no guidance.
+    #     description:
+    #     # Defaults to a 12 to 128 character password with at least one digit, one
+    #     # upper case letter, one lower case letter, one special character, and no
+    #     # more than 2 consecutive equal characters. Setting it blank accepts no
+    #     # password at all: remove the key to fall back to the shipped default.
+    #     pattern:
   supportEnabled: true
   ratingEnabled: true
   newsletterEnabled: true
