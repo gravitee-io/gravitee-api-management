@@ -22,7 +22,7 @@ import { useUpdatePlan } from './usePlans';
 import { updatePlan } from '../services/plans';
 import { EMPTY_GENERAL, EMPTY_RESTRICTIONS, EMPTY_SECURITY } from '../types/plan';
 import type { ManagedPlan, PlanContext, PlanFormValue } from '../types/plan';
-import { apiPlanKeys } from '../utils/queryKeys';
+import { apiDetailKeys, apiPlanKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -53,11 +53,11 @@ const FORM: PlanFormValue = {
     restrictions: { ...EMPTY_RESTRICTIONS },
 };
 
-function renderUpdatePlanHook() {
+function renderUpdatePlanHook(ctx: PlanContext = CTX) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
     const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
-    const { result } = renderHook(() => useUpdatePlan(CTX), { wrapper });
+    const { result } = renderHook(() => useUpdatePlan(ctx), { wrapper });
     return { result, queryClient, invalidateQueries };
 }
 
@@ -84,5 +84,22 @@ describe('useUpdatePlan once the mutation settles', () => {
 
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-plans', 'api', 'api-1'] });
+    });
+
+    it.each([
+        { ctx: { type: 'api', entityId: 'api-1' } as PlanContext, invalidatesApiDetail: true },
+        { ctx: { type: 'api-product', entityId: 'api-1' } as PlanContext, invalidatesApiDetail: false },
+    ])('invalidates the API detail only for an API context ($ctx.type)', async ({ ctx, invalidatesApiDetail }) => {
+        const { result, invalidateQueries } = renderUpdatePlanHook(ctx);
+
+        result.current.mutate({ planId: 'plan-1', form: FORM, definitionVersion: 'FEDERATED' });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        const apiDetailInvalidation = { queryKey: apiDetailKeys.detail('DEFAULT', 'api-1') };
+        if (invalidatesApiDetail) {
+            expect(invalidateQueries).toHaveBeenCalledWith(apiDetailInvalidation);
+        } else {
+            expect(invalidateQueries).not.toHaveBeenCalledWith(apiDetailInvalidation);
+        }
     });
 });
