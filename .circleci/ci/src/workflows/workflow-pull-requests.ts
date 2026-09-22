@@ -689,11 +689,8 @@ export class PullRequestsWorkflow {
     const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(communityBuildJob);
 
-    const publishOnArtifactoryJob = PublishJob.create(dynamicConfig, environment, 'artifactory');
-    dynamicConfig.addJob(publishOnArtifactoryJob);
-
-    const publishOnNexusJob = PublishJob.create(dynamicConfig, environment, 'nexus');
-    dynamicConfig.addJob(publishOnNexusJob);
+    const publishSnapshotJob = PublishJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(publishSnapshotJob);
 
     const releaseHelmDryRunJob = ReleaseHelmJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(releaseHelmDryRunJob);
@@ -784,13 +781,8 @@ export class PullRequestsWorkflow {
         context: config.jobContext,
         requires: ['Trigger SaaS Docker images creation'],
       }),
-      new workflow.WorkflowJob(publishOnArtifactoryJob, {
-        name: 'Publish on artifactory',
-        context: config.jobContext,
-        requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test reporters', 'Test repository', 'Test rest-api'],
-      }),
-      new workflow.WorkflowJob(publishOnNexusJob, {
-        name: 'Publish on nexus',
+      new workflow.WorkflowJob(publishSnapshotJob, {
+        name: 'Publish snapshot',
         context: config.jobContext,
         requires: ['Test definition', 'Test gateway', 'Test plugins', 'Test reporters', 'Test repository', 'Test rest-api'],
       }),
