@@ -32,7 +32,14 @@ jest.mock('../hooks/useApiStats');
 const mockUseApiList = useApiList as jest.Mock;
 const mockUseApiStats = useApiStats as jest.Mock;
 
-const STUB_STATS = { total: 0, private: 0, published: 0, isLoading: false };
+const STUB_STATS = {
+    total: 0,
+    private: 0,
+    published: 0,
+    isLoading: false,
+    failed: { total: false, private: false, published: false },
+    isError: false,
+};
 
 const NATIVE_PROXY_NAME = 'Payments Proxy';
 const FEDERATED_API_NAME = 'Federated Orders';
@@ -105,6 +112,10 @@ function tableRowContaining(name: string) {
 
 function renderedApiRowCount() {
     return screen.queryAllByRole('button', { name: 'API actions' }).length;
+}
+
+function failedSearch(error: unknown) {
+    return { data: undefined, isLoading: false, isFetching: false, isPlaceholderData: false, isError: true, error };
 }
 
 describe('ApisPage', () => {
@@ -217,21 +228,43 @@ describe('ApisPage', () => {
 
     it.each<[string, unknown]>([
         ['a server error', new ApimApiError(500, 'Boom')],
+        ['a rejected query', new ApimApiError(400, 'Bad Request')],
         ['a transport failure carrying no status', new Error('Network request failed')],
-    ])('alerts instead of rendering the list when the search fails with %s', (_case, error) => {
-        mockUseApiList.mockReturnValue({
-            data: undefined,
-            isLoading: false,
-            isFetching: false,
-            isPlaceholderData: false,
-            isError: true,
-            error,
-        });
+    ])('keeps the search input, sorting and pagination alongside an alert when the search fails with %s', (_case, error) => {
+        mockUseApiList.mockReturnValue(failedSearch(error));
         renderPage();
 
         expect(screen.getByRole('alert')).not.toBeNull();
-        expect(screen.queryByPlaceholderText('Search APIs...')).toBeNull();
+        expect(screen.queryByPlaceholderText('Search APIs...')).not.toBeNull();
+        expect(screen.getByRole('button', { name: 'Runtime Status' })).not.toBeNull();
+        expect(screen.getByRole('button', { name: /next page/i })).not.toBeNull();
+        expect(renderedApiRowCount()).toBe(0);
         expect(screen.queryByText('Why add an API proxy?')).toBeNull();
+    });
+
+    it('sends the edited search term when the user types after the search failed', async () => {
+        mockUseApiList.mockReturnValue(failedSearch(new ApimApiError(500, 'Boom')));
+        renderPage();
+
+        fireEvent.change(screen.getByPlaceholderText('Search APIs...'), { target: { value: 'payments' } });
+
+        await waitFor(() => expect(lastRequest()).toEqual({ query: 'payments', page: 1, perPage: 10, sortBy: undefined }));
+    });
+
+    it('drops the alert and shows the rows once a later search succeeds', () => {
+        mockUseApiList.mockReturnValue(failedSearch(new ApimApiError(500, 'Boom')));
+        const { rerender } = renderPage();
+
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            isLoading: false,
+            isFetching: false,
+            isPlaceholderData: false,
+        });
+        rerender(pageTree());
+
+        expect(screen.queryByRole('alert')).toBeNull();
+        expectBothRowsRendered();
     });
 
     it('shows the list view when APIs exist', () => {

@@ -27,7 +27,16 @@ jest.mock('@gravitee/gamma-lib-observability', () => ({
     encodeObservabilityState: () => ({ q: 'ENCODED_Q', v: '1' }),
 }));
 // The stats cards issue their own searches; stubbing them leaves the list's search as the only one counted.
-jest.mock('../hooks/useApiStats', () => ({ useApiStats: () => ({ total: 2, private: 0, published: 0, isLoading: false }) }));
+jest.mock('../hooks/useApiStats', () => ({
+    useApiStats: () => ({
+        total: 2,
+        private: 0,
+        published: 0,
+        isLoading: false,
+        failed: { total: false, private: false, published: false },
+        isError: false,
+    }),
+}));
 jest.mock('../hooks/useEnvCategories', () => ({ useEnvCategories: () => ({ data: [], isLoading: false }) }));
 jest.mock('../context/ApiDetailContext', () => ({ useApiDetailContext: jest.fn() }));
 

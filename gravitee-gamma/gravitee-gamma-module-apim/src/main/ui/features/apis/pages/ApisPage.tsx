@@ -60,6 +60,7 @@ export function ApisPage() {
 
     const apis = data?.data ?? [];
     const totalCount = data?.pagination?.totalCount ?? 0;
+    const hasLoadFailure = isError && !isForbiddenError(error);
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
@@ -82,35 +83,34 @@ export function ApisPage() {
         return <ApisPageSkeleton />;
     }
 
-    if (isError && !isForbiddenError(error)) {
-        return (
-            <Alert variant="destructive">
-                <AlertDescription>Failed to load API proxies. Please refresh and try again.</AlertDescription>
-            </Alert>
-        );
-    }
-
     const hasNoApis = !isError && !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
     if (hasNoApis) {
         return <ApisEmptyLanding onCreateProxy={handleCreateProxy} canCreate={canCreate} />;
     }
 
     return (
-        <ApisListView
-            apis={apis}
-            totalCount={totalCount}
-            isLoading={isLoading}
-            search={search}
-            debouncedSearch={debouncedSearch}
-            page={page}
-            perPage={perPage}
-            sorting={sorting}
-            onSortingChange={handleSortingChange}
-            onSearchChange={handleSearchChange}
-            onPageChange={setPage}
-            onPerPageChange={handlePerPageChange}
-            onCreateProxy={handleCreateProxy}
-            canCreate={canCreate}
-        />
+        <div className="space-y-6">
+            {hasLoadFailure && (
+                <Alert variant="destructive">
+                    <AlertDescription>Failed to load API proxies. Change your search, sorting or page, or try again.</AlertDescription>
+                </Alert>
+            )}
+            <ApisListView
+                apis={apis}
+                totalCount={totalCount}
+                isLoading={isLoading}
+                search={search}
+                debouncedSearch={debouncedSearch}
+                page={page}
+                perPage={perPage}
+                sorting={sorting}
+                onSortingChange={handleSortingChange}
+                onSearchChange={handleSearchChange}
+                onPageChange={setPage}
+                onPerPageChange={handlePerPageChange}
+                onCreateProxy={handleCreateProxy}
+                canCreate={canCreate}
+            />
+        </div>
     );
 }
