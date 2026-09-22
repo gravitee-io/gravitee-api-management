@@ -17,7 +17,7 @@ export * from './job-backend-build-and-publish-on-download-website';
 export * from './job-build-backend';
 export * from './job-check-graphene-versions';
 export * from './job-community-build-backend';
-export * from './job-nexus-staging';
+export * from './job-publish-release';
 export * from './job-publish';
 export * from './job-test-definition';
 export * from './job-test-gamma';
