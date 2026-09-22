@@ -805,25 +805,60 @@ describe('ApiDetailSidebarNav in the detail layout', () => {
 // ─── Sidebar navigation — federated APIs ──────────────────────────────────────
 
 // Labels, not paths: the label is what a user sees, and a nav rendering the right hrefs with the wrong rows
-// would still pass a path-based assertion.
-const FEDERATED_HIDDEN_LABELS = [
+// would still pass a path-based assertion. Every nav row, link or `comingSoon` button, in one list — a row
+// filtered out of the item list and a row still rendered as a disabled one are then told apart.
+function renderedNavLabels(): string[] {
+    return NAV_ITEM_ROLES.flatMap(role => screen.queryAllByRole(role))
+        .map(row => row.textContent?.trim() ?? '')
+        .sort();
+}
+
+// Asserted as the complete set, mirroring the production allow-list: a nav item added later reaches a federated
+// API's sidebar only once someone confirms it applies, and fails this test until they do.
+const FEDERATED_SHOWN_LABELS = [
+    'Settings',
+    'User Permissions',
+    'Metadata',
+    'Plans',
+    'Subscriptions',
+    'Broadcasts',
+    'Audit Logs',
+    'API Score',
+    // The two Observability deep links, which survive federation.
+    'Dashboard',
+    'Logs',
+];
+
+// The same enumeration for an API that is not federated: every row of the canonical nav under this suite's mocks
+// (permissions granted, API Score enabled, HTTP PROXY, no TCP listeners). 'Response Templates' survives its own
+// permission and API-subtype gates here, so federation is what removes it from the list above.
+const NON_FEDERATED_SHOWN_LABELS = [
     'Overview',
-    'API Properties',
-    'Resources',
-    'CORS',
+    'Settings',
+    'User Permissions',
+    'Authorization',
+    'Metadata',
     'Entrypoints',
-    'Endpoints',
-    'Reporter Settings',
     'Policy Studio',
+    'Endpoints',
+    'Failover',
+    'Response Templates',
+    'Resources',
+    'API Properties',
+    'CORS',
+    'Plans',
+    'Subscriptions',
+    'Broadcasts',
     'Notifications',
     'Alerts',
+    'Audit Logs',
+    'Health Check Dashboard',
+    'API Score',
+    'Dashboard',
+    'Logs',
     'Sharding Tags',
-    // Ships as a `comingSoon` row, so it is absent from the nav only if it is filtered out of the item list —
-    // a `role="link"` absence check would pass on a nav that still renders it as a disabled row.
-    'Authorization',
-    // Survives its own permission and API-subtype gates under this render (permission mock true, type 'PROXY'),
-    // so federation has to be what removes it — an assertion taken with the permission denied would prove nothing.
-    'Response Templates',
+    'Deployment History',
+    'Reporter Settings',
 ];
 
 const FEDERATED_EMPTIED_GROUP_HEADINGS = ['Design', 'Operations'];
@@ -873,12 +908,10 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
         return renderSidebarForApiOfDefinitionVersion('FEDERATED');
     }
 
-    it('drops the sections that do not apply to a federated API, along with the group headings they empty', () => {
+    it('shows only the sections a federated API applies to, and drops the group headings they empty', () => {
         renderSidebarForFederatedApi();
 
-        for (const label of FEDERATED_HIDDEN_LABELS) {
-            expect(screen.queryByText(label)).not.toBeInTheDocument();
-        }
+        expect(renderedNavLabels()).toEqual([...FEDERATED_SHOWN_LABELS].sort());
         for (const heading of FEDERATED_EMPTIED_GROUP_HEADINGS) {
             expect(screen.queryByText(heading)).not.toBeInTheDocument();
         }
@@ -933,9 +966,7 @@ describe('ApiDetailSidebarNav in the detail layout — federated API', () => {
     it.each(['V4', 'V4_NATIVE'])('keeps every section for a %s API, which is not federated', definitionVersion => {
         renderSidebarForApiOfDefinitionVersion(definitionVersion);
 
-        for (const label of FEDERATED_HIDDEN_LABELS) {
-            expect(screen.getByText(label)).toBeInTheDocument();
-        }
+        expect(renderedNavLabels()).toEqual([...NON_FEDERATED_SHOWN_LABELS].sort());
         for (const heading of FEDERATED_EMPTIED_GROUP_HEADINGS) {
             expect(screen.getByText(heading)).toBeInTheDocument();
         }
