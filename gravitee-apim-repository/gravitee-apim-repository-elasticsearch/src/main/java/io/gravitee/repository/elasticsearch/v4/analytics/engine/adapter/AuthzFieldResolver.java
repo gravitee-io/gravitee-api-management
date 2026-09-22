@@ -29,8 +29,10 @@ public class AuthzFieldResolver implements FieldResolver {
     private static final String GATEWAY_ID = "gw-id";
     private static final String OPERATION = "operation";
     private static final String CALLER = "caller";
+    private static final String SUBJECT_TYPE = "subject-type";
     private static final String SUBJECT_ID = "subject-id";
     private static final String ACTION = "action";
+    private static final String RESOURCE_TYPE = "resource-type";
     private static final String RESOURCE_ID = "resource-id";
     private static final String REASONS = "reasons";
     private static final String SEARCH_TYPE = "search-type";
@@ -90,6 +92,15 @@ public class AuthzFieldResolver implements FieldResolver {
             case Filter.Name.AUTHZ_RESOURCE_ID -> RESOURCE_ID;
             case Filter.Name.AUTHZ_REASON -> REASONS;
             default -> throw new UnsupportedOperationException("AuthzFieldResolver does not support filter '" + filter.name() + "'");
+        };
+    }
+
+    @Override
+    public String entityTypeFromFilter(Filter filter) {
+        return switch (filter.name()) {
+            case Filter.Name.AUTHZ_SUBJECT_ID -> SUBJECT_TYPE;
+            case Filter.Name.AUTHZ_RESOURCE_ID -> RESOURCE_TYPE;
+            default -> FieldResolver.super.entityTypeFromFilter(filter);
         };
     }
 

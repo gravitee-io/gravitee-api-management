@@ -22,6 +22,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -148,6 +150,19 @@ class SearchAuthzDecisionLogsQueryAdapterTest {
                 """
             );
         assertThatJson(result).inPath("$.query.bool.filter[4].terms.caller").isArray().hasSize(2);
+    }
+
+    @Test
+    void shares_one_entity_reference_budget_between_the_subject_and_resource_clauses() {
+        var subjects = IntStream.range(0, 100)
+            .mapToObj(i -> "T" + i + "::a::b::c")
+            .collect(Collectors.toSet());
+        var query = AuthzDecisionLogQuery.builder().apiIds(Set.of("api-1")).subjectIds(subjects).resourceIds(Set.of("Doc::\"d1\"")).build();
+
+        var result = SearchAuthzDecisionLogsQueryAdapter.adapt(query);
+
+        assertThatJson(result).inPath("$.query.bool.filter[1].bool.should").isArray().hasSize(129);
+        assertThatJson(result).inPath("$.query.bool.filter[2].terms.resource-id").isEqualTo(json("[\"Doc::\\\"d1\\\"\"]"));
     }
 
     @Test
