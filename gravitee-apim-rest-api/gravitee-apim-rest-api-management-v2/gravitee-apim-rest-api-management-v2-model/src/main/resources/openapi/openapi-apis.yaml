@@ -3647,6 +3647,21 @@ components:
                         Enable the connection-metrics reporter on the gateway. Only applicable to Native v4 APIs; ignored on HTTP v4 requests and omitted from HTTP v4 responses.
                         Server-side default for Native v4 on create is `true`.
                         Independent of the parent `enabled` flag: event-metrics reporting and the connection-metrics reporter are gated separately.
+                connectionEvents:
+                    type: array
+                    uniqueItems: true
+                    items:
+                        type: string
+                        enum: [CONNECTED, DISCONNECTED, ERROR]
+                    description: |-
+                        Which connection lifecycle events the gateway reports. Only applicable to Native v4 APIs.
+                        Absent means the API has never been configured, and it keeps reporting `CONNECTED` and `ERROR` — what every API deployed before this setting existed already does, so an upgrade does not silently start writing `DISCONNECTED` documents. A newly created API starts out absent too: `DISCONNECTED` is opt-in for every API.
+                        An explicit empty array is a choice, not an absence of one: it reports nothing.
+                        `ERROR` covers every failure status the gateway emits (`CONNECTION_ERROR`, `SESSION_ERROR`, `INTERNAL_ERROR`); which one a given failure produces depends on where the gateway caught it.
+                    example:
+                        - CONNECTED
+                        - DISCONNECTED
+                        - ERROR
                 otelLogs:
                     $ref: "#/components/schemas/OtelLogsV4"
         Api:
