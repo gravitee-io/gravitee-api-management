@@ -21,8 +21,8 @@ import { corePin } from '../utils';
 /**
  * Notifies the gravitee-apim-api-docs repository of a new APIM release so it
  * regenerates its OpenAPI documentation site. Fire-and-forget: the docs
- * pipeline absorbs Sonatype → Maven Central propagation delay on its side, so
- * we do not wait for completion here.
+ * pipeline resolves the jars from the Azure feed on its side, so we do not
+ * wait for completion here.
  *
  * Two versions, because the site needs both: it polls `gravitee-apim-rest-api-management-rest-<v>.jar`
  * before ingesting, and that jar is a core artefact, while the specs are published under the number
