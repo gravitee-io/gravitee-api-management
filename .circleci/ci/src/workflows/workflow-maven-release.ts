@@ -42,7 +42,7 @@ export class WorkflowMavenRelease {
         requires: ['Setup'],
       }),
 
-      // Build and deploy JARs to Maven Central
+      // Build and deploy the JARs to the Azure feed
       new workflow.WorkflowJob(publishReleaseJob, {
         context: config.jobContext,
         name: 'Publish release',
