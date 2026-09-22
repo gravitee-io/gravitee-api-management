@@ -41,15 +41,26 @@ public class MessageFieldResolver implements FieldResolver {
     /**
      * Only the dimensions a message document actually carries.
      *
-     * <p>Deliberately not falling through to the HTTP resolver for the rest. It would answer
-     * {@code plan-id} or {@code application-id} — fields of the connection document, absent from
-     * this index — and Elasticsearch does not fail a terms aggregation on a field it cannot find:
-     * it returns no buckets. A breakdown that cannot work would render as an empty chart rather
-     * than an error, which is the harder failure to diagnose. Failing here keeps a drift between
-     * the catalog and this resolver visible.
+     * <p>Deliberately not falling through to the HTTP resolver for the rest. It would answer with a
+     * field of the connection document, absent from this index, and Elasticsearch does not fail a
+     * terms aggregation on a field it cannot find: it returns no buckets. A breakdown that cannot
+     * work would render as an empty chart rather than an error, which is the harder failure to
+     * diagnose. Failing here keeps a drift between the catalog and this resolver visible.
      *
      * <p>{@code API} and {@code GATEWAY} do fall through, and are meant to: {@code api-id} and
      * {@code gateway} are stamped on every message document.
+     *
+     * <p>Plan and application stay refused here even though the message documents now carry them, and
+     * the catalog is why it costs nothing: it declares neither as a facet of the message metrics, so
+     * the validator rejects such a query before it reaches this resolver. Answering them would only
+     * take effect on the path that must not have them — the join, which exists precisely for the
+     * documents written before the fields did, and which builds its buckets through this same
+     * resolver. A breakdown there would aggregate on a field those documents lack and render an empty
+     * chart. They belong here once the join is deleted, not before.
+     *
+     * <p>Entrypoint is absent here on purpose: the catalog declares it as a filter, not a facet, so
+     * a query can restrict by it but never break down on it. Filtering resolves through
+     * {@link #fromFilter}.
      */
     @Override
     public String fromFacet(Facet facet) {

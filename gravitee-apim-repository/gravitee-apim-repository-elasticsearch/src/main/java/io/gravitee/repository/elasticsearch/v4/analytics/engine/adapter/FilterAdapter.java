@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import io.gravitee.repository.analytics.engine.api.query.Query;
@@ -25,6 +26,7 @@ import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -71,13 +73,17 @@ public class FilterAdapter {
     );
 
     /**
-     * Applied on the message documents themselves, in the second phase of the join.
+     * What a message document has carried since it existed, whatever wrote it, and therefore what the
+     * second phase of the join may filter on.
      *
      * <p>{@code API} belongs here even though the first phase already restricts by it: message
-     * documents carry {@code api-id} of their own ({@code MessageMetrics#apiId}), so scoping the
-     * second phase to the API stops it depending on the resolved request-id set being complete. The
-     * dimensions that genuinely live only on the connection document — plan, application,
-     * entrypoint — cannot follow.
+     * documents carry {@code api-id} of their own, so scoping the second phase to the API stops it
+     * depending on the resolved request-id set being complete.
+     *
+     * <p>The connection dimensions are deliberately absent. They are stamped on the documents now,
+     * but the join exists precisely for those written before they were, and filtering on a field such
+     * a document lacks returns no hits rather than an error. They live in
+     * {@link #ENRICHED_MESSAGE_FILTER_NAMES}, which only the direct path uses.
      */
     static final List<Filter.Name> MESSAGE_FILTER_NAMES = List.of(
         Filter.Name.API,
@@ -88,6 +94,48 @@ public class FilterAdapter {
         Filter.Name.MESSAGE_SIZE,
         Filter.Name.MESSAGE_ERROR_COUNT
     );
+
+    /**
+     * Dimensions of the connection, carried on a message document only since the gateway began
+     * stamping them.
+     *
+     * <p>Separate from {@link #MESSAGE_FILTER_NAMES} because the two are needed at different moments.
+     * A query naming one of these <em>can</em> be answered from the message documents alone — that is
+     * the point of stamping them — but only for documents a gateway wrote after it started doing so.
+     * While the join still runs for older data, its message phase must not filter on them: those
+     * documents do not carry the field, and Elasticsearch answers a term query on a missing field
+     * with no hits rather than an error, which would silently return nothing.
+     */
+    public static final List<Filter.Name> CONNECTION_DIMENSION_FILTER_NAMES = List.of(
+        Filter.Name.PLAN,
+        Filter.Name.APPLICATION,
+        Filter.Name.ENTRYPOINT
+    );
+
+    /**
+     * Whether this dimension is one the message documents carry only since the gateway started
+     * stamping them.
+     *
+     * <p>Exposed so the repository asks this list rather than keeping its own copy: it is the
+     * repository that decides, per query window, whether the data is new enough to be read without
+     * the join, and a second list drifting from this one would open that path for a dimension the
+     * documents do not carry — a term filter on a missing field, which Elasticsearch answers with no
+     * hits rather than an error.
+     */
+    public static boolean isConnectionDimension(Filter.Name name) {
+        return CONNECTION_DIMENSION_FILTER_NAMES.contains(name);
+    }
+
+    /** The facet form of {@link #isConnectionDimension(Filter.Name)}; not every dimension has one. */
+    public static boolean isConnectionDimension(Facet facet) {
+        return CONNECTION_DIMENSION_FILTER_NAMES.stream().anyMatch(name -> name.name().equals(facet.name()));
+    }
+
+    /** Everything a message document carries once the gateway stamps the connection dimensions. */
+    static final List<Filter.Name> ENRICHED_MESSAGE_FILTER_NAMES = Stream.concat(
+        MESSAGE_FILTER_NAMES.stream(),
+        CONNECTION_DIMENSION_FILTER_NAMES.stream()
+    ).toList();
 
     static final List<Filter.Name> NATIVE_FILTER_NAMES = List.of(
         Filter.Name.API,
@@ -145,6 +193,20 @@ public class FilterAdapter {
 
     public FilterAdapter(FieldResolver fieldResolver) {
         this.fieldResolver = fieldResolver;
+    }
+
+    /**
+     * The message-side filter for the direct path, where the connection dimensions are readable off
+     * the documents themselves. {@link #adaptForMessage(Query)} stays the join's message phase.
+     */
+    public JsonArray adaptForEnrichedMessage(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        for (var filter : query.filters()) {
+            if (shouldAdaptForEnrichedMessage(filter)) {
+                jsonFilters.add(filter(filter));
+            }
+        }
+        return jsonFilters;
     }
 
     public JsonArray adaptForMessage(Query query) {
@@ -260,6 +322,10 @@ public class FilterAdapter {
         return MESSAGE_FILTER_NAMES.contains(filter.name());
     }
 
+    public boolean shouldAdaptForEnrichedMessage(Filter filter) {
+        return ENRICHED_MESSAGE_FILTER_NAMES.contains(filter.name());
+    }
+
     /**
      * Whether every filter of this query reads a field the message documents carry themselves.
      *
@@ -269,8 +335,10 @@ public class FilterAdapter {
      * up to a thousand pages, into a single {@code terms} clause, and Elasticsearch refuses the whole
      * search past {@code index.max_terms_count} (65,536 by default).
      *
-     * <p>A query naming a dimension that lives only on the connection document — plan, application,
-     * entrypoint — still needs the join, and keeps it.
+     * <p>This answers for the enriched shape alone. Plan, application and entrypoint are stamped on the
+     * message documents now, so a query naming one qualifies here — but only the repository knows
+     * whether the data in a given window actually carries them, and it keeps the join when it does
+     * not.
      *
      * <p><strong>The connection phase was never purely a filter restatement, and skipping it changes
      * what is counted.</strong> {@link #adaptForMessageConnexion(Query)} opens with the query's time
@@ -294,7 +362,7 @@ public class FilterAdapter {
      * {@code AnalyticsElasticsearchRepositoryTest}'s straddling-connection case.
      */
     public boolean isFullyAppliedOnMessages(Query query) {
-        return query.filters().stream().allMatch(this::shouldAdaptForMessage);
+        return query.filters().stream().allMatch(this::shouldAdaptForEnrichedMessage);
     }
 
     public boolean shouldAdaptForMessageConnexion(Filter filter) {

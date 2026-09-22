@@ -64,8 +64,8 @@ class FilterAdapterFieldResolverParityTest {
 
     @Test
     void should_resolve_every_filter_name_allow_listed_for_message() {
-        assertThat(unresolvable(FilterAdapter.MESSAGE_FILTER_NAMES, MESSAGE_RESOLVER))
-            .as("MESSAGE_FILTER_NAMES entries not resolvable by MessageFieldResolver (query would fail at ES adaptation)")
+        assertThat(unresolvable(FilterAdapter.ENRICHED_MESSAGE_FILTER_NAMES, MESSAGE_RESOLVER))
+            .as("ENRICHED_MESSAGE_FILTER_NAMES entries not resolvable by MessageFieldResolver (query would fail at ES adaptation)")
             .isEqualTo(KNOWN_UNRESOLVABLE_MESSAGE_NAMES);
     }
 
