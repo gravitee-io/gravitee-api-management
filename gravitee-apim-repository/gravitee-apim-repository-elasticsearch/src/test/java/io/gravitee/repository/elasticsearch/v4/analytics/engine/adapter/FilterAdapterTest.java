@@ -28,8 +28,10 @@ import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeRange;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
@@ -616,6 +618,57 @@ class FilterAdapterTest {
             var connexionFilters = filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
 
             assertThat(connexionFilters.encode()).contains("sse");
+        }
+    }
+
+    @Nested
+    class AuthzEntityRefFilters {
+
+        private final AuthzMeasuresQueryAdapter authzMeasuresAdapter = new AuthzMeasuresQueryAdapter();
+
+        @Test
+        void should_keep_a_range_query_for_a_subject_compared_with_gte() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.GTE, "m"));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+            var jsonQuery = JSON.readTree(authzMeasuresAdapter.adapt(new MeasuresQuery(buildTimeRange(), filters, metrics)));
+
+            assertThat(jsonQuery.at("/query/bool/filter/1/range/subject-id/gte").asText()).isEqualTo("m");
+        }
+
+        @Test
+        void should_share_one_entity_reference_budget_across_every_subject_and_resource_condition() {
+            var filters = new ArrayList<Filter>();
+            IntStream.range(0, 50).forEach(i ->
+                filters.add(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "T" + i + "::a::b::c"))
+            );
+            filters.add(new Filter(Filter.Name.AUTHZ_RESOURCE_ID, Filter.Operator.EQ, "Doc::\"d1\""));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+            var query = authzMeasuresAdapter.adapt(new MeasuresQuery(buildTimeRange(), filters, metrics));
+
+            assertThat(occurrences(query, "\"subject-type\"")).isEqualTo(128);
+            assertThat(occurrences(query, "\"resource-type\"")).isZero();
+        }
+
+        @Test
+        void should_read_no_entity_type_outside_an_authz_query() {
+            var adapter = new FilterAdapter(new AuthzFieldResolver());
+
+            var clause = adapter.adaptMetricFilters(
+                List.of(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\""))
+            );
+
+            assertThat(occurrences(clause.encode(), "\"subject-type\"")).isZero();
+            assertThat(occurrences(clause.encode(), "\"subject-id\"")).isEqualTo(1);
+        }
+
+        private static int occurrences(String text, String needle) {
+            int count = 0;
+            for (int at = text.indexOf(needle); at >= 0; at = text.indexOf(needle, at + needle.length())) {
+                count++;
+            }
+            return count;
         }
     }
 }

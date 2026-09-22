@@ -719,7 +719,16 @@ paths:
                 `AUTHZ_REASON` takes `CONTAINS` (a reason is a sentence, so equality is unusable);
                 the rest take `EQ`/`IN`. Any other condition sent alongside `RECORD_TYPE=AUTHZ_DECISION` is
                 rejected with 400 rather than accepted and ignored, so an applied filter is never
-                indistinguishable from an unfiltered result.
+                indistinguishable from an unfiltered result. `AUTHZ_SUBJECT_ID` and `AUTHZ_RESOURCE_ID`
+                accept a bare id or a typed entity reference. A bare id (`alice`) matches that id under
+                any type. A typed reference restricts the match to one type: `User::"alice"` (escape `"`
+                and `\` inside the quotes with a backslash) or `User::alice`; namespaced types work the
+                same way (`docs::User::"alice"`). `User::*` matches every decision whose type is `User`,
+                including those recorded without an id; write a literal `*` id as `User::"*"`. Each
+                value is also matched as a bare id, so an id containing `::` is still found. One query
+                uses at most 128 typed readings: a quoted reference or a `User::*` one is a single
+                reading, an unquoted one is read once for each place it could split at `::`. Values
+                past that budget match as bare ids only. The analytics endpoints apply the same rules.
 
                 **Entrypoint scope**: without an explicit `ENTRYPOINT` condition, rows are returned
                 unless their entrypoint is declared outside the logs scope, which keeps unknown

@@ -16,6 +16,7 @@
 package io.gravitee.repository.elasticsearch.v4.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
@@ -23,8 +24,13 @@ import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
 import io.gravitee.repository.elasticsearch.TimeProvider;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -35,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends AbstractElasticsearchRepositoryTest {
 
     private static final String API_ID = "authz-api-001";
+    private static final String ENTITY_REFS_API_ID = "authz-api-entity-refs";
     private static final long FROM_MILLIS = TimeProvider.now().minusSeconds(600).toEpochMilli();
     private static final long TO_MILLIS = TimeProvider.now().plusSeconds(600).toEpochMilli();
 
@@ -115,7 +122,58 @@ public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends A
         assertThat(result.data()).extracting(AuthzDecisionLog::eventId).containsExactly("evt-003");
     }
 
+    static Stream<Arguments> subject_references() {
+        return Stream.of(
+            arguments(Set.of("alice"), List.of("ref-001", "ref-002", "ref-003")),
+            arguments(Set.of("User::alice"), List.of("ref-001")),
+            arguments(Set.of("User::\"alice\""), List.of("ref-001")),
+            arguments(Set.of("docs::User::alice"), List.of("ref-002")),
+            arguments(Set.of("docs::User::\"alice\""), List.of("ref-002")),
+            arguments(Set.of("User::a::b"), List.of("ref-004")),
+            arguments(Set.of("User::\"a::b\""), List.of("ref-004")),
+            arguments(Set.of("x::y"), List.of("ref-005")),
+            arguments(Set.of("User::\"say \\\"hi\\\"\""), List.of("ref-006")),
+            arguments(Set.of("User::\"C:\\\\temp\""), List.of("ref-008")),
+            arguments(Set.of("User::\"*\""), List.of("ref-009")),
+            arguments(Set.of("User::*"), List.of("ref-001", "ref-004", "ref-006", "ref-007", "ref-008", "ref-009")),
+            arguments(Set.of("Agent::alice", "User::\"a::b\""), List.of("ref-003", "ref-004")),
+            arguments(Set.of("Agent::bob"), List.of())
+        );
+    }
+
+    @ParameterizedTest(name = "{0} matches {1}")
+    @MethodSource("subject_references")
+    void should_match_a_subject_by_the_reference_the_decisions_table_shows(Set<String> subjects, List<String> expectedEventIds)
+        throws AnalyticsException {
+        var result = metricsV4Repository.searchAuthzDecisionLogs(queryContext, entityRefsQuery().subjectIds(subjects).build());
+
+        assertThat(result.data()).extracting(AuthzDecisionLog::eventId).containsExactlyInAnyOrderElementsOf(expectedEventIds);
+    }
+
+    static Stream<Arguments> resource_references() {
+        return Stream.of(
+            arguments(Set.of("d1"), List.of("ref-001", "ref-002", "ref-007")),
+            arguments(Set.of("Doc::d1"), List.of("ref-001", "ref-007")),
+            arguments(Set.of("Doc::\"d1\""), List.of("ref-001", "ref-007")),
+            arguments(Set.of("docs::Doc::\"d1\""), List.of("ref-002")),
+            arguments(Set.of("r::s"), List.of("ref-005"))
+        );
+    }
+
+    @ParameterizedTest(name = "{0} matches {1}")
+    @MethodSource("resource_references")
+    void should_match_a_resource_by_the_reference_the_decisions_table_shows(Set<String> resources, List<String> expectedEventIds)
+        throws AnalyticsException {
+        var result = metricsV4Repository.searchAuthzDecisionLogs(queryContext, entityRefsQuery().resourceIds(resources).build());
+
+        assertThat(result.data()).extracting(AuthzDecisionLog::eventId).containsExactlyInAnyOrderElementsOf(expectedEventIds);
+    }
+
     private AuthzDecisionLogQuery.AuthzDecisionLogQueryBuilder baseQuery() {
         return AuthzDecisionLogQuery.builder().apiIds(Set.of(API_ID)).from(FROM_MILLIS).to(TO_MILLIS).page(1).size(20);
+    }
+
+    private AuthzDecisionLogQuery.AuthzDecisionLogQueryBuilder entityRefsQuery() {
+        return AuthzDecisionLogQuery.builder().apiIds(Set.of(ENTITY_REFS_API_ID)).from(FROM_MILLIS).to(TO_MILLIS).page(1).size(20);
     }
 }

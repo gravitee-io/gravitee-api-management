@@ -1577,9 +1577,42 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         class AuthzDecisions {
 
             private static final String AUTHZ_API = "authz-api-001";
+            private static final String ENTITY_REFS_API = "authz-api-entity-refs";
 
             private static Filter api() {
                 return new Filter(Filter.Name.API, Filter.Operator.IN, List.of(AUTHZ_API));
+            }
+
+            private long countEntityRefsDecisions(Filter filter) {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+                var entityRefsApi = new Filter(Filter.Name.API, Filter.Operator.IN, List.of(ENTITY_REFS_API));
+
+                var result = cut.searchAuthzMeasures(
+                    QUERY_CONTEXT,
+                    new MeasuresQuery(buildTimeRange(), List.of(entityRefsApi, filter), metrics)
+                );
+
+                return result.measures().getFirst().measures().get(Measure.COUNT).longValue();
+            }
+
+            @Test
+            void should_narrow_a_subject_filter_to_the_entity_its_type_qualified_reference_names() {
+                assertThat(countEntityRefsDecisions(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "alice"))).isEqualTo(3L);
+                assertThat(countEntityRefsDecisions(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::alice"))).isEqualTo(
+                    1L
+                );
+                assertThat(
+                    countEntityRefsDecisions(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\""))
+                ).isEqualTo(1L);
+            }
+
+            @Test
+            void should_narrow_a_resource_filter_to_the_entities_its_type_qualified_references_name() {
+                var references = List.of("Doc::d2", "docs::Doc::\"d1\"");
+
+                assertThat(countEntityRefsDecisions(new Filter(Filter.Name.AUTHZ_RESOURCE_ID, Filter.Operator.IN, references))).isEqualTo(
+                    2L
+                );
             }
 
             @Test

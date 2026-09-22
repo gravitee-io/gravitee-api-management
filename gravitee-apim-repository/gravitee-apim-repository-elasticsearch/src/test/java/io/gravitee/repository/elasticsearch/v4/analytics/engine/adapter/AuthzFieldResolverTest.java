@@ -78,6 +78,22 @@ class AuthzFieldResolverTest {
     }
 
     @Test
+    void should_resolve_the_type_field_of_the_subject_and_resource_filters() {
+        var subject = new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.EQ, "User::\"alice\"");
+        var resource = new Filter(Filter.Name.AUTHZ_RESOURCE_ID, Filter.Operator.EQ, "Doc::\"d1\"");
+
+        assertThat(resolver.entityTypeFromFilter(subject)).isEqualTo("subject-type");
+        assertThat(resolver.entityTypeFromFilter(resource)).isEqualTo("resource-type");
+    }
+
+    @Test
+    void should_reject_the_type_field_of_a_filter_that_names_no_entity() {
+        var action = new Filter(Filter.Name.AUTHZ_ACTION, Filter.Operator.EQ, "read");
+
+        assertThatThrownBy(() -> resolver.entityTypeFromFilter(action)).isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
     void should_resolve_filters_through_the_same_mapping_as_facets() {
         var filter = new Filter(Filter.Name.AUTHZ_CALLER, Filter.Operator.IN, List.of("pep"));
         assertThat(resolver.fromFilter(filter)).isEqualTo("caller");

@@ -19,6 +19,7 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
+import io.gravitee.repository.elasticsearch.v4.shared.AuthzEntityRefClauses;
 import io.gravitee.repository.elasticsearch.v4.shared.EntrypointScopeClause;
 import io.gravitee.repository.elasticsearch.v4.shared.StatusCodeGroups;
 import io.vertx.core.json.JsonArray;
@@ -231,9 +232,10 @@ public class FilterAdapter {
 
     public JsonArray adaptForAuthz(Query query) {
         var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        var entityRefs = new AuthzEntityRefClauses();
         for (var filter : query.filters()) {
             if (shouldAdaptForAuthz(filter)) {
-                jsonFilters.add(filter(filter));
+                jsonFilters.add(filter(filter, entityRefs));
             }
         }
         return jsonFilters;
@@ -330,6 +332,10 @@ public class FilterAdapter {
     }
 
     private JsonObject filter(Filter filter) {
+        return filter(filter, AuthzEntityRefClauses.bareIdsOnly());
+    }
+
+    private JsonObject filter(Filter filter, AuthzEntityRefClauses entityRefs) {
         if (filter.name() == Filter.Name.HTTP_STATUS_CODE_GROUP) {
             return statusCodeGroupFilter(filter);
         }
@@ -337,6 +343,12 @@ public class FilterAdapter {
             filter.name() == Filter.Name.ENTRYPOINT && (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)
         ) {
             return entrypointFilter(filter);
+        }
+        if (
+            (filter.name() == Filter.Name.AUTHZ_SUBJECT_ID || filter.name() == Filter.Name.AUTHZ_RESOURCE_ID) &&
+            (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)
+        ) {
+            return entityRefFilter(filter, entityRefs);
         }
         if (filter.operator() == Filter.Operator.GTE || filter.operator() == Filter.Operator.LTE) {
             return rangeFilter(filter);
@@ -350,10 +362,18 @@ public class FilterAdapter {
      * shape the query builders used to accept still yields a query rather than an error.
      */
     private static JsonObject entrypointFilter(Filter filter) {
-        return EntrypointScopeClause.exactly(entrypointValues(filter.value()));
+        return EntrypointScopeClause.exactly(stringValues(filter.value()));
     }
 
-    private static List<String> entrypointValues(Object value) {
+    private JsonObject entityRefFilter(Filter filter, AuthzEntityRefClauses entityRefs) {
+        return entityRefs.matching(
+            fieldResolver.entityTypeFromFilter(filter),
+            fieldResolver.fromFilter(filter),
+            stringValues(filter.value())
+        );
+    }
+
+    private static List<String> stringValues(Object value) {
         if (value == null) {
             return List.of();
         }

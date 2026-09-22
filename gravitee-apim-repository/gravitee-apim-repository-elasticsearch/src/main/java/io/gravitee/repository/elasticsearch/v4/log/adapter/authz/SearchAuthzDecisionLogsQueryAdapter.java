@@ -32,6 +32,8 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Tokens
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.util.RawValue;
+import io.gravitee.repository.elasticsearch.v4.shared.AuthzEntityRefClauses;
 import io.gravitee.repository.log.v4.model.authz.AuthzDecisionLogQuery;
 import java.util.Set;
 
@@ -63,6 +65,19 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         ArrayNode node = MAPPER.createArrayNode();
         values.forEach(node::add);
         filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(field, node)));
+    }
+
+    private static void addEntityRefsIfAny(
+        ArrayNode filters,
+        AuthzEntityRefClauses entityRefs,
+        String typeField,
+        String idField,
+        Set<String> references
+    ) {
+        if (references == null || references.isEmpty()) {
+            return;
+        }
+        filters.addRawValue(new RawValue(entityRefs.matching(typeField, idField, references).encode()));
     }
 
     /**
@@ -114,11 +129,24 @@ public final class SearchAuthzDecisionLogsQueryAdapter {
         query.getApiIds().forEach(apiIds::add);
         filters.add(MAPPER.createObjectNode().set(TERMS, MAPPER.createObjectNode().set(AuthzDecisionLogFields.API_ID, apiIds)));
 
-        // Every one of these is a keyword field, so an exact terms clause is the whole translation.
+        // Keyword fields: exact term matching is the whole translation, once a subject or resource is split into type and id.
         addTermsIfAny(filters, AuthzDecisionLogFields.DECISION, query.getDecisions());
-        addTermsIfAny(filters, AuthzDecisionLogFields.SUBJECT_ID, query.getSubjectIds());
+        var entityRefs = new AuthzEntityRefClauses();
+        addEntityRefsIfAny(
+            filters,
+            entityRefs,
+            AuthzDecisionLogFields.SUBJECT_TYPE,
+            AuthzDecisionLogFields.SUBJECT_ID,
+            query.getSubjectIds()
+        );
         addTermsIfAny(filters, AuthzDecisionLogFields.ACTION, query.getActions());
-        addTermsIfAny(filters, AuthzDecisionLogFields.RESOURCE_ID, query.getResourceIds());
+        addEntityRefsIfAny(
+            filters,
+            entityRefs,
+            AuthzDecisionLogFields.RESOURCE_TYPE,
+            AuthzDecisionLogFields.RESOURCE_ID,
+            query.getResourceIds()
+        );
         addTermsIfAny(filters, AuthzDecisionLogFields.CALLER, query.getCallers());
         addTermsIfAny(filters, AuthzDecisionLogFields.STATUS, query.getStatuses());
         addTermsIfAny(filters, AuthzDecisionLogFields.OPERATION, query.getOperations());
