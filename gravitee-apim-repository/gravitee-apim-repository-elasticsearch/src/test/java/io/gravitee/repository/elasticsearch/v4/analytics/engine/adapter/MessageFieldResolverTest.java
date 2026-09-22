@@ -19,10 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.repository.analytics.engine.api.query.Facet;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -40,9 +42,13 @@ class MessageFieldResolverTest {
     }
 
     /**
-     * These live on the connection document, not on the message. Resolving them to their HTTP field
-     * names would aggregate on a field this index does not have — which Elasticsearch answers with
-     * no buckets rather than an error, turning a broken breakdown into an empty chart.
+     * Resolving these to their HTTP field names would aggregate on a field the documents the join
+     * exists for do not have — which Elasticsearch answers with no buckets rather than an error,
+     * turning a broken breakdown into an empty chart.
+     *
+     * <p>Plan and application stay here even though the message documents now carry them: the catalog
+     * declares neither as a facet of the message metrics, so no query reaches this, and the only path
+     * that would is the join — whose documents predate the fields.
      */
     @ParameterizedTest
     @EnumSource(value = Facet.class, names = { "APPLICATION", "PLAN", "TENANT", "ZONE" })
@@ -50,5 +56,15 @@ class MessageFieldResolverTest {
         assertThatThrownBy(() -> resolver.fromFacet(facet))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessageContaining(facet.name());
+    }
+
+    /**
+     * Entrypoint is declared as a filter and never as a facet, so it cannot even be written as one
+     * here — there is no {@code Facet.ENTRYPOINT}. Filtering resolves it, and to the connection
+     * index's name.
+     */
+    @Test
+    void should_resolve_the_entrypoint_for_filtering() {
+        assertThat(resolver.fromFilter(new Filter(Filter.Name.ENTRYPOINT, Filter.Operator.EQ, "sse"))).isEqualTo("entrypoint-id");
     }
 }
