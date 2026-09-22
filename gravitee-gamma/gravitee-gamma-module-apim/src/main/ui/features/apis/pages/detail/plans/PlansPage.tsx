@@ -37,7 +37,7 @@ interface PlansPageProps {
     canDelete: boolean;
     isTcpApi?: boolean;
     isFederated?: boolean;
-    /** True while the API type is still unknown — withhold the creation control until it is known whether the API is federated. */
+    /** True while the API type is still unknown — withhold the federation-dependent controls until it is known whether the API is federated. */
     isApiTypeUnknown?: boolean;
 }
 
@@ -113,6 +113,7 @@ export function PlansPage({
 }: Readonly<PlansPageProps>) {
     const counts = usePlanStatusCounts(ctx);
     const canOfferPlanCreation = canCreate && !isFederated && !isApiTypeUnknown;
+    const canOfferMultiSubscriptionsToggle = ctx.type === 'api' && !isFederated && !isApiTypeUnknown;
 
     if (!canRead) {
         return (
@@ -133,8 +134,7 @@ export function PlansPage({
                 {canOfferPlanCreation && <CreatePlanDropdown ctx={ctx} restrictToKeyless={isTcpApi} />}
             </div>
 
-            {/* Allow multi JWT/OAuth2 subscriptions — API only */}
-            {ctx.type === 'api' && <AllowMultiSubscriptionsToggle apiId={ctx.entityId} canUpdate={canUpdate} />}
+            {canOfferMultiSubscriptionsToggle && <AllowMultiSubscriptionsToggle apiId={ctx.entityId} canUpdate={canUpdate} />}
 
             {counts.isLoading ? (
                 <div className="space-y-3">

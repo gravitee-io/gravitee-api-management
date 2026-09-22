@@ -176,6 +176,25 @@ describe('ApiPlansPage', () => {
         expect(screen.getByRole('menuitem', { name: /keyless/i })).toBeInTheDocument();
     });
 
+    it.each<[string, object | null]>([
+        ['a federated API, whose subscriptions the provider owns', FEDERATED_API],
+        ['an API whose detail payload has not resolved', null],
+    ])('offers no multi JWT/OAuth2 subscription toggle on %s', (_case, api) => {
+        grantPermissions(['api-plan-r', 'api-plan-u']);
+
+        renderPlansPage(api);
+
+        expect(screen.queryByText(/allow multi jwt\/oauth2 subscriptions per application/i)).toBeNull();
+    });
+
+    it('keeps the multi JWT/OAuth2 subscription toggle on a natively managed V4 API', () => {
+        grantPermissions(['api-plan-r', 'api-plan-u']);
+
+        renderPlansPage(HTTP_PROXY_API);
+
+        expect(screen.getByText(/allow multi jwt\/oauth2 subscriptions per application/i)).toBeInTheDocument();
+    });
+
     it('keeps offering the plan tutorial when a natively managed API has none', () => {
         mockUsePlanStatusCounts.mockReturnValue(NO_PLANS_YET);
 
