@@ -69,9 +69,15 @@ export interface PortalSettingsApiProduct {
     [key: string]: unknown;
 }
 
+export interface PortalSettingsFeatureToggle {
+    enabled?: boolean;
+}
+
 export interface PortalSettings {
     metadata?: PortalSettingsMetadata;
     cors?: PortalSettingsCors;
+    apiScore?: PortalSettingsFeatureToggle;
+    apiReview?: PortalSettingsFeatureToggle;
     plan?: {
         security?: PlanSecuritySettings;
         [key: string]: unknown;

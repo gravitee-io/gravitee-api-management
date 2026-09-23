@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
-
-import { getEnvironmentPortalConfiguration } from '../../settings/services/portalSettings';
-import { portalSettingsKeys } from '../utils/queryKeys';
+import { useEnvironmentPortalConfiguration } from './useEnvironmentPortalConfiguration';
 import { isApiScoreEnabled } from '../utils/scoring';
 
 export function useApiScoreEnabled(): { enabled: boolean; isFetched: boolean } {
-    const env = useEnvironment();
-    const query = useQuery({
-        queryKey: portalSettingsKeys.portalConfig(env?.id ?? ''),
-        queryFn: () => getEnvironmentPortalConfiguration(env!.id),
-        enabled: Boolean(env?.id),
-        staleTime: 5 * 60_000,
-    });
+    const query = useEnvironmentPortalConfiguration();
     return {
         enabled: isApiScoreEnabled(query.data),
         isFetched: query.isFetched,

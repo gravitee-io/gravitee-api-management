@@ -53,6 +53,7 @@ const INITIAL_FORM: ApiProxyDraft = {
     oauth2ResourceValid: false,
     mtlsPlanName: 'Default mTLS plan',
     deployImmediately: true,
+    askForReview: true,
 };
 
 const INITIAL_STATE: ApiCreationState = {

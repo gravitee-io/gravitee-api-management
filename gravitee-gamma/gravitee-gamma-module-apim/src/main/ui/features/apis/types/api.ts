@@ -140,6 +140,8 @@ export type ApiState = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPP
 export type ApiDeploymentState = 'NEED_REDEPLOY' | 'DEPLOYED';
 export type ApiLifecycleState = 'ARCHIVED' | 'CREATED' | 'DEPRECATED' | 'PUBLISHED' | 'UNPUBLISHED';
 export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
+/** Review status of the API when the environment has API Review enabled; absent on APIs created while it was off. */
+export type ApiWorkflowState = 'DRAFT' | 'IN_REVIEW' | 'REQUEST_FOR_CHANGES' | 'REVIEW_OK';
 
 export type DuplicateFilteredField = 'GROUPS' | 'MEMBERS' | 'PAGES' | 'PLANS';
 
@@ -368,6 +370,7 @@ export interface ApiDetailDto {
     apiVersion?: string;
     definitionVersion?: 'V4' | 'V4_NATIVE';
     lifecycleState?: ApiLifecycleState;
+    workflowState?: ApiWorkflowState;
     visibility?: ApiVisibility;
     tags?: string[];
     labels?: string[];
@@ -535,4 +538,20 @@ export interface Tenant {
 
 export interface ExposedEntrypoint {
     value: string;
+}
+
+// ─── API Review ───────────────────────────────────────────────────────────────
+
+/** Manual rule defined on the environment (Classic `QualityRule`); reviewers tick these when deciding. */
+export interface QualityRule {
+    id: string;
+    name: string;
+    description: string;
+}
+
+/** Whether a reviewer ticked a manual rule on a given API (Classic `ApiQualityRule`). */
+export interface ApiQualityRuleCheck {
+    api: string;
+    quality_rule: string;
+    checked: boolean;
 }

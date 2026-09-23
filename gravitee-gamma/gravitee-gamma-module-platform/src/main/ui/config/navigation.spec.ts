@@ -16,6 +16,7 @@
 import {
     ActivityIcon,
     CloudIcon,
+    EyeIcon,
     FileTextIcon,
     GlobeIcon,
     MailIcon,
@@ -102,10 +103,11 @@ describe('platform navigation config', () => {
         expect(findNavSectionKey(NAV_SECTIONS, 'user-fields')).toBe('environment');
     });
 
-    it('places Primary Owner Mode, Access Management, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
+    it('places Primary Owner Mode, Access Management, API Review, Gateways, Alerts, Notifications, API Health Check, SMTP, CORS, API Logging, Security Plan Types, Client Registration, and Audit under Environment / System & Security', () => {
         expect(sectionKeys('Environment', 'System & Security')).toEqual([
             'primary-owner-mode',
             'access-management',
+            'api-review',
             'gateways',
             'alerts',
             'notification-settings',
@@ -123,6 +125,8 @@ describe('platform navigation config', () => {
         expect(systemItems.find(item => item.key === 'primary-owner-mode')?.title).toBe('Primary Owner Mode');
         expect(systemItems.find(item => item.key === 'primary-owner-mode')?.icon).toBe(UsersRoundIcon);
         expect(systemItems.find(item => item.key === 'notification-settings')?.title).toBe('Notifications');
+        expect(systemItems.find(item => item.key === 'api-review')?.icon).toBe(EyeIcon);
+        expect(systemItems.find(item => item.key === 'api-review')?.title).toBe('API Review');
         expect(systemItems.find(item => item.key === 'api-health-check')?.icon).toBe(ActivityIcon);
         expect(systemItems.find(item => item.key === 'api-health-check')?.title).toBe('API Health Check');
         expect(systemItems.find(item => item.key === 'environment-smtp')?.icon).toBe(SettingsIcon);
@@ -133,6 +137,12 @@ describe('platform navigation config', () => {
         expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('primary-owner-mode');
         expect(ROUTES['primary-owner-mode']).toEqual({ path: 'primary-owner-mode', label: 'Primary Owner Mode' });
         expect(findNavSectionKey(NAV_SECTIONS, 'primary-owner-mode')).toBe('environment');
+    });
+
+    it('declares the api-review route in platform routing config', () => {
+        expect(PLATFORM_ROUTE_CONFIG.routeKeys).toContain('api-review');
+        expect(ROUTES['api-review']).toEqual({ path: 'api-review', label: 'API Review' });
+        expect(findNavSectionKey(NAV_SECTIONS, 'api-review')).toBe('environment');
     });
 
     it('declares the client-registration route in platform routing config', () => {

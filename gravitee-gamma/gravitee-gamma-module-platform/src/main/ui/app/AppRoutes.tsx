@@ -75,6 +75,7 @@ import { AccessManagementPage } from '../pages/AccessManagementPage';
 import { AlertsPage } from '../pages/AlertsPage';
 import { ApiHealthCheckPage } from '../pages/ApiHealthCheckPage';
 import { ApiLoggingSettingsPage } from '../pages/ApiLoggingSettingsPage';
+import { ApiReviewSettingsPage } from '../pages/ApiReviewSettingsPage';
 import { ApplicationDetailSubscriptionPage } from '../pages/ApplicationDetailSubscriptionPage';
 import { ApplicationsPage } from '../pages/ApplicationsPage';
 import { AuthenticationPage } from '../pages/AuthenticationPage';
@@ -826,6 +827,14 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="security-plan-types">
                                         <SecurityPlanTypesPage />
+                                    </NavPermissionGuard>
+                                }
+                            />
+                            <Route
+                                path="api-review"
+                                element={
+                                    <NavPermissionGuard itemKey="api-review">
+                                        <ApiReviewSettingsPage />
                                     </NavPermissionGuard>
                                 }
                             />

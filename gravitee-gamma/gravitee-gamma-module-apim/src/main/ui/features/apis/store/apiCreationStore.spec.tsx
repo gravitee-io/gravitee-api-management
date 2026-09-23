@@ -71,6 +71,7 @@ describe('ApiCreationProvider — initial state', () => {
         expect(state.form.protocol).toBe('HTTP');
         expect(state.form.authType).toBe('keyless');
         expect(state.form.deployImmediately).toBe(true);
+        expect(state.form.askForReview).toBe(true);
         expect(state.validationErrors).toEqual({});
     });
 

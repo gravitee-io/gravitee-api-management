@@ -22,6 +22,7 @@ import {
     BoxesIcon,
     CloudIcon,
     DatabaseIcon,
+    EyeIcon,
     FileTextIcon,
     FingerprintIcon,
     GlobeIcon,
@@ -116,6 +117,7 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
                 items: [
                     { key: 'primary-owner-mode', title: ROUTES['primary-owner-mode'].label, icon: UsersRoundIcon },
                     { key: 'access-management', title: ROUTES['access-management'].label, icon: ShieldIcon },
+                    { key: 'api-review', title: ROUTES['api-review'].label, icon: EyeIcon },
                     { key: 'gateways', title: ROUTES.gateways.label, icon: ServerIcon },
                     { key: 'alerts', title: ROUTES.alerts.label, icon: BellIcon },
                     { key: 'notification-settings', title: ROUTES['notification-settings'].label, icon: MailIcon },

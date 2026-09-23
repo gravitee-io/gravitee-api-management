@@ -17,7 +17,7 @@ import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useMutation } from '@tanstack/react-query';
 import { fireEvent, render, renderHook, screen } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -51,6 +51,45 @@ jest.mock('../../hooks/useApiScoreEnabled', () => ({
     useApiScoreEnabled: jest.fn(() => ({ enabled: true, isFetched: true })),
 }));
 
+jest.mock('../../hooks/useApiReviewEnabled', () => ({
+    useApiReviewEnabled: jest.fn(() => ({ enabled: false, isFetched: true })),
+}));
+
+const mockAskReviewMutate = jest.fn();
+jest.mock('../../hooks/useApiReviewMutations', () => ({
+    useAskApiReview: jest.fn(() => ({ mutate: mockAskReviewMutate, isPending: false })),
+}));
+
+jest.mock('./ApiReviewSheet', () => ({
+    ApiReviewSheet: ({ open, apiId }: { open: boolean; apiId: string }) =>
+        open ? <div data-testid="api-review-sheet">{apiId}</div> : null,
+}));
+
+jest.mock('../../../../shared/components', () => ({
+    ConfirmDialog: ({
+        open,
+        title,
+        confirmLabel,
+        onConfirm,
+    }: {
+        open: boolean;
+        title: string;
+        confirmLabel: string;
+        onConfirm: () => void;
+    }) =>
+        open ? (
+            <div role="dialog" aria-label={title}>
+                <button type="button" onClick={onConfirm}>
+                    {confirmLabel}
+                </button>
+            </div>
+        ) : null,
+}));
+
+jest.mock('../../../../shared/notify', () => ({
+    notify: { success: jest.fn(), error: jest.fn() },
+}));
+
 jest.mock('../../services/apis', () => ({
     deployApi: jest.fn(),
 }));
@@ -63,6 +102,7 @@ jest.mock('../../utils/queryKeys', () => ({
 }));
 
 let mockCapturedLayoutConfig: Record<string, unknown> | null = null;
+let mockCapturedLayoutDeps: unknown[][] = [];
 let mockBannerHost: HTMLDivElement | null = null;
 
 jest.mock('@gravitee/graphene-core', () => {
@@ -99,8 +139,9 @@ jest.mock('@gravitee/graphene-core', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         Input: (props: any) => <input {...props} />,
         Label: ({ children, htmlFor }: { children?: ReactNode; htmlFor?: string }) => <label htmlFor={htmlFor}>{children}</label>,
-        useLayoutConfig: jest.fn((config: Record<string, unknown>) => {
+        useLayoutConfig: jest.fn((config: Record<string, unknown>, deps: unknown[]) => {
             mockCapturedLayoutConfig = { ...(mockCapturedLayoutConfig ?? {}), ...config };
+            mockCapturedLayoutDeps.push(deps);
         }),
     };
 });
@@ -126,7 +167,10 @@ jest.mock('./ApiDetailSidebarNav', () => ({
 
 import { ApiDetailIndexRedirect, ApiDetailLayout } from './ApiDetailLayout';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
+import { notify } from '../../../../shared/notify';
 import { useApiDetail } from '../../hooks/useApiDetail';
+import { useApiPermissions } from '../../hooks/useApiPermissions';
+import { useApiReviewEnabled } from '../../hooks/useApiReviewEnabled';
 import { deployApi } from '../../services/apis';
 
 const mockUseEnvironment = useEnvironment as jest.Mock;
@@ -134,13 +178,14 @@ const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseMutation = useMutation as jest.Mock;
 const mockDeployApi = deployApi as jest.Mock;
 
-function renderLayout(apiId = 'abc-123') {
+function renderLayout(apiId = 'abc-123', initialEntry = `/apis/${apiId}/overview`) {
     mockCapturedLayoutConfig = null;
+    mockCapturedLayoutDeps = [];
     mockBannerHost = document.createElement('div');
     document.body.appendChild(mockBannerHost);
 
     render(
-        <MemoryRouter initialEntries={[`/apis/${apiId}/overview`]}>
+        <MemoryRouter initialEntries={[initialEntry]}>
             <Routes>
                 <Route path="apis/:apiId" element={<ApiDetailLayout />}>
                     <Route path="overview" element={<div />} />
@@ -196,6 +241,26 @@ describe('ApiDetailIndexRedirect', () => {
             </MemoryRouter>,
         );
         expect(screen.getByTestId('overview-page')).toBeInTheDocument();
+    });
+
+    it('keeps the query string so a Tasks deep link still opens the review', () => {
+        let observedSearch = '';
+        function Overview() {
+            observedSearch = useLocation().search;
+            return <div data-testid="overview-page" />;
+        }
+        render(
+            <MemoryRouter initialEntries={['/apis/abc-123?review']}>
+                <Routes>
+                    <Route path="apis/:apiId" element={<ApiDetailLayout />}>
+                        <Route index element={<ApiDetailIndexRedirect />} />
+                        <Route path="overview" element={<Overview />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+        expect(screen.getByTestId('overview-page')).toBeInTheDocument();
+        expect(observedSearch).toBe('?review');
     });
 
     it('redirects an unknown sub-path to overview without looping', () => {
@@ -430,5 +495,129 @@ describe('ApiAvatar', () => {
         });
         renderLayout();
         expect(screen.queryByRole('img', { name: 'Payment Gateway' })).not.toBeInTheDocument();
+    });
+});
+
+// ─── API review ───────────────────────────────────────────────────────────────
+
+describe('API review', () => {
+    const mockUseApiReviewEnabled = useApiReviewEnabled as jest.Mock;
+    const mockUseApiPermissions = useApiPermissions as jest.Mock;
+
+    function grant(...permissions: string[]) {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => anyOf.some(p => permissions.includes(p)));
+    }
+
+    function mockApi(overrides: Record<string, unknown>) {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'My API', ...overrides }, isLoading: false });
+    }
+
+    beforeEach(() => {
+        mockUseMutation.mockReturnValue({ mutate: jest.fn(), isPending: false });
+        mockUseApiReviewEnabled.mockReturnValue({ enabled: true, isFetched: true });
+        mockUseApiPermissions.mockReturnValue({ permissionsReady: true });
+        grant('api-definition-u', 'api-reviews-u');
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+        mockUseHasPermission.mockReturnValue(true);
+    });
+
+    it('shows no review banner while review is disabled for the environment', () => {
+        mockUseApiReviewEnabled.mockReturnValue({ enabled: false, isFetched: true });
+        mockApi({ workflowState: 'DRAFT' });
+        renderLayout();
+        expect(screen.queryByRole('region', { name: 'API review status' })).not.toBeInTheDocument();
+    });
+
+    it('lets an author ask for a review from the draft banner after confirming', () => {
+        grant('api-definition-u');
+        mockApi({ workflowState: 'DRAFT' });
+        renderLayout();
+
+        expect(screen.getByText('This API is a draft.')).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Ask for a review' }));
+        expect(screen.getByRole('dialog', { name: 'Review API' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Ask for review' }));
+        expect(mockAskReviewMutate).toHaveBeenCalledWith(undefined, expect.objectContaining({ onSuccess: expect.any(Function) }));
+
+        const options = mockAskReviewMutate.mock.calls[0]?.[1] as { onSuccess: () => void };
+        options.onSuccess();
+        expect(notify.success).toHaveBeenCalledWith('Review has been asked.');
+    });
+
+    it('hides the ask action from a viewer without api-definition-u', () => {
+        grant('api-reviews-u');
+        mockApi({ workflowState: 'DRAFT' });
+        renderLayout();
+        expect(screen.getByText('This API is a draft.')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Ask for a review' })).not.toBeInTheDocument();
+    });
+
+    it('opens the review sheet for a reviewer from the in-review banner', () => {
+        mockApi({ workflowState: 'IN_REVIEW' });
+        renderLayout();
+
+        expect(screen.getByText('This API has changes waiting for your review.')).toBeInTheDocument();
+        expect(screen.queryByTestId('api-review-sheet')).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Review changes' }));
+        expect(screen.getByTestId('api-review-sheet')).toHaveTextContent('abc-123');
+    });
+
+    it('keeps the layout dependencies stable across a rerender so the host layout does not re-register forever', () => {
+        mockApi({ workflowState: 'IN_REVIEW' });
+        renderLayout();
+
+        // Opening the sheet rerenders the layout without touching anything the host layout depends on.
+        fireEvent.click(screen.getByRole('button', { name: 'Review changes' }));
+
+        const [previous, latest] = mockCapturedLayoutDeps.slice(-2);
+        expect(latest).toHaveLength(previous.length);
+        latest.forEach((dep, index) => expect(Object.is(dep, previous[index])).toBe(true));
+    });
+
+    it('tells a non-reviewer the review is pending without offering a decision', () => {
+        grant('api-definition-u');
+        mockApi({ workflowState: 'IN_REVIEW' });
+        renderLayout();
+        expect(screen.getByText('The API reviewer has been asked to review the changes.')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Review changes' })).not.toBeInTheDocument();
+    });
+
+    it('waits for the API permissions before deciding which wording to show', () => {
+        mockUseApiPermissions.mockReturnValue({ permissionsReady: false });
+        mockApi({ workflowState: 'IN_REVIEW' });
+        renderLayout();
+        expect(screen.queryByRole('region', { name: 'API review status' })).not.toBeInTheDocument();
+    });
+
+    it('holds back the out-of-sync deploy banner while the review is pending', () => {
+        mockApi({ workflowState: 'IN_REVIEW', deploymentState: 'NEED_REDEPLOY' });
+        renderLayout();
+        expect(screen.queryByText(/out of sync/i)).not.toBeInTheDocument();
+
+        mockApi({ workflowState: 'REVIEW_OK', deploymentState: 'NEED_REDEPLOY' });
+        renderLayout();
+        expect(screen.getByText(/out of sync/i)).toBeInTheDocument();
+    });
+
+    it('opens the review sheet straight away for a reviewer arriving with ?review', () => {
+        mockApi({ workflowState: 'IN_REVIEW' });
+        renderLayout('abc-123', '/apis/abc-123/overview?review');
+        expect(screen.getByTestId('api-review-sheet')).toBeInTheDocument();
+    });
+
+    it('ignores ?review for a user who cannot review', () => {
+        grant('api-definition-u');
+        mockApi({ workflowState: 'IN_REVIEW' });
+        renderLayout('abc-123', '/apis/abc-123/overview?review');
+        expect(screen.queryByTestId('api-review-sheet')).not.toBeInTheDocument();
+    });
+
+    it('ignores ?review once the review has been accepted', () => {
+        mockApi({ workflowState: 'REVIEW_OK' });
+        renderLayout('abc-123', '/apis/abc-123/overview?review');
+        expect(screen.queryByTestId('api-review-sheet')).not.toBeInTheDocument();
     });
 });
