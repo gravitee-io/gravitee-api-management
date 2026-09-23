@@ -82,6 +82,24 @@ describe('useDashboardStats', () => {
         expect(result.current.isError).toBe(false);
     });
 
+    it('should report no content when there are no APIs and no products', async () => {
+        mockUseHasFeature.mockReturnValue(true);
+        mockSearchApis.mockResolvedValue({ data: [], pagination: { totalCount: 0 } } as Awaited<ReturnType<typeof searchApis>>);
+        mockSearchApiProducts.mockResolvedValue({
+            data: [],
+            pagination: { totalCount: 0 },
+        } as Awaited<ReturnType<typeof searchApiProducts>>);
+
+        const { result } = renderHook(() => useDashboardStats(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.hasContent).not.toBeNull());
+
+        expect(result.current.hasContent).toBe(false);
+        expect(result.current.totalApis).toBe(0);
+        expect(result.current.totalProducts).toBe(0);
+        expect(result.current.isError).toBe(false);
+    });
+
     it('should skip the products query and report zero products when unlicensed', async () => {
         mockUseHasFeature.mockImplementation(feature => feature !== ApimLicenseFeature.API_PRODUCTS);
 
