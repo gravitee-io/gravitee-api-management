@@ -15,6 +15,7 @@
  */
 import { ApimApiError } from '@gravitee/gamma-ui-shared/api';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { ApisPage } from './ApisPage';
@@ -119,11 +120,21 @@ function failedSearch(error: unknown) {
 }
 
 describe('ApisPage', () => {
+    beforeAll(() => {
+        Element.prototype.scrollIntoView = jest.fn();
+        Element.prototype.hasPointerCapture = jest.fn();
+        Element.prototype.setPointerCapture = jest.fn();
+        Element.prototype.releasePointerCapture = jest.fn();
+    });
+
     beforeEach(() => {
         mockUseApiStats.mockReturnValue(STUB_STATS);
     });
 
-    afterEach(() => jest.clearAllMocks());
+    afterEach(() => {
+        jest.clearAllMocks();
+        jest.restoreAllMocks();
+    });
 
     it('shows the empty landing when there are no APIs and no active search', () => {
         mockUseApiList.mockReturnValue({
@@ -207,15 +218,21 @@ describe('ApisPage', () => {
     });
 
     it("renders the table with no API row of either kind and its 'No APIs found' empty state when the search is refused with 403", () => {
+        const forbidden = new ApimApiError(403, 'Forbidden');
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const error = jest.spyOn(console, 'error').mockImplementation(() => {});
         mockUseApiList.mockReturnValue({
             data: undefined,
             isLoading: false,
             isFetching: false,
             isPlaceholderData: false,
             isError: true,
-            error: new ApimApiError(403, 'Forbidden'),
+            error: forbidden,
         });
         renderPage();
+
+        expect(warn).toHaveBeenCalledWith('User lacks permission to list API proxies', forbidden);
+        expect(error).not.toHaveBeenCalledWith('Failed to load API proxies', forbidden);
 
         expect(screen.queryByPlaceholderText('Search APIs...')).not.toBeNull();
         expect(screen.queryByText('Why add an API proxy?')).toBeNull();
@@ -231,9 +248,11 @@ describe('ApisPage', () => {
         ['a rejected query', new ApimApiError(400, 'Bad Request')],
         ['a transport failure carrying no status', new Error('Network request failed')],
     ])('keeps the search input, sorting and pagination alongside an alert when the search fails with %s', (_case, error) => {
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
         mockUseApiList.mockReturnValue(failedSearch(error));
         renderPage();
 
+        expect(consoleError).toHaveBeenCalledWith('Failed to load API proxies', error);
         expect(screen.getByRole('alert')).not.toBeNull();
         expect(screen.queryByPlaceholderText('Search APIs...')).not.toBeNull();
         expect(screen.getByRole('button', { name: 'Runtime Status' })).not.toBeNull();
@@ -443,6 +462,23 @@ describe('ApisPage', () => {
         expect(lastRequest().page).toBe(1);
         expect(lastRequest().sortBy).toBe('status');
         expectBothRowsRendered();
+    });
+
+    it('returns to page 1 when the page size changes from a later page', async () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 3, totalCount: 25 } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        await userEvent.click(screen.getByRole('button', { name: /next page/i }));
+        expect(lastRequest().page).toBe(2);
+
+        await userEvent.click(screen.getByRole('combobox', { name: 'Items per page' }));
+        await userEvent.click(await screen.findByRole('option', { name: '25' }));
+
+        await waitFor(() => expect(lastRequest()).toMatchObject({ page: 1, perPage: 25 }));
     });
 
     it('adds the sort to the outbound request without dropping the active search term', async () => {
