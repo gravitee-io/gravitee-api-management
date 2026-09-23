@@ -30,7 +30,7 @@
       <div class="api-product-card__title next-gen-h5" data-testid="api-product-card-title" [matTooltip]="title()" appMatTooltipOnEllipsis>
         {{ title() }}
       </div>
-      <app-badge data-testid="api-product-type-badge" i18n-label="@@catalogApiProductType" label="API PRODUCT" />
+      <app-badge data-testid="api-product-type-badge" [label]="typeLabel()" />
     </div>
 
     <div class="api-product-card__description next-gen-body">

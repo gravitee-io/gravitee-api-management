@@ -34,7 +34,7 @@ import {
 } from '@gravitee/graphene-core';
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
-import { isCreateNotificationRow, notificationNotifierOptions, notificationSheetTitle } from './notificationHelpers';
+import { isCreateNotificationRow, notificationNotifierOptions } from './notificationHelpers';
 import { NotificationHookCategorySection } from './NotificationHookCategorySection';
 import type {
     ApplicationNotificationHookCategory,
@@ -42,8 +42,19 @@ import type {
     ApplicationNotifier,
     UpdateApplicationNotification,
 } from '../../types/applicationNotification';
+import {
+    CERTIFICATE_CLOSE_TO_EXPIRY_DAYS_PREFIX,
+    CERTIFICATE_CLOSE_TO_EXPIRY_HOOK_ID,
+    DEFAULT_CLOSE_TO_EXPIRY_DAYS,
+    isCloseToExpiryDaysValid,
+    parseCloseToExpiryDays,
+    persistApplicationNotificationHooks,
+    SUBSCRIPTION_CLOSE_TO_EXPIRY_DAYS_PREFIX,
+    SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID,
+    withoutHiddenApplicationHooks,
+} from '../../utils/applicationNotificationHooks';
 import { RequiredLabel } from '../notification-settings/RequiredLabel';
-import { STANDARD_SHEET_WIDTH, WIDE_SHEET_WIDTH } from '../sheetLayout';
+import { WIDE_SHEET_WIDTH } from '../sheetLayout';
 
 export type NotificationSheetCreatePayload = {
     name: string;
@@ -62,7 +73,6 @@ export function EditNotificationSheet({
     onCancel,
     onSave,
     onCreate,
-    layout = 'wide',
 }: Readonly<{
     row: ApplicationNotificationRow | null;
     notifiers: ApplicationNotifier[];
@@ -72,8 +82,6 @@ export function EditNotificationSheet({
     onCancel: () => void;
     onSave: (notification: UpdateApplicationNotification) => void;
     onCreate: (payload: NotificationSheetCreatePayload) => void;
-    /** `wide` is the application default; `standard` matches Groups (480px) for environment settings. */
-    layout?: 'wide' | 'standard';
 }>) {
     const isCreate = isCreateNotificationRow(row);
     const notification = row?.notification ?? null;
@@ -85,6 +93,8 @@ export function EditNotificationSheet({
     const [selectedHooks, setSelectedHooks] = useState<Set<string>>(new Set());
     const [config, setConfig] = useState('');
     const [useSystemProxy, setUseSystemProxy] = useState(false);
+    const [subscriptionCloseToExpiryDays, setSubscriptionCloseToExpiryDays] = useState(DEFAULT_CLOSE_TO_EXPIRY_DAYS);
+    const [certificateCloseToExpiryDays, setCertificateCloseToExpiryDays] = useState(DEFAULT_CLOSE_TO_EXPIRY_DAYS);
 
     useEffect(() => {
         if (!notification) {
@@ -93,13 +103,18 @@ export function EditNotificationSheet({
             setSelectedHooks(new Set());
             setConfig('');
             setUseSystemProxy(false);
+            setSubscriptionCloseToExpiryDays(DEFAULT_CLOSE_TO_EXPIRY_DAYS);
+            setCertificateCloseToExpiryDays(DEFAULT_CLOSE_TO_EXPIRY_DAYS);
             return;
         }
         if (isCreate) {
             setName(notification.name ?? '');
             setNotifierId(notification.notifier ?? notifierOptions[0]?.id ?? '');
         }
-        setSelectedHooks(new Set([...(notification.hooks ?? []), ...(notification.groupHooks ?? [])]));
+        const savedHooks = [...(notification.hooks ?? []), ...(notification.groupHooks ?? [])];
+        setSelectedHooks(new Set(withoutHiddenApplicationHooks(savedHooks)));
+        setSubscriptionCloseToExpiryDays(parseCloseToExpiryDays(savedHooks, SUBSCRIPTION_CLOSE_TO_EXPIRY_DAYS_PREFIX));
+        setCertificateCloseToExpiryDays(parseCloseToExpiryDays(savedHooks, CERTIFICATE_CLOSE_TO_EXPIRY_DAYS_PREFIX));
         setConfig(notification.config ?? '');
         setUseSystemProxy(Boolean(notification.useSystemProxy));
     }, [isCreate, notification, notifierOptions]);
@@ -129,7 +144,12 @@ export function EditNotificationSheet({
             return;
         }
 
-        const hooks = [...selectedHooks].filter(hookId => !groupHookIds.has(hookId));
+        const hooks = persistApplicationNotificationHooks(
+            [...selectedHooks],
+            groupHookIds,
+            subscriptionCloseToExpiryDays,
+            certificateCloseToExpiryDays,
+        );
 
         if (isCreate) {
             if (!name.trim() || !notifierId) {
@@ -163,7 +183,26 @@ export function EditNotificationSheet({
             ? "Use space, ',' or ';' to separate emails. EL supported."
             : 'URL (Gravitee will POST datas to this url)';
     const disabled = isSaving || Boolean(row?.isReadonly);
-    const canSubmit = isCreate ? Boolean(name.trim() && notifierId) : Boolean(notification);
+    const closeToExpiryDaysOk =
+        (!selectedHooks.has(SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID) || isCloseToExpiryDaysValid(subscriptionCloseToExpiryDays)) &&
+        (!selectedHooks.has(CERTIFICATE_CLOSE_TO_EXPIRY_HOOK_ID) || isCloseToExpiryDaysValid(certificateCloseToExpiryDays));
+    const canSubmit = (isCreate ? Boolean(name.trim() && notifierId) : Boolean(notification)) && closeToExpiryDaysOk;
+
+    const closeToExpiryDaysByHookId = useMemo(
+        () => ({
+            [SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID]: subscriptionCloseToExpiryDays,
+            [CERTIFICATE_CLOSE_TO_EXPIRY_HOOK_ID]: certificateCloseToExpiryDays,
+        }),
+        [certificateCloseToExpiryDays, subscriptionCloseToExpiryDays],
+    );
+
+    const handleCloseToExpiryDaysChange = useCallback((hookId: string, days: number) => {
+        if (hookId === CERTIFICATE_CLOSE_TO_EXPIRY_HOOK_ID) {
+            setCertificateCloseToExpiryDays(days);
+            return;
+        }
+        setSubscriptionCloseToExpiryDays(days);
+    }, []);
     const sheetSubject = isCreate ? name.trim() || 'this notification' : row?.name || 'this notification';
 
     const handleOpenChange = useCallback(
@@ -173,16 +212,15 @@ export function EditNotificationSheet({
         [onCancel],
     );
 
-    const sheetWidth = layout === 'standard' ? STANDARD_SHEET_WIDTH : WIDE_SHEET_WIDTH;
-    const sheetWidthStyle = layout === 'standard' ? { maxWidth: sheetWidth } : { maxWidth: sheetWidth, width: `min(100vw, ${sheetWidth})` };
-    const createFieldsClassName = layout === 'standard' ? 'grid gap-4' : 'grid gap-4 md:grid-cols-2';
-    const hookGridClassName = layout === 'standard' ? 'grid gap-2' : 'grid gap-2 sm:grid-cols-2 xl:grid-cols-4';
-
     return (
         <Sheet open={row !== null} onOpenChange={handleOpenChange}>
-            <SheetContent side="right" className="flex max-h-full flex-col" style={sheetWidthStyle}>
+            <SheetContent
+                side="right"
+                className="flex max-h-full flex-col"
+                style={{ maxWidth: WIDE_SHEET_WIDTH, width: `min(100vw, ${WIDE_SHEET_WIDTH})` }}
+            >
                 <SheetHeader>
-                    <SheetTitle>{notificationSheetTitle(row)}</SheetTitle>
+                    <SheetTitle>Edit Console Notification</SheetTitle>
                     <SheetDescription>Configure notifier settings and subscribed events for {sheetSubject}.</SheetDescription>
                 </SheetHeader>
 
@@ -190,7 +228,7 @@ export function EditNotificationSheet({
                     <ScrollArea className="min-h-0 flex-1">
                         <div className="space-y-5 px-4 pb-4">
                             {isCreate ? (
-                                <div className={createFieldsClassName}>
+                                <div className="grid gap-4 md:grid-cols-2">
                                     <div className="space-y-2">
                                         <RequiredLabel htmlFor="notification-name">Name</RequiredLabel>
                                         <Input
@@ -264,8 +302,9 @@ export function EditNotificationSheet({
                                             selectedHooks={selectedHooks}
                                             groupHookIds={groupHookIds}
                                             disabled={disabled}
+                                            closeToExpiryDaysByHookId={closeToExpiryDaysByHookId}
                                             onToggle={toggleHook}
-                                            gridClassName={hookGridClassName}
+                                            onCloseToExpiryDaysChange={handleCloseToExpiryDaysChange}
                                         />
                                     ))
                                 )}

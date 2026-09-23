@@ -48,12 +48,13 @@ import { AlertFormPage } from '../features/apis/pages/detail/alerts/AlertFormPag
 import { ApiAlertsPage } from '../features/apis/pages/detail/alerts/ApiAlertsPage';
 import { ApiScoringPage } from '../features/apis/pages/detail/api-score/ApiScoringPage';
 import { ApiDetailOverviewPage } from '../features/apis/pages/detail/ApiDetailOverviewPage';
-import { ApiDetailPlaceholderPage } from '../features/apis/pages/detail/ApiDetailPlaceholderPage';
 import { AuditLogsPage } from '../features/apis/pages/detail/audit-logs/AuditLogsPage';
 import { ApiBroadcastsPage } from '../features/apis/pages/detail/broadcasts/ApiBroadcastsPage';
 import { ApiConsumerDetailPage } from '../features/apis/pages/detail/consumers/ApiConsumerDetailPage';
 import { ApiConsumersPage } from '../features/apis/pages/detail/consumers/ApiConsumersPage';
 import { ApiCorsPage } from '../features/apis/pages/detail/cors/ApiCorsPage';
+import { ApiDocumentationEditPage } from '../features/apis/pages/detail/documentation/ApiDocumentationEditPage';
+import { ApiDocumentationPagesPage } from '../features/apis/pages/detail/documentation/ApiDocumentationPagesPage';
 import { DeploymentConfigurationPage } from '../features/apis/pages/detail/deployment/DeploymentConfigurationPage';
 import { DeploymentHistoryPage } from '../features/apis/pages/detail/deployment/DeploymentHistoryPage';
 import { ApiEndpointsPage } from '../features/apis/pages/detail/endpoints/ApiEndpointsPage';
@@ -250,7 +251,11 @@ export function AppRoutes() {
                                 </Route>
                                 <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
                                 <Route path="policy-studio" element={<PolicyStudioPage />} />
-                                <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
+                                <Route path="documentation">
+                                    <Route index element={<ApiDocumentationPagesPage />} />
+                                    <Route path="new" element={<ApiDocumentationEditPage />} />
+                                    <Route path=":pageId" element={<ApiDocumentationEditPage />} />
+                                </Route>
                                 <Route path="plans">
                                     <Route index element={<ApiPlansPage />} />
                                     <Route path="new/:securityType" element={<ApiPlanFormPage />} />

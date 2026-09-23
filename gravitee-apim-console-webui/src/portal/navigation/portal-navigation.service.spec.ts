@@ -74,12 +74,17 @@ describe('PortalNavigationService', () => {
           icon: 'gio:list-check',
         },
         {
+          displayName: 'Authentication',
+          routerLink: 'authentication',
+          icon: 'gio:lock',
+        },
+        {
           displayName: 'Settings',
           routerLink: 'settings',
           icon: 'gio:settings',
         },
       ]);
-      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(6);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledTimes(7);
     });
 
     it('should return only allowed menu items when some permissions are not granted', () => {
@@ -138,6 +143,10 @@ describe('PortalNavigationService', () => {
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-settings-r', 'environment-settings-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-theme-r', 'environment-theme-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-documentation-r', 'environment-documentation-u']);
+      expect(permissionService.hasAnyMatching).toHaveBeenCalledWith([
+        'organization-identity_provider-r',
+        'environment-identity_provider_activation-r',
+      ]);
     });
   });
 });

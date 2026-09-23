@@ -43,7 +43,6 @@ import { DocumentationSubscribeComponent } from './documentation/components/docu
 import { InvitationConfirmationComponent } from './registration/invitation-confirmation/invitation-confirmation.component';
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
-import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
 import { analyticsEnabledGuard } from '../guards/analytics-enabled.guard';
 import { applicationInvitationsEnabledGuard, applicationMembershipEnabledGuard } from '../guards/application-membership-enabled.guard';
 import { redirectGuard } from '../guards/redirect.guard';
@@ -54,6 +53,7 @@ import { homepageContentResolver } from '../resolvers/homepage-content.resolver'
 import { CatalogComponent } from './catalog/catalog.component';
 import { DocumentationComponent } from './documentation/components/documentation.component';
 import { documentationResolver } from './documentation/resolvers/documentation.resolver';
+import { HomeComponent } from './home/home.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { ResetPasswordConfirmationComponent } from './log-in/reset-password/reset-password-confirmation/reset-password-confirmation.component';
 import { ResetPasswordComponent } from './log-in/reset-password/reset-password.component';
@@ -131,14 +131,12 @@ const apiRoutes: Routes = [
   },
 ];
 
-export const routes: Routes = [
+const appRoutes: Routes = [
   {
     path: '',
     canActivate: [redirectGuard, authGuard],
-    resolve: {
-      pageContent: homepageContentResolver,
-    },
-    component: NavigationPageFullWidthComponent,
+    component: HomeComponent,
+    resolve: { pageContent: homepageContentResolver },
   },
   // Backward compatibility: redirect legacy 'categories' URLs for users with saved bookmarks or links
   {
@@ -173,6 +171,10 @@ export const routes: Routes = [
         loadComponent: () => import('./dashboard/subscriptions/subscriptions.component'),
       },
       {
+        path: 'notifications',
+        loadComponent: () => import('./dashboard/notifications/notifications.component'),
+      },
+      {
         path: 'subscriptions/:subscriptionId',
         loadComponent: () => import('./dashboard/subscription-details/subscription-details.component'),
       },
@@ -182,6 +184,14 @@ export const routes: Routes = [
           import('../components/subscription/webhook/configure-consumer/configure-consumer.component').then(
             m => m.ConfigureConsumerComponent,
           ),
+      },
+      {
+        path: 'workspaces',
+        loadComponent: () => import('./dashboard/workspaces/workspaces.component'),
+      },
+      {
+        path: 'workspaces/:subscriptionId',
+        loadComponent: () => import('./dashboard/workspaces/workspace-details/workspace-details.component'),
       },
       {
         path: 'applications',
@@ -250,6 +260,11 @@ export const routes: Routes = [
       { path: 'create', redirectTo: '/dashboard/applications/create', pathMatch: 'full' },
       { path: ':applicationId', redirectTo: '/dashboard/applications/:applicationId' },
     ],
+  },
+  {
+    path: 'user/notifications',
+    redirectTo: '/dashboard/notifications',
+    pathMatch: 'full',
   },
   {
     path: 'documentation',
@@ -335,4 +350,12 @@ export const routes: Routes = [
     path: '**',
     component: NotFoundComponent,
   },
+];
+
+export const routes: Routes = [
+  {
+    path: 'next',
+    children: appRoutes,
+  },
+  ...appRoutes,
 ];

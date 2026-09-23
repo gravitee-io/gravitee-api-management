@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, computed, ElementRef, HostListener, inject, input, InputSignal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, ElementRef, HostListener, inject, input, InputSignal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { isEmpty } from 'lodash';
-import { catchError, map } from 'rxjs';
+import { catchError, EMPTY, map, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
-import { PortalService } from '../../../services/portal.service';
+import { PortalNavigationItemsService } from '../../../services/portal-navigation-items.service';
+import { UserNotificationInboxService } from '../../../services/user-notification-inbox.service';
 
 @Component({
   selector: 'app-mobile-nav-bar',
@@ -33,12 +34,17 @@ import { PortalService } from '../../../services/portal.service';
   imports: [RouterLink, RouterLinkActive, MatIcon, MatButton],
 })
 export class MobileNavBarComponent {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly userNotificationInboxService = inject(UserNotificationInboxService);
+  private readonly elementRef = inject(ElementRef);
+
   currentUser: InputSignal<User> = input({});
   topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   analyticsEnabled: InputSignal<boolean> = input(false);
+  readonly unreadNotificationCount = this.userNotificationInboxService.unreadCount;
   hasHomepage = toSignal(
-    inject(PortalService)
-      .getPortalHomepages()
+    inject(PortalNavigationItemsService)
+      .getNavigationItems('HOMEPAGE', false)
       .pipe(
         map(homepages => homepages?.length > 0),
         catchError(() => of(false)),
@@ -49,7 +55,21 @@ export class MobileNavBarComponent {
     return !isEmpty(this.currentUser());
   });
   protected isMobileMenuOpened = false;
-  private readonly elementRef = inject(ElementRef);
+
+  constructor() {
+    toObservable(this.currentUser)
+      .pipe(
+        switchMap(user => {
+          if (isEmpty(user)) {
+            this.userNotificationInboxService.clear();
+            return EMPTY;
+          }
+          return this.userNotificationInboxService.fetchCount();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
 
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: MouseEvent) {

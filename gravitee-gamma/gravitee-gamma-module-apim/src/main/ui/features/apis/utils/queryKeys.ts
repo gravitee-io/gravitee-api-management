@@ -124,6 +124,18 @@ export const apiBroadcastKeys = {
     applicationRoles: () => [...apiBroadcastKeys.all, 'application-roles'] as const,
 };
 
+export const apiDocumentationKeys = {
+    all: ['api-documentation'] as const,
+    list: (envId: string, apiId: string, parentId: string) =>
+        [...apiDocumentationKeys.all, 'list', envId, apiId, parentId] as const,
+    detail: (envId: string, apiId: string, pageId: string) =>
+        [...apiDocumentationKeys.all, 'detail', envId, apiId, pageId] as const,
+    fetchers: (envId: string) => [...apiDocumentationKeys.all, 'fetchers', envId] as const,
+    specGen: (envId: string, apiId: string) => [...apiDocumentationKeys.all, 'spec-gen', envId, apiId] as const,
+    tree: (envId: string, apiId: string) => [...apiDocumentationKeys.all, 'tree', envId, apiId] as const,
+    portalFolders: (envId: string) => [...apiDocumentationKeys.all, 'portal-folders', envId] as const,
+};
+
 export const apiNotificationKeys = {
     all: ['api-notifications'] as const,
     list: (envId: string, apiId: string) => [...apiNotificationKeys.all, 'list', envId, apiId] as const,

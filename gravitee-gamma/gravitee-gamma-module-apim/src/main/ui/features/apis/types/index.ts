@@ -21,6 +21,7 @@ export * from './apiCreation';
 export * from './apiImport';
 export * from './auditLogs.types';
 export * from './broadcast';
+export * from './documentation';
 export * from './healthCheck';
 export * from './members.types';
 export * from './metadata';

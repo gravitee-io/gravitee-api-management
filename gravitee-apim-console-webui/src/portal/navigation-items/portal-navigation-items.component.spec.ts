@@ -124,6 +124,7 @@ describe('PortalNavigationItemsComponent', () => {
     flushPendingLinkedApiSearchRequests();
     flushPendingLinkedApiProductRequests();
     flushPendingFetcherRequests();
+    flushPendingPortalSettingsRequests();
     httpTestingController.verify();
     jest.clearAllMocks();
   });
@@ -2932,7 +2933,10 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
-      expectSeedDefaultPages(createdApis.map(api => api.id));
+      expectEmptyApiProxyPagesThenSeedDefault(
+        apiIds,
+        createdApis.map(api => api.id),
+      );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
     });
@@ -2973,7 +2977,10 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
-      expectSeedDefaultPages(createdApis.map(api => api.id));
+      expectEmptyApiProxyPagesThenSeedDefault(
+        apiIds,
+        createdApis.map(api => api.id),
+      );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [folder, ...createdApis] }));
     });
@@ -3015,7 +3022,10 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
-      expectSeedDefaultPages(createdApis.map(api => api.id));
+      expectEmptyApiProxyPagesThenSeedDefault(
+        apiIds,
+        createdApis.map(api => api.id),
+      );
 
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [privateFolder, ...createdApis] }));
     });
@@ -3133,7 +3143,8 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
-      expectSeedDefaultPages(
+      expectEmptyApiProxyPagesThenSeedDefault(
+        apiIds,
         createdApis.map(api => api.id),
         500,
       );
@@ -3144,8 +3155,107 @@ describe('PortalNavigationItemsComponent', () => {
       await fixture.whenStable();
       fixture.detectChanges();
 
-      expect(document.body.textContent).toContain('Failed to create default API pages');
+      expect(document.body.textContent).toContain('Failed to initialize API documentation in Navigation');
       expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: createdApis[1].id } }));
+    });
+
+    it('should mirror API proxy folder structure into Navigation instead of seeding Overview', async () => {
+      const apiIds = ['api-1'];
+      const createdApis = [fakePortalNavigationApi({ id: 'nav-api-1', apiId: 'api-1', title: '', parentId: folder.id })];
+      const guidesFolder = {
+        id: 'folder-guides',
+        name: 'Guides',
+        type: 'FOLDER',
+        order: 0,
+      };
+      const introPage = {
+        id: 'page-intro',
+        name: 'Intro',
+        type: 'MARKDOWN',
+        parentId: 'folder-guides',
+        order: 0,
+        content: '# Intro from proxy',
+      };
+      const createdFolder = fakePortalNavigationFolder({
+        id: 'nav-folder-guides',
+        title: 'Guides',
+        parentId: createdApis[0].id,
+      });
+      const createdPage = fakePortalNavigationPage({
+        id: 'nav-page-intro',
+        title: 'Intro',
+        parentId: createdFolder.id,
+        portalPageContentId: 'content-intro',
+      });
+
+      await harness.selectNavigationItemByTitle(folder.title);
+
+      const folderNode = { id: folder.id, label: folder.title, type: folder.type, data: folder } as any;
+      component.onNodeMenuAction({ action: 'create', itemType: 'API', node: folderNode });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await expectApiSearchResponse(apiIds);
+
+      const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+      await checkboxes[0].check();
+
+      const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
+      await dialog.clickSubmitButton();
+
+      expectCreateNavigationItemsInBulk(
+        apiIds.map(apiId => ({
+          title: '',
+          type: 'API',
+          area: 'TOP_NAVBAR',
+          parentId: folder.id,
+          visibility: 'PUBLIC',
+          apiId,
+        })),
+        fakePortalNavigationItemsResponse({ items: createdApis }),
+      );
+
+      expectGetApiProxyPages('api-1', [guidesFolder, introPage]);
+      expectCreateNavigationItem(
+        {
+          type: 'FOLDER',
+          title: 'Guides',
+          parentId: createdApis[0].id,
+          area: 'TOP_NAVBAR',
+          visibility: 'PUBLIC',
+          order: 0,
+        },
+        createdFolder,
+      );
+      expectGetApiProxyPage('api-1', 'page-intro', introPage);
+      expectCreateNavigationItem(
+        {
+          type: 'PAGE',
+          title: 'Intro',
+          parentId: createdFolder.id,
+          area: 'TOP_NAVBAR',
+          visibility: 'PUBLIC',
+          contentType: 'GRAVITEE_MARKDOWN',
+          order: 0,
+        },
+        createdPage,
+      );
+
+      const contentReq = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-intro`,
+      });
+      expect(contentReq.request.body).toEqual({ content: '# Intro from proxy', type: 'GRAVITEE_MARKDOWN' });
+      contentReq.flush({ id: 'content-intro', content: '# Intro from proxy', type: 'GRAVITEE_MARKDOWN' });
+
+      httpTestingController.expectNone({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items/_default-pages`,
+      });
+
+      await expectGetNavigationItems(
+        fakePortalNavigationItemsResponse({ items: [folder, ...createdApis, createdFolder, createdPage] }),
+      );
     });
   });
 
@@ -3201,7 +3311,10 @@ describe('PortalNavigationItemsComponent', () => {
         })),
         fakePortalNavigationItemsResponse({ items: createdApis }),
       );
-      expectSeedDefaultPages(createdApis.map(api => api.id));
+      expectEmptyApiProxyPagesThenSeedDefault(
+        apiIds,
+        createdApis.map(api => api.id),
+      );
       await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [rootFolder, apiProduct, nestedFolder, ...createdApis] }));
       flushPendingLinkedApiSearchRequests();
       flushPendingLinkedApiProductRequests();
@@ -3431,6 +3544,8 @@ describe('PortalNavigationItemsComponent', () => {
   }
 
   async function expectGetNavigationItems(response: PortalNavigationItemsResponse = fakePortalNavigationItemsResponse()) {
+    flushPendingPortalSettingsRequests();
+
     httpTestingController
       .expectOne({ method: 'GET', url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items?area=TOP_NAVBAR` })
       .flush(response);
@@ -3496,6 +3611,27 @@ describe('PortalNavigationItemsComponent', () => {
     }
 
     req.flush('Server error', { status, statusText: 'Internal Server Error' });
+  }
+
+  function expectGetApiProxyPages(apiId: string, pages: unknown[] = []) {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/pages`,
+    });
+    req.flush({ pages, breadcrumb: [] });
+  }
+
+  function expectGetApiProxyPage(apiId: string, pageId: string, page: unknown) {
+    const req = httpTestingController.expectOne({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/pages/${pageId}`,
+    });
+    req.flush(page);
+  }
+
+  function expectEmptyApiProxyPagesThenSeedDefault(apiIds: string[], navIds: string[], seedStatus = 204) {
+    apiIds.forEach(apiId => expectGetApiProxyPages(apiId, []));
+    expectSeedDefaultPages(navIds, seedStatus);
   }
 
   function expectPutPortalNavigationItem(
@@ -3607,6 +3743,14 @@ describe('PortalNavigationItemsComponent', () => {
     if (activeRequests.length > 0) {
       fixture.detectChanges();
     }
+  }
+
+  function flushPendingPortalSettingsRequests(response: Record<string, unknown> = {}) {
+    const requests = httpTestingController.match({
+      method: 'GET',
+      url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+    });
+    requests.filter(req => !req.cancelled).forEach(req => req.flush(response));
   }
 
   function flushPendingLinkedApiSearchRequests() {

@@ -22,7 +22,7 @@ import { Component, input, Input, InputSignal } from '@angular/core';
 })
 export class FooterComponent {
   @Input()
-  title: string = 'Developer Portal';
+  title: string = 'Westfield Group US';
 
   currentYear = new Date().getFullYear().toString();
   logo: InputSignal<string> = input('');

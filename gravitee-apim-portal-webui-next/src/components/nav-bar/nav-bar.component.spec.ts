@@ -18,17 +18,16 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { ComponentRef, WritableSignal } from '@angular/core';
+import { ComponentRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { of } from 'rxjs';
 
 import { NavBarComponent } from './nav-bar.component';
-import { PortalPage } from '../../entities/portal/portal-page';
 import { PortalNavigationItem, PortalNavigationLink } from '../../entities/portal-navigation/portal-navigation-item';
+import { fakePortalNavigationPage } from '../../entities/portal-navigation/portal-navigation-item.fixture';
 import { fakeUser } from '../../entities/user/user.fixtures';
 import { ConfigService } from '../../services/config.service';
-import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
 import { AppTestingModule, ConfigServiceStub, TESTING_BASE_URL } from '../../testing/app-testing.module';
 import { DivHarness } from '../../testing/div.harness';
 
@@ -65,19 +64,9 @@ describe('NavBarComponent', () => {
       observe: () => of({ matches: isMobile, breakpoints: { [Breakpoints.XSmall]: isMobile } }),
     };
 
-    const portalNavigationItemsServiceMock: Partial<PortalNavigationItemsService> = {
-      loadTopNavBarItems: () => of(undefined),
-      topNavbarItems: {
-        set: () => {},
-      } as unknown as WritableSignal<PortalNavigationItem[]>,
-    };
-
     await TestBed.configureTestingModule({
       imports: [NavBarComponent, AppTestingModule],
-      providers: [
-        { provide: BreakpointObserver, useValue: mockBreakpointObserver },
-        { provide: PortalNavigationItemsService, useValue: portalNavigationItemsServiceMock },
-      ],
+      providers: [{ provide: BreakpointObserver, useValue: mockBreakpointObserver }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(NavBarComponent);
@@ -112,6 +101,8 @@ describe('NavBarComponent', () => {
       let logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
       expect(logInButton).toBeTruthy();
       componentRef.setInput('currentUser', fakeUser());
+      fixture.detectChanges();
+      expectUnreadNotifications();
       logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Sign in' }));
       expect(logInButton).toBeFalsy();
     });
@@ -129,6 +120,8 @@ describe('NavBarComponent', () => {
       componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       componentRef.setInput('forceLogin', true);
       componentRef.setInput('currentUser', fakeUser());
+      fixture.detectChanges();
+      expectUnreadNotifications();
       const link1Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-1/i }));
       expect(link1Anchor).toBeTruthy();
       const link2Anchor = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: /link-name-2/i }));
@@ -169,13 +162,14 @@ describe('NavBarComponent', () => {
       expectHomePage();
       componentRef.setInput('currentUser', fakeUser());
       fixture.detectChanges();
+      expectUnreadNotifications();
 
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
       await menuButton.click();
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Subscriptions', 'Log out']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Subscriptions', 'Notifications', 'My Workspace', 'Log out']);
     });
 
     it('should not show menu if user is not connected and login is forced', async () => {
@@ -194,6 +188,7 @@ describe('NavBarComponent', () => {
       componentRef.setInput('topBarNavigationItems', topBarNavigationItems);
       componentRef.setInput('forceLogin', true);
       fixture.detectChanges();
+      expectUnreadNotifications();
 
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
       await menuButton.click();
@@ -207,6 +202,8 @@ describe('NavBarComponent', () => {
         'link-name-2 open_in_new(opens in new tab)',
         'Applications',
         'Subscriptions',
+        'Notifications',
+        'My Workspace',
         'Log out',
       ]);
     });
@@ -235,6 +232,7 @@ describe('NavBarComponent', () => {
       componentRef.setInput('currentUser', fakeUser());
       expectHomePage();
       fixture.detectChanges();
+      expectUnreadNotifications();
 
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
       await menuButton.click();
@@ -285,23 +283,29 @@ describe('NavBarComponent', () => {
       expectHomePage();
       componentRef.setInput('currentUser', fakeUser());
       fixture.detectChanges();
+      expectUnreadNotifications();
 
       const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
       await menuButton.click();
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Analytics', 'Applications', 'Subscriptions', 'Log out']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Analytics', 'Applications', 'Subscriptions', 'Notifications', 'My Workspace', 'Log out']);
     });
   });
 
-  function expectHomePage(pages: PortalPage[] = [{ id: '1', name: 'Homepage', type: 'HOMEPAGE' }]) {
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-pages?type=HOMEPAGE`);
-    req.flush({ pages });
+  function expectUnreadNotifications(total = 0) {
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/user/notifications?page=1&size=1`);
+    req.flush({ data: [], metadata: { pagination: { current_page: 1, total } } });
+  }
+
+  function expectHomePage(items: PortalNavigationItem[] = [fakePortalNavigationPage({ id: '1', title: 'Homepage' })]) {
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=HOMEPAGE&loadChildren=false`);
+    req.flush(items);
   }
 
   function expectHomePageWithError() {
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-pages?type=HOMEPAGE`);
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=HOMEPAGE&loadChildren=false`);
     req.flush('Error', { status: 500, statusText: 'Server Error' });
   }
 });

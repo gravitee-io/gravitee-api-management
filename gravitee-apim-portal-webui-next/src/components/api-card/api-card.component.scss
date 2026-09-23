@@ -39,14 +39,14 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
+  }
 
-    &__content {
-      display: flex;
-      flex: 1;
-      flex-flow: column;
-      gap: 2px;
-      overflow: hidden;
-    }
+  &__header__content {
+    display: flex;
+    flex: 1;
+    flex-flow: column;
+    gap: 2px;
+    overflow: hidden;
   }
 
   &__title {
@@ -78,5 +78,20 @@
     text-overflow: ellipsis;
     word-wrap: break-word;
     color: theme.$paragraph-color;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: auto;
+  }
+
+  &__notify {
+    color: theme.$paragraph-color;
+
+    &--active {
+      color: theme.$primary-main-color;
+    }
   }
 }

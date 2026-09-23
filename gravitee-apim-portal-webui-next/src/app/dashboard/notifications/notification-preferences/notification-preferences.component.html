@@ -1,0 +1,140 @@
+<!--
+    Copyright (C) 2026 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+-->
+<div class="notification-preferences">
+  <p class="notification-preferences__intro next-gen-body" i18n="@@notificationsPreferencesIntro">
+    Choose which events should notify you. App preferences cover subscriptions and certificates; API preferences cover subscriptions, API
+    keys, and API lifecycle changes.
+  </p>
+
+  <mat-button-toggle-group
+    class="notification-preferences__scope"
+    [value]="scope()"
+    (change)="setScope($event.value)"
+    aria-label="Notification preference scope"
+    i18n-aria-label="@@notificationsPreferencesScopeAria"
+  >
+    <mat-button-toggle value="APPLICATION" i18n="@@notificationsPreferencesScopeApps">Apps</mat-button-toggle>
+    <mat-button-toggle value="API" i18n="@@notificationsPreferencesScopeApis">APIs</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <div class="notification-preferences__selectors">
+    @if (scope() === 'APPLICATION') {
+      <mat-form-field appearance="outline" class="notification-preferences__field">
+        <mat-label i18n="@@notificationsPreferencesApplicationLabel">Application</mat-label>
+        <mat-select
+          [formControl]="applicationControl"
+          (selectionChange)="onApplicationChange($event.value)"
+          data-testid="notification-preferences-application"
+        >
+          @for (application of applicationOptions(); track application.id) {
+            <mat-option [value]="application.id">{{ application.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    } @else {
+      <mat-form-field appearance="outline" class="notification-preferences__field">
+        <mat-label i18n="@@notificationsPreferencesApiLabel">API</mat-label>
+        <mat-select [formControl]="apiControl" (selectionChange)="onApiChange($event.value)" data-testid="notification-preferences-api">
+          @for (api of apiOptions(); track api.id) {
+            <mat-option [value]="api.id">{{ api.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    }
+  </div>
+
+  @if (isLoading()) {
+    <mat-progress-bar mode="indeterminate" class="notification-preferences__loader" />
+  }
+
+  @if (error(); as errorText) {
+    <p class="notification-preferences__error next-gen-body" role="alert">{{ errorText }}</p>
+  }
+
+  @if (successMessage(); as successText) {
+    <p class="notification-preferences__success next-gen-body" aria-live="polite">{{ successText }}</p>
+  }
+
+  @if (!effectiveApplicationId() && !isLoading()) {
+    <div class="notification-preferences__empty">
+      <span class="material-icons icon-with-background" aria-hidden="true">tune</span>
+      @if (scope() === 'APPLICATION') {
+        <h2 class="next-gen-h5" i18n="@@notificationsPreferencesSelectApp">Select an application to configure notifications</h2>
+      } @else {
+        <h2 class="next-gen-h5" i18n="@@notificationsPreferencesSelectApi">Select an API to configure notifications</h2>
+      }
+    </div>
+  } @else if (effectiveApplicationId()) {
+    <div class="notification-preferences__hooks">
+      @for (group of categoryGroups(); track group.name) {
+        <section class="notification-preferences__category">
+          <h3 class="notification-preferences__category-title next-gen-small">{{ group.label }}</h3>
+          <div class="notification-preferences__hook-grid">
+            @for (hook of group.hooks; track hook.id) {
+              <div class="notification-preferences__hook">
+                <mat-checkbox
+                  [checked]="hook.enabled"
+                  (change)="toggleHook(hook.id, $event.checked)"
+                  [attr.data-testid]="'notification-hook-' + hook.id"
+                >
+                  <span class="notification-preferences__hook-label">{{ hook.label }}</span>
+                  @if (hook.description) {
+                    <span class="notification-preferences__hook-description next-gen-small">{{ hook.description }}</span>
+                  }
+                </mat-checkbox>
+
+                @if (hook.enabled && hook.isCloseToExpiry) {
+                  <div class="notification-preferences__days">
+                    <mat-form-field appearance="outline" class="notification-preferences__days-field">
+                      <mat-label i18n="@@notificationsPreferencesDaysLabel">Days</mat-label>
+                      <input
+                        matInput
+                        type="number"
+                        [min]="minCloseToExpiryDays"
+                        [max]="maxCloseToExpiryDays"
+                        [value]="closeToExpiryDays(hook.id)"
+                        (input)="onCloseToExpiryDaysChange(hook.id, $event)"
+                        [attr.aria-label]="hook.label"
+                      />
+                    </mat-form-field>
+                    <span class="next-gen-small" i18n="@@notificationsPreferencesDaysBeforeExpiry">days before expiry</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+      }
+    </div>
+
+    <div class="notification-preferences__actions">
+      <button mat-stroked-button type="button" (click)="reset()" [disabled]="!hasUnsavedChanges() || saving()" i18n="@@notificationsPreferencesReset">
+        Reset
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        (click)="save()"
+        [disabled]="!canSave()"
+        data-testid="notification-preferences-save"
+        i18n="@@notificationsPreferencesSave"
+      >
+        Save
+      </button>
+    </div>
+  }
+</div>

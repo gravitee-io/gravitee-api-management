@@ -18,6 +18,7 @@ import {
     ActivityIcon,
     AlignLeftIcon,
     BellIcon,
+    BookOpenIcon,
     ClockIcon,
     DatabaseIcon,
     ExternalLinkIcon,
@@ -91,6 +92,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'user-permissions', label: 'User Permissions', icon: UsersIcon },
             { path: 'authorization', label: 'Authorization', icon: LockIcon, comingSoon: true },
             { path: 'metadata', label: 'Metadata', icon: DatabaseIcon },
+            { path: 'documentation', label: 'Documentation', icon: BookOpenIcon, end: false },
         ],
     },
     {

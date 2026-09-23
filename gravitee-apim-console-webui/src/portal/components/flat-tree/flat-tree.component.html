@@ -217,10 +217,21 @@
   }
 
   @if (canDelete) {
-    <button mat-menu-item class="tree__menu-item-delete" (click)="onDelete(node)" data-testid="delete-node-button">
-      <mat-icon class="tree__menu-item-delete">delete</mat-icon>
-      Delete
-    </button>
+    @let deleteDisabled = isDeleteDisabled(node);
+    <span [matTooltip]="getDeleteDisabledTooltip(node)" [matTooltipDisabled]="!deleteDisabled" matTooltipPosition="right">
+      <button
+        mat-menu-item
+        class="tree__menu-item-delete"
+        [disabled]="deleteDisabled"
+        [attr.aria-disabled]="deleteDisabled"
+        [attr.tabindex]="deleteDisabled ? -1 : null"
+        (click)="onDelete(node)"
+        data-testid="delete-node-button"
+      >
+        <mat-icon class="tree__menu-item-delete">delete</mat-icon>
+        Delete
+      </button>
+    </span>
   }
 </ng-template>
 

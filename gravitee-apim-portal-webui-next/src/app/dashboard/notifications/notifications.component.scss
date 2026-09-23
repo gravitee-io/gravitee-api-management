@@ -1,0 +1,108 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../scss/theme' as app-theme;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  max-width: app-theme.$inner-content-width;
+  overflow: hidden;
+  gap: 32px;
+  padding-top: 24px;
+  width: 100%;
+}
+
+.notifications-list {
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    max-width: 50rem;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 16px;
+  }
+
+  &__filter {
+    flex: 1 1 200px;
+  }
+
+  &__resource {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+
+    &--unread {
+      font-weight: 700;
+    }
+  }
+
+  &__message {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    &__title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      p {
+        margin: 0;
+      }
+    }
+  }
+
+  &__view-toggle {
+    flex-shrink: 0;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+  }
+
+  &__loader {
+    position: absolute;
+    inset: 0;
+    background: app-theme.$background-overlay-color;
+  }
+
+  &__error {
+    margin: 0;
+    color: app-theme.$error-main-color;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 32px 16px;
+    color: app-theme.$paragraph-color;
+  }
+}

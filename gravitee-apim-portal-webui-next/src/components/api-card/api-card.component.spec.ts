@@ -69,4 +69,19 @@ describe('CardComponent', () => {
 
     expect(selected).toHaveBeenCalledWith(api.id);
   });
+
+  it('should emit notification toggle without selecting the card', async () => {
+    fixture.componentRef.setInput('showNotificationBell', true);
+    fixture.detectChanges();
+
+    const selected = jest.fn();
+    const notified = jest.fn();
+    component.cardSelect.subscribe(selected);
+    component.notificationToggle.subscribe(notified);
+
+    await harness.clickNotify();
+
+    expect(notified).toHaveBeenCalledWith(api.id);
+    expect(selected).not.toHaveBeenCalled();
+  });
 });

@@ -107,6 +107,12 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException defaultApiDocumentationFolderCannotBeDeleted() {
+        return new InvalidPortalNavigationItemDataException(
+            "This folder is configured as the default API documentation folder and cannot be deleted. Change or clear it in Portal Settings → Settings first."
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException sourcedPageContentIsReadOnly(String contentId) {
         return new InvalidPortalNavigationItemDataException(
             "Page content %s is managed by an external source and cannot be edited. Remove the source first.".formatted(contentId)

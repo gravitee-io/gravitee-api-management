@@ -1,0 +1,76 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="workspaces-list__header">
+  <div class="workspaces-list__header__title">
+    <div class="title next-gen-h3" i18n="@@myWorkspaceTitle">My Workspace</div>
+    <p class="next-gen-body" i18n="@@myWorkspaceDescription">
+      AI workspaces you are a member of, with access credentials and getting-started guidance
+    </p>
+  </div>
+</div>
+
+<div class="workspaces-list__filters">
+  <app-search-bar class="workspaces-list__search" [searchParam]="searchQuery()" (searchTerm)="onSearchTermChange($event)" />
+</div>
+
+<div class="workspaces-list__content">
+  @if (!loadingPage() && workspacePaginator().totalResults > 0) {
+    <p class="workspaces-list__count next-gen-small-bold" aria-live="polite">{{ workspaceCountLabel() }}</p>
+  }
+
+  <app-cards-grid class="workspaces-list__grid" [cards]="workspacePaginator().data" [showEmptyState]="!loadingPage()">
+    <ng-template #cardTemplate let-workspace>
+      <app-ai-workspace-card
+        [workspaceId]="workspace.id"
+        [title]="workspace.title"
+        [description]="workspace.description"
+        [budgetLabel]="workspace.budgetLabel"
+        (cardSelect)="navigateToWorkspace(workspace.subscriptionId)"
+      />
+    </ng-template>
+
+    <ng-container slot="empty-state">
+      @if (searchQuery()) {
+        <span class="material-icons icon-with-background" aria-hidden="true">filter_list_off</span>
+        <h2 class="next-gen-h5" i18n="@@noWorkspacesSearchTitle">No workspaces found</h2>
+        <p class="next-gen-body" i18n="@@noWorkspacesSearchDescription">Try adjusting your search to find AI workspaces.</p>
+      } @else {
+        <span class="material-icons icon-with-background" aria-hidden="true">workspaces</span>
+        <h2 class="next-gen-h5" i18n="@@noWorkspacesAvailable">No workspaces available yet</h2>
+        <p class="next-gen-body" i18n="@@noWorkspacesDescription">You have not been assigned to any AI workspace yet.</p>
+      }
+    </ng-container>
+  </app-cards-grid>
+
+  @if (loadingPage()) {
+    <app-loader class="workspaces-list__loader" />
+  }
+
+  @if (workspacePaginator().totalResults > 0) {
+    <app-pagination
+      class="list-page__pagination"
+      [totalResults]="workspacePaginator().totalResults"
+      [currentPage]="workspacePaginator().page"
+      [pageSize]="pageSize()"
+      [pageSizeOptions]="pageSizeOptions"
+      (selectPage)="onPageChange($event)"
+      (selectPageSize)="onPageSizeChange($event)"
+    />
+  }
+</div>

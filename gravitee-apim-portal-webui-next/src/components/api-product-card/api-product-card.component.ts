@@ -34,6 +34,7 @@ export class ApiProductCardComponent {
   readonly title = input.required<string>();
   readonly content = input<string>();
   readonly apiNames = input.required<string[]>();
+  readonly typeLabel = input($localize`:@@catalogApiProductType:API PRODUCT`);
 
   readonly cardSelect = output<string>();
 

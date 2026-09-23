@@ -13,23 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, input, InputSignal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, input, InputSignal } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButton } from '@angular/material/button';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
+import { isEmpty } from 'lodash';
+import { EMPTY, switchMap } from 'rxjs';
 
 import { User } from '../../entities/user/user';
+import { UserNotificationInboxService } from '../../services/user-notification-inbox.service';
 
 @Component({
   selector: 'app-user-avatar',
-  imports: [MatButton, MatMenuTrigger, MatMenu, MatMenuItem, RouterModule],
+  imports: [MatBadgeModule, MatButton, MatMenuTrigger, MatMenu, MatMenuItem, RouterModule],
   templateUrl: 'user-avatar.component.html',
   styleUrl: './user-avatar.component.scss',
 })
 export class UserAvatarComponent {
+  private readonly userNotificationInboxService = inject(UserNotificationInboxService);
+  private readonly destroyRef = inject(DestroyRef);
+
   user: InputSignal<User> = input({});
   analyticsEnabled: InputSignal<boolean> = input(false);
   initials: string = '';
+  readonly unreadNotificationCount = this.userNotificationInboxService.unreadCount;
 
   constructor() {
     effect(() => {
@@ -41,5 +50,24 @@ export class UserAvatarComponent {
         this.initials = this.user().display_name?.[0] ?? '';
       }
     });
+
+    toObservable(this.user)
+      .pipe(
+        switchMap(user => {
+          if (isEmpty(user)) {
+            this.userNotificationInboxService.clear();
+            return EMPTY;
+          }
+          return this.userNotificationInboxService.fetchCount();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  onMenuOpened(): void {
+    if (!isEmpty(this.user())) {
+      this.userNotificationInboxService.refresh();
+    }
   }
 }

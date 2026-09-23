@@ -126,7 +126,7 @@ export function useActiveAppCount({ enabled = true }: CountHookOptions = {}): Co
         managementApi
             .get<{
                 page?: { total_elements?: number };
-            }>(`/environments/${encodeURIComponent(environmentId)}/applications/_paged?status=ACTIVE&size=1`)
+            }>(`/environments/${encodeURIComponent(environmentId)}/applications/_paged?status=ACTIVE&size=1&exclude=OWNER`)
             .then(res => res?.page?.total_elements ?? null),
     );
 }

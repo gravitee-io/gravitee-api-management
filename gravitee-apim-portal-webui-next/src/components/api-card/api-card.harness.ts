@@ -47,4 +47,16 @@ export class ApiCardHarness extends ContentContainerComponentHarness {
     const badge = await this.locateTypeBadge();
     return badge?.text() ?? null;
   }
+
+  public async clickNotify(): Promise<void> {
+    const button = await this.locatorForOptional('[data-testid="api-card-notify"]')();
+    if (!button) {
+      throw new Error('Notify button not found');
+    }
+    return button.click();
+  }
+
+  public async hasNotifyButton(): Promise<boolean> {
+    return (await this.locatorForOptional('[data-testid="api-card-notify"]')()) !== null;
+  }
 }

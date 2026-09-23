@@ -15,14 +15,32 @@
     limitations under the License.
 
 -->
-<button mat-stroked-button color="primary" class="user-avatar m3-title-medium" [matMenuTriggerFor]="user">
+<button
+  mat-stroked-button
+  color="primary"
+  class="user-avatar m3-title-medium"
+  [matMenuTriggerFor]="user"
+  [matBadge]="unreadNotificationCount()"
+  [matBadgeHidden]="unreadNotificationCount() === 0"
+  matBadgeSize="small"
+  matBadgeColor="warn"
+  i18n-matBadgeDescription="@@notificationsUnreadBadge"
+  matBadgeDescription="Unread notifications"
+>
   {{ initials }}
 </button>
-<mat-menu #user="matMenu">
+<mat-menu #user="matMenu" (opened)="onMenuOpened()">
   @if (analyticsEnabled()) {
     <button i18n="@@analyticsTitle" mat-menu-item [routerLink]="['/dashboard', 'analytics']">Analytics</button>
   }
   <button i18n="@@applications" mat-menu-item [routerLink]="['/dashboard', 'applications']">Applications</button>
   <button i18n="@@subscriptions" mat-menu-item [routerLink]="['/dashboard', 'subscriptions']">Subscriptions</button>
+  <button mat-menu-item [routerLink]="['/dashboard', 'notifications']">
+    <span i18n="@@notificationsTitle">Notifications</span>
+    @if (unreadNotificationCount() > 0) {
+      <span class="user-avatar__unread-count"> ({{ unreadNotificationCount() }})</span>
+    }
+  </button>
+  <button i18n="@@myWorkspace" mat-menu-item [routerLink]="['/dashboard', 'workspaces']">My Workspace</button>
   <button i18n="@@userAvatarMenuLogOut" mat-menu-item [routerLink]="['/log-out']">Log out</button>
 </mat-menu>

@@ -242,6 +242,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       catalog: {
         fuzzySearch: { enabled: false },
       },
+      documentation: {
+        defaultFolderId: '',
+      },
       banner: {
         enabled: true,
         title: 'testTitle',

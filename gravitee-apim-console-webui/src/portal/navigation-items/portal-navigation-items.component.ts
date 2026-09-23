@@ -31,12 +31,12 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { AbstractControl, FormControl, ReactiveFormsModule, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { rxResource, takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, exhaustMap, filter, finalize, map, shareReplay, skip, switchMap, take, tap } from 'rxjs/operators';
+import { catchError, concatMap, exhaustMap, filter, finalize, map, shareReplay, skip, switchMap, take, tap, toArray } from 'rxjs/operators';
 import { MatMenuItem, MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { BehaviorSubject, EMPTY, Observable, of } from 'rxjs';
+import { BehaviorSubject, EMPTY, from, Observable, of } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AsyncPipe, NgTemplateOutlet, TitleCasePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -79,6 +79,8 @@ import {
   FetchPortalNavigationItemResponse,
   getPortalNavigationItemSource,
   NewPortalNavigationItem,
+  Page,
+  PageType,
   PortalArea,
   PortalNavigationApi,
   PortalNavigationApiProduct,
@@ -98,7 +100,9 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 import { PortalNavigationItemService } from '../../services-ngx/portal-navigation-item.service';
 import { PortalPageContentService } from '../../services-ngx/portal-page-content.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
+import { ApiDocumentationV2Service } from '../../services-ngx/api-documentation-v2.service';
 import { ApiProductV2Service } from '../../services-ngx/api-product-v2.service';
+import { PortalSettingsService } from '../../services-ngx/portal-settings.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -115,6 +119,49 @@ type ApiProductBulkCreateResult = {
   createdItemId: string | null;
   errorMessage?: string;
 };
+
+const MIRRORABLE_API_PROXY_PAGE_TYPES: ReadonlySet<PageType> = new Set(['MARKDOWN', 'SWAGGER', 'ASYNCAPI']);
+
+function toPortalContentType(type: PageType | undefined): PortalPageContentType | undefined {
+  if (type === 'MARKDOWN') return 'GRAVITEE_MARKDOWN';
+  if (type === 'SWAGGER') return 'OPENAPI';
+  if (type === 'ASYNCAPI') return 'ASYNCAPI';
+  return undefined;
+}
+
+function normalizeDocumentationParentId(parentId: string | null | undefined): string | null {
+  if (!parentId || parentId === 'ROOT') {
+    return null;
+  }
+  return parentId;
+}
+
+function isMirrorableApiProxyPage(page: Page): boolean {
+  return page.type === 'FOLDER' || (page.type !== undefined && MIRRORABLE_API_PROXY_PAGE_TYPES.has(page.type));
+}
+
+function documentationPageDepth(pages: Page[], page: Page): number {
+  const byId = new Map(pages.filter(item => item.id).map(item => [item.id!, item]));
+  let depth = 0;
+  let parentId = normalizeDocumentationParentId(page.parentId);
+  const seen = new Set<string>();
+  while (parentId && byId.has(parentId) && !seen.has(parentId)) {
+    seen.add(parentId);
+    depth += 1;
+    parentId = normalizeDocumentationParentId(byId.get(parentId)?.parentId);
+  }
+  return depth;
+}
+
+function orderApiProxyPagesForNavigationCreate(pages: Page[]): Page[] {
+  return [...pages].sort((left, right) => {
+    const depthDiff = documentationPageDepth(pages, left) - documentationPageDepth(pages, right);
+    if (depthDiff !== 0) return depthDiff;
+    if (left.type === 'FOLDER' && right.type !== 'FOLDER') return -1;
+    if (left.type !== 'FOLDER' && right.type === 'FOLDER') return 1;
+    return (left.order ?? 0) - (right.order ?? 0);
+  });
+}
 
 @Component({
   selector: 'portal-navigation-items',
@@ -194,6 +241,13 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
   readonly menuLinks = toSignal(this.menuLinks$, { initialValue: [] });
+  readonly defaultApiDocumentationFolderId = toSignal(
+    this.portalSettingsService.get().pipe(
+      map(settings => settings.portalNext?.documentation?.defaultFolderId?.trim() || null),
+      catchError(() => of(null)),
+    ),
+    { initialValue: null },
+  );
   readonly selectedNavigationItem: Signal<SectionNode | null> = computed(() => {
     const navId = this.navId();
     const menuLinks = this.menuLinks();
@@ -331,6 +385,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     private readonly portalNavigationItemsService: PortalNavigationItemService,
     private readonly portalPageContentService: PortalPageContentService,
     private readonly apiService: ApiV2Service,
+    private readonly apiDocumentationService: ApiDocumentationV2Service,
+    private readonly portalSettingsService: PortalSettingsService,
   ) {
     this.contentControl.addValidators(this.asyncApiSpecValidator);
     this.setupPageContentSubscription();
@@ -666,18 +722,17 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
     return this.portalNavigationItemsService.createNavigationItemsInBulk(items).pipe(
       switchMap(response => {
-        const createdApiNavigationItemIds = response.items
-          ?.filter((item): item is PortalNavigationApi => item.type === 'API')
-          .map(item => item.id);
+        const createdApis =
+          response.items?.filter((item): item is PortalNavigationApi => item.type === 'API' && !!item.apiId && !!item.id) ?? [];
 
-        if (!createdApiNavigationItemIds?.length) {
+        if (!createdApis.length) {
           return of(response);
         }
 
-        return this.portalNavigationItemsService.seedDefaultPages(createdApiNavigationItemIds).pipe(
+        return this.initializeApiNavigationDocumentation(createdApis, visibility).pipe(
           map(() => response),
           catchError(() => {
-            this.snackBarService.error('Failed to create default API pages');
+            this.snackBarService.error('Failed to initialize API documentation in Navigation');
             return of(response);
           }),
         );
@@ -694,6 +749,116 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         }
         return of(null);
       }),
+    );
+  }
+
+  /**
+   * After placing APIs in Navigation: mirror API proxy documentation when present,
+   * otherwise seed the default Overview page.
+   */
+  private initializeApiNavigationDocumentation(createdApis: PortalNavigationApi[], visibility: PortalVisibility): Observable<void> {
+    return from(createdApis).pipe(
+      concatMap(apiNav =>
+        this.apiDocumentationService.getApiPages(apiNav.apiId).pipe(
+          map(result => ({
+            apiNav,
+            pages: (result.pages ?? []).filter(isMirrorableApiProxyPage),
+          })),
+          catchError(() => of({ apiNav, pages: [] as Page[] })),
+        ),
+      ),
+      toArray(),
+      switchMap(results => {
+        const withDocs = results.filter(result => result.pages.length > 0);
+        const withoutDocsIds = results.filter(result => result.pages.length === 0).map(result => result.apiNav.id);
+
+        const mirror$ =
+          withDocs.length > 0
+            ? from(withDocs).pipe(
+                concatMap(({ apiNav, pages }) => this.mirrorApiProxyDocumentationToNavigation(apiNav.id, apiNav.apiId, pages, visibility)),
+                toArray(),
+                map(() => undefined),
+              )
+            : of(undefined);
+
+        const seed$ =
+          withoutDocsIds.length > 0 ? this.portalNavigationItemsService.seedDefaultPages(withoutDocsIds) : of(undefined);
+
+        return mirror$.pipe(switchMap(() => seed$));
+      }),
+      map(() => undefined),
+    );
+  }
+
+  private mirrorApiProxyDocumentationToNavigation(
+    apiNavId: string,
+    apiId: string,
+    pages: Page[],
+    visibility: PortalVisibility,
+  ): Observable<void> {
+    const ordered = orderApiProxyPagesForNavigationCreate(pages);
+    const docIdToNavId = new Map<string, string>();
+
+    return from(ordered).pipe(
+      concatMap(page => {
+        if (!page.id) {
+          return of(undefined);
+        }
+
+        const parentDocId = normalizeDocumentationParentId(page.parentId);
+        const parentNavId = (parentDocId && docIdToNavId.get(parentDocId)) || apiNavId;
+
+        if (page.type === 'FOLDER') {
+          return this.portalNavigationItemsService
+            .createNavigationItem({
+              type: 'FOLDER',
+              title: page.name ?? 'Folder',
+              parentId: parentNavId,
+              area: 'TOP_NAVBAR',
+              visibility,
+              order: page.order ?? 0,
+            })
+            .pipe(
+              tap(nav => docIdToNavId.set(page.id!, nav.id)),
+              map(() => undefined),
+            );
+        }
+
+        const contentType = toPortalContentType(page.type);
+        if (!contentType) {
+          return of(undefined);
+        }
+
+        return this.apiDocumentationService.getApiPage(apiId, page.id).pipe(
+          catchError(() => of(page)),
+          switchMap(fullPage =>
+            this.portalNavigationItemsService
+              .createNavigationItem({
+                type: 'PAGE',
+                title: page.name ?? 'Page',
+                parentId: parentNavId,
+                area: 'TOP_NAVBAR',
+                visibility,
+                contentType,
+                order: page.order ?? 0,
+              })
+              .pipe(
+                switchMap(nav => {
+                  docIdToNavId.set(page.id!, nav.id);
+                  const content = fullPage.content;
+                  if (nav.type !== 'PAGE' || !nav.portalPageContentId || content == null || content === '') {
+                    return of(undefined);
+                  }
+                  return this.portalPageContentService
+                    .updatePageContent(nav.portalPageContentId, { content, type: contentType })
+                    .pipe(map(() => undefined));
+                }),
+              ),
+          ),
+        );
+      }),
+      toArray(),
+      map(() => undefined),
     );
   }
 
@@ -1175,8 +1340,8 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         this.refreshMenuList.next(1);
         this.snackBarService.success(`Navigation item "${node.label}" deleted`);
       }),
-      catchError(() => {
-        this.snackBarService.error('Failed to delete navigation item');
+      catchError((error: HttpErrorResponse) => {
+        this.snackBarService.error(error?.error?.message ?? 'Failed to delete navigation item');
         return EMPTY;
       }),
     );
@@ -1225,6 +1390,21 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {
     const node = event.node;
+
+    if (node.type === 'FOLDER') {
+      const defaultFolderId = this.defaultApiDocumentationFolderId();
+      if (defaultFolderId && defaultFolderId === node.id) {
+        this.snackBarService.error(
+          'This folder is configured as the default API documentation folder and cannot be deleted. Change or clear it in Portal Settings → Settings first.',
+        );
+        return;
+      }
+    }
+
+    this.openDeleteConfirmDialog(node);
+  }
+
+  private openDeleteConfirmDialog(node: SectionNode) {
     const hasChildren = !!node.children && node.children.length > 0;
     const title = `Delete "${node.label}" ${node.type.toLowerCase()}`;
     const content = hasChildren

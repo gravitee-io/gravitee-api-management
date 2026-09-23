@@ -44,14 +44,13 @@ describe('SettingsNavigationService', () => {
 
     const menuSearchItems = service.getSettingsNavigationSearchItems(envId);
 
-    expect(menuSearchItems).toHaveLength(17);
+    expect(menuSearchItems).toHaveLength(16);
     expect(menuSearchItems).toEqual(
       expect.arrayContaining(
         [
           'Analytics',
           'API Portal Information',
           'API Quality',
-          'Authentication',
           'Categories',
           'Client Registration',
           'Documentation',
@@ -116,8 +115,8 @@ describe('SettingsNavigationService', () => {
     // Documentation should NOT exist
     const documentationItem = menuSearchItems.find(i => i.name === 'Documentation');
     expect(documentationItem).toBeUndefined();
-    // Now we expect 16 items (17-1)
-    expect(menuSearchItems).toHaveLength(16);
+    // Now we expect 15 items (16-1)
+    expect(menuSearchItems).toHaveLength(15);
     expect(menuSearchItems.some(i => i.routerLink.includes('/documentation'))).toBe(false);
   });
 });

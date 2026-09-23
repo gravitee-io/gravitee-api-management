@@ -129,7 +129,12 @@ describe('DashboardComponent', () => {
   it('should omit Analytics from menu items when portal next analytics is not enabled', async () => {
     await init();
 
-    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['applications', 'subscriptions']);
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual([
+      'applications',
+      'subscriptions',
+      'workspaces',
+      'notifications',
+    ]);
   });
 
   it('should not show Analytics in the sidenav when portal next analytics is not enabled', async () => {
@@ -143,7 +148,13 @@ describe('DashboardComponent', () => {
   it('should include Analytics in menu items when portal next analytics is enabled', async () => {
     await init({ enablePortalNextAnalytics: true });
 
-    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['analytics', 'applications', 'subscriptions']);
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual([
+      'analytics',
+      'applications',
+      'subscriptions',
+      'workspaces',
+      'notifications',
+    ]);
   });
 
   it('should show Analytics in the sidenav when portal next analytics is enabled', async () => {
@@ -160,5 +171,27 @@ describe('DashboardComponent', () => {
 
     const sidenav = await harness.getSidenav();
     expect(await sidenav?.getText()).toContain('Analytics');
+  });
+
+  it('should display My Workspace sidenav under Subscriptions', async () => {
+    await init();
+
+    fixture.detectChanges();
+    const sidenav = await harness.getSidenav();
+    const sidenavText = await sidenav?.getText();
+    expect(sidenavText).toContain('Subscriptions');
+    expect(sidenavText).toContain('My Workspace');
+    expect(sidenavText?.indexOf('Subscriptions') ?? -1).toBeLessThan(sidenavText?.indexOf('My Workspace') ?? -1);
+  });
+
+  it('should display Notifications sidenav under My Workspace', async () => {
+    await init();
+
+    fixture.detectChanges();
+    const sidenav = await harness.getSidenav();
+    const sidenavText = await sidenav?.getText();
+    expect(sidenavText).toContain('My Workspace');
+    expect(sidenavText).toContain('Notifications');
+    expect(sidenavText?.indexOf('My Workspace') ?? -1).toBeLessThan(sidenavText?.indexOf('Notifications') ?? -1);
   });
 });

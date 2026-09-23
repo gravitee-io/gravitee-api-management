@@ -26,6 +26,8 @@ import { HomepageComponent } from './homepage/homepage.component';
 import { SubscriptionFormComponent } from './subscription-form/subscription-form.component';
 import { PortalSettingsPageComponent } from './settings/portal-settings-page.component';
 
+import { IdentityProvidersComponent } from '../management/settings/identity-providers/identity-providers.component';
+import { IdentityProvidersModule } from '../management/settings/identity-providers/identity-providers.module';
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { EnvironmentGuard } from '../management/environment.guard';
@@ -111,6 +113,15 @@ const portalRoutes: Routes = [
         },
       },
       {
+        path: 'authentication',
+        component: IdentityProvidersComponent,
+        data: {
+          permissions: {
+            anyOf: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
+          },
+        },
+      },
+      {
         path: 'settings',
         component: PortalSettingsPageComponent,
         canDeactivate: [HasUnsavedChangesGuard],
@@ -130,7 +141,7 @@ const portalRoutes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forChild(portalRoutes)],
+  imports: [RouterModule.forChild(portalRoutes), IdentityProvidersModule],
   exports: [RouterModule],
 })
 export class PortalSettingsRoutingModule {}

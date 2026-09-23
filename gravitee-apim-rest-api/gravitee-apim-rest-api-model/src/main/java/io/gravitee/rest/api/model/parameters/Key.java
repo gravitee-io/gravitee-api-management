@@ -165,6 +165,7 @@ public enum Key {
         Boolean.FALSE.toString(),
         new HashSet<>(singletonList(ENVIRONMENT))
     ),
+    PORTAL_NEXT_DOCUMENTATION_DEFAULT_FOLDER_ID("portal.next.documentation.defaultFolderId", new HashSet<>(singletonList(ENVIRONMENT))),
 
     MANAGEMENT_TITLE("management.title", "Gravitee.io Management", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),
     MANAGEMENT_URL("management.url", new HashSet<>(Arrays.asList(ORGANIZATION, SYSTEM))),

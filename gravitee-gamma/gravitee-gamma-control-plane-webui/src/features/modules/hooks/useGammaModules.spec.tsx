@@ -51,4 +51,82 @@ describe('useGammaModules', () => {
             { force: true },
         );
     });
+
+    it('loads a backend-only module from DEV_MODULE_ENTRIES when the packaged UI is missing', async () => {
+        const previous = process.env.DEV_MODULE_ENTRIES;
+        process.env.DEV_MODULE_ENTRIES = 'apim=http://localhost:3001/mf-manifest.json';
+
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [{ id: 'apim', name: 'APIM', version: '1.0.0' }]);
+        respondWith('get', 'http://localhost:3001/mf-manifest.json', {
+            name: 'gravitee_gamma_module_apim',
+            exposes: [{ name: './App' }],
+        });
+
+        try {
+            const { result } = renderHook(() => useGammaModules());
+
+            await waitFor(() => expect(result.current.loading).toBe(false));
+
+            expect(result.current.error).toBeNull();
+            expect(result.current.modules).toEqual([
+                {
+                    id: 'apim',
+                    name: 'APIM',
+                    version: '1.0.0',
+                    remoteName: 'gravitee_gamma_module_apim',
+                    exposedModule: 'App',
+                },
+            ]);
+            expect(mockRegisterRemotes).toHaveBeenCalledWith(
+                [{ name: 'gravitee_gamma_module_apim', entry: 'http://localhost:3001/mf-manifest.json' }],
+                { force: true },
+            );
+        } finally {
+            if (previous === undefined) {
+                delete process.env.DEV_MODULE_ENTRIES;
+            } else {
+                process.env.DEV_MODULE_ENTRIES = previous;
+            }
+        }
+    });
+
+    it('loads Platform from the local fallback when only APIM is listed in DEV_MODULE_ENTRIES', async () => {
+        const previous = process.env.DEV_MODULE_ENTRIES;
+        process.env.DEV_MODULE_ENTRIES = 'apim=http://localhost:3001/mf-manifest.json';
+
+        respondWith('get', `${TEST_GAMMA_BASE}/modules`, [
+            { id: 'apim', name: 'APIM', version: '1.0.0' },
+            { id: 'platform', name: 'Platform', version: '1.0.0' },
+        ]);
+        respondWith('get', 'http://localhost:3001/mf-manifest.json', {
+            name: 'gravitee_gamma_module_apim',
+            exposes: [{ name: './App' }],
+        });
+        respondWith('get', 'http://localhost:3002/mf-manifest.json', {
+            name: 'gravitee_gamma_module_platform',
+            exposes: [{ name: './App' }],
+        });
+
+        try {
+            const { result } = renderHook(() => useGammaModules());
+
+            await waitFor(() => expect(result.current.loading).toBe(false));
+
+            expect(result.current.error).toBeNull();
+            expect(result.current.modules.map(m => m.id)).toEqual(['apim', 'platform']);
+            expect(mockRegisterRemotes).toHaveBeenCalledWith(
+                [
+                    { name: 'gravitee_gamma_module_apim', entry: 'http://localhost:3001/mf-manifest.json' },
+                    { name: 'gravitee_gamma_module_platform', entry: 'http://localhost:3002/mf-manifest.json' },
+                ],
+                { force: true },
+            );
+        } finally {
+            if (previous === undefined) {
+                delete process.env.DEV_MODULE_ENTRIES;
+            } else {
+                process.env.DEV_MODULE_ENTRIES = previous;
+            }
+        }
+    });
 });

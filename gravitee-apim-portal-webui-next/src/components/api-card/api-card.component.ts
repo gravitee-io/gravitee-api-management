@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Component, input, Input, output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltip } from '@angular/material/tooltip';
 
@@ -22,12 +23,15 @@ import { BadgeComponent } from '../badge/badge.component';
 
 @Component({
   selector: 'app-api-card',
-  imports: [MatCardModule, MatTooltip, MatTooltipOnEllipsisDirective, BadgeComponent],
+  imports: [MatButtonModule, MatCardModule, MatTooltip, MatTooltipOnEllipsisDirective, BadgeComponent],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
 export class ApiCardComponent {
   readonly typeLabel = input<string>();
+  readonly showNotificationBell = input(false);
+  readonly notificationsSubscribed = input(false);
+  readonly notificationBusy = input(false);
 
   @Input({ required: true })
   apiId!: string;
@@ -43,4 +47,36 @@ export class ApiCardComponent {
   content?: string;
 
   cardSelect = output<string>();
+  notificationToggle = output<string>();
+
+  notificationBellAriaLabel(): string {
+    return this.notificationsSubscribed()
+      ? $localize`:@@apiCardNotifyUnsubscribeAria:Unsubscribe from notifications for ${this.title}:apiName:`
+      : $localize`:@@apiCardNotifySubscribeAria:Subscribe to notifications for ${this.title}:apiName:`;
+  }
+
+  notificationBellTooltip(): string {
+    return this.notificationsSubscribed()
+      ? $localize`:@@apiCardNotifyUnsubscribeTooltip:Notifications on — click to turn off`
+      : $localize`:@@apiCardNotifySubscribeTooltip:Get notified about this API`;
+  }
+
+  onNotifyClick(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.notificationBusy()) {
+      return;
+    }
+    this.notificationToggle.emit(this.apiId);
+  }
+
+  onNotifyKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!this.notificationBusy()) {
+        this.notificationToggle.emit(this.apiId);
+      }
+    }
+  }
 }

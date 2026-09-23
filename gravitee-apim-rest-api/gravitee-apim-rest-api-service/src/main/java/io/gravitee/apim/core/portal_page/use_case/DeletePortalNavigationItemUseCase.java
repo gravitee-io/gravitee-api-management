@@ -16,13 +16,19 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.parameters.model.ParameterContext;
+import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @UseCase
 @RequiredArgsConstructor
@@ -31,6 +37,7 @@ public class DeletePortalNavigationItemUseCase {
     private final PortalNavigationItemDomainService portalNavigationItemDomainService;
     private final PortalNavigationItemsQueryService portalNavigationItemsQueryService;
     private final PortalNavigationSourcedItemsDomainService sourcedItemsDomainService;
+    private final ParametersQueryService parametersQueryService;
 
     public Output execute(Input input) {
         var existing = portalNavigationItemsQueryService.findByIdAndEnvironmentId(input.environmentId(), input.navigationItemId());
@@ -44,10 +51,23 @@ public class DeletePortalNavigationItemUseCase {
         if (sourcedItemsDomainService.findSourcedAncestor(input.environmentId(), existing).isPresent()) {
             throw InvalidPortalNavigationItemDataException.childOfSourcedItemIsReadOnly(existing.getId().json());
         }
+        if (existing.getType() == PortalNavigationItemType.FOLDER) {
+            assertNotDefaultApiDocumentationFolder(input, existing.getId());
+        }
 
         portalNavigationItemDomainService.deleteWithDescendants(existing);
 
         return new Output();
+    }
+
+    private void assertNotDefaultApiDocumentationFolder(Input input, PortalNavigationItemId folderId) {
+        String defaultFolderId = parametersQueryService.findAsString(
+            Key.PORTAL_NEXT_DOCUMENTATION_DEFAULT_FOLDER_ID,
+            new ParameterContext(input.environmentId(), input.organizationId(), ParameterReferenceType.ENVIRONMENT)
+        );
+        if (StringUtils.isNotBlank(defaultFolderId) && defaultFolderId.equals(folderId.json())) {
+            throw InvalidPortalNavigationItemDataException.defaultApiDocumentationFolderCannotBeDeleted();
+        }
     }
 
     public record Output() {}

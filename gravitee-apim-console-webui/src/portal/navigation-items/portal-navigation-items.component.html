@@ -78,6 +78,7 @@
           [links]="menuLinks"
           [selectedId]="navId()"
           [fetchInProgress]="isFetching()"
+          [defaultApiDocumentationFolderId]="defaultApiDocumentationFolderId()"
           (nodeSelect)="onSelect($event)"
           (nodeMenuAction)="onNodeMenuAction($event)"
           (nodeMoved)="onNodeMoved($event)"

@@ -40,6 +40,7 @@
         }
       </div>
     </div>
+
     <div class="api-card__description next-gen-body">
       @if (content) {
         {{ content }}
@@ -47,5 +48,27 @@
         <span i18n="@@apiDescriptionMissing">Description for this API is missing.</span>
       }
     </div>
+
+    @if (showNotificationBell()) {
+      <div class="api-card__footer">
+        <button
+          mat-icon-button
+          type="button"
+          class="api-card__notify"
+          [class.api-card__notify--active]="notificationsSubscribed()"
+          [disabled]="notificationBusy()"
+          [attr.aria-pressed]="notificationsSubscribed()"
+          [attr.aria-label]="notificationBellAriaLabel()"
+          [matTooltip]="notificationBellTooltip()"
+          data-testid="api-card-notify"
+          (click)="onNotifyClick($event)"
+          (keydown)="onNotifyKeydown($event)"
+        >
+          <span class="material-icons" aria-hidden="true">{{
+            notificationsSubscribed() ? 'notifications_active' : 'notifications'
+          }}</span>
+        </button>
+      </div>
+    }
   </mat-card-content>
 </mat-card>

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-
-import { groupHooksByCategory, mapApplicationNotificationsToRows } from '../components/notifications/notificationHelpers';
+import { mapApplicationNotificationsToRows } from '../components/notifications/notificationHelpers';
+import { groupVisibleApplicationHooks } from '../utils/applicationNotificationHooks';
 import {
     createApplicationNotification,
     createApplicationMetadata,
@@ -71,7 +71,7 @@ export function useApplicationNotifications(applicationId: string | undefined) {
         [notificationsQuery.data, notifiersQuery.data],
     );
 
-    const hookCategories = useMemo(() => groupHooksByCategory(hooksQuery.data ?? []), [hooksQuery.data]);
+    const hookCategories = useMemo(() => groupVisibleApplicationHooks(hooksQuery.data ?? []), [hooksQuery.data]);
 
     return {
         rows,

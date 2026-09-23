@@ -194,7 +194,7 @@ interface V1ApplicationEntry {
 export async function searchApplications(envId: string, query: string): Promise<ApplicationPage> {
     const res = await apimFetchJsonV1Env<{ data: V1ApplicationEntry[]; metadata?: { pagination?: { total?: number } } }>(
         envId,
-        `/applications/_paged${buildQuery({ query: query.trim(), status: 'ACTIVE', page: 1, size: 20, order: 'name' })}`,
+        `/applications/_paged${buildQuery({ query: query.trim(), status: 'ACTIVE', page: 1, size: 20, order: 'name' })}&exclude=OWNER`,
     );
     const data = (res.data ?? []).map(
         (app): Application => ({

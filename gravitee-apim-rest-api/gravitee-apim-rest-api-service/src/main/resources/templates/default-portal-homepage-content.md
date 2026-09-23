@@ -1,76 +1,54 @@
 <gmd-grid>
     <gmd-md class="homepage-title">
-        # Welcome to the Developer Portal
-        Access all APIs, documentation, and tools to build your next integration.
+        # Westfield
+        Build for destinations that define American retail. APIs, docs, and credentials for Westfield Group US.
     </gmd-md>
     <gmd-cell style="text-align: center; margin: auto;">
-        <gmd-button link="/catalog">Explore all APIs</gmd-button>
-        <gmd-button link="/guides" appearance="outlined" style="--gmd-button-outlined-label-text-weight: 700; --gmd-button-outlined-label-text-color: black;"
-        >Get started</gmd-button>
+        <gmd-button link="/catalog">Explore APIs</gmd-button>
+        <gmd-button link="/dashboard/applications" appearance="outlined" style="--gmd-button-outlined-label-text-weight: 700; --gmd-button-outlined-label-text-color: #d6001c;"
+        >Create an application</gmd-button>
     </gmd-cell>
-    <img class="homepage-cover-photo" src="assets/homepage/desk.png" title="Homepage picture"/>
 </gmd-grid>
 
-### Your toolkit for building
+### One platform for every Westfield destination
 
 <gmd-grid columns="3">
     <gmd-md>
-        ![book](./assets/homepage/book.svg "Book icon")
-        #### API catalog
-        Browse and test all available APIs in one place.
+        #### Retail &amp; commerce
+        Store, inventory, and checkout services powering Westfield destinations across the US.
     </gmd-md>
     <gmd-md>
-        ![laptop](./assets/homepage/laptop.svg "Laptop icon")
-        #### Interactive docs
-        Explore clear, structured documentation with code samples.
+        #### Guest experience
+        Maps, events, loyalty, and wayfinding APIs that keep visitors moving through the center.
     </gmd-md>
     <gmd-md>
-        ![vector](./assets/homepage/vector.svg "Vector icon")
-        #### Usage analytics
-        Track API usage, error rates, and performance metrics.
-    </gmd-md>
-    <gmd-md>
-        ![group](./assets/homepage/group.svg "Group icon")
-        #### API catalog
-        Browse and test all available APIs in one place.
-    </gmd-md>
-    <gmd-md>
-        ![support](./assets/homepage/support.svg "Support icon")
-        #### Interactive docs
-        Explore clear, structured documentation with code samples.
-    </gmd-md>
-    <gmd-md>
-        ![support](./assets/homepage/service.svg "Service icon")
-        #### Usage analytics
-        Track API usage, error rates, and performance metrics.
+        #### Partner integrations
+        Connect brands, operators, and third-party platforms to the Westfield digital fabric.
     </gmd-md>
 </gmd-grid>
 
-### Get started in minutes
+### From zero to live traffic
 
 <gmd-grid columns="3">
     <gmd-card backgroundColor="none">
-        <gmd-card-title>Your first API call</gmd-card-title>
-        <gmd-md>Learn how to make a basic request and receive a response.Learn how to make a basic request and receive a response.</gmd-md>
+        <gmd-card-title>01 · Browse the catalog</gmd-card-title>
+        <gmd-md>Find retail, guest, and partner APIs for US centers.</gmd-md>
         <div class="flex-container">
-            <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-            >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
+            <gmd-button link="/catalog" appearance="outlined" class="get-started-card__button">Open catalog</gmd-button>
         </div>
     </gmd-card>
     <gmd-card backgroundColor="none">
-        <gmd-card-title>Authentication walkthrough</gmd-card-title>
-            <gmd-md>A step-by-step guide to generating and managing API keys.</gmd-md>
-            <div class="flex-container">
-                <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-                >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
-            </div>
-        </gmd-card>
-    <gmd-card backgroundColor="none">
-        <gmd-card-title>Integrating SDK into your project</gmd-card-title>
-        <gmd-md>Use our official library to simplify your code.</gmd-md>
+        <gmd-card-title>02 · Create an application</gmd-card-title>
+        <gmd-md>Register your client and request the plans you need.</gmd-md>
         <div class="flex-container">
-            <gmd-button link="/guides" appearance="outlined" class="get-started-card__button"
-            >Read <img src="assets/homepage/arrow-right.svg" alt="arrow right icon" title="Arrow right icon"/></gmd-button>
+            <gmd-button link="/dashboard/applications" appearance="outlined" class="get-started-card__button">My applications</gmd-button>
+        </div>
+    </gmd-card>
+    <gmd-card backgroundColor="none">
+        <gmd-card-title>03 · Call with confidence</gmd-card-title>
+        <gmd-md>Use keys, docs, and sandbox traffic before you go live.</gmd-md>
+        <div class="flex-container">
+            <gmd-button link="/catalog" appearance="outlined" class="get-started-card__button">Start building</gmd-button>
         </div>
     </gmd-card>
 </gmd-grid>
@@ -83,15 +61,15 @@
     margin: auto;
   }
 
-  .homepage-cover-photo {
-    display: flex;
-    max-width: 100%;
-    margin: 80px auto;
+  .homepage-title h1 {
+    color: #d6001c;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    line-height: 0.95;
   }
-  
+
   .get-started-card__button {
     --gmd-button-outlined-label-text-weight: 700;
-    --gmd-button-outlined-label-text-color: black;
+    --gmd-button-outlined-label-text-color: #d6001c;
     margin-top: auto;
     padding-top: 12px;
   }
@@ -99,6 +77,6 @@
   .flex-container {
     display: flex;
     flex-direction: column;
-    height: 100%
+    height: 100%;
   }
 </style>

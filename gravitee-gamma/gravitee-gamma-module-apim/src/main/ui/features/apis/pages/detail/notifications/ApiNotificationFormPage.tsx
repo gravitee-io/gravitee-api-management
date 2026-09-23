@@ -37,6 +37,11 @@ import { Navigate } from 'react-router-dom';
 import { useApiNotificationForm } from './useApiNotificationForm';
 import type { HookCategory } from '../../../hooks/useApiNotifications';
 import { CHANNEL_ICON, CHANNEL_LABEL } from '../../../utils/notificationFormatters';
+import {
+    CLOSE_TO_EXPIRY_HOOK_IDS,
+    MAX_CLOSE_TO_EXPIRY_DAYS,
+    MIN_CLOSE_TO_EXPIRY_DAYS,
+} from '../../../utils/subscriptionCloseToExpiry';
 
 // ─── Event category section ───────────────────────────────────────────────────
 
@@ -46,9 +51,19 @@ interface CategorySectionProps {
     groupHookIds: Set<string>;
     onToggle: (hookId: string) => void;
     readonly: boolean;
+    closeToExpiryDays: (hookId: string) => number;
+    onCloseToExpiryDaysChange: (hookId: string, days: number) => void;
 }
 
-function CategorySection({ category, selected, groupHookIds, onToggle, readonly }: Readonly<CategorySectionProps>) {
+function CategorySection({
+    category,
+    selected,
+    groupHookIds,
+    onToggle,
+    readonly,
+    closeToExpiryDays,
+    onCloseToExpiryDaysChange,
+}: Readonly<CategorySectionProps>) {
     return (
         <div className="space-y-2">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{category.name}</p>
@@ -57,23 +72,43 @@ function CategorySection({ category, selected, groupHookIds, onToggle, readonly 
                     // Group-inherited hooks are shown for context but cannot be toggled.
                     const isGroupHook = groupHookIds.has(hook.id);
                     const isDisabled = readonly || isGroupHook;
+                    const isCloseToExpiry = CLOSE_TO_EXPIRY_HOOK_IDS.has(hook.id);
+                    const showDays = isCloseToExpiry && selected.has(hook.id);
+                    const days = closeToExpiryDays(hook.id);
                     return (
-                        <label
-                            key={hook.id}
-                            className="flex items-start gap-2 rounded-md p-2 transition-colors"
-                            style={isDisabled ? { opacity: 0.6 } : { cursor: 'pointer' }}
-                        >
-                            <Checkbox
-                                checked={selected.has(hook.id)}
-                                onCheckedChange={() => !isDisabled && onToggle(hook.id)}
-                                disabled={isDisabled}
-                                className="mt-0.5 shrink-0"
-                            />
-                            <div className="min-w-0">
-                                <p className="text-sm font-medium leading-snug">{hook.label}</p>
-                                {hook.description ? <p className="text-xs text-muted-foreground">{hook.description}</p> : null}
-                            </div>
-                        </label>
+                        <div key={hook.id} className="rounded-md p-2">
+                            <label
+                                className="flex items-start gap-2 transition-colors"
+                                style={isDisabled ? { opacity: 0.6 } : { cursor: 'pointer' }}
+                            >
+                                <Checkbox
+                                    checked={selected.has(hook.id)}
+                                    onCheckedChange={() => !isDisabled && onToggle(hook.id)}
+                                    disabled={isDisabled}
+                                    className="mt-0.5 shrink-0"
+                                />
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium leading-snug">{hook.label}</p>
+                                    {hook.description ? <p className="text-xs text-muted-foreground">{hook.description}</p> : null}
+                                </div>
+                            </label>
+                            {showDays ? (
+                                <div className="ml-7 mt-2 flex items-center gap-2">
+                                    <Input
+                                        id={`close-to-expiry-days-${hook.id}`}
+                                        type="number"
+                                        min={MIN_CLOSE_TO_EXPIRY_DAYS}
+                                        max={MAX_CLOSE_TO_EXPIRY_DAYS}
+                                        value={Number.isFinite(days) ? days : ''}
+                                        onChange={e => onCloseToExpiryDaysChange(hook.id, e.target.valueAsNumber)}
+                                        disabled={isDisabled}
+                                        className="w-20"
+                                        aria-label={`${hook.label} days before expiry`}
+                                    />
+                                    <span className="text-xs text-muted-foreground">days before expiry</span>
+                                </div>
+                            ) : null}
+                        </div>
                     );
                 })}
             </div>
@@ -127,6 +162,8 @@ export function ApiNotificationFormPage() {
         groupHookIds,
         selectedHooks,
         toggleHook,
+        closeToExpiryDays,
+        setCloseToExpiryDays,
         canSubmit,
         handleSave,
         handleCancel,
@@ -287,6 +324,8 @@ export function ApiNotificationFormPage() {
                                                 groupHookIds={groupHookIds}
                                                 onToggle={toggleHook}
                                                 readonly={isReadonly}
+                                                closeToExpiryDays={closeToExpiryDays}
+                                                onCloseToExpiryDaysChange={setCloseToExpiryDays}
                                             />
                                         </Fragment>
                                     ))}

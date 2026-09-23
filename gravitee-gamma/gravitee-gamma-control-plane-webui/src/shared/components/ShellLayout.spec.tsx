@@ -150,6 +150,18 @@ describe('ShellLayout environment switching', () => {
 
         await waitFor(() => expect(useEnvironmentStore.getState().currentEnvironment?.id).toBe('env-2-id'));
     });
+
+    it('should open the Developer Portal in a new window from the app switcher', async () => {
+        const openSpy = jest.spyOn(window, 'open').mockImplementation(() => null);
+        const user = userEvent.setup();
+        renderShell('/environments/env-1/home');
+
+        await user.click(screen.getByRole('button', { name: /Switch app|Home|API Management|Select app/i }));
+        await user.click(await screen.findByText('Developer Portal'));
+
+        expect(openSpy).toHaveBeenCalledWith('http://localhost:8084/#!/default/_portal/', '_blank', 'noopener,noreferrer');
+        openSpy.mockRestore();
+    });
 });
 
 describe('ShellLayout app switcher', () => {

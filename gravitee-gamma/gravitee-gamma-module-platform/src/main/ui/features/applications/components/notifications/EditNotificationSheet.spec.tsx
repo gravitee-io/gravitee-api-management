@@ -18,14 +18,54 @@ import { useState } from 'react';
 
 import { EditNotificationSheet } from './EditNotificationSheet';
 import { buildNewNotificationRow } from './notificationHelpers';
-import type { ApplicationNotificationRow, ApplicationNotifier } from '../../types/applicationNotification';
+import type {
+    ApplicationNotificationHookCategory,
+    ApplicationNotificationRow,
+    ApplicationNotifier,
+} from '../../types/applicationNotification';
+import {
+    CERTIFICATE_CLOSE_TO_EXPIRY_HOOK,
+    CERTIFICATE_EXPIRY_HOOK,
+    SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK,
+} from '../../utils/applicationNotificationHooks';
 import { querySheetHeading } from '../test/sheetSpecHelpers';
 
 const notifiers: ApplicationNotifier[] = [{ id: 'email-notifier', type: 'EMAIL', name: 'Email' }];
 
 jest.mock('./NotificationHookCategorySection', () => ({
-    NotificationHookCategorySection: () => null,
+    NotificationHookCategorySection: ({
+        category,
+        onToggle,
+        onCloseToExpiryDaysChange,
+    }: {
+        category: ApplicationNotificationHookCategory;
+        onToggle: (hookId: string) => void;
+        onCloseToExpiryDaysChange: (hookId: string, days: number) => void;
+    }) => (
+        <div>
+            <p>{category.name}</p>
+            {category.hooks.map(hook => (
+                <div key={hook.id}>
+                    <button type="button" onClick={() => onToggle(hook.id)}>
+                        {hook.label}
+                    </button>
+                    {hook.id.endsWith('CLOSE_TO_EXPIRY') ? (
+                        <input
+                            type="number"
+                            aria-label={`Days before ${hook.id.includes('CERTIFICATE') ? 'certificate' : 'subscription'} expiry`}
+                            onChange={event => onCloseToExpiryDaysChange(hook.id, Number(event.target.value))}
+                        />
+                    ) : null}
+                </div>
+            ))}
+        </div>
+    ),
 }));
+
+const hookCategories: ApplicationNotificationHookCategory[] = [
+    { name: 'SUBSCRIPTION', hooks: [SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK] },
+    { name: 'CERTIFICATE', hooks: [CERTIFICATE_EXPIRY_HOOK, CERTIFICATE_CLOSE_TO_EXPIRY_HOOK] },
+];
 
 const row: ApplicationNotificationRow = {
     key: 'n1',
@@ -53,7 +93,7 @@ function renderSheet(overrides: Partial<Parameters<typeof EditNotificationSheet>
         <EditNotificationSheet
             row={row}
             notifiers={notifiers}
-            hookCategories={[]}
+            hookCategories={hookCategories}
             isLoadingHooks={false}
             isSaving={false}
             onCancel={onCancel}
@@ -79,34 +119,13 @@ describe('EditNotificationSheet', () => {
                 onCreate={jest.fn()}
             />,
         );
-        expect(querySheetHeading('Add notification')).toBeNull();
-        expect(querySheetHeading('Edit Subscription alerts')).toBeNull();
+        expect(querySheetHeading('Edit Console Notification')).toBeNull();
     });
 
-    it('shows the GENERIC row name in the edit title', () => {
+    it('shows sheet title and description when row is set', () => {
         renderSheet();
-        expect(screen.getByRole('heading', { name: 'Edit Subscription alerts' })).not.toBeNull();
-        expect(screen.getByText(/Configure notifier settings and subscribed events for Subscription alerts/i)).not.toBeNull();
-    });
-
-    it('shows Edit Console Notification for the PORTAL row', () => {
-        renderSheet({
-            row: {
-                key: 'PORTAL',
-                name: 'Console Notification',
-                subscribedEvents: 0,
-                notifierName: 'Console',
-                notification: {
-                    name: 'Console Notification',
-                    referenceType: 'ENVIRONMENT',
-                    referenceId: 'env-1',
-                    config_type: 'PORTAL',
-                    hooks: [],
-                },
-                isReadonly: false,
-            },
-        });
         expect(screen.getByRole('heading', { name: 'Edit Console Notification' })).not.toBeNull();
+        expect(screen.getByText(/Configure notifier settings and subscribed events for Subscription alerts/i)).not.toBeNull();
     });
 
     it('invokes onCancel when Cancel is clicked', () => {
@@ -166,7 +185,6 @@ describe('EditNotificationSheet', () => {
 
     it('shows name and notifier fields in create mode', () => {
         renderSheet({ row: buildNewNotificationRow('app-1', notifiers) });
-        expect(screen.getByRole('heading', { name: 'Add notification' })).not.toBeNull();
         expect(screen.getByLabelText(/^Name/)).not.toBeNull();
         expect(screen.getByLabelText(/^Notifier/)).not.toBeNull();
         expect(screen.getByRole('button', { name: 'Add notification' })).not.toBeNull();
@@ -218,16 +236,30 @@ describe('EditNotificationSheet', () => {
         expect(screen.getByRole('button', { name: 'Add notification' })).not.toBeNull();
     });
 
-    it('uses the standard Groups sheet width when layout is standard', () => {
-        renderSheet({ layout: 'standard' });
-        const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null;
-        expect(content?.style.maxWidth).toBe('480px');
-        expect(content?.style.width).toBe('');
-    });
+    it('saves subscription and certificate close-to-expiry events with the configured days', () => {
+        const { onSave } = renderSheet();
 
-    it('keeps the wide sheet width by default', () => {
-        renderSheet();
-        const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null;
-        expect(content?.style.maxWidth).toBe('48rem');
+        fireEvent.click(screen.getByText('Subscription close to expiry'));
+        fireEvent.change(screen.getByLabelText(/days before subscription expiry/i), { target: { value: '14' } });
+        fireEvent.click(screen.getByText('Certificate Expiry'));
+        fireEvent.click(screen.getByText('Certificate close to expiry'));
+        fireEvent.change(screen.getByLabelText(/days before certificate expiry/i), { target: { value: '7' } });
+        fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+        expect(onSave).toHaveBeenCalledWith(
+            expect.objectContaining({
+                hooks: expect.arrayContaining([
+                    'SUBSCRIPTION_CLOSE_TO_EXPIRY',
+                    'SUBSCRIPTION_CLOSE_TO_EXPIRY_DAYS_14',
+                    'CERTIFICATE_EXPIRY',
+                    'CERTIFICATE_CLOSE_TO_EXPIRY',
+                    'CERTIFICATE_CLOSE_TO_EXPIRY_DAYS_7',
+                ]),
+            }),
+        );
+        expect(screen.getByText('SUBSCRIPTION')).not.toBeNull();
+        expect(screen.getByText('CERTIFICATE')).not.toBeNull();
+        expect(screen.queryByText('SUPPORT')).toBeNull();
+        expect(screen.queryByText('New Support Ticket')).toBeNull();
     });
 });

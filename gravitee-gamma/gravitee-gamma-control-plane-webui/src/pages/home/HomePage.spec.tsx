@@ -101,6 +101,7 @@ describe('HomePage', () => {
             for (const name of [
                 'Agent Management',
                 'API Management',
+                'Developer Portal',
                 'Platform Management',
                 'Developer Portals',
                 'Authorization Management',
@@ -148,6 +149,17 @@ describe('HomePage', () => {
         const link = heading.closest('a');
         expect(link).not.toBeNull();
         expect(within(link!).queryByRole('button', { name: /upgrade to access/i })).toBeNull();
+    });
+
+    it('should link the Developer Portal tile to the classic portal URL', () => {
+        renderHome(ALL_MODULES);
+
+        const heading = screen.getByRole('heading', { level: 3, name: 'Developer Portal' });
+        const link = heading.closest('a');
+        expect(link).not.toBeNull();
+        expect(link!.getAttribute('href')).toBe('http://localhost:8084/#!/default/_portal/');
+        expect(link!.getAttribute('target')).toBe('_blank');
+        expect(link!.getAttribute('rel')).toContain('noopener');
     });
 
     it('should open the upgrade dialog when the "Upgrade to access" CTA is clicked', async () => {

@@ -49,6 +49,7 @@ export class ApiKeysListComponent {
   canManageApiKey = input(false);
   isRevokeDisabled = input(false);
   feedback = input<ApiKeyFeedback | undefined>(undefined);
+  title = input($localize`:@@apiKeysListHeader:API keys`);
 
   revokeApiKey = output<SubscriptionDataKeys>();
 

@@ -113,6 +113,21 @@ describe('notificationHelpers', () => {
             expect(rows[0].isReadonly).toBe(true);
             expect(rows[0].notifierName).toBe('Console');
         });
+
+        it('does not count companion day hooks as subscribed events', () => {
+            const rows = mapApplicationNotificationsToRows(
+                [
+                    {
+                        id: 'n1',
+                        name: 'Expiry',
+                        config_type: 'GENERIC',
+                        hooks: ['SUBSCRIPTION_CLOSE_TO_EXPIRY', 'SUBSCRIPTION_CLOSE_TO_EXPIRY_DAYS_14'],
+                    } as ApplicationNotificationSettings,
+                ],
+                [],
+            );
+            expect(rows[0].subscribedEvents).toBe(1);
+        });
     });
 
     describe('notificationSheetTitle', () => {

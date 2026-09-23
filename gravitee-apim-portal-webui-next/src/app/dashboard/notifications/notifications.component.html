@@ -1,0 +1,121 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="notifications-list__header">
+  <div class="notifications-list__header__title">
+    <div class="title next-gen-h3" i18n="@@notificationsTitle">Notifications</div>
+    <p class="next-gen-body" i18n="@@notificationsDescription">API and application notifications for your account</p>
+  </div>
+
+  <mat-button-toggle-group
+    class="notifications-list__view-toggle"
+    [value]="activeView()"
+    (change)="setActiveView($event.value)"
+    aria-label="Notifications view"
+    i18n-aria-label="@@notificationsViewToggleAria"
+  >
+    <mat-button-toggle value="inbox" i18n="@@notificationsViewInbox">Inbox</mat-button-toggle>
+    <mat-button-toggle value="preferences" i18n="@@notificationsViewPreferences">Preferences</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+@if (activeView() === 'preferences') {
+  <app-notification-preferences />
+} @else {
+  <div class="notifications-list__content">
+    @if (error(); as errorText) {
+      <p class="notifications-list__error next-gen-body" role="alert">{{ errorText }}</p>
+    }
+
+    <div class="notifications-list__filters">
+      <app-dropdown-search
+        class="notifications-list__filter"
+        i18n-label="@@notificationsFilterApi"
+        label="API"
+        i18n-placeholder="@@notificationsFilterApiPlaceholder"
+        placeholder="Search APIs..."
+        [options]="apiOptions()"
+        [formControl]="apiFilter"
+        id="notifications-api-filter"
+      />
+
+      <app-dropdown-search
+        class="notifications-list__filter"
+        i18n-label="@@notificationsFilterApp"
+        label="App"
+        i18n-placeholder="@@notificationsFilterAppPlaceholder"
+        placeholder="Search Apps..."
+        [options]="applicationOptions()"
+        [formControl]="applicationFilter"
+        id="notifications-app-filter"
+      />
+
+      <app-dropdown-search
+        class="notifications-list__filter"
+        i18n-label="@@notificationsFilterStatus"
+        label="Status"
+        i18n-placeholder="@@notificationsFilterStatusPlaceholder"
+        placeholder="Search statuses..."
+        [multiple]="false"
+        [options]="statusOptions"
+        [formControl]="statusFilter"
+        id="notifications-status-filter"
+      />
+
+      <button mat-button type="button" (click)="clearFilters()" i18n="@@clearFilters">Clear filters</button>
+    </div>
+
+    @if (isLoading()) {
+      <app-loader class="notifications-list__loader" />
+    } @else if (!hasAnyNotifications()) {
+      <div class="notifications-list__empty">
+        <span class="material-icons icon-with-background" aria-hidden="true">notifications</span>
+        <h2 class="next-gen-h5" i18n="@@notificationsEmpty">No notification received</h2>
+      </div>
+    } @else if (rows().length === 0) {
+      <div class="notifications-list__empty">
+        <span class="material-icons icon-with-background" aria-hidden="true">filter_list_off</span>
+        <h2 class="next-gen-h5" i18n="@@notificationsEmptyFiltered">No notifications match the selected filters</h2>
+      </div>
+    } @else {
+      <app-paginated-table
+        [columns]="tableColumns"
+        [rows]="rows()"
+        [totalElements]="totalElements()"
+        [currentPage]="currentPage()"
+        [pageSize]="pageSize"
+        [navigable]="false"
+        [actions]="actions"
+        (pageChange)="onPageChange($event)"
+        (actionClick)="onActionClick($event)"
+      >
+        <ng-template appTableCell="resourceName" let-row>
+          <div class="notifications-list__resource" [class.notifications-list__resource--unread]="!row.read">
+            <span>{{ row.resourceName }}</span>
+            <app-badge [label]="sourceLabel(row.source)" />
+          </div>
+        </ng-template>
+        <ng-template appTableCell="notificationType" let-row>
+          <span [class.notifications-list__resource--unread]="!row.read">{{ row.notificationType }}</span>
+        </ng-template>
+        <ng-template appTableCell="message" let-row>
+          <span class="notifications-list__message" [class.notifications-list__resource--unread]="!row.read">{{ row.message }}</span>
+        </ng-template>
+      </app-paginated-table>
+    }
+  </div>
+}

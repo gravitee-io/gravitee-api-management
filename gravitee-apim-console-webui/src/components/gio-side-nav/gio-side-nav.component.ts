@@ -56,6 +56,8 @@ export const PORTAL_SETTINGS_PERMISSIONS = [
   'environment-documentation-u',
   'environment-metadata-r',
   'environment-metadata-u',
+  'organization-identity_provider-r',
+  'environment-identity_provider_activation-r',
 ];
 
 @Component({
@@ -319,8 +321,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         'environment-dashboard-r',                    // Analytics
         'environment-api_header-r',                   // API Portal Information
         'environment-quality_rule-r',                 // API Quality
-        'organization-identity_provider-r',           // Authentication
-        'environment-identity_provider_activation-r', // Authentication
         'environment-category-r',                     // Categories
         'environment-client_registration_provider-r', // Client Registration
         'environment-documentation-c',                // Documentation

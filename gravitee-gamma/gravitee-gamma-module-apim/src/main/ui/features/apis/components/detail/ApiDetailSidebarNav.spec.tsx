@@ -107,6 +107,11 @@ describe('ApiDetailSidebarNav — flat links', () => {
         expect(screen.getByRole('link', { name: /^metadata$/i })).toHaveAttribute('href', `${BASE}/metadata`);
     });
 
+    it('renders the Documentation link with the correct href', () => {
+        renderNav(`${BASE}/overview`);
+        expect(screen.getByRole('link', { name: /^documentation$/i })).toHaveAttribute('href', `${BASE}/documentation`);
+    });
+
     it('renders API Score as a navigable link', () => {
         renderNav(`${BASE}/overview`);
         expect(screen.getByRole('link', { name: /^api score$/i })).toHaveAttribute('href', `${BASE}/api-score`);

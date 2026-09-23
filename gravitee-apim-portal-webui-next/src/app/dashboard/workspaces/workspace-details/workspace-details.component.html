@@ -1,0 +1,151 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (subscriptionResource.isLoading()) {
+  <app-loader />
+} @else if (subscriptionResource.error()) {
+  <div role="alert" class="workspace-details__message" i18n="@@workspaceSubscriptionDetailsUnavailable">
+    Workspace subscription details are not available.
+  </div>
+} @else if (subscriptionResource.value(); as subscription) {
+  <h1 class="next-gen-h3" i18n="@@workspaceSubscriptionDetailsTitle">AI Workspace Details</h1>
+
+  <mat-card appearance="outlined">
+    <mat-card-header>
+      <mat-card-title class="next-gen-h4" i18n="@@workspaceSubscriptionSummaryTitle">AI workspace Information</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="workspace-details__grid" data-testid="workspace-subscription-summary">
+      <span class="workspace-details__label" i18n="@@workspaceSubscriptionAiWorkspace">AI workspace</span>
+      @if (documentationResource.value(); as documentation) {
+        <a
+          data-testid="workspace-documentation-link"
+          class="internal-link"
+          [routerLink]="['/documentation', documentation.rootId]"
+          [queryParams]="{ selectedId: documentation.navItemId }"
+        >
+          {{ workspaceName() }}
+        </a>
+      } @else {
+        <span
+          data-testid="workspace-documentation-label"
+          i18n-matTooltip="@@workspaceDocumentationUnavailableTooltip"
+          matTooltip="Documentation is not available for this AI workspace"
+          matTooltipPosition="above"
+        >
+          {{ workspaceName() }}
+        </span>
+      }
+
+      <span class="workspace-details__label" i18n="@@workspaceSubscriptionBudgetAllocated">Budget allocated</span>
+      <span data-testid="workspace-budget-allocated">{{ budgetAllocated() }}</span>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" data-testid="workspace-budget-consumed">
+    <mat-card-header>
+      <mat-card-title class="next-gen-h4" i18n="@@workspaceBudgetConsumedTitle">Budget consumed</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="workspace-details__grid">
+      @if (modelsResource.isLoading()) {
+        <app-loader />
+      } @else {
+        <span class="workspace-details__label" i18n="@@workspaceBudgetConsumedTokens">Tokens consumed</span>
+        <span data-testid="workspace-tokens-consumed">{{ budgetConsumed().tokensConsumed }}</span>
+
+        <span class="workspace-details__label" i18n="@@workspaceBudgetConsumedRequests">Requests</span>
+        <span data-testid="workspace-requests-consumed">{{ budgetConsumed().requests }}</span>
+
+        <span class="workspace-details__label" i18n="@@workspaceBudgetConsumedAmount">Budget consumed</span>
+        <span data-testid="workspace-budget-consumed-amount">{{ budgetConsumed().budgetConsumed }}</span>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" data-testid="workspace-endpoint-url">
+    <mat-card-header>
+      <mat-card-title class="next-gen-h4" i18n="@@workspaceEndpointUrlTitle">Endpoint URL</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="workspace-details__endpoint">
+      @if (modelsResource.isLoading()) {
+        <app-loader />
+      } @else {
+        <app-copy-code title="Endpoint URL" i18n-title="@@workspaceEndpointUrlCopyTitle" [text]="endpointUrl()" />
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" data-testid="workspace-subscription-credentials">
+    <mat-card-header>
+      <mat-card-title class="next-gen-h4" i18n="@@workspaceSubscriptionKeyTitle">AI workspace key</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="workspace-details__credentials">
+      @if (subscription.status !== 'ACCEPTED') {
+        @switch (subscription.status) {
+          @case ('PENDING') {
+            <p i18n="@@workspaceSubscriptionPending">Your subscription request is being reviewed.</p>
+          }
+          @case ('REJECTED') {
+            <p i18n="@@workspaceSubscriptionRejected">This subscription request was rejected.</p>
+          }
+          @case ('PAUSED') {
+            <p i18n="@@workspaceSubscriptionPaused">This subscription is paused.</p>
+          }
+          @case ('CLOSED') {
+            <p i18n="@@workspaceSubscriptionClosed">This subscription is closed.</p>
+          }
+        }
+      } @else if (subscription.apiProduct?.plan?.security === 'API_KEY' || (subscription.keys?.length ?? 0) > 0) {
+        <app-api-keys-list
+          [apiKeys]="subscription.keys ?? []"
+          [canManageApiKey]="false"
+          [title]="workspaceKeysTitle"
+        />
+      } @else if (subscription.apiProduct?.plan?.security === 'KEY_LESS') {
+        <p i18n="@@workspaceSubscriptionKeyless">No credentials are required for this plan.</p>
+      } @else {
+        <p role="status" i18n="@@workspaceSubscriptionCredentialsUnavailable">AI workspace key is not available.</p>
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card appearance="outlined" data-testid="workspace-models">
+    <mat-card-header>
+      <mat-card-title class="next-gen-h4" i18n="@@workspaceModelsTitle">Models</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="workspace-details__models">
+      @if (modelsResource.isLoading()) {
+        <app-loader />
+      } @else if (modelsResource.value()?.loadingError) {
+        <p role="status" i18n="@@workspaceModelsUnavailable">Models for this AI workspace could not be loaded.</p>
+      } @else if (modelRows().length === 0) {
+        <p role="status" i18n="@@workspaceModelsEmpty">No models are mapped to this AI workspace yet.</p>
+      } @else {
+        <app-paginated-table
+          [columns]="modelColumns"
+          [rows]="displayedModelRows()"
+          [totalElements]="modelTotal()"
+          [currentPage]="modelCurrentPage()"
+          [pageSize]="modelPageSize()"
+          [pageSizeOptions]="modelPageSizeOptions"
+          [navigable]="false"
+          (pageChange)="onModelPageChange($event)"
+          (pageSizeChange)="onModelPageSizeChange($event)"
+        />
+      }
+    </mat-card-content>
+  </mat-card>
+}

@@ -20,6 +20,7 @@ import type {
     ApplicationNotificationSettings,
     ApplicationNotifier,
 } from '../../types/applicationNotification';
+import { visibleSubscribedEventCount } from '../../utils/applicationNotificationHooks';
 
 export interface NotificationNotifierOption {
     readonly id: string;
@@ -106,7 +107,7 @@ export function mapApplicationNotificationsToRows(
     return notifications.map(notification => ({
         key: notification.id ?? notification.config_type,
         name: notification.name,
-        subscribedEvents: (notification.hooks ?? []).length + (notification.groupHooks ?? []).length,
+        subscribedEvents: visibleSubscribedEventCount(notification.hooks, notification.groupHooks),
         notifierName: resolveNotifierName(notification, notifiers),
         notification,
         notifier: notifiers.find(item => item.id === notification.notifier),

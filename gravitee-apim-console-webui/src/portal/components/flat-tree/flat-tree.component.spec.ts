@@ -672,6 +672,65 @@ describe('FlatTreeComponent', () => {
     });
   });
 
+  describe('delete disabled state for default API documentation folder', () => {
+    const findNode = (id: string, nodes: SectionNode[] = component.tree()): SectionNode | undefined => {
+      for (const node of nodes) {
+        if (node.id === id) {
+          return node;
+        }
+
+        if (node.children) {
+          const foundChild = findNode(id, node.children);
+          if (foundChild) {
+            return foundChild;
+          }
+        }
+      }
+
+      return undefined;
+    };
+
+    it('should disable delete for the configured default API documentation folder', () => {
+      fixture.componentRef.setInput('links', [makeItem('folder-1', 'FOLDER', 'Default Docs', 0)]);
+      fixture.componentRef.setInput('defaultApiDocumentationFolderId', 'folder-1');
+      fixture.detectChanges();
+
+      const folderNode = findNode('folder-1');
+      expect(component.isDeleteDisabled(folderNode)).toBe(true);
+      expect(component.getDeleteDisabledTooltip(folderNode)).toContain('default API documentation folder');
+    });
+
+    it('should not disable delete for other folders', () => {
+      fixture.componentRef.setInput('links', [
+        makeItem('folder-1', 'FOLDER', 'Default Docs', 0),
+        makeItem('folder-2', 'FOLDER', 'Other', 1),
+      ]);
+      fixture.componentRef.setInput('defaultApiDocumentationFolderId', 'folder-1');
+      fixture.detectChanges();
+
+      expect(component.isDeleteDisabled(findNode('folder-2'))).toBe(false);
+      expect(component.getDeleteDisabledTooltip(findNode('folder-2'))).toBe('');
+    });
+
+    it('should not emit delete when the default API documentation folder delete action is clicked', async () => {
+      const nodeMenuActionSpy = jest.fn();
+      component.nodeMenuAction.subscribe(nodeMenuActionSpy);
+
+      fixture.componentRef.setInput('links', [makeItem('folder-1', 'FOLDER', 'Default Docs', 0)]);
+      fixture.componentRef.setInput('defaultApiDocumentationFolderId', 'folder-1');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      await harness.openMoreActionsMenuById('folder-1');
+      const deleteButton = document.querySelector('[data-testid="delete-node-button"]') as HTMLButtonElement;
+      expect(deleteButton).toBeTruthy();
+      expect(deleteButton.disabled).toBe(true);
+      deleteButton.click();
+
+      expect(nodeMenuActionSpy).not.toHaveBeenCalled();
+    });
+  });
+
   it('should handle nested folder structure', async () => {
     const links = [
       makeItem('f1', 'FOLDER', 'Folder 1', 0),

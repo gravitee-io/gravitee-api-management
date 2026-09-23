@@ -69,6 +69,12 @@ export class PortalNavigationService {
       permissions: ['environment-metadata-r', 'environment-metadata-u'],
     },
     {
+      displayName: 'Authentication',
+      routerLink: 'authentication',
+      icon: 'gio:lock',
+      permissions: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
+    },
+    {
       displayName: 'Settings',
       routerLink: 'settings',
       icon: 'gio:settings',

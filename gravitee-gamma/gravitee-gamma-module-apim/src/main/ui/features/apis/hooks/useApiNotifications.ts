@@ -35,6 +35,7 @@ import type {
     UpdateNotificationPayload,
 } from '../types/notification';
 import { apiNotificationKeys } from '../utils/queryKeys';
+import { ensureApiNotificationExtraHooks, groupVisibleApiProxyHooks } from '../utils/subscriptionCloseToExpiry';
 
 export type { HookCategory, NotificationChannel };
 
@@ -48,15 +49,9 @@ export function resolveChannel(notification: NotificationSettings, notifier: Api
     return 'CONSOLE';
 }
 
-/** Group a flat hooks array by category, preserving backend order. */
+/** Group a flat hooks array by category, preserving backend order. Hidden API-proxy categories are dropped. */
 export function groupHooksByCategory(hooks: ApiHook[]): HookCategory[] {
-    const seen = new Map<string, ApiHook[]>();
-    for (const hook of hooks) {
-        const group = seen.get(hook.category) ?? [];
-        group.push(hook);
-        seen.set(hook.category, group);
-    }
-    return [...seen.entries()].map(([name, hs]) => ({ name, hooks: hs }));
+    return groupVisibleApiProxyHooks(hooks);
 }
 
 // ─── Data hook ────────────────────────────────────────────────────────────────
@@ -116,7 +111,10 @@ export function useApiNotifications(apiId: string | undefined) {
         });
     }, [notificationsQuery.data, notifiersQuery.data]);
 
-    const hookCategories = useMemo<HookCategory[]>(() => groupHooksByCategory(hooksQuery.data ?? []), [hooksQuery.data]);
+    const hookCategories = useMemo<HookCategory[]>(
+        () => ensureApiNotificationExtraHooks(groupHooksByCategory(hooksQuery.data ?? [])),
+        [hooksQuery.data],
+    );
 
     return {
         rows,

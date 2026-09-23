@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Signal, computed, effect, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, Signal, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -31,6 +33,7 @@ import { BadgeComponent } from '../../components/badge/badge.component';
 import { ButtonToggleGroupComponent } from '../../components/button-toggle-group/button-toggle-group.component';
 import { ButtonToggleOptionComponent } from '../../components/button-toggle-group/button-toggle-option.component';
 import { CardsGridComponent } from '../../components/cards-grid/cards-grid.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '../../components/confirm-dialog/confirm-dialog.component';
 import { DropdownSearchComponent } from '../../components/dropdown-search/dropdown-search.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
 import { OverflowLabelsComponent } from '../../components/overflow-labels/overflow-labels.component';
@@ -38,6 +41,8 @@ import { PaginationComponent } from '../../components/pagination/pagination.comp
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { MobileClassDirective } from '../../directives/mobile-class.directive';
 import { PortalCategory } from '../../entities/categories/portal-category';
+import { ApiCatalogNotificationService } from '../../services/api-catalog-notification.service';
+import { CurrentUserService } from '../../services/current-user.service';
 import { ObservabilityBreakpointService } from '../../services/observability-breakpoint.service';
 import { PortalCategoriesService } from '../../services/portal-categories.service';
 import { PortalNavigationItemsService } from '../../services/portal-navigation-items.service';
@@ -94,6 +99,7 @@ interface CategoriesState {
     PaginationComponent,
     ReactiveFormsModule,
     SearchBarComponent,
+    MatButtonModule,
     MatChipsModule,
     MatIconModule,
     MatTableModule,
@@ -111,9 +117,14 @@ export class CatalogComponent {
   private readonly portalNavigationItemsService = inject(PortalNavigationItemsService);
   private readonly portalCategoriesService = inject(PortalCategoriesService);
   private readonly breakpointService = inject(ObservabilityBreakpointService);
+  private readonly currentUserService = inject(CurrentUserService);
+  private readonly apiCatalogNotificationService = inject(ApiCatalogNotificationService);
+  private readonly matDialog = inject(MatDialog);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   protected readonly isMobile = this.breakpointService.isMobile;
+  protected readonly isAuthenticated = this.currentUserService.isUserAuthenticated;
 
   private readonly page$ = new BehaviorSubject<number>(1);
   protected readonly query = toSignal(this.route.queryParams.pipe(map(p => p['query'] ?? '')), { initialValue: '' });
@@ -142,6 +153,32 @@ export class CatalogComponent {
   protected catalogPaginator: Signal<CatalogPaginatorVM> = toSignal(this.loadCatalogItems$(), {
     initialValue: { data: [], page: 1, totalResults: 0, error: false },
   });
+
+  private readonly catalogApiIds = computed(() =>
+    this.catalogPaginator()
+      .data.filter((item): item is CatalogApiVM => item.type === 'API')
+      .map(item => item.id),
+  );
+
+  private readonly notificationStateVersion = signal(0);
+
+  private readonly subscribedApiIdsResource = rxResource({
+    params: () => ({
+      authenticated: this.isAuthenticated(),
+      apiIds: this.catalogApiIds(),
+      version: this.notificationStateVersion(),
+    }),
+    stream: ({ params }) => {
+      if (!params.authenticated || !params.apiIds.length) {
+        return of(new Set<string>());
+      }
+      return this.apiCatalogNotificationService.getSubscribedApiIds(params.apiIds);
+    },
+  });
+
+  protected readonly subscribedApiIds = computed(() => this.subscribedApiIdsResource.value() ?? new Set<string>());
+
+  protected readonly notificationBusyApiId = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -196,6 +233,63 @@ export class CatalogComponent {
 
   navigateToDocumentation(item: CatalogApiVM | CatalogApiProductVM) {
     this.router.navigate(['/documentation', item.rootId], { queryParams: { selectedId: item.navItemId } });
+  }
+
+  isApiNotificationSubscribed(apiId: string): boolean {
+    return this.subscribedApiIds().has(apiId);
+  }
+
+  listNotifyAriaLabel(apiTitle: string, subscribed: boolean): string {
+    return subscribed
+      ? $localize`:@@catalogListNotifyUnsubscribeAria:Unsubscribe from notifications for ${apiTitle}:apiName:`
+      : $localize`:@@catalogListNotifySubscribeAria:Subscribe to notifications for ${apiTitle}:apiName:`;
+  }
+
+  listNotifyTooltip(subscribed: boolean): string {
+    return subscribed
+      ? $localize`:@@catalogListNotifyUnsubscribeTooltip:Notifications on — click to turn off`
+      : $localize`:@@catalogListNotifySubscribeTooltip:Get notified about this API`;
+  }
+
+  onApiNotificationToggle(apiId: string, event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (!this.isAuthenticated()) {
+      this.router.navigate(['/log-in']);
+      return;
+    }
+
+    if (this.notificationBusyApiId()) {
+      return;
+    }
+
+    this.notificationBusyApiId.set(apiId);
+    this.apiCatalogNotificationService
+      .toggleApiNotifications(apiId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: result => {
+          this.notificationBusyApiId.set(null);
+          if (result.status === 'no-subscription') {
+            this.matDialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+              role: 'alertdialog',
+              data: {
+                title: $localize`:@@catalogNotifyNoSubscriptionTitle:Subscribe to the API first`,
+                content: $localize`:@@catalogNotifyNoSubscriptionContent:Create a subscription with one of your applications for this API, then turn on notifications from the catalog.`,
+                confirmLabel: $localize`:@@catalogNotifyNoSubscriptionConfirm:OK`,
+                cancelLabel: $localize`:@@catalogNotifyNoSubscriptionCancel:Close`,
+              },
+            });
+            return;
+          }
+
+          this.notificationStateVersion.update(version => version + 1);
+        },
+        error: () => {
+          this.notificationBusyApiId.set(null);
+        },
+      });
   }
 
   private loadCatalogItems$(): Observable<CatalogPaginatorVM> {

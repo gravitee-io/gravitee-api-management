@@ -55,4 +55,12 @@ export default [
     },
     logLevel: 'debug',
   },
+  {
+    // AIM module APIs (My Workspace tiles: description, budget)
+    context: ['/gamma'],
+    target,
+    secure: false,
+    changeOrigin: true,
+    logLevel: 'debug',
+  },
 ];

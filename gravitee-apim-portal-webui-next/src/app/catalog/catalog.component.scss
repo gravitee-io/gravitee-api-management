@@ -164,6 +164,15 @@ $empty-state-height: 400px;
       text-align: right;
     }
 
+    &__notify {
+      margin-left: auto;
+      color: theme.$paragraph-color;
+
+      &--active {
+        color: theme.$primary-main-color;
+      }
+    }
+
     &__product-details {
       display: flex;
       min-width: 0;

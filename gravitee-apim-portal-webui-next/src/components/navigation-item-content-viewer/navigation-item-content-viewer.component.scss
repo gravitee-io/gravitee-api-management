@@ -36,6 +36,14 @@ gmd-viewer {
   }
 }
 
+:host-context(app-home) {
+  gmd-viewer {
+    max-width: none;
+    width: 100%;
+    padding: 0;
+  }
+}
+
 app-redoc-content-viewer {
   display: block;
   width: 100%;

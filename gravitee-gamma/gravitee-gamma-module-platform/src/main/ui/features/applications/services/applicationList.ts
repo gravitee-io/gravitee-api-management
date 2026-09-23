@@ -43,6 +43,10 @@ export async function listApplications(
     if (order) {
         params.set('order', order);
     }
+    // OWNER lookup 500s the whole list when any application has no primary owner.
+    // PICTURE is unused on the table. Both match classic console `getAll`.
+    params.append('exclude', 'OWNER');
+    params.append('exclude', 'PICTURE');
     return apimFetchJsonV1Env<ApplicationListResponse>(environmentId, `/applications/_paged?${params}`);
 }
 

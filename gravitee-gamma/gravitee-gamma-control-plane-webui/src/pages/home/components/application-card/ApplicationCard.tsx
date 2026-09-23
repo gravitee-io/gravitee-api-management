@@ -16,10 +16,10 @@
 
 import { Button, Card, CardContent } from '@gravitee/graphene-core';
 import { ArrowRightIcon, ZapIcon } from '@gravitee/graphene-core/icons';
-import { useId, useState } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 
-import { type Application } from './applications';
+import { type Application, isExternalDestination } from './applications';
 import { UpgradeDialog } from './UpgradeDialog';
 
 export interface MetricLine {
@@ -141,9 +141,9 @@ export function ApplicationCard({
     }
 
     return (
-        <Link
+        <CardWrapper
             to={ctaTarget!}
-            className="cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            external={isExternalDestination(to)}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onFocus={() => setIsHovered(true)}
@@ -152,6 +152,49 @@ export function ApplicationCard({
             <Card className="h-full transition-shadow duration-150" style={{ boxShadow: isHovered ? HOVER_RING : undefined }}>
                 {inner}
             </Card>
+        </CardWrapper>
+    );
+}
+
+function CardWrapper({
+    to,
+    external,
+    children,
+    onMouseEnter,
+    onMouseLeave,
+    onFocus,
+    onBlur,
+}: {
+    readonly to: string;
+    readonly external: boolean;
+    readonly children: ReactNode;
+    readonly onMouseEnter: () => void;
+    readonly onMouseLeave: () => void;
+    readonly onFocus: () => void;
+    readonly onBlur: () => void;
+}) {
+    const className = 'cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2';
+
+    if (external) {
+        return (
+            <a
+                href={to}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={className}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                onFocus={onFocus}
+                onBlur={onBlur}
+            >
+                {children}
+            </a>
+        );
+    }
+
+    return (
+        <Link to={to} className={className} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onFocus={onFocus} onBlur={onBlur}>
+            {children}
         </Link>
     );
 }

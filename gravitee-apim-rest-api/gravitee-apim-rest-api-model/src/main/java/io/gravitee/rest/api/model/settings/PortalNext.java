@@ -49,10 +49,13 @@ public class PortalNext {
 
     private Catalog catalog;
 
+    private Documentation documentation;
+
     public PortalNext() {
         this.applications = new Applications();
         this.banner = new Banner();
         this.catalog = new Catalog();
+        this.documentation = new Documentation();
     }
 
     @Data
@@ -157,5 +160,13 @@ public class PortalNext {
 
         @ParameterKey(Key.PORTAL_NEXT_SEARCH_FUZZY)
         private Enabled fuzzySearch;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Documentation {
+
+        @ParameterKey(Key.PORTAL_NEXT_DOCUMENTATION_DEFAULT_FOLDER_ID)
+        private String defaultFolderId;
     }
 }

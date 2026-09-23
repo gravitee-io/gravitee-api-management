@@ -147,6 +147,35 @@ public class ApplicationServiceImplTest {
     }
 
     @Test
+    public void findByIdsAndStatus_shouldListApplicationsWhenSomeHaveNoPrimaryOwner() throws TechnicalException {
+        ExecutionContext executionContext = new ExecutionContext("org1", "env1");
+
+        Application app1 = Application.builder().id("app1").status(ApplicationStatus.ACTIVE).type(ApplicationType.SIMPLE).build();
+        Application app2 = Application.builder().id("app2").status(ApplicationStatus.ACTIVE).type(ApplicationType.SIMPLE).build();
+
+        when(applicationRepository.search(any(ApplicationCriteria.class), isNull())).thenReturn(new Page<>(List.of(app1, app2), 0, 2, 2));
+
+        RoleEntity primaryOwnerRole = new RoleEntity();
+        primaryOwnerRole.setId("role1");
+        when(roleService.findPrimaryOwnerRoleByOrganization("org1", RoleScope.APPLICATION)).thenReturn(primaryOwnerRole);
+
+        MembershipEntity membership = MembershipEntity.builder().id("m1").referenceId("app1").memberId("user1").build();
+        when(
+            membershipService.getMembershipsByReferencesAndRole(MembershipReferenceType.APPLICATION, List.of("app1", "app2"), "role1")
+        ).thenReturn(Set.of(membership));
+
+        when(userService.findByIds(eq(executionContext), any(), eq(false))).thenReturn(Set.of());
+        when(clientCertificateCrudService.findByApplicationIdsAndStatuses(any(), any(ClientCertificateStatus[].class))).thenReturn(
+            List.of()
+        );
+
+        Set<ApplicationListItem> result = applicationService.findByIdsAndStatus(executionContext, List.of("app1", "app2"), null);
+
+        assertThat(result).hasSize(2);
+        assertThat(result.stream().map(ApplicationListItem::getId)).containsExactlyInAnyOrder("app1", "app2");
+    }
+
+    @Test
     public void buildSearchCriteria() {
         ExecutionContext executionContext = new ExecutionContext("org1", "env1");
         ApplicationQuery query = ApplicationQuery.builder()

@@ -56,11 +56,6 @@ export class SettingsNavigationService {
             permissions: ['environment-quality_rule-r'],
           },
           {
-            displayName: 'Authentication',
-            routerLink: './identity-providers',
-            permissions: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
-          },
-          {
             displayName: 'Categories',
             routerLink: './categories',
             permissions: ['environment-category-r'],

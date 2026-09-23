@@ -17,6 +17,11 @@ import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 
 export interface EnvironmentPortalSettings {
     portal?: { entrypoint?: string };
+    portalNext?: {
+        documentation?: {
+            defaultFolderId?: string;
+        };
+    };
 }
 
 /** Subset of GET /environments/{envId}/portal (classic Console EnvSettings). */

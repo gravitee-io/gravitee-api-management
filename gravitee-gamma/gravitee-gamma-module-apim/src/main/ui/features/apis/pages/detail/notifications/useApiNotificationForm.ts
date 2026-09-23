@@ -25,6 +25,16 @@ import {
     useUpdateNotification,
 } from '../../../hooks/useApiNotifications';
 import type { ApiNotifier, NotificationSettings } from '../../../types/notification';
+import {
+    APIKEY_CLOSE_TO_EXPIRY_DAYS_PREFIX,
+    APIKEY_CLOSE_TO_EXPIRY_HOOK_ID,
+    DEFAULT_CLOSE_TO_EXPIRY_DAYS,
+    SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID,
+    isCloseToExpiryDaysValid,
+    parseCloseToExpiryDays,
+    persistApiNotificationHooks,
+    withoutHiddenApiProxyHooks,
+} from '../../../utils/subscriptionCloseToExpiry';
 
 /** A single channel a brand-new notification can be created on. Console is a built-in
  *  singleton edited from the list, so it is intentionally not an "add" option here. */
@@ -85,6 +95,8 @@ export interface UseApiNotificationFormReturn {
     groupHookIds: Set<string>;
     selectedHooks: Set<string>;
     toggleHook: (hookId: string) => void;
+    closeToExpiryDays: (hookId: string) => number;
+    setCloseToExpiryDays: (hookId: string, days: number) => void;
 
     canSubmit: boolean;
     handleSave: () => void;
@@ -126,6 +138,8 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
     const [config, setConfig] = useState('');
     const [useSystemProxy, setUseSystemProxy] = useState(false);
     const [selectedHooks, setSelectedHooks] = useState<Set<string>>(new Set());
+    const [closeToExpiryDays, setCloseToExpiryDaysState] = useState(DEFAULT_CLOSE_TO_EXPIRY_DAYS);
+    const [apiKeyCloseToExpiryDays, setApiKeyCloseToExpiryDays] = useState(DEFAULT_CLOSE_TO_EXPIRY_DAYS);
     const [saveError, setSaveError] = useState<string | null>(null);
 
     // Guards against POSTing twice if the follow-up PUT fails and the user retries.
@@ -139,7 +153,13 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         setName(editingRow.notification.name);
         setConfig(editingRow.notification.config ?? '');
         setUseSystemProxy(editingRow.notification.useSystemProxy ?? false);
-        setSelectedHooks(new Set([...(editingRow.notification.hooks ?? []), ...(editingRow.notification.groupHooks ?? [])]));
+        const hooks = withoutHiddenApiProxyHooks([
+            ...(editingRow.notification.hooks ?? []),
+            ...(editingRow.notification.groupHooks ?? []),
+        ]);
+        setSelectedHooks(new Set(hooks));
+        setCloseToExpiryDaysState(parseCloseToExpiryDays(hooks));
+        setApiKeyCloseToExpiryDays(parseCloseToExpiryDays(hooks, APIKEY_CLOSE_TO_EXPIRY_DAYS_PREFIX));
     }, [isUpdate, editingRow, notificationKey]);
 
     // Default the add-channel to the first available notifier until the user picks one.
@@ -166,7 +186,28 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
     const isPending = createMutation.isPending || updateMutation.isPending;
     const isNameValid = name.trim().length > 0;
     const hasChannel = isUpdate || Boolean(selectedNotifierId);
-    const canSubmit = !isReadonly && hasChannel && (isUpdate || isNameValid) && !isPending;
+    const closeToExpiryDaysOk =
+        (!selectedHooks.has(SUBSCRIPTION_CLOSE_TO_EXPIRY_HOOK_ID) || isCloseToExpiryDaysValid(closeToExpiryDays)) &&
+        (!selectedHooks.has(APIKEY_CLOSE_TO_EXPIRY_HOOK_ID) || isCloseToExpiryDaysValid(apiKeyCloseToExpiryDays));
+    const canSubmit = !isReadonly && hasChannel && (isUpdate || isNameValid) && closeToExpiryDaysOk && !isPending;
+
+    const setCloseToExpiryDays = useCallback((hookId: string, days: number) => {
+        if (hookId === APIKEY_CLOSE_TO_EXPIRY_HOOK_ID) {
+            setApiKeyCloseToExpiryDays(days);
+            return;
+        }
+        setCloseToExpiryDaysState(days);
+    }, []);
+
+    const persistSelectedHooks = useCallback(
+        (hooks: readonly string[]) => persistApiNotificationHooks(hooks, closeToExpiryDays, apiKeyCloseToExpiryDays),
+        [closeToExpiryDays, apiKeyCloseToExpiryDays],
+    );
+
+    const daysForHook = useCallback(
+        (hookId: string) => (hookId === APIKEY_CLOSE_TO_EXPIRY_HOOK_ID ? apiKeyCloseToExpiryDays : closeToExpiryDays),
+        [apiKeyCloseToExpiryDays, closeToExpiryDays],
+    );
 
     const backToList = useCallback(() => navigate('..'), [navigate]);
 
@@ -177,7 +218,7 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         // ── Edit: PUT with selected hooks (group hooks are not user-owned) + target ──
         if (isUpdate) {
             if (!editingRow) return;
-            const userHooks = [...selectedHooks].filter(h => !groupHookIds.has(h));
+            const userHooks = persistSelectedHooks(withoutHiddenApiProxyHooks([...selectedHooks].filter(h => !groupHookIds.has(h))));
             updateMutation.mutate(
                 // useSystemProxy is webhook-specific; only include it for the WEBHOOK channel.
                 { ...editingRow.notification, hooks: userHooks, config, ...(channel === 'WEBHOOK' ? { useSystemProxy } : {}) },
@@ -191,7 +232,7 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
 
         // ── Add (email / webhook only) ──
         if (!isNameValid || !selectedNotifierId) return;
-        const userHooks = [...selectedHooks];
+        const userHooks = persistSelectedHooks(withoutHiddenApiProxyHooks([...selectedHooks]));
 
         const persistEvents = (created: NotificationSettings) => {
             // useSystemProxy is webhook-specific; only include it for the WEBHOOK channel.
@@ -234,6 +275,7 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         isUpdate,
         editingRow,
         selectedHooks,
+        persistSelectedHooks,
         groupHookIds,
         config,
         channel,
@@ -272,6 +314,8 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         groupHookIds,
         selectedHooks,
         toggleHook,
+        closeToExpiryDays: daysForHook,
+        setCloseToExpiryDays,
         canSubmit,
         handleSave,
         handleCancel: backToList,

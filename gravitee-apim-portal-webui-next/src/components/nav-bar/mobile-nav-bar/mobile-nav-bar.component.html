@@ -82,6 +82,25 @@
         (click)="closeMenu()"
         >Subscriptions</a
       >
+      <a
+        class="mobile-menu__link"
+        [routerLink]="['/dashboard', 'notifications']"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+      >
+        <span i18n="@@notificationsTitle">Notifications</span>
+        @if (unreadNotificationCount() > 0) {
+          <span> ({{ unreadNotificationCount() }})</span>
+        }
+      </a>
+      <a
+        class="mobile-menu__link"
+        i18n="@@myWorkspace"
+        [routerLink]="['/dashboard', 'workspaces']"
+        routerLinkActive="active"
+        (click)="closeMenu()"
+        >My Workspace</a
+      >
       <a class="mobile-menu__link" i18n="@@userAvatarMenuLogOut" [routerLink]="['/log-out']" routerLinkActive="active" (click)="closeMenu()"
         >Log out</a
       >

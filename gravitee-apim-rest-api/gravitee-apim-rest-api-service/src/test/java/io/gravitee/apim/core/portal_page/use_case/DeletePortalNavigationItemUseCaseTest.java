@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -26,11 +27,14 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.rest.api.model.parameters.Key;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -50,6 +54,7 @@ public class DeletePortalNavigationItemUseCaseTest {
         new PortalNavigationItemsQueryServiceInMemory(portalNavigationItemsCrudService.storage());
     private final PortalPageContentCrudServiceInMemory portalPageContentCrudService = new PortalPageContentCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    private final ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
 
     @BeforeEach
@@ -66,7 +71,8 @@ public class DeletePortalNavigationItemUseCaseTest {
         deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(
             domainService,
             portalNavigationItemsQueryService,
-            new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService)
+            new PortalNavigationSourcedItemsDomainService(portalNavigationItemsQueryService),
+            parametersQueryService
         );
     }
 
@@ -74,6 +80,7 @@ public class DeletePortalNavigationItemUseCaseTest {
     void afterEach() {
         portalNavigationItemsCrudService.reset();
         portalNavigationItemsQueryService.reset();
+        parametersQueryService.reset();
     }
 
     @Test
@@ -264,6 +271,30 @@ public class DeletePortalNavigationItemUseCaseTest {
 
         assertThat(error).hasMessageContaining("read-only");
         assertThat(portalNavigationItemsCrudService.storage()).hasSize(2);
+    }
+
+    @Test
+    void should_reject_delete_of_default_api_documentation_folder() {
+        var folder = PortalNavigationItemFixtures.aFolder(PortalNavigationItemFixtures.FOLDER_ID, "Default Docs");
+        folder.markAsRoot();
+        portalNavigationItemsCrudService.initWith(List.of(folder));
+        portalNavigationItemsQueryService.initWith(List.of(folder));
+        parametersQueryService.define(
+            Parameter.builder().key(Key.PORTAL_NEXT_DOCUMENTATION_DEFAULT_FOLDER_ID.key()).value(folder.getId().json()).build()
+        );
+
+        var error = org.junit.jupiter.api.Assertions.assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+            deletePortalNavigationItemUseCase.execute(
+                new DeletePortalNavigationItemUseCase.Input(
+                    PortalNavigationItemFixtures.ORG_ID,
+                    PortalNavigationItemFixtures.ENV_ID,
+                    folder.getId()
+                )
+            )
+        );
+
+        assertThat(error).hasMessageContaining("default API documentation folder");
+        assertThat(portalNavigationItemsCrudService.storage()).hasSize(1);
     }
 
     private static io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource aSource() {

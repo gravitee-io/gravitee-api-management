@@ -66,6 +66,32 @@ const HOOK_CATEGORIES = [
             { id: 'API_STOPPED', label: 'API stopped', description: '', scope: 'API', category: 'Lifecycle' },
         ],
     },
+    {
+        name: 'SUBSCRIPTION',
+        hooks: [
+            { id: 'SUBSCRIPTION_NEW', label: 'New Subscription', description: '', scope: 'API', category: 'SUBSCRIPTION' },
+            {
+                id: 'SUBSCRIPTION_CLOSE_TO_EXPIRY',
+                label: 'Subscription close to expiry',
+                description: 'Triggered when a subscription is close to its expiry date.',
+                scope: 'API',
+                category: 'SUBSCRIPTION',
+            },
+        ],
+    },
+    {
+        name: 'API KEY',
+        hooks: [
+            { id: 'APIKEY_EXPIRED', label: 'API Key expired', description: '', scope: 'API', category: 'API KEY' },
+            {
+                id: 'APIKEY_CLOSE_TO_EXPIRY',
+                label: 'API Key close to expiry',
+                description: 'Triggered when an API key is close to its expiry date.',
+                scope: 'API',
+                category: 'API KEY',
+            },
+        ],
+    },
 ];
 
 const mockUseHasPermission = useHasPermission as jest.Mock;
@@ -122,7 +148,7 @@ it('creates a GENERIC notification then persists the selected events and target 
     const user = userEvent.setup();
     renderForm('/apis/api-1/notifications/new');
 
-    await user.type(screen.getByLabelText(/name/i), 'Ops hook');
+    await user.type(screen.getByLabelText(/^name/i), 'Ops hook');
     await user.type(screen.getByLabelText(/email address/i), 'team@example.com');
     await user.click(screen.getByLabelText(/api started/i));
     await user.click(screen.getByRole('button', { name: /add notification/i }));
@@ -196,13 +222,79 @@ it('includes useSystemProxy in the update payload for a webhook notification', a
     const user = userEvent.setup();
     renderForm('/apis/api-1/notifications/new');
 
-    await user.type(screen.getByLabelText(/name/i), 'Ops webhook');
+    await user.type(screen.getByLabelText(/^name/i), 'Ops webhook');
     await user.type(screen.getByLabelText(/webhook url/i), 'https://hooks.example.com');
     await user.click(screen.getByRole('switch', { name: /use system proxy/i }));
     await user.click(screen.getByRole('button', { name: /add notification/i }));
 
     await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
     expect((updateMutate.mock.calls[0][0] as { useSystemProxy: boolean }).useSystemProxy).toBe(true);
+});
+
+it('saves Subscription close to expiry with the configured days', async () => {
+    const created = {
+        id: 'created-expiry',
+        name: 'Expiry watch',
+        notifier: 'email-notifier',
+        config_type: 'GENERIC' as const,
+        hooks: [] as string[],
+        referenceType: 'API',
+        referenceId: 'api-1',
+    };
+    const createMutate = jest.fn((_payload: unknown, opts: { onSuccess?: (c: typeof created) => void }) => opts.onSuccess?.(created));
+    const updateMutate = jest.fn((_payload: unknown, opts: { onSuccess?: () => void }) => opts.onSuccess?.());
+    mockUseCreateNotification.mockReturnValue({ mutate: createMutate, isPending: false });
+    mockUseUpdateNotification.mockReturnValue({ mutate: updateMutate, isPending: false });
+
+    const user = userEvent.setup();
+    renderForm('/apis/api-1/notifications/new');
+
+    expect(screen.getByText('SUBSCRIPTION')).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/^name/i), 'Expiry watch');
+    await user.type(screen.getByLabelText(/email address/i), 'ops@example.com');
+    await user.click(screen.getByText('Subscription close to expiry'));
+    const daysInput = screen.getByLabelText(/subscription close to expiry days before expiry/i) as HTMLInputElement;
+    await user.clear(daysInput);
+    await user.type(daysInput, '14');
+    await user.click(screen.getByRole('button', { name: /add notification/i }));
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
+    expect((updateMutate.mock.calls[0][0] as { hooks: string[] }).hooks).toEqual(
+        expect.arrayContaining(['SUBSCRIPTION_CLOSE_TO_EXPIRY', 'SUBSCRIPTION_CLOSE_TO_EXPIRY_DAYS_14']),
+    );
+});
+
+it('saves API Key close to expiry with the configured days', async () => {
+    const created = {
+        id: 'created-apikey-expiry',
+        name: 'API key watch',
+        notifier: 'email-notifier',
+        config_type: 'GENERIC' as const,
+        hooks: [] as string[],
+        referenceType: 'API',
+        referenceId: 'api-1',
+    };
+    const createMutate = jest.fn((_payload: unknown, opts: { onSuccess?: (c: typeof created) => void }) => opts.onSuccess?.(created));
+    const updateMutate = jest.fn((_payload: unknown, opts: { onSuccess?: () => void }) => opts.onSuccess?.());
+    mockUseCreateNotification.mockReturnValue({ mutate: createMutate, isPending: false });
+    mockUseUpdateNotification.mockReturnValue({ mutate: updateMutate, isPending: false });
+
+    const user = userEvent.setup();
+    renderForm('/apis/api-1/notifications/new');
+
+    expect(screen.getByText('API KEY')).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/^name/i), 'API key watch');
+    await user.type(screen.getByLabelText(/email address/i), 'ops@example.com');
+    await user.click(screen.getByText('API Key close to expiry'));
+    const daysInput = screen.getByLabelText(/api key close to expiry days before expiry/i) as HTMLInputElement;
+    await user.clear(daysInput);
+    await user.type(daysInput, '14');
+    await user.click(screen.getByRole('button', { name: /add notification/i }));
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
+    expect((updateMutate.mock.calls[0][0] as { hooks: string[] }).hooks).toEqual(
+        expect.arrayContaining(['APIKEY_CLOSE_TO_EXPIRY', 'APIKEY_CLOSE_TO_EXPIRY_DAYS_14']),
+    );
 });
 
 // ─── Guard: lacking permission redirects to the list ─────────────────────────

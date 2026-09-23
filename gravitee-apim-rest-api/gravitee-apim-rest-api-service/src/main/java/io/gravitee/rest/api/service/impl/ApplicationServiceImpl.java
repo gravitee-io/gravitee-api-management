@@ -1321,15 +1321,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         int poMissing = activeApplicationIds.size() - memberships.size();
         if (poMissing > 0) {
             Set<String> appMembershipsIds = memberships.stream().map(MembershipEntity::getReferenceId).collect(toSet());
-
-            activeApplicationIds.removeAll(appMembershipsIds);
-            Optional<String> optionalApplicationsAsString = activeApplicationIds.stream().reduce((a, b) -> a + " / " + b);
-
-            String applicationsAsString = "?";
-            if (optionalApplicationsAsString.isPresent()) applicationsAsString = optionalApplicationsAsString.get();
-            throw new TechnicalManagementException(
-                poMissing + " applications has no identified primary owners in this list " + applicationsAsString + "."
-            );
+            String applicationsAsString = activeApplicationIds
+                .stream()
+                .filter(id -> !appMembershipsIds.contains(id))
+                .reduce((a, b) -> a + " / " + b)
+                .orElse("?");
+            // Keep listing the rest; convert() maps a missing owner to "Unknown User".
+            log.error("{} applications has no identified primary owners in this list {}.", poMissing, applicationsAsString);
         }
 
         Map<String, String> applicationToUser = HashMap.newHashMap(memberships.size());
