@@ -138,27 +138,25 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
     },
 ];
 
-/** Classic console parity (`api-v4-menu.service.ts`, `hasTcpListeners`) — TCP has no HTTP policy-chain semantics. */
-const TCP_UNSUPPORTED_PATHS = new Set(['policy-studio', 'cors', 'response-templates']);
-const TCP_UNSUPPORTED_REASON = 'Coming soon for V4 APIs';
+/** HTTP-only surfaces omitted from TCP API detail nav — matches classic console and APIM-15053 AC. */
+const TCP_OMITTED_PATHS = new Set([
+    'cors',
+    'consumers',
+    'documentation',
+    'endpoints/failover',
+    'endpoints/health-check-dashboard',
+    'observe-dashboard',
+    'observe-logs',
+    'policy-studio',
+    'response-templates',
+]);
 
-/**
- * Classic console never adds these menu entries for TCP APIs at all — omitted, not just disabled.
- * The observability deep links join them: the console disables API Traffic and Logs for TCP too.
- */
-const TCP_OMITTED_PATHS = new Set(['endpoints/failover', 'endpoints/health-check-dashboard', 'observe-dashboard', 'observe-logs']);
-
-/** Overlays `comingSoon` on the items TCP Proxy APIs don't support, and omits the entries that don't exist for TCP — matching classic console. */
 export function withTcpRestrictions(groups: DetailNavGroup[], apiHasTcpListeners: boolean): DetailNavGroup[] {
     if (!apiHasTcpListeners) return groups;
     return dropEmptyGroups(
         groups.map(group => ({
             ...group,
-            items: group.items
-                .filter(item => !TCP_OMITTED_PATHS.has(item.path))
-                .map(item =>
-                    TCP_UNSUPPORTED_PATHS.has(item.path) ? { ...item, comingSoon: true, comingSoonReason: TCP_UNSUPPORTED_REASON } : item,
-                ),
+            items: group.items.filter(item => !TCP_OMITTED_PATHS.has(item.path)),
         })),
     );
 }
@@ -209,18 +207,14 @@ interface ComingSoonRowProps {
     icon?: ComponentType<{ className?: string }>;
     label: string;
     reason: string;
-    indented?: boolean;
 }
 
-function ComingSoonRow({ icon: Icon, label, reason, indented }: ComingSoonRowProps) {
+function ComingSoonRow({ icon: Icon, label, reason }: ComingSoonRowProps) {
     return (
         <Tooltip>
             <TooltipTrigger asChild>
                 <div
-                    className={cn(
-                        'flex w-full items-center gap-2.5 rounded-lg px-3 text-sm text-muted-foreground/50 cursor-default',
-                        indented ? 'py-1.5' : 'py-2',
-                    )}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground/50 cursor-default"
                     role="button"
                     tabIndex={0}
                     aria-disabled="true"
@@ -258,62 +252,62 @@ export function ApiDetailSidebarNav({ groups, basePath, permissionsReady = true 
         );
     }
 
+    const renderLeaf = (item: DetailNavItem) => {
+        if (item.comingSoon) {
+            return (
+                <ComingSoonRow
+                    key={item.path}
+                    icon={item.icon}
+                    label={item.label}
+                    reason={item.comingSoonReason ?? DEFAULT_COMING_SOON_REASON}
+                />
+            );
+        }
+        const Icon = item.icon;
+        if (item.externalHref) {
+            return (
+                <a
+                    key={item.path}
+                    href={item.externalHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    // The icon is decorative, so the change of context has to be said out loud
+                    // (WCAG 3.2.5). An explicit label rather than an `sr-only` span: the
+                    // accessible-name computation concatenates text nodes without a separator.
+                    aria-label={`${item.label} (opens in a new tab)`}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                    <Icon className="size-4 shrink-0" aria-hidden />
+                    {item.label}
+                    <ExternalLinkIcon className="ml-auto size-3.5 shrink-0" aria-hidden />
+                </a>
+            );
+        }
+        return (
+            <NavLink
+                end={item.end !== false}
+                key={item.path}
+                to={`${basePath}/${item.path}`}
+                className={({ isActive }) =>
+                    cn(
+                        'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
+                        isActive ? 'bg-accent text-foreground font-medium' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )
+                }
+            >
+                <Icon className="size-4 shrink-0" aria-hidden />
+                {item.label}
+            </NavLink>
+        );
+    };
+
     return (
         <TooltipProvider delayDuration={200}>
             <div className="space-y-0.5 px-2 py-2">
                 {groups.map(group => (
                     <div key={group.label} className="pt-4 first:pt-0">
                         <p className="mb-1 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{group.label}</p>
-                        {group.items.map(item => {
-                            if (item.comingSoon) {
-                                return (
-                                    <ComingSoonRow
-                                        key={item.path}
-                                        icon={item.icon}
-                                        label={item.label}
-                                        reason={item.comingSoonReason ?? DEFAULT_COMING_SOON_REASON}
-                                    />
-                                );
-                            }
-                            const Icon = item.icon;
-                            if (item.externalHref) {
-                                return (
-                                    <a
-                                        key={item.path}
-                                        href={item.externalHref}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        // The icon is decorative, so the change of context has to be said out loud
-                                        // (WCAG 3.2.5). An explicit label rather than an `sr-only` span: the
-                                        // accessible-name computation concatenates text nodes without a separator.
-                                        aria-label={`${item.label} (opens in a new tab)`}
-                                        className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                                    >
-                                        <Icon className="size-4 shrink-0" aria-hidden />
-                                        {item.label}
-                                        <ExternalLinkIcon className="ml-auto size-3.5 shrink-0" aria-hidden />
-                                    </a>
-                                );
-                            }
-                            return (
-                                <NavLink
-                                    end={item.end !== false}
-                                    key={item.path}
-                                    to={`${basePath}/${item.path}`}
-                                    className={({ isActive }) =>
-                                        cn(
-                                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
-                                            isActive
-                                                ? 'bg-accent text-foreground font-medium'
-                                                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                                        )
-                                    }
-                                >
-                                    <Icon className="size-4 shrink-0" aria-hidden />
-                                    {item.label}
-                                </NavLink>
-                            );
-                        })}
+                        {group.items.map(item => renderLeaf(item))}
                     </div>
                 ))}
             </div>

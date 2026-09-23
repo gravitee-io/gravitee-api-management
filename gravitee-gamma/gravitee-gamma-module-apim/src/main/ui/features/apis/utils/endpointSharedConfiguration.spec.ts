@@ -13,8 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { serializeHttpClientOptions, serializeHttpProxyOptions, serializeSharedConfiguration } from './endpointSharedConfiguration';
-import { DEFAULT_HTTP, DEFAULT_PROXY, DEFAULT_SHARED_CONFIG, DEFAULT_SSL } from '../pages/detail/endpoints/types';
+import {
+    serializeHttpClientOptions,
+    serializeHttpProxyOptions,
+    serializeSharedConfiguration,
+    serializeTcpClientOptions,
+    serializeTcpSharedConfiguration,
+    serializeTcpSharedConfigurationOverride,
+} from './endpointSharedConfiguration';
+import { DEFAULT_HTTP, DEFAULT_PROXY, DEFAULT_SHARED_CONFIG, DEFAULT_SSL, DEFAULT_TCP } from '../pages/detail/endpoints/types';
 
 describe('endpointSharedConfiguration', () => {
     it('serializes HTTP/1.1 without V2-only or renamed fields', () => {
@@ -69,5 +76,34 @@ describe('endpointSharedConfiguration', () => {
         expect(sc.http?.version).toBe('HTTP_1_1');
         expect(sc.ssl).toEqual({ hostnameVerifier: DEFAULT_SSL.hostnameVerifier, trustAll: DEFAULT_SSL.trustAll });
         expect(sc.ssl).not.toHaveProperty('clientAuthentication');
+    });
+
+    it('serializes TCP client options for tcp-proxy endpoint groups', () => {
+        expect(serializeTcpClientOptions({ ...DEFAULT_TCP, connectTimeout: 5000 })).toEqual({
+            connectTimeout: 5000,
+            reconnectAttempts: DEFAULT_TCP.reconnectAttempts,
+            reconnectInterval: DEFAULT_TCP.reconnectInterval,
+            idleTimeout: DEFAULT_TCP.idleTimeout,
+            readIdleTimeout: DEFAULT_TCP.readIdleTimeout,
+            writeIdleTimeout: DEFAULT_TCP.writeIdleTimeout,
+        });
+    });
+
+    it('serializes TCP shared configuration with proxy options and without HTTP/headers fields', () => {
+        const sc = serializeTcpSharedConfiguration(DEFAULT_SHARED_CONFIG);
+        expect(sc.tcp).toEqual(serializeTcpClientOptions(DEFAULT_TCP));
+        expect(sc.ssl).toEqual({ hostnameVerifier: DEFAULT_SSL.hostnameVerifier, trustAll: DEFAULT_SSL.trustAll });
+        expect(sc.proxy).toEqual({ enabled: false, useSystemProxy: false });
+        expect(sc).not.toHaveProperty('http');
+        expect(sc).not.toHaveProperty('headers');
+    });
+
+    it('serializes TCP endpoint overrides as a plain record', () => {
+        expect(serializeTcpSharedConfigurationOverride(undefined)).toEqual({});
+        expect(serializeTcpSharedConfigurationOverride(DEFAULT_SHARED_CONFIG)).toEqual({
+            tcp: serializeTcpClientOptions(DEFAULT_TCP),
+            proxy: { enabled: false, useSystemProxy: false },
+            ssl: { hostnameVerifier: DEFAULT_SSL.hostnameVerifier, trustAll: DEFAULT_SSL.trustAll },
+        });
     });
 });

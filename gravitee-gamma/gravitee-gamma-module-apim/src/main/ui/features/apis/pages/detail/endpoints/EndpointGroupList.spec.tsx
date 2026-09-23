@@ -152,15 +152,15 @@ describe('EndpointGroupList', () => {
             endpoints: [TCP_EP],
         };
 
-        it('shows the "TCP proxy" type label', () => {
+        it('shows the "TCP Proxy" type label', () => {
             render(<EndpointGroupList {...makeProps({ groups: [TCP_GROUP] })} />);
-            expect(screen.getByText('TCP proxy')).toBeInTheDocument();
+            expect(screen.getByText('TCP Proxy')).toBeInTheDocument();
         });
 
-        it('does not render a Target URL column or value for tcp-proxy groups', () => {
+        it('renders a Target column and host/port value for tcp-proxy groups', () => {
             render(<EndpointGroupList {...makeProps({ groups: [TCP_GROUP] })} />);
-            expect(screen.queryByText('Target URL')).not.toBeInTheDocument();
-            expect(screen.queryByText('backend.example.com:9090')).not.toBeInTheDocument();
+            expect(screen.getByText('Target')).toBeInTheDocument();
+            expect(screen.getByText('backend.example.com:9090')).toBeInTheDocument();
         });
 
         it('still renders the endpoint name and weight for tcp-proxy groups', () => {

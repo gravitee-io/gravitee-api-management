@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState } from '../pages/detail/endpoints/types';
+import type { HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState, TcpFormState } from '../pages/detail/endpoints/types';
 import type {
     EndpointGroupHeader,
     EndpointGroupHttp,
     EndpointGroupProxy,
     EndpointGroupSharedConfiguration,
     EndpointGroupSsl,
+    EndpointGroupTcp,
 } from '../types';
 
 /** Serializes HTTP client options for V4 shared configuration (plugin httpClientOptions oneOf schema). */
@@ -97,6 +98,28 @@ export function validateHttpProxyOptions(proxy: ProxyFormState): string | null {
     return null;
 }
 
+export function serializeTcpClientOptions(tcp: TcpFormState): EndpointGroupTcp {
+    return {
+        connectTimeout: tcp.connectTimeout,
+        reconnectAttempts: tcp.reconnectAttempts,
+        reconnectInterval: tcp.reconnectInterval,
+        idleTimeout: tcp.idleTimeout,
+        readIdleTimeout: tcp.readIdleTimeout,
+        writeIdleTimeout: tcp.writeIdleTimeout,
+    };
+}
+
+export function serializeTcpSharedConfiguration(
+    config: SharedConfigFormState,
+    existing?: EndpointGroupSharedConfiguration,
+): EndpointGroupSharedConfiguration {
+    return {
+        tcp: serializeTcpClientOptions(config.tcp),
+        proxy: serializeHttpProxyOptions(config.proxy),
+        ssl: serializeSslOptions(config.ssl, existing?.ssl),
+    };
+}
+
 export function serializeSharedConfiguration(
     config: SharedConfigFormState,
     existing?: EndpointGroupSharedConfiguration,
@@ -115,4 +138,12 @@ export function serializeSharedConfigurationOverride(
 ): Record<string, unknown> {
     if (!config) return {};
     return serializeSharedConfiguration(config, existing) as Record<string, unknown>;
+}
+
+export function serializeTcpSharedConfigurationOverride(
+    config: SharedConfigFormState | undefined,
+    existing?: EndpointGroupSharedConfiguration,
+): Record<string, unknown> {
+    if (!config) return {};
+    return serializeTcpSharedConfiguration(config, existing) as Record<string, unknown>;
 }
