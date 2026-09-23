@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
 import { TenantSelectInput } from './TenantSelectInput';
+import { SwitchRow } from '../../../../components/CollapsibleSection';
 import { WizardStepIndicator } from '../../../../components/WizardStepIndicator';
 import { getTenants } from '../../../../services/tenants';
 import type { Tenant } from '../../../../types';
@@ -109,7 +110,9 @@ function EndpointGeneralStep({
                             </Label>
                             <Input
                                 id="ep-tcp-port"
-                                inputMode="numeric"
+                                type="number"
+                                min={0}
+                                max={65535}
                                 value={form.tcpTargetPort}
                                 onChange={e => onChange('tcpTargetPort', e.target.value)}
                                 placeholder="5432"
@@ -181,7 +184,6 @@ interface EndpointFormProps {
     initial?: EndpointFormState;
     existingNames: string[];
     showHealthCheck?: boolean;
-    /** tcp-proxy endpoints have no shared-configuration or health-check step — just General (host/port/secured). */
     isTcp?: boolean;
     groupHealthCheck?: HealthCheckFormState;
     isReadOnly?: boolean;
@@ -203,10 +205,7 @@ export function EndpointForm({
     onCancel,
 }: Readonly<EndpointFormProps>) {
     const env = useEnvironment();
-    const steps = useMemo(
-        () => (isTcp ? [BASE_STEPS[0]] : showHealthCheck ? [...BASE_STEPS, HEALTH_CHECK_STEP] : [...BASE_STEPS]),
-        [isTcp, showHealthCheck],
-    );
+    const steps = useMemo(() => (showHealthCheck ? [...BASE_STEPS, HEALTH_CHECK_STEP] : [...BASE_STEPS]), [showHealthCheck]);
 
     const [currentStep, setCurrentStep] = useState<StepId>('general');
     const [form, setForm] = useState<EndpointFormState>(initial ?? newEndpointRow(groupHealthCheck));
@@ -268,7 +267,7 @@ export function EndpointForm({
           validateTcpPort(form.tcpTargetPort) === null &&
           form.weight >= 1
         : !nameError && form.target.trim().length > 0 && !/\s/.test(form.target) && form.weight >= 1;
-    const configurationValid = isTcp || form.inheritConfiguration || validateHttpProxyOptions(configOverride.proxy) === null;
+    const configurationValid = form.inheritConfiguration || validateHttpProxyOptions(configOverride.proxy) === null;
     const healthCheckValid = !showHealthCheck || Object.keys(validateHealthCheckForm(form.healthCheck)).length === 0;
 
     const currentStepIndex = steps.findIndex(s => s.id === currentStep);
@@ -341,14 +340,26 @@ export function EndpointForm({
                     />
                 )}
                 {currentStep === 'configuration' && (
-                    <ConfigurationStep
-                        config={configOverride}
-                        proxyError={proxyError}
-                        onChange={patch => {
-                            setConfigOverride(prev => ({ ...prev, ...patch }));
-                            setProxyError(null);
-                        }}
-                    />
+                    <div className="space-y-4">
+                        <SwitchRow
+                            id="endpoint-inherit-configuration"
+                            label="Inherit configuration from the endpoint group"
+                            desc="Use the endpoint group's shared connection configuration."
+                            checked={form.inheritConfiguration}
+                            onChange={value => setField('inheritConfiguration', value)}
+                        />
+                        {!form.inheritConfiguration && (
+                            <ConfigurationStep
+                                config={configOverride}
+                                proxyError={proxyError}
+                                isTcp={isTcp}
+                                onChange={patch => {
+                                    setConfigOverride(prev => ({ ...prev, ...patch }));
+                                    setProxyError(null);
+                                }}
+                            />
+                        )}
+                    </div>
                 )}
                 {currentStep === 'health-check' && showHealthCheck && (
                     <HealthCheckStep

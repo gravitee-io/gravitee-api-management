@@ -95,21 +95,13 @@ export function ReviewDeployStep() {
                     <ReviewRow label="Name" value={form.apiName} />
                     <ReviewRow label="Version" value={form.apiVersion} />
                     {form.apiDescription && <ReviewRow label="Description" value={form.apiDescription} />}
-                    <ReviewRow label="Protocol">
+                    <ReviewRow label="Type">
                         <Badge variant="secondary" className="text-xs">
-                            {isTcp ? 'TCP' : 'REST'}
+                            {isTcp ? 'TCP Proxy' : 'HTTP Proxy'}
                         </Badge>
                     </ReviewRow>
-                    {isTcp && (
-                        <ReviewRow label="Type">
-                            <Badge variant="secondary" className="text-xs">
-                                TCP Proxy
-                            </Badge>
-                        </ReviewRow>
-                    )}
                 </div>
 
-                {/* Proxy Configuration */}
                 <div className="rounded-xl border bg-card overflow-hidden">
                     <SectionHeader title="Proxy Configuration" onEdit={() => goToStep(proxyStep)} />
                     <div className="flex items-start justify-between gap-4 px-4 py-2.5 border-b">

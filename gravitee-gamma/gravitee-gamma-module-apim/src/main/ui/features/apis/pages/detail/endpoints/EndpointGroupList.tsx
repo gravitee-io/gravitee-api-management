@@ -45,16 +45,14 @@ const LB_LABELS: Record<string, string> = {
 
 const TYPE_LABELS: Record<string, string> = {
     'http-proxy': 'HTTP Proxy',
-    'tcp-proxy': 'TCP proxy',
+    'tcp-proxy': 'TCP Proxy',
     grpc: 'gRPC',
     kafka: 'Kafka',
     mock: 'Mock',
     rabbitmq: 'RabbitMQ',
 };
 
-/** Classic console (`api-endpoint-groups-standard.adapter.ts`) has no "general info" formatter for tcp-proxy — no target column. */
 const GRID_WITH_TARGET = '56px 1fr 2fr 72px 56px';
-const GRID_WITHOUT_TARGET = '56px 1fr 72px 56px';
 
 function formatGroupType(type: string | undefined): string {
     if (!type) return 'Unknown';
@@ -119,8 +117,6 @@ export function EndpointGroupList({
                     const epCount = group.endpoints?.length ?? 0;
                     const canDeleteGroup = !isReadOnly && !isLastGroup;
                     const canDeleteEndpoint = !isReadOnly && epCount > 1;
-                    const showTarget = group.type !== 'tcp-proxy';
-                    const gridColumns = showTarget ? GRID_WITH_TARGET : GRID_WITHOUT_TARGET;
 
                     return (
                         <Card key={`${group.name}-${gIdx}`}>
@@ -193,15 +189,13 @@ export function EndpointGroupList({
                                         {/* Column headers */}
                                         <div
                                             className="grid items-center border-b bg-muted/40 px-3 py-2"
-                                            style={{ gridTemplateColumns: gridColumns, gap: '12px' }}
+                                            style={{ gridTemplateColumns: GRID_WITH_TARGET, gap: '12px' }}
                                         >
                                             <span />
                                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</span>
-                                            {showTarget && (
-                                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                                    Target URL
-                                                </span>
-                                            )}
+                                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                                {group.type === 'tcp-proxy' ? 'Target' : 'Target URL'}
+                                            </span>
                                             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                                 Weight
                                             </span>
@@ -213,7 +207,7 @@ export function EndpointGroupList({
                                             <div
                                                 key={`${ep.name}-${eIdx}`}
                                                 className="grid items-center px-3 py-3 border-b last:border-0 hover:bg-muted/20 transition-colors"
-                                                style={{ gridTemplateColumns: gridColumns, gap: '12px' }}
+                                                style={{ gridTemplateColumns: GRID_WITH_TARGET, gap: '12px' }}
                                             >
                                                 {/* Order buttons — left column */}
                                                 <div className="flex items-center gap-0.5 shrink-0">
@@ -271,11 +265,9 @@ export function EndpointGroupList({
                                                         );
                                                     })()}
                                                 </div>
-                                                {showTarget && (
-                                                    <span className="text-xs text-muted-foreground truncate font-mono">
-                                                        {formatEndpointTarget(ep.configuration?.target) ?? '—'}
-                                                    </span>
-                                                )}
+                                                <span className="text-xs text-muted-foreground truncate font-mono">
+                                                    {formatEndpointTarget(ep.configuration?.target) ?? '—'}
+                                                </span>
                                                 <span className="text-sm text-muted-foreground">{ep.weight ?? 1}</span>
                                                 {/* Edit / delete — right column */}
                                                 <div className="flex items-center justify-end gap-0.5 shrink-0">

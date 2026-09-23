@@ -129,7 +129,11 @@ export function DuplicateApi({
             <SheetContent side="right" style={{ maxWidth: '32rem' }}>
                 <SheetHeader>
                     <SheetTitle>Duplicate API</SheetTitle>
-                    <SheetDescription>Create a copy of this API with a new context path and version.</SheetDescription>
+                    <SheetDescription>
+                        {entryMode === 'host'
+                            ? 'Create a copy of this API with a new host and version.'
+                            : 'Create a copy of this API with a new context path and version.'}
+                    </SheetDescription>
                 </SheetHeader>
 
                 <div className="flex-1 space-y-6 overflow-y-auto px-4">
