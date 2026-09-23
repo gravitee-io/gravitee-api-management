@@ -375,10 +375,12 @@ describe('ApisPage', () => {
         expect(screen.queryByText('Why add an API proxy?')).toBeNull();
     });
 
-    it('shows the list view while loading — does not flash the empty landing', () => {
+    it('shows the page skeleton while loading — neither the empty landing nor the list view', () => {
         mockUseApiList.mockReturnValue({ data: undefined, isLoading: true, isFetching: false });
-        renderPage();
+        const { container } = renderPage();
 
+        expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull();
+        expect(screen.queryByPlaceholderText('Search APIs...')).toBeNull();
         expect(screen.queryByText('Why add an API proxy?')).toBeNull();
     });
 
