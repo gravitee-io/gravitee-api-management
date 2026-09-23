@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiResourceTest {
 
     private static final String API_NAME = "my-federated-api";
+    private static final String API_ROLE_ID = "api-role-id";
     private static final String API_GROUP = "api-group";
     private static final String API_GROUP_ROLE_ID = "api-group-role-id";
     private static final String OTHER_API = "other-api-id";
@@ -140,6 +141,35 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
             .extracting(Api::getApiFederated)
             .extracting(ApiFederated::getId, ApiFederated::getName)
             .containsExactly(API, API_NAME);
+    }
+
+    @Test
+    void should_return_the_api_when_user_is_a_direct_member() {
+        givenAFederatedApiOwnedByAGroup();
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API)).thenReturn(
+            Set.of(
+                MembershipEntity.builder()
+                    .memberId(USER_NAME)
+                    .memberType(USER)
+                    .referenceId(API)
+                    .referenceType(MembershipReferenceType.API)
+                    .roleId(API_ROLE_ID)
+                    .build()
+            )
+        );
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP)).thenReturn(Set.of());
+        var apiRole = RoleEntity.builder().id(API_ROLE_ID).build();
+        when(roleService.findById(API_ROLE_ID)).thenReturn(apiRole);
+        when(apiAuthorizationService.canManageApi(apiRole)).thenReturn(true);
+
+        final Response response = rootTarget(API).request().get();
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(Api.class)
+            .extracting(Api::getApiFederated)
+            .extracting(ApiFederated::getId, ApiFederated::getName)
+            .containsExactly(API, "my-federated-api");
     }
 
     private void givenAFederatedApiOwnedByAGroup() {
