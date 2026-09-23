@@ -72,6 +72,31 @@ describe('useApiStats', () => {
         expect(result.current.published).toBe(WITH_FEDERATED_COUNT);
     });
 
+    it('narrows every count to the search term the list is filtered by', async () => {
+        mockSearchApis.mockResolvedValue(countOf(PROXY_ONLY_COUNT));
+
+        const { result } = renderHook(() => useApiStats('orders'), { wrapper: createWrapper() });
+        await waitFor(() => expect(result.current.total).toBe(PROXY_ONLY_COUNT));
+
+        expect(mockSearchApis).toHaveBeenCalledWith('env-1', { query: 'orders' }, expect.anything(), expect.anything(), undefined, false);
+        expect(mockSearchApis).toHaveBeenCalledWith(
+            'env-1',
+            { query: 'orders', visibilities: ['PRIVATE'] },
+            expect.anything(),
+            expect.anything(),
+            undefined,
+            false,
+        );
+        expect(mockSearchApis).toHaveBeenCalledWith(
+            'env-1',
+            { query: 'orders', published: ['PUBLISHED'] },
+            expect.anything(),
+            expect.anything(),
+            undefined,
+            false,
+        );
+    });
+
     it('flags only the count whose search failed and keeps the other counts', async () => {
         jest.spyOn(console, 'warn').mockImplementation(() => {});
         mockSearchApis.mockImplementation((_envId, filters) =>
