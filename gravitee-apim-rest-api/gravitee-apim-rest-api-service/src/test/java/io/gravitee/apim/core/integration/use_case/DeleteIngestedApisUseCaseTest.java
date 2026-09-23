@@ -26,6 +26,7 @@ import fixtures.core.model.MetadataFixtures;
 import fixtures.core.model.PageFixture;
 import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
+import fixtures.core.model.SubscriptionFormFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
@@ -48,6 +49,8 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionFormCrudServiceInMemory;
+import inmemory.SubscriptionFormQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -74,6 +77,8 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
+import io.gravitee.apim.core.subscription_form.model.SubscriptionForm;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
@@ -127,6 +132,8 @@ class DeleteIngestedApisUseCaseTest {
     RoleQueryServiceInMemory roleQueryServiceInMemory = new RoleQueryServiceInMemory();
     GroupQueryServiceInMemory groupQueryServiceInMemory = new GroupQueryServiceInMemory();
     ApiCategoryQueryServiceInMemory apiCategoryQueryServiceInMemory = new ApiCategoryQueryServiceInMemory();
+    SubscriptionFormCrudServiceInMemory subscriptionFormCrudService = new SubscriptionFormCrudServiceInMemory();
+    SubscriptionFormQueryServiceInMemory subscriptionFormQueryService = new SubscriptionFormQueryServiceInMemory();
 
     private DeleteIngestedApisUseCase useCase;
 
@@ -224,7 +231,8 @@ class DeleteIngestedApisUseCaseTest {
             apiMetadataDomainService,
             deleteMembershipDomainService,
             apiCrudServiceInMemory,
-            apiIndexerDomainService
+            apiIndexerDomainService,
+            new RemoveApiFromSubscriptionFormDomainService(subscriptionFormQueryService, subscriptionFormCrudService)
         );
         initializePrimaryOwnerData();
     }
@@ -253,7 +261,9 @@ class DeleteIngestedApisUseCaseTest {
             membershipQueryServiceInMemory,
             roleQueryServiceInMemory,
             groupQueryServiceInMemory,
-            apiCategoryQueryServiceInMemory
+            apiCategoryQueryServiceInMemory,
+            subscriptionFormCrudService,
+            subscriptionFormQueryService
         ).forEach(InMemoryAlternative::reset);
     }
 
@@ -287,6 +297,30 @@ class DeleteIngestedApisUseCaseTest {
             softly.assertThat(output.skipped()).isEqualTo(0);
             softly.assertThat(output.errors()).isEqualTo(0);
         });
+    }
+
+    @Test
+    public void should_remove_the_deleted_api_from_its_subscription_form() {
+        //given
+        var api = ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build();
+        apiCrudServiceInMemory.initWith(List.of(api));
+        var form = SubscriptionFormFixtures.aSubscriptionFormBuilder()
+            .environmentId(api.getEnvironmentId())
+            .apiIds(List.of(api.getId(), "other-api"))
+            .build();
+        subscriptionFormQueryService.initWith(List.of(form));
+        subscriptionFormCrudService.initWith(List.of(form));
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
+        var input = DeleteIngestedApisUseCase.Input.builder().integrationId(INTEGRATION_ID).auditInfo(auditInfo).build();
+
+        //when
+        useCase.execute(input);
+
+        //then
+        assertThat(subscriptionFormCrudService.storage())
+            .singleElement()
+            .extracting(SubscriptionForm::getApiIds)
+            .isEqualTo(List.of("other-api"));
     }
 
     @Test

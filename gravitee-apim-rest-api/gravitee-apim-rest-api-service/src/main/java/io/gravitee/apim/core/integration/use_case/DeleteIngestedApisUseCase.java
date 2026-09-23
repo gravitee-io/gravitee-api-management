@@ -37,6 +37,7 @@ import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.Collections;
@@ -63,6 +64,7 @@ public class DeleteIngestedApisUseCase {
     private final DeleteMembershipDomainService deleteMembershipDomainService;
     private final ApiCrudService apiCrudService;
     private final ApiIndexerDomainService apiIndexerDomainService;
+    private final RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
 
     public Output execute(Input input) {
         var skippedCounter = new AtomicInteger();
@@ -135,6 +137,9 @@ public class DeleteIngestedApisUseCase {
 
         //Delete metadata
         apiMetadataDomainService.deleteApiMetadata(apiId, auditInfo);
+
+        //Remove from the subscription form dedicated to it
+        removeApiFromSubscriptionFormDomainService.removeApi(api.getEnvironmentId(), apiId);
 
         //Delete API
         apiCrudService.delete(api.getId());

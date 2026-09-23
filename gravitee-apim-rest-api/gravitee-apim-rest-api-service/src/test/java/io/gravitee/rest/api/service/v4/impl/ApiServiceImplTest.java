@@ -42,6 +42,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
@@ -54,6 +55,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -298,6 +300,9 @@ public class ApiServiceImplTest {
     private RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
 
     @Mock
+    private RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
+
+    @Mock
     private ApiMetadataQueryService apiMetadataQueryService;
 
     @Mock
@@ -377,6 +382,7 @@ public class ApiServiceImplTest {
             groupService,
             apiCategoryService,
             removeApiFromApiProductsDomainService,
+            removeApiFromSubscriptionFormDomainService,
             apiMetadataQueryService
         );
         var apiSearchService = new ApiSearchServiceImpl(
@@ -486,6 +492,25 @@ public class ApiServiceImplTest {
         apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
 
         verify(removeApiFromApiProductsDomainService, times(1)).removeApiFromApiProducts(eq(API_ID), any(), any(), any());
+    }
+
+    @Test
+    public void should_remove_api_from_its_subscription_form_when_deleting() throws TechnicalException {
+        Api api = new Api();
+        api.setId(API_ID);
+        api.setEnvironmentId("api-environment");
+        api.setLifecycleState(LifecycleState.STOPPED);
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setType(ApiType.NATIVE);
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        // Unmapped while the API still exists, so a failed unmapping leaves the deletion retryable.
+        var inOrder = inOrder(removeApiFromSubscriptionFormDomainService, apiRepository);
+        inOrder.verify(removeApiFromSubscriptionFormDomainService).removeApi("api-environment", API_ID);
+        inOrder.verify(apiRepository).delete(API_ID);
     }
 
     @Test
