@@ -41,6 +41,10 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
     private static final String API_NAME = "my-federated-api";
     private static final String API_GROUP = "api-group";
     private static final String API_GROUP_ROLE_ID = "api-group-role-id";
+    private static final String OTHER_API = "other-api-id";
+    private static final String OTHER_API_ROLE_ID = "other-api-role-id";
+    private static final String OTHER_GROUP = "other-group";
+    private static final String OTHER_GROUP_ROLE_ID = "other-group-role-id";
 
     @Autowired
     private ApiAuthorizationService apiAuthorizationService;
@@ -55,6 +59,54 @@ public class ApiResource_getApiByIdMembershipTest extends AbstractNonAdminApiRes
         givenAFederatedApiOwnedByAGroup();
         when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Set.of());
         when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP)).thenReturn(Set.of());
+
+        final Response response = rootTarget(API).request().get();
+
+        assertThat(response).hasStatus(FORBIDDEN_403).asError().hasHttpStatus(FORBIDDEN_403);
+    }
+
+    @Test
+    void should_return_403_when_user_is_member_of_another_api() {
+        givenAFederatedApiOwnedByAGroup();
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API)).thenReturn(
+            Set.of(
+                MembershipEntity.builder()
+                    .memberId(USER_NAME)
+                    .memberType(USER)
+                    .referenceId(OTHER_API)
+                    .referenceType(MembershipReferenceType.API)
+                    .roleId(OTHER_API_ROLE_ID)
+                    .build()
+            )
+        );
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP)).thenReturn(Set.of());
+        var otherApiRole = RoleEntity.builder().id(OTHER_API_ROLE_ID).build();
+        when(roleService.findById(OTHER_API_ROLE_ID)).thenReturn(otherApiRole);
+        when(apiAuthorizationService.canManageApi(otherApiRole)).thenReturn(true);
+
+        final Response response = rootTarget(API).request().get();
+
+        assertThat(response).hasStatus(FORBIDDEN_403).asError().hasHttpStatus(FORBIDDEN_403);
+    }
+
+    @Test
+    void should_return_403_when_user_is_member_of_a_group_not_attached_to_the_api() {
+        givenAFederatedApiOwnedByAGroup();
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.API)).thenReturn(Set.of());
+        when(membershipService.getMembershipsByMemberAndReference(USER, USER_NAME, MembershipReferenceType.GROUP)).thenReturn(
+            Set.of(
+                MembershipEntity.builder()
+                    .memberId(USER_NAME)
+                    .memberType(USER)
+                    .referenceId(OTHER_GROUP)
+                    .referenceType(MembershipReferenceType.GROUP)
+                    .roleId(OTHER_GROUP_ROLE_ID)
+                    .build()
+            )
+        );
+        var otherGroupRole = RoleEntity.builder().id(OTHER_GROUP_ROLE_ID).build();
+        when(roleService.findById(OTHER_GROUP_ROLE_ID)).thenReturn(otherGroupRole);
+        when(apiAuthorizationService.canManageApi(otherGroupRole)).thenReturn(true);
 
         final Response response = rootTarget(API).request().get();
 
