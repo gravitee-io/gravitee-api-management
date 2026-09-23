@@ -171,4 +171,17 @@ describe('useDashboardStats', () => {
         expect(result.current.totalApis).toBe(2);
         expect(result.current.totalProducts).toBeNull();
     });
+
+    it('should mark the dashboard as errored when the API count query fails', async () => {
+        mockUseHasFeature.mockImplementation(feature => feature !== ApimLicenseFeature.API_PRODUCTS);
+        mockSearchApis.mockRejectedValue(new Error('boom'));
+
+        const { result } = renderHook(() => useDashboardStats(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+
+        expect(result.current.totalApis).toBeNull();
+        expect(result.current.totalProducts).toBe(0);
+        expect(result.current.hasContent).toBeNull();
+    });
 });
