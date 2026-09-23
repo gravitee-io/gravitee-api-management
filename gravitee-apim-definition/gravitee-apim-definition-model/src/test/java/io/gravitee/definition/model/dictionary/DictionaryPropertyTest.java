@@ -84,6 +84,16 @@ class DictionaryPropertyTest {
     }
 
     @Test
+    void should_fail_to_deserialize_an_object_whose_value_field_is_not_a_string() {
+        assertThatThrownBy(() -> mapper.readValue("{\"value\":5,\"encrypted\":true}", DictionaryProperty.class)).isInstanceOf(
+            JsonMappingException.class
+        );
+        assertThatThrownBy(() -> mapper.readValue("{\"value\":{},\"encrypted\":true}", DictionaryProperty.class)).isInstanceOf(
+            JsonMappingException.class
+        );
+    }
+
+    @Test
     void should_fail_to_deserialize_a_null_property_inside_a_properties_map() {
         assertThatThrownBy(() -> mapper.readValue("{\"key\": null}", new TypeReference<Map<String, DictionaryProperty>>() {})).isInstanceOf(
             JsonProcessingException.class

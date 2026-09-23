@@ -79,12 +79,12 @@ public record DictionaryProperty(String value, boolean encrypted) {
             }
             // Deliberately does not echo the offending node: this value can be a secret, and the
             // gateway's sync mappers log this exception.
-            if (!node.hasNonNull("value")) {
-                throw JsonMappingException.from(p, "A dictionary property object must have a non-null 'value' field");
+            JsonNode value = node.get("value");
+            if (value == null || !value.isTextual()) {
+                throw JsonMappingException.from(p, "A dictionary property object must have a textual 'value' field");
             }
-            String value = node.get("value").asText();
             boolean encrypted = node.hasNonNull("encrypted") && node.get("encrypted").asBoolean();
-            return new DictionaryProperty(value, encrypted);
+            return new DictionaryProperty(value.asText(), encrypted);
         }
 
         @Override
