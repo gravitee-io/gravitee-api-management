@@ -122,7 +122,7 @@ jest.mock('@gravitee/graphene-core', () => {
                 {children}
             </button>
         ),
-        Skeleton: () => <div />,
+        Skeleton: ({ className }: { className?: string }) => <div data-testid="skeleton" className={className} />,
         cn: (...classes: unknown[]) => classes.filter(Boolean).join(' '),
         TooltipProvider: ({ children }: { children?: ReactNode }) => <>{children}</>,
         Tooltip: ({ children }: { children?: ReactNode }) => <>{children}</>,
@@ -756,6 +756,8 @@ const NAV_ITEM_LABELS = ['Overview', 'Entrypoints', 'Policy Studio', 'Plans', 'U
 // Every API_PROXY_NAV_GROUPS item renders as exactly one of these: a NavLink, a collapsible parent button, or a
 // coming-soon row carrying role="button" — so an empty result for both roles means no nav item rendered at all.
 const NAV_ITEM_ROLES = ['link', 'button'] as const;
+const NAV_ROW_SKELETON_CLASS = 'h-4 rounded';
+const NAV_LOADING_ROW_COUNT = 10;
 
 describe('ApiDetailSidebarNav in the detail layout', () => {
     beforeEach(() => {
@@ -813,6 +815,8 @@ describe('ApiDetailSidebarNav in the detail layout', () => {
         for (const role of NAV_ITEM_ROLES) {
             expect(screen.queryAllByRole(role)).toHaveLength(0);
         }
+        const navRowSkeletons = screen.queryAllByTestId('skeleton').filter(skeleton => skeleton.className === NAV_ROW_SKELETON_CLASS);
+        expect(navRowSkeletons).toHaveLength(NAV_LOADING_ROW_COUNT);
     });
 });
 
