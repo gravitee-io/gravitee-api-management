@@ -18,7 +18,9 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Separator, Switch } fr
 
 import { SystemReadonlyHint } from '../../organization-settings/components/SystemReadonlyHint';
 import type { ApiLoggingFieldReadonly } from '../utils/apiLoggingFormState';
-import type { ApiLoggingFieldErrors, ApiLoggingFormState } from '../utils/apiLoggingValidators';
+import { type ApiLoggingFieldErrors, type ApiLoggingFormState } from '../utils/apiLoggingValidators';
+
+const TEMPORAL_COMPARE_ERROR = 'Default should be greater than Limit';
 
 function ToggleRow({
     id,
@@ -116,6 +118,11 @@ export function ApiLoggingSection({
     function isFieldDisabled(key: keyof ApiLoggingFieldReadonly): boolean {
         return disabled || readonly[key];
     }
+
+    const temporalGroupCompareError =
+        errors.temporalDefault === TEMPORAL_COMPARE_ERROR && errors.temporalLimit === TEMPORAL_COMPARE_ERROR
+            ? TEMPORAL_COMPARE_ERROR
+            : undefined;
 
     return (
         <div className="space-y-6">
@@ -286,6 +293,11 @@ export function ApiLoggingSection({
                                 onChange={next => updateField('temporalLimit', next)}
                             />
                         </div>
+                        {temporalGroupCompareError ? (
+                            <p id="api-logging-temporal-group-error" className="text-sm text-destructive" role="alert">
+                                {temporalGroupCompareError}
+                            </p>
+                        ) : null}
                         <p className="text-xs text-muted-foreground">The limit is the minimum allowed period to sample</p>
                     </div>
 

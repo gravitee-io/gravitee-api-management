@@ -123,6 +123,15 @@ describe('ApiLoggingSettingsPage', () => {
         expect(screen.queryByRole('button', { name: /Save changes/i })).toBeNull();
     });
 
+    it('shows classic temporal validation messages on default and limit fields', () => {
+        renderPage();
+
+        fireEvent.change(screen.getByLabelText('Temporal default'), { target: { value: 'PT10S' } });
+        fireEvent.change(screen.getByLabelText('Temporal limit'), { target: { value: 'PT20S' } });
+
+        expect(screen.getAllByText('Default should be greater than Limit')).toHaveLength(3);
+    });
+
     it('keeps Save disabled when sampling validation fails', () => {
         const mutate = jest.fn();
         mockUseSaveOrgConsoleSettings.mockReturnValue({
