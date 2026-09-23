@@ -83,6 +83,7 @@
                             <goal>generate</goal>
                         </goals>
                         <configuration>
+                            <skipIfSpecIsUnchanged>true</skipIfSpecIsUnchanged>
                             <inputSpec>${project.basedir}/src/main/resources/portal-openapi.yaml</inputSpec>
                             <generatorName>java</generatorName>
                             <library>jersey3</library>
