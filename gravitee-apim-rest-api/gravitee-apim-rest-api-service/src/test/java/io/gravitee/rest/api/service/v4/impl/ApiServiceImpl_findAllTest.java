@@ -33,6 +33,7 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.v4.ApiType;
@@ -217,6 +218,9 @@ public class ApiServiceImpl_findAllTest {
     private RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
 
     @Mock
+    private RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
+
+    @Mock
     private ApiMetadataQueryService apiMetadataQueryService;
 
     @Mock
@@ -293,6 +297,7 @@ public class ApiServiceImpl_findAllTest {
             groupService,
             apiCategoryService,
             removeApiFromApiProductsDomainService,
+            removeApiFromSubscriptionFormDomainService,
             apiMetadataQueryService
         );
     }

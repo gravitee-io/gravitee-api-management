@@ -30,6 +30,7 @@ import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProductComposition;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -174,6 +175,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final ApiCategoryService apiCategoryService;
     private final ScoringReportRepository scoringReportRepository;
     private final RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
+    private final RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
     private final ApiMetadataQueryService apiMetadataQueryService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
@@ -211,6 +213,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final GroupService groupService,
         ApiCategoryService apiCategoryService,
         RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService,
+        RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService,
         ApiMetadataQueryService apiMetadataQueryService
     ) {
         this.apiRepository = apiRepository;
@@ -244,6 +247,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.apiCategoryService = apiCategoryService;
         this.scoringReportRepository = scoringReportRepository;
         this.removeApiFromApiProductsDomainService = removeApiFromApiProductsDomainService;
+        this.removeApiFromSubscriptionFormDomainService = removeApiFromSubscriptionFormDomainService;
         this.apiMetadataQueryService = apiMetadataQueryService;
     }
 
@@ -695,6 +699,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Delete top API
             topApiService.delete(executionContext, apiId);
+            // Remove API from the subscription form dedicated to it, while the API still exists to retry on failure
+            removeApiFromSubscriptionFormDomainService.removeApi(api.getEnvironmentId(), apiId);
             // Delete API
             apiRepository.delete(apiId);
             // Delete memberships

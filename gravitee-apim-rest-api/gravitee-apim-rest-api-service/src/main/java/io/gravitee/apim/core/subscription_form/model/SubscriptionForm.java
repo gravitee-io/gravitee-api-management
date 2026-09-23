@@ -89,4 +89,14 @@ public class SubscriptionForm {
     public void assignApis(List<String> apiIds) {
         this.apiIds = List.copyOf(apiIds);
     }
+
+    /**
+     * Stops dedicating this form to an API (mutates in place).
+     */
+    public void unassignApi(String apiId) {
+        this.apiIds = apiIds
+            .stream()
+            .filter(id -> !id.equals(apiId))
+            .toList();
+    }
 }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
@@ -131,6 +132,9 @@ public class ApiService_DeleteTest {
     @Mock
     private ApiCategoryService apiCategoryService;
 
+    @Mock
+    private RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
+
     private ApiConverter apiConverter = Mockito.spy(
         new ApiConverter(objectMapper, planService, flowService, categoryMapper, parameterService, mock(WorkflowService.class))
     );
@@ -146,6 +150,7 @@ public class ApiService_DeleteTest {
         );
         api = new Api();
         api.setId(API_ID);
+        api.setEnvironmentId("api-environment");
         planEntity = new PlanEntity();
         planEntity.setId(PLAN_ID);
         planEntity.setApi(API_ID);
@@ -173,6 +178,7 @@ public class ApiService_DeleteTest {
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+        verify(removeApiFromSubscriptionFormDomainService, times(1)).removeApi("api-environment", API_ID);
     }
 
     @Test

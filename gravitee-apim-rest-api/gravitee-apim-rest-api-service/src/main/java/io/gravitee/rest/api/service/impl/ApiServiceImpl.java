@@ -50,6 +50,7 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.util.DataEncryptor;
@@ -357,6 +358,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     @Autowired
     private ApiCategoryService apiCategoryService;
+
+    @Autowired
+    private RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
 
     @Autowired
     private PolicyService policyService;
@@ -1683,6 +1687,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Delete top API
             topApiService.delete(executionContext, apiId);
+            // Remove API from the subscription form dedicated to it, while the API still exists to retry on failure
+            removeApiFromSubscriptionFormDomainService.removeApi(api.getEnvironmentId(), apiId);
             // Delete API
             apiRepository.delete(apiId);
             // Delete memberships
