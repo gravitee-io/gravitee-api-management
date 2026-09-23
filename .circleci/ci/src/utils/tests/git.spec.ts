@@ -15,7 +15,7 @@
  */
 import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
-import { changedFiles, diffRef, toChangedPaths } from '../git';
+import { changedFiles, diffRef, refsUnder, toChangedPaths } from '../git';
 
 jest.mock('node:child_process', () => ({ spawn: jest.fn() }));
 
@@ -86,5 +86,34 @@ describe('diffRef', () => {
     // `jq -r '.base.sha // ""'` yields an empty string when the GitHub API answers without it,
     // so the fallback has to treat empty as absent, not just undefined.
     expect(diffRef('', 'origin/master')).toEqual('origin/master');
+  });
+});
+
+describe('refsUnder', () => {
+  // `git ls-remote --tags --refs origin`, as it comes: one `<sha>\t<ref>` per line.
+  const TAGS = [
+    '6e63f853294a0c66a671bf9d24c4c1e7ae7c1cab\trefs/tags/0.1.0',
+    '6e1fa64e00aefc17fd2ff24c17c4646791cd9aef\trefs/tags/4.12.0',
+    '11937c094dbaee4fb094fa4d5cd190ed8c9e66e3\trefs/tags/core_4.13.0',
+  ].join('\n');
+
+  it('should name the refs under the prefix', () => {
+    expect(refsUnder(TAGS, 'refs/tags/')).toStrictEqual(['0.1.0', '4.12.0', 'core_4.13.0']);
+  });
+
+  it('should read heads the same way', () => {
+    const heads =
+      'eae3a8ab7687f7aa543539757a39ae6f2b7bb315\trefs/heads/3.10.x\ndf67ea7ace37b20f03b38ed67751197708b5805c\trefs/heads/4.12.x';
+
+    expect(refsUnder(heads, 'refs/heads/')).toStrictEqual(['3.10.x', '4.12.x']);
+  });
+
+  // The callers ask which versions exist: a line they cannot name is a line they must not count.
+  it('should drop what does not sit under the prefix', () => {
+    expect(refsUnder(TAGS, 'refs/heads/')).toStrictEqual([]);
+  });
+
+  it('should answer nothing on an empty output', () => {
+    expect(refsUnder('', 'refs/tags/')).toStrictEqual([]);
   });
 });
