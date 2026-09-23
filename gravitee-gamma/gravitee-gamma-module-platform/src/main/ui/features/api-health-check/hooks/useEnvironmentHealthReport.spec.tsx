@@ -39,16 +39,16 @@ function createTestContext() {
 describe('useEnvironmentHealthReport', () => {
     beforeEach(() => {
         mockUseEnvironment.mockReturnValue({ id: 'env-1' });
-        mockFetchReport.mockResolvedValue({ operational: 1, inWarning: 0, inError: 0 });
+        mockFetchReport.mockResolvedValue({ inWarning: 0, inError: 0 });
     });
 
     afterEach(() => jest.clearAllMocks());
 
-    it('loads the report for the timeframe window and does not take a table search argument', async () => {
+    it('loads the report for the selected timeframe and does not take a table search argument', async () => {
         const { Wrapper } = createTestContext();
-        renderHook(() => useEnvironmentHealthReport({ from: 10, to: 20, reloadToken: 0 }), { wrapper: Wrapper });
+        renderHook(() => useEnvironmentHealthReport({ timeframe: '1m', reloadToken: 0 }), { wrapper: Wrapper });
 
-        await waitFor(() => expect(mockFetchReport).toHaveBeenCalledWith('env-1', 10, 20, expect.anything()));
-        expect(mockFetchReport.mock.calls[0]?.length).toBe(4);
+        await waitFor(() => expect(mockFetchReport).toHaveBeenCalledWith('env-1', '1m', expect.anything()));
+        expect(mockFetchReport.mock.calls[0]?.length).toBe(3);
     });
 });

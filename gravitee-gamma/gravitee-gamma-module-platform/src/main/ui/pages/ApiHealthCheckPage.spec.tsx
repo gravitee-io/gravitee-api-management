@@ -75,7 +75,7 @@ function renderPage(path = '/api-health-check') {
 describe('ApiHealthCheckPage', () => {
     beforeEach(() => {
         mockUseEnvironmentHealthReport.mockReturnValue({
-            report: { operational: 1, inWarning: 0, inError: 0 },
+            report: { inWarning: 0, inError: 0 },
             isLoading: false,
             isError: false,
         } as ReturnType<typeof useEnvironmentHealthReport>);
@@ -108,6 +108,24 @@ describe('ApiHealthCheckPage', () => {
         renderPage('/api-health-check?order=name');
 
         expect(mockUseEnvironmentHealthApis).toHaveBeenCalledWith(expect.objectContaining({ sortBy: 'name' }));
+    });
+
+    it('does not re-run the table search on refresh, matching Classic', () => {
+        mockUseEnvironmentHealthApis.mockReturnValue(listResult({ apis: [PETSTORE], totalCount: 1 }));
+        renderPage();
+
+        const reportCallsBefore = mockUseEnvironmentHealthReport.mock.calls.length;
+        fireEvent.click(screen.getByRole('button', { name: /Refresh/i }));
+
+        // Classic's onRefreshClicked re-runs the report and each row's availability, never the table search --
+        // that response carries full API definitions and runs to megabytes on a large environment.
+        for (const [args] of mockUseEnvironmentHealthApis.mock.calls) {
+            expect(args).not.toHaveProperty('reloadToken');
+        }
+        // The report is re-run, with a new token.
+        expect(mockUseEnvironmentHealthReport.mock.calls.length).toBeGreaterThan(reportCallsBefore);
+        const reportTokens = mockUseEnvironmentHealthReport.mock.calls.map(([args]) => args.reloadToken);
+        expect(new Set(reportTokens).size).toBeGreaterThan(1);
     });
 
     it('filters to APIs with health check enabled', () => {

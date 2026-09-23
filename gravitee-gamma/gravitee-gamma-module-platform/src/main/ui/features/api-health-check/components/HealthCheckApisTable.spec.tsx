@@ -80,6 +80,15 @@ describe('HealthCheckApisTable', () => {
         } as ReturnType<typeof useEnvironmentHealthAvailability>);
     });
 
+    it('renders no image element, so no API picture is requested per row', () => {
+        const { container } = renderTable([HC_API, NO_HC_API]);
+
+        // The search response advertises _links.pictureUrl for every API whether or not one was uploaded, so an
+        // <img> here cost a round trip per row that always came back empty and always fell through to the icon.
+        expect(container.querySelector('img')).toBeNull();
+        expect(screen.getByText('Inventory Service')).not.toBeNull();
+    });
+
     afterEach(() => jest.clearAllMocks());
 
     it('links the kebab to the API Health Check Dashboard under endpoints', async () => {

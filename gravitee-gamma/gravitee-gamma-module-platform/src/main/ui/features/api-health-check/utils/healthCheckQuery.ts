@@ -16,4 +16,10 @@
 
 export const HEALTH_CHECK_FILTER_QUERY = 'has_health_check:true';
 
-export const V4_HTTP_PROXY_API_TYPES = ['V4_HTTP_PROXY'] as const;
+/**
+ * Classic's health check search scopes by definition version, not by api type
+ * (`home-api-health-check.component.ts` sends `definitionVersions: ['V2', 'V4']`). Gamma sends the same
+ * field so both consoles hit the endpoint the same way; the value stays V4 because Gamma's APIM module
+ * only has a V4 health check dashboard to link a row to.
+ */
+export const HEALTH_CHECK_DEFINITION_VERSIONS = ['V4'] as const;

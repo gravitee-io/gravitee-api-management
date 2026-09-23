@@ -13,42 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiAvailabilityMetric } from '../types';
+import type { ApiAvailabilityMetric, ApiHealthAverage } from '../types';
+import type { Timeframe } from './healthTimeframe';
 
 export type AvailabilityView = { readonly type: 'no-data' } | { readonly type: 'configured'; readonly availabilityPct: number };
 
-/** Converts an availability fraction in [0..1] to a rounded percentage in [0..100]. */
-export function toAvailabilityPct(fraction: number | undefined): number {
-    if (fraction === undefined || fraction === null || Number.isNaN(fraction)) {
-        return 0;
-    }
-    return Math.round(fraction * 100 * 100) / 100;
-}
-
-function hasEndpointSamples(group: unknown): boolean {
-    return group !== null && typeof group === 'object' && !Array.isArray(group) && Object.keys(group).length > 0;
+/** Rounds a v1 availability percentage to two decimals, the precision Classic's gauge shows. */
+export function toAvailabilityPct(pct: number): number {
+    return Math.round(pct * 100) / 100;
 }
 
 /**
- * v2 GET /health/availability returns `{ global: 0.0, group: {} }` when the window
- * has no samples. Classic's table also hides a true 0% (`!global.1m` is true for 0)
- * as "No data to display". A circle is shown only when availability is above 0.
+ * The percentage the API reported for this timeframe, or null when it has never reported at all.
+ * A reporting API that is fully down returns 0, which is a number, not null.
  */
-export function availabilityFromMetric(metric: ApiAvailabilityMetric | null | undefined): AvailabilityView {
-    const availabilityPct = reportAvailabilityPctFromMetric(metric);
-    if (availabilityPct === null || availabilityPct === 0) {
+export function availabilityPctFor(metric: ApiAvailabilityMetric | null | undefined, timeframe: Timeframe): number | null {
+    const pct = metric?.global?.[timeframe];
+    return typeof pct === 'number' && !Number.isNaN(pct) ? toAvailabilityPct(pct) : null;
+}
+
+/**
+ * Table cell, matching Classic's rule exactly: the gauge appears only when the timeframe has a non-zero
+ * percentage AND the window average actually returned buckets
+ * (`has(healthAvailabilityTimeFrame, 'values[0].buckets[0].data')`). Classic hides a true 0% behind
+ * "No data to display", and hides an API whose window carries no samples even if its lifetime percentage is high.
+ */
+export function hasAverageSamples(average: ApiHealthAverage | null | undefined): boolean {
+    return Array.isArray(average?.values?.[0]?.buckets?.[0]?.data);
+}
+
+export function availabilityFromMetric(
+    metric: ApiAvailabilityMetric | null | undefined,
+    average: ApiHealthAverage | null | undefined,
+    timeframe: Timeframe,
+): AvailabilityView {
+    const availabilityPct = availabilityPctFor(metric, timeframe);
+    if (availabilityPct === null || availabilityPct === 0 || !hasAverageSamples(average)) {
         return { type: 'no-data' };
     }
     return { type: 'configured', availabilityPct };
 }
 
-/** Report sample: populated group at 0% is counted; empty group is skipped. */
-export function reportAvailabilityPctFromMetric(metric: ApiAvailabilityMetric | null | undefined): number | null {
-    if (!metric || !hasEndpointSamples(metric.group)) {
-        return null;
-    }
-    if (metric.global === undefined || metric.global === null || Number.isNaN(metric.global)) {
-        return null;
-    }
-    return toAvailabilityPct(metric.global);
+/** Report sample: an API reporting 0% is counted, so a fully-down API still lands in the error bucket. */
+export function reportAvailabilityPctFromMetric(metric: ApiAvailabilityMetric | null | undefined, timeframe: Timeframe): number | null {
+    return availabilityPctFor(metric, timeframe);
 }
