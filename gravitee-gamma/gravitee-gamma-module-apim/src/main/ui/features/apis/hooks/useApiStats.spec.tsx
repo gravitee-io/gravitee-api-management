@@ -19,6 +19,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 import { useApiStats } from './useApiStats';
+import { ApimApiError } from '../../../shared/api/apimClient';
 import { useFederationEnabled } from '../../license/useFederationEnabled';
 import { searchApis } from '../services/apiList';
 
@@ -111,6 +112,19 @@ describe('useApiStats', () => {
         expect(result.current.private).toBe(PROXY_ONLY_COUNT);
         expect(result.current.published).toBeNull();
         expect(result.current.isError).toBe(true);
+    });
+
+    it('warns with the HTTP status of the failed count', async () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const error = new ApimApiError(500, 'Boom');
+        mockSearchApis.mockImplementation((_envId, filters) =>
+            filters.published ? Promise.reject(error) : Promise.resolve(countOf(PROXY_ONLY_COUNT)),
+        );
+
+        const { result } = renderHook(() => useApiStats(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.failed.published).toBe(true));
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('published count query failed (HTTP 500)'), error);
     });
 
     it('does not flag a count still in flight as failed when a sibling count fails', async () => {
