@@ -1,0 +1,38 @@
+{
+  "@timestamp": "2025-06-27T09:06:51.866Z",
+  "type": "decisions",
+  "date": "2025.06.27",
+  "gw-id": "test_gateway",
+  "org-id": "test_org",
+  "env-id": "test_env",
+  "api-id": "test_\"api",
+  "event-id": "evt-2",
+  "phase": "RESOLVED",
+  "decision-point-type": "authz",
+  "decision-point-id": "default",
+  "decision-point-version": "7",
+  "caller": "pep",
+  "subject-type": "User",
+  "subject-id": "al\"ice",
+  "action": "read",
+  "resource-type": "Document",
+  "resource-id": "doc\",\"injected\":\"yes",
+  "outcome": "DENY",
+  "enforced": "DENY",
+  "verdict": "FORBID",
+  "reasons": [
+    "denied because \"reason\"",
+    "line1\nline2"
+  ],
+  "matched-rules": [
+    {
+      "id": "p2#0",
+      "name": "deny\"quote",
+      "version": "rev\"1",
+      "effect": "FORBID"
+    }
+  ],
+  "request-id": "req-2",
+  "status": "success",
+  "duration-nanos": 12
+}

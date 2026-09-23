@@ -45,10 +45,10 @@ import java.util.Set;
  *
  * <p>Operators advertised here are restricted to what the v4 analytics/logs engines actually
  * translate today: {@code EQ, IN} for KEYWORD/ENUM and for the identifier-shaped STRING filters
- * ({@link #AUTHZ_PDP}, {@link #AUTHZ_MATCHED_POLICY}), {@code EQ} for the free-text ones, {@code CONTAINS} where
- * a fragment is the only usable input ({@link #PAYLOAD}, {@link #AUTHZ_REASON}), {@code EQ, GTE, LTE} for
- * measured NUMBER filters and {@code EQ, IN} for {@link #AUTHZ_POLICY_VERSION}, which is a discrete
- * generation rather than a measurement. {@code NOT_IN} is intentionally absent until a translator
+ * ({@link #AUTHZ_SUBJECT_ID}, {@link #AUTHZ_ACTION}, {@link #AUTHZ_RESOURCE_ID}, {@link #AUTHZ_PDP},
+ * {@link #AUTHZ_MATCHED_POLICY}, {@link #AUTHZ_POLICY_VERSION}), {@code EQ} for the free-text
+ * ones, {@code CONTAINS} where a fragment is the only usable input ({@link #PAYLOAD}, {@link #AUTHZ_REASON}) and
+ * {@code EQ, GTE, LTE} for measured NUMBER filters. {@code NOT_IN} is intentionally absent until a translator
  * supports it.
  *
  * <p>{@code signals} reflect what is served today (logs + analytics); traces join in a later lot.
@@ -145,16 +145,26 @@ public enum StaticFilters {
 
     // --- Authz decisions ------------------------------------------------------------------------
     AUTHZ_DECISION("Decision", FilterType.ENUM, Defs.EQ_IN, Defs.DECISIONS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
-    AUTHZ_SUBJECT_ID("Subject", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
-    AUTHZ_ACTION("Action", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
-    AUTHZ_RESOURCE_ID("Resource", FilterType.STRING, Defs.EQ_ONLY, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_SUBJECT_ID("Subject", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_ACTION("Action", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_RESOURCE_ID("Resource", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
     AUTHZ_CALLER("Caller kind", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_CALLERS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
     AUTHZ_STATUS("Outcome status", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_STATUSES, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
-    AUTHZ_OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_INDETERMINATE_CAUSE(
+        "Indeterminate cause",
+        FilterType.ENUM,
+        Defs.EQ_IN,
+        Defs.AUTHZ_INDETERMINATE_CAUSES,
+        null,
+        Defs.LOGS,
+        Defs.DECISION_RECORDS
+    ),
+    AUTHZ_ERROR_TYPE("Error type", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_ERROR_TYPES, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.ANALYTICS, Defs.DECISION_RECORDS),
 
-    AUTHZ_PDP("PDP Gateway", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_PDP("PDP Gateway", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
     AUTHZ_MATCHED_POLICY("Matched policy", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    AUTHZ_POLICY_VERSION("Policy version", FilterType.NUMBER, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
+    AUTHZ_POLICY_VERSION("Engine generation", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
     AUTHZ_REASON("Reason", FilterType.STRING, Defs.CONTAINS_ONLY, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
 
@@ -456,19 +466,30 @@ public enum StaticFilters {
          */
         private static final List<EnumValue> AUTHZ_CALLERS = List.of(
             new EnumValue("pep", "PEP policy"),
-            new EnumValue("gateway", "Gateway"),
-            new EnumValue("authzen", "AuthZEN endpoint"),
+            new EnumValue("gateway", "AuthZEN endpoint"),
+            new EnumValue("authzen", "AuthZEN policy"),
             new EnumValue("unknown", "Unknown")
         );
 
-        private static final List<EnumValue> AUTHZ_STATUSES = List.of(
-            new EnumValue("success", "Success"),
-            new EnumValue("error", "Error"),
-            new EnumValue("not-ready", "Not ready")
+        private static final List<EnumValue> AUTHZ_STATUSES = List.of(new EnumValue("success", "Success"), new EnumValue("error", "Error"));
+
+        private static final List<EnumValue> AUTHZ_INDETERMINATE_CAUSES = List.of(
+            new EnumValue("NOT_APPLICABLE", "Not applicable"),
+            new EnumValue("TIMEOUT", "Timeout"),
+            new EnumValue("ERROR", "Error"),
+            new EnumValue("NOT_READY", "Not ready")
+        );
+
+        private static final List<EnumValue> AUTHZ_ERROR_TYPES = List.of(
+            new EnumValue("evaluation_timeout", "Evaluation timeout"),
+            new EnumValue("pdp_unavailable", "PDP unavailable"),
+            new EnumValue("evaluation_failed", "Evaluation failed"),
+            new EnumValue("agent_unresolved", "Agent unresolved")
         );
 
         private static final List<EnumValue> AUTHZ_OPERATIONS = List.of(
-            new EnumValue("evaluate", "Evaluation"),
+            new EnumValue("evaluation", "Evaluation"),
+            new EnumValue("evaluations", "Batch evaluation"),
             new EnumValue("search", "Search")
         );
 

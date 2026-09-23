@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
@@ -210,7 +211,7 @@ class IndexTemplateTest {
     }
 
     static Stream<Type> data_stream_types() {
-        return Stream.of(Type.EVENT_METRICS, Type.AUTHZ_DECISIONS);
+        return Stream.of(Type.EVENT_METRICS, Type.DECISIONS);
     }
 
     /** Every tree that ships data-stream templates, against both data-stream types. */
@@ -270,10 +271,34 @@ class IndexTemplateTest {
         assertThat(preparerFor(esDir, configuration).generateIndexTemplate(type)).contains("\"bad\\\"policy\"");
     }
 
+    @ParameterizedTest(name = "{0} decisions mapping keeps the matched rule version")
+    @MethodSource("all_trees")
+    void should_map_the_matched_rule_version_as_a_keyword(String esDir) throws Exception {
+        var matchedRules = decisionsMappings(esDir).path("properties").path("matched-rules");
+
+        assertThat(matchedRules.path("type").asText()).isEqualTo("nested");
+        assertThat(matchedRules.path("properties").path("version").path("type").asText()).isEqualTo("keyword");
+    }
+
+    @ParameterizedTest(name = "{0} renders no authz-decisions template")
+    @MethodSource("all_trees")
+    void should_render_no_authz_decisions_template(String esDir) {
+        assertThat(Stream.of(Type.TYPES).map(Type::getType)).doesNotContain("authz-decisions");
+        assertThat(IndexTemplateTest.class.getResource("/freemarker/" + esDir + "/mapping/index-template-authz-decisions.ftl")).isNull();
+    }
+
+    private static JsonNode decisionsMappings(String esDir) throws Exception {
+        var mappings = JSON.readTree(preparerFor(esDir, configurationWithPolicies()).generateIndexTemplate(Type.DECISIONS))
+            .path("template")
+            .path("mappings");
+        assertThat(mappings.isObject()).as("%s decisions template carries mappings", esDir).isTrue();
+        return mappings;
+    }
+
     private static void setDataStreamPolicy(ReporterConfiguration configuration, Type type, String policy) {
         switch (type) {
             case EVENT_METRICS -> configuration.setIndexLifecyclePolicyEventMetrics(policy);
-            case AUTHZ_DECISIONS -> configuration.setIndexLifecyclePolicyAuthzDecisions(policy);
+            case DECISIONS -> configuration.setIndexLifecyclePolicyDecisions(policy);
             default -> throw new IllegalArgumentException("Not a data-stream type: " + type);
         }
     }
@@ -285,7 +310,7 @@ class IndexTemplateTest {
         configuration.setIndexLifecyclePolicyRequest("policy-request");
         configuration.setIndexLifecyclePolicyLog("policy-log");
         configuration.setIndexLifecyclePolicyEventMetrics("policy-event-metrics");
-        configuration.setIndexLifecyclePolicyAuthzDecisions("policy-authz-decisions");
+        configuration.setIndexLifecyclePolicyDecisions("policy-decisions");
         return configuration;
     }
 

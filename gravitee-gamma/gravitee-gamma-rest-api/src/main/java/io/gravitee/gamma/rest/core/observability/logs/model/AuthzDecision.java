@@ -28,12 +28,14 @@ import lombok.Builder;
 public record AuthzDecision(
     String eventId,
     String decision,
+    String outcome,
+    String enforced,
+    String indeterminateCause,
     String status,
     String caller,
-    String operation,
     String targetPdpId,
-    Long policyGeneration,
-    List<String> matchedPolicyNames,
+    String policyGeneration,
+    List<MatchedRule> matchedRules,
     List<String> reasons,
     String subjectType,
     String subjectId,
@@ -43,7 +45,8 @@ public record AuthzDecision(
     String batchId,
     Integer batchIndex,
     Integer batchSize,
-    String searchType,
-    Integer resultCount,
-    Long durationNanos
-) {}
+    Long durationNanos,
+    String errorType
+) {
+    public record MatchedRule(String id, String name, String version, String effect) {}
+}

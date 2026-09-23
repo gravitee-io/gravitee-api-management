@@ -714,16 +714,19 @@ paths:
                 The decision search accepts `API`, `API_TYPE`, the time range, and the decision
                 vocabulary, every entry of which carries the `AUTHZ_` prefix: `AUTHZ_DECISION`,
                 `AUTHZ_SUBJECT_ID`, `AUTHZ_ACTION`, `AUTHZ_RESOURCE_ID`, `AUTHZ_CALLER`,
-                `AUTHZ_STATUS`, `AUTHZ_OPERATION`, `AUTHZ_PDP`, `AUTHZ_MATCHED_POLICY`,
-                `AUTHZ_REASON`, `AUTHZ_POLICY_VERSION`, plus the shared `REQUEST_ID`.
-                `AUTHZ_REASON` takes `CONTAINS` (a reason is a sentence, so equality is unusable);
-                the rest take `EQ`/`IN`. Any other condition sent alongside `RECORD_TYPE=AUTHZ_DECISION` is
-                rejected with 400 rather than accepted and ignored, so an applied filter is never
-                indistinguishable from an unfiltered result. `AUTHZ_SUBJECT_ID` and `AUTHZ_RESOURCE_ID`
-                accept a bare id or a typed entity reference. A bare id (`alice`) matches that id under
-                any type. A typed reference restricts the match to one type: `User::"alice"` (escape `"`
-                and `\` inside the quotes with a backslash) or `User::alice`; namespaced types work the
-                same way (`docs::User::"alice"`). `User::*` matches every decision whose type is `User`,
+                `AUTHZ_STATUS`, `AUTHZ_INDETERMINATE_CAUSE`, `AUTHZ_ERROR_TYPE`, `AUTHZ_PDP`,
+                `AUTHZ_MATCHED_POLICY`, `AUTHZ_REASON`, `AUTHZ_POLICY_VERSION`, plus the shared
+                `REQUEST_ID`. `AUTHZ_REASON` takes `CONTAINS` (a reason is a sentence, so equality is
+                unusable); the rest take `EQ`/`IN`. `AUTHZ_MATCHED_POLICY` matches a rule name
+                (`QA default#2`). A policy name (`QA default`) matches every rule of that policy named
+                `<policy>#<n>`; a rule with its own `@id` is matched by that id. Any other condition
+                sent alongside `RECORD_TYPE=AUTHZ_DECISION` is rejected with 400 rather than accepted
+                and ignored, so an applied filter is never indistinguishable from an unfiltered result.
+                `AUTHZ_SUBJECT_ID` and `AUTHZ_RESOURCE_ID` accept a bare id or a typed entity
+                reference. A bare id (`alice`) matches that id under any type. A typed reference
+                restricts the match to one type: `User::"alice"` (escape `"` and `\` inside the quotes
+                with a backslash) or `User::alice`; namespaced types work the same way
+                (`docs::User::"alice"`). `User::*` matches every decision whose type is `User`,
                 including those recorded without an id; write a literal `*` id as `User::"*"`. Each
                 value is also matched as a bare id, so an id containing `::` is still found. One query
                 uses at most 128 typed readings: a quoted reference or a `User::*` one is a single
@@ -2387,32 +2390,40 @@ components:
                     description: Identifier of the decision event, unique per evaluated decision.
                 decision:
                     type: string
-                    description: The authorization outcome the PDP returned.
+                    description: The verdict the PDP returned, verbatim. Absent when the PDP gave none.
                     example: "PERMIT"
+                outcome:
+                    type: string
+                    description: What the decision concluded, on the axis every decision point shares.
+                    example: "ALLOW"
+                enforced:
+                    type: string
+                    description: What was done with the call once the decision was taken.
+                    example: "ALLOW"
+                indeterminateCause:
+                    type: string
+                    description: Why no conclusion was reached, present only when the outcome is indeterminate.
+                    example: "NOT_APPLICABLE"
                 status:
                     type: string
-                    description: Whether the evaluation itself completed, independently of its outcome.
+                    description: Whether the evaluation itself completed (`success`) or failed (`error`), independently of its outcome.
                     example: "success"
                 caller:
                     type: string
                     description: Which component asked for the decision.
                     example: "pep"
-                operation:
-                    type: string
-                    description: The kind of call made to the PDP.
-                    example: "evaluate"
                 targetPdpId:
                     type: string
                     description: Identifier of the PDP that evaluated the request.
                 policyGeneration:
-                    type: integer
-                    format: int64
-                    description: Generation of the policy set the decision was evaluated against.
-                matchedPolicyNames:
+                    type: string
+                    description: Generation of the PDP engine the decision was evaluated against. A counter local to the node, not a policy version.
+                    example: "42"
+                matchedRules:
                     type: array
-                    description: Names of the policies that matched during evaluation.
+                    description: The policies that matched during evaluation.
                     items:
-                        type: string
+                        $ref: "#/components/schemas/AuthzMatchedRule"
                 reasons:
                     type: array
                     description: Diagnostics explaining the outcome.
@@ -2442,17 +2453,35 @@ components:
                 batchSize:
                     type: integer
                     description: Number of decisions in the batch.
-                searchType:
-                    type: string
-                    description: Which search the PDP ran, for search records rather than evaluations.
-                resultCount:
-                    type: integer
-                    description: Number of results a search record returned.
                 durationNanos:
                     type: integer
                     format: int64
                     description: Time the PDP spent evaluating, in nanoseconds.
                     example: 431000
+                errorType:
+                    type: string
+                    description: Type of the error that prevented the evaluation, present only when it failed.
+                    example: "evaluation_timeout"
+
+        AuthzMatchedRule:
+            type: object
+            description: A policy that matched during the evaluation of a decision.
+            properties:
+                id:
+                    type: string
+                    description: Identifier of the policy.
+                name:
+                    type: string
+                    description: Name of the policy.
+                    example: "orders"
+                version:
+                    type: string
+                    description: Revision of the policy text that was evaluated.
+                    example: "2026-09-23T10:00:00Z"
+                effect:
+                    type: string
+                    description: Effect of the policy.
+                    example: "FORBID"
 
         LogEntryWarning:
             type: object

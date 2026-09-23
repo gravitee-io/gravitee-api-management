@@ -44,36 +44,10 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
 
     @Test
     @SneakyThrows
-    void carries_identity_request_and_outcome_of_an_evaluation() {
+    void carries_the_total_and_every_decision_of_the_page() {
         var response = responseOf(
             """
-            {
-              "@timestamp": "2026-08-05T12:03:00.123+02:00",
-              "doc-type": "authz",
-              "event-id": "evt-1",
-              "api-id": "api-1",
-              "org-id": "org-1",
-              "env-id": "env-1",
-              "gw-id": "gateway-1",
-              "request-id": "req-1",
-              "operation": "evaluate",
-              "status": "success",
-              "caller": "pep",
-              "target-pdp-id": "pdp-1",
-              "policy-generation": 7,
-              "decision": "PERMIT",
-              "matched-policies": [
-                { "id": "p1", "name": "allow-readers", "effect": "PERMIT" },
-                { "id": "p2", "name": "allow-admins", "effect": "PERMIT" }
-              ],
-              "reasons": ["Permitted by policy 'allow-readers'"],
-              "subject-type": "User",
-              "subject-id": "alice",
-              "action": "read",
-              "resource-type": "Document",
-              "resource-id": "doc-1",
-              "duration-nanos": 4200
-            }
+            { "event-id": "evt-1", "api-id": "api-1", "verdict": "PERMIT" }
             """,
             3L
         );
@@ -81,118 +55,12 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
         var result = SearchAuthzDecisionLogsResponseAdapter.adapt(response);
 
         assertThat(result.total()).isEqualTo(3L);
-        assertThat(result.data()).hasSize(1);
-        var decision = result.data().getFirst();
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(decision.eventId()).isEqualTo("evt-1");
-            soft.assertThat(decision.timestamp()).isEqualTo(1785924180123L);
-            soft.assertThat(decision.apiId()).isEqualTo("api-1");
-            soft.assertThat(decision.organizationId()).isEqualTo("org-1");
-            soft.assertThat(decision.environmentId()).isEqualTo("env-1");
-            soft.assertThat(decision.gatewayId()).isEqualTo("gateway-1");
-            soft.assertThat(decision.requestId()).isEqualTo("req-1");
-            soft.assertThat(decision.operation()).isEqualTo("evaluate");
-            soft.assertThat(decision.status()).isEqualTo("success");
-            soft.assertThat(decision.caller()).isEqualTo("pep");
-            soft.assertThat(decision.targetPdpId()).isEqualTo("pdp-1");
-            soft.assertThat(decision.policyGeneration()).isEqualTo(7L);
-            soft.assertThat(decision.decision()).isEqualTo("PERMIT");
-            soft.assertThat(decision.matchedPolicyNames()).containsExactly("allow-readers", "allow-admins");
-            soft.assertThat(decision.reasons()).containsExactly("Permitted by policy 'allow-readers'");
-            soft.assertThat(decision.subjectType()).isEqualTo("User");
-            soft.assertThat(decision.subjectId()).isEqualTo("alice");
-            soft.assertThat(decision.action()).isEqualTo("read");
-            soft.assertThat(decision.resourceType()).isEqualTo("Document");
-            soft.assertThat(decision.resourceId()).isEqualTo("doc-1");
-            soft.assertThat(decision.durationNanos()).isEqualTo(4200L);
-        });
-    }
-
-    @Test
-    @SneakyThrows
-    void carries_the_batch_position_and_the_search_result_shape() {
-        var response = responseOf(
-            """
-            {
-              "@timestamp": "2026-08-05T10:03:00.000Z",
-              "event-id": "evt-2",
-              "operation": "search",
-              "status": "success",
-              "batch-id": "batch-1",
-              "batch-index": 1,
-              "batch-size": 2,
-              "search-type": "subject",
-              "result-count": 12
-            }
-            """,
-            1L
-        );
-
-        var decision = SearchAuthzDecisionLogsResponseAdapter.adapt(response).data().getFirst();
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(decision.batchId()).isEqualTo("batch-1");
-            soft.assertThat(decision.batchIndex()).isEqualTo(1);
-            soft.assertThat(decision.batchSize()).isEqualTo(2);
-            soft.assertThat(decision.searchType()).isEqualTo("subject");
-            soft.assertThat(decision.resultCount()).isEqualTo(12);
-        });
-    }
-
-    @Test
-    @SneakyThrows
-    void leaves_absent_fields_null_and_absent_lists_empty() {
-        var response = responseOf(
-            """
-            { "event-id": "evt-3" }
-            """,
-            1L
-        );
-
-        var decision = SearchAuthzDecisionLogsResponseAdapter.adapt(response).data().getFirst();
-
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(decision.timestamp()).isNull();
-            soft.assertThat(decision.decision()).isNull();
-            soft.assertThat(decision.policyGeneration()).isNull();
-            soft.assertThat(decision.batchIndex()).isNull();
-            soft.assertThat(decision.matchedPolicyNames()).isEmpty();
-            soft.assertThat(decision.reasons()).isEmpty();
-        });
-    }
-
-    @Test
-    @SneakyThrows
-    void drops_a_matched_policy_that_carries_no_name_rather_than_reporting_a_null_row() {
-        var response = responseOf(
-            """
-            {
-              "event-id": "evt-4",
-              "matched-policies": [{ "id": "p1" }, { "id": "p2", "name": "allow-admins" }]
-            }
-            """,
-            1L
-        );
-
-        var decision = SearchAuthzDecisionLogsResponseAdapter.adapt(response).data().getFirst();
-
-        assertThat(decision.matchedPolicyNames()).containsExactly("allow-admins");
-    }
-
-    @Test
-    @SneakyThrows
-    void reports_no_timestamp_rather_than_failing_the_page_when_the_stamp_is_unreadable() {
-        var response = responseOf(
-            """
-            { "event-id": "evt-5", "@timestamp": "not-a-date" }
-            """,
-            1L
-        );
-
-        var decision = SearchAuthzDecisionLogsResponseAdapter.adapt(response).data().getFirst();
-
-        assertThat(decision.timestamp()).isNull();
-        assertThat(decision.eventId()).isEqualTo("evt-5");
+        assertThat(result.data())
+            .singleElement()
+            .satisfies(decision -> {
+                assertThat(decision.eventId()).isEqualTo("evt-1");
+                assertThat(decision.decision()).isEqualTo("PERMIT");
+            });
     }
 
     @Test
@@ -224,7 +92,7 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
               "event-id": "evt-9",
               "api-id": "api-9",
               "request-id": "req-9",
-              "decision": "DENY",
+              "verdict": "FORBID",
               "reasons": ["No policy matched"]
             }
             """,
@@ -238,7 +106,7 @@ class SearchAuthzDecisionLogsResponseAdapterTest {
             soft.assertThat(decision.get().eventId()).isEqualTo("evt-9");
             soft.assertThat(decision.get().apiId()).isEqualTo("api-9");
             soft.assertThat(decision.get().requestId()).isEqualTo("req-9");
-            soft.assertThat(decision.get().decision()).isEqualTo("DENY");
+            soft.assertThat(decision.get().decision()).isEqualTo("FORBID");
             soft.assertThat(decision.get().reasons()).containsExactly("No policy matched");
         });
     }

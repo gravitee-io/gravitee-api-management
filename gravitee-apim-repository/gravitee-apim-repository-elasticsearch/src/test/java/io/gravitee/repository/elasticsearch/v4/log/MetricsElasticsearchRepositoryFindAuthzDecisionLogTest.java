@@ -58,7 +58,7 @@ class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
     void setUp() {
         client = mock(Client.class);
         indexNameGenerator = mock(IndexNameGenerator.class);
-        when(indexNameGenerator.getWildcardIndexName(any(), any(), any())).thenReturn("gravitee-authz-decisions-*");
+        when(indexNameGenerator.getWildcardIndexName(any(), any(), any())).thenReturn("gravitee-decisions-*");
 
         repository = new MetricsElasticsearchRepository(mock(RepositoryConfiguration.class));
         ReflectionTestUtils.setField(repository, "client", client);
@@ -67,12 +67,12 @@ class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
 
     @Test
     @SneakyThrows
-    void reads_the_decision_from_the_authz_decisions_data_stream() {
+    void reads_the_decision_from_the_decisions_data_stream() {
         when(client.search(any(), any(), any())).thenReturn(
             Single.just(
                 responseWith(
                     """
-                    { "event-id": "evt-1", "api-id": "api-1", "request-id": "req-1", "decision": "PERMIT" }
+                    { "event-id": "evt-1", "api-id": "api-1", "request-id": "req-1", "verdict": "PERMIT" }
                     """
                 )
             )
@@ -83,19 +83,19 @@ class MetricsElasticsearchRepositoryFindAuthzDecisionLogTest {
         assertThat(decision).isPresent();
         assertThat(decision.get().eventId()).isEqualTo("evt-1");
         assertThat(decision.get().decision()).isEqualTo("PERMIT");
-        verify(indexNameGenerator).getWildcardIndexName(any(), eq(Type.AUTHZ_DECISIONS), any());
+        verify(indexNameGenerator).getWildcardIndexName(any(), eq(Type.DECISIONS), any());
     }
 
     @Test
     @SneakyThrows
-    void looks_the_decision_up_by_event_id_within_the_api() {
+    void looks_the_decision_up_by_event_id_within_the_api_and_the_calling_environment() {
         when(client.search(any(), any(), any())).thenReturn(Single.just(new SearchResponse()));
 
         repository.findAuthzDecisionLog(QUERY_CONTEXT, "api-1", "evt-1");
 
         var query = ArgumentCaptor.forClass(String.class);
-        verify(client).search(eq("gravitee-authz-decisions-*"), eq(null), query.capture());
-        assertThat(query.getValue()).contains("evt-1").contains("api-1");
+        verify(client).search(eq("gravitee-decisions-*"), eq(null), query.capture());
+        assertThat(query.getValue()).contains("evt-1").contains("api-1").contains("org#1").contains("env#1").contains("\"authz\"");
     }
 
     @Test

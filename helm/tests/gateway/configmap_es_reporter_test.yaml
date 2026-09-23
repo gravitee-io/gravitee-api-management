@@ -141,6 +141,7 @@ tests:
             health: health
             log: log
             eventMetrics: eventMetrics
+            decisions: decisions
     asserts:
       - hasDocuments:
           count: 1
@@ -165,6 +166,7 @@ tests:
                     health: health
                     log: log
                     event_metrics: eventMetrics
+                    decisions: decisions
                 index: gravitee
                 settings:
                   number_of_replicas: 1
@@ -190,3 +192,17 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: "log: my_policy\\n\\s+event_metrics: *\\n"
+
+  - it: Check es lifecycle settings when no decisions policy is set
+    template: gateway/gateway-configmap.yaml
+    set:
+      es:
+        index_mode: ilm
+        lifecycle:
+          enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "event_metrics: *\\n\\s+decisions: *\\n"

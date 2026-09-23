@@ -720,6 +720,7 @@ data:
             health: {{ .Values.es.lifecycle.policies.health }}
             log: {{ .Values.es.lifecycle.policies.log }}
             event_metrics: {{ .Values.es.lifecycle.policies.eventMetrics }}
+            decisions: {{ .Values.es.lifecycle.policies.decisions }}
         {{- end }}
         {{- if (eq .Values.es.security.enabled true) }}
         security:

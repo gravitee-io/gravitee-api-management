@@ -1530,7 +1530,7 @@ spec:
               - PLAN
               - NATIVE_OPERATION
 
-        # Authorization decision events, from the authz-decisions data stream (see AuthzFieldResolver).
+        # Authorization decision events, from the decisions data stream (see AuthzFieldResolver).
         - name: AUTHZ_DECISIONS
           label: Decisions
           apis:
@@ -1547,6 +1547,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
           filters:
               - API
               - GATEWAY
@@ -1556,6 +1557,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
 
         - name: AUTHZ_PERMITS
           label: Permits
@@ -1573,6 +1575,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
           filters:
               - API
               - GATEWAY
@@ -1582,6 +1585,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
 
         - name: AUTHZ_FORBIDS
           label: Forbids
@@ -1599,6 +1603,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
           filters:
               - API
               - GATEWAY
@@ -1608,6 +1613,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
 
         - name: AUTHZ_NOT_APPLICABLE
           label: Not Applicable
@@ -1625,6 +1631,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
           filters:
               - API
               - GATEWAY
@@ -1634,6 +1641,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
 
         - name: AUTHZ_OPERATIONS
           label: Operations
@@ -1690,7 +1698,7 @@ spec:
               - AUTHZ_CALLER
 
         - name: AUTHZ_FAILURES
-          label: Failed Operations
+          label: Failed Decisions
           apis:
               - AUTHZ
           unit: NUMBER
@@ -1699,25 +1707,21 @@ spec:
           facets:
               - API
               - GATEWAY
-              - AUTHZ_DECISION
               - AUTHZ_ACTION
               - AUTHZ_SUBJECT_ID
               - AUTHZ_RESOURCE_ID
-              - AUTHZ_REASON
               - AUTHZ_CALLER
               - AUTHZ_STATUS
-              - AUTHZ_OPERATION
+              - AUTHZ_PDP
           filters:
               - API
               - GATEWAY
-              - AUTHZ_DECISION
               - AUTHZ_ACTION
               - AUTHZ_SUBJECT_ID
               - AUTHZ_RESOURCE_ID
-              - AUTHZ_REASON
               - AUTHZ_CALLER
               - AUTHZ_STATUS
-              - AUTHZ_OPERATION
+              - AUTHZ_PDP
 
         - name: AUTHZ_EVAL_DURATION
           label: Evaluation Duration
@@ -1740,6 +1744,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
           filters:
               - API
               - GATEWAY
@@ -1749,6 +1754,7 @@ spec:
               - AUTHZ_RESOURCE_ID
               - AUTHZ_REASON
               - AUTHZ_CALLER
+              - AUTHZ_PDP
 
     filters:
         - name: API
@@ -2292,7 +2298,8 @@ spec:
           label: Operation
           type: ENUM
           enumValues:
-              - evaluate
+              - evaluation
+              - evaluations
               - search
           operators:
               - EQ
@@ -2304,7 +2311,6 @@ spec:
           enumValues:
               - success
               - error
-              - not-ready
           operators:
               - EQ
               - IN
@@ -2344,6 +2350,13 @@ spec:
 
         - name: AUTHZ_REASON
           label: Reason
+          type: STRING
+          operators:
+              - EQ
+              - IN
+
+        - name: AUTHZ_PDP
+          label: PDP Gateway
           type: STRING
           operators:
               - EQ
@@ -2531,4 +2544,8 @@ spec:
 
         - name: AUTHZ_REASON
           label: Reason
+          type: KEYWORD
+
+        - name: AUTHZ_PDP
+          label: PDP Gateway
           type: KEYWORD

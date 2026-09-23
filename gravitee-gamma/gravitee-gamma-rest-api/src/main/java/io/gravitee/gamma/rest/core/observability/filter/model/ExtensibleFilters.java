@@ -40,9 +40,9 @@ import java.util.Set;
 public enum ExtensibleFilters {
     // signals = served today (logs + analytics); traces join in a later lot. Cross-cutting on every API kind.
     API_TYPE("API Type", Set.of(Signal.LOGS, Signal.ANALYTICS), ApiType.API_KINDS),
-    // Which document contract the rows come from. Every reportable in the event-metrics data stream
-    // answers BaseEventMetrics#getDocumentType, so this is the axis that separates decisions from
-    // request logs — API_TYPE cannot, since a decision is attached to the API it guarded, of any kind.
+    // Which document contract the rows come from. Decisions and request logs live in different data
+    // streams, so this is the axis that separates them. API_TYPE cannot, since a decision is attached
+    // to the API it guarded, of any kind.
     // ANALYTICS so an AUTHZ_DECISION scope condition survives validation on that signal too.
     RECORD_TYPE("Record Type", Set.of(Signal.LOGS, Signal.ANALYTICS), ApiType.API_KINDS);
 

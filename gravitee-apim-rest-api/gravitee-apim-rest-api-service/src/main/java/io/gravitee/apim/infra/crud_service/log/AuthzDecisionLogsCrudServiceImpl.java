@@ -68,7 +68,8 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
                     .resourceIds(filters.resourceIds())
                     .callers(filters.callers())
                     .statuses(filters.statuses())
-                    .operations(filters.operations())
+                    .indeterminateCauses(filters.indeterminateCauses())
+                    .errorTypes(filters.errorTypes())
                     .targetPdpIds(filters.targetPdpIds())
                     .matchedPolicyNames(filters.matchedPolicyNames())
                     .policyGenerations(filters.policyGenerations())
@@ -113,13 +114,15 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
             .environmentId(decision.environmentId())
             .gatewayId(decision.gatewayId())
             .requestId(decision.requestId())
-            .operation(decision.operation())
             .status(decision.status())
             .caller(decision.caller())
             .targetPdpId(decision.targetPdpId())
             .policyGeneration(decision.policyGeneration())
             .decision(decision.decision())
-            .matchedPolicyNames(decision.matchedPolicyNames())
+            .outcome(decision.outcome())
+            .enforced(decision.enforced())
+            .indeterminateCause(decision.indeterminateCause())
+            .matchedRules(toDomain(decision.matchedRules()))
             .reasons(decision.reasons())
             .subjectType(decision.subjectType())
             .subjectId(decision.subjectId())
@@ -129,9 +132,20 @@ class AuthzDecisionLogsCrudServiceImpl implements AuthzDecisionLogsCrudService {
             .batchId(decision.batchId())
             .batchIndex(decision.batchIndex())
             .batchSize(decision.batchSize())
-            .searchType(decision.searchType())
-            .resultCount(decision.resultCount())
             .durationNanos(decision.durationNanos())
+            .errorType(decision.errorType())
             .build();
+    }
+
+    private static List<AuthzDecisionLog.MatchedRule> toDomain(
+        List<io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.MatchedRule> matchedRules
+    ) {
+        if (matchedRules == null) {
+            return null;
+        }
+        return matchedRules
+            .stream()
+            .map(rule -> new AuthzDecisionLog.MatchedRule(rule.id(), rule.name(), rule.version(), rule.effect()))
+            .toList();
     }
 }

@@ -34,7 +34,7 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     private final AuthzMeasuresQueryAdapter adapter = new AuthzMeasuresQueryAdapter();
 
     @Test
-    void should_count_decisions_with_a_value_count_on_the_decision_field() {
+    void should_count_decisions_with_a_value_count_on_the_event_id_every_record_carries() {
         var query = new MeasuresQuery(
             buildTimeRange(),
             List.of(),
@@ -43,7 +43,26 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
 
-        assertThat(aggs.getJsonObject("AUTHZ_DECISIONS#COUNT").getJsonObject("value_count").getString("field")).isEqualTo("decision");
+        assertThat(aggs.getJsonObject("AUTHZ_DECISIONS#COUNT").getJsonObject("value_count").getString("field")).isEqualTo("event-id");
+    }
+
+    @Test
+    void should_read_only_the_resolved_decisions_of_the_authz_decision_point() {
+        var query = new MeasuresQuery(
+            buildTimeRange(),
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
+        );
+
+        var filters = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(
+            filters
+                .stream()
+                .map(JsonObject.class::cast)
+                .map(filter -> filter.getJsonObject("term"))
+                .filter(Objects::nonNull)
+        ).contains(new JsonObject().put("decision-point-type", "authz"), new JsonObject().put("phase", "RESOLVED"));
     }
 
     @Test
@@ -57,14 +76,30 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
         var wrapper = aggs.getJsonObject("AUTHZ_FORBIDS#__FILTER__");
 
-        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("decision")).isEqualTo("FORBID");
+        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("verdict")).isEqualTo("FORBID");
         assertThat(
             wrapper.getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#COUNT").getJsonObject("value_count").getString("field")
-        ).isEqualTo("decision");
+        ).isEqualTo("verdict");
     }
 
     @Test
-    void should_wrap_the_failure_metric_in_a_must_not_success_filter() {
+    void should_count_not_applicable_by_the_indeterminate_cause() {
+        var query = new MeasuresQuery(
+            buildTimeRange(),
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.AUTHZ_NOT_APPLICABLE, Set.of(Measure.COUNT)))
+        );
+
+        var wrapper = new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_NOT_APPLICABLE#__FILTER__");
+
+        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("indeterminate-cause")).isEqualTo("NOT_APPLICABLE");
+        assertThat(
+            wrapper.getJsonObject("aggs").getJsonObject("AUTHZ_NOT_APPLICABLE#COUNT").getJsonObject("value_count").getString("field")
+        ).isEqualTo("indeterminate-cause");
+    }
+
+    @Test
+    void should_count_failures_by_the_error_status() {
         var query = new MeasuresQuery(
             buildTimeRange(),
             List.of(),
@@ -72,9 +107,8 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         );
 
         var wrapper = new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_FAILURES#__FILTER__");
-        var mustNot = wrapper.getJsonObject("filter").getJsonObject("bool").getJsonArray("must_not");
 
-        assertThat(mustNot.getJsonObject(0).getJsonObject("term").getString("status")).isEqualTo("success");
+        assertThat(wrapper.getJsonObject("filter").getJsonObject("term").getString("status")).isEqualTo("error");
     }
 
     @Test
@@ -129,7 +163,7 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
     }
 
     @Test
-    void should_scope_the_duration_metric_to_evaluations_with_a_recorded_duration() {
+    void should_scope_the_duration_metric_to_successful_evaluations_with_a_recorded_duration() {
         var query = new MeasuresQuery(
             buildTimeRange(),
             List.of(),
@@ -148,7 +182,9 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
                 .map(f -> f.getJsonObject("term"))
                 .filter(Objects::nonNull)
                 .toList()
-        ).anySatisfy(term -> assertThat(term.getString("operation")).isEqualTo("evaluate"));
+        )
+            .singleElement()
+            .satisfies(term -> assertThat(term.getString("status")).isEqualTo("success"));
         assertThat(
             filterClauses
                 .stream()
@@ -206,6 +242,19 @@ class AuthzMeasuresQueryAdapterTest extends AbstractQueryAdapterTest {
         var filters = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
 
         assertThat(filters.encode()).contains("caller").contains("pep");
+    }
+
+    @Test
+    void should_adapt_the_pdp_filter_to_the_decision_point_id() {
+        var query = new MeasuresQuery(
+            buildTimeRange(),
+            List.of(new Filter(Filter.Name.AUTHZ_PDP, Filter.Operator.IN, List.of("pdp-b"))),
+            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)))
+        );
+
+        var filters = new JsonObject(adapter.adapt(query)).getJsonObject("query").getJsonObject("bool").getJsonArray("filter");
+
+        assertThat(filters.encode()).contains("\"decision-point-id\"").contains("pdp-b");
     }
 
     @Test

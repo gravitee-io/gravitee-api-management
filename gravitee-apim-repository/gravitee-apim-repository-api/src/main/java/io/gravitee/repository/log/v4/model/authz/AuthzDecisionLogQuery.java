@@ -38,7 +38,8 @@ public class AuthzDecisionLogQuery {
     private Set<String> resourceIds;
     private Set<String> callers;
     private Set<String> statuses;
-    private Set<String> operations;
+    private Set<String> indeterminateCauses;
+    private Set<String> errorTypes;
     private Set<String> targetPdpIds;
     private Set<String> matchedPolicyNames;
     private Set<String> policyGenerations;

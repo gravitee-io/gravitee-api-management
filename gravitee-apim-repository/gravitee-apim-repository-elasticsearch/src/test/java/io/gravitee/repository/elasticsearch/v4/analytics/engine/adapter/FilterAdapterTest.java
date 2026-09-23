@@ -27,6 +27,7 @@ import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeRange;
+import io.vertx.core.json.JsonObject;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -618,6 +619,37 @@ class FilterAdapterTest {
             var connexionFilters = filterAdapter.adaptForMessageConnexion(new MeasuresQuery(buildTimeRange(), filters, metrics));
 
             assertThat(connexionFilters.encode()).contains("sse");
+        }
+    }
+
+    @Nested
+    class AuthzScope {
+
+        private final FilterAdapter authzFilterAdapter = new FilterAdapter(new AuthzFieldResolver());
+
+        @Test
+        void should_close_every_authz_query_on_the_resolved_decisions_of_the_authz_decision_point() {
+            var filters = List.of(new Filter(Filter.Name.API, Filter.Operator.EQ, API_ID));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+            var jsonFilters = authzFilterAdapter.adaptForAuthz(new MeasuresQuery(buildTimeRange(), filters, metrics));
+
+            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 2)).isEqualTo(
+                JsonObject.of("term", JsonObject.of("decision-point-type", "authz"))
+            );
+            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 1)).isEqualTo(
+                JsonObject.of("term", JsonObject.of("phase", "RESOLVED"))
+            );
+        }
+
+        @Test
+        void should_apply_the_pdp_filter_to_an_authz_query() {
+            var filters = List.of(new Filter(Filter.Name.AUTHZ_PDP, Filter.Operator.IN, List.of("pdp-b")));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+            var jsonFilters = authzFilterAdapter.adaptForAuthz(new MeasuresQuery(buildTimeRange(), filters, metrics));
+
+            assertThat(jsonFilters.encode()).contains("\"decision-point-id\"").contains("pdp-b");
         }
     }
 

@@ -27,13 +27,15 @@ public record AuthzDecisionLog(
     String environmentId,
     String gatewayId,
     String requestId,
-    String operation,
     String status,
     String caller,
     String targetPdpId,
-    Long policyGeneration,
+    String policyGeneration,
     String decision,
-    List<String> matchedPolicyNames,
+    String outcome,
+    String enforced,
+    String indeterminateCause,
+    List<MatchedRule> matchedRules,
     List<String> reasons,
     String subjectType,
     String subjectId,
@@ -43,7 +45,8 @@ public record AuthzDecisionLog(
     String batchId,
     Integer batchIndex,
     Integer batchSize,
-    String searchType,
-    Integer resultCount,
-    Long durationNanos
-) {}
+    Long durationNanos,
+    String errorType
+) {
+    public record MatchedRule(String id, String name, String version, String effect) {}
+}

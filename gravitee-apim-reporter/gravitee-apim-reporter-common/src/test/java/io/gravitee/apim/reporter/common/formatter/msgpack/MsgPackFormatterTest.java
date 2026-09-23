@@ -47,7 +47,7 @@ class MsgPackFormatterTest extends AbstractFormatterTest {
             "message metrics, v4.metric.MessageMetrics, v4/message-metrics.json, json/v4/message-metrics.json",
             "message log, v4.log.MessageLog, v4/message-log.json, json/v4/message-log.json",
             "api event metrics, v4.metric.event.ApiEventMetrics, v4/api-event-metrics.json, json/v4/api-event-metrics.json",
-            "authz event metrics, v4.metric.event.AuthzEventMetrics, v4/authz-event-metrics.json, json/v4/authz-event-metrics.json",
+            "decision report, v4.report.DecisionReport, v4/decision-report.json, json/v4/decision-report.json",
             "application event metrics, v4.metric.event.ApplicationEventMetrics, v4/application-event-metrics.json, json/v4/application-event-metrics.json",
             "topic event metrics, v4.metric.event.TopicEventMetrics, v4/topic-event-metrics.json, json/v4/topic-event-metrics.json",
             "operation event metrics, v4.metric.event.OperationEventMetrics, v4/operation-event-metrics.json, json/v4/operation-event-metrics.json",

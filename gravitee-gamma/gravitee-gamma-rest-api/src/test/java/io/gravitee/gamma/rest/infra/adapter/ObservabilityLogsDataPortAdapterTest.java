@@ -48,6 +48,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.logs.model.ApiReference;
+import io.gravitee.gamma.rest.core.observability.logs.model.AuthzDecision;
 import io.gravitee.gamma.rest.core.observability.logs.model.EntrypointScope;
 import io.gravitee.gamma.rest.core.observability.logs.model.FailureOrigin;
 import io.gravitee.gamma.rest.core.observability.logs.model.LogEntry;
@@ -960,13 +961,25 @@ class ObservabilityLogsDataPortAdapterTest {
                             .timestamp(1_000L)
                             .requestId("req-1")
                             .gatewayId("gateway-1")
-                            .operation("evaluate")
                             .status("success")
                             .caller("pep")
-                            .decision("PERMIT")
-                            .matchedPolicyNames(List.of("allow-readers"))
+                            .targetPdpId("pdp-a")
+                            .policyGeneration("42")
+                            .decision("FORBID")
+                            .outcome("DENY")
+                            .enforced("DENY")
+                            .matchedRules(List.of(new AuthzDecisionLog.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                            .reasons(List.of("blocked"))
+                            .subjectType("User")
                             .subjectId("alice")
+                            .action("read")
+                            .resourceType("Doc")
+                            .resourceId("d1")
+                            .batchId("batch-1")
+                            .batchIndex(1)
+                            .batchSize(2)
                             .durationNanos(4_200L)
+                            .errorType("TimeoutException")
                             .build()
                     )
                 )
@@ -980,16 +993,30 @@ class ObservabilityLogsDataPortAdapterTest {
             assertThat(entry.timestamp()).isEqualTo(Instant.ofEpochMilli(1_000L));
             assertThat(entry.authz())
                 .isNotNull()
-                .satisfies(authz -> {
-                    assertThat(authz.decision()).isEqualTo("PERMIT");
-                    assertThat(authz.caller()).isEqualTo("pep");
-                    assertThat(authz.operation()).isEqualTo("evaluate");
-                    assertThat(authz.eventId()).isEqualTo("evt-1");
-                    assertThat(authz.status()).isEqualTo("success");
-                    assertThat(authz.subjectId()).isEqualTo("alice");
-                    assertThat(authz.durationNanos()).isEqualTo(4_200L);
-                    assertThat(authz.matchedPolicyNames()).containsExactly("allow-readers");
-                });
+                .isEqualTo(
+                    AuthzDecision.builder()
+                        .eventId("evt-1")
+                        .decision("FORBID")
+                        .outcome("DENY")
+                        .enforced("DENY")
+                        .status("success")
+                        .caller("pep")
+                        .targetPdpId("pdp-a")
+                        .policyGeneration("42")
+                        .matchedRules(List.of(new AuthzDecision.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                        .reasons(List.of("blocked"))
+                        .subjectType("User")
+                        .subjectId("alice")
+                        .action("read")
+                        .resourceType("Doc")
+                        .resourceId("d1")
+                        .batchId("batch-1")
+                        .batchIndex(1)
+                        .batchSize(2)
+                        .durationNanos(4_200L)
+                        .errorType("TimeoutException")
+                        .build()
+                );
             assertThat(entry.additionalMetrics()).isNull();
             verifyNoInteractions(connectionLogsCrudService);
         }
@@ -1034,7 +1061,8 @@ class ObservabilityLogsDataPortAdapterTest {
                 ENV,
                 decisionQueryWith(
                     new FilterCondition("AUTHZ_STATUS", FilterOperator.EQ, List.of("error")),
-                    new FilterCondition("AUTHZ_OPERATION", FilterOperator.EQ, List.of("search")),
+                    new FilterCondition("AUTHZ_INDETERMINATE_CAUSE", FilterOperator.EQ, List.of("NOT_READY")),
+                    new FilterCondition("AUTHZ_ERROR_TYPE", FilterOperator.IN, List.of("evaluation_timeout")),
                     new FilterCondition("AUTHZ_PDP", FilterOperator.EQ, List.of("pdp-a")),
                     new FilterCondition("AUTHZ_MATCHED_POLICY", FilterOperator.EQ, List.of("forbid-delete")),
                     new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("9")),
@@ -1048,7 +1076,8 @@ class ObservabilityLogsDataPortAdapterTest {
             var filters = captor.getValue();
             // Distinct values per field: swapping two mappings would otherwise still satisfy the assertions.
             assertThat(filters.statuses()).containsExactly("error");
-            assertThat(filters.operations()).containsExactly("search");
+            assertThat(filters.indeterminateCauses()).containsExactly("NOT_READY");
+            assertThat(filters.errorTypes()).containsExactly("evaluation_timeout");
             assertThat(filters.targetPdpIds()).containsExactly("pdp-a");
             assertThat(filters.matchedPolicyNames()).containsExactly("forbid-delete");
             assertThat(filters.policyGenerations()).containsExactly("9");
@@ -1057,27 +1086,14 @@ class ObservabilityLogsDataPortAdapterTest {
         }
 
         @Test
-        void should_refuse_a_policy_version_that_is_not_a_number_instead_of_failing_the_shard() {
-            assertThatThrownBy(() ->
-                adapter.searchLogs(
-                    ORG,
-                    ENV,
-                    decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("v9")))
-                )
-            )
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("v9");
-        }
-
-        @Test
-        void should_keep_a_decimal_policy_version_that_elasticsearch_already_coerces() {
+        void should_pass_the_engine_generation_through_as_the_keyword_it_is_stored_as() {
             when(authzDecisionLogsCrudService.searchDecisionLogs(any(), any(), any())).thenReturn(new SearchLogsResponse<>(0, List.of()));
 
-            adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("3.0"))));
+            adapter.searchLogs(ORG, ENV, decisionQueryWith(new FilterCondition("AUTHZ_POLICY_VERSION", FilterOperator.EQ, List.of("v9"))));
 
             var captor = ArgumentCaptor.forClass(AuthzDecisionLogFilters.class);
             verify(authzDecisionLogsCrudService).searchDecisionLogs(any(), captor.capture(), any());
-            assertThat(captor.getValue().policyGenerations()).containsExactly("3.0");
+            assertThat(captor.getValue().policyGenerations()).containsExactly("v9");
         }
 
         @Test

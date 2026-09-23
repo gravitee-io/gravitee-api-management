@@ -80,7 +80,7 @@ import org.testcontainers.utility.DockerImageName;
         // The data-stream types. Every policy has to arrive as a property: the fields are @Value-annotated,
         // so Spring populates them after the @Bean method has run and overwrites anything set there.
         "reporters.elasticsearch.lifecycle.policies.event_metrics=policy-event-metrics",
-        "reporters.elasticsearch.lifecycle.policies.authz_decisions=policy-authz-decisions",
+        "reporters.elasticsearch.lifecycle.policies.decisions=policy-decisions",
     }
 )
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -100,7 +100,7 @@ class IndexPreparerIntegrationTest {
 
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
-    private static final String[] DATA_STREAM_TYPES = { "event-metrics", "authz-decisions" };
+    private static final String[] DATA_STREAM_TYPES = { "event-metrics", "decisions" };
 
     static Stream<Arguments> es_preparers() {
         return Stream.of(Arguments.of("es7x"), Arguments.of("es8x"), Arguments.of("es9x"));
@@ -144,7 +144,7 @@ class IndexPreparerIntegrationTest {
     }
 
     private void deleteStoredTemplates() throws Exception {
-        for (String name : new String[] { "event-metrics", "authz-decisions", "request" }) {
+        for (String name : new String[] { "event-metrics", "decisions", "request" }) {
             delete("_index_template", "gravitee-ism-override-" + name);
             delete("_template", "gravitee-ism-override-" + name);
         }

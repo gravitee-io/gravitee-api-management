@@ -81,6 +81,7 @@ public record Filter(Filter.Name name, Operator operator, Object value) {
         AUTHZ_ACTION,
         AUTHZ_RESOURCE_ID,
         AUTHZ_REASON,
+        AUTHZ_PDP,
     }
 
     public enum Operator {

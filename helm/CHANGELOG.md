@@ -15,6 +15,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Document `gateway.services.metrics.kafka.durations.principalName` to add the `principal_name` tag to Kafka duration metrics (disabled by default).
 - fix gateway requestTimeout ignored when gateway.servers is configured (APIM-14276)
 - Add `es.lifecycle.policies.eventMetrics`, the ILM policy for the `gravitee-event-metrics-*` data streams. The gateway already read this key, but the chart did not render it under `es.lifecycle`, so it could only be set by hand through `gateway.env` (APIM-14875). The policy attaches to backing indices created after it is set: existing `gravitee-event-metrics-*` data streams keep their current backing indices unmanaged until the next rollover.
+- Add `es.lifecycle.policies.decisions`, the ILM policy for the `gravitee-decisions-*` data streams, where the gateway writes its decision records. Unset by default, like `eventMetrics`, and it attaches the same way: to backing indices created after it is set.
 
 ### 4.12.0
 - Add support for Kubernetes Gateway API HTTPRoute for all components (API, Gateway, User Interface, Portal).

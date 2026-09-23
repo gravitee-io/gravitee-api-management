@@ -24,11 +24,12 @@ import static io.gravitee.repository.elasticsearch.utils.ElasticsearchDsl.Query.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.repository.common.query.QueryContext;
 
 /**
- * Reads one decision by its event id. The api id is part of the predicate rather than a
- * post-filter: it scopes the lookup the same way the caller's permission does, so a known event id
- * from another api cannot be read through this path.
+ * Reads one decision by its event id. The organization, the environment and the api are part of the
+ * predicate rather than a post-filter: they scope the lookup the same way the caller's permission
+ * does, so a known event id from another tenant or another api cannot be read through this path.
  *
  * @author GraviteeSource Team
  */
@@ -38,10 +39,18 @@ public final class FindAuthzDecisionLogQueryAdapter {
 
     private FindAuthzDecisionLogQueryAdapter() {}
 
-    public static String adapt(String apiId, String eventId) {
+    private static void addTerm(ArrayNode filters, String field, String value) {
+        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(field, value)));
+    }
+
+    public static String adapt(QueryContext queryContext, String apiId, String eventId) {
         ArrayNode filters = MAPPER.createArrayNode();
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(AuthzDecisionLogFields.API_ID, apiId)));
-        filters.add(MAPPER.createObjectNode().set(TERM, MAPPER.createObjectNode().put(AuthzDecisionLogFields.EVENT_ID, eventId)));
+        addTerm(filters, AuthzDecisionLogFields.ORG_ID, queryContext.getOrgId());
+        addTerm(filters, AuthzDecisionLogFields.ENV_ID, queryContext.getEnvId());
+        addTerm(filters, AuthzDecisionLogFields.DECISION_POINT_TYPE, AuthzDecisionLogFields.AUTHZ);
+        addTerm(filters, AuthzDecisionLogFields.PHASE, AuthzDecisionLogFields.RESOLVED);
+        addTerm(filters, AuthzDecisionLogFields.API_ID, apiId);
+        addTerm(filters, AuthzDecisionLogFields.EVENT_ID, eventId);
 
         ObjectNode root = MAPPER.createObjectNode();
         root.set(QUERY, MAPPER.createObjectNode().set(BOOL, MAPPER.createObjectNode().set(FILTER, filters)));

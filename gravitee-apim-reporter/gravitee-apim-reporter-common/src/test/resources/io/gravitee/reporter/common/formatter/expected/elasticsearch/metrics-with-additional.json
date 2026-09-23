@@ -35,6 +35,7 @@
     "long_tokenCount": 12,
     "double_valueAvg": 12.6,
     "keyword_name": "the \"name\"",
+    "keyword_tools": ["the \"tool\"", "other"],
     "bool_name": true,
     "int_name": 42,
     "string_name": "the \"string\" name",

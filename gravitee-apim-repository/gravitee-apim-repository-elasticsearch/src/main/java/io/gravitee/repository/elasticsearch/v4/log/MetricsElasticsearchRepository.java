@@ -150,10 +150,10 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
         throws AnalyticsException {
         query.validate();
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, SearchAuthzDecisionLogsQueryAdapter.adapt(query))
+            return this.client.search(index, null, SearchAuthzDecisionLogsQueryAdapter.adapt(queryContext, query))
                 .map(SearchAuthzDecisionLogsResponseAdapter::adapt)
                 .blockingGet();
         } catch (RuntimeException e) {
@@ -165,10 +165,10 @@ public class MetricsElasticsearchRepository extends AbstractElasticsearchReposit
     public Optional<AuthzDecisionLog> findAuthzDecisionLog(QueryContext queryContext, String apiId, String eventId)
         throws AnalyticsException {
         var clusters = ClusterUtils.extractClusterIndexPrefixes(configuration);
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
 
         try {
-            return this.client.search(index, null, FindAuthzDecisionLogQueryAdapter.adapt(apiId, eventId))
+            return this.client.search(index, null, FindAuthzDecisionLogQueryAdapter.adapt(queryContext, apiId, eventId))
                 .map(SearchAuthzDecisionLogsResponseAdapter::adaptFirst)
                 .blockingGet();
         } catch (RuntimeException e) {

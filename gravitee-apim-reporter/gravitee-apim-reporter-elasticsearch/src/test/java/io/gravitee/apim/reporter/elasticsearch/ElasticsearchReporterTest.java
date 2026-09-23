@@ -16,6 +16,7 @@
 package io.gravitee.apim.reporter.elasticsearch;
 
 import static io.gravitee.reporter.api.http.SecurityType.API_KEY;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.reporter.elasticsearch.config.PipelineConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
@@ -40,12 +41,14 @@ import io.gravitee.reporter.api.v4.common.MessageConnectorType;
 import io.gravitee.reporter.api.v4.common.MessageOperation;
 import io.gravitee.reporter.api.v4.metric.AdditionalMetric;
 import io.gravitee.reporter.api.v4.metric.MessageMetrics;
+import io.gravitee.reporter.api.v4.report.DecisionReport;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -164,12 +167,33 @@ class ElasticsearchReporterTest {
                     new AdditionalMetric.IntegerMetric("int_additional", 42),
                     new AdditionalMetric.LongMetric("long_additional", 1L),
                     new AdditionalMetric.KeywordMetric("keyword_additional", "alpha"),
+                    new AdditionalMetric.KeywordListMetric("keyword_additional_list", List.of("alpha", "beta")),
                     new AdditionalMetric.BooleanMetric("bool_additional", true)
                 )
             )
             .build();
 
         reportAndAssert(messageMetrics);
+    }
+
+    @Test
+    void should_accept_a_decision_report() {
+        var decision = DecisionReport.builder()
+            .timestamp(Instant.now().toEpochMilli())
+            .gatewayId("gateway")
+            .organizationId("org")
+            .environmentId("env")
+            .apiId("api")
+            .eventId("evt-1")
+            .phase(DecisionReport.Phase.RESOLVED)
+            .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
+            .decisionPointId("default")
+            .outcome(DecisionReport.Outcome.DENY)
+            .enforced(DecisionReport.Enforced.DENY)
+            .status(DecisionReport.Status.SUCCESS)
+            .build();
+
+        assertThat(reporter.canHandle(decision)).isTrue();
     }
 
     private void reportAndAssert(Reportable reportable) throws InterruptedException {

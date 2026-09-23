@@ -285,7 +285,17 @@ class LogsResourceTest extends AbstractResourceTest {
                 .apiId(API_ID)
                 .requestId(REQUEST_ID)
                 .timestamp(Instant.parse("2026-06-10T14:32:01Z"))
-                .authz(AuthzDecision.builder().eventId(EVENT_ID).decision("FORBID").subjectId("alice").policyGeneration(3L).build())
+                .authz(
+                    AuthzDecision.builder()
+                        .eventId(EVENT_ID)
+                        .decision("FORBID")
+                        .outcome("DENY")
+                        .enforced("DENY")
+                        .subjectId("alice")
+                        .policyGeneration("3")
+                        .matchedRules(List.of(new AuthzDecision.MatchedRule("p1", "orders", "2026-09-23T10:00:00Z", "FORBID")))
+                        .build()
+                )
                 .build();
             when(getAuthzDecisionUseCase.execute(any())).thenReturn(new GetAuthzDecisionUseCase.Output(Optional.of(decision)));
 
@@ -296,7 +306,12 @@ class LogsResourceTest extends AbstractResourceTest {
             assertThat(body.get("apiId").asText()).isEqualTo(API_ID);
             assertThat(body.get("authz").get("eventId").asText()).isEqualTo(EVENT_ID);
             assertThat(body.get("authz").get("decision").asText()).isEqualTo("FORBID");
-            assertThat(body.get("authz").get("policyGeneration").asLong()).isEqualTo(3L);
+            assertThat(body.get("authz").get("policyGeneration").asText()).isEqualTo("3");
+            assertThat(body.get("authz").get("outcome").asText()).isEqualTo("DENY");
+            assertThat(body.get("authz").get("enforced").asText()).isEqualTo("DENY");
+            assertThat(body.get("authz").get("matchedRules").get(0).get("version").asText()).isEqualTo("2026-09-23T10:00:00Z");
+            assertThat(body.get("authz").has("operation")).isFalse();
+            assertThat(body.get("authz").has("matchedPolicyNames")).isFalse();
         }
 
         @Test

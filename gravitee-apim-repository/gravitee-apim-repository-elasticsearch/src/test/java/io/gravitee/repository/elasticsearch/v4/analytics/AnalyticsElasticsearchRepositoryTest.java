@@ -34,6 +34,7 @@ import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
+import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery.Sort;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetBucketResult;
@@ -1578,6 +1579,8 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             private static final String AUTHZ_API = "authz-api-001";
             private static final String ENTITY_REFS_API = "authz-api-entity-refs";
+            private static final String COLD_START_API = "authz-api-cold-start";
+            private static final String TOP_LIST_API = "authz-api-top-list";
 
             private static Filter api() {
                 return new Filter(Filter.Name.API, Filter.Operator.IN, List.of(AUTHZ_API));
@@ -1607,6 +1610,13 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
             }
 
             @Test
+            void should_match_any_of_several_subjects_given_bare_or_type_qualified() {
+                var subjects = List.of("alice", "User::\"a::b\"");
+
+                assertThat(countEntityRefsDecisions(new Filter(Filter.Name.AUTHZ_SUBJECT_ID, Filter.Operator.IN, subjects))).isEqualTo(4L);
+            }
+
+            @Test
             void should_narrow_a_resource_filter_to_the_entities_its_type_qualified_references_name() {
                 var references = List.of("Doc::d2", "docs::Doc::\"d1\"");
 
@@ -1615,14 +1625,98 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                 );
             }
 
+            private long count(Metric metric) {
+                return count(AUTHZ_API, metric);
+            }
+
+            private long count(String apiId, Metric metric, Filter... filters) {
+                var metrics = List.of(new MetricMeasuresQuery(metric, Set.of(Measure.COUNT)));
+                var conditions = new ArrayList<Filter>();
+                conditions.add(new Filter(Filter.Name.API, Filter.Operator.IN, List.of(apiId)));
+                conditions.addAll(List.of(filters));
+
+                var result = cut.searchAuthzMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), conditions, metrics));
+
+                return result.measures().getFirst().measures().get(Measure.COUNT).longValue();
+            }
+
             @Test
-            void should_count_decisions_from_the_authz_decisions_data_stream() {
-                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+            void should_count_decisions_from_the_decisions_data_stream() {
+                assertThat(count(Metric.AUTHZ_DECISIONS)).isEqualTo(6L);
+            }
+
+            @Test
+            void should_count_a_failed_and_a_not_ready_evaluation_as_decisions() {
+                var failed = new Filter(Filter.Name.AUTHZ_STATUS, Filter.Operator.EQ, "error");
+
+                assertThat(count(AUTHZ_API, Metric.AUTHZ_DECISIONS, failed)).isEqualTo(1L);
+                assertThat(count(COLD_START_API, Metric.AUTHZ_DECISIONS)).isEqualTo(1L);
+            }
+
+            @Test
+            void should_count_as_forbids_only_what_the_pdp_forbade() {
+                assertThat(count(Metric.AUTHZ_FORBIDS)).isEqualTo(1L);
+            }
+
+            @Test
+            void should_count_as_permits_only_what_the_pdp_permitted() {
+                assertThat(count(Metric.AUTHZ_PERMITS)).isEqualTo(3L);
+            }
+
+            @Test
+            void should_count_not_applicable_by_the_indeterminate_cause() {
+                assertThat(count(Metric.AUTHZ_NOT_APPLICABLE)).isEqualTo(1L);
+            }
+
+            @Test
+            void should_count_failures_by_the_error_status() {
+                assertThat(count(Metric.AUTHZ_FAILURES)).isEqualTo(1L);
+            }
+
+            @Test
+            void should_count_a_cold_start_as_a_failure_rather_than_as_not_applicable() {
+                assertThat(count(COLD_START_API, Metric.AUTHZ_FAILURES)).isEqualTo(1L);
+                assertThat(count(COLD_START_API, Metric.AUTHZ_NOT_APPLICABLE)).isZero();
+            }
+
+            @Test
+            void should_measure_the_evaluation_time_of_successful_evaluations_only() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.AVG)));
 
                 var result = cut.searchAuthzMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(api()), metrics));
 
-                assertThat(result.measures()).hasSize(1);
-                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(6L);
+                assertThat(result.measures().getFirst().measures().get(Measure.AVG).doubleValue()).isCloseTo(0.135, offset(1e-9));
+            }
+
+            @Test
+            void should_facet_decisions_by_the_pdp_that_evaluated_them() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+                var result = cut.searchAuthzFacets(
+                    QUERY_CONTEXT,
+                    new FacetsQuery(buildTimeRange(), List.of(api()), metrics, List.of(Facet.AUTHZ_PDP))
+                );
+
+                assertThat(result.metrics().getFirst().buckets()).satisfiesExactlyInAnyOrder(
+                    bucket -> {
+                        assertThat(bucket.key()).isEqualTo("default");
+                        assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(4L);
+                    },
+                    bucket -> {
+                        assertThat(bucket.key()).isEqualTo("pdp-b");
+                        assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(2L);
+                    }
+                );
+            }
+
+            @Test
+            void should_filter_decisions_on_the_pdp_that_evaluated_them() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+                var pdp = new Filter(Filter.Name.AUTHZ_PDP, Filter.Operator.IN, List.of("pdp-b"));
+
+                var result = cut.searchAuthzMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(api(), pdp), metrics));
+
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(2L);
             }
 
             @Test
@@ -1650,6 +1744,124 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                         assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
                     }
                 );
+            }
+
+            @Test
+            void should_leave_out_a_facet_bucket_the_scoped_metric_never_counted() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_FORBIDS, Set.of(Measure.COUNT)));
+
+                var result = cut.searchAuthzFacets(
+                    QUERY_CONTEXT,
+                    new FacetsQuery(buildTimeRange(), List.of(api()), metrics, List.of(Facet.AUTHZ_ACTION))
+                );
+
+                assertThat(result.metrics().getFirst().buckets()).satisfiesExactly(bucket -> {
+                    assertThat(bucket.key()).isEqualTo("write");
+                    assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
+                });
+            }
+
+            private static Filter topListApi() {
+                return new Filter(Filter.Name.API, Filter.Operator.IN, List.of(TOP_LIST_API));
+            }
+
+            private static MetricMeasuresQuery forbidsSorted(String order) {
+                var sorts = order.isEmpty() ? List.<Sort>of() : List.of(new Sort(Measure.COUNT, Sort.Order.valueOf(order)));
+                return new MetricMeasuresQuery(Metric.AUTHZ_FORBIDS, Set.of(Measure.COUNT), sorts);
+            }
+
+            @ParameterizedTest
+            @ValueSource(strings = { "ASC", "DESC", "" })
+            void should_limit_a_scoped_top_list_to_the_buckets_the_metric_counted(String order) {
+                var result = cut.searchAuthzFacets(
+                    QUERY_CONTEXT,
+                    new FacetsQuery(buildTimeRange(), List.of(topListApi()), List.of(forbidsSorted(order)), List.of(Facet.AUTHZ_ACTION), 1)
+                );
+
+                assertThat(result.metrics().getFirst().buckets()).satisfiesExactly(bucket -> {
+                    assertThat(bucket.key()).isEqualTo("write");
+                    assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
+                });
+            }
+
+            @ParameterizedTest
+            @ValueSource(strings = { "ASC", "DESC", "" })
+            void should_limit_a_scoped_time_series_facet_to_the_buckets_the_metric_counted(String order) {
+                var result = cut.searchAuthzTimeSeries(
+                    QUERY_CONTEXT,
+                    new TimeSeriesQuery(
+                        buildTimeRange(),
+                        List.of(topListApi()),
+                        Duration.ofDays(1).toMillis(),
+                        List.of(forbidsSorted(order)),
+                        List.of(Facet.AUTHZ_ACTION),
+                        1,
+                        null
+                    )
+                );
+
+                var facetBuckets = result
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+                    .stream()
+                    .flatMap(bucket -> bucket.buckets().stream())
+                    .toList();
+                assertThat(facetBuckets).satisfiesExactly(bucket -> {
+                    assertThat(bucket.key()).isEqualTo("write");
+                    assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
+                });
+            }
+
+            @Test
+            void should_keep_a_facet_bucket_whose_scoped_measure_is_zero_and_drop_one_without_a_scoped_decision() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.MIN)));
+
+                var result = cut.searchAuthzFacets(
+                    QUERY_CONTEXT,
+                    new FacetsQuery(buildTimeRange(), List.of(topListApi()), metrics, List.of(Facet.AUTHZ_ACTION))
+                );
+
+                assertThat(result.metrics().getFirst().buckets()).satisfiesExactlyInAnyOrder(
+                    bucket -> {
+                        assertThat(bucket.key()).isEqualTo("read");
+                        assertThat(bucket.measures().get(Measure.MIN).doubleValue()).isCloseTo(0.001, offset(1e-9));
+                    },
+                    bucket -> {
+                        assertThat(bucket.key()).isEqualTo("write");
+                        assertThat(bucket.measures().get(Measure.MIN).doubleValue()).isZero();
+                    }
+                );
+            }
+
+            @Test
+            void should_leave_out_a_time_series_facet_bucket_the_scoped_metric_never_counted() {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_FORBIDS, Set.of(Measure.COUNT)));
+
+                var result = cut.searchAuthzTimeSeries(
+                    QUERY_CONTEXT,
+                    new TimeSeriesQuery(
+                        buildTimeRange(),
+                        List.of(api()),
+                        Duration.ofHours(1).toMillis(),
+                        metrics,
+                        List.of(Facet.AUTHZ_ACTION),
+                        null,
+                        null
+                    )
+                );
+
+                var facetBuckets = result
+                    .metrics()
+                    .getFirst()
+                    .buckets()
+                    .stream()
+                    .flatMap(bucket -> bucket.buckets().stream())
+                    .toList();
+                assertThat(facetBuckets).satisfiesExactly(bucket -> {
+                    assertThat(bucket.key()).isEqualTo("write");
+                    assertThat(bucket.measures().get(Measure.COUNT).longValue()).isEqualTo(1L);
+                });
             }
 
             @Test

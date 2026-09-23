@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.log.crud_service.AuthzDecisionLogsCrudService;
+import io.gravitee.apim.core.log.model.AuthzDecisionLog;
 import io.gravitee.apim.core.log.model.AuthzDecisionLogFilters;
 import io.gravitee.repository.analytics.AnalyticsException;
 import io.gravitee.repository.common.query.QueryContext;
@@ -101,13 +102,24 @@ class AuthzDecisionLogsCrudServiceImplTest {
                         .environmentId("env-1")
                         .gatewayId("gateway-1")
                         .requestId("req-1")
-                        .operation("evaluate")
                         .status("success")
                         .caller("pep")
                         .targetPdpId("pdp-1")
-                        .policyGeneration(7L)
+                        .policyGeneration("7")
                         .decision("PERMIT")
-                        .matchedPolicyNames(List.of("allow-readers"))
+                        .outcome("ALLOW")
+                        .enforced("ALLOW")
+                        .indeterminateCause("NOT_APPLICABLE")
+                        .matchedRules(
+                            List.of(
+                                new io.gravitee.repository.log.v4.model.authz.AuthzDecisionLog.MatchedRule(
+                                    "pol-1",
+                                    "allow-readers",
+                                    "2026-09-23T10:00:00Z",
+                                    "PERMIT"
+                                )
+                            )
+                        )
                         .reasons(List.of("Permitted by policy 'allow-readers'"))
                         .subjectType("User")
                         .subjectId("alice")
@@ -117,9 +129,8 @@ class AuthzDecisionLogsCrudServiceImplTest {
                         .batchId("batch-1")
                         .batchIndex(1)
                         .batchSize(2)
-                        .searchType("subject")
-                        .resultCount(12)
                         .durationNanos(4200L)
+                        .errorType("TimeoutException")
                         .build()
                 )
             )
@@ -137,13 +148,17 @@ class AuthzDecisionLogsCrudServiceImplTest {
             soft.assertThat(decision.environmentId()).isEqualTo("env-1");
             soft.assertThat(decision.gatewayId()).isEqualTo("gateway-1");
             soft.assertThat(decision.requestId()).isEqualTo("req-1");
-            soft.assertThat(decision.operation()).isEqualTo("evaluate");
             soft.assertThat(decision.status()).isEqualTo("success");
             soft.assertThat(decision.caller()).isEqualTo("pep");
             soft.assertThat(decision.targetPdpId()).isEqualTo("pdp-1");
-            soft.assertThat(decision.policyGeneration()).isEqualTo(7L);
+            soft.assertThat(decision.policyGeneration()).isEqualTo("7");
             soft.assertThat(decision.decision()).isEqualTo("PERMIT");
-            soft.assertThat(decision.matchedPolicyNames()).containsExactly("allow-readers");
+            soft.assertThat(decision.outcome()).isEqualTo("ALLOW");
+            soft.assertThat(decision.enforced()).isEqualTo("ALLOW");
+            soft.assertThat(decision.indeterminateCause()).isEqualTo("NOT_APPLICABLE");
+            soft
+                .assertThat(decision.matchedRules())
+                .containsExactly(new AuthzDecisionLog.MatchedRule("pol-1", "allow-readers", "2026-09-23T10:00:00Z", "PERMIT"));
             soft.assertThat(decision.reasons()).containsExactly("Permitted by policy 'allow-readers'");
             soft.assertThat(decision.subjectType()).isEqualTo("User");
             soft.assertThat(decision.subjectId()).isEqualTo("alice");
@@ -153,9 +168,8 @@ class AuthzDecisionLogsCrudServiceImplTest {
             soft.assertThat(decision.batchId()).isEqualTo("batch-1");
             soft.assertThat(decision.batchIndex()).isEqualTo(1);
             soft.assertThat(decision.batchSize()).isEqualTo(2);
-            soft.assertThat(decision.searchType()).isEqualTo("subject");
-            soft.assertThat(decision.resultCount()).isEqualTo(12);
             soft.assertThat(decision.durationNanos()).isEqualTo(4200L);
+            soft.assertThat(decision.errorType()).isEqualTo("TimeoutException");
         });
     }
 
@@ -166,6 +180,36 @@ class AuthzDecisionLogsCrudServiceImplTest {
         assertThatThrownBy(() -> service.searchDecisionLogs(CONTEXT, filters(Set.of("api-1"), null, null), new PageableImpl(1, 20)))
             .isInstanceOf(TechnicalManagementException.class)
             .hasMessageContaining("authz decision logs");
+    }
+
+    @Test
+    void passes_the_indeterminate_cause_filter_through_to_the_repository() throws Exception {
+        when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0, List.of()));
+
+        service.searchDecisionLogs(
+            CONTEXT,
+            AuthzDecisionLogFilters.builder().apiIds(Set.of("api-1")).indeterminateCauses(Set.of("NOT_READY")).build(),
+            new PageableImpl(1, 20)
+        );
+
+        var captor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
+        verify(metricsRepository).searchAuthzDecisionLogs(any(), captor.capture());
+        assertThat(captor.getValue().getIndeterminateCauses()).containsExactly("NOT_READY");
+    }
+
+    @Test
+    void passes_the_error_type_filter_through_to_the_repository() throws Exception {
+        when(metricsRepository.searchAuthzDecisionLogs(any(), any())).thenReturn(new LogResponse<>(0, List.of()));
+
+        service.searchDecisionLogs(
+            CONTEXT,
+            AuthzDecisionLogFilters.builder().apiIds(Set.of("api-1")).errorTypes(Set.of("pdp_unavailable")).build(),
+            new PageableImpl(1, 20)
+        );
+
+        var captor = ArgumentCaptor.forClass(AuthzDecisionLogQuery.class);
+        verify(metricsRepository).searchAuthzDecisionLogs(any(), captor.capture());
+        assertThat(captor.getValue().getErrorTypes()).containsExactly("pdp_unavailable");
     }
 
     @Test

@@ -122,7 +122,8 @@ class SpiFilterRegistryTest {
                 "AUTHZ_RESOURCE_ID",
                 "AUTHZ_CALLER",
                 "AUTHZ_STATUS",
-                "AUTHZ_OPERATION",
+                "AUTHZ_INDETERMINATE_CAUSE",
+                "AUTHZ_ERROR_TYPE",
                 "AUTHZ_PDP",
                 "AUTHZ_MATCHED_POLICY",
                 "AUTHZ_REASON",
@@ -131,7 +132,7 @@ class SpiFilterRegistryTest {
                 // to that call's HTTP log. It was absent here only until the search could apply it.
                 "REQUEST_ID"
             )
-            .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "HTTP_STATUS", "PAYLOAD");
+            .doesNotContain("API_TYPE", "RECORD_TYPE", "ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "AUTHZ_OPERATION");
     }
 
     @Test
@@ -141,7 +142,7 @@ class SpiFilterRegistryTest {
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ_DECISION));
 
         assertThat(result.stream().map(FilterSpec::name).toList())
-            .contains("AUTHZ_DECISION", "AUTHZ_OPERATION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION")
+            .contains("AUTHZ_DECISION", "AUTHZ_OPERATION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION", "AUTHZ_PDP")
             .doesNotContain("ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "API_TYPE", "RECORD_TYPE");
     }
 

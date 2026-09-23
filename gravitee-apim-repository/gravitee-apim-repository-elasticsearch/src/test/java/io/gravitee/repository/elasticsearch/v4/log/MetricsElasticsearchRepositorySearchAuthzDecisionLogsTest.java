@@ -42,6 +42,8 @@ public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends A
 
     private static final String API_ID = "authz-api-001";
     private static final String ENTITY_REFS_API_ID = "authz-api-entity-refs";
+    private static final String SCOPING_API_ID = "authz-api-scoping";
+    private static final String UIQA_API_ID = "authz-api-uiqa";
     private static final long FROM_MILLIS = TimeProvider.now().minusSeconds(600).toEpochMilli();
     private static final long TO_MILLIS = TimeProvider.now().plusSeconds(600).toEpochMilli();
 
@@ -116,10 +118,130 @@ public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends A
     }
 
     @Test
+    void should_match_the_exact_pdp() throws AnalyticsException {
+        assertThat(metricsV4Repository.searchAuthzDecisionLogs(queryContext, baseQuery().targetPdpIds(Set.of("pdp-b")).build()).data())
+            .extracting(AuthzDecisionLog::eventId)
+            .containsExactly("evt-003", "evt-002");
+    }
+
+    @Test
+    void should_match_the_exact_engine_generation() throws AnalyticsException {
+        assertThat(metricsV4Repository.searchAuthzDecisionLogs(queryContext, baseQuery().policyGenerations(Set.of("8")).build()).data())
+            .extracting(AuthzDecisionLog::eventId)
+            .containsExactly("evt-004", "evt-005", "evt-006");
+    }
+
+    @Test
+    void should_match_the_exact_indeterminate_cause() throws AnalyticsException {
+        assertThat(
+            metricsV4Repository
+                .searchAuthzDecisionLogs(queryContext, baseQuery().indeterminateCauses(Set.of("NOT_APPLICABLE")).build())
+                .data()
+        )
+            .extracting(AuthzDecisionLog::eventId)
+            .containsExactly("evt-003");
+        assertThat(
+            metricsV4Repository.searchAuthzDecisionLogs(queryContext, baseQuery().indeterminateCauses(Set.of("ERROR")).build()).data()
+        )
+            .extracting(AuthzDecisionLog::eventId)
+            .containsExactly("evt-006");
+    }
+
+    @Test
+    void search_returns_only_resolved_authz_decisions_of_the_calling_environment() throws AnalyticsException {
+        var result = metricsV4Repository.searchAuthzDecisionLogs(
+            queryContext,
+            AuthzDecisionLogQuery.builder().apiIds(Set.of(SCOPING_API_ID)).build()
+        );
+
+        assertThat(result.data()).extracting(AuthzDecisionLog::eventId).containsExactly("authz-envA");
+    }
+
+    @Test
+    void find_does_not_cross_environments() throws AnalyticsException {
+        assertThat(metricsV4Repository.findAuthzDecisionLog(queryContext, SCOPING_API_ID, "authz-envB")).isEmpty();
+    }
+
+    @Test
+    void find_does_not_cross_organizations() throws AnalyticsException {
+        assertThat(metricsV4Repository.findAuthzDecisionLog(queryContext, SCOPING_API_ID, "authz-orgB")).isEmpty();
+    }
+
+    @Test
+    void find_does_not_read_the_decision_of_another_decision_point() throws AnalyticsException {
+        assertThat(metricsV4Repository.findAuthzDecisionLog(queryContext, SCOPING_API_ID, "guardian-envA")).isEmpty();
+    }
+
+    @Test
+    void find_does_not_read_a_decision_that_is_not_resolved() throws AnalyticsException {
+        assertThat(metricsV4Repository.findAuthzDecisionLog(queryContext, SCOPING_API_ID, "authz-requested")).isEmpty();
+    }
+
+    @Test
+    void find_reads_the_authz_decision_of_the_calling_environment() throws AnalyticsException {
+        assertThat(metricsV4Repository.findAuthzDecisionLog(queryContext, SCOPING_API_ID, "authz-envA"))
+            .get()
+            .extracting(AuthzDecisionLog::environmentId)
+            .isEqualTo("env#1");
+    }
+
+    @Test
+    void should_read_back_the_decision_the_reporter_wrote() throws AnalyticsException {
+        var decision = metricsV4Repository.findAuthzDecisionLog(queryContext, API_ID, "evt-005").orElseThrow();
+
+        assertThat(decision.decision()).isEqualTo("PERMIT");
+        assertThat(decision.outcome()).isEqualTo("ALLOW");
+        assertThat(decision.enforced()).isEqualTo("ALLOW");
+        assertThat(decision.targetPdpId()).isEqualTo("default");
+        assertThat(decision.policyGeneration()).isEqualTo("8");
+        assertThat(decision.matchedRules()).containsExactly(
+            new AuthzDecisionLog.MatchedRule("pol-1", "allow-readers", "2026-09-20T10:00:00Z", "PERMIT")
+        );
+        assertThat(decision.batchId()).isEqualTo("batch-1");
+        assertThat(decision.batchIndex()).isEqualTo(1);
+        assertThat(decision.batchSize()).isEqualTo(2);
+    }
+
+    @Test
     void should_match_a_fragment_of_a_reason() throws AnalyticsException {
         var result = metricsV4Repository.searchAuthzDecisionLogs(queryContext, baseQuery().reasonContains("applicable").build());
 
         assertThat(result.data()).extracting(AuthzDecisionLog::eventId).containsExactly("evt-003");
+    }
+
+    static Stream<Arguments> matched_policies() {
+        return Stream.of(
+            arguments(Set.of("QA default"), List.of("uiqa-001", "uiqa-002")),
+            arguments(Set.of("QA default#2"), List.of("uiqa-002")),
+            arguments(Set.of("QA"), List.of("uiqa-003")),
+            arguments(Set.of("QA default#0", "QA"), List.of("uiqa-001", "uiqa-003")),
+            arguments(Set.of("QA def"), List.of())
+        );
+    }
+
+    @ParameterizedTest(name = "{0} matches {1}")
+    @MethodSource("matched_policies")
+    void should_match_a_policy_by_its_name_or_by_one_of_its_rule_names(Set<String> names, List<String> expectedEventIds)
+        throws AnalyticsException {
+        var result = metricsV4Repository.searchAuthzDecisionLogs(queryContext, uiqaQuery().matchedPolicyNames(names).build());
+
+        assertThat(result.data()).extracting(AuthzDecisionLog::eventId).containsExactlyInAnyOrderElementsOf(expectedEventIds);
+    }
+
+    @Test
+    void should_match_the_exact_error_type() throws AnalyticsException {
+        assertThat(
+            metricsV4Repository.searchAuthzDecisionLogs(queryContext, uiqaQuery().errorTypes(Set.of("evaluation_timeout")).build()).data()
+        )
+            .extracting(AuthzDecisionLog::eventId)
+            .containsExactly("uiqa-004");
+        assertThat(
+            metricsV4Repository
+                .searchAuthzDecisionLogs(queryContext, uiqaQuery().errorTypes(Set.of("evaluation_timeout", "pdp_unavailable")).build())
+                .data()
+        )
+            .extracting(AuthzDecisionLog::eventId)
+            .containsExactlyInAnyOrder("uiqa-004", "uiqa-005");
     }
 
     static Stream<Arguments> subject_references() {
@@ -135,8 +257,9 @@ public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends A
             arguments(Set.of("User::\"say \\\"hi\\\"\""), List.of("ref-006")),
             arguments(Set.of("User::\"C:\\\\temp\""), List.of("ref-008")),
             arguments(Set.of("User::\"*\""), List.of("ref-009")),
-            arguments(Set.of("User::*"), List.of("ref-001", "ref-004", "ref-006", "ref-007", "ref-008", "ref-009")),
+            arguments(Set.of("User::*"), List.of("ref-001", "ref-004", "ref-006", "ref-008", "ref-009")),
             arguments(Set.of("Agent::alice", "User::\"a::b\""), List.of("ref-003", "ref-004")),
+            arguments(Set.of("alice", "User::\"a::b\""), List.of("ref-001", "ref-002", "ref-003", "ref-004")),
             arguments(Set.of("Agent::bob"), List.of())
         );
     }
@@ -152,9 +275,9 @@ public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends A
 
     static Stream<Arguments> resource_references() {
         return Stream.of(
-            arguments(Set.of("d1"), List.of("ref-001", "ref-002", "ref-007")),
-            arguments(Set.of("Doc::d1"), List.of("ref-001", "ref-007")),
-            arguments(Set.of("Doc::\"d1\""), List.of("ref-001", "ref-007")),
+            arguments(Set.of("d1"), List.of("ref-001", "ref-002")),
+            arguments(Set.of("Doc::d1"), List.of("ref-001")),
+            arguments(Set.of("Doc::\"d1\""), List.of("ref-001")),
             arguments(Set.of("docs::Doc::\"d1\""), List.of("ref-002")),
             arguments(Set.of("r::s"), List.of("ref-005"))
         );
@@ -171,6 +294,10 @@ public class MetricsElasticsearchRepositorySearchAuthzDecisionLogsTest extends A
 
     private AuthzDecisionLogQuery.AuthzDecisionLogQueryBuilder baseQuery() {
         return AuthzDecisionLogQuery.builder().apiIds(Set.of(API_ID)).from(FROM_MILLIS).to(TO_MILLIS).page(1).size(20);
+    }
+
+    private AuthzDecisionLogQuery.AuthzDecisionLogQueryBuilder uiqaQuery() {
+        return AuthzDecisionLogQuery.builder().apiIds(Set.of(UIQA_API_ID)).from(FROM_MILLIS).to(TO_MILLIS).page(1).size(20);
     }
 
     private AuthzDecisionLogQuery.AuthzDecisionLogQueryBuilder entityRefsQuery() {
