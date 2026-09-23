@@ -504,6 +504,7 @@ describe('ApiListTable', () => {
             // A bare object index would resolve this key on Object.prototype and render a function instead.
             ['colliding with an Object.prototype member', 'toString'],
             ['spelled as the Solace display name rather than as its map key', 'Solace'],
+            ['spelled in uppercase rather than as its lowercase map key', 'SOLACE'],
             ['near-missing the aws-api-gateway key a loosened match would absorb', 'aws-apigateway'],
         ])('shows a provider code %s verbatim', (_scenario, provider) => {
             renderTable({ apis: [makeApi({ originContext: { origin: 'INTEGRATION', provider } })] });
