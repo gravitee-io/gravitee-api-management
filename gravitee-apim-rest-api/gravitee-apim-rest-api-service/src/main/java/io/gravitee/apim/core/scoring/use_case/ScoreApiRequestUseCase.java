@@ -124,19 +124,20 @@ public class ScoreApiRequestUseCase {
     }
 
     private ScoreRequest.AssetToScore assetToScore(Page page) {
+        var assetType = ScoringAssetType.fromPageType(page.getType());
         return new ScoreRequest.AssetToScore(
             page.getId(),
-            new ScoreRequest.AssetType(ScoringAssetType.fromPageType(page.getType()), documentationFormat(page)),
+            new ScoreRequest.AssetType(assetType, documentationFormat(assetType)),
             page.getName(),
             page.getContent()
         );
     }
 
-    private static ScoreRequest.Format documentationFormat(Page page) {
-        return switch (page.getType()) {
+    private static ScoreRequest.Format documentationFormat(ScoringAssetType assetType) {
+        return switch (assetType) {
             case SWAGGER -> ScoreRequest.Format.OPENAPI;
             case ASYNCAPI -> ScoreRequest.Format.ASYNCAPI;
-            default -> null;
+            case GRAVITEE_DEFINITION -> throw new IllegalArgumentException("Unexpected value: " + assetType);
         };
     }
 

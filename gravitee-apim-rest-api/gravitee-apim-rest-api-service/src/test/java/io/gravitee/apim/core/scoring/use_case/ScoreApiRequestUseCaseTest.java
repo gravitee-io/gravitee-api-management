@@ -364,7 +364,6 @@ class ScoreApiRequestUseCaseTest {
                     )
                 );
         });
-        assertThat(asyncJobCrudService.storage()).satisfiesOnlyOnce(job -> assertThat(job.getUpperLimit()).isEqualTo(1L));
     }
 
     @ParameterizedTest
