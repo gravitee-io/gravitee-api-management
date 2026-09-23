@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { HealthCheckEndpointGroup } from './utils/healthCheckEnabled';
+import type { Timeframe } from './utils/healthTimeframe';
 import type { HealthCheckReport } from './utils/reportBuckets';
 
 export type ApiState = 'CLOSED' | 'INITIALIZED' | 'STARTED' | 'STOPPED' | 'STOPPING';
@@ -29,7 +30,6 @@ export interface ApiSearchHit {
     readonly workflowState?: ApiWorkflowState;
     readonly originContext?: { readonly origin?: string };
     readonly endpointGroups?: readonly HealthCheckEndpointGroup[];
-    readonly _links?: { readonly pictureUrl?: string };
 }
 
 export interface ApiSearchPagination {
@@ -44,9 +44,29 @@ export interface ApiSearchResponse {
     readonly pagination: ApiSearchPagination;
 }
 
+/**
+ * v1 `GET /apis/{id}/health?type=availability`, the call Classic makes.
+ *
+ * `global` carries every timeframe at once as a percentage, so switching timeframe costs no request.
+ * It is null when the API has never reported, which is how a silent API is told apart from one that is
+ * reporting 0% -- a distinction the v2 availability endpoint collapses.
+ */
 export interface ApiAvailabilityMetric {
-    readonly global?: number | null;
-    readonly group?: unknown;
+    readonly global?: Partial<Record<Timeframe, number>> | null;
+    readonly buckets?: Record<string, Partial<Record<Timeframe, number>>> | null;
+}
+
+/**
+ * v1 `GET /apis/{id}/health/average?type=AVAILABILITY&from&to&interval`, Classic's second per-row call.
+ * Classic shows the gauge only when `values[0].buckets[0].data` exists, so an API with a lifetime
+ * percentage but nothing inside the selected window still reads as "No data to display".
+ */
+export interface ApiHealthAverage {
+    readonly timestamp?: { readonly from?: number; readonly to?: number; readonly interval?: number };
+    readonly values?: ReadonlyArray<{
+        readonly buckets?: ReadonlyArray<{ readonly name?: string; readonly data?: readonly number[] }>;
+        readonly field?: string;
+    }>;
 }
 
 export interface EnvironmentHealthApi {
@@ -57,7 +77,6 @@ export interface EnvironmentHealthApi {
     readonly lifecycleState?: ApiLifecycleState;
     readonly workflowState?: ApiWorkflowState;
     readonly origin?: string;
-    readonly pictureUrl?: string;
     readonly healthcheckEnabled: boolean;
 }
 

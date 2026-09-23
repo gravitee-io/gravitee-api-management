@@ -18,8 +18,12 @@ export const environmentHealthKeys = {
     all: ['environment-health'] as const,
     search: (envId: string, query: string, page: number, perPage: number, sortBy: string | undefined, reloadToken: number) =>
         [...environmentHealthKeys.all, 'search', envId, query, page, perPage, sortBy, reloadToken] as const,
-    report: (envId: string, from: number, to: number, reloadToken: number) =>
-        [...environmentHealthKeys.all, 'report', envId, from, to, reloadToken] as const,
-    availability: (envId: string, apiId: string, from: number, to: number, reloadToken: number) =>
-        [...environmentHealthKeys.all, 'availability', envId, apiId, from, to, reloadToken] as const,
+    report: (envId: string, timeframe: string, reloadToken: number) =>
+        [...environmentHealthKeys.all, 'report', envId, timeframe, reloadToken] as const,
+    // No timeframe in the key: one v1 response carries every timeframe, so switching costs no request.
+    availability: (envId: string, apiId: string, reloadToken: number) =>
+        [...environmentHealthKeys.all, 'availability', envId, apiId, reloadToken] as const,
+    // The average is per window, so this one does move with the timeframe -- as it does in Classic.
+    availabilityAverage: (envId: string, apiId: string, timeframe: string, reloadToken: number) =>
+        [...environmentHealthKeys.all, 'availability-average', envId, apiId, timeframe, reloadToken] as const,
 } as const;
