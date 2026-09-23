@@ -20,6 +20,7 @@ import type { ReactNode } from 'react';
 
 import { useDashboardRecentApis } from './useDashboardRecentApis';
 import { searchApis } from '../../apis/services/apiList';
+import type { ApiListItem } from '../../apis/types';
 import { useFederationEnabled } from '../../license/useFederationEnabled';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -79,5 +80,28 @@ describe('useDashboardRecentApis', () => {
         expect(mockSearchApis).not.toHaveBeenCalled();
         expect(result.current.apis).toEqual([]);
         expect(result.current.isLoading).toBe(true);
+    });
+
+    it('returns the resolved rows as apis once the search succeeds', async () => {
+        mockUseFederationEnabled.mockReturnValue({ enabled: false, isResolved: true });
+        const rows = [{ id: 'api-1', name: 'Recent API' }] as unknown as ApiListItem[];
+        mockSearchApis.mockResolvedValue({ data: rows, pagination: { page: 1, perPage: 6, pageCount: 1, totalCount: 1 } });
+
+        const { result } = renderHook(() => useDashboardRecentApis(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
+        expect(result.current.apis).toEqual(rows);
+        expect(result.current.isError).toBe(false);
+    });
+
+    it('reports an error once the search rejects after the federation gate has resolved', async () => {
+        mockUseFederationEnabled.mockReturnValue({ enabled: false, isResolved: true });
+        mockSearchApis.mockRejectedValue(new Error('search failed'));
+
+        const { result } = renderHook(() => useDashboardRecentApis(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(result.current.isLoading).toBe(false);
+        expect(result.current.apis).toEqual([]);
     });
 });
