@@ -128,13 +128,17 @@ public class EventBusAuthzEnginePort implements AuthzEnginePort {
         String name,
         String policyText,
         Set<String> targetPdpIds,
-        long updatedAt
+        long updatedAt,
+        String revision
     ) {
         JsonObject command = new JsonObject()
             .put("op", OP_ADD_OR_UPDATE_POLICY)
             .put("docId", docId)
             .put("name", name)
             .put("policyText", policyText);
+        if (revision != null) {
+            command.put("revision", revision);
+        }
         return routeGated(environmentId, command, expandWildcard(environmentId, targetPdpIds), docId, updatedAt);
     }
 

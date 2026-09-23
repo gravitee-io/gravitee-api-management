@@ -172,6 +172,20 @@ class AuthzPolicyMapperTest {
         assertThat(deployable.updatedAt()).isZero();
     }
 
+    @Test
+    void toDeploy_carries_the_policy_revision_from_the_wire_updatedAt() {
+        io.gravitee.repository.management.model.Event event = event(
+            "evt-rev",
+            "{\"id\": \"doc-rev\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\", \"updatedAt\": \"2026-09-23T10:00:00Z\"}"
+        );
+        event.setUpdatedAt(new java.util.Date(1234L));
+
+        AuthzPolicyReactorDeployable deployable = mapper.toDeploy(event).blockingGet();
+
+        assertThat(deployable.revision()).isEqualTo("2026-09-23T10:00:00Z");
+        assertThat(deployable.updatedAt()).isEqualTo(1234L);
+    }
+
     private static Event event(String id, String payload) {
         Event event = new Event();
         event.setId(id);

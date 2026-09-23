@@ -34,6 +34,7 @@ public class AuthzPolicyReactorDeployable implements AuthzScopedDeployable {
 
     private String docId;
     private long updatedAt;
+    private String revision;
     private String name;
     private String policyText;
     private Kind kind;

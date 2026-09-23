@@ -45,7 +45,8 @@ public class AuthzPolicyDeployer implements Deployer<AuthzPolicyReactorDeployabl
                     deployable.name(),
                     deployable.policyText(),
                     deployable.targetPdpIds(),
-                    deployable.updatedAt()
+                    deployable.updatedAt(),
+                    deployable.revision()
                 )
             )
             .doOnComplete(() -> log.debug("Authz policy '{}' staged for next commit", deployable.docId()))
