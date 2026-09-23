@@ -18,20 +18,21 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
-import { useUpdatePlan } from './usePlans';
-import { updatePlan } from '../services/plans';
+import { usePlanStatusCounts, useUpdatePlan } from './usePlans';
+import { listPlans, updatePlan } from '../services/plans';
 import { EMPTY_GENERAL, EMPTY_RESTRICTIONS, EMPTY_SECURITY } from '../types/plan';
-import type { ManagedPlan, PlanContext, PlanFormValue } from '../types/plan';
+import type { ManagedPlan, ManagedPlanPage, PlanContext, PlanFormValue, PlanStatus } from '../types/plan';
 import { apiDetailKeys, apiPlanKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
     useEnvironment: jest.fn(),
 }));
-jest.mock('../services/plans', () => ({ updatePlan: jest.fn() }));
+jest.mock('../services/plans', () => ({ listPlans: jest.fn(), updatePlan: jest.fn() }));
 
 const mockUseEnvironment = jest.mocked(useEnvironment);
 const mockUpdatePlan = jest.mocked(updatePlan);
+const mockListPlans = jest.mocked(listPlans);
 
 const CTX: PlanContext = { type: 'api', entityId: 'api-1' };
 
@@ -101,5 +102,57 @@ describe('useUpdatePlan once the mutation settles', () => {
         } else {
             expect(invalidateQueries).not.toHaveBeenCalledWith(apiDetailInvalidation);
         }
+    });
+});
+
+function planPageWithTotal(totalCount: number): ManagedPlanPage {
+    return { data: [], pagination: { totalCount, pageIndex: 1, pageSize: 1 } };
+}
+
+function mockTotalsByStatus(totals: Partial<Record<PlanStatus, number>>) {
+    mockListPlans.mockImplementation((_envId, _ctx, statuses) => {
+        const total = totals[statuses[0]];
+        return total === undefined ? new Promise<ManagedPlanPage>(() => {}) : Promise.resolve(planPageWithTotal(total));
+    });
+}
+
+function renderPlanStatusCountsHook() {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+    return renderHook(() => usePlanStatusCounts(CTX), { wrapper });
+}
+
+describe('usePlanStatusCounts', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseEnvironment.mockReturnValue({ id: 'DEFAULT', hrids: ['DEFAULT'] });
+    });
+
+    it('reports each status count and their sum once every status has loaded', async () => {
+        mockTotalsByStatus({ STAGING: 1, PUBLISHED: 2, DEPRECATED: 3, CLOSED: 4 });
+
+        const { result } = renderPlanStatusCountsHook();
+
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
+        expect(result.current).toEqual({ staging: 1, published: 2, deprecated: 3, closed: 4, total: 10, isLoading: false });
+    });
+
+    it('reports a zero total when every status is empty', async () => {
+        mockTotalsByStatus({ STAGING: 0, PUBLISHED: 0, DEPRECATED: 0, CLOSED: 0 });
+
+        const { result } = renderPlanStatusCountsHook();
+
+        await waitFor(() => expect(result.current.isLoading).toBe(false));
+        expect(result.current.total).toBe(0);
+    });
+
+    it('stays loading and counts the unresolved status as zero while one status query is pending', async () => {
+        mockTotalsByStatus({ STAGING: 1, PUBLISHED: 2, DEPRECATED: 3 });
+
+        const { result } = renderPlanStatusCountsHook();
+
+        await waitFor(() =>
+            expect(result.current).toEqual({ staging: 1, published: 2, deprecated: 3, closed: 0, total: 6, isLoading: true }),
+        );
     });
 });
