@@ -185,11 +185,11 @@ class DictionaryController {
   deploy() {
     this.DictionaryService.deploy(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deployed');
-      this.dictionary = response.data;
-      this.initialDictionary = cloneDeep(this.dictionary);
+      const stillEditing = this.editedProperties();
+      this.initialDictionary = cloneDeep(response.data);
+      this.dictionary = { ...this.initialDictionary, ...stillEditing };
       this.dictProperties = this.computeProperties();
       this.query.total = Object.keys(this.dictionary.properties || {}).length;
-      this.propertiesDirty = false;
     });
   }
 
