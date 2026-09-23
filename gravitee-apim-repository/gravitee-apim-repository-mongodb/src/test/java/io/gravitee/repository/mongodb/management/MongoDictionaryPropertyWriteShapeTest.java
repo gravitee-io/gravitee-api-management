@@ -1,0 +1,113 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.repository.mongodb.management;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
+import io.gravitee.repository.management.AbstractManagementRepositoryTest;
+import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryType;
+import jakarta.inject.Inject;
+import java.util.HashMap;
+import java.util.Map;
+import org.bson.Document;
+import org.junit.jupiter.api.Test;
+import org.springframework.data.mongodb.core.MongoOperations;
+
+/**
+ * Guards the raw Mongo property encoding used by repository writes. Unencrypted values stay bare
+ * BSON strings for scalar equality compatibility, encrypted values carry their flag, and malformed
+ * null entries are not persisted.
+ */
+class MongoDictionaryPropertyWriteShapeTest extends AbstractManagementRepositoryTest {
+
+    @Inject
+    private MongoOperations mongoOperations;
+
+    @Override
+    protected String getTestCasesPath() {
+        return null;
+    }
+
+    @Test
+    void should_write_an_unencrypted_property_as_a_bare_string() throws Exception {
+        final Dictionary dictionary = new Dictionary();
+        dictionary.setId("dic-write-shape");
+        dictionary.setEnvironmentId("DEFAULT");
+        dictionary.setName("Write Shape Dic");
+        dictionary.setKey("dic-write-shape");
+        dictionary.setType(DictionaryType.MANUAL);
+        dictionary.setProperties(Map.of("hostname", new DictionaryProperty("api.example.com", false)));
+
+        dictionaryRepository.create(dictionary);
+
+        final Document raw = mongoOperations.getCollection("test_prefix_dictionaries").find(new Document("_id", "dic-write-shape")).first();
+
+        assertThat(raw).isNotNull();
+        final Document properties = raw.get("properties", Document.class);
+        assertThat(properties.get("hostname")).isInstanceOf(String.class).isEqualTo("api.example.com");
+    }
+
+    @Test
+    void should_write_an_encrypted_property_as_a_value_and_flag_document() throws Exception {
+        final Dictionary dictionary = new Dictionary();
+        dictionary.setId("dic-encrypted-write-shape");
+        dictionary.setEnvironmentId("DEFAULT");
+        dictionary.setName("Encrypted Write Shape Dic");
+        dictionary.setKey("dic-encrypted-write-shape");
+        dictionary.setType(DictionaryType.MANUAL);
+        dictionary.setProperties(Map.of("apiKey", new DictionaryProperty("cipher", true)));
+
+        dictionaryRepository.create(dictionary);
+
+        final Document raw = mongoOperations
+            .getCollection("test_prefix_dictionaries")
+            .find(new Document("_id", "dic-encrypted-write-shape"))
+            .first();
+
+        assertThat(raw).isNotNull();
+        final Document properties = raw.get("properties", Document.class);
+        final Document property = properties.get("apiKey", Document.class);
+        assertThat(property.getString("value")).isEqualTo("cipher");
+        assertThat(property.getBoolean("encrypted")).isTrue();
+    }
+
+    @Test
+    void should_skip_a_null_property_on_create() throws Exception {
+        final Dictionary dictionary = new Dictionary();
+        dictionary.setId("dic-null-property-create");
+        dictionary.setEnvironmentId("DEFAULT");
+        dictionary.setName("Null Property Dic");
+        dictionary.setKey("dic-null-property-create");
+        dictionary.setType(DictionaryType.MANUAL);
+        final Map<String, DictionaryProperty> properties = new HashMap<>();
+        properties.put("hostname", new DictionaryProperty("api.example.com", false));
+        properties.put("invalid", null);
+        dictionary.setProperties(properties);
+
+        dictionaryRepository.create(dictionary);
+
+        final Document raw = mongoOperations
+            .getCollection("test_prefix_dictionaries")
+            .find(new Document("_id", "dic-null-property-create"))
+            .first();
+
+        assertThat(raw).isNotNull();
+        final Document stored = raw.get("properties", Document.class);
+        assertThat(stored).containsOnlyKeys("hostname");
+    }
+}

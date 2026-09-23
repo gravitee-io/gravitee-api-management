@@ -32,8 +32,10 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -66,6 +68,29 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     @Mock
     private AuditService auditService;
+
+    @Test
+    public void should_reject_a_null_property_value() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        dictionaryInDb.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId(ENVIRONMENT_ID);
+        environment.setOrganizationId(ORGANIZATION_ID);
+        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
+
+        Map<String, String> newProperties = new HashMap<>();
+        newProperties.put("key1", null);
+
+        assertThrows(InvalidDataException.class, () -> dictionaryService.updateProperties(DICTIONARY_ID, newProperties));
+
+        verify(dictionaryRepository, never()).update(any(Dictionary.class));
+    }
 
     @Test
     public void shouldUpdatePropertiesUsingDictionaryEnvironment() throws TechnicalException {

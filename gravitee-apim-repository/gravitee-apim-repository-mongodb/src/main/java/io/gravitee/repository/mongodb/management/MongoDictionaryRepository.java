@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -22,6 +23,7 @@ import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.mongodb.management.internal.dictionary.DictionaryMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
+import io.gravitee.repository.mongodb.management.internal.model.DictionaryPropertyMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryProviderMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryTriggerMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -63,9 +65,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(page);
 
         if (res != null && res.getProperties() != null) {
-            final Map<String, String> properties = new HashMap<>(res.getProperties().size());
-            res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
-            res.setProperties(properties);
+            res.setProperties(withOriginalKeys(res.getProperties()));
         }
 
         log.debug("Find dictionary by ID [{}] - Done", id);
@@ -78,10 +78,8 @@ public class MongoDictionaryRepository implements DictionaryRepository {
 
         DictionaryMongo dictionaryMongo = mapper.map(dictionary);
 
-        if (dictionaryMongo.getProperties() != null) {
-            final Map<String, String> properties = new HashMap<>(dictionaryMongo.getProperties().size());
-            dictionaryMongo.getProperties().forEach((key, value) -> properties.put(computeMongoDBCompliantKey(key), value));
-            dictionaryMongo.setProperties(properties);
+        if (dictionary.getProperties() != null) {
+            dictionaryMongo.setProperties(toMongoProperties(dictionary.getProperties()));
         }
 
         DictionaryMongo createdDictionaryMongo = internalDictionaryRepo.insert(dictionaryMongo);
@@ -89,9 +87,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         Dictionary res = mapper.map(createdDictionaryMongo);
 
         if (res != null && res.getProperties() != null) {
-            final Map<String, String> properties = new HashMap<>(res.getProperties().size());
-            res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
-            res.setProperties(properties);
+            res.setProperties(withOriginalKeys(res.getProperties()));
         }
 
         log.debug("Create dictionary [{}] - Done", dictionary.getName());
@@ -118,9 +114,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             dictionaryMongo.setDeployedAt(dictionary.getDeployedAt());
 
             if (dictionary.getProperties() != null) {
-                final Map<String, String> properties = new HashMap<>(dictionary.getProperties().size());
-                dictionary.getProperties().forEach((key, value) -> properties.put(computeMongoDBCompliantKey(key), value));
-                dictionaryMongo.setProperties(properties);
+                dictionaryMongo.setProperties(toMongoProperties(dictionary.getProperties()));
             }
 
             if (dictionary.getState() != null) {
@@ -144,9 +138,7 @@ public class MongoDictionaryRepository implements DictionaryRepository {
             final Dictionary res = mapper.map(dictionaryMongoUpdated);
 
             if (res != null && res.getProperties() != null) {
-                final Map<String, String> properties = new HashMap<>(res.getProperties().size());
-                res.getProperties().forEach((key, value) -> properties.put(computeOriginalKey(key), value));
-                res.setProperties(properties);
+                res.setProperties(withOriginalKeys(res.getProperties()));
             }
 
             return res;
@@ -199,6 +191,22 @@ public class MongoDictionaryRepository implements DictionaryRepository {
      */
     private static String computeOriginalKey(String key) {
         return DOT_REPLACEMENT_PATTERN.matcher(key).replaceAll(DOT);
+    }
+
+    private static Map<String, DictionaryProperty> withOriginalKeys(Map<String, DictionaryProperty> properties) {
+        Map<String, DictionaryProperty> propertiesWithOriginalKeys = new HashMap<>(properties.size());
+        properties.forEach((key, value) -> propertiesWithOriginalKeys.put(computeOriginalKey(key), value));
+        return propertiesWithOriginalKeys;
+    }
+
+    private static Map<String, DictionaryPropertyMongo> toMongoProperties(Map<String, DictionaryProperty> properties) {
+        Map<String, DictionaryPropertyMongo> mongoProperties = new HashMap<>(properties.size());
+        properties.forEach((key, value) -> {
+            if (value != null) {
+                mongoProperties.put(computeMongoDBCompliantKey(key), new DictionaryPropertyMongo(value.value(), value.encrypted()));
+            }
+        });
+        return mongoProperties;
     }
 
     private DictionaryProviderMongo convert(DictionaryProvider dictionaryProvider) {

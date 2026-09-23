@@ -24,6 +24,7 @@ import io.gravitee.apim.core.dictionary.model.DictionaryProvider;
 import io.gravitee.apim.core.dictionary.model.DictionaryTrigger;
 import io.gravitee.apim.core.dictionary.model.DictionaryType;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -113,6 +114,17 @@ class ValidateDictionaryDomainServiceTest {
             assertThatThrownBy(() -> service.validate(dictionary))
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("must not have 'dynamic' properties");
+        }
+
+        @Test
+        void should_reject_when_a_property_value_is_null() {
+            var properties = new HashMap<String, String>();
+            properties.put("hostname", null);
+            var dictionary = Dictionary.builder().type(DictionaryType.MANUAL).properties(properties).build();
+
+            assertThatThrownBy(() -> service.validate(dictionary))
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("must not be null");
         }
 
         @Test

@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +36,8 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -65,6 +68,23 @@ public class DictionaryServiceImpl_CreateTest {
 
     @Mock
     private AuditService auditService;
+
+    @Test
+    public void should_reject_a_null_property_value() throws TechnicalException {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setKey("my-key");
+        newDictionary.setName("My Dictionary");
+        newDictionary.setType(DictionaryType.MANUAL);
+        Map<String, String> properties = new HashMap<>();
+        properties.put("hostname", null);
+        newDictionary.setProperties(properties);
+
+        assertThatThrownBy(() -> dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary))
+            .isInstanceOf(InvalidDataException.class)
+            .hasMessageContaining("must not be null");
+
+        verify(dictionaryRepository, never()).create(any(Dictionary.class));
+    }
 
     @Test
     public void shouldCreateWithExplicitKeyLegacy() throws TechnicalException {
