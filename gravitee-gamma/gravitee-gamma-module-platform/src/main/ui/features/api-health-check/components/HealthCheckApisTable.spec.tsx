@@ -80,6 +80,15 @@ describe('HealthCheckApisTable', () => {
         } as ReturnType<typeof useEnvironmentHealthAvailability>);
     });
 
+    it('renders no image element, so no API picture is requested per row', () => {
+        const { container } = renderTable([HC_API, NO_HC_API]);
+
+        // The search response advertises _links.pictureUrl for every API whether or not one was uploaded, so an
+        // <img> here cost a round trip per row that always came back empty and always fell through to the icon.
+        expect(container.querySelector('img')).toBeNull();
+        expect(screen.getByText('Inventory Service')).not.toBeNull();
+    });
+
     afterEach(() => jest.clearAllMocks());
 
     it('links the kebab to the API Health Check Dashboard under endpoints', async () => {
@@ -105,6 +114,21 @@ describe('HealthCheckApisTable', () => {
         renderTable([NO_HC_API]);
         expect(screen.getByText('Health check has not been configured')).not.toBeNull();
         expect(mockUseAvailability).toHaveBeenCalledWith(expect.objectContaining({ enabled: false, apiId: 'api-tunnel' }));
+    });
+
+    it('renders a reported 0% as a gauge, not as "No data to display"', () => {
+        mockUseAvailability.mockReturnValue({
+            availability: { type: 'configured', availabilityPct: 0 },
+            isLoading: false,
+            isError: false,
+        } as ReturnType<typeof useEnvironmentHealthAvailability>);
+
+        renderTable([HC_API]);
+
+        // A fully-down API has to be distinguishable from a silent one, and has to agree with the report,
+        // where 0% counts as in-error.
+        expect(screen.getByText('0%')).not.toBeNull();
+        expect(screen.queryByText('No data to display')).toBeNull();
     });
 
     it('shows no-data, failed, and configured availability states', () => {
