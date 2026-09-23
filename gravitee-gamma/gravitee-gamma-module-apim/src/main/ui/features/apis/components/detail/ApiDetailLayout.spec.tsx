@@ -635,12 +635,14 @@ describe('API review', () => {
         mockApi({ workflowState: 'IN_REVIEW' });
         renderLayout();
 
-        // Opening the sheet rerenders the layout without touching anything the host layout depends on.
+        const depsCallCountBeforeClick = mockCapturedLayoutDeps.length;
+
+        // Opening the sheet rerenders the layout without touching anything the host layout depends on. The
+        // useLayoutConfig mock skips publishing when the deps array is unchanged, so a truly stable layout
+        // leaves no new entry here — that absence is the proof, not a same-length pair of pushed arrays.
         fireEvent.click(screen.getByRole('button', { name: 'Review changes' }));
 
-        const [previous, latest] = mockCapturedLayoutDeps.slice(-2);
-        expect(latest).toHaveLength(previous.length);
-        latest.forEach((dep, index) => expect(Object.is(dep, previous[index])).toBe(true));
+        expect(mockCapturedLayoutDeps).toHaveLength(depsCallCountBeforeClick);
     });
 
     it('tells a non-reviewer the review is pending without offering a decision', () => {
