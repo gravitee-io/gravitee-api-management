@@ -202,6 +202,7 @@ describe('platform nav visibility', () => {
                 'environment-cors',
                 'security-plan-types',
                 'primary-owner-mode',
+                'api-review',
                 'api-health-check',
                 'environment-audit',
                 'access-management',
@@ -381,6 +382,14 @@ describe('platform nav visibility', () => {
         expect(isNavItemVisible('user-fields', visibility(['organization-custom_user_fields-r']))).toBe(true);
         expect(isNavItemVisible('user-fields', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
         expect(isNavItemVisible('user-fields', visibility([...ORGANIZATION_ADMIN, ...ENVIRONMENT_ADMIN]))).toBe(true);
+    });
+
+    it('gates API Review on environment-settings-r without the org settings gate', () => {
+        expect(requiresOrganizationSettingsGate('api-review')).toBe(false);
+        expect(pageGuardForNavItem('api-review')).toEqual({ anyOf: ['environment-settings-r'] });
+        expect(isNavItemVisible('api-review', visibility(['environment-settings-r']))).toBe(true);
+        expect(isNavItemVisible('api-review', visibility(['environment-quality_rule-r']))).toBe(false);
+        expect(isNavItemVisible('api-review', visibility([...ORGANIZATION_USER, ...ENVIRONMENT_USER]))).toBe(false);
     });
 
     it('gates Broadcasts on environment-message-c without the org settings gate', () => {

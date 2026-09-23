@@ -32,9 +32,11 @@ import { ProxyFlowVisualization } from './ProxyFlowVisualization';
 import type { StepConfig } from './StepProgress';
 import { StepProgress } from './StepProgress';
 import { notify } from '../../../../shared/notify';
+import { useApiReviewEnabled } from '../../hooks/useApiReviewEnabled';
 import { useCreateApiProxy } from '../../hooks/useCreateApiProxy';
 import { useApiCreation } from '../../store/apiCreationStore';
 import type { ApiProxyDraft, ValidationErrors } from '../../types/apiCreation';
+import { creationButtonLabel, resolveCreationOutcome } from '../../utils/apiCreationOutcome';
 import { validateDetails, validateEntrypoints, validateEssentials, validateSecurity } from '../../utils/apiCreationValidation';
 import { DetailsStep } from '../steps/DetailsStep';
 import { EntrypointsStep } from '../steps/EntrypointsStep';
@@ -88,6 +90,8 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     const navigate = useNavigate();
     const { state, dispatch } = useApiCreation();
     const { mutate, isPending, error: createError, isSuccess, data } = useCreateApiProxy();
+    const { enabled: apiReviewEnabled } = useApiReviewEnabled();
+    const outcome = resolveCreationOutcome(state.form, apiReviewEnabled);
 
     const steps = mode === 'scratch' ? SCRATCH_STEPS : TEMPLATE_STEPS;
     const contentMap = mode === 'scratch' ? SCRATCH_CONTENT : TEMPLATE_CONTENT;
@@ -127,7 +131,7 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     }
 
     function handleCreate() {
-        mutate(state.form);
+        mutate({ ...state.form, ...outcome });
     }
 
     const hasErrors = Object.keys(state.validationErrors).length > 0;
@@ -172,7 +176,7 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
                         ) : (
                             <RocketIcon className="size-4" aria-hidden />
                         )}
-                        {state.form.deployImmediately ? 'Create & Deploy' : 'Create API'}
+                        {creationButtonLabel(outcome)}
                     </Button>
                 ) : (
                     <Button onClick={handleNext} disabled={isBusy || hasErrors}>

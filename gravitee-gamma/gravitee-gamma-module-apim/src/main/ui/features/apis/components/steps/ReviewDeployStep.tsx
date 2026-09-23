@@ -19,6 +19,7 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 
 import { SecurityPlanFields } from './SecurityPlanFields';
+import { useApiReviewEnabled } from '../../hooks/useApiReviewEnabled';
 import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useApiCreation } from '../../store/apiCreationStore';
 import { buildPlanName, buildPreviewGatewayUrl, buildPreviewUpstream } from '../../utils/apiProxyMapper';
@@ -57,6 +58,7 @@ export function ReviewDeployStep() {
     const { state, dispatch } = useApiCreation();
     const { form, creationMode } = state;
     const isTemplate = creationMode === 'template';
+    const { enabled: apiReviewEnabled } = useApiReviewEnabled();
 
     const [customizeSecurity, setCustomizeSecurity] = useState(false);
 
@@ -168,23 +170,43 @@ export function ReviewDeployStep() {
                     )}
                 </div>
 
-                {/* Deploy toggle */}
-                <div className="flex items-center gap-4 rounded-xl border p-4">
-                    <div className="rounded-lg bg-primary/10 p-2 shrink-0">
-                        <RocketIcon className="size-5 text-primary" aria-hidden />
+                {/* Outcome toggle: with API Review on the API cannot start until reviewed, so asking replaces deploying */}
+                {apiReviewEnabled ? (
+                    <div className="flex items-center gap-4 rounded-xl border p-4">
+                        <div className="rounded-lg bg-primary/10 p-2 shrink-0">
+                            <RocketIcon className="size-5 text-primary" aria-hidden />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold">Ask for a review</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                API Review is enabled for this environment. The API is saved as a draft and a reviewer must accept it before
+                                it can be started.
+                            </p>
+                        </div>
+                        <Switch
+                            checked={form.askForReview}
+                            onCheckedChange={v => update({ askForReview: v })}
+                            aria-label="Ask for a review"
+                        />
                     </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold">Deploy and start API immediately</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                            The API will be live on the gateway as soon as it is created. Disable to save as a draft first.
-                        </p>
+                ) : (
+                    <div className="flex items-center gap-4 rounded-xl border p-4">
+                        <div className="rounded-lg bg-primary/10 p-2 shrink-0">
+                            <RocketIcon className="size-5 text-primary" aria-hidden />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold">Deploy and start API immediately</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                                The API will be live on the gateway as soon as it is created. Disable to save as a draft first.
+                            </p>
+                        </div>
+                        <Switch
+                            checked={form.deployImmediately}
+                            onCheckedChange={v => update({ deployImmediately: v })}
+                            aria-label="Deploy immediately"
+                        />
                     </div>
-                    <Switch
-                        checked={form.deployImmediately}
-                        onCheckedChange={v => update({ deployImmediately: v })}
-                        aria-label="Deploy immediately"
-                    />
-                </div>
+                )}
             </div>
         </div>
     );

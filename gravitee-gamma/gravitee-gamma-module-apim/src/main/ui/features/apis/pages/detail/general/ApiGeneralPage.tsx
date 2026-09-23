@@ -47,11 +47,14 @@ import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiGeneralMutations } from '../../../hooks/useApiGeneralMutations';
+import { useApiReviewEnabled } from '../../../hooks/useApiReviewEnabled';
+import { useAskForReviewDialog } from '../../../hooks/useAskForReviewDialog';
 import { useEnvCategories } from '../../../hooks/useEnvCategories';
 import { exportApiCrd, exportApiDefinition } from '../../../services/apis';
 import type { ApiDetailDto } from '../../../types';
 import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntryMode } from '../../../utils/apiGeneralDuplicate';
 import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
+import { canAskForReview, isReviewClearedForLifecycle } from '../../../utils/apiReview';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -115,6 +118,12 @@ export function ApiGeneralPage() {
 
     // Delete is blocked while the API is running or published (matches legacy canDelete logic).
     const cannotDelete = api?.state === 'STARTED' || api?.lifecycleState === 'PUBLISHED';
+
+    // With API Review on, start/stop waits for a reviewer; the author asks for that review from here.
+    const { enabled: apiReviewEnabled } = useApiReviewEnabled();
+    const reviewClearsLifecycle = isReviewClearedForLifecycle(apiReviewEnabled, api?.workflowState);
+    const showAskForReview = canEditDefinition && canAskForReview(apiReviewEnabled, api?.workflowState);
+    const askForReview = useAskForReviewDialog(apiId);
 
     const { data: envCategories = [], isLoading: categoriesLoading } = useEnvCategories();
 
@@ -618,7 +627,30 @@ export function ApiGeneralPage() {
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                {canEditDefinition && (
+                                {showAskForReview && (
+                                    <button
+                                        type="button"
+                                        className={cn(
+                                            'flex items-center gap-3 rounded-lg border p-4 text-left transition-colors',
+                                            isReadOnly || askForReview.isPending
+                                                ? 'cursor-not-allowed opacity-50'
+                                                : 'cursor-pointer hover:bg-muted/50',
+                                        )}
+                                        onClick={askForReview.openDialog}
+                                        disabled={isReadOnly || askForReview.isPending}
+                                    >
+                                        <div className="shrink-0 rounded-lg p-2 bg-primary/10">
+                                            <EyeIcon className="size-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium">Ask for a review</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Ask for a review before you can publish or start this API.
+                                            </p>
+                                        </div>
+                                    </button>
+                                )}
+                                {canEditDefinition && reviewClearsLifecycle && (
                                     <button
                                         type="button"
                                         className={cn(
@@ -685,6 +717,7 @@ export function ApiGeneralPage() {
             )}
 
             {/* ── Action sheets & dialogs ─────────────────────────────────── */}
+            <ConfirmDialog {...askForReview.dialogProps} icon={<EyeIcon className="size-4" />} />
             <ExportApi
                 open={exportOpen}
                 onOpenChange={open => {

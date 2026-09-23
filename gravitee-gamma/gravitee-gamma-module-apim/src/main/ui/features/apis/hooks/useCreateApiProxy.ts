@@ -18,6 +18,7 @@ import { useMutation } from '@tanstack/react-query';
 
 import { ApimApiError } from '../../../shared/api/apimClient';
 import { createApiPlan, createApiProxy, publishApiPlan, startApiProxy } from '../services/apiProxy';
+import { askApiReview } from '../services/apiReview';
 import { updateApiResources } from '../services/resources';
 import type { ApiProxyCreated } from '../types';
 import type { ApiProxyDraft } from '../types/apiCreation';
@@ -71,7 +72,13 @@ export function useCreateApiProxy() {
                 `API "${created.name}" was created but the plan could not be published. Open the API to publish the plan.`,
             );
 
-            if (form.deployImmediately) {
+            // With API Review on, the API cannot start until a reviewer accepts it, so asking replaces deploying.
+            if (form.askForReview) {
+                await failWith(
+                    askApiReview(environmentId, created.id),
+                    `API "${created.name}" was created but the review could not be requested. Ask for a review from the API General page.`,
+                );
+            } else if (form.deployImmediately) {
                 await failWith(
                     startApiProxy(environmentId, created.id),
                     `API "${created.name}" was created successfully but could not be started. Start it from the API detail page.`,
