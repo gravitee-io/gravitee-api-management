@@ -36,6 +36,7 @@ const DEFAULT_PROPS = {
     isLoading: false,
     isFetching: false,
     search: '',
+    debouncedSearch: '',
     page: 1,
     perPage: 10,
     onSearchChange: jest.fn(),
@@ -89,5 +90,14 @@ describe('ApisListView', () => {
         renderView({ canCreate: true, onCreateProxy });
         fireEvent.click(screen.getByRole('button', { name: /Create New Proxy/i }));
         expect(onCreateProxy).toHaveBeenCalled();
+    });
+
+    it.each([
+        { name: 'forwards a non-empty debounced search as-is', search: 'orders', debouncedSearch: 'orders', expected: 'orders' },
+        { name: 'forwards an empty debounced search as undefined', search: '', debouncedSearch: '', expected: undefined },
+        { name: 'uses the debounced search rather than the live search', search: 'ord', debouncedSearch: 'orders', expected: 'orders' },
+    ])('$name to the stats query', ({ search, debouncedSearch, expected }) => {
+        renderView({ search, debouncedSearch });
+        expect(mockUseApiStats).toHaveBeenCalledWith(expected);
     });
 });
