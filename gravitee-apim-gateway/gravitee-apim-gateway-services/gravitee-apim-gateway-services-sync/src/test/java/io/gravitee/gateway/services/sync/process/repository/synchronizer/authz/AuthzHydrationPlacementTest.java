@@ -307,7 +307,8 @@ class AuthzHydrationPlacementTest {
             String name,
             String policyText,
             Set<String> targetPdpIds,
-            long updatedAt
+            long updatedAt,
+            String revision
         ) {
             ops.add("addOrUpdatePolicy:" + docId);
             return Completable.complete();

@@ -152,6 +152,23 @@ class AuthzPolicyDeployerTest {
     }
 
     @Test
+    void deploy_passes_the_policy_revision_to_the_pdp() {
+        AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
+            .docId("doc-revised")
+            .name("revised")
+            .kind(AuthzPolicyReactorDeployable.Kind.GLOBAL)
+            .policyText("permit(p,a,r);")
+            .revision("2026-09-23T10:00:00Z")
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        deployer.deploy(d).blockingAwait();
+
+        assertThat(port.policyOps).hasSize(1);
+        assertThat(port.policyOps.peek().revision()).isEqualTo("2026-09-23T10:00:00Z");
+    }
+
+    @Test
     void deploy_evicts_dropped_scopes_before_re_staging_targets() {
         AuthzPolicyReactorDeployable d = AuthzPolicyReactorDeployable.builder()
             .docId("doc-rt")
@@ -222,7 +239,7 @@ class AuthzPolicyDeployerTest {
 
     private static class RecordingPort implements AuthzEnginePort {
 
-        record PolicyOp(String op, String docId, String name, String policyText, Set<String> targetPdpIds) {}
+        record PolicyOp(String op, String docId, String name, String policyText, Set<String> targetPdpIds, String revision) {}
 
         final ConcurrentLinkedQueue<PolicyOp> policyOps = new ConcurrentLinkedQueue<>();
 
@@ -250,15 +267,16 @@ class AuthzPolicyDeployerTest {
             String name,
             String policyText,
             Set<String> targetPdpIds,
-            long updatedAt
+            long updatedAt,
+            String revision
         ) {
-            policyOps.add(new PolicyOp("addOrUpdatePolicy", docId, name, policyText, targetPdpIds));
+            policyOps.add(new PolicyOp("addOrUpdatePolicy", docId, name, policyText, targetPdpIds, revision));
             return Completable.complete();
         }
 
         @Override
         public Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds) {
-            policyOps.add(new PolicyOp("removePolicy", docId, null, null, targetPdpIds));
+            policyOps.add(new PolicyOp("removePolicy", docId, null, null, targetPdpIds, null));
             return Completable.complete();
         }
 

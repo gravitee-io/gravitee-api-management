@@ -62,6 +62,7 @@ public class AuthzPolicyMapper {
                     .environmentId(wire.getEnvironmentId())
                     .targetPdpIds(AuthzWire.targetPdpIdsOrEmpty(wire.getTargetPdpIds()))
                     .updatedAt(event.getUpdatedAt() != null ? event.getUpdatedAt().getTime() : 0L)
+                    .revision(wire.getUpdatedAt())
                     .syncAction(SyncAction.DEPLOY)
                     .build();
             } catch (Exception e) {

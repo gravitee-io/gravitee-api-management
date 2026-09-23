@@ -165,7 +165,8 @@ class AuthzSchemaDeployerTest {
             String name,
             String policyText,
             Set<String> targetPdpIds,
-            long updatedAt
+            long updatedAt,
+            String revision
         ) {
             otherOps.add("addOrUpdatePolicy");
             return Completable.complete();

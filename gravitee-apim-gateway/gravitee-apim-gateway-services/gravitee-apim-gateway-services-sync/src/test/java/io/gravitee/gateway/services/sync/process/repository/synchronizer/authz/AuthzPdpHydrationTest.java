@@ -88,7 +88,9 @@ class AuthzPdpHydrationTest {
         lenient().when(fetcher.bulkItems()).thenReturn(10);
         lenient().when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.empty());
         lenient().when(gatewayConfiguration.shardingTags()).thenReturn(java.util.Optional.of(java.util.List.of()));
-        lenient().when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
+        lenient()
+            .when(enginePort.addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any()))
+            .thenReturn(Completable.complete());
         lenient().when(enginePort.addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
         lenient().when(enginePort.addOrUpdateSchema(any(), any(), any(), any(), any(), anyLong())).thenReturn(Completable.complete());
         lenient().when(enginePort.commit()).thenReturn(Completable.complete());
@@ -180,9 +182,9 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-1")), anyLong());
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-2"), any(), any(), eq(Set.of("scope-1")), anyLong());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-3"), any(), any(), any(), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-1")), anyLong(), any());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-2"), any(), any(), eq(Set.of("scope-1")), anyLong(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-3"), any(), any(), any(), anyLong(), any());
         verify(enginePort).addOrUpdateEntity(eq("env-pdp"), any(), any(), any(), eq(Set.of("scope-1")), anyLong());
         verify(enginePort, times(1)).commitScope("env-pdp", "scope-1");
     }
@@ -205,11 +207,11 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-x"), any(), any(), eq(Set.of("scope-x")), anyLong());
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-x")), anyLong());
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-multi"), any(), any(), eq(Set.of("scope-x")), anyLong());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-other"), any(), any(), any(), anyLong());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), eq(Set.of("scope-other")), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-x"), any(), any(), eq(Set.of("scope-x")), anyLong(), any());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-w"), any(), any(), eq(Set.of("scope-x")), anyLong(), any());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-multi"), any(), any(), eq(Set.of("scope-x")), anyLong(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-other"), any(), any(), any(), anyLong(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), eq(Set.of("scope-other")), anyLong(), any());
     }
 
     @Test
@@ -229,9 +231,9 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-pdp", "env-other")).test().await().assertComplete();
 
-        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-own"), any(), any(), eq(Set.of("scope-shared")), anyLong());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign"), any(), any(), any(), anyLong());
-        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign-w"), any(), any(), any(), anyLong());
+        verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-own"), any(), any(), eq(Set.of("scope-shared")), anyLong(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign"), any(), any(), any(), anyLong(), any());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), eq("pol-foreign-w"), any(), any(), any(), anyLong(), any());
     }
 
     @Test
@@ -263,7 +265,7 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(-1L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any());
         verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong());
         // the scope must still seal generation 0 so it does not stay cold forever (once per synchronizer)
         verify(enginePort, times(1)).commitScope("env-pdp", "scope-empty");
@@ -278,7 +280,7 @@ class AuthzPdpHydrationTest {
 
         synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
 
-        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong());
+        verify(enginePort, never()).addOrUpdatePolicy(any(), any(), any(), any(), any(), anyLong(), any());
         verify(enginePort, never()).addOrUpdateEntity(any(), any(), any(), any(), any(), anyLong());
         verify(enginePort, never()).commitScope(any(), any());
     }
@@ -354,7 +356,7 @@ class AuthzPdpHydrationTest {
         // type the schema declares would otherwise be staged against an engine that has no schema yet.
         InOrder inOrder = inOrder(enginePort);
         inOrder.verify(enginePort).addOrUpdateSchema(eq("env-pdp"), eq("sch-1"), any(), any(), eq(Set.of("scope-1")), anyLong());
-        inOrder.verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-1")), anyLong());
+        inOrder.verify(enginePort).addOrUpdatePolicy(eq("env-pdp"), eq("pol-1"), any(), any(), eq(Set.of("scope-1")), anyLong(), any());
     }
 
     private static Event schemaEvent(String docId, String targetPdpId) {

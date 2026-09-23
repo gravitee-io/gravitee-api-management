@@ -38,7 +38,8 @@ public interface AuthzEnginePort {
         String name,
         String policyText,
         Set<String> targetPdpIds,
-        long updatedAt
+        long updatedAt,
+        String revision
     );
 
     Completable removePolicy(String environmentId, String docId, Set<String> targetPdpIds);

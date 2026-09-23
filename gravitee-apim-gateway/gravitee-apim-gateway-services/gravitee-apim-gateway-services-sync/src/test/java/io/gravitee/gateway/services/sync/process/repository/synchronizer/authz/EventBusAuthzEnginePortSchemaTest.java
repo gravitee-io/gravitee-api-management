@@ -194,7 +194,7 @@ class EventBusAuthzEnginePortSchemaTest {
         recordAndReplyOn(DEFAULT_ADDRESS);
 
         new EventBusAuthzEnginePort(vertx, hosted, new AuthzAppliedRevisions())
-            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L)
+            .addOrUpdatePolicy("env-1", "p1", "n", "permit(principal, action, resource);", Set.of("*"), 1L, null)
             .blockingAwait();
 
         assertThat(hits).contains(DEFAULT_ADDRESS);

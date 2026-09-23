@@ -280,6 +280,23 @@ class AuthzPolicySynchronizerTest {
     }
 
     @Test
+    void incremental_carries_the_policy_revision_to_the_deployer() throws InterruptedException {
+        Event publish = event(
+            "evt-rev",
+            EventType.PUBLISH_AUTHZ_POLICY,
+            "{\"id\": \"doc-rev\", \"name\": \"n\", \"kind\": \"GLOBAL\", \"policyText\": \"permit(p,a,r);\", \"updatedAt\": \"2026-09-23T10:00:00Z\"}"
+        );
+        when(fetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(publish)));
+
+        synchronizer.synchronize(123L, Instant.now().toEpochMilli(), Set.of("env-1")).test().await().assertComplete();
+
+        ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
+        verify(deployer).deploy(captor.capture());
+        assertThat(captor.getValue().revision()).isEqualTo("2026-09-23T10:00:00Z");
+        verify(port).commit();
+    }
+
+    @Test
     void retarget_evicts_dropped_scope_via_placement() throws InterruptedException {
         ArgumentCaptor<AuthzPolicyReactorDeployable> captor = ArgumentCaptor.forClass(AuthzPolicyReactorDeployable.class);
 
