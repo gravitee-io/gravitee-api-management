@@ -68,6 +68,16 @@ describe('searchApis', () => {
         expect(url.searchParams.get('sortBy')).toBe('name');
     });
 
+    it('omits sortBy and still expands deploymentState when no sort is given', async () => {
+        const tracker = trackHandler('post', SEARCH_PATH, EMPTY_RESPONSE);
+
+        await searchApis('DEFAULT', {}, 1, 10);
+
+        const url = new URL(tracker.lastCall!.url);
+        expect(url.searchParams.has('sortBy')).toBe(false);
+        expect(url.searchParams.get('expands')).toBe('deploymentState');
+    });
+
     it.each(['status', '-status', 'paths', '-paths', 'tags_asc', '-tags_desc'])(
         'sends sortBy=%s verbatim while the federation gate widens the type filter',
         async sortBy => {
