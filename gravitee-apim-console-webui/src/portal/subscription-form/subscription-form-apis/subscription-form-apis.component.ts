@@ -32,6 +32,11 @@ import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 export interface MappedApi {
   id: string;
   name: string;
+  /**
+   * The search does not return this API: it is outside the current user's API scope, or not indexed yet.
+   * It stays mapped — a deleted API is unmapped by the backend, never from here.
+   */
+  unlisted?: boolean;
 }
 
 /**

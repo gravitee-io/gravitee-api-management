@@ -37,7 +37,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
-import { Api, SubscriptionForm } from '../../entities/management-api-v2';
+import { SubscriptionForm } from '../../entities/management-api-v2';
 import { SubscriptionFormService } from '../../services-ngx/subscription-form.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -407,12 +407,23 @@ export class SubscriptionFormComponent implements HasUnsavedChanges {
     this.apiService
       .search({ ids: apiIds }, undefined, 1, apiIds.length, false)
       .pipe(
-        catchError(() => of({ data: [] as Api[] })),
+        // A failed lookup leaves the ids as they are: it does not say the APIs are gone.
+        catchError(() => of(null)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(response => {
+        if (response === null) return;
         const names = new Map((response.data ?? []).map(api => [api.id, api.name]));
-        this.selectedApis.update(apis => apis.map(api => ({ id: api.id, name: names.get(api.id) ?? api.name })));
+        // Only the ids this lookup asked about can be judged: anything mapped since is left alone.
+        const lookedUp = new Set(apiIds);
+        this.selectedApis.update(apis =>
+          apis.map(api => {
+            const name = names.get(api.id);
+            if (name !== undefined) return { id: api.id, name };
+            // The search only returns the APIs the user can see: an id it leaves out is not a deleted API.
+            return lookedUp.has(api.id) ? { id: api.id, name: api.name, unlisted: true } : api;
+          }),
+        );
       });
   }
 

@@ -117,6 +117,24 @@ describe('AssignApisDialogComponent', () => {
     expect(await (await checkbox('api-weather')).isDisabled()).toBe(false);
   });
 
+  it('should say that mapped APIs are not listed and keep them mapped on apply', async () => {
+    const unlisted = { id: 'api-private', name: 'api-private', unlisted: true };
+    await init({ selectedApis: [{ id: 'api-weather', name: 'Weather API' }, unlisted] });
+
+    const banner = fixture.debugElement.query(By.css('[data-testid=unlisted-apis-banner]'));
+    expect(banner.nativeElement.textContent).toContain('1 mapped API is not listed');
+
+    await (await button('assign-apis-apply-button')).click();
+
+    expect(dialogRefClose).toHaveBeenCalledWith([{ id: 'api-weather', name: 'Weather API' }, unlisted]);
+  });
+
+  it('should not show the unlisted APIs banner when every mapped API is listed', async () => {
+    await init({ selectedApis: [{ id: 'api-weather', name: 'Weather API' }] });
+
+    expect(fixture.debugElement.query(By.css('[data-testid=unlisted-apis-banner]'))).toBeNull();
+  });
+
   it('should only offer to close the dialog without the update permission', async () => {
     await init({ selectedApis: [{ id: 'api-weather', name: 'Weather API' }], canUpdate: false });
 
