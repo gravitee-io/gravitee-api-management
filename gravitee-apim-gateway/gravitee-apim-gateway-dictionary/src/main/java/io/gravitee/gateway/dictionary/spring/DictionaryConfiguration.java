@@ -15,8 +15,10 @@
  */
 package io.gravitee.gateway.dictionary.spring;
 
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.gateway.dictionary.DictionaryManager;
 import io.gravitee.gateway.dictionary.MultiEnvironmentDictionaryManager;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,8 +29,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class DictionaryConfiguration {
 
+    /**
+     * The Management API encrypts dictionary values with {@code api.properties.encryption.secret}, so the
+     * gateway decrypts them with the bean that carries that same secret.
+     */
     @Bean
-    public DictionaryManager dictionaryManager() {
-        return new MultiEnvironmentDictionaryManager();
+    public DictionaryManager dictionaryManager(@Qualifier("apiPropertiesEncryptor") DataEncryptor dataEncryptor) {
+        return new MultiEnvironmentDictionaryManager(dataEncryptor);
     }
 }
