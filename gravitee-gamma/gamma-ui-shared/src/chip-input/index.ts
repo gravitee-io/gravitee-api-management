@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { ChipInputField as ChipInput, type ChipInputFieldProps as ChipInputProps } from '@gravitee/gamma-ui-shared/chip-input';
+export { ChipInputField, type ChipInputFieldProps } from './ChipInputField';

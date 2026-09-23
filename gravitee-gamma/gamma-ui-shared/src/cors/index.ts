@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { ChipInputField as ChipInput, type ChipInputFieldProps as ChipInputProps } from '@gravitee/gamma-ui-shared/chip-input';
+export { CORS_DEFAULT_HTTP_HEADERS, CORS_HTTP_METHODS, type CorsHttpMethod } from './corsConstants';

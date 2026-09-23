@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Separator, Switch } fr
 
 import { SystemReadonlyHint } from '../../organization-settings/components/SystemReadonlyHint';
 import type { ApiLoggingFieldReadonly } from '../utils/apiLoggingFormState';
-import type { ApiLoggingFieldErrors, ApiLoggingFormState } from '../utils/apiLoggingValidators';
+import { type ApiLoggingFieldErrors, type ApiLoggingFormState } from '../utils/apiLoggingValidators';
 
 function ToggleRow({
     id,
