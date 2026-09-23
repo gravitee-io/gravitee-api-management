@@ -22,6 +22,16 @@
     API consumers cannot subscribe to an API with a subscription form from the Classic Portal.
   </gio-banner-info>
 
+  @if (unlistedApiCount() > 0) {
+    <gio-banner-info data-testid="unlisted-apis-banner">
+      {{ unlistedApiCount() }} mapped API{{ severalUnlistedApis() ? 's are' : ' is' }} not listed
+      <span gioBannerBody>
+        The API search does not return {{ severalUnlistedApis() ? 'them' : 'it' }} (outside your API scope, or not indexed yet).
+        {{ severalUnlistedApis() ? 'They stay' : 'It stays' }} mapped to this form.
+      </span>
+    </gio-banner-info>
+  }
+
   <subscription-form-apis
     [selectedApis]="draft()"
     [mappedElsewhere]="data.mappedElsewhere"

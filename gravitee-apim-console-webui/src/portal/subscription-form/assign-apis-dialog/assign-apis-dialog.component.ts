@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
@@ -45,6 +45,13 @@ export class AssignApisDialogComponent {
   protected readonly data = inject<AssignApisDialogData>(MAT_DIALOG_DATA);
 
   protected readonly draft = signal<MappedApi[]>(this.data.selectedApis);
+
+  /**
+   * Mapped APIs the table cannot show, the search leaving them out. The draft keeps them, so applying never unmaps
+   * them: the dialog only says they are there.
+   */
+  protected readonly unlistedApiCount = computed(() => this.draft().filter(api => api.unlisted).length);
+  protected readonly severalUnlistedApis = computed(() => this.unlistedApiCount() > 1);
 
   protected toggle(api: MappedApi): void {
     this.draft.update(apis =>

@@ -767,6 +767,56 @@ describe('SubscriptionFormComponent', () => {
       expect(await assignButton.isDisabled()).toBe(false);
     });
 
+    it('should keep a mapped API the user cannot see when the mapping is changed and saved', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({
+        id: 'form-a',
+        name: 'Form A',
+        gmdContent: 'Content',
+        apiIds: ['api-weather', 'api-private'],
+      });
+      expectList([form]);
+      expectGet(form);
+      // The search only returns the APIs the user can see: 'api-private' exists but is left out.
+      expectApiSearches([weather, payments]);
+
+      await openAssignApis();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(await dialog.getContentText()).toContain('1 mapped API is not listed');
+
+      await (await checkbox('api-payments')).check();
+      await clickInDialog('assign-apis-apply-button');
+
+      await (await harnessLoader.getHarness(MatButtonHarness.with({ selector: '[data-testid=subscription-form-save-button]' }))).click();
+
+      const updateReq = httpTestingController.expectOne({ method: 'PUT', url: `${baseUrl}/form-a` });
+      expect(updateReq.request.body).toEqual({
+        name: 'Form A',
+        gmdContent: 'Content',
+        apiIds: ['api-weather', 'api-private', 'api-payments'],
+      });
+      const updated = { ...form, apiIds: ['api-weather', 'api-private', 'api-payments'] };
+      updateReq.flush(updated);
+      expectList([updated]);
+    });
+
+    it('should not report the mapped APIs as not listed when their lookup fails', async () => {
+      await init(true);
+      const form = fakeSubscriptionForm({ id: 'form-a', apiIds: ['api-weather'] });
+      expectList([form]);
+      expectGet(form);
+      httpTestingController
+        .match(request => request.method === 'POST' && request.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`)
+        .forEach(req => req.flush({ message: 'Internal error' }, { status: 500, statusText: 'Internal Server Error' }));
+      fixture.detectChanges();
+
+      await openAssignApis();
+
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
+      expect(await dialog.getContentText()).not.toContain('not listed');
+    });
+
     it('should not let an API be mapped when another form already has it', async () => {
       await init(true);
       const form = fakeSubscriptionForm({ id: 'form-a', name: 'Form A', apiIds: [] });
