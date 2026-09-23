@@ -149,18 +149,15 @@ class DictionaryController {
 
   update() {
     if (!this.updateMode) {
-      this.DictionaryService.create(this.dictionary).then((response: any) => {
+      return this.DictionaryService.create(this.dictionary).then((response: any) => {
         this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been created');
         this.ngRouter.navigate(['../', response.data.id], { relativeTo: this.activatedRoute });
       });
-    } else {
-      this.DictionaryService.update(this.dictionary).then(response => {
-        this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been updated');
-        this.dictionary = response.data;
-        this.dictProperties = this.computeProperties();
-        this.propertiesDirty = false;
-      });
     }
+    return this.saveDictionary(
+      server => ({ ...server, ...this.editedGeneral() }),
+      () => this.editedProperties(),
+    ).then(() => this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been updated'));
   }
 
   delete() {
@@ -189,7 +186,9 @@ class DictionaryController {
     this.DictionaryService.deploy(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deployed');
       this.dictionary = response.data;
+      this.initialDictionary = cloneDeep(this.dictionary);
       this.dictProperties = this.computeProperties();
+      this.query.total = Object.keys(this.dictionary.properties || {}).length;
       this.propertiesDirty = false;
     });
   }
@@ -294,12 +293,41 @@ class DictionaryController {
   }
 
   saveProperties() {
-    this.DictionaryService.update(this.dictionary).then(response => {
-      this.NotificationService.show('Properties has been updated');
-      this.dictionary = response.data;
-      this.dictProperties = this.computeProperties();
+    return this.saveDictionary(
+      server => ({ ...server, ...this.editedProperties() }),
+      () => this.editedGeneral(),
+    ).then(() => {
       this.propertiesDirty = false;
+      this.NotificationService.show('Properties has been updated');
     });
+  }
+
+  private editedGeneral() {
+    return {
+      name: this.dictionary.name,
+      description: this.dictionary.description,
+      provider: this.dictionary.provider,
+      trigger: this.dictionary.trigger,
+    };
+  }
+
+  private editedProperties() {
+    return this.dictionary.type === 'MANUAL'
+      ? { properties: this.dictionary.properties, propertyOptions: this.dictionary.propertyOptions }
+      : { propertyOptions: this.dictionary.propertyOptions };
+  }
+
+  // No properties-only endpoint exists, so a form writes its own section onto a fresh read.
+  private saveDictionary(change, keepEditing) {
+    return this.DictionaryService.get(this.dictionary.id).then(response =>
+      this.DictionaryService.update(change(response.data)).then(saved => {
+        const stillEditing = keepEditing();
+        this.initialDictionary = cloneDeep(saved.data);
+        this.dictionary = { ...this.initialDictionary, ...stillEditing };
+        this.dictProperties = this.computeProperties();
+        this.query.total = Object.keys(this.dictionary.properties || {}).length;
+      }),
+    );
   }
 
   toggleSelectAll(selectAll) {
