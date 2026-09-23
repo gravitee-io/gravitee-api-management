@@ -56,13 +56,8 @@ const removeDuplicate = (path: string, index: number, arr: string[]) => arr.inde
  * by, so `git tag -l` would answer with a list of one — and "nothing higher has been released" would
  * be true of every release.
  */
-export const remoteTags = async (): Promise<string[]> => {
-  const stdout = await run('git', ['ls-remote', '--tags', '--refs', 'origin']);
-  return stdout
-    .split('\n')
-    .map((line) => line.split('refs/tags/')[1]?.trim())
-    .filter((tag): tag is string => !!tag);
-};
+export const remoteTags = async (): Promise<string[]> =>
+  refsUnder(await run('git', ['ls-remote', '--tags', '--refs', 'origin']), 'refs/tags/');
 
 /**
  * The support branches the remote carries, as `<major>.<minor>.x`.
@@ -70,13 +65,24 @@ export const remoteTags = async (): Promise<string[]> => {
  * Asked of the remote for the same reason as the tags above: a CI checkout holds the one branch it
  * was started on, so a local listing would answer that no line has been cut yet.
  */
-export const remoteSupportBranches = async (): Promise<string[]> => {
-  const stdout = await run('git', ['ls-remote', '--heads', 'origin', '*.x']);
-  return stdout
+export const remoteSupportBranches = async (): Promise<string[]> =>
+  refsUnder(await run('git', ['ls-remote', '--heads', 'origin', '*.x']), 'refs/heads/').filter((branch) => SUPPORT_BRANCH.test(branch));
+
+/** `<major>.<minor>.x`, the shape of a support branch. */
+const SUPPORT_BRANCH = /^\d+\.\d+\.x$/;
+
+/**
+ * The ref names of one `git ls-remote` output, under `prefix`.
+ *
+ * Each line is `<sha>\t<ref>`, and a ref that does not sit under the prefix is dropped rather than
+ * half-read: the callers ask which versions exist, and a line they cannot name is a line they must
+ * not count.
+ */
+export const refsUnder = (stdout: string, prefix: string): string[] =>
+  stdout
     .split('\n')
-    .map((line) => line.split('refs/heads/')[1]?.trim())
-    .filter((branch): branch is string => !!branch && /^\d+\.\d+\.x$/.test(branch));
-};
+    .map((line) => line.split(prefix)[1]?.trim())
+    .filter((ref): ref is string => !!ref);
 
 /**
  * Runs a command and resolves its whole stdout, rejecting on a non-zero exit.
