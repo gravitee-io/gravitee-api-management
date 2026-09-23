@@ -148,6 +148,20 @@ describe('ApisPage', () => {
         expect(screen.queryByPlaceholderText('Search APIs...')).toBeNull();
     });
 
+    it('keeps the list view instead of the empty landing while an empty result is placeholder data', () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 } },
+            isLoading: false,
+            isFetching: true,
+            isPlaceholderData: true,
+            isError: false,
+        });
+        renderPage();
+
+        expect(screen.queryByText('Why add an API proxy?')).toBeNull();
+        expect(screen.queryByPlaceholderText('Search APIs...')).not.toBeNull();
+    });
+
     it('shows the table and not the empty landing when every API in the environment is federated', () => {
         const rows = [federatedRow('solace'), federatedRow('apigee')];
         mockUseApiList.mockReturnValue({
