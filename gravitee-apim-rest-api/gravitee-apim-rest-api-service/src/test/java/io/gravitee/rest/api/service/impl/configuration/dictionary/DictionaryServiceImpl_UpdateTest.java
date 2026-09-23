@@ -547,8 +547,7 @@ public class DictionaryServiceImpl_UpdateTest {
         verify(dictionaryRepository).update(
             argThat(
                 dict ->
-                    dict.getProperties().get("fetched-key").encrypted() &&
-                    dict.getProperties().get("fetched-key").value().equals("cipher")
+                    dict.getProperties().get("fetched-key").encrypted() && dict.getProperties().get("fetched-key").value().equals("cipher")
             )
         );
     }
