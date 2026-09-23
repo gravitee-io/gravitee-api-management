@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { CORS_DEFAULT_HTTP_HEADERS } from '@gravitee/gamma-ui-shared/cors';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 
@@ -58,7 +59,7 @@ describe('ChipInput', () => {
 
         fireEvent.keyDown(input, { key: 'Enter' });
         expect(screen.getByText('Authorization')).not.toBeNull();
-        expect(screen.queryByRole('listbox')).toBeNull();
+        expect(screen.getByRole('listbox')).not.toBeNull();
     });
 
     it('commits the typed draft on Enter when no suggestion is highlighted', () => {
@@ -109,6 +110,37 @@ describe('ChipInput', () => {
         fireEvent.blur(input);
         expect(onChange).not.toHaveBeenCalled();
         expect((input as HTMLInputElement).value).toBe('');
+    });
+
+    it('reopens the suggestion list after selecting a value and clicking the input again', () => {
+        render(<Harness suggestions={SUGGESTIONS} addOnBlur={false} />);
+        const input = screen.getByRole('combobox');
+        fireEvent.focus(input);
+        fireEvent.click(screen.getByRole('option', { name: 'Authorization' }));
+        expect(screen.getByText('Authorization')).not.toBeNull();
+        expect(screen.getByRole('listbox')).not.toBeNull();
+
+        fireEvent.blur(input);
+        expect(screen.queryByRole('listbox')).toBeNull();
+
+        fireEvent.click(input);
+        expect(screen.getByRole('listbox')).not.toBeNull();
+        expect(screen.getByRole('option', { name: 'Content-Type' })).not.toBeNull();
+    });
+
+    it('renders the suggestion list in a portal so it can scroll outside clipped containers', () => {
+        const { container } = render(
+            <div className="h-24 overflow-hidden">
+                <Harness suggestions={CORS_DEFAULT_HTTP_HEADERS} />
+            </div>,
+        );
+        const input = screen.getByRole('combobox');
+        fireEvent.focus(input);
+        const listbox = screen.getByRole('listbox');
+        const clippedContainer = container.querySelector('.overflow-hidden');
+        expect(clippedContainer).not.toBeNull();
+        expect(clippedContainer?.contains(listbox)).toBe(false);
+        expect(document.body.contains(listbox)).toBe(true);
     });
 
     it('marks the input invalid and points aria-describedby at the error', () => {

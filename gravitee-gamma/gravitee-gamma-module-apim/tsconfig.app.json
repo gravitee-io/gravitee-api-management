@@ -6,7 +6,9 @@
         "moduleResolution": "bundler",
         "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
         "paths": {
-            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"]
+            "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"],
+            "@gravitee/gamma-ui-shared/chip-input": ["../gamma-ui-shared/src/chip-input/index.ts"],
+            "@gravitee/gamma-ui-shared/cors": ["../gamma-ui-shared/src/cors/index.ts"]
         }
     },
     "exclude": [
