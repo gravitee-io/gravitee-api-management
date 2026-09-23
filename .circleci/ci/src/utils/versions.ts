@@ -135,6 +135,14 @@ export function bridgeClientTags(version: string, supportBranches: string[] | un
   }
 
   const released = releasedLines(releasedTags);
+  // Not a matrix worth running: with nothing released, every line looks freshly cut and the matrix
+  // becomes four branch tips — including for retired lines, whose `-latest` image is long gone. It
+  // reads as valid and fails at `docker pull`, so the emptiness stops here instead.
+  if (released.length === 0) {
+    throw new Error(
+      `bridgeClientTags - no released line among ${releasedTags.length} tags; the matrix would name images that do not exist`,
+    );
+  }
   const supported = released.slice(0, BRIDGE_CLIENT_LINES);
 
   return Array.from({ length: BRIDGE_CLIENT_LINES }, (_, index) => `${major}.${Number(minor) - index}`).flatMap((line, index) => {

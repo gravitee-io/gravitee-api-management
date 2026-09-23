@@ -194,6 +194,14 @@ describe('version', function () {
       );
     });
 
+    // An empty list is not an answer: every line would look freshly cut, and the matrix would name
+    // four branch tips — including retired lines, whose `-latest` image is long gone.
+    it('should refuse a tag list with no released line in it', () => {
+      expect(() => bridgeClientTags('4.13.0-SNAPSHOT', BRANCHES, ['core_4.13.0', 'not-a-version'])).toThrow(
+        'bridgeClientTags - no released line among 2 tags',
+      );
+    });
+
     it('should refuse to run without the released tags', () => {
       expect(() => bridgeClientTags('4.13.0-SNAPSHOT', BRANCHES, undefined)).toThrow(
         'bridgeClientTags - the branches and tags are missing',
