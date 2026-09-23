@@ -1310,11 +1310,11 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             .orElseThrow(() -> new TechnicalManagementException(scope.name() + " System Role 'PRIMARY_OWNER' not found."));
     }
 
-    /**
-     * Refuses to delete the group if it still holds the {@code PRIMARY_OWNER} role for the given
-     * scope on at least one reference (API or API Product), to prevent orphan PO memberships.
-     */
-    private void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+    @Override
+    public void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+        if (scope != RoleScope.API && scope != RoleScope.API_PRODUCT) {
+            throw new IllegalArgumentException("scope must be API or API_PRODUCT");
+        }
         RoleEntity poRole = getPrimaryOwnerRoleOrThrow(executionContext, scope);
         long count = membershipService
             .getMembershipsByMemberAndReferenceAndRole(

@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -59,5 +60,13 @@ public interface GroupService {
     GroupEntity update(ExecutionContext executionContext, String groupId, UpdateGroupEntity group);
     void updateApiPrimaryOwner(String groupId, String newApiPrimaryOwner);
     void updateApiProductPrimaryOwner(String groupId, String newApiProductPrimaryOwner);
+
+    /**
+     * Refuses if the group still holds {@code PRIMARY_OWNER} on at least one API or API Product it
+     * owns. Only {@link io.gravitee.rest.api.model.permissions.RoleScope#API} and
+     * {@link io.gravitee.rest.api.model.permissions.RoleScope#API_PRODUCT} are supported.
+     */
+    void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope);
+
     Set<Group> findAllByEnvironment(String environmentId);
 }

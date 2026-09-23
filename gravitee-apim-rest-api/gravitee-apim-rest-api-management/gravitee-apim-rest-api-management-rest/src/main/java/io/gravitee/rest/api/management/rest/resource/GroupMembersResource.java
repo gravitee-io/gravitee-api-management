@@ -375,13 +375,19 @@ public class GroupMembersResource extends AbstractResource {
 
                 // Delete if existing and new role is empty
                 var membershipId = membership.getId();
-                deleteIfNewAndPreviousRoleNull(apiRoleEntity, previousApiRole, membershipId);
-                deleteIfNewAndPreviousRoleNull(apiProductRoleEntity, previousApiProductRole, membershipId);
-                deleteIfNewAndPreviousRoleNull(applicationRoleEntity, previousApplicationRole, membershipId);
-                deleteIfNewAndPreviousRoleNull(integrationRoleEntity, previousIntegrationRole, membershipId);
-                deleteIfNewAndPreviousRoleNull(clusterRoleEntity, previousClusterRole, membershipId);
-                deleteIfNewAndPreviousRoleNull(explorerRoleEntity, previousExplorerRole, membershipId);
-                deleteIfNewAndPreviousRoleNull(groupRoleEntity, previousGroupRole, membershipId);
+                deleteIfNewAndPreviousRoleNull(executionContext, apiRoleEntity, previousApiRole, membershipId, RoleScope.API);
+                deleteIfNewAndPreviousRoleNull(
+                    executionContext,
+                    apiProductRoleEntity,
+                    previousApiProductRole,
+                    membershipId,
+                    RoleScope.API_PRODUCT
+                );
+                deleteIfNewAndPreviousRoleNull(executionContext, applicationRoleEntity, previousApplicationRole, membershipId, null);
+                deleteIfNewAndPreviousRoleNull(executionContext, integrationRoleEntity, previousIntegrationRole, membershipId, null);
+                deleteIfNewAndPreviousRoleNull(executionContext, clusterRoleEntity, previousClusterRole, membershipId, null);
+                deleteIfNewAndPreviousRoleNull(executionContext, explorerRoleEntity, previousExplorerRole, membershipId, null);
+                deleteIfNewAndPreviousRoleNull(executionContext, groupRoleEntity, previousGroupRole, membershipId, null);
 
                 // Send notification
                 if (
@@ -411,8 +417,24 @@ public class GroupMembersResource extends AbstractResource {
         return Response.ok().build();
     }
 
-    private void deleteIfNewAndPreviousRoleNull(RoleEntity newRole, RoleEntity previousRole, String membershipId) {
+    private void deleteIfNewAndPreviousRoleNull(
+        ExecutionContext executionContext,
+        RoleEntity newRole,
+        RoleEntity previousRole,
+        String membershipId,
+        RoleScope scope
+    ) {
         if (newRole == null && previousRole != null) {
+            if (
+                SystemRole.PRIMARY_OWNER.name().equals(previousRole.getName()) && (scope == RoleScope.API || scope == RoleScope.API_PRODUCT)
+            ) {
+                groupService.assertGroupIsNotPrimaryOwner(executionContext, group, scope);
+                if (scope == RoleScope.API) {
+                    groupService.updateApiPrimaryOwner(group, null);
+                } else {
+                    groupService.updateApiProductPrimaryOwner(group, null);
+                }
+            }
             membershipService.removeRole(
                 MembershipReferenceType.GROUP,
                 group,
