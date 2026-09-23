@@ -19,10 +19,24 @@ export const AVAILABILITY_WARNING_THRESHOLD = 95;
 
 export type AvailabilityBucket = 'operational' | 'warning' | 'error';
 
-export interface HealthCheckReport {
-    readonly operational: number;
+/**
+ * What Classic's report banner reports: how many health-checked APIs are degraded.
+ *
+ * Deliberately no "operational" count. The page is paginated and there is no backend aggregate, so any
+ * total the UI puts next to the table would be a number it cannot stand behind. Classic only ever names
+ * the APIs that are in error or in warning, and stays silent about the rest.
+ */
+export interface AvailabilityBuckets {
     readonly inWarning: number;
     readonly inError: number;
+}
+
+export interface HealthCheckReport extends AvailabilityBuckets {
+    /**
+     * Health checks whose availability request failed. They are absent from the buckets above, so without
+     * this the banner would report on a subset while reading as if it covered everything.
+     */
+    readonly failedCount: number;
 }
 
 export function bucketAvailability(pct: number | null | undefined): AvailabilityBucket | null {
@@ -38,8 +52,8 @@ export function bucketAvailability(pct: number | null | undefined): Availability
     return 'operational';
 }
 
-export function summarizeReportBuckets(samples: ReadonlyArray<number | null | undefined>): HealthCheckReport {
-    return samples.reduce<HealthCheckReport>(
+export function summarizeReportBuckets(samples: ReadonlyArray<number | null | undefined>): AvailabilityBuckets {
+    return samples.reduce<AvailabilityBuckets>(
         (acc, sample) => {
             const bucket = bucketAvailability(sample);
             if (bucket === 'error') {
@@ -48,11 +62,8 @@ export function summarizeReportBuckets(samples: ReadonlyArray<number | null | un
             if (bucket === 'warning') {
                 return { ...acc, inWarning: acc.inWarning + 1 };
             }
-            if (bucket === 'operational') {
-                return { ...acc, operational: acc.operational + 1 };
-            }
             return acc;
         },
-        { operational: 0, inWarning: 0, inError: 0 },
+        { inWarning: 0, inError: 0 },
     );
 }

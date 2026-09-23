@@ -16,4 +16,15 @@
 
 export const HEALTH_CHECK_FILTER_QUERY = 'has_health_check:true';
 
-export const V4_HTTP_PROXY_API_TYPES = ['V4_HTTP_PROXY'] as const;
+/**
+ * Classic's health check search scopes by definition version
+ * (`home-api-health-check.component.ts` sends `definitionVersions: ['V2', 'V4']`); Gamma sends V4 only.
+ */
+export const HEALTH_CHECK_DEFINITION_VERSIONS = ['V4'] as const;
+
+/**
+ * The page lists V4 HTTP proxies. Definition version alone is not enough: the indexer emits nine V4 types
+ * (V4_HTTP_PROXY, V4_TCP_PROXY, V4_KAFKA, V4_MESSAGE, V4_MCP_PROXY, V4_LLM_PROXY, V4_A2A_PROXY, V4_AUTHZ,
+ * V4_EDGE), and the row action links to the V4 HTTP proxy health dashboard, which does not fit the others.
+ */
+export const HEALTH_CHECK_API_TYPES = ['V4_HTTP_PROXY'] as const;
