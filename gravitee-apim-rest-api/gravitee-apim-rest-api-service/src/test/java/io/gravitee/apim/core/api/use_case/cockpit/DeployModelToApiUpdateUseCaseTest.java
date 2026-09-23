@@ -31,6 +31,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.CreateGroupDomainServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PageCrudServiceInMemory;
@@ -42,6 +43,7 @@ import io.gravitee.apim.core.api.domain_service.cockpit.DeployModelToApiDomainSe
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
@@ -61,14 +63,18 @@ import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisi
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -96,6 +102,11 @@ public class DeployModelToApiUpdateUseCaseTest {
 
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final ImportApiGroupsDomainService importApiGroupsDomainService = new ImportApiGroupsDomainService(
+        groupQueryService,
+        new CreateGroupDomainServiceInMemory(groupQueryService)
+    );
 
     @Mock
     private ApiService delegateApiService;
@@ -152,12 +163,17 @@ public class DeployModelToApiUpdateUseCaseTest {
             api.setVisibility(visibility);
 
             api.setLabels(updateApiEntity.getLabels());
+            if (updateApiEntity.getGroups() != null) {
+                api.setGroups(new HashSet<>(updateApiEntity.getGroups()));
+            }
 
             return ApiAdapter.INSTANCE.toApiEntity(api);
         });
 
-        var groupQueryService = new GroupQueryServiceInMemory();
+        when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn("{}");
+
         groupQueryService.initWith(List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build()));
+
         var tagQueryService = new TagQueryServiceInMemory();
         tagQueryService.initWith(
             List.of(
@@ -169,7 +185,6 @@ public class DeployModelToApiUpdateUseCaseTest {
 
         final var oaiDomainService = new OAIDomainServiceImpl(
             policyOperationVisitorManager,
-            groupQueryService,
             tagQueryService,
             endpointConnectorPluginService,
             policyPluginCrudService
@@ -182,17 +197,80 @@ public class DeployModelToApiUpdateUseCaseTest {
             updateApiDomainService,
             new DeployModelToApiDomainService(updateApiDomainService, apiStateDomainService),
             planCrudService,
-            pageCrudService
+            pageCrudService,
+            importApiGroupsDomainService
         );
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(policyPluginCrudService, apiCrudService, planCrudService, pageCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(policyPluginCrudService, apiCrudService, planCrudService, pageCrudService, groupQueryService).forEach(
+            InMemoryAlternative::reset
+        );
 
         GraviteeContext.cleanContext();
 
         UuidString.reset();
+    }
+
+    @Test
+    void should_resolve_openapi_group_names_to_ids_when_updating_api() {
+        apiCrudService.create(Api.builder().id(API_ID).crossId(API_CROSS_ID).definitionVersion(DefinitionVersion.V4).build());
+        planCrudService.create(
+            Plan.builder()
+                .id(RANDOM_ID)
+                .apiId(API_ID)
+                .type(Plan.PlanType.API)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(API_ID)
+                .planDefinitionHttpV4(
+                    io.gravitee.definition.model.v4.plan.Plan.builder()
+                        .status(PlanStatus.PUBLISHED)
+                        .security(PlanSecurity.builder().type("key-less").build())
+                        .build()
+                )
+                .validation(Plan.PlanValidationType.AUTO)
+                .build()
+        );
+        pageCrudService.createDocumentationPage(
+            Page.builder()
+                .id(RANDOM_ID)
+                .referenceId(API_ID)
+                .referenceType(Page.ReferenceType.API)
+                .name("Swagger")
+                .type(Page.Type.SWAGGER)
+                .visibility(Page.Visibility.PUBLIC)
+                .content("oldValue")
+                .published(true)
+                .build()
+        );
+
+        var updateCaptor = ArgumentCaptor.forClass(UpdateApiEntity.class);
+        useCase.execute(
+            new DeployModelToApiUpdateUseCase.Input(
+                swaggerDefinition,
+                AUDIT_INFO,
+                API_ID,
+                API_CROSS_ID,
+                DeployModelToApiDomainService.Mode.DOCUMENTED,
+                LABELS
+            )
+        );
+
+        verify(delegateApiService, times(2)).update(
+            eq(new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID)),
+            eq(API_ID),
+            updateCaptor.capture(),
+            anyBoolean(),
+            anyString()
+        );
+
+        Set<String> groupIds = updateCaptor.getAllValues().getFirst().getGroups();
+        assertThat(groupIds).hasSize(2).contains("1");
+        var group2 = groupQueryService.findByNames(ENVIRONMENT_ID, Set.of("group2"));
+        assertThat(group2).hasSize(1);
+        assertThat(groupIds).contains(group2.getFirst().getId());
+        assertThat(groupIds).doesNotContain("group1", "group2");
     }
 
     @ParameterizedTest

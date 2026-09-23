@@ -32,7 +32,6 @@ import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
@@ -158,8 +157,9 @@ public class DeployModelToApiCreateUseCaseTest {
         });
 
         importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
-        var groupQueryService = new GroupQueryServiceInMemory();
-        groupQueryService.initWith(List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build()));
+        importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
+            List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build())
+        );
         var tagQueryService = new TagQueryServiceInMemory();
         tagQueryService.initWith(
             List.of(
@@ -196,7 +196,6 @@ public class DeployModelToApiCreateUseCaseTest {
 
         final var oaiDomainService = new OAIDomainServiceImpl(
             policyOperationVisitorManager,
-            groupQueryService,
             tagQueryService,
             endpointConnectorPluginService,
             policyPluginCrudService

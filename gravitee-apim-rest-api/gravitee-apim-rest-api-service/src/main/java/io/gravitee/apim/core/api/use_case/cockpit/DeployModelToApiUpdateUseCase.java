@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
@@ -42,19 +43,22 @@ public class DeployModelToApiUpdateUseCase {
     private final DeployModelToApiDomainService deployModelToApiDomainService;
     private final PlanCrudService planCrudService;
     private final PageCrudService pageCrudService;
+    private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     public DeployModelToApiUpdateUseCase(
         OAIDomainService oaiDomainService,
         UpdateApiDomainService updateApiDomainService,
         DeployModelToApiDomainService deployModelToApiDomainService,
         PlanCrudService planCrudService,
-        PageCrudService pageCrudService
+        PageCrudService pageCrudService,
+        ImportApiGroupsDomainService importApiGroupsDomainService
     ) {
         this.oaiDomainService = oaiDomainService;
         this.updateApiDomainService = updateApiDomainService;
         this.deployModelToApiDomainService = deployModelToApiDomainService;
         this.planCrudService = planCrudService;
         this.pageCrudService = pageCrudService;
+        this.importApiGroupsDomainService = importApiGroupsDomainService;
     }
 
     public DeployModelToApiUpdateUseCase.Output execute(DeployModelToApiUpdateUseCase.Input input) {
@@ -72,10 +76,10 @@ public class DeployModelToApiUpdateUseCase {
         importDefinition.getApiExport().setCrossId(input.apiCrossId());
         importDefinition.getApiExport().setLabels(input.labels());
 
-        var apiUpdated = updateApiDomainService.updateV4(
-            ApiModelFactory.fromApiExport(importDefinition.getApiExport(), environmentId),
-            input.auditInfo()
-        );
+        var apiExport = importDefinition.getApiExport();
+        apiExport.setGroups(importApiGroupsDomainService.resolveOrCreateGroupIds(apiExport.getGroups(), input.auditInfo()));
+
+        var apiUpdated = updateApiDomainService.updateV4(ApiModelFactory.fromApiExport(apiExport, environmentId), input.auditInfo());
         var api = deployModelToApiDomainService.manageApiState(apiUpdated, input.auditInfo(), input.mode());
 
         log.info("API [id: {} / crossId: {}] v4 updated.", api.getId(), api.getCrossId());

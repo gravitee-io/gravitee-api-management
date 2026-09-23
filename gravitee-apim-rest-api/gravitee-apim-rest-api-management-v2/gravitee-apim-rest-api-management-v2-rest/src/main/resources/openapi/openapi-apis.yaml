@@ -145,6 +145,9 @@ paths:
                 Create an API by importing an API definition. <br>
                 This definition can be retrieved from `GET /environments/{envId}/apis/{apiId}/_export/definition`
 
+                In the import payload, `api.groups` must be **group names**.
+                Names are resolved in the target environment; missing groups are auto-created empty.
+
                 User must have the ENVIRONMENT_API[CREATE] permission.
             operationId: createApiWithImportDefinition
             requestBody:
@@ -538,6 +541,9 @@ paths:
                 ⚠️ Support only v4 API for the moment. ⚠️
 
                 Export an API to a JSON file.
+
+                Exported `api.groups` are **group names**, so the definition can be imported or
+                promoted across environments without relying on matching group IDs.
 
                 User must have at least the API_DEFINITION[READ] permission.<br>
                 User should also have these permissions for specific data:
@@ -3208,7 +3214,12 @@ components:
                           additionalProperties: true
                       groups:
                           type: array
-                          description: List of group IDs associated with this API. Used to manage team access.
+                          description: |-
+                              Groups associated with this API, used to manage team access.
+
+                              - Create / update / get API responses: **group IDs**.
+                              - Export / import definition (`ExportApiV4`) and promotion payloads: **group names**
+                                (resolved in the target environment; missing names are auto-created empty).
                           example:
                               - 6c530064-0b2c-4004-9300-640b2ce0047b
                               - 12559b64-0b2c-4004-9300-640b2ce0047b
@@ -3702,6 +3713,9 @@ components:
 
         ExportApiV4:
             type: object
+            description: |-
+                V4 API definition used for export and import.
+                `api.groups` in this schema are **group names**.
             properties:
                 export:
                     type: object

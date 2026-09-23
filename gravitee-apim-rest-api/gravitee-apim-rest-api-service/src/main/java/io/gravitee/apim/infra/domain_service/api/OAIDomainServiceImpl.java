@@ -21,8 +21,6 @@ import io.gravitee.apim.core.api.domain_service.OAIDomainService;
 import io.gravitee.apim.core.api.exception.InvalidImportWithOASValidationPolicyException;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.group.model.Group;
-import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
@@ -59,7 +57,6 @@ public class OAIDomainServiceImpl implements OAIDomainService {
     protected static final String DEFAULT_IMPORT_PAGE_NAME = "Swagger";
 
     private final PolicyOperationVisitorManager policyOperationVisitorManager;
-    private final GroupQueryService groupQueryService;
     private final TagQueryService tagsQueryService;
     private final EndpointConnectorPluginDomainService endpointConnectorPluginService;
     private final PolicyPluginCrudService policyPluginCrudService;
@@ -80,8 +77,7 @@ public class OAIDomainServiceImpl implements OAIDomainService {
 
         if (importDefinition != null) {
             var importWithEndpointGroupsSharedConfiguration = addEndpointGroupSharedConfiguration(importDefinition);
-            var importWithGroups = replaceGroupNamesWithIds(environmentId, importWithEndpointGroupsSharedConfiguration);
-            var importWithTags = replaceTagsNamesWithIds(organizationId, importWithGroups);
+            var importWithTags = replaceTagsNamesWithIds(organizationId, importWithEndpointGroupsSharedConfiguration);
             // Both consumers below store their argument as an OpenAPI document, so a URL payload has to be
             // resolved first. Skip the work when neither of them is going to keep it.
             var specContent = (withDocumentation || withOASValidationPolicy) ? resolveSpecContent(payload, descriptor) : payload;
@@ -143,30 +139,6 @@ public class OAIDomainServiceImpl implements OAIDomainService {
                             .stream()
                             .peek(endpointGroup -> endpointGroup.setSharedConfiguration(sharedConfiguration))
                             .toList()
-                    )
-                    .build()
-            )
-            .build();
-    }
-
-    private ImportDefinition replaceGroupNamesWithIds(String environmentId, ImportDefinition importDefinition) {
-        var groups = importDefinition.getApiExport().getGroups();
-        if (groups == null || groups.isEmpty()) {
-            return importDefinition;
-        }
-
-        return importDefinition
-            .toBuilder()
-            .apiExport(
-                importDefinition
-                    .getApiExport()
-                    .toBuilder()
-                    .groups(
-                        groups
-                            .stream()
-                            .flatMap(group -> groupQueryService.findByNames(environmentId, Set.of(group)).stream())
-                            .map(Group::getId)
-                            .collect(Collectors.toSet())
                     )
                     .build()
             )

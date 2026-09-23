@@ -141,7 +141,8 @@ class ExportApiUseCaseTest {
             planCrudService,
             integrationCrudService,
             flowCrudService,
-            apiCategoryQueryService
+            apiCategoryQueryService,
+            groupQueryService
         );
         sut = new ExportApiUseCase(apiExportDomainService);
         roleQueryService.initWith(
