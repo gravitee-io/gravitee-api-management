@@ -17,7 +17,7 @@ import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -260,6 +260,11 @@ function interactiveControls(container: HTMLElement): string[] {
     return [...container.querySelectorAll('input, textarea, button, [role="button"]')].map(describeControl).sort();
 }
 
+function LocationProbe() {
+    const { pathname } = useLocation();
+    return <div data-testid="location-probe" data-pathname={pathname} />;
+}
+
 function renderPage(apiId = 'api-1', client = makeClient()) {
     return render(
         <QueryClientProvider client={client}>
@@ -272,6 +277,7 @@ function renderPage(apiId = 'api-1', client = makeClient()) {
                         </Route>
                     </Route>
                 </Routes>
+                <LocationProbe />
             </MemoryRouter>
         </QueryClientProvider>,
     );
@@ -888,6 +894,25 @@ describe('ApiGeneralPage', () => {
                 filteredFields: ['MEMBERS'],
             }),
         );
+        duplicateSpy.mockRestore();
+    });
+
+    it('navigates to the new API General page after a successful duplicate', async () => {
+        const duplicateSpy = jest.spyOn(apiServices, 'duplicateApi').mockResolvedValue({ id: 'api-2', name: 'My Test API copy' });
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /duplicate/i }));
+        const dialog = screen.getByRole('dialog');
+        fireEvent.change(within(dialog).getByPlaceholderText('/testVisibility/'), { target: { value: '/duplicate' } });
+        fireEvent.change(within(dialog).getByPlaceholderText('v1.0'), { target: { value: 'v2' } });
+
+        const duplicateBtn = within(dialog).getByRole('button', { name: /^duplicate$/i });
+        await waitFor(() => expect(duplicateBtn).not.toBeDisabled());
+        await act(async () => {
+            fireEvent.click(duplicateBtn);
+        });
+
+        await waitFor(() => expect(screen.getByTestId('location-probe')).toHaveAttribute('data-pathname', '/apis/api-2/general'));
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         duplicateSpy.mockRestore();
     });
 
