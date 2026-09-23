@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<portal-header title="Settings" subtitle="Configure shared settings for your Developer Portals." />
+<portal-header title="Settings" subtitle="Configure settings for your Developer Portals." />
 
 @if (settingsResource.isLoading() && !settingsForm()) {
   <div class="loading" data-testid="settings-loading"><gio-loader /></div>
@@ -118,6 +118,59 @@
         </div>
       </mat-card-content>
     </mat-card>
+
+    @if (hasEnterpriseLicense$ | async) {
+      <mat-card appearance="outlined" class="settings-card" formGroupName="portalNext" data-testid="portal-capabilities-card">
+        <mat-card-header>
+          <mat-card-title>Portal capabilities</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="settings-card__content settings-card__content--toggles">
+          <gio-form-slide-toggle
+            formGroupName="mtls"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isSystemReadonly('portal.next.mtls.enabled')"
+          >
+            <gio-form-label>Enable mTLS Certificate Management</gio-form-label>
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="mTLS Certificate Management Enabled"
+              data-testid="portal-next-mtls-toggle"
+            />
+          </gio-form-slide-toggle>
+
+          <gio-form-slide-toggle
+            formGroupName="analytics"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isSystemReadonly('portal.next.analytics.enabled')"
+          >
+            <gio-form-label>Enable Analytics</gio-form-label>
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="Analytics Enabled"
+              data-testid="portal-next-analytics-toggle"
+            />
+          </gio-form-slide-toggle>
+
+          <div formGroupName="catalog">
+            <gio-form-slide-toggle
+              formGroupName="fuzzySearch"
+              [matTooltip]="'Configuration provided by the system'"
+              [matTooltipDisabled]="!isSystemReadonly('portal.next.catalog.fuzzySearch.enabled')"
+            >
+              <gio-form-label>Approximate spelling for API search</gio-form-label>
+              <mat-slide-toggle
+                formControlName="enabled"
+                gioFormSlideToggle
+                aria-label="Approximate spelling for API search enabled"
+                data-testid="portal-next-fuzzy-search-toggle"
+              />
+            </gio-form-slide-toggle>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
 
     <gio-save-bar [form]="form" [formInitialValues]="formInitialValues()" (resetClicked)="reset()" />
   </form>

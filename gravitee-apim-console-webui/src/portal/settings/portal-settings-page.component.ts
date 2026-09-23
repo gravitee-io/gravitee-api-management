@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AsyncPipe } from '@angular/common';
 import { Component, DestroyRef, effect, HostListener, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -24,10 +25,16 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { GioBannerModule, GioFormSlideToggleModule, GioLoaderModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioFormSlideToggleModule,
+  GioLicenseService,
+  GioLoaderModule,
+  GioSaveBarModule,
+} from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 import { EMPTY } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { catchError, map, tap } from 'rxjs/operators';
 
 import { PortalHeaderComponent } from '../components/header/portal-header.component';
 import { PortalSettings, PortalSettingsOpenAPIDocViewer } from '../../entities/portal/portalSettings';
@@ -55,6 +62,19 @@ interface PortalSettingsPageForm {
       defaultType: FormControl<OpenApiViewer>;
     }>;
   }>;
+  portalNext: FormGroup<{
+    mtls: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
+    analytics: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
+    catalog: FormGroup<{
+      fuzzySearch: FormGroup<{
+        enabled: FormControl<boolean>;
+      }>;
+    }>;
+  }>;
 }
 
 type PortalSettingsPageFormValue = ReturnType<FormGroup<PortalSettingsPageForm>['getRawValue']>;
@@ -62,6 +82,7 @@ type PortalSettingsPageFormValue = ReturnType<FormGroup<PortalSettingsPageForm>[
 @Component({
   selector: 'portal-settings-page',
   imports: [
+    AsyncPipe,
     GioBannerModule,
     GioFormSlideToggleModule,
     GioLoaderModule,
@@ -82,6 +103,7 @@ type PortalSettingsPageFormValue = ReturnType<FormGroup<PortalSettingsPageForm>[
 })
 export class PortalSettingsPageComponent implements HasUnsavedChanges {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly licenseService = inject(GioLicenseService);
   private readonly permissionService = inject(GioPermissionService);
   private readonly portalSettingsService = inject(PortalSettingsService);
   private readonly snackBarService = inject(SnackBarService);
@@ -90,6 +112,7 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
   private readonly currentSettings = signal<PortalSettings | null>(null);
   readonly settingsForm = signal<FormGroup<PortalSettingsPageForm> | null>(null);
   readonly formInitialValues = signal<PortalSettingsPageFormValue | null>(null);
+  readonly hasEnterpriseLicense$ = this.licenseService.getLicense$().pipe(map(license => license.tier !== 'oss'));
 
   readonly settingsResource = rxResource({
     stream: () => this.portalSettingsService.get(),
@@ -250,6 +273,37 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
           ),
         }),
       }),
+      portalNext: new FormGroup({
+        mtls: new FormGroup({
+          enabled: new FormControl(
+            {
+              value: settings.portalNext?.mtls?.enabled ?? false,
+              disabled: !this.canUpdate || PortalSettingsService.isReadonly(settings, 'portal.next.mtls.enabled'),
+            },
+            { nonNullable: true },
+          ),
+        }),
+        analytics: new FormGroup({
+          enabled: new FormControl(
+            {
+              value: settings.portalNext?.analytics?.enabled ?? false,
+              disabled: !this.canUpdate || PortalSettingsService.isReadonly(settings, 'portal.next.analytics.enabled'),
+            },
+            { nonNullable: true },
+          ),
+        }),
+        catalog: new FormGroup({
+          fuzzySearch: new FormGroup({
+            enabled: new FormControl(
+              {
+                value: settings.portalNext?.catalog?.fuzzySearch?.enabled ?? false,
+                disabled: !this.canUpdate || PortalSettingsService.isReadonly(settings, 'portal.next.catalog.fuzzySearch.enabled'),
+              },
+              { nonNullable: true },
+            ),
+          }),
+        }),
+      }),
     });
 
     if (!this.canUpdate) {
@@ -296,6 +350,25 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
           defaultType: formValue.openAPIDocViewer.openAPIDocType.defaultType,
           swagger: settings.openAPIDocViewer?.openAPIDocType?.swagger ?? { enabled: false },
           redoc: settings.openAPIDocViewer?.openAPIDocType?.redoc ?? { enabled: false },
+        },
+      },
+      portalNext: {
+        ...settings.portalNext,
+        access: settings.portalNext?.access ?? { enabled: false },
+        mtls: {
+          ...settings.portalNext?.mtls,
+          enabled: formValue.portalNext.mtls.enabled,
+        },
+        analytics: {
+          ...settings.portalNext?.analytics,
+          enabled: formValue.portalNext.analytics.enabled,
+        },
+        catalog: {
+          ...settings.portalNext?.catalog,
+          fuzzySearch: {
+            ...settings.portalNext?.catalog?.fuzzySearch,
+            enabled: formValue.portalNext.catalog.fuzzySearch.enabled,
+          },
         },
       },
     };

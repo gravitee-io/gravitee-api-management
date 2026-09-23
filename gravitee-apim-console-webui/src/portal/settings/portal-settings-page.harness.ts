@@ -37,6 +37,14 @@ export class PortalSettingsPageHarness extends ComponentHarness {
   );
   private readonly swaggerViewer = this.locatorFor(MatRadioButtonHarness.with({ selector: '[data-testid="swagger-viewer"]' }));
   private readonly redocViewer = this.locatorFor(MatRadioButtonHarness.with({ selector: '[data-testid="redoc-viewer"]' }));
+  private readonly portalCapabilitiesCard = this.locatorForOptional('[data-testid="portal-capabilities-card"]');
+  private readonly mtlsToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[data-testid="portal-next-mtls-toggle"]' }));
+  private readonly analyticsToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="portal-next-analytics-toggle"]' }),
+  );
+  private readonly fuzzySearchToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="portal-next-fuzzy-search-toggle"]' }),
+  );
   private readonly saveBar = this.locatorFor(GioSaveBarHarness);
   private readonly errorBanner = this.locatorForOptional('[data-testid="settings-load-error"]');
   private readonly retryButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="settings-retry"]' }));
@@ -90,6 +98,22 @@ export class PortalSettingsPageHarness extends ComponentHarness {
 
   async getRedocViewer(): Promise<MatRadioButtonHarness> {
     return this.redocViewer();
+  }
+
+  async hasPortalCapabilitiesCard(): Promise<boolean> {
+    return (await this.portalCapabilitiesCard()) !== null;
+  }
+
+  async getMtlsToggle(): Promise<MatSlideToggleHarness> {
+    return this.mtlsToggle();
+  }
+
+  async getAnalyticsToggle(): Promise<MatSlideToggleHarness> {
+    return this.analyticsToggle();
+  }
+
+  async getFuzzySearchToggle(): Promise<MatSlideToggleHarness> {
+    return this.fuzzySearchToggle();
   }
 
   async submit(): Promise<void> {
