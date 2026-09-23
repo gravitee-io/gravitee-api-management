@@ -102,6 +102,7 @@ import io.gravitee.node.logging.LogEntry;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import io.gravitee.resource.api.Resource;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
@@ -121,6 +122,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -1347,5 +1349,24 @@ class DefaultApiReactorTest {
             spyEntrypointResponse,
             spyResponseEnd
         );
+    }
+
+    @Nested
+    class Resources {
+
+        @Test
+        void should_return_the_started_resource_of_the_given_name_and_type() {
+            Resource resource = mock(Resource.class);
+            when(resourceLifecycleManager.getResource("oauth2-resource", Resource.class)).thenReturn(resource);
+
+            assertThat(cut.resource("oauth2-resource", Resource.class)).contains(resource);
+        }
+
+        @Test
+        void should_return_empty_when_the_api_declares_no_such_resource() {
+            when(resourceLifecycleManager.getResource("unknown", Resource.class)).thenReturn(null);
+
+            assertThat(cut.resource("unknown", Resource.class)).isEmpty();
+        }
     }
 }
