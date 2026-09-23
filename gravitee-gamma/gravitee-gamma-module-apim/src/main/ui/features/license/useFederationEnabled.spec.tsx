@@ -20,6 +20,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 import { useFederationEnabled } from './useFederationEnabled';
+import { ApimApiError } from '../../shared/api/apimClient';
 import { ENTERPRISE_LICENSE, OSS_LICENSE } from '../../testing/factories';
 import { fetchOrgConsoleSettings, type OrgConsoleSettings } from '../settings/services/orgConsoleSettings';
 
@@ -134,6 +135,18 @@ describe('useFederationEnabled', () => {
 
         await waitFor(() => expect(result.current.isResolved).toBe(true));
         expect(warn).toHaveBeenCalledWith(expect.any(String), readFailure);
+        warn.mockRestore();
+    });
+
+    it('names the HTTP status in the warning when the org settings endpoint answers with an error', async () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const readFailure = new ApimApiError(503, 'Unavailable');
+        mockFetchOrgConsoleSettings.mockRejectedValue(readFailure);
+
+        const { result } = renderHook(() => useFederationEnabled(), { wrapper: createWrapper() });
+
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('HTTP 503'), readFailure);
         warn.mockRestore();
     });
 });
