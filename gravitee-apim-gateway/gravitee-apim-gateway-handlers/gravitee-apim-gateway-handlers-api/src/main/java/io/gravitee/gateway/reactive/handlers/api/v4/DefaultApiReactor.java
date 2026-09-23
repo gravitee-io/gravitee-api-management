@@ -315,6 +315,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
     }
 
     @Override
+    public <R> Optional<R> resource(String name, Class<R> type) {
+        return Optional.ofNullable(resourceLifecycleManager.getResource(name, type));
+    }
+
+    @Override
     public Completable handle(final MutableExecutionContext ctx) {
         ctx.componentProvider(componentProvider);
         if (ctxTemplateVariableProviders != null) {

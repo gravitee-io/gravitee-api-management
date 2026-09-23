@@ -22,6 +22,7 @@ import io.gravitee.gateway.reactor.handler.ReactorHandler;
 import io.gravitee.node.api.opentelemetry.Tracer;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.reactivex.rxjava3.core.Completable;
+import java.util.Optional;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -31,6 +32,13 @@ public interface ApiReactor<T extends ReactableApi<?>> extends ReactorHandler {
     T api();
 
     Completable handle(final MutableExecutionContext ctx);
+
+    /**
+     * The started resource of the given name and type declared by this API, or empty when there is none.
+     */
+    default <R> Optional<R> resource(String name, Class<R> type) {
+        return Optional.empty();
+    }
 
     default void handle(io.gravitee.gateway.api.ExecutionContext context, Handler<io.gravitee.gateway.api.ExecutionContext> endHandler) {
         throw new RuntimeException(new IllegalAccessException("Handle method can't be called on ApiReactor"));
