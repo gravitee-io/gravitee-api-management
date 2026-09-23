@@ -931,6 +931,31 @@ describe('ApiGeneralPage', () => {
         importSpy.mockRestore();
     });
 
+    it('re-seeds the form and notifies when an import succeeds', async () => {
+        const importSpy = jest.spyOn(apiServices, 'updateApiFromDefinition').mockResolvedValue({ ...STUB_API, name: 'Imported Name' });
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        const dialog = screen.getByRole('dialog');
+
+        const definition = { api: { name: 'Imported Name' } };
+        const file = new File([JSON.stringify(definition)], 'api.json', { type: 'application/json' });
+        Object.defineProperty(file, 'text', { value: () => Promise.resolve(JSON.stringify(definition)) });
+        const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
+        await act(async () => {
+            fireEvent.change(fileInput, { target: { files: [file] } });
+        });
+
+        const importBtn = within(dialog).getByRole('button', { name: /^import$/i });
+        await waitFor(() => expect(importBtn).not.toBeDisabled());
+        fireEvent.click(importBtn);
+
+        await waitFor(() => expect((screen.getByRole('textbox', { name: /name/i }) as HTMLInputElement).value).toBe('Imported Name'));
+        expect(screen.queryByRole('button', { name: /save changes/i })).toBeNull();
+        expect(toast.success).toHaveBeenCalledWith('API updated', expect.anything());
+        expect(screen.queryByRole('dialog')).toBeNull();
+        importSpy.mockRestore();
+    });
+
     it('shows an inline error in the import sheet when the import request is refused', async () => {
         const importSpy = jest.spyOn(apiServices, 'updateApiFromDefinition').mockRejectedValue(new Error('Import refused'));
         renderPage();
