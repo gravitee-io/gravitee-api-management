@@ -16,6 +16,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { of, throwError } from 'rxjs';
 
 import { PortalSettingsPageComponent } from './portal-settings-page.component';
@@ -34,7 +35,11 @@ describe('PortalSettingsPageComponent', () => {
   let portalSettingsService: { get: jest.Mock; save: jest.Mock };
   let snackBarService: { success: jest.Mock; error: jest.Mock };
 
-  async function init(settings: PortalSettings, permissions = ['environment-settings-u', 'environment-settings-r']): Promise<void> {
+  async function init(
+    settings: PortalSettings,
+    permissions = ['environment-settings-u', 'environment-settings-r'],
+    license: License = { tier: 'galaxy', packs: [], features: [], isExpired: false },
+  ): Promise<void> {
     let persistedSettings = settings;
     portalSettingsService = {
       get: jest.fn().mockImplementation(() => of(persistedSettings)),
@@ -51,6 +56,7 @@ describe('PortalSettingsPageComponent', () => {
         { provide: PortalSettingsService, useValue: portalSettingsService },
         { provide: SnackBarService, useValue: snackBarService },
         { provide: GioTestingPermissionProvider, useValue: permissions },
+        { provide: GioLicenseService, useValue: { getLicense$: () => of(license) } },
       ],
     }).compileComponents();
 
@@ -79,6 +85,92 @@ describe('PortalSettingsPageComponent', () => {
     expect(await (await harness.getRedocViewer()).isChecked()).toBe(true);
   });
 
+  it('loads the persisted Portal Next capabilities', async () => {
+    const settings = fakePortalSettings();
+    settings.portalNext.mtls.enabled = true;
+    settings.portalNext.analytics.enabled = false;
+    settings.portalNext.catalog.fuzzySearch.enabled = true;
+
+    await init(settings);
+
+    expect(await harness.hasPortalCapabilitiesCard()).toBe(true);
+    expect(await (await harness.getMtlsToggle()).isChecked()).toBe(true);
+    expect(await (await harness.getAnalyticsToggle()).isChecked()).toBe(false);
+    expect(await (await harness.getFuzzySearchToggle()).isChecked()).toBe(true);
+  });
+
+  it.each([
+    { label: 'mTLS', getToggle: (page: PortalSettingsPageHarness) => page.getMtlsToggle(), capability: 'mtls' },
+    { label: 'analytics', getToggle: (page: PortalSettingsPageHarness) => page.getAnalyticsToggle(), capability: 'analytics' },
+    {
+      label: 'fuzzy search',
+      getToggle: (page: PortalSettingsPageHarness) => page.getFuzzySearchToggle(),
+      capability: 'fuzzySearch',
+    },
+  ])('updates $label independently and preserves all unrelated settings', async ({ getToggle, capability }) => {
+    const settings = fakePortalSettings();
+    settings.portalNext.mtls.enabled = false;
+    settings.portalNext.analytics.enabled = false;
+    settings.portalNext.catalog.fuzzySearch.enabled = false;
+    await init(settings);
+
+    await (await getToggle(harness)).toggle();
+    await harness.submit();
+
+    const savedSettings = portalSettingsService.save.mock.calls[0][0] as PortalSettings;
+    expect(savedSettings.portalNext.access).toEqual(settings.portalNext.access);
+    expect(savedSettings.portalNext.applications).toEqual(settings.portalNext.applications);
+    expect(savedSettings.portalNext.banner).toEqual(settings.portalNext.banner);
+    expect(savedSettings.portal).toEqual(settings.portal);
+    expect(savedSettings.cors).toEqual(settings.cors);
+
+    expect(savedSettings.portalNext.mtls.enabled).toBe(capability === 'mtls');
+    expect(savedSettings.portalNext.analytics.enabled).toBe(capability === 'analytics');
+    expect(savedSettings.portalNext.catalog.fuzzySearch.enabled).toBe(capability === 'fuzzySearch');
+  });
+
+  it('keeps Portal Next capabilities editable when Portal Next access is disabled', async () => {
+    const settings = fakePortalSettings();
+    settings.portalNext.access.enabled = false;
+
+    await init(settings);
+
+    expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(false);
+    expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(false);
+    expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(false);
+  });
+
+  it('resets Portal Next capabilities to their persisted values', async () => {
+    const settings = fakePortalSettings();
+    settings.portalNext.mtls.enabled = true;
+    settings.portalNext.analytics.enabled = false;
+    settings.portalNext.catalog.fuzzySearch.enabled = true;
+    await init(settings);
+
+    await (await harness.getMtlsToggle()).toggle();
+    await (await harness.getAnalyticsToggle()).toggle();
+    await (await harness.getFuzzySearchToggle()).toggle();
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
+
+    await harness.reset();
+
+    expect(await (await harness.getMtlsToggle()).isChecked()).toBe(true);
+    expect(await (await harness.getAnalyticsToggle()).isChecked()).toBe(false);
+    expect(await (await harness.getFuzzySearchToggle()).isChecked()).toBe(true);
+    expect(fixture.componentInstance.hasUnsavedChanges()).toBe(false);
+  });
+
+  it('hides Portal Next capabilities for an OSS license', async () => {
+    await init(fakePortalSettings(), ['environment-settings-u', 'environment-settings-r'], {
+      tier: 'oss',
+      packs: [],
+      features: [],
+      isExpired: false,
+    });
+
+    expect(await harness.hasPortalCapabilitiesCard()).toBe(false);
+  });
+
   it('preserves the automatic validation value when registration is disabled', async () => {
     await init(fakePortalSettings());
     const registrationToggle = await harness.getRegistrationToggle();
@@ -103,17 +195,31 @@ describe('PortalSettingsPageComponent', () => {
     expect(await harness.isKafkaSaslMechanismsDisabled()).toBe(true);
     expect(await (await harness.getRegistrationToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getRedocViewer()).isDisabled()).toBe(true);
+    expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(true);
+    expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(true);
+    expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(true);
   });
 
   it('respects property-level read-only metadata', async () => {
     const settings = fakePortalSettings({
-      metadata: { readonly: ['portal.apikey.header', 'portal.kafka.saslMechanisms'] },
+      metadata: {
+        readonly: [
+          'portal.apikey.header',
+          'portal.kafka.saslMechanisms',
+          'portal.next.mtls.enabled',
+          'portal.next.analytics.enabled',
+          'portal.next.catalog.fuzzySearch.enabled',
+        ],
+      },
     });
     await init(settings);
 
     expect(await harness.isApiKeyHeaderDisabled()).toBe(true);
     expect(await harness.isPortalUrlDisabled()).toBe(false);
     expect(await harness.isKafkaSaslMechanismsDisabled()).toBe(true);
+    expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(true);
+    expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(true);
+    expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(true);
   });
 
   it('merges edited values into the complete settings payload', async () => {
@@ -182,6 +288,10 @@ describe('PortalSettingsPageComponent', () => {
         { provide: PortalSettingsService, useValue: portalSettingsService },
         { provide: SnackBarService, useValue: snackBarService },
         { provide: GioTestingPermissionProvider, useValue: ['environment-settings-u', 'environment-settings-r'] },
+        {
+          provide: GioLicenseService,
+          useValue: { getLicense$: () => of({ tier: 'galaxy', packs: [], features: [], isExpired: false } satisfies License) },
+        },
       ],
     }).compileComponents();
     fixture = TestBed.createComponent(PortalSettingsPageComponent);

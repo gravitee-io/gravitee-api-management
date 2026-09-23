@@ -117,8 +117,6 @@ interface PortalForm {
   }>;
   portalNext: FormGroup<{
     access: FormGroup<{ enabled: FormControl<boolean | null> }>;
-    mtls: FormGroup<{ enabled: FormControl<boolean | null> }>;
-    analytics: FormGroup<{ enabled: FormControl<boolean | null> }>;
     applications: FormGroup<{
       membership: FormGroup<{
         enabled: FormControl<boolean | null>;
@@ -126,7 +124,6 @@ interface PortalForm {
         invitations: FormGroup<{ enabled: FormControl<boolean | null> }>;
       }>;
     }>;
-    catalog: FormGroup<{ fuzzySearch: FormGroup<{ enabled: FormControl<boolean | null> }> }>;
   }>;
   scheduler: FormGroup<{
     tasks: FormControl<number>;
@@ -448,18 +445,6 @@ export class PortalSettingsComponent implements OnInit {
             disabled: this.isReadonly('portal.next.access.enabled'),
           }),
         }),
-        mtls: new FormGroup({
-          enabled: new FormControl({
-            value: !!this.settings.portalNext?.mtls?.enabled,
-            disabled: this.isReadonly('portal.next.mtls.enabled') || !isPortalNextEnabled,
-          }),
-        }),
-        analytics: new FormGroup({
-          enabled: new FormControl({
-            value: !!this.settings.portalNext?.analytics?.enabled,
-            disabled: this.isReadonly('portal.next.analytics.enabled') || !isPortalNextEnabled,
-          }),
-        }),
         applications: new FormGroup({
           membership: new FormGroup({
             enabled: new FormControl({
@@ -483,14 +468,6 @@ export class PortalSettingsComponent implements OnInit {
                   !isPortalNextEnabled ||
                   !isPortalNextApplicationMembershipEnabled,
               }),
-            }),
-          }),
-        }),
-        catalog: new FormGroup({
-          fuzzySearch: new FormGroup({
-            enabled: new FormControl({
-              value: !!this.settings.portalNext?.catalog?.fuzzySearch?.enabled,
-              disabled: this.isReadonly('portal.next.catalog.fuzzySearch.enabled'),
             }),
           }),
         }),
@@ -784,8 +761,6 @@ export class PortalSettingsComponent implements OnInit {
           ...this.settings.portalNext?.access,
           ...portalNextFormValue.access,
         },
-        mtls: portalNextFormValue.mtls,
-        analytics: portalNextFormValue.analytics,
         applications: {
           ...this.settings.portalNext?.applications,
           ...portalNextFormValue.applications,
@@ -796,10 +771,6 @@ export class PortalSettingsComponent implements OnInit {
             transferOwnership: portalNextFormValue.applications.membership.transferOwnership,
             invitations: portalNextFormValue.applications.membership.invitations,
           },
-        },
-        catalog: {
-          ...this.settings.portalNext?.catalog,
-          ...this.portalForm.controls.portalNext.controls.catalog.value,
         },
       },
     };
@@ -890,12 +861,6 @@ export class PortalSettingsComponent implements OnInit {
     const isPortalNextEnabled = portalNextControls.access.controls.enabled.value;
     const isApplicationMembershipEnabled = applicationMembershipControls.enabled.value;
 
-    this.updatePortalNextControlDisabledState(portalNextControls.mtls.controls.enabled, 'portal.next.mtls.enabled', !isPortalNextEnabled);
-    this.updatePortalNextControlDisabledState(
-      portalNextControls.analytics.controls.enabled,
-      'portal.next.analytics.enabled',
-      !isPortalNextEnabled,
-    );
     this.updatePortalNextControlDisabledState(
       applicationMembershipControls.enabled,
       'portal.next.applications.membership.enabled',
