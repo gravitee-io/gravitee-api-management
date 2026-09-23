@@ -310,6 +310,38 @@ describe('ApisPage', () => {
         expect(screen.queryByPlaceholderText('Search APIs...')).not.toBeNull();
     });
 
+    it("keeps the list view with its 'No APIs found' state when an active search matches nothing", async () => {
+        mockUseApiList.mockImplementation(({ query }) =>
+            query === 'nothing-matches'
+                ? {
+                      data: { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 } },
+                      isLoading: false,
+                      isFetching: false,
+                      isPlaceholderData: false,
+                      isError: false,
+                  }
+                : {
+                      data: {
+                          data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
+                          pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+                      },
+                      isLoading: false,
+                      isFetching: false,
+                      isPlaceholderData: false,
+                      isError: false,
+                  },
+        );
+        renderPage();
+
+        fireEvent.change(screen.getByPlaceholderText('Search APIs...'), { target: { value: 'nothing-matches' } });
+        await waitFor(() => expect(lastRequest().query).toBe('nothing-matches'));
+
+        expect(screen.queryByText('No APIs found')).not.toBeNull();
+        expect((screen.getByPlaceholderText('Search APIs...') as HTMLInputElement).value).toBe('nothing-matches');
+        expect(screen.queryByText('My API')).toBeNull();
+        expect(screen.queryByText('Why add an API proxy?')).toBeNull();
+    });
+
     it('shows the list view while loading — does not flash the empty landing', () => {
         mockUseApiList.mockReturnValue({ data: undefined, isLoading: true, isFetching: false });
         renderPage();
