@@ -70,4 +70,5 @@ public enum Facet {
     AUTHZ_ACTION,
     AUTHZ_RESOURCE_ID,
     AUTHZ_REASON,
+    AUTHZ_PDP,
 }

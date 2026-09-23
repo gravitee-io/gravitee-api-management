@@ -27,6 +27,7 @@ import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery.Sor
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
 import io.vertx.core.json.JsonObject;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
@@ -47,8 +48,25 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
         var terms = aggs.getJsonObject("AUTHZ_DECISIONS#AUTHZ_DECISION").getJsonObject("terms");
 
-        assertThat(terms.getString("field")).isEqualTo("decision");
+        assertThat(terms.getString("field")).isEqualTo("verdict");
         assertThat(terms.getInteger("size")).isEqualTo(5);
+    }
+
+    @Test
+    void should_group_decisions_by_the_pdp_that_evaluated_them() {
+        var query = new FacetsQuery(
+            buildTimeRange(),
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
+            List.of(Facet.AUTHZ_PDP)
+        );
+
+        var terms = new JsonObject(adapter.adapt(query))
+            .getJsonObject("aggs")
+            .getJsonObject("AUTHZ_DECISIONS#AUTHZ_PDP")
+            .getJsonObject("terms");
+
+        assertThat(terms.getString("field")).isEqualTo("decision-point-id");
     }
 
     @Test
@@ -64,11 +82,11 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         assertThat(
             bucket.getJsonObject("aggs").getJsonObject("AUTHZ_DECISIONS#COUNT").getJsonObject("value_count").getString("field")
-        ).isEqualTo("decision");
+        ).isEqualTo("event-id");
     }
 
     @Test
-    void should_nest_a_decision_scoped_metric_filter_inside_the_terms_bucket() {
+    void should_build_the_terms_of_a_scoped_metric_inside_its_scope_filter() {
         var query = new FacetsQuery(
             buildTimeRange(),
             List.of(),
@@ -76,14 +94,18 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
             List.of(Facet.AUTHZ_ACTION)
         );
 
-        var bucket = new JsonObject(adapter.adapt(query)).getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#AUTHZ_ACTION");
-        var filterAgg = bucket.getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#__FILTER__");
+        var aggs = new JsonObject(adapter.adapt(query)).getJsonObject("aggs");
+        var filterAgg = aggs.getJsonObject("AUTHZ_FORBIDS#__FILTER__");
+        var facetAgg = filterAgg.getJsonObject("aggs").getJsonObject("AUTHZ_FORBIDS#AUTHZ_ACTION");
 
-        assertThat(filterAgg.getJsonObject("filter").getJsonObject("term").getString("decision")).isEqualTo("FORBID");
+        assertThat(aggs.fieldNames()).containsExactly("AUTHZ_FORBIDS#__FILTER__");
+        assertThat(filterAgg.getJsonObject("filter").getJsonObject("term").getString("verdict")).isEqualTo("FORBID");
+        assertThat(facetAgg.getJsonObject("terms").getString("field")).isEqualTo("action");
+        assertThat(facetAgg.getJsonObject("aggs").fieldNames()).containsExactly("AUTHZ_FORBIDS#COUNT");
     }
 
     @Test
-    void should_sort_a_scoped_metric_on_the_nested_filter_aggregation_path() {
+    void should_sort_a_scoped_metric_on_its_measure_inside_the_scope_filter() {
         var query = new FacetsQuery(
             buildTimeRange(),
             List.of(),
@@ -95,10 +117,51 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var terms = new JsonObject(adapter.adapt(query))
             .getJsonObject("aggs")
+            .getJsonObject("AUTHZ_FORBIDS#__FILTER__")
+            .getJsonObject("aggs")
             .getJsonObject("AUTHZ_FORBIDS#AUTHZ_ACTION")
             .getJsonObject("terms");
 
-        assertThat(terms.getJsonObject("order").getString("AUTHZ_FORBIDS#__FILTER__>AUTHZ_FORBIDS#COUNT")).isEqualTo("desc");
+        assertThat(terms.getJsonObject("order").getMap()).containsExactly(Map.entry("AUTHZ_FORBIDS#COUNT", "desc"));
+    }
+
+    @Test
+    void should_leave_the_default_order_of_a_scoped_metric_without_sort() {
+        var query = new FacetsQuery(
+            buildTimeRange(),
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.AUTHZ_EVAL_DURATION, Set.of(Measure.MIN))),
+            List.of(Facet.AUTHZ_ACTION),
+            1
+        );
+
+        var terms = new JsonObject(adapter.adapt(query))
+            .getJsonObject("aggs")
+            .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
+            .getJsonObject("aggs")
+            .getJsonObject("AUTHZ_EVAL_DURATION#AUTHZ_ACTION")
+            .getJsonObject("terms");
+
+        assertThat(terms.getInteger("size")).isEqualTo(1);
+        assertThat(terms.containsKey("order")).isFalse();
+    }
+
+    @Test
+    void should_leave_the_default_order_of_an_unscoped_metric_without_sort() {
+        var query = new FacetsQuery(
+            buildTimeRange(),
+            List.of(),
+            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
+            List.of(Facet.AUTHZ_ACTION),
+            1
+        );
+
+        var terms = new JsonObject(adapter.adapt(query))
+            .getJsonObject("aggs")
+            .getJsonObject("AUTHZ_DECISIONS#AUTHZ_ACTION")
+            .getJsonObject("terms");
+
+        assertThat(terms.containsKey("order")).isFalse();
     }
 
     @Test
@@ -121,7 +184,7 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
     }
 
     @Test
-    void should_sort_the_duration_metric_on_the_nested_filter_aggregation_path() {
+    void should_sort_the_duration_metric_on_its_measure_inside_the_scope_filter() {
         var query = new FacetsQuery(
             buildTimeRange(),
             List.of(),
@@ -133,10 +196,12 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
         var terms = new JsonObject(adapter.adapt(query))
             .getJsonObject("aggs")
+            .getJsonObject("AUTHZ_EVAL_DURATION#__FILTER__")
+            .getJsonObject("aggs")
             .getJsonObject("AUTHZ_EVAL_DURATION#AUTHZ_ACTION")
             .getJsonObject("terms");
 
-        assertThat(terms.getJsonObject("order").getString("AUTHZ_EVAL_DURATION#__FILTER__>AUTHZ_EVAL_DURATION#AVG")).isEqualTo("desc");
+        assertThat(terms.getJsonObject("order").getMap()).containsExactly(Map.entry("AUTHZ_EVAL_DURATION#AVG", "desc"));
     }
 
     @Test

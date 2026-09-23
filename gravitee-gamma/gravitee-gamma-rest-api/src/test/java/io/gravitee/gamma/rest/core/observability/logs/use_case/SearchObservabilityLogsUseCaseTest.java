@@ -163,7 +163,9 @@ class SearchObservabilityLogsUseCaseTest {
                     null,
                     Set.of(Signal.LOGS),
                     io.gravitee.gamma.rest.core.observability.filter.model.ApiType.ALL
-                )
+                ),
+                StaticFilters.AUTHZ_OPERATION.toSpec(),
+                StaticFilters.AUTHZ_INDETERMINATE_CAUSE.toSpec()
             )
         );
     }
@@ -264,6 +266,57 @@ class SearchObservabilityLogsUseCaseTest {
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(any(), any(), captor.capture());
             assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("AUTHZ_DECISION");
+        }
+
+        @Test
+        void should_refuse_the_operation_filter_now_that_a_decision_carries_no_operation() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(
+                        ORG_ID,
+                        ENV_ID,
+                        List.of(
+                            new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                            new FilterCondition("AUTHZ_OPERATION", FilterOperator.EQ, List.of("evaluation"))
+                        ),
+                        null,
+                        null,
+                        1,
+                        20
+                    )
+                )
+            )
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("AUTHZ_OPERATION");
+
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
+        void should_carry_the_indeterminate_cause_filter_through_to_the_data_port() {
+            when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
+                List.of(new AccessibleApi("api-1", "API One", ApiType.HTTP_PROXY))
+            );
+            when(logsDataPort.searchLogs(any(), any(), any())).thenReturn(new LogsPage(List.of(), 0));
+
+            useCase.execute(
+                new SearchObservabilityLogsUseCase.Input(
+                    ORG_ID,
+                    ENV_ID,
+                    List.of(
+                        new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
+                        new FilterCondition("AUTHZ_INDETERMINATE_CAUSE", FilterOperator.IN, List.of("NOT_READY", "TIMEOUT"))
+                    ),
+                    null,
+                    null,
+                    1,
+                    20
+                )
+            );
+
+            var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
+            verify(logsDataPort).searchLogs(any(), any(), captor.capture());
+            assertThat(captor.getValue().conditions()).extracting(FilterCondition::name).containsExactly("AUTHZ_INDETERMINATE_CAUSE");
         }
 
         @Test

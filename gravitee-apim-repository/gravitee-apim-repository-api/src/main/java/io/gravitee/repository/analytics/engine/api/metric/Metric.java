@@ -72,7 +72,7 @@ public enum Metric {
     NATIVE_OPERATION_BROKER_DURATION,
     NATIVE_OPERATION_GATEWAY_RESPONSE_DURATION,
 
-    // Authorization decisions, from the event-metrics data stream under doc-type: authz.
+    // Authorization decisions, from the decisions data stream.
     AUTHZ_OPERATIONS,
     AUTHZ_DECISIONS,
     AUTHZ_PERMITS,

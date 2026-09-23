@@ -245,7 +245,7 @@ class AnalyticsQueryValidatorTest {
     }
 
     @Test
-    void should_accept_an_authz_decision_facet_on_the_authz_decisions_metric() {
+    void should_accept_an_authz_decision_facet_on_the_decisions_metric() {
         var request = new FacetsRequest(
             VALID_TIME_RANGE,
             List.of(),
@@ -256,6 +256,30 @@ class AnalyticsQueryValidatorTest {
         );
 
         assertThatCode(() -> validator.validateFacetsRequest(request)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_accept_the_pdp_facet_on_every_metric_read_from_decisions() {
+        for (var metric : List.of(
+            MetricSpec.Name.AUTHZ_DECISIONS,
+            MetricSpec.Name.AUTHZ_PERMITS,
+            MetricSpec.Name.AUTHZ_FORBIDS,
+            MetricSpec.Name.AUTHZ_NOT_APPLICABLE,
+            MetricSpec.Name.AUTHZ_FAILURES
+        )) {
+            var request = new FacetsRequest(
+                VALID_TIME_RANGE,
+                List.of(new Filter(FilterSpec.Name.AUTHZ_PDP, FilterOperator.IN, List.of("pdp-b"))),
+                List.of(new FacetMetricMeasuresRequest(metric, List.of(MetricSpec.Measure.COUNT), List.of())),
+                List.of(FacetSpec.Name.AUTHZ_PDP),
+                null,
+                List.of()
+            );
+
+            assertThatCode(() -> validator.validateFacetsRequest(request))
+                .as("%s by AUTHZ_PDP", metric)
+                .doesNotThrowAnyException();
+        }
     }
 
     @Test

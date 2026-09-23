@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
-import io.gravitee.repository.analytics.engine.api.metric.Measure;
-import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
@@ -50,44 +48,23 @@ public class AuthzFacetsQueryAdapter {
         if (facets != null && facets.size() > 1) {
             throw new UnsupportedOperationException("Authz decisions support a single facet, got: " + facets);
         }
-        var measures = measuresAdapter.adaptMetrics(List.of(metric));
         if (facets == null || facets.isEmpty()) {
-            return measures;
+            return measuresAdapter.adaptMetrics(List.of(metric));
         }
         var facet = facets.getFirst();
-        var terms = new JsonObject().put("field", fieldResolver.fromFacet(facet));
-        if (limit != null) {
-            terms.put("size", limit);
-        }
-        applySorts(metric, terms);
-        var aggName = AggregationAdapter.adaptName(metric.metric(), facet);
-        return new JsonObject().put(aggName, new JsonObject().put("terms", terms).put("aggs", measures));
+        return AuthzScopedFacetAggregation.facet(
+            metric,
+            facet,
+            fieldResolver.fromFacet(facet),
+            limit,
+            measuresAdapter.buildMeasureAggs(metric),
+            measuresAdapter.scopeFilter(metric.metric())
+        );
     }
 
     static void rejectRanges(List<NumberRange> ranges) {
         if (ranges != null && !ranges.isEmpty()) {
             throw new UnsupportedOperationException("Authz decisions do not support range facets, got: " + ranges);
         }
-    }
-
-    private void applySorts(MetricMeasuresQuery metric, JsonObject terms) {
-        if (metric.sorts() == null || metric.sorts().isEmpty()) {
-            return;
-        }
-        var order = new JsonObject();
-        for (var sort : metric.sorts()) {
-            order.put(sortPath(metric.metric(), sort.measure()), sort.order().name().toLowerCase());
-        }
-        terms.put("order", order);
-    }
-
-    // A scoped metric nests its measure under __FILTER__, so Elasticsearch needs the full '>' path.
-    private String sortPath(Metric metric, Measure measure) {
-        var measureAggName = AggregationAdapter.adaptName(metric, measure);
-        if (measuresAdapter.isScoped(metric)) {
-            var filterAggName = metric.name() + AggregationAdapter.AGG_NAME_SEPARATOR + AggregationAdapter.FILTER_AGG_SUFFIX;
-            return filterAggName + ">" + measureAggName;
-        }
-        return measureAggName;
     }
 }

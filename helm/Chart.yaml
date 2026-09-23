@@ -73,3 +73,8 @@ annotations:
       links:
         - name: Github PR
           url: https://github.com/gravitee-io/gravitee-api-management/pull/19361
+    - kind: added
+      description: "`es.lifecycle.policies.decisions` sets the ILM policy for the gravitee-decisions-* data streams"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/20258

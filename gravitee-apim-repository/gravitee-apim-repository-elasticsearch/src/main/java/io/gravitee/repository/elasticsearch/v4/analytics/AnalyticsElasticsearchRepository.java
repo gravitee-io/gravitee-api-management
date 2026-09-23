@@ -388,7 +388,7 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public MeasuresResult searchAuthzMeasures(QueryContext queryContext, MeasuresQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
         var esQuery = authzMeasuresQueryAdapter.adapt(query);
 
         log.debug("Authz measures query: {}", esQuery);
@@ -401,27 +401,27 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
 
     @Override
     public FacetsResult searchAuthzFacets(QueryContext queryContext, FacetsQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
         var esQuery = authzFacetsQueryAdapter.adapt(query);
 
         log.debug("Authz facets query: {}", esQuery);
 
         return client
             .search(index, null, esQuery)
-            .map(response -> facetsResponseAdapter.adapt(response, query))
+            .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
             .blockingGet();
     }
 
     @Override
     public TimeSeriesResult searchAuthzTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
-        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.AUTHZ_DECISIONS, clusters);
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.DECISIONS, clusters);
         var esQuery = authzTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("Authz time series query: {}", esQuery);
 
         return client
             .search(index, null, esQuery)
-            .map(response -> timeSeriesResponseAdapter.adapt(response, query))
+            .map(response -> timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
             .blockingGet();
     }
 

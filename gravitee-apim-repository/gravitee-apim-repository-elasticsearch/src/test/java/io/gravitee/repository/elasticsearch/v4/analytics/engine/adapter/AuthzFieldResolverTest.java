@@ -32,10 +32,10 @@ class AuthzFieldResolverTest {
     @Test
     void should_resolve_counter_metrics_by_field_presence() {
         assertThat(resolver.fromMetric(Metric.AUTHZ_OPERATIONS)).isEqualTo("operation");
-        assertThat(resolver.fromMetric(Metric.AUTHZ_DECISIONS)).isEqualTo("decision");
-        assertThat(resolver.fromMetric(Metric.AUTHZ_PERMITS)).isEqualTo("decision");
-        assertThat(resolver.fromMetric(Metric.AUTHZ_FORBIDS)).isEqualTo("decision");
-        assertThat(resolver.fromMetric(Metric.AUTHZ_NOT_APPLICABLE)).isEqualTo("decision");
+        assertThat(resolver.fromMetric(Metric.AUTHZ_DECISIONS)).isEqualTo("event-id");
+        assertThat(resolver.fromMetric(Metric.AUTHZ_PERMITS)).isEqualTo("verdict");
+        assertThat(resolver.fromMetric(Metric.AUTHZ_FORBIDS)).isEqualTo("verdict");
+        assertThat(resolver.fromMetric(Metric.AUTHZ_NOT_APPLICABLE)).isEqualTo("indeterminate-cause");
         assertThat(resolver.fromMetric(Metric.AUTHZ_SEARCHES)).isEqualTo("search-type");
         assertThat(resolver.fromMetric(Metric.AUTHZ_FAILURES)).isEqualTo("status");
         assertThat(resolver.fromMetric(Metric.AUTHZ_EVAL_DURATION)).isEqualTo("duration-nanos");
@@ -49,23 +49,32 @@ class AuthzFieldResolverTest {
     }
 
     @Test
-    void should_mark_decision_scoped_metrics_with_their_decision_value() {
-        assertThat(resolver.isDecisionScoped(Metric.AUTHZ_PERMITS)).isTrue();
-        assertThat(resolver.decisionValue(Metric.AUTHZ_PERMITS)).isEqualTo("PERMIT");
-        assertThat(resolver.decisionValue(Metric.AUTHZ_FORBIDS)).isEqualTo("FORBID");
-        assertThat(resolver.decisionValue(Metric.AUTHZ_NOT_APPLICABLE)).isEqualTo("NOT_APPLICABLE");
-        assertThat(resolver.isDecisionScoped(Metric.AUTHZ_DECISIONS)).isFalse();
+    void should_scope_permits_and_forbids_by_the_verdict_of_the_pdp() {
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_PERMITS)).contains(new AuthzFieldResolver.ScopeTerm("verdict", "PERMIT"));
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_FORBIDS)).contains(new AuthzFieldResolver.ScopeTerm("verdict", "FORBID"));
     }
 
     @Test
-    void should_mark_the_failure_metric_as_failure_scoped() {
-        assertThat(resolver.isFailureScoped(Metric.AUTHZ_FAILURES)).isTrue();
-        assertThat(resolver.isFailureScoped(Metric.AUTHZ_OPERATIONS)).isFalse();
+    void should_scope_not_applicable_by_the_indeterminate_cause() {
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_NOT_APPLICABLE)).contains(
+            new AuthzFieldResolver.ScopeTerm("indeterminate-cause", "NOT_APPLICABLE")
+        );
+    }
+
+    @Test
+    void should_scope_failures_by_the_error_status() {
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_FAILURES)).contains(new AuthzFieldResolver.ScopeTerm("status", "error"));
+    }
+
+    @Test
+    void should_not_scope_the_decision_count() {
+        assertThat(resolver.scopeTerm(Metric.AUTHZ_DECISIONS)).isEmpty();
     }
 
     @Test
     void should_resolve_every_authz_facet() {
-        assertThat(resolver.fromFacet(Facet.AUTHZ_DECISION)).isEqualTo("decision");
+        assertThat(resolver.fromFacet(Facet.AUTHZ_DECISION)).isEqualTo("verdict");
+        assertThat(resolver.fromFacet(Facet.AUTHZ_PDP)).isEqualTo("decision-point-id");
         assertThat(resolver.fromFacet(Facet.AUTHZ_OPERATION)).isEqualTo("operation");
         assertThat(resolver.fromFacet(Facet.AUTHZ_STATUS)).isEqualTo("status");
         assertThat(resolver.fromFacet(Facet.AUTHZ_CALLER)).isEqualTo("caller");

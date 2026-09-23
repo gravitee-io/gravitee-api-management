@@ -236,8 +236,8 @@ public class ReporterConfiguration {
     @Value("${reporters.elasticsearch.lifecycle.policies.event_metrics:#{null}}")
     private String indexLifecyclePolicyEventMetrics;
 
-    @Value("${reporters.elasticsearch.lifecycle.policies.authz_decisions:#{null}}")
-    private String indexLifecyclePolicyAuthzDecisions;
+    @Value("${reporters.elasticsearch.lifecycle.policies.decisions:#{null}}")
+    private String indexLifecyclePolicyDecisions;
 
     /**
      * Policy name Property name
@@ -484,12 +484,12 @@ public class ReporterConfiguration {
         this.indexLifecyclePolicyEventMetrics = indexLifecyclePolicyEventMetrics;
     }
 
-    public String getIndexLifecyclePolicyAuthzDecisions() {
-        return indexLifecyclePolicyAuthzDecisions;
+    public String getIndexLifecyclePolicyDecisions() {
+        return indexLifecyclePolicyDecisions;
     }
 
-    public void setIndexLifecyclePolicyAuthzDecisions(String indexLifecyclePolicyAuthzDecisions) {
-        this.indexLifecyclePolicyAuthzDecisions = indexLifecyclePolicyAuthzDecisions;
+    public void setIndexLifecyclePolicyDecisions(String indexLifecyclePolicyDecisions) {
+        this.indexLifecyclePolicyDecisions = indexLifecyclePolicyDecisions;
     }
 
     public String getIndexLifecyclePolicyPropertyName() {

@@ -69,7 +69,6 @@ import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeParseException;
@@ -490,10 +489,11 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .resourceIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_RESOURCE_ID.filterName()))
             .callers(valuesOf(query.conditions(), StaticFilters.AUTHZ_CALLER.filterName()))
             .statuses(valuesOf(query.conditions(), StaticFilters.AUTHZ_STATUS.filterName()))
-            .operations(valuesOf(query.conditions(), StaticFilters.AUTHZ_OPERATION.filterName()))
+            .indeterminateCauses(valuesOf(query.conditions(), StaticFilters.AUTHZ_INDETERMINATE_CAUSE.filterName()))
+            .errorTypes(valuesOf(query.conditions(), StaticFilters.AUTHZ_ERROR_TYPE.filterName()))
             .targetPdpIds(valuesOf(query.conditions(), StaticFilters.AUTHZ_PDP.filterName()))
             .matchedPolicyNames(valuesOf(query.conditions(), StaticFilters.AUTHZ_MATCHED_POLICY.filterName()))
-            .policyGenerations(policyGenerationsOf(query.conditions()))
+            .policyGenerations(valuesOf(query.conditions(), StaticFilters.AUTHZ_POLICY_VERSION.filterName()))
             .requestIds(valuesOf(query.conditions(), StaticFilters.REQUEST_ID.filterName()))
             .reasonContains(firstValueOf(query.conditions(), StaticFilters.AUTHZ_REASON.filterName()))
             .build();
@@ -546,26 +546,6 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .orElse(null);
     }
 
-    /**
-     * `policy-generation` is a long in the index, so a non-numeric value reaches Elasticsearch as a
-     * malformed term and fails the shard. Refuse it here, the way {@link #parseHttpStatus} does.
-     *
-     * <p>The value is passed on unchanged rather than normalised: Elasticsearch already coerces
-     * decimal forms such as {@code "3.0"} to the matching generation, and rewriting them here would
-     * reject input that works today. This only rules out what cannot be a number at all.
-     */
-    private static Set<String> policyGenerationsOf(List<FilterCondition> conditions) {
-        Set<String> values = valuesOf(conditions, StaticFilters.AUTHZ_POLICY_VERSION.filterName());
-        for (String value : values) {
-            try {
-                new BigDecimal(value.trim());
-            } catch (NumberFormatException e) {
-                throw new ValidationDomainException("Invalid policy version value: " + value);
-            }
-        }
-        return values;
-    }
-
     private LogEntry mapDecisionToLogEntry(AuthzDecisionLog decision, Map<String, ApiReference> apisById) {
         var apiRef = apisById != null ? apisById.get(decision.apiId()) : null;
         return LogEntry.builder()
@@ -579,12 +559,14 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 AuthzDecision.builder()
                     .eventId(decision.eventId())
                     .decision(decision.decision())
+                    .outcome(decision.outcome())
+                    .enforced(decision.enforced())
+                    .indeterminateCause(decision.indeterminateCause())
                     .status(decision.status())
                     .caller(decision.caller())
-                    .operation(decision.operation())
                     .targetPdpId(decision.targetPdpId())
                     .policyGeneration(decision.policyGeneration())
-                    .matchedPolicyNames(decision.matchedPolicyNames())
+                    .matchedRules(matchedRulesOf(decision.matchedRules()))
                     .reasons(decision.reasons())
                     .subjectType(decision.subjectType())
                     .subjectId(decision.subjectId())
@@ -594,12 +576,21 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     .batchId(decision.batchId())
                     .batchIndex(decision.batchIndex())
                     .batchSize(decision.batchSize())
-                    .searchType(decision.searchType())
-                    .resultCount(decision.resultCount())
                     .durationNanos(decision.durationNanos())
+                    .errorType(decision.errorType())
                     .build()
             )
             .build();
+    }
+
+    private static List<AuthzDecision.MatchedRule> matchedRulesOf(List<AuthzDecisionLog.MatchedRule> matchedRules) {
+        if (matchedRules == null) {
+            return null;
+        }
+        return matchedRules
+            .stream()
+            .map(rule -> new AuthzDecision.MatchedRule(rule.id(), rule.name(), rule.version(), rule.effect()))
+            .toList();
     }
 
     private LogEntry mapToLogEntry(BaseConnectionLog log, Map<String, ApiReference> apisById) {

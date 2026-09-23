@@ -137,7 +137,8 @@ public class FilterAdapter {
         Filter.Name.AUTHZ_SUBJECT_ID,
         Filter.Name.AUTHZ_ACTION,
         Filter.Name.AUTHZ_RESOURCE_ID,
-        Filter.Name.AUTHZ_REASON
+        Filter.Name.AUTHZ_REASON,
+        Filter.Name.AUTHZ_PDP
     );
 
     private final FieldResolver fieldResolver;
@@ -238,7 +239,13 @@ public class FilterAdapter {
                 jsonFilters.add(filter(filter, entityRefs));
             }
         }
-        return jsonFilters;
+        return jsonFilters
+            .add(term(AuthzFieldResolver.DECISION_POINT_TYPE_FIELD, AuthzFieldResolver.DECISION_POINT_TYPE_AUTHZ))
+            .add(term(AuthzFieldResolver.PHASE_FIELD, AuthzFieldResolver.PHASE_RESOLVED));
+    }
+
+    private static JsonObject term(String field, String value) {
+        return JsonObject.of("term", JsonObject.of(field, value));
     }
 
     public boolean shouldAdaptForAuthz(Filter filter) {

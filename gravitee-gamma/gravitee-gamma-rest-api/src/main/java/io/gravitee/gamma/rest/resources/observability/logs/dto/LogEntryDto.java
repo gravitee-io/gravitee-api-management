@@ -88,12 +88,14 @@ public record LogEntryDto(
     public record AuthzDecisionDto(
         String eventId,
         String decision,
+        String outcome,
+        String enforced,
+        String indeterminateCause,
         String status,
         String caller,
-        String operation,
         String targetPdpId,
-        Long policyGeneration,
-        List<String> matchedPolicyNames,
+        String policyGeneration,
+        List<MatchedRuleDto> matchedRules,
         List<String> reasons,
         String subjectType,
         String subjectId,
@@ -103,20 +105,21 @@ public record LogEntryDto(
         String batchId,
         Integer batchIndex,
         Integer batchSize,
-        String searchType,
-        Integer resultCount,
-        Long durationNanos
+        Long durationNanos,
+        String errorType
     ) {
         public static AuthzDecisionDto from(AuthzDecision authz) {
             return new AuthzDecisionDto(
                 authz.eventId(),
                 authz.decision(),
+                authz.outcome(),
+                authz.enforced(),
+                authz.indeterminateCause(),
                 authz.status(),
                 authz.caller(),
-                authz.operation(),
                 authz.targetPdpId(),
                 authz.policyGeneration(),
-                authz.matchedPolicyNames(),
+                authz.matchedRules() != null ? authz.matchedRules().stream().map(MatchedRuleDto::from).toList() : null,
                 authz.reasons(),
                 authz.subjectType(),
                 authz.subjectId(),
@@ -126,10 +129,16 @@ public record LogEntryDto(
                 authz.batchId(),
                 authz.batchIndex(),
                 authz.batchSize(),
-                authz.searchType(),
-                authz.resultCount(),
-                authz.durationNanos()
+                authz.durationNanos(),
+                authz.errorType()
             );
+        }
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record MatchedRuleDto(String id, String name, String version, String effect) {
+        public static MatchedRuleDto from(AuthzDecision.MatchedRule rule) {
+            return new MatchedRuleDto(rule.id(), rule.name(), rule.version(), rule.effect());
         }
     }
 

@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.reporter.elasticsearch.config.ReporterConfiguration;
 import io.gravitee.apim.reporter.elasticsearch.indexer.PerTypeIndexNameGenerator;
 import io.gravitee.reporter.api.v4.metric.event.ApiEventMetrics;
-import io.gravitee.reporter.api.v4.metric.event.AuthzEventMetrics;
+import io.gravitee.reporter.api.v4.report.DecisionReport;
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,20 +43,24 @@ public class PerTypeIndexNameGeneratorTest {
     }
 
     @Test
-    public void generate_should_route_authorization_decisions_to_their_own_index() {
+    public void generate_should_route_decisions_to_their_own_index() {
         assertThat(
             cut.generate(
-                AuthzEventMetrics.builder()
+                DecisionReport.builder()
                     .gatewayId("gw")
                     .organizationId("org")
                     .environmentId("env")
                     .apiId("api")
-                    .operation(AuthzEventMetrics.OPERATION_EVALUATE)
                     .eventId("evt-1")
-                    .status(AuthzEventMetrics.STATUS_SUCCESS)
+                    .phase(DecisionReport.Phase.RESOLVED)
+                    .decisionPointType(DecisionReport.DECISION_POINT_AUTHZ)
+                    .decisionPointId("default")
+                    .outcome(DecisionReport.Outcome.ALLOW)
+                    .enforced(DecisionReport.Enforced.ALLOW)
+                    .status(DecisionReport.Status.SUCCESS)
                     .build()
             )
-        ).isEqualTo("indexName-authz-decisions");
+        ).isEqualTo("indexName-decisions");
     }
 
     @Test

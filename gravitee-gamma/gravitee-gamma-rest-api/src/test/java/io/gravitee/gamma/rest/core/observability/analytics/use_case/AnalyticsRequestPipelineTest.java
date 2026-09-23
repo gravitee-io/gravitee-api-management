@@ -270,7 +270,7 @@ class AnalyticsRequestPipelineTest {
         }
 
         @Test
-        void should_scope_authz_decisions_to_the_accessible_apis() {
+        void should_scope_decision_records_to_the_accessible_apis() {
             when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );

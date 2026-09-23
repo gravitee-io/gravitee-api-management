@@ -74,4 +74,31 @@ class StaticFiltersContractTest {
     void no_entrypoint_value_should_match_the_registry_token() {
         assertThat(StaticFilters.NO_ENTRYPOINT_VALUE).isEqualTo(ObservabilityEntrypoints.NO_ENTRYPOINT_VALUE);
     }
+
+    @Test
+    void authz_caller_labels_should_name_what_writes_each_value() {
+        assertThat(StaticFilters.AUTHZ_CALLER.toSpec().enumValues()).containsExactly(
+            new FilterSpec.EnumValue("pep", "PEP policy"),
+            new FilterSpec.EnumValue("gateway", "AuthZEN endpoint"),
+            new FilterSpec.EnumValue("authzen", "AuthZEN policy"),
+            new FilterSpec.EnumValue("unknown", "Unknown")
+        );
+    }
+
+    @Test
+    void authz_error_type_should_offer_the_values_the_callers_write_on_logs_only() {
+        var spec = StaticFilters.AUTHZ_ERROR_TYPE.toSpec();
+
+        assertThat(spec.label()).isEqualTo("Error type");
+        assertThat(spec.type()).isEqualTo(FilterType.ENUM);
+        assertThat(spec.operators()).containsExactly(FilterOperator.EQ, FilterOperator.IN);
+        assertThat(spec.signals()).containsExactly(Signal.LOGS);
+        assertThat(spec.apiTypes()).containsExactly(ApiType.AUTHZ_DECISION);
+        assertThat(spec.enumValues()).containsExactly(
+            new FilterSpec.EnumValue("evaluation_timeout", "Evaluation timeout"),
+            new FilterSpec.EnumValue("pdp_unavailable", "PDP unavailable"),
+            new FilterSpec.EnumValue("evaluation_failed", "Evaluation failed"),
+            new FilterSpec.EnumValue("agent_unresolved", "Agent unresolved")
+        );
+    }
 }

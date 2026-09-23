@@ -61,8 +61,8 @@ public class AuthzMeasuresQueryAdapter {
         return boolAdapter.adaptForAuthz(query);
     }
 
-    boolean isScoped(Metric metric) {
-        return scopeFilter(metric) != null;
+    static String scopeAggName(Metric metric) {
+        return metric.name() + AggregationAdapter.AGG_NAME_SEPARATOR + AggregationAdapter.FILTER_AGG_SUFFIX;
     }
 
     JsonObject adaptMetrics(List<MetricMeasuresQuery> metrics) {
@@ -73,27 +73,29 @@ public class AuthzMeasuresQueryAdapter {
             if (scope == null) {
                 aggs.mergeIn(measureAggs);
             } else {
-                var name = metric.metric().name() + AggregationAdapter.AGG_NAME_SEPARATOR + AggregationAdapter.FILTER_AGG_SUFFIX;
-                aggs.put(name, new JsonObject().put("filter", scope).put("aggs", measureAggs));
+                aggs.put(scopeAggName(metric.metric()), new JsonObject().put("filter", scope).put("aggs", measureAggs));
             }
         }
         return aggs;
     }
 
-    private JsonObject scopeFilter(Metric metric) {
-        if (fieldResolver.isDecisionScoped(metric)) {
-            return new JsonObject().put("term", new JsonObject().put("decision", fieldResolver.decisionValue(metric)));
-        }
-        if (fieldResolver.isFailureScoped(metric)) {
-            var successTerm = new JsonObject().put("term", new JsonObject().put("status", fieldResolver.successStatus()));
-            return new JsonObject().put("bool", new JsonObject().put("must_not", new JsonArray().add(successTerm)));
+    JsonObject scopeFilter(Metric metric) {
+        var scopeTerm = fieldResolver.scopeTerm(metric);
+        if (scopeTerm.isPresent()) {
+            return term(scopeTerm.get());
         }
         if (metric == Metric.AUTHZ_EVAL_DURATION) {
-            var operationTerm = new JsonObject().put("term", new JsonObject().put("operation", "evaluate"));
-            var durationExists = new JsonObject().put("exists", new JsonObject().put("field", "duration-nanos"));
-            return new JsonObject().put("bool", new JsonObject().put("filter", new JsonArray().add(operationTerm).add(durationExists)));
+            var durationExists = new JsonObject().put("exists", new JsonObject().put("field", fieldResolver.fromMetric(metric)));
+            return new JsonObject().put(
+                "bool",
+                new JsonObject().put("filter", new JsonArray().add(term(fieldResolver.successfulEvaluation())).add(durationExists))
+            );
         }
         return null;
+    }
+
+    private static JsonObject term(AuthzFieldResolver.ScopeTerm scopeTerm) {
+        return new JsonObject().put("term", new JsonObject().put(scopeTerm.field(), scopeTerm.value()));
     }
 
     JsonObject buildMeasureAggs(MetricMeasuresQuery metric) {

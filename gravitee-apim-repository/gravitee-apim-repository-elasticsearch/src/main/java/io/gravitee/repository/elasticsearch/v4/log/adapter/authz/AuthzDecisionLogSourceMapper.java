@@ -34,19 +34,21 @@ final class AuthzDecisionLogSourceMapper {
     static AuthzDecisionLog from(JsonNode source) {
         return AuthzDecisionLog.builder()
             .eventId(asTextOrNull(source.get(AuthzDecisionLogFields.EVENT_ID)))
-            .timestamp(epochMillis(asTextOrNull(source.get("@timestamp"))))
+            .timestamp(epochMillis(asTextOrNull(source.get(AuthzDecisionLogFields.TIMESTAMP))))
             .apiId(asTextOrNull(source.get(AuthzDecisionLogFields.API_ID)))
             .organizationId(asTextOrNull(source.get(AuthzDecisionLogFields.ORG_ID)))
             .environmentId(asTextOrNull(source.get(AuthzDecisionLogFields.ENV_ID)))
             .gatewayId(asTextOrNull(source.get(AuthzDecisionLogFields.GW_ID)))
             .requestId(asTextOrNull(source.get(AuthzDecisionLogFields.REQUEST_ID)))
-            .operation(asTextOrNull(source.get(AuthzDecisionLogFields.OPERATION)))
             .status(asTextOrNull(source.get(AuthzDecisionLogFields.STATUS)))
             .caller(asTextOrNull(source.get(AuthzDecisionLogFields.CALLER)))
             .targetPdpId(asTextOrNull(source.get(AuthzDecisionLogFields.TARGET_PDP_ID)))
-            .policyGeneration(asLongOrNull(source.get(AuthzDecisionLogFields.POLICY_GENERATION)))
+            .policyGeneration(asTextOrNull(source.get(AuthzDecisionLogFields.POLICY_GENERATION)))
             .decision(asTextOrNull(source.get(AuthzDecisionLogFields.DECISION)))
-            .matchedPolicyNames(matchedPolicyNames(source.get(AuthzDecisionLogFields.MATCHED_POLICIES)))
+            .outcome(asTextOrNull(source.get(AuthzDecisionLogFields.OUTCOME)))
+            .enforced(asTextOrNull(source.get(AuthzDecisionLogFields.ENFORCED)))
+            .indeterminateCause(asTextOrNull(source.get(AuthzDecisionLogFields.INDETERMINATE_CAUSE)))
+            .matchedRules(matchedRules(source.get(AuthzDecisionLogFields.MATCHED_RULES)))
             .reasons(asTextList(source.get(AuthzDecisionLogFields.REASONS)))
             .subjectType(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_TYPE)))
             .subjectId(asTextOrNull(source.get(AuthzDecisionLogFields.SUBJECT_ID)))
@@ -54,26 +56,36 @@ final class AuthzDecisionLogSourceMapper {
             .resourceType(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_TYPE)))
             .resourceId(asTextOrNull(source.get(AuthzDecisionLogFields.RESOURCE_ID)))
             .batchId(asTextOrNull(source.get(AuthzDecisionLogFields.BATCH_ID)))
-            .batchIndex(asIntOrNull(source.get(AuthzDecisionLogFields.BATCH_INDEX)))
-            .batchSize(asIntOrNull(source.get(AuthzDecisionLogFields.BATCH_SIZE)))
-            .searchType(asTextOrNull(source.get(AuthzDecisionLogFields.SEARCH_TYPE)))
-            .resultCount(asIntOrNull(source.get(AuthzDecisionLogFields.RESULT_COUNT)))
+            .batchIndex(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_INDEX)))
+            .batchSize(asIntOrNull(at(source, AuthzDecisionLogFields.BATCH_SIZE)))
             .durationNanos(asLongOrNull(source.get(AuthzDecisionLogFields.DURATION_NANOS)))
+            .errorType(asTextOrNull(source.get(AuthzDecisionLogFields.ERROR_TYPE)))
             .build();
     }
 
-    private static List<String> matchedPolicyNames(JsonNode node) {
+    private static JsonNode at(JsonNode source, String dottedPath) {
+        return source.at("/" + dottedPath.replace('.', '/'));
+    }
+
+    private static List<AuthzDecisionLog.MatchedRule> matchedRules(JsonNode node) {
         if (node == null || !node.isArray()) {
             return List.of();
         }
-        var names = new ArrayList<String>(node.size());
-        node.forEach(policy -> {
-            var name = asTextOrNull(policy.get(AuthzDecisionLogFields.MATCHED_POLICY_NAME));
+        var rules = new ArrayList<AuthzDecisionLog.MatchedRule>(node.size());
+        node.forEach(rule -> {
+            var name = asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_NAME));
             if (name != null) {
-                names.add(name);
+                rules.add(
+                    new AuthzDecisionLog.MatchedRule(
+                        asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_ID)),
+                        name,
+                        asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_VERSION)),
+                        asTextOrNull(rule.get(AuthzDecisionLogFields.MATCHED_RULE_EFFECT))
+                    )
+                );
             }
         });
-        return names;
+        return rules;
     }
 
     private static List<String> asTextList(JsonNode node) {
@@ -106,6 +118,6 @@ final class AuthzDecisionLogSourceMapper {
     }
 
     private static Integer asIntOrNull(JsonNode node) {
-        return node == null || node.isNull() ? null : node.asInt();
+        return node == null || node.isNull() || node.isMissingNode() ? null : node.asInt();
     }
 }
