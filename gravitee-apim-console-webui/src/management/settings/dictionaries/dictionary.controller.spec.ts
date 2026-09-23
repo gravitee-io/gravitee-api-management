@@ -92,6 +92,7 @@ describe('DictionaryController', () => {
   describe('saveProperties', () => {
     it('should clear the unsaved properties hint after a successful save', async () => {
       controller['propertiesDirty'] = true;
+      DictionaryService.get.mockResolvedValue({ data: { type: 'MANUAL', properties: { large_value: 'short' } } });
       DictionaryService.update.mockResolvedValue({
         data: {
           properties: { large_value: 'saved' },
@@ -125,7 +126,9 @@ describe('DictionaryController', () => {
       expect(controller['formDictionary'].$setPristine).toHaveBeenCalled();
     });
 
-    it('should clear propertiesDirty after a successful general update', async () => {
+    it('should keep propertiesDirty after a general update, which does not save properties', async () => {
+      controller['updateMode'] = true;
+      DictionaryService.get.mockResolvedValue({ data: { type: 'MANUAL', properties: { large_value: 'short' } } });
       DictionaryService.update.mockResolvedValue({
         data: {
           properties: { large_value: 'updated' },
@@ -135,8 +138,8 @@ describe('DictionaryController', () => {
       await controller.update();
 
       expect(DictionaryService.update).toHaveBeenCalled();
-      expect(controller['propertiesDirty']).toBe(false);
-      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'updated', encrypted: false, encryptable: false }]);
+      expect(controller['propertiesDirty']).toBe(true);
+      expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'short', encrypted: false, encryptable: false }]);
     });
 
     it('should clear propertiesDirty after deploy reloads dictionary state', async () => {
@@ -235,7 +238,7 @@ describe('DictionaryController', () => {
       });
 
       it('should treat every property as plain when no options are present', () => {
-        controller['dictionary'] = { properties: { url: 'https://backend' } };
+        controller['dictionary'] = { type: 'MANUAL', properties: { url: 'https://backend' } };
 
         expect(controller.computeProperties()).toEqual([{ key: 'url', value: 'https://backend', encrypted: false, encryptable: false }]);
       });
@@ -284,7 +287,7 @@ describe('DictionaryController', () => {
 
     describe('editing a masked row', () => {
       it('should treat a pending mark as masked, so the table cannot offer to edit it', () => {
-        controller['dictionary'] = { properties: { apiKey: 'real-secret' }, propertyOptions: {} };
+        controller['dictionary'] = { type: 'MANUAL', properties: { apiKey: 'real-secret' }, propertyOptions: {} };
         controller.encryptProperty('apiKey');
 
         const row = controller['dictProperties'].find(entry => entry.key === 'apiKey');
@@ -293,7 +296,7 @@ describe('DictionaryController', () => {
       });
 
       it('should not mask a plain row', () => {
-        controller['dictionary'] = { properties: { url: 'https://backend' } };
+        controller['dictionary'] = { type: 'MANUAL', properties: { url: 'https://backend' } };
 
         const row = controller.computeProperties().find(entry => entry.key === 'url');
 
@@ -301,7 +304,7 @@ describe('DictionaryController', () => {
       });
 
       it('should never hand the mask to the edit dialog', async () => {
-        controller['dictionary'] = { properties: { apiKey: 'real-secret' }, propertyOptions: {} };
+        controller['dictionary'] = { type: 'MANUAL', properties: { apiKey: 'real-secret' }, propertyOptions: {} };
         controller.encryptProperty('apiKey');
         const row = controller['dictProperties'].find(entry => entry.key === 'apiKey');
         $mdDialog.show.mockResolvedValue({ value: row.value });
@@ -323,6 +326,142 @@ describe('DictionaryController', () => {
       });
     });
 
+    describe('each form saves only its own section', () => {
+      const serverState = {
+        id: 'dic-1',
+        type: 'DYNAMIC',
+        name: 'NameOnTheServer',
+        description: 'DescriptionOnTheServer',
+        properties: { apiKey: 'fresh-value' },
+      };
+
+      beforeEach(() => {
+        controller['dictionary'] = {
+          id: 'dic-1',
+          type: 'DYNAMIC',
+          name: 'RenamedButNotSaved',
+          description: 'DescriptionOnTheServer',
+          properties: { apiKey: 'stale-value' },
+          propertyOptions: { apiKey: { encryptable: true } },
+        };
+        DictionaryService.get.mockResolvedValue({ data: { ...serverState } });
+        DictionaryService.update.mockResolvedValue({ data: { ...serverState } });
+      });
+
+      it('should let the properties form write the classification, never the provider values', async () => {
+        await controller.saveProperties();
+
+        expect(DictionaryService.get).toHaveBeenCalledWith('dic-1');
+        expect(DictionaryService.update).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: { apiKey: 'fresh-value' },
+            propertyOptions: { apiKey: { encryptable: true } },
+          }),
+        );
+      });
+
+      it('should not let the properties form save an unsaved name', async () => {
+        await controller.saveProperties();
+
+        expect(DictionaryService.update).toHaveBeenCalledWith(expect.objectContaining({ name: 'NameOnTheServer' }));
+      });
+
+      it('should let the general form save the name without touching the provider values', async () => {
+        controller['updateMode'] = true;
+
+        await controller.update();
+
+        expect(DictionaryService.update).toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'RenamedButNotSaved', properties: { apiKey: 'fresh-value' } }),
+        );
+      });
+
+      it('should let the properties form write the values on a manual dictionary', async () => {
+        controller['dictionary'] = { id: 'man-1', type: 'MANUAL', properties: { apiKey: 'typed-value' } };
+        DictionaryService.get.mockResolvedValue({ data: { id: 'man-1', type: 'MANUAL', properties: { apiKey: 'on-server' } } });
+
+        await controller.saveProperties();
+
+        expect(DictionaryService.update).toHaveBeenCalledWith(expect.objectContaining({ properties: { apiKey: 'typed-value' } }));
+      });
+    });
+
+    describe("a save keeps the other form's unsaved edits", () => {
+      beforeEach(() => {
+        const server = {
+          id: 'dic-1',
+          type: 'MANUAL',
+          name: 'ServerName',
+          description: 'ServerDescription',
+          properties: { apiKey: 'server-value' },
+        };
+        controller['dictionary'] = { ...server, properties: { ...server.properties } };
+        controller['updateMode'] = true;
+        controller['query'] = { total: 1 };
+        DictionaryService.get.mockResolvedValue({ data: { ...server, properties: { ...server.properties } } });
+        DictionaryService.update.mockImplementation(sent => Promise.resolve({ data: { ...sent } }));
+      });
+
+      it('should keep an unsaved padlock mark when the general form is saved', async () => {
+        controller.encryptProperty('apiKey');
+
+        await controller.update();
+
+        expect(controller['dictionary'].propertyOptions).toEqual({ apiKey: { encryptable: true } });
+        expect(controller['propertiesDirty']).toBe(true);
+      });
+
+      it('should keep an unsaved name when the properties form is saved', async () => {
+        controller['dictionary'].name = 'TypedButNotSaved';
+
+        await controller.saveProperties();
+
+        expect(controller['dictionary'].name).toBe('TypedButNotSaved');
+      });
+    });
+
+    describe('reset after a save', () => {
+      beforeEach(() => {
+        controller['dictionary'] = { id: 'dic-1', type: 'MANUAL', name: 'Dictionary', properties: { a: '1' } };
+        controller['initialDictionary'] = { id: 'dic-1', type: 'MANUAL', name: 'Dictionary', properties: { a: '1' } };
+        controller['query'] = { total: 1 };
+        controller['formDictionary'] = { $setPristine: jest.fn() };
+
+        DictionaryService.get.mockResolvedValue({ data: { id: 'dic-1', type: 'MANUAL', name: 'Dictionary', properties: { a: '1' } } });
+        DictionaryService.update.mockResolvedValue({
+          data: { id: 'dic-1', type: 'MANUAL', name: 'Dictionary', properties: { a: '1', b: '2' } },
+        });
+      });
+
+      it('should rewind to the last save, so a saved property cannot be dropped', async () => {
+        controller['dictionary'].properties.b = '2';
+
+        await controller.saveProperties();
+        controller.reset();
+
+        expect(controller['dictionary'].properties).toEqual({ a: '1', b: '2' });
+      });
+
+      it('should keep the property count in step with the last save', async () => {
+        controller['dictionary'].properties.b = '2';
+
+        await controller.saveProperties();
+
+        expect(controller['query'].total).toBe(2);
+      });
+
+      it('should rewind to the deployed state, not to the page load state', async () => {
+        DictionaryService.deploy.mockResolvedValue({
+          data: { id: 'dic-1', type: 'MANUAL', name: 'Dictionary', properties: { a: '1', b: '2' } },
+        });
+
+        await controller.deploy();
+        controller.reset();
+
+        expect(controller['dictionary'].properties).toEqual({ a: '1', b: '2' });
+      });
+    });
+
     describe('encryptProperty', () => {
       it('should mark a plain property as encryptable without touching its value', () => {
         controller.encryptProperty('url');
@@ -333,7 +472,7 @@ describe('DictionaryController', () => {
       });
 
       it('should create the options map when the dictionary has none', () => {
-        controller['dictionary'] = { properties: { url: 'https://backend' } };
+        controller['dictionary'] = { type: 'MANUAL', properties: { url: 'https://backend' } };
 
         controller.encryptProperty('url');
 
