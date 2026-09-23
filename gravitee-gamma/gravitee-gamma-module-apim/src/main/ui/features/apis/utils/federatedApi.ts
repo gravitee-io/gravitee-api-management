@@ -35,7 +35,8 @@ export function isFederatedApiListItem(api: ApiListItem): boolean {
             return false;
         default: {
             const unhandled: never = api.definitionVersion;
-            return unhandled;
+            console.warn('[ApiList] Unrecognized API definition version, treating the row as non-federated:', unhandled);
+            return false;
         }
     }
 }
