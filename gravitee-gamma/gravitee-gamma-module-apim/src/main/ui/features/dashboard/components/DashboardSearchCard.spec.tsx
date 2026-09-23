@@ -241,6 +241,25 @@ describe('DashboardSearchCard', () => {
         await waitFor(() => expect(apiSearches.lastCall?.body).toEqual({ query: SEARCH_TERM, apiTypes: PROXY_TYPES }));
     });
 
+    it('treats a whitespace-only input as no query, searching nothing and announcing no results', async () => {
+        const user = userEvent.setup();
+        const orgConsoleFetches = trackHandler('get', ORG_CONSOLE_PATH, { federation: { enabled: true } });
+        const apiSearches = trackHandler('post', SEARCH_PATH, EMPTY_RESULTS);
+        const productSearches = stubProductSearch();
+
+        renderCard();
+        const searchInput = screen.getByPlaceholderText(SEARCH_PLACEHOLDER);
+        await user.type(searchInput, '   ');
+
+        // Waiting for the gate to resolve rules out the API search being held back by the gate rather than by the blank term.
+        await waitFor(() => expect(orgConsoleFetches.callCount).toBeGreaterThan(0));
+        await settleOutstandingRequests();
+        expect(searchInput).toHaveProperty('value', '   ');
+        expect(apiSearches.callCount).toBe(0);
+        expect(productSearches.callCount).toBe(0);
+        expect(screen.queryByText(NO_RESULTS_MESSAGE)).toBeNull();
+    });
+
     it.each(NAVIGATION_CASES)(
         'navigates to the clicked %s result by its own id and not to the other kind',
         async (_kind, rowName, expectedCallback, expectedId, otherCallback) => {
