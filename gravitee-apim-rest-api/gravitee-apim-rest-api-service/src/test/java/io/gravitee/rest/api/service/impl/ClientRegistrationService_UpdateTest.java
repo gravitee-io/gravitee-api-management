@@ -54,6 +54,7 @@ import io.gravitee.rest.api.service.impl.configuration.application.registration.
 import io.gravitee.rest.api.service.impl.configuration.application.registration.InvalidClaimMappingException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.client.register.ClientRegistrationResponse;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -236,6 +237,7 @@ public class ClientRegistrationService_UpdateTest {
     }
 
     @Test
+<<<<<<< HEAD
     public void should_prefer_the_application_software_id_over_the_provider_one_on_update()
         throws TechnicalException, JsonProcessingException {
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
@@ -267,11 +269,79 @@ public class ClientRegistrationService_UpdateTest {
             mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
         ).thenReturn(newSet(provider));
 
+=======
+    public void should_keep_registered_secret_and_management_credentials_when_update_response_omits_them()
+        throws TechnicalException, JsonProcessingException {
+        ClientRegistrationResponse previous = givenPreviousRegistration();
+        wireMockServer.stubFor(
+            put(urlEqualTo("/registration")).willReturn(
+                aResponse().withBody("{\"client_id\": \"clientId\", \"redirect_uris\": [\"https://example.com/new-callback\"]}")
+            )
+        );
+
+        ClientRegistrationResponse updated = clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            new ObjectMapper().writeValueAsString(previous),
+            givenApplicationUpdate()
+        );
+
+        assertEquals("previousSecret", updated.getClientSecret());
+        assertEquals(1893456000L, updated.getClientSecretExpiresAt());
+        assertEquals("previousRegistrationAccessToken", updated.getRegistrationAccessToken());
+        assertEquals(previous.getRegistrationClientUri(), updated.getRegistrationClientUri());
+        assertEquals(List.of("https://example.com/new-callback"), updated.getRedirectUris());
+    }
+
+    @Test
+    public void should_adopt_values_returned_by_provider_in_update_response() throws TechnicalException, JsonProcessingException {
+        ClientRegistrationResponse previous = givenPreviousRegistration();
+        String newRegistrationClientUri = "http://localhost:" + wireMockServer.port() + "/registration/rotated";
+        wireMockServer.stubFor(
+            put(urlEqualTo("/registration")).willReturn(
+                aResponse().withBody(
+                    "{\"client_id\": \"clientId\", \"client_secret\": \"rotatedSecret\", \"client_secret_expires_at\": 0," +
+                        " \"registration_access_token\": \"rotatedRegistrationAccessToken\"," +
+                        " \"registration_client_uri\": \"" +
+                        newRegistrationClientUri +
+                        "\"}"
+                )
+            )
+        );
+
+        ClientRegistrationResponse updated = clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            new ObjectMapper().writeValueAsString(previous),
+            givenApplicationUpdate()
+        );
+
+        assertEquals("rotatedSecret", updated.getClientSecret());
+        assertEquals(0L, updated.getClientSecretExpiresAt());
+        assertEquals("rotatedRegistrationAccessToken", updated.getRegistrationAccessToken());
+        assertEquals(newRegistrationClientUri, updated.getRegistrationClientUri());
+    }
+
+    private ClientRegistrationResponse givenPreviousRegistration() throws TechnicalException {
+        ClientRegistrationResponse previous = new ClientRegistrationResponse();
+        previous.setClientId("clientId");
+        previous.setClientSecret("previousSecret");
+        previous.setClientSecretExpiresAt(1893456000L);
+        previous.setRegistrationAccessToken("previousRegistrationAccessToken");
+        previous.setRegistrationClientUri("http://localhost:" + wireMockServer.port() + "/registration");
+
+        ClientRegistrationProvider provider = new ClientRegistrationProvider();
+        provider.setId("CRP_ID");
+        provider.setName("name");
+        provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        when(
+            mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
+        ).thenReturn(newSet(provider));
+>>>>>>> d9a2781 (fix(rest-api): keep stored DCR client secret when update response omits it)
         wireMockServer.stubFor(
             get(urlEqualTo("/am")).willReturn(
                 aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
             )
         );
+<<<<<<< HEAD
 
         clientRegistrationService.update(
             GraviteeContext.getExecutionContext(),
@@ -283,6 +353,19 @@ public class ClientRegistrationService_UpdateTest {
         wireMockServer.verify(
             putRequestedFor(urlEqualTo("/registration")).withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE")))
         );
+=======
+        return previous;
+    }
+
+    private static UpdateApplicationEntity givenApplicationUpdate() {
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setRedirectUris(List.of("https://example.com/new-callback"));
+        ApplicationSettings applicationSettings = new ApplicationSettings();
+        applicationSettings.setOauth(oAuthClientSettings);
+        UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
+        updateApplicationEntity.setSettings(applicationSettings);
+        return updateApplicationEntity;
+>>>>>>> d9a2781 (fix(rest-api): keep stored DCR client secret when update response omits it)
     }
 
     @Test
