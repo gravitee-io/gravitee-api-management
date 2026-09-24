@@ -143,7 +143,7 @@ class ClusterResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_credentials_to_a_cluster_editor() {
+        void should_return_credentials_to_a_configuration_editor() {
             when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(clusterWithCredentials()));
 
             final Response response = rootTarget().request().get();
@@ -156,12 +156,12 @@ class ClusterResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_hide_credentials_from_a_reader_who_cannot_update_the_cluster() {
+        void should_hide_credentials_from_a_configuration_reader() {
             when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(clusterWithCredentials()));
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
-                    RolePermission.CLUSTER_DEFINITION,
+                    RolePermission.CLUSTER_CONFIGURATION,
                     CLUSTER_ID,
                     RolePermissionAction.UPDATE
                 )
@@ -174,6 +174,34 @@ class ClusterResourceTest extends AbstractResourceTest {
             assertThat(cluster.getConfiguration()).isEqualTo(
                 Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
             );
+        }
+
+        @Test
+        void should_hide_configuration_from_a_member_without_configuration_permission() {
+            when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(clusterWithCredentials()));
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.CLUSTER_CONFIGURATION,
+                    CLUSTER_ID,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.CLUSTER_CONFIGURATION,
+                    CLUSTER_ID,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+
+            final Response response = rootTarget().request().get();
+
+            var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(cluster.getConfiguration()).isNull();
+            assertThat(cluster.getId()).isEqualTo(CLUSTER_ID);
         }
 
         @Test
