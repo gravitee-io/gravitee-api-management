@@ -26,51 +26,44 @@ import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import org.junit.jupiter.api.Test;
 
-class AuthzAnalyticsQueryServiceTest {
+class AuthzTrafficAnalyticsQueryServiceTest {
 
     private final AnalyticsRepository repository = mock(AnalyticsRepository.class);
-    private final AuthzAnalyticsQueryService service = new AuthzAnalyticsQueryService(repository);
+    private final AuthzTrafficAnalyticsQueryService service = new AuthzTrafficAnalyticsQueryService(repository);
 
     @Test
-    void should_declare_every_authz_metric() {
-        assertThat(service.metrics()).containsExactlyInAnyOrder(
-            MetricSpec.Name.AUTHZ_DECISIONS,
-            MetricSpec.Name.AUTHZ_PERMITS,
-            MetricSpec.Name.AUTHZ_FORBIDS,
-            MetricSpec.Name.AUTHZ_NOT_APPLICABLE,
-            MetricSpec.Name.AUTHZ_FAILURES,
-            MetricSpec.Name.AUTHZ_EVAL_DURATION
-        );
+    void should_declare_only_operations_and_searches() {
+        assertThat(service.metrics()).containsExactlyInAnyOrder(MetricSpec.Name.AUTHZ_OPERATIONS, MetricSpec.Name.AUTHZ_SEARCHES);
     }
 
     @Test
-    void should_delegate_measures_to_the_authz_repository_method() {
+    void should_delegate_measures_to_the_authz_traffic_repository_method() {
         var context = mock(ExecutionContext.class);
-        when(repository.searchAuthzMeasures(any(), any())).thenReturn(null);
+        when(repository.searchAuthzTrafficMeasures(any(), any())).thenReturn(null);
 
         service.searchMeasures(context, null);
 
-        verify(repository).searchAuthzMeasures(any(), any());
+        verify(repository).searchAuthzTrafficMeasures(any(), any());
     }
 
     @Test
-    void should_delegate_time_series_to_the_authz_repository_method() {
+    void should_delegate_time_series_to_the_authz_traffic_repository_method() {
         var context = mock(ExecutionContext.class);
-        when(repository.searchAuthzTimeSeries(any(), any())).thenReturn(null);
+        when(repository.searchAuthzTrafficTimeSeries(any(), any())).thenReturn(null);
 
         service.searchTimeSeries(context, null);
 
-        verify(repository).searchAuthzTimeSeries(any(), any());
+        verify(repository).searchAuthzTrafficTimeSeries(any(), any());
     }
 
     @Test
-    void should_delegate_facets_to_the_authz_repository_method() {
+    void should_delegate_facets_to_the_authz_traffic_repository_method() {
         var context = mock(ExecutionContext.class);
-        when(repository.searchAuthzFacets(any(), any())).thenReturn(null);
+        when(repository.searchAuthzTrafficFacets(any(), any())).thenReturn(null);
 
         service.searchFacets(context, null);
 
-        verify(repository).searchAuthzFacets(any(), any());
+        verify(repository).searchAuthzTrafficFacets(any(), any());
     }
 
     @Test

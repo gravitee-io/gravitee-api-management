@@ -1450,6 +1450,7 @@ components:
                 - AUTHZ_RESOURCE_ID
                 - AUTHZ_REASON
                 - AUTHZ_PDP
+                - AUTHZ_SEARCH_TYPE
             description: Available facet names for grouping analytics data
 
         FilterName:
@@ -1520,6 +1521,7 @@ components:
                 - AUTHZ_RESOURCE_ID
                 - AUTHZ_REASON
                 - AUTHZ_PDP
+                - AUTHZ_SEARCH_TYPE
             description: Available filter names for filtering analytics data
 
         ObservabilityFilterName:
@@ -1592,6 +1594,7 @@ components:
                 - AUTHZ_RESOURCE_ID
                 - AUTHZ_REASON
                 - AUTHZ_PDP
+                - AUTHZ_SEARCH_TYPE
             description: Filter names for observability filter definitions, including logs-only filters such as PAYLOAD
 
         Operator:

@@ -74,7 +74,7 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
             .satisfies(filters -> {
                 // The bare count keeps every catalog addition a deliberate decision. On its own it
                 // says nothing about what broke, so the names of the last additions come with it.
-                assertThat(filters).hasSize(63);
+                assertThat(filters).hasSize(64);
                 assertThat(filters)
                     .extracting(filter -> filter.getName().getValue())
                     .contains(
@@ -94,7 +94,8 @@ class ObservabilityFiltersDefinitionResourceTest extends AbstractResourceTest {
                         "AUTHZ_ACTION",
                         "AUTHZ_RESOURCE_ID",
                         "AUTHZ_REASON",
-                        "AUTHZ_PDP"
+                        "AUTHZ_PDP",
+                        "AUTHZ_SEARCH_TYPE"
                     );
             });
     }

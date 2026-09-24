@@ -86,6 +86,15 @@ class StaticFiltersContractTest {
     }
 
     @Test
+    void authz_search_type_labels_should_read_like_the_operation_labels() {
+        assertThat(StaticFilters.AUTHZ_SEARCH_TYPE.toSpec().enumValues()).containsExactly(
+            new FilterSpec.EnumValue("subject", "Subject"),
+            new FilterSpec.EnumValue("resource", "Resource"),
+            new FilterSpec.EnumValue("action", "Action")
+        );
+    }
+
+    @Test
     void authz_error_type_should_offer_the_values_the_callers_write_on_logs_only() {
         var spec = StaticFilters.AUTHZ_ERROR_TYPE.toSpec();
 

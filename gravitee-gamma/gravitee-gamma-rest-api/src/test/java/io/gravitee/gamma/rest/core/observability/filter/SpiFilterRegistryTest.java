@@ -142,8 +142,17 @@ class SpiFilterRegistryTest {
         List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ_DECISION));
 
         assertThat(result.stream().map(FilterSpec::name).toList())
-            .contains("AUTHZ_DECISION", "AUTHZ_OPERATION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION", "AUTHZ_PDP")
-            .doesNotContain("ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "API_TYPE", "RECORD_TYPE");
+            .contains("AUTHZ_DECISION", "AUTHZ_STATUS", "AUTHZ_CALLER", "AUTHZ_ACTION", "AUTHZ_PDP")
+            .doesNotContain("ENTRYPOINT", "HTTP_STATUS", "PAYLOAD", "API_TYPE", "RECORD_TYPE", "AUTHZ_OPERATION", "AUTHZ_SEARCH_TYPE");
+    }
+
+    @Test
+    void should_scope_the_authzen_traffic_filters_to_authz_apis_not_to_decisions() {
+        FilterRegistry registry = registryWith();
+
+        List<FilterSpec> result = registry.getFilters(Set.of(Signal.ANALYTICS), Set.of(ApiType.AUTHZ));
+
+        assertThat(result.stream().map(FilterSpec::name).toList()).contains("AUTHZ_OPERATION", "AUTHZ_SEARCH_TYPE");
     }
 
     @Test

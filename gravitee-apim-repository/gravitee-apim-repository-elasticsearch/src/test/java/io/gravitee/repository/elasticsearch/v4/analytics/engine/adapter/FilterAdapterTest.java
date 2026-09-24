@@ -35,6 +35,8 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * @author GraviteeSource Team
@@ -51,6 +53,49 @@ class FilterAdapterTest {
 
     private TimeRange buildTimeRange() {
         return new TimeRange(Instant.ofEpochMilli(FROM), Instant.ofEpochMilli(TO));
+    }
+
+    @Nested
+    class AuthzTrafficFilters {
+
+        private final FilterAdapter adapter = new FilterAdapter(new AuthzTrafficFieldResolver());
+
+        private MeasuresQuery queryWith(Filter filter) {
+            return new MeasuresQuery(
+                buildTimeRange(),
+                List.of(filter),
+                List.of(new MetricMeasuresQuery(Metric.AUTHZ_OPERATIONS, Set.of(Measure.COUNT)))
+            );
+        }
+
+        @Test
+        void should_match_nothing_when_a_filter_only_decisions_carry_is_set() {
+            var filters = adapter.adaptForAuthzTraffic(queryWith(new Filter(Filter.Name.AUTHZ_DECISION, Filter.Operator.EQ, "PERMIT")));
+
+            assertThat(filters.getJsonObject(filters.size() - 1)).isEqualTo(JsonObject.of("match_none", JsonObject.of()));
+        }
+
+        @ParameterizedTest
+        @EnumSource(Filter.Name.class)
+        void should_adapt_exactly_the_filters_the_traffic_resolver_resolves(Filter.Name name) {
+            var filter = new Filter(name, Filter.Operator.EQ, "value");
+            boolean resolvable;
+            try {
+                new AuthzTrafficFieldResolver().fromFilter(filter);
+                resolvable = true;
+            } catch (UnsupportedOperationException e) {
+                resolvable = false;
+            }
+
+            assertThat(adapter.shouldAdaptForAuthzTraffic(filter)).isEqualTo(resolvable);
+        }
+
+        @Test
+        void should_keep_a_filter_the_traffic_carries() {
+            var filters = adapter.adaptForAuthzTraffic(queryWith(new Filter(Filter.Name.AUTHZ_ACTION, Filter.Operator.EQ, "read")));
+
+            assertThat(filters.encode()).doesNotContain("match_none").contains("keyword_authz_action");
+        }
     }
 
     /**
@@ -650,6 +695,17 @@ class FilterAdapterTest {
             var jsonFilters = authzFilterAdapter.adaptForAuthz(new MeasuresQuery(buildTimeRange(), filters, metrics));
 
             assertThat(jsonFilters.encode()).contains("\"decision-point-id\"").contains("pdp-b");
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = Filter.Name.class, names = { "AUTHZ_OPERATION", "AUTHZ_SEARCH_TYPE" })
+        void should_match_no_decision_when_filtered_on_a_field_only_traffic_carries(Filter.Name name) {
+            var filters = List.of(new Filter(name, Filter.Operator.EQ, "search"));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT)));
+
+            var jsonFilters = authzFilterAdapter.adaptForAuthz(new MeasuresQuery(buildTimeRange(), filters, metrics));
+
+            assertThat(jsonFilters.getJsonObject(jsonFilters.size() - 1)).isEqualTo(JsonObject.of("match_none", JsonObject.of()));
         }
     }
 

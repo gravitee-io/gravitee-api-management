@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 
 class AuthzTimeSeriesQueryAdapterTest extends AbstractQueryAdapterTest {
 
-    private final AuthzTimeSeriesQueryAdapter adapter = new AuthzTimeSeriesQueryAdapter();
+    private final AuthzTimeSeriesQueryAdapter adapter = new AuthzTimeSeriesQueryAdapter(new AuthzMeasuresQueryAdapter());
 
     @Test
     void should_build_a_date_histogram_named_after_the_metric() {

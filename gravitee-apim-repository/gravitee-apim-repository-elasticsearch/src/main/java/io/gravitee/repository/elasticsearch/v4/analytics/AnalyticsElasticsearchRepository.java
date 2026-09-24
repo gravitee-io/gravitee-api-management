@@ -67,8 +67,13 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
     private final EventMetricsFacetsQueryAdapter eventMetricsFacetsQueryAdapter = new EventMetricsFacetsQueryAdapter();
     private final EventMetricsTimeSeriesQueryAdapter eventMetricsTimeSeriesQueryAdapter = new EventMetricsTimeSeriesQueryAdapter();
     private final AuthzMeasuresQueryAdapter authzMeasuresQueryAdapter = new AuthzMeasuresQueryAdapter();
-    private final AuthzFacetsQueryAdapter authzFacetsQueryAdapter = new AuthzFacetsQueryAdapter();
-    private final AuthzTimeSeriesQueryAdapter authzTimeSeriesQueryAdapter = new AuthzTimeSeriesQueryAdapter();
+    private final AuthzFacetsQueryAdapter authzFacetsQueryAdapter = new AuthzFacetsQueryAdapter(authzMeasuresQueryAdapter);
+    private final AuthzTimeSeriesQueryAdapter authzTimeSeriesQueryAdapter = new AuthzTimeSeriesQueryAdapter(authzMeasuresQueryAdapter);
+    private final AuthzTrafficMeasuresQueryAdapter authzTrafficMeasuresQueryAdapter = new AuthzTrafficMeasuresQueryAdapter();
+    private final AuthzFacetsQueryAdapter authzTrafficFacetsQueryAdapter = new AuthzFacetsQueryAdapter(authzTrafficMeasuresQueryAdapter);
+    private final AuthzTimeSeriesQueryAdapter authzTrafficTimeSeriesQueryAdapter = new AuthzTimeSeriesQueryAdapter(
+        authzTrafficMeasuresQueryAdapter
+    );
     private final FilterValuesQueryAdapter filterValuesQueryAdapter = new FilterValuesQueryAdapter();
     private final FilterValuesResponseAdapter filterValuesResponseAdapter = new FilterValuesResponseAdapter();
 
@@ -418,6 +423,45 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var esQuery = authzTimeSeriesQueryAdapter.adapt(query);
 
         log.debug("Authz time series query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> timeSeriesResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
+            .blockingGet();
+    }
+
+    @Override
+    public MeasuresResult searchAuthzTrafficMeasures(QueryContext queryContext, MeasuresQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = authzTrafficMeasuresQueryAdapter.adapt(query);
+
+        log.debug("Authz traffic measures query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> measuresResponseAdapter.adapt(response, query))
+            .blockingGet();
+    }
+
+    @Override
+    public FacetsResult searchAuthzTrafficFacets(QueryContext queryContext, FacetsQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = authzTrafficFacetsQueryAdapter.adapt(query);
+
+        log.debug("Authz traffic facets query: {}", esQuery);
+
+        return client
+            .search(index, null, esQuery)
+            .map(response -> facetsResponseAdapter.adapt(AuthzScopedFacetAggregation.unwrap(response, query), query))
+            .blockingGet();
+    }
+
+    @Override
+    public TimeSeriesResult searchAuthzTrafficTimeSeries(QueryContext queryContext, TimeSeriesQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(queryContext.placeholder(), Type.V4_METRICS, clusters);
+        var esQuery = authzTrafficTimeSeriesQueryAdapter.adapt(query);
+
+        log.debug("Authz traffic time series query: {}", esQuery);
 
         return client
             .search(index, null, esQuery)
