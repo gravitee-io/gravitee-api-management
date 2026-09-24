@@ -551,19 +551,50 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             // the additional_client_metadata merge in convert(), which keeps the same precedence as register().
             registrationRequest.setSoftwareId(provider.getSoftwareId());
 
+<<<<<<< HEAD
             Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
 
             return registrationProviderClient.update(
+=======
+            ClientRegistrationResponse updatedRegistrationResponse = registrationProviderClient.update(
+>>>>>>> d9a2781 (fix(rest-api): keep stored DCR client secret when update response omits it)
                 registrationResponse.getRegistrationAccessToken(),
                 registrationResponse.getRegistrationClientUri(),
                 convert(registrationRequest, application),
                 claimInjections,
                 application.getSettings().getOauth().getClientId()
             );
+            keepRegisteredValuesOmittedByProvider(registrationResponse, updatedRegistrationResponse);
+            return updatedRegistrationResponse;
         } catch (JsonProcessingException ex) {
             log.error("Unexpected error while updating a client", ex);
             throw new RegisteredClientNotUpdatableException();
         }
+    }
+
+    /**
+     * RFC 7592 §2.2: a previously registered value is discarded only when the provider returns a new one.
+     * Providers may omit the secret and the management credentials from an update response (e.g. when they
+     * store secrets hashed), so keep the stored values instead of overwriting them with nothing.
+     */
+    private static void keepRegisteredValuesOmittedByProvider(ClientRegistrationResponse previous, ClientRegistrationResponse updated) {
+        if (updated == null) {
+            return;
+        }
+        if (isEmpty(updated.getClientSecret())) {
+            updated.setClientSecret(previous.getClientSecret());
+            updated.setClientSecretExpiresAt(previous.getClientSecretExpiresAt());
+        }
+        if (isEmpty(updated.getRegistrationAccessToken())) {
+            updated.setRegistrationAccessToken(previous.getRegistrationAccessToken());
+        }
+        if (isEmpty(updated.getRegistrationClientUri())) {
+            updated.setRegistrationClientUri(previous.getRegistrationClientUri());
+        }
+    }
+
+    private static boolean isEmpty(String value) {
+        return value == null || value.isEmpty();
     }
 
     @Override
