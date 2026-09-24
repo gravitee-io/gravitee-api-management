@@ -259,7 +259,7 @@
     <gravitee-policy-ai-routing.version>1.0.0</gravitee-policy-ai-routing.version>
     <gravitee-apim-repository-bridge.version>9.0.0</gravitee-apim-repository-bridge.version>
     <gravitee-secretprovider-hc-vault.version>2.1.0</gravitee-secretprovider-hc-vault.version>
-    <gravitee-secretprovider-aws.version>2.0.0</gravitee-secretprovider-aws.version>
+    <gravitee-secretprovider-aws.version>3.0.0</gravitee-secretprovider-aws.version>
     <gravitee-secretprovider-azure-keyvault.version>1.0.0</gravitee-secretprovider-azure-keyvault.version>
     <gravitee-service-secrets.version>3.0.2</gravitee-service-secrets.version>
     <gravitee-policy-interops.version>1.2.0</gravitee-policy-interops.version>
