@@ -384,6 +384,7 @@ public class FilteringServiceTest {
                 argThat(map -> ((List<String>) map.get("api")).containsAll(Set.of("api-#1", "api-#2", "api-#3"))),
                 isNull(),
                 eq(EnumSet.noneOf(DefinitionVersion.class)),
+                eq(false),
                 eq(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS)
             );
 

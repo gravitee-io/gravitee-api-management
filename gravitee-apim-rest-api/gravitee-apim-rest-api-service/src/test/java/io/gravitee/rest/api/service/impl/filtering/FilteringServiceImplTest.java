@@ -101,6 +101,7 @@ class FilteringServiceImplTest {
             any(),
             eq(null),
             any(),
+            eq(false),
             eq(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS)
         );
     }

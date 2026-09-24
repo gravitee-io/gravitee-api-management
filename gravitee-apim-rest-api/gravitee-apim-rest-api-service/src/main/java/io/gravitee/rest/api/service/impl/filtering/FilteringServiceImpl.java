@@ -196,6 +196,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
             filters,
             null,
             EnumSet.noneOf(DefinitionVersion.class),
+            false, // typoTolerance: preserves this method's existing (pre-fix) behavior
             SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS
         );
     }
