@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.filtering;
 
 import io.gravitee.apim.core.category.use_case.GetCategoryApisUseCase;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -33,6 +34,7 @@ import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.filtering.FilteringService;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import io.gravitee.rest.api.service.search.query.SearchSortStrategy;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiCategoryService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -40,6 +42,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -187,7 +190,15 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apiIds);
-        return apiSearchService.searchIds(executionContext, query, filters, null);
+        return apiSearchService.searchIds(
+            executionContext,
+            query,
+            filters,
+            null,
+            EnumSet.noneOf(DefinitionVersion.class),
+            false, // typoTolerance: this legacy search path does not apply fuzzy matching
+            SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS
+        );
     }
 
     @Override
