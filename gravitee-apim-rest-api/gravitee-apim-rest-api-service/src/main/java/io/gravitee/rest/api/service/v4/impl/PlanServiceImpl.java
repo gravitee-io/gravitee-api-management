@@ -616,7 +616,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
             checkStatusOfGeneralConditions(plan);
 
-            Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(plan.getReferenceId(), Plan.PlanReferenceType.API);
+            // A plan with no reference type resolved as API before this, and the repositories call name() unguarded.
+            Plan.PlanReferenceType referenceType = Objects.requireNonNullElse(plan.getReferenceType(), Plan.PlanReferenceType.API);
+            Set<Plan> plans = planRepository.findByReferenceIdAndReferenceType(plan.getReferenceId(), referenceType);
             if (plan.getSecurity() == Plan.PlanSecurityType.KEY_LESS) {
                 // Look to other plans if there is already a keyless-published plan
                 long count = plans
