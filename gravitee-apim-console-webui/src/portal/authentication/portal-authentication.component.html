@@ -17,9 +17,9 @@
 -->
 <portal-header title="Authentication" subtitle="Configure how users log in to your Developer Portals." />
 
-@if (dataResource.isLoading() && !authenticationForm()) {
+@if (dataResource.isLoading() && !formInitialValues()) {
   <div class="loading" data-testid="authentication-loading"><gio-loader /></div>
-} @else if (dataResource.error() && !authenticationForm()) {
+} @else if (dataResource.error() && !formInitialValues()) {
   <gio-banner-error data-testid="authentication-load-error">
     Authentication configuration could not be loaded.
     <span gioBannerBody>Retry the request or contact your administrator if the problem persists.</span>
@@ -27,13 +27,13 @@
       <button mat-stroked-button type="button" data-testid="authentication-retry" (click)="retry()">Retry</button>
     </div>
   </gio-banner-error>
-} @else if (authenticationForm(); as form) {
+} @else if (formInitialValues()) {
   <mat-card appearance="outlined" class="authentication-card">
     <mat-card-header>
       <mat-card-title>Configuration</mat-card-title>
     </mat-card-header>
 
-    <form [formGroup]="form" (ngSubmit)="save()">
+    <form [formGroup]="authenticationForm" (ngSubmit)="save()">
       <mat-card-content class="authentication-card__toggles">
         <gio-form-slide-toggle [matTooltip]="'Configuration provided by the system'" [matTooltipDisabled]="!isForceLoginReadonly()">
           @if (isForceLoginReadonly()) {
@@ -48,7 +48,11 @@
           />
         </gio-form-slide-toggle>
 
-        <gio-form-slide-toggle [matTooltip]="'Configuration provided by the system'" [matTooltipDisabled]="!isLocalLoginReadonly()">
+        <gio-form-slide-toggle
+          data-testid="local-login-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isLocalLoginReadonly()"
+        >
           @if (isLocalLoginReadonly()) {
             <mat-icon gioFormPrefix>lock</mat-icon>
           }
@@ -62,7 +66,7 @@
         </gio-form-slide-toggle>
       </mat-card-content>
 
-      <gio-save-bar [form]="form" [formInitialValues]="formInitialValues()" (resetClicked)="reset()" />
+      <gio-save-bar [form]="authenticationForm" [formInitialValues]="formInitialValues()" (resetClicked)="reset()" />
     </form>
 
     <gio-table-wrapper [length]="total()" [filters]="filters()" (filtersChange)="onFiltersChanged($event)">

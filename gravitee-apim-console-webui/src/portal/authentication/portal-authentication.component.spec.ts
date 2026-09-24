@@ -170,6 +170,30 @@ describe('PortalAuthenticationComponent', () => {
       expect(await (await harness.getLocalLoginToggle()).isChecked()).toBe(true);
       expect(await (await harness.getLocalLoginToggle()).isDisabled()).toBe(true);
     });
+
+    it('should update the login form state when the first identity provider is activated then deactivated', async () => {
+      await init();
+      const settings = settingsWith({ localLogin: true });
+      await load([google], [], settings);
+      expect(await (await harness.getLocalLoginToggle()).isDisabled()).toBe(true);
+      expect(await harness.isLocalLoginLabelDisabled()).toBe(true);
+
+      await harness.clickActivation('google');
+      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
+      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
+      await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+
+      expect(await (await harness.getLocalLoginToggle()).isDisabled()).toBe(false);
+      expect(await harness.isLocalLoginLabelDisabled()).toBe(false);
+
+      await harness.clickActivation('google');
+      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
+      httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` }).flush([]);
+      await load([google], [], settings);
+
+      expect(await (await harness.getLocalLoginToggle()).isDisabled()).toBe(true);
+      expect(await harness.isLocalLoginLabelDisabled()).toBe(true);
+    });
   });
 
   describe('identity providers', () => {

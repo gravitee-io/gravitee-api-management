@@ -47,6 +47,12 @@ export class PortalAuthenticationHarness extends ComponentHarness {
     return this.localLoginToggle();
   }
 
+  // gio-form-slide-toggle has no harness: its label is greyed out through this class
+  async isLocalLoginLabelDisabled(): Promise<boolean> {
+    const label = await this.locatorFor('[data-testid="local-login-field"] .form-slide-toggle__field__text')();
+    return label.hasClass('disabled');
+  }
+
   async submit(): Promise<void> {
     await (await this.saveBar()).clickSubmit();
   }

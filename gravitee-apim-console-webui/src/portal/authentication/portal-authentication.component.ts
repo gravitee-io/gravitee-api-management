@@ -109,7 +109,11 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   ]);
   readonly canUpdateActivation = this.permissionService.hasAnyMatching(['environment-identity_provider_activation-u']);
   readonly displayedColumns = ['logo', 'id', 'name', 'description', 'actions'];
-  readonly authenticationForm = signal<FormGroup<AuthenticationForm> | null>(null);
+  // A single form instance: gio-form-slide-toggle only listens to the status of the control it was first bound to
+  readonly authenticationForm = new FormGroup<AuthenticationForm>({
+    forceLogin: new FormControl(false, { nonNullable: true }),
+    localLogin: new FormControl(true, { nonNullable: true }),
+  });
   readonly formInitialValues = signal<AuthenticationFormValue | null>(null);
   readonly filters = signal<GioTableWrapperFilters>({ pagination: { index: 1, size: 10 }, searchTerm: '' });
 
@@ -149,13 +153,17 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
         return;
       }
       const { activations, settings } = this.dataResource.value();
-      const form = this.createForm(settings, activations.length > 0);
-      this.authenticationForm.set(form);
-      this.formInitialValues.set(form.getRawValue());
+      this.applySettings(settings, activations.length > 0);
+      this.formInitialValues.set(this.authenticationForm.getRawValue());
 
       // Without any activated identity provider, the login form is the only way to log in to the portal
-      if (activations.length === 0 && !form.controls.localLogin.value && this.canUpdateSettings && !this.isLocalLoginReadonly()) {
-        this.saveSettings({ ...form.getRawValue(), localLogin: true });
+      if (
+        activations.length === 0 &&
+        !this.authenticationForm.controls.localLogin.value &&
+        this.canUpdateSettings &&
+        !this.isLocalLoginReadonly()
+      ) {
+        this.saveSettings({ ...this.authenticationForm.getRawValue(), localLogin: true });
       }
     });
   }
@@ -170,9 +178,8 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   }
 
   hasUnsavedChanges(): boolean {
-    const form = this.authenticationForm();
     const initialValues = this.formInitialValues();
-    return !!form && !!initialValues && !isEqual(form.getRawValue(), initialValues);
+    return !!initialValues && !isEqual(this.authenticationForm.getRawValue(), initialValues);
   }
 
   retry(): void {
@@ -180,20 +187,18 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
   }
 
   reset(): void {
-    const form = this.authenticationForm();
     const initialValues = this.formInitialValues();
-    if (!form || !initialValues) {
+    if (!initialValues) {
       return;
     }
-    form.reset(initialValues);
+    this.authenticationForm.reset(initialValues);
   }
 
   save(): void {
-    const form = this.authenticationForm();
-    if (!form || !this.hasUnsavedChanges()) {
+    if (!this.hasUnsavedChanges()) {
       return;
     }
-    this.saveSettings(form.getRawValue());
+    this.saveSettings(this.authenticationForm.getRawValue());
   }
 
   onFiltersChanged(filters: GioTableWrapperFilters): void {
@@ -265,23 +270,24 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
     return this.dataResource.hasValue() && PortalSettingsService.isReadonly(this.dataResource.value().settings, property);
   }
 
-  private createForm(settings: PortalSettings, hasActivatedIdentityProvider: boolean): FormGroup<AuthenticationForm> {
-    return new FormGroup<AuthenticationForm>({
-      forceLogin: new FormControl(
-        {
-          value: settings.authentication?.forceLogin?.enabled ?? false,
-          disabled: !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, FORCE_LOGIN_PROPERTY),
-        },
-        { nonNullable: true },
-      ),
-      localLogin: new FormControl(
-        {
-          value: settings.authentication?.localLogin?.enabled ?? true,
-          disabled:
-            !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, LOCAL_LOGIN_PROPERTY) || !hasActivatedIdentityProvider,
-        },
-        { nonNullable: true },
-      ),
+  private applySettings(settings: PortalSettings, hasActivatedIdentityProvider: boolean): void {
+    const { forceLogin, localLogin } = this.authenticationForm.controls;
+    setDisabled(forceLogin, !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, FORCE_LOGIN_PROPERTY));
+    setDisabled(
+      localLogin,
+      !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, LOCAL_LOGIN_PROPERTY) || !hasActivatedIdentityProvider,
+    );
+    this.authenticationForm.reset({
+      forceLogin: settings.authentication?.forceLogin?.enabled ?? false,
+      localLogin: settings.authentication?.localLogin?.enabled ?? true,
     });
+  }
+}
+
+function setDisabled(control: FormControl<boolean>, isDisabled: boolean): void {
+  if (isDisabled) {
+    control.disable();
+  } else {
+    control.enable();
   }
 }
