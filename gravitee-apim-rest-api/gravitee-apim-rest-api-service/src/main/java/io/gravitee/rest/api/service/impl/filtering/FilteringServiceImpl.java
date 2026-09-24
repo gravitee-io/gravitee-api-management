@@ -196,7 +196,7 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
             filters,
             null,
             EnumSet.noneOf(DefinitionVersion.class),
-            false, // typoTolerance: preserves this method's existing (pre-fix) behavior
+            false, // typoTolerance: this legacy search path does not apply fuzzy matching
             SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS
         );
     }
