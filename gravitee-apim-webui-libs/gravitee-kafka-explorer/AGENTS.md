@@ -5,6 +5,7 @@ Source rules:
 - context/rules/tech/angular.md
 - context/rules/tech/typescript.md
 - .ai/rules/apim-angular.md
+- .ai/rules/apim-ui-test-ids.md
 - .ai/rules/gravitee-kafka-explorer.md
 -->
 
@@ -109,6 +110,15 @@ The shared Angular rule's "where the repo has adopted them" conditions are settl
 
 - Use lodash for common transforms (`kebabCase`, `isEmpty`, `isEqual`, `merge`, ...) before writing a new utility.
 - Use `fixture.destroy()` instead of `discardPeriodicTasks`.
+
+# UI Test Ids
+
+The platform E2E framework, outside this repository, selects elements by `data-testid`, so a changed id breaks it without failing any test here.
+
+- Every element your change adds or modifies that reads or writes data carries a `data-testid`: form controls, toggles, selects, displayed values, and the buttons that create, save, delete, or change state.
+- Never rename or remove an existing `data-testid` value, even when its name is poor or no longer fits its context. Cleaning up the code around it does not extend to the id.
+- When extracting markup into a shared component, the original screen keeps rendering its original ids: take the id, or its prefix, as an input and have the original caller pass the old value. New callers may use new ids.
+- Remove an id only when its element leaves the product, and call the removal out in the PR description as a compatibility-sensitive change.
 
 # Kafka Explorer Library Conventions
 
