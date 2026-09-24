@@ -23,7 +23,12 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.search.query.SearchSortStrategy;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -40,6 +45,12 @@ class FilteringServiceImplTest {
 
     @Mock
     SubscriptionService subscriptionService;
+
+    @Mock
+    ApiAuthorizationService apiAuthorizationService;
+
+    @Mock
+    ApiSearchService apiSearchService;
 
     @InjectMocks
     FilteringServiceImpl filteringService;
@@ -73,5 +84,24 @@ class FilteringServiceImplTest {
 
         assertThat(result).contains("app-1", "app-2");
         verify(subscriptionService).findReferenceIdsOrderByNumberOfSubscriptions(any(), eq(Order.DESC));
+    }
+
+    @Test
+    void searchApis_appliesStableSortStrategy() throws Exception {
+        ExecutionContext executionContext = new ExecutionContext("org", "env");
+        when(apiAuthorizationService.findAccessibleApiIdsForUser(eq(executionContext), eq("user"), any(ApiQuery.class))).thenReturn(
+            Set.of("api-1")
+        );
+
+        filteringService.searchApis(executionContext, "user", "term");
+
+        verify(apiSearchService).searchIds(
+            eq(executionContext),
+            eq("term"),
+            any(),
+            eq(null),
+            any(),
+            eq(SearchSortStrategy.SCORE_WITH_NAME_AND_ID_TIE_BREAKERS)
+        );
     }
 }
