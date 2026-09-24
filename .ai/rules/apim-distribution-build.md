@@ -29,4 +29,6 @@ Its parent is `io.gravitee:gravitee-parent`, the organisation pom — not `gravi
 
 Bundled plugin versions live in `gravitee-apim-distribution/pom.xml` — bumping one is a one-line change that does not touch the engine's build.
 
-Both reactors must keep the same `<revision>`/`<sha1>`/`<changelist>`. A CI step fails the build when they diverge, because a stale triplet resolves the previous version's snapshot from Nexus instead of failing.
+The two reactors carry their own `<revision>`/`<sha1>`/`<changelist>` and no longer have to agree. Which core the distribution assembles is decided by `apim.core.version` — its pin — or by the `-Dapim.core.version` a build passes, never by its own triplet.
+
+The assembled distribution carries a `core.version` file at its root, filtered at assembly time, so what shipped can be read back from the bundle. The gateway and rest-api images publish the same value as the OCI label `io.gravitee.core.version`.

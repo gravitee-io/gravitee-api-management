@@ -2,6 +2,59 @@
 # Every generated file with its content fingerprint; setup and check use
 # this for ownership, incremental runs, and tamper evidence.
 version: 1
+generatedBy: "checkout"
+buildFileProbes: ["angular.json","build.gradle","build.gradle.kts","ng-package.json","package.json","pom.xml","project.json"]
+inputs:
+  - { dir: ".", buildFiles: ["package.json","pom.xml"] }
+  - { path: ".ai/manifest.yaml", hash: "sha256:3d71657b8b456f46c16e3749cabc72330953b4246f86864dbc62b5e2ad1b50e2" }
+  - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:da3b2d09f7c8e8f34d4dba3550038cc1db089751ebf641aef27c8ad8f33d83d4" }
+  - { path: ".ai/rules/apim-angular.md", hash: "sha256:9e7472cc16201f62230b0de128c0c47c370fffe517cf1b0482dd43a584f17850" }
+  - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:2fb3523317ece500892026c92f4f4949323047766088a82665078ec3f1cf6e2f" }
+  - { path: ".ai/rules/apim-automation-signpost-definition.md", hash: "sha256:e855c57a8a9492a406a97a0c310ce995734d9e7ef69b6bcb50f815a94d99f9de" }
+  - { path: ".ai/rules/apim-automation-signpost-repository.md", hash: "sha256:7e989bd60fed34f02f1e4766e9d5716c069d424576d87306b13d45e0a29a4f47" }
+  - { path: ".ai/rules/apim-automation-signpost-restapi.md", hash: "sha256:037be833b5ab453ab884d81bd73de22414c9f0862d8880f22ff025d6ecb61ef7" }
+  - { path: ".ai/rules/apim-distribution-build.md", hash: "sha256:effb5ed03d1f12f1d278c33e584363febcea348f57f9d3cb972c37dfd911d23a" }
+  - { path: ".ai/rules/apim-java.md", hash: "sha256:037362a2a791c844ecefd9e990020d1b857dd1ed81a2158c0cf59c2b174c8695" }
+  - { path: ".ai/rules/apim-jsonnode.md", hash: "sha256:0dbaec902740b64b750be53ff03062a59e4de0171a4a52576253e20ed6e2b777" }
+  - { path: ".ai/rules/apim-two-reactors.md", hash: "sha256:e8e036c1f0d1064a21c16360fd1a30a71761d0432789ea6deecee8e7416f2141" }
+  - { path: ".ai/rules/console-webui.md", hash: "sha256:f5df442c57cde991ba1da02536893fd59659522f2af65a145c1c91bc13aad13c" }
+  - { path: ".ai/rules/gamma-clean-architecture.md", hash: "sha256:44b5a27cd1ff3f11333e94ca9ddf6ed3a040c3f291fd6403ff138092d9a22db0" }
+  - { path: ".ai/rules/gamma-host.md", hash: "sha256:5179639bea40e70ed1d9c082736ca1a65d261d909af49eda94fe0aab979c31da" }
+  - { path: ".ai/rules/gravitee-dashboard.md", hash: "sha256:3d416de9c07b05e834fd79402679d27cdf0892f015a79936205c980af47320ff" }
+  - { path: ".ai/rules/gravitee-kafka-explorer.md", hash: "sha256:d170ed705912f5ea0989dc4a0abb78b1816eb78f729afb92091bba14aae1e397" }
+  - { path: ".ai/rules/gravitee-markdown.md", hash: "sha256:e951338ee4033d3ddff3e95b3f658edb2a4cf3dafecbea43bdcb938d4b966906" }
+  - { path: ".ai/rules/portal-webui-next.md", hash: "sha256:8730b8d2cf98160e77eba0e6a294aa018849bc6fd2ea0125a06faa990b608f62" }
+  - { dir: "gravitee-apim-common", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-console-webui", buildFiles: ["project.json"] }
+  - { path: "gravitee-apim-console-webui/project.json", hash: "sha256:f95bedc198c00624ed1e0c3254659f5170af9873deac7f5c4ee1e0f88b96dde7" }
+  - { dir: "gravitee-apim-definition", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-distribution", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-gateway", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-plugin", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-portal-webui", buildFiles: ["angular.json","package.json"] }
+  - { dir: "gravitee-apim-portal-webui-next", buildFiles: ["project.json"] }
+  - { path: "gravitee-apim-portal-webui-next/project.json", hash: "sha256:92f0877317722bbe19d6340fabad0cfa4751bee4f5d81754d44a377bfc55b5fe" }
+  - { dir: "gravitee-apim-reporter", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-repository", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-rest-api", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-apim-webui-libs/gravitee-dashboard", buildFiles: ["ng-package.json","package.json","project.json"] }
+  - { path: "gravitee-apim-webui-libs/gravitee-dashboard/project.json", hash: "sha256:8654cdccb1ef2c24eeeb1a2f3776f3c82cb3009321e26b870c2321b069ffd1fa" }
+  - { dir: "gravitee-apim-webui-libs/gravitee-kafka-explorer", buildFiles: ["ng-package.json","package.json","project.json"] }
+  - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/project.json", hash: "sha256:ce2317d584b45428274e1c4c5f44bc0f3a01f2cec8d46028eac440e4f63fb423" }
+  - { dir: "gravitee-apim-webui-libs/gravitee-markdown", buildFiles: ["ng-package.json","package.json","project.json"] }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/project.json", hash: "sha256:1b0ad60d0fd3bbb21d714b6e194a98c636ba0e74ae3a0b6aa2b0721db2991c8c" }
+  - { dir: "gravitee-gamma/gravitee-gamma-control-plane-webui", buildFiles: ["project.json"] }
+  - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/project.json", hash: "sha256:70fd903be5c9e0426dbd6d83f1a374b4a7852ad06c04dcfe63a88201fc30e5f1" }
+  - { dir: "gravitee-gamma/gravitee-gamma-definition-model", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-gamma/gravitee-gamma-module-apim", buildFiles: ["package.json","pom.xml","project.json"] }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/project.json", hash: "sha256:b0c6d1a502ad2a4138a9e9ee68a248482cde1a1bb4c75c97ec366a6edf7f855b" }
+  - { dir: "gravitee-gamma/gravitee-gamma-module-platform", buildFiles: ["package.json","pom.xml","project.json"] }
+  - { path: "gravitee-gamma/gravitee-gamma-module-platform/project.json", hash: "sha256:90be49af03bd78c037c81ae4a73faed6c32949b9a4ca1b4dced015b001a4f10a" }
+  - { dir: "gravitee-gamma/gravitee-gamma-module-portals", buildFiles: ["package.json","pom.xml","project.json"] }
+  - { path: "gravitee-gamma/gravitee-gamma-module-portals/project.json", hash: "sha256:2c15ad09d5007c0e912a69d12aa551675dbe7d305db1b33b913fe7bdefe68f68" }
+  - { dir: "gravitee-gamma/gravitee-gamma-plugin", buildFiles: ["pom.xml"] }
+  - { dir: "gravitee-gamma/gravitee-gamma-rest-api", buildFiles: ["pom.xml"] }
 entries:
   - path: ".agents/skills/analyze-test-coverage/SKILL.md"
     hash: sha256:35f5bf7a4c37d9b7377a1c481ca8a9219b90929494b3120f7597bf38f58b6e83
@@ -12,11 +65,11 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/debugging/SKILL.md"
-    hash: sha256:d7e51602465210acfd0574163326fb1cb6712bb99c9fc32aee8c7cd39479dade
+    hash: sha256:a72ec4b533f481750ff68bd31496e0c48c84654c6d61a420721e0f05a88c989d
     status: generated
     scope: local
   - path: ".agents/skills/debugging/directives-template.md"
-    hash: sha256:685ec17c4a671a2d187684fc01bcac10656a87919378cc0bdceae35589af069b
+    hash: sha256:cab14d51cfc2fa23ddca1575f8f975b04bc9c27670ca78984e0d554c8c365274
     status: generated
     scope: local
   - path: ".agents/skills/explain-feature/SKILL.md"
@@ -27,16 +80,52 @@ entries:
     hash: sha256:eeb0802c8c27f646692a7e6779cf30f0cc28d12a3bff61626cc62f4077600c95
     status: generated
     scope: local
+  - path: ".agents/skills/git-github/SKILL.md"
+    hash: sha256:ba5ac442be7c0ff9a23492f36ab39d416014d484916da73e205ba92225f23e98
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/directives-template.md"
+    hash: sha256:dc08b9b5dea16c8a28590c73ffc4fb3d19dae333baf48777df38ec7617627d05
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/pr-body-template.md"
+    hash: sha256:01d701ffde39db922429c59aaac1086640fab0c96e3fd8d1d30f4da961e45b1f
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/references/cleanup.md"
+    hash: sha256:e584b96b6dab213b394ee9a052d8bc5883836d7f11b289f60087f38a688175b5
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/references/conflict-resolution.md"
+    hash: sha256:7856d09ab1a2ca151a8aa03873be04e37cc74f4c841911bb316fde4488d8cd28
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/references/pull-request-creation.md"
+    hash: sha256:910086e562b15c4c6bd49e3ad0245720473dbd50e8ac39a1f8122bd5c7795b8a
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/references/rebasing.md"
+    hash: sha256:0d42e315c1217f4f35dc64a52eccb730ee784fed73f36d5f6c46de53055861aa
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/references/stacked-pull-requests.md"
+    hash: sha256:143c5a95bd5e9cd28df6b10df521bbd4c87ad2c128290394cc56e0f1f561f93b
+    status: generated
+    scope: local
+  - path: ".agents/skills/git-github/references/worktrees.md"
+    hash: sha256:960713b07cf1c30b9a33f0aa939609cb25e08e72f566946628e84aa1fbc17ab2
+    status: generated
+    scope: local
   - path: ".agents/skills/peer-code-review/SKILL.md"
-    hash: sha256:84f8c2762eff50f6301513f852cb9af2adb5e71f8de54064047ab3791a13d5b5
+    hash: sha256:a06b7b63c883e0d982cbe571401c25fb1e4fa73367f993a57de85750625f6747
     status: generated
     scope: local
   - path: ".agents/skills/planning/SKILL.md"
-    hash: sha256:dfadf4c50b9414f7dba9614a1755107e81eb48c7b5d2a0d8c7988cc470f54147
+    hash: sha256:fb3654c7cc678256a345159a955e31fa665f3bbaf71205e8c0950e809191a911
     status: generated
     scope: local
   - path: ".agents/skills/self-code-review/SKILL.md"
-    hash: sha256:c6dee3fb46286cf5bfa3f0e484b198e67a9cc4f98c41a2bd038aaa4662f598ad
+    hash: sha256:943b86fad4cd1e4f97bee28d7a831f2d742af0b98bb299f966183e24a9132f49
     status: generated
     scope: local
   - path: ".agents/skills/write-tests/SKILL.md"
@@ -64,11 +153,11 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/debugging/SKILL.md"
-    hash: sha256:d7e51602465210acfd0574163326fb1cb6712bb99c9fc32aee8c7cd39479dade
+    hash: sha256:a72ec4b533f481750ff68bd31496e0c48c84654c6d61a420721e0f05a88c989d
     status: generated
     scope: local
   - path: ".claude/skills/debugging/directives-template.md"
-    hash: sha256:685ec17c4a671a2d187684fc01bcac10656a87919378cc0bdceae35589af069b
+    hash: sha256:cab14d51cfc2fa23ddca1575f8f975b04bc9c27670ca78984e0d554c8c365274
     status: generated
     scope: local
   - path: ".claude/skills/explain-feature/SKILL.md"
@@ -79,16 +168,52 @@ entries:
     hash: sha256:eeb0802c8c27f646692a7e6779cf30f0cc28d12a3bff61626cc62f4077600c95
     status: generated
     scope: local
+  - path: ".claude/skills/git-github/SKILL.md"
+    hash: sha256:ba5ac442be7c0ff9a23492f36ab39d416014d484916da73e205ba92225f23e98
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/directives-template.md"
+    hash: sha256:dc08b9b5dea16c8a28590c73ffc4fb3d19dae333baf48777df38ec7617627d05
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/pr-body-template.md"
+    hash: sha256:01d701ffde39db922429c59aaac1086640fab0c96e3fd8d1d30f4da961e45b1f
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/references/cleanup.md"
+    hash: sha256:e584b96b6dab213b394ee9a052d8bc5883836d7f11b289f60087f38a688175b5
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/references/conflict-resolution.md"
+    hash: sha256:7856d09ab1a2ca151a8aa03873be04e37cc74f4c841911bb316fde4488d8cd28
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/references/pull-request-creation.md"
+    hash: sha256:910086e562b15c4c6bd49e3ad0245720473dbd50e8ac39a1f8122bd5c7795b8a
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/references/rebasing.md"
+    hash: sha256:0d42e315c1217f4f35dc64a52eccb730ee784fed73f36d5f6c46de53055861aa
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/references/stacked-pull-requests.md"
+    hash: sha256:143c5a95bd5e9cd28df6b10df521bbd4c87ad2c128290394cc56e0f1f561f93b
+    status: generated
+    scope: local
+  - path: ".claude/skills/git-github/references/worktrees.md"
+    hash: sha256:960713b07cf1c30b9a33f0aa939609cb25e08e72f566946628e84aa1fbc17ab2
+    status: generated
+    scope: local
   - path: ".claude/skills/peer-code-review/SKILL.md"
-    hash: sha256:84f8c2762eff50f6301513f852cb9af2adb5e71f8de54064047ab3791a13d5b5
+    hash: sha256:a06b7b63c883e0d982cbe571401c25fb1e4fa73367f993a57de85750625f6747
     status: generated
     scope: local
   - path: ".claude/skills/planning/SKILL.md"
-    hash: sha256:dfadf4c50b9414f7dba9614a1755107e81eb48c7b5d2a0d8c7988cc470f54147
+    hash: sha256:fb3654c7cc678256a345159a955e31fa665f3bbaf71205e8c0950e809191a911
     status: generated
     scope: local
   - path: ".claude/skills/self-code-review/SKILL.md"
-    hash: sha256:c6dee3fb46286cf5bfa3f0e484b198e67a9cc4f98c41a2bd038aaa4662f598ad
+    hash: sha256:943b86fad4cd1e4f97bee28d7a831f2d742af0b98bb299f966183e24a9132f49
     status: generated
     scope: local
   - path: ".claude/skills/write-tests/SKILL.md"
@@ -103,8 +228,12 @@ entries:
     hash: sha256:099ebc0d75d677d12cdc8e55aca4241a24551a3b76a9b47fde81f3742848c2e9
     status: generated
     scope: committed
+  - path: ".github/scripts/verify-ai-context.mjs"
+    hash: sha256:280129086c0ea16a93d949e185c32e6cb478250463f63504441b0145c942b0c5
+    status: generated
+    scope: committed
   - path: "AGENTS.md"
-    hash: sha256:86cb313afd2ab68b21c56fdf325aca368f1d61aab587c32df3ac396d55e60d17
+    hash: sha256:307ef05893bc4b791da58bac5beb5539838d4fd1bfb837f6a54250b20f40bac2
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -136,7 +265,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/AGENTS.md"
-    hash: sha256:f613c462abe9b601345e0101efda33fa4e2ed5e620ac726d29c3a2ea11ecad03
+    hash: sha256:c7912628596c22afc910019996b695101c36b0b1a8adc09e7cce9b22891b7bb9
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/CLAUDE.md"
@@ -144,7 +273,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/AGENTS.md"
-    hash: sha256:1b8739465a7ccf122c6962b41a207c1108b727d02e3c03b6ff803d1c14bb9133
+    hash: sha256:ecf8518edaefd69b09abd2515fcfc13e267ef44ced7ce76bcfdea03e4a41c89e
     status: generated
     scope: committed
   - path: "gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/CLAUDE.md"
@@ -263,6 +392,14 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-module-portals/AGENTS.md"
+    hash: sha256:d18028e7c28dfbe092256fe1ec1688f08919810bea04c5ebf36bdeeb28467d39
+    status: generated
+    scope: committed
+  - path: "gravitee-gamma/gravitee-gamma-module-portals/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
   - path: "gravitee-gamma/gravitee-gamma-plugin/AGENTS.md"
     hash: sha256:4866e798893f2823b5fb9075badb4e906a7aeb0000bd756366bac831bbcef5d9
     status: generated
@@ -279,4 +416,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:058a1e48b43ee752f62e2adc30b7ddc1b332fd6552efb03a6611e858aa2023a2
+record: sha256:a65f33c142e9198bfe436e5e46f7c3a65bc71e4cd1ff40caab1a93e50861765d

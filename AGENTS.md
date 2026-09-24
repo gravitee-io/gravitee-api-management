@@ -142,7 +142,7 @@ When adding or changing HTTP endpoints under `gravitee-apim-rest-api/`:
 
 | Area | Module path (under `gravitee-apim-rest-api/`) | OpenAPI spec(s) |
 | --- | --- | --- |
-| **Management API v2** | `gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-model` | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
+| **Management API v2** | `gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-model` (JAX-RS resources: the sibling `-rest` module) | `src/main/resources/openapi/openapi-*.yaml` (split by area) |
 | **Kafka Explorer** | `gravitee-apim-rest-api-kafka-explorer` | `src/main/resources/openapi/openapi-kafka-explorer.yaml` |
 | **Portal API** | `gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest` | `src/main/resources/portal-openapi.yaml` |
 | **Automation API** | `gravitee-apim-rest-api-automation/gravitee-apim-rest-api-automation-rest` | `src/main/resources/open-api.yaml` |
@@ -195,7 +195,3 @@ The distribution assembles the **pinned released** core unless `-Dapim.core.vers
 # Modules
 
 Before working on files under any of these directories, read that directory's `AGENTS.md` first: `gravitee-apim-common/`, `gravitee-apim-console-webui/`, `gravitee-apim-definition/`, `gravitee-apim-distribution/`, `gravitee-apim-distribution/gravitee-apim-distribution-integration-tests/`, `gravitee-apim-gateway/`, `gravitee-apim-plugin/`, `gravitee-apim-portal-webui/`, `gravitee-apim-portal-webui-next/`, `gravitee-apim-reporter/`, `gravitee-apim-repository/`, `gravitee-apim-rest-api/`, `gravitee-apim-webui-libs/gravitee-dashboard/`, `gravitee-apim-webui-libs/gravitee-kafka-explorer/`, `gravitee-apim-webui-libs/gravitee-markdown/`, `gravitee-gamma/gravitee-gamma-control-plane-webui/`, `gravitee-gamma/gravitee-gamma-definition-model/`, `gravitee-gamma/gravitee-gamma-module-apim/`, `gravitee-gamma/gravitee-gamma-module-platform/`, `gravitee-gamma/gravitee-gamma-module-portals/`, `gravitee-gamma/gravitee-gamma-plugin/`, `gravitee-gamma/gravitee-gamma-rest-api/`, `.ai/`.
-
-# Skills
-
-Skills: run `gbuddy setup` to install analyze-test-coverage, debugging, explain-feature, peer-code-review, planning, self-code-review, write-tests under `.claude/skills/` (and `.agents/skills/` for Codex and Gemini CLI).
