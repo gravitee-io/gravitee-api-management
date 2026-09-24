@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.GetDeployedClustersUseCase;
@@ -121,7 +122,7 @@ public class ClustersResource extends AbstractResource {
         );
 
         return new ClustersResponse()
-            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent()))
+            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent().stream().map(Cluster::withoutCredentials).toList()))
             .pagination(
                 PaginationInfo.computePaginationInfo(
                     result.pageResult().getTotalElements(),

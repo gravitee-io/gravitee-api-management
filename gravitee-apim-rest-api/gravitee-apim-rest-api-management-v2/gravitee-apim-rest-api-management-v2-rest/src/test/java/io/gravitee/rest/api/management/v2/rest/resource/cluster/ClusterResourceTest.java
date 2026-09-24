@@ -119,6 +119,15 @@ class ClusterResourceTest extends AbstractResourceTest {
         reset(updateClusterUseCase, deleteClusterUseCase, getClusterPermissionsUseCase, deployClusterUseCase, undeployClusterUseCase);
     }
 
+    private static Cluster clusterWithCredentials() {
+        return Cluster.builder()
+            .id(CLUSTER_ID)
+            .configuration(
+                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
+            )
+            .build();
+    }
+
     @Nested
     class GetClusterTest {
 
@@ -131,6 +140,40 @@ class ClusterResourceTest extends AbstractResourceTest {
             var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
 
             assertAll(() -> assertThat(response.getStatus()).isEqualTo(OK_200), () -> assertThat(cluster.getId()).isEqualTo("cluster-1"));
+        }
+
+        @Test
+        void should_return_credentials_to_a_cluster_editor() {
+            when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(clusterWithCredentials()));
+
+            final Response response = rootTarget().request().get();
+
+            var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(cluster.getConfiguration()).isEqualTo(
+                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
+            );
+        }
+
+        @Test
+        void should_hide_credentials_from_a_reader_who_cannot_update_the_cluster() {
+            when(getClusterUseCase.execute(any())).thenReturn(new GetClusterUseCase.Output(clusterWithCredentials()));
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.CLUSTER_DEFINITION,
+                    CLUSTER_ID,
+                    RolePermissionAction.UPDATE
+                )
+            ).thenReturn(false);
+
+            final Response response = rootTarget().request().get();
+
+            var cluster = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.Cluster.class);
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(cluster.getConfiguration()).isEqualTo(
+                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
+            );
         }
 
         @Test
