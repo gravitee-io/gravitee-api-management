@@ -308,5 +308,15 @@ public class ClusterTest {
 
             assertThat(redacted.getConfiguration()).isEqualTo(configuration);
         }
+
+        @Test
+        void should_keep_virtual_cluster_configuration_unchanged() {
+            var configuration = Map.of("backends", List.of(Map.of("clusterCrossId", "c", "connectionCrossId", "k")));
+            var cluster = Cluster.builder().type(ClusterType.KAFKA_VIRTUAL_CLUSTER).name("c").configuration(configuration).build();
+
+            var redacted = cluster.withoutCredentials();
+
+            assertThat(redacted.getConfiguration()).isEqualTo(configuration);
+        }
     }
 }
