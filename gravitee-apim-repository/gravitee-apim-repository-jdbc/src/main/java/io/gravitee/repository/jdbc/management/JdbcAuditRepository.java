@@ -293,19 +293,17 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     private boolean addPropertiesWhereClause(AuditCriteria filter, List<Object> argsList, StringBuilder builder, boolean started) {
         if ((filter.getProperties() != null) && !filter.getProperties().isEmpty()) {
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("a.id in ( select prop.audit_id from ").append(AUDIT_PROPERTIES).append(" prop where ");
-            boolean first = true;
+            StringJoiner propertyConditions = new StringJoiner(
+                " or ",
+                "a.id in ( select prop.audit_id from " + AUDIT_PROPERTIES + " prop where ",
+                " )"
+            );
             for (Entry<String, String> property : filter.getProperties().entrySet()) {
-                if (!first) {
-                    builder.append(" or ");
-                }
-                first = false;
-                builder.append("( prop.").append(escapeReservedWord("key")).append(" = ? and prop.value = ? )");
+                propertyConditions.add("( prop." + escapeReservedWord("key") + " = ? and prop.value = ? )");
                 argsList.add(property.getKey());
                 argsList.add(property.getValue());
             }
-            builder.append(" )");
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE).append(propertyConditions);
             started = true;
         }
         return started;

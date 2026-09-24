@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 class PropertiesIndexUpgraderTest {
 
     @Test
-    void buildIndex_definesWildcardIndexOnAuditsWithExpectedNameAndKey() {
+    void should_define_a_wildcard_index_on_audits() {
         Index index = new PropertiesIndexUpgrader().buildIndex();
 
         assertThat(index.getCollection()).isEqualTo("audits");
