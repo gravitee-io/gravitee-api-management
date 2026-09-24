@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,6 +71,7 @@ public class PlanService_PublishTest {
 
     private static final String PLAN_ID = "my-plan";
     private static final String API_ID = "my-api";
+    private static final String API_PRODUCT_ID = "my-api-product";
 
     @InjectMocks
     private PlanService planService = new PlanServiceImpl();
@@ -269,6 +271,69 @@ public class PlanService_PublishTest {
         verify(planRepository, times(1)).update(apiKeyPlanToPublish.toBuilder().status(Plan.Status.PUBLISHED).build());
         verify(flowCrudService, times(1)).getNativePlanFlows(nullable(String.class));
         verify(flowService, never()).findByReference(any(), any());
+    }
+
+    /**
+     * The siblings a plan is ordered against are the ones sharing its reference. Looked up as an API, an API
+     * Product plan's product id matches no API, so the siblings come back empty and every product plan is
+     * ordered first.
+     */
+    @Test
+    public void shouldPublishApiProductPlanAgainstItsOwnProductSiblings() throws TechnicalException {
+        var budgetToPublish = Plan.builder()
+            .status(Plan.Status.STAGING)
+            .validation(Plan.PlanValidationType.AUTO)
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(Plan.PlanReferenceType.API_PRODUCT)
+            .security(Plan.PlanSecurityType.API_KEY)
+            .build();
+        budgetToPublish.setId(PLAN_ID);
+
+        var publishedBudget = Plan.builder()
+            .id("default-budget")
+            .referenceId(API_PRODUCT_ID)
+            .referenceType(Plan.PlanReferenceType.API_PRODUCT)
+            .status(Plan.Status.PUBLISHED)
+            .security(Plan.PlanSecurityType.API_KEY)
+            .order(1)
+            .build();
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(budgetToPublish));
+        when(planRepository.findByReferenceIdAndReferenceType(API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT)).thenReturn(
+            Set.of(budgetToPublish, publishedBudget)
+        );
+        when(planRepository.update(budgetToPublish)).thenAnswer(returnsFirstArg());
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        verify(planRepository).findByReferenceIdAndReferenceType(API_PRODUCT_ID, Plan.PlanReferenceType.API_PRODUCT);
+        assertEquals(2, budgetToPublish.getOrder());
+    }
+
+    /**
+     * A stored plan may carry no reference type: the backfill upgrader only reaches rows that have an api, so a
+     * row without one keeps null. Both repositories call name() on the argument unguarded, so such a plan has to
+     * keep publishing as an API rather than fail.
+     */
+    @Test
+    public void shouldPublishPlanWithoutReferenceTypeAsApi() throws TechnicalException {
+        var planToPublish = Plan.builder()
+            .status(Plan.Status.STAGING)
+            .validation(Plan.PlanValidationType.AUTO)
+            .referenceId(API_ID)
+            .security(Plan.PlanSecurityType.API_KEY)
+            .build();
+        planToPublish.setId(PLAN_ID);
+        planToPublish.setReferenceType(null);
+
+        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(planToPublish));
+        when(planRepository.findByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API)).thenReturn(Set.of(planToPublish));
+        when(planRepository.update(planToPublish)).thenAnswer(returnsFirstArg());
+
+        planService.publish(GraviteeContext.getExecutionContext(), PLAN_ID);
+
+        verify(planRepository).findByReferenceIdAndReferenceType(API_ID, Plan.PlanReferenceType.API);
+        verify(planRepository, times(1)).update(planToPublish.toBuilder().status(Plan.Status.PUBLISHED).build());
     }
 
     @Test
