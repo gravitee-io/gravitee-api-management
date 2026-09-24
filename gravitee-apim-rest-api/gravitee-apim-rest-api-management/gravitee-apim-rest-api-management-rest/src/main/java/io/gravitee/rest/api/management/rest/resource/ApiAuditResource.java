@@ -64,6 +64,8 @@ public class ApiAuditResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_AUDIT, acls = RolePermissionAction.READ) })
     @GraviteeLicenseFeature("apim-audit-trail")
     public MetadataPage<AuditEntity> getApiAudits(@BeanParam AuditParam param) {
+        rejectEncryptedFilter(param.getEncrypted());
+
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
         query.setTo(param.getTo());
@@ -77,6 +79,12 @@ public class ApiAuditResource extends AbstractResource {
         }
 
         return auditService.search(GraviteeContext.getExecutionContext(), query);
+    }
+
+    private void rejectEncryptedFilter(Boolean encrypted) {
+        if (encrypted != null) {
+            throw new BadRequestException("The 'encrypted' filter targets dictionary audit entries and is not supported on API audit logs");
+        }
     }
 
     @Path("/events")

@@ -42,6 +42,13 @@ public class AuditParam {
     @Parameter(description = "filter by the name of an event.", example = "APPLICATION_UPDATED, API_CREATED, METADATA_DELETED, ...")
     private String event;
 
+    @QueryParam("encrypted")
+    @Parameter(
+        description = "Filter on audit entries that involve an encrypted dictionary property. Only 'true' is supported, " +
+            "and only on the environment audit logs: API audit logs reject this parameter."
+    )
+    private Boolean encrypted;
+
     @QueryParam("from")
     @Parameter(description = "Timestamp used to define the start date of the time window to query")
     private long from;
@@ -97,6 +104,14 @@ public class AuditParam {
 
     public void setEvent(String event) {
         this.event = event;
+    }
+
+    public Boolean getEncrypted() {
+        return encrypted;
+    }
+
+    public void setEncrypted(Boolean encrypted) {
+        this.encrypted = encrypted;
     }
 
     public long getFrom() {

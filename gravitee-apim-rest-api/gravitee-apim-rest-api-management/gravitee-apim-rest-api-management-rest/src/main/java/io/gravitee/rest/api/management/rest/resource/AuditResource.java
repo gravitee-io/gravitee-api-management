@@ -31,7 +31,6 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -75,12 +74,7 @@ public class AuditResource extends AbstractResource {
         }
     )
     @GraviteeLicenseFeature("apim-audit-trail")
-    public AuditEntityMetadataPage getAudits(
-        @BeanParam AuditParam param,
-        @QueryParam("encrypted") @Parameter(
-            description = "Filter on audit entries that involve an encrypted dictionary property. Only 'true' is supported."
-        ) Boolean encrypted
-    ) {
+    public AuditEntityMetadataPage getAudits(@BeanParam AuditParam param) {
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
         query.setTo(param.getTo());
@@ -102,14 +96,19 @@ public class AuditResource extends AbstractResource {
         if (param.getEvent() != null) {
             query.setEvents(Collections.singletonList(param.getEvent()));
         }
-        if (encrypted != null) {
-            if (!encrypted) {
-                throw new BadRequestException("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
-            }
-            query.setProperties(Map.of(DICTIONARY_ENCRYPTED.name(), Boolean.TRUE.toString()));
-        }
+        applyEncryptedFilter(query, param.getEncrypted());
 
         return new AuditEntityMetadataPage(auditService.search(GraviteeContext.getExecutionContext(), query));
+    }
+
+    private void applyEncryptedFilter(AuditQuery query, Boolean encrypted) {
+        if (encrypted == null) {
+            return;
+        }
+        if (!encrypted) {
+            throw new BadRequestException("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
+        }
+        query.setProperties(Map.of(DICTIONARY_ENCRYPTED.name(), Boolean.TRUE.toString()));
     }
 
     @Path("/events")
