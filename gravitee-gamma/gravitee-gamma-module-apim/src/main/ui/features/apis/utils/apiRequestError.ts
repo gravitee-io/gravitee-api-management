@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export {
-    APIM_FEATURE_UPGRADES,
-    ApimLicenseFeature,
-    REQUEST_ENTERPRISE_LICENSE_URL,
-    type ApimLicenseFeatureId,
-    type FeatureUpgradeContent,
-} from './apimFeatures';
-export { RequireFeatureLicense } from './RequireFeatureLicense';
-export { useFederationEnabled } from './useFederationEnabled';
+
+/** Duck-type 403 so Module Federation duplicate `ApimApiError` classes still match. */
+export function isForbiddenError(error: unknown): boolean {
+    if (typeof error !== 'object' || error === null || !('status' in error)) return false;
+    return Number((error as { status: unknown }).status) === 403;
+}

@@ -25,9 +25,10 @@ export const apiProxyKeys = {
 
 export const apiListKeys = {
     all: ['api-list'] as const,
-    search: (envId: string, query: string, page: number, perPage: number) =>
-        [...apiListKeys.all, 'search', envId, query, page, perPage] as const,
-    count: (envId: string, filter: object) => [...apiListKeys.all, 'count', envId, JSON.stringify(filter)] as const,
+    search: (envId: string, query: string, page: number, perPage: number, includeFederated = false) =>
+        [...apiListKeys.all, 'search', envId, query, page, perPage, includeFederated] as const,
+    count: (envId: string, filter: object, includeFederated = false) =>
+        [...apiListKeys.all, 'count', envId, JSON.stringify(filter), includeFederated] as const,
 } as const;
 
 export const apiDetailKeys = {
@@ -66,6 +67,12 @@ export const groupKeys = {
 export const orgTagKeys = {
     all: ['org-tags'] as const,
     list: () => [...orgTagKeys.all, 'list'] as const,
+};
+
+export const orgConsoleKeys = {
+    all: ['org-console'] as const,
+    settings: () => [...orgConsoleKeys.all, 'settings'] as const,
+    licenseReportWaitStart: () => [...orgConsoleKeys.all, 'license-report-wait-start'] as const,
 };
 
 export const userTagKeys = {

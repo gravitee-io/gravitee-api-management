@@ -39,6 +39,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Integration;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -46,6 +47,8 @@ import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
+import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.CategoryService;
@@ -320,6 +323,37 @@ public class ApiSearchServiceImplTest {
         assertThat(indexableApi).isInstanceOf(ApiEntity.class);
         verify(flowServiceV4, times(0)).findByReference(any(), any());
         verify(planServiceV4, times(0)).findByApi(any(), any());
+    }
+
+    @Test
+    public void should_enrich_federated_api_origin_context_with_integration_name_and_provider() throws TechnicalException {
+        Api federatedApi = new Api();
+        federatedApi.setId(API_ID);
+        federatedApi.setDefinitionVersion(DefinitionVersion.FEDERATED);
+        federatedApi.setEnvironmentId("DEFAULT");
+        federatedApi.setOrigin(Api.ORIGIN_INTEGRATION);
+        federatedApi.setIntegrationId("integration-id");
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(federatedApi));
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("user");
+        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(new PrimaryOwnerEntity(userEntity));
+        when(integrationRepository.findByIntegrationId("integration-id")).thenReturn(
+            Optional.of(Integration.builder().id("integration-id").name("AWS Gateway Prod").provider("aws-api-gateway").build())
+        );
+
+        final GenericApiEntity genericApi = apiSearchService.findGenericById(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            false,
+            false,
+            false
+        );
+
+        assertThat(genericApi).isInstanceOf(FederatedApiEntity.class);
+        assertThat(((FederatedApiEntity) genericApi).getOriginContext()).isEqualTo(
+            new OriginContext.Integration("integration-id", "AWS Gateway Prod", "aws-api-gateway")
+        );
     }
 
     @Test

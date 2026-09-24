@@ -26,13 +26,23 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { AlertCircleIcon, CircleCheckIcon, CircleXIcon, MoreVerticalIcon, RefreshCwIcon, SearchIcon } from '@gravitee/graphene-core/icons';
+import {
+    AlertCircleIcon,
+    CircleCheckIcon,
+    CircleXIcon,
+    LockIcon,
+    MoreVerticalIcon,
+    RefreshCwIcon,
+    SearchIcon,
+} from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
 import { ShardingTagsCell } from '../../../../shared/components/ShardingTagsCell';
-import type { ApiDeploymentState, ApiListItem, ApiState } from '../../types';
+import type { ApiDeploymentState, ApiListItem, ApiListOriginContext, ApiState } from '../../types';
 import { buildApiAnalyticsPath } from '../../utils/analyticsDeepLink';
 import { getApiAccessPath } from '../../utils/apiAccess';
+import { isFederatedApiListItem } from '../../utils/federatedApi';
+import { federatedProviderLabel } from '../../utils/federatedProviderLabels';
 import { ApiAvatar } from '../ApiAvatar';
 
 type ColCell<T> = { row: { original: T } };
@@ -82,25 +92,45 @@ function RuntimeStatusBadge({ state }: { state: ApiState | undefined }) {
 }
 
 function SyncStatusBadge({ deploymentState }: { deploymentState: ApiDeploymentState | undefined }) {
-    if (deploymentState === 'NEED_REDEPLOY') {
-        return (
-            <Badge variant="warning">
-                <AlertCircleIcon className="size-3 mr-1" aria-hidden />
-                Out of sync
-            </Badge>
-        );
+    if (!deploymentState) return <span className="text-muted-foreground text-xs">—</span>;
+    switch (deploymentState) {
+        case 'NEED_REDEPLOY':
+            return (
+                <Badge variant="warning">
+                    <AlertCircleIcon className="size-3 mr-1" aria-hidden />
+                    Out of sync
+                </Badge>
+            );
+        case 'DEPLOYED':
+            return (
+                <Badge variant="success">
+                    <RefreshCwIcon className="size-3 mr-1" aria-hidden />
+                    In sync
+                </Badge>
+            );
+        default:
+            console.warn('[ApiList] Unrecognized API deployment state, rendering the empty-value indicator:', deploymentState);
+            return <span className="text-muted-foreground text-xs">—</span>;
     }
+}
+
+function OriginIndicator({ originContext }: { originContext: ApiListOriginContext | undefined }) {
+    if (originContext?.origin !== 'INTEGRATION') return null;
     return (
-        <Badge variant="success">
-            <RefreshCwIcon className="size-3 mr-1" aria-hidden />
-            In sync
-        </Badge>
+        <span className="text-sm" data-testid="api-origin-indicator">
+            {originContext.provider ? federatedProviderLabel(originContext.provider) : '—'}
+        </span>
     );
+}
+
+// A federated API's detail nav has no Overview section, so its detail page opens on General instead.
+function apiDetailLandingPath(api: ApiListItem): string {
+    return isFederatedApiListItem(api) ? `${api.id}/general` : `${api.id}/overview`;
 }
 
 // ─── Actions dropdown ─────────────────────────────────────────────────────────
 
-function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (path: string) => void }) {
+function ApiActionsMenu({ api, onNavigate }: { api: ApiListItem; onNavigate: (path: string) => void }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -109,9 +139,12 @@ function ApiActionsMenu({ apiId, onNavigate }: { apiId: string; onNavigate: (pat
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-auto min-w-48">
-                <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/overview`)}>View Details</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onNavigate(`${apiId}/general`)}>Edit Configuration</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onNavigate(buildApiAnalyticsPath(apiId))}>View Analytics</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onNavigate(apiDetailLandingPath(api))}>View Details</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onNavigate(`${api.id}/general`)}>Edit Configuration</DropdownMenuItem>
+                {/* A federated API never runs on a gateway, so the analytics dashboard has no data to show for it. */}
+                {!isFederatedApiListItem(api) && (
+                    <DropdownMenuItem onSelect={() => onNavigate(buildApiAnalyticsPath(api.id))}>View Analytics</DropdownMenuItem>
+                )}
             </DropdownMenuContent>
         </DropdownMenu>
     );
@@ -136,13 +169,20 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
                             type="button"
                             className="text-left font-medium hover:underline"
                             title={truncated ? name : undefined}
-                            onClick={() => navigate(`${api.id}/overview`)}
+                            onClick={() => navigate(apiDetailLandingPath(api))}
                         >
                             {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
                         </button>
                     </div>
                 );
             },
+        },
+        {
+            id: 'Origin',
+            accessorFn: (row: ApiListItem) => (row.originContext?.origin === 'INTEGRATION' ? (row.originContext.provider ?? '') : ''),
+            header: 'Origin',
+            enableSorting: false,
+            cell: ({ row }: ColCell<ApiListItem>) => <OriginIndicator originContext={row.original.originContext} />,
         },
         {
             id: 'Runtime Status',
@@ -194,11 +234,28 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
             enableHiding: false,
             cell: ({ row }: ColCell<ApiListItem>) => (
                 <div className="flex justify-end">
-                    <ApiActionsMenu apiId={row.original.id} onNavigate={navigate} />
+                    <ApiActionsMenu api={row.original} onNavigate={navigate} />
                 </div>
             ),
         },
     ];
+}
+
+function apiListEmptyMessage(loadFailed: boolean, forbidden: boolean): React.ReactNode {
+    if (forbidden) {
+        return (
+            <DataTableEmptyState
+                variant="no-results"
+                icon={<LockIcon />}
+                title="You don't have permission to view API proxies"
+                description="Ask an administrator for the API read permission on this environment."
+            />
+        );
+    }
+    if (loadFailed) return null;
+    return (
+        <DataTableEmptyState variant="no-results" icon={<SearchIcon />} title="No APIs found" description="Try adjusting your search." />
+    );
 }
 
 // ─── Table ────────────────────────────────────────────────────────────────────
@@ -215,6 +272,8 @@ interface ApiListTableProps {
     readonly onPageChange?: (page: number) => void;
     readonly onPageSizeChange?: (pageSize: number) => void;
     readonly toolbar?: React.ReactNode;
+    readonly loadFailed?: boolean;
+    readonly forbidden?: boolean;
 }
 
 export function ApiListTable({
@@ -229,6 +288,8 @@ export function ApiListTable({
     onPageChange,
     onPageSizeChange,
     toolbar,
+    loadFailed = false,
+    forbidden = false,
 }: ApiListTableProps) {
     const navigate = useNavigate();
     const columns = buildColumns(navigate);
@@ -257,14 +318,7 @@ export function ApiListTable({
                       }
                     : undefined
             }
-            emptyMessage={
-                <DataTableEmptyState
-                    variant="no-results"
-                    icon={<SearchIcon />}
-                    title="No APIs found"
-                    description="Try adjusting your search."
-                />
-            }
+            emptyMessage={apiListEmptyMessage(loadFailed, forbidden)}
         />
     );
 }

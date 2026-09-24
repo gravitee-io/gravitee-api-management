@@ -68,6 +68,21 @@ export function trackHandler(
     };
 }
 
+/**
+ * Hands back every signal the code under test opened a time bound with, so the test can fire them itself.
+ * The spy this installs on `AbortSignal.timeout` survives `jest.clearAllMocks()` — only `jest.restoreAllMocks()`
+ * (or an explicit `mockRestore()`) undoes it, so a spec using this helper must restore rather than clear.
+ */
+export function captureTimeoutSignals(): AbortController[] {
+    const controllers: AbortController[] = [];
+    jest.spyOn(AbortSignal, 'timeout').mockImplementation(() => {
+        const controller = new AbortController();
+        controllers.push(controller);
+        return controller.signal;
+    });
+    return controllers;
+}
+
 export function respondWith(method: 'get' | 'post' | 'put' | 'delete', url: string, body: JsonBodyType, status = 200) {
     server.use(http[method](url, () => (status === 204 ? new HttpResponse(null, { status }) : HttpResponse.json(body, { status }))));
 }

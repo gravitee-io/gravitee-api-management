@@ -22,6 +22,7 @@
  * Permission stubs default to granted so feature tests render normally.
  * To test denied states, mock `useHasPermission` or `permissionService` per-test.
  */
+import type { License } from '@gravitee/gamma-modules-sdk/types';
 import type { ReactNode } from 'react';
 
 // ─── License ──────────────────────────────────────────────────────────────────
@@ -33,14 +34,14 @@ export const useHasPack = (_pack: string): boolean => true;
 
 export const licenseService = {
     setLicense: (_license: unknown): void => {},
-    getLicense: (): null => null,
+    getLicense: (): License | null => null,
     hasFeature: (_feature: string): boolean => true,
     hasPack: (_pack: string): boolean => true,
     isExpired: (): boolean => false,
     subscribe:
         (_listener: () => void): (() => void) =>
         () => {},
-    getSnapshot: (): null => null,
+    getSnapshot: (): License | null => null,
 };
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
