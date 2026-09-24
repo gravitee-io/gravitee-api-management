@@ -20,8 +20,13 @@ import io.vertx.core.json.JsonObject;
 
 public class AuthzTimeSeriesQueryAdapter {
 
-    private final AuthzMeasuresQueryAdapter measuresAdapter = new AuthzMeasuresQueryAdapter();
-    private final AuthzFacetsQueryAdapter facetsAdapter = new AuthzFacetsQueryAdapter();
+    private final AuthzMeasuresAdapter measuresAdapter;
+    private final AuthzFacetsQueryAdapter facetsAdapter;
+
+    public AuthzTimeSeriesQueryAdapter(AuthzMeasuresAdapter measuresAdapter) {
+        this.measuresAdapter = measuresAdapter;
+        this.facetsAdapter = new AuthzFacetsQueryAdapter(measuresAdapter);
+    }
 
     public String adapt(TimeSeriesQuery query) {
         AuthzFacetsQueryAdapter.rejectRanges(query.ranges());
@@ -31,7 +36,7 @@ public class AuthzTimeSeriesQueryAdapter {
     private JsonObject adaptMetrics(TimeSeriesQuery query) {
         var aggs = new JsonObject();
         for (var metric : query.metrics()) {
-            var inner = facetsAdapter.adaptFacets(metric, query.facets(), query.limit());
+            var inner = facetsAdapter.adaptFacets(metric, query.facets(), query.limit(), query.filters());
             var histogram = DateHistogramAdapter.adapt(query.interval(), query.timeRange()).put("aggs", inner);
             aggs.put(AggregationAdapter.adaptName(metric.metric(), AggregationAdapter.TIME_SERIES_AGG_NAME), histogram);
         }

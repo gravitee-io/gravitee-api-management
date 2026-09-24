@@ -131,7 +131,6 @@ public class FilterAdapter {
         Filter.Name.API,
         Filter.Name.GATEWAY,
         Filter.Name.AUTHZ_DECISION,
-        Filter.Name.AUTHZ_OPERATION,
         Filter.Name.AUTHZ_STATUS,
         Filter.Name.AUTHZ_CALLER,
         Filter.Name.AUTHZ_SUBJECT_ID,
@@ -139,6 +138,16 @@ public class FilterAdapter {
         Filter.Name.AUTHZ_RESOURCE_ID,
         Filter.Name.AUTHZ_REASON,
         Filter.Name.AUTHZ_PDP
+    );
+
+    static final List<Filter.Name> AUTHZ_TRAFFIC_FILTER_NAMES = List.of(
+        Filter.Name.API,
+        Filter.Name.GATEWAY,
+        Filter.Name.AUTHZ_OPERATION,
+        Filter.Name.AUTHZ_SEARCH_TYPE,
+        Filter.Name.AUTHZ_ACTION,
+        Filter.Name.AUTHZ_SUBJECT_ID,
+        Filter.Name.AUTHZ_RESOURCE_ID
     );
 
     private final FieldResolver fieldResolver;
@@ -237,11 +246,29 @@ public class FilterAdapter {
         for (var filter : query.filters()) {
             if (shouldAdaptForAuthz(filter)) {
                 jsonFilters.add(filter(filter, entityRefs));
+            } else if (shouldAdaptForAuthzTraffic(filter)) {
+                return jsonFilters.add(matchNone());
             }
         }
         return jsonFilters
             .add(term(AuthzFieldResolver.DECISION_POINT_TYPE_FIELD, AuthzFieldResolver.DECISION_POINT_TYPE_AUTHZ))
             .add(term(AuthzFieldResolver.PHASE_FIELD, AuthzFieldResolver.PHASE_RESOLVED));
+    }
+
+    public JsonArray adaptForAuthzTraffic(Query query) {
+        var jsonFilters = JsonArray.of(TimeRangeAdapter.adapt(query));
+        var entityRefs = new AuthzEntityRefClauses();
+        for (var filter : query.filters()) {
+            if (!shouldAdaptForAuthzTraffic(filter)) {
+                return jsonFilters.add(matchNone());
+            }
+            jsonFilters.add(filter(filter, entityRefs));
+        }
+        return jsonFilters.add(JsonObject.of("exists", JsonObject.of("field", AuthzTrafficFieldResolver.OPERATION_FIELD)));
+    }
+
+    private static JsonObject matchNone() {
+        return JsonObject.of("match_none", JsonObject.of());
     }
 
     private static JsonObject term(String field, String value) {
@@ -250,6 +277,10 @@ public class FilterAdapter {
 
     public boolean shouldAdaptForAuthz(Filter filter) {
         return AUTHZ_FILTER_NAMES.contains(filter.name());
+    }
+
+    public boolean shouldAdaptForAuthzTraffic(Filter filter) {
+        return AUTHZ_TRAFFIC_FILTER_NAMES.contains(filter.name());
     }
 
     public boolean shouldAdaptForHTTP(Filter filter) {

@@ -22,6 +22,7 @@ import io.gravitee.repository.analytics.engine.api.metric.Measure;
 import io.gravitee.repository.analytics.engine.api.metric.Metric;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.MetricMeasuresQuery.Sort;
 import io.gravitee.repository.analytics.engine.api.query.NumberRange;
@@ -29,11 +30,15 @@ import io.vertx.core.json.JsonObject;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
 
-    private final AuthzFacetsQueryAdapter adapter = new AuthzFacetsQueryAdapter();
+    private final AuthzFacetsQueryAdapter adapter = new AuthzFacetsQueryAdapter(new AuthzMeasuresQueryAdapter());
 
     @Test
     void should_build_a_terms_aggregation_on_the_facet_field() {
@@ -204,32 +209,57 @@ class AuthzFacetsQueryAdapterTest extends AbstractQueryAdapterTest {
         assertThat(terms.getJsonObject("order").getMap()).containsExactly(Map.entry("AUTHZ_EVAL_DURATION#AVG", "desc"));
     }
 
-    @Test
-    void should_reject_more_than_one_facet() {
+    static Stream<Arguments> sources() {
+        return Stream.of(
+            Arguments.of(new AuthzMeasuresQueryAdapter(), Metric.AUTHZ_DECISIONS),
+            Arguments.of(new AuthzTrafficMeasuresQueryAdapter(), Metric.AUTHZ_SEARCHES)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("sources")
+    void should_reject_more_than_one_facet(AuthzMeasuresAdapter source, Metric metric) {
         var query = new FacetsQuery(
             buildTimeRange(),
             List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
-            List.of(Facet.AUTHZ_ACTION, Facet.AUTHZ_DECISION)
+            List.of(new MetricMeasuresQuery(metric, Set.of(Measure.COUNT))),
+            List.of(Facet.AUTHZ_ACTION, Facet.AUTHZ_SUBJECT_ID)
         );
 
-        assertThatThrownBy(() -> adapter.adapt(query))
+        assertThatThrownBy(() -> new AuthzFacetsQueryAdapter(source).adapt(query))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessageContaining("single facet");
     }
 
-    @Test
-    void should_reject_range_facets() {
+    @ParameterizedTest
+    @MethodSource("sources")
+    void should_reject_range_facets(AuthzMeasuresAdapter source, Metric metric) {
         var query = new FacetsQuery(
             buildTimeRange(),
             List.of(),
-            List.of(new MetricMeasuresQuery(Metric.AUTHZ_DECISIONS, Set.of(Measure.COUNT))),
+            List.of(new MetricMeasuresQuery(metric, Set.of(Measure.COUNT))),
             List.of(Facet.AUTHZ_ACTION),
             List.of(new NumberRange(0.0, 10.0))
         );
 
-        assertThatThrownBy(() -> adapter.adapt(query))
+        assertThatThrownBy(() -> new AuthzFacetsQueryAdapter(source).adapt(query))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessageContaining("range facets");
+    }
+
+    @ParameterizedTest
+    @MethodSource("sources")
+    void should_reject_per_metric_filters(AuthzMeasuresAdapter source, Metric metric) {
+        var perMetricFilters = List.of(new Filter(Filter.Name.AUTHZ_ACTION, Filter.Operator.IN, List.of("read")));
+        var query = new FacetsQuery(
+            buildTimeRange(),
+            List.of(),
+            List.of(new MetricMeasuresQuery(metric, Set.of(Measure.COUNT), perMetricFilters, List.of())),
+            List.of(Facet.AUTHZ_ACTION)
+        );
+
+        assertThatThrownBy(() -> new AuthzFacetsQueryAdapter(source).adapt(query))
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("per-metric filters");
     }
 }

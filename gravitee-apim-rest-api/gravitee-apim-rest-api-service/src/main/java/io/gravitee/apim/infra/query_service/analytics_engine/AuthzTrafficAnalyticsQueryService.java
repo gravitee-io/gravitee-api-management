@@ -31,44 +31,37 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AuthzAnalyticsQueryService implements AnalyticsEngineQueryService {
+public class AuthzTrafficAnalyticsQueryService implements AnalyticsEngineQueryService {
 
     private final AnalyticsRepository analyticsRepository;
 
-    public AuthzAnalyticsQueryService(@Lazy AnalyticsRepository analyticsRepository) {
+    public AuthzTrafficAnalyticsQueryService(@Lazy AnalyticsRepository analyticsRepository) {
         this.analyticsRepository = analyticsRepository;
     }
 
     @Override
     public Set<Name> metrics() {
-        return Set.of(
-            Name.AUTHZ_DECISIONS,
-            Name.AUTHZ_PERMITS,
-            Name.AUTHZ_FORBIDS,
-            Name.AUTHZ_NOT_APPLICABLE,
-            Name.AUTHZ_FAILURES,
-            Name.AUTHZ_EVAL_DURATION
-        );
+        return Set.of(Name.AUTHZ_OPERATIONS, Name.AUTHZ_SEARCHES);
     }
 
     @Override
     public MeasuresResponse searchMeasures(ExecutionContext context, MeasuresRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
-        var result = analyticsRepository.searchAuthzMeasures(context.getQueryContext(), query);
+        var result = analyticsRepository.searchAuthzTrafficMeasures(context.getQueryContext(), query);
         return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 
     @Override
     public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
-        var result = analyticsRepository.searchAuthzFacets(context.getQueryContext(), query);
+        var result = analyticsRepository.searchAuthzTrafficFacets(context.getQueryContext(), query);
         return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 
     @Override
     public TimeSeriesResponse searchTimeSeries(ExecutionContext context, TimeSeriesRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
-        var result = analyticsRepository.searchAuthzTimeSeries(context.getQueryContext(), query);
+        var result = analyticsRepository.searchAuthzTrafficTimeSeries(context.getQueryContext(), query);
         return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
     }
 }

@@ -50,6 +50,10 @@ public class BoolQueryAdapter {
         return JsonObject.of("bool", JsonObject.of("filter", filterAdapter.adaptForAuthz(query)));
     }
 
+    JsonObject adaptForAuthzTraffic(Query query) {
+        return JsonObject.of("bool", JsonObject.of("filter", filterAdapter.adaptForAuthzTraffic(query)));
+    }
+
     JsonObject adaptForEdge(Query query) {
         return JsonObject.of("bool", edgeFilter(query));
     }

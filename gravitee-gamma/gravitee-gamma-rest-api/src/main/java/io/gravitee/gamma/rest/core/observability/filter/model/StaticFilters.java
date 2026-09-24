@@ -160,7 +160,8 @@ public enum StaticFilters {
         Defs.DECISION_RECORDS
     ),
     AUTHZ_ERROR_TYPE("Error type", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_ERROR_TYPES, null, Defs.LOGS, Defs.DECISION_RECORDS),
-    AUTHZ_OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.ANALYTICS, Defs.DECISION_RECORDS),
+    AUTHZ_OPERATION("Operation", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_OPERATIONS, null, Defs.ANALYTICS, Set.of(ApiType.AUTHZ)),
+    AUTHZ_SEARCH_TYPE("Search Type", FilterType.ENUM, Defs.EQ_IN, Defs.AUTHZ_SEARCH_TYPES, null, Defs.ANALYTICS, Set.of(ApiType.AUTHZ)),
 
     AUTHZ_PDP("PDP Gateway", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS_ANALYTICS, Defs.DECISION_RECORDS),
     AUTHZ_MATCHED_POLICY("Matched policy", FilterType.STRING, Defs.EQ_IN, null, null, Defs.LOGS, Defs.DECISION_RECORDS),
@@ -491,6 +492,12 @@ public enum StaticFilters {
             new EnumValue("evaluation", "Evaluation"),
             new EnumValue("evaluations", "Batch evaluation"),
             new EnumValue("search", "Search")
+        );
+
+        private static final List<EnumValue> AUTHZ_SEARCH_TYPES = List.of(
+            new EnumValue("subject", "Subject"),
+            new EnumValue("resource", "Resource"),
+            new EnumValue("action", "Action")
         );
 
         private static final List<EnumValue> DECISIONS = List.of(
