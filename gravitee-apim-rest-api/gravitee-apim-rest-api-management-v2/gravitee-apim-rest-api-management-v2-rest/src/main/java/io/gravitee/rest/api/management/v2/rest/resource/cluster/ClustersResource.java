@@ -18,7 +18,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
+<<<<<<< HEAD
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
+=======
+import io.gravitee.apim.core.cluster.model.Cluster;
+>>>>>>> 6739246 (fix(rest-api): hide cluster credentials from users who cannot edit the cluster)
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
 import io.gravitee.apim.core.cluster.use_case.CountClustersByLifecycleStateUseCase;
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
@@ -129,7 +133,7 @@ public class ClustersResource extends AbstractResource {
         );
 
         return new ClustersResponse()
-            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent()))
+            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent().stream().map(Cluster::withoutCredentials).toList()))
             .pagination(
                 PaginationInfo.computePaginationInfo(
                     result.pageResult().getTotalElements(),
