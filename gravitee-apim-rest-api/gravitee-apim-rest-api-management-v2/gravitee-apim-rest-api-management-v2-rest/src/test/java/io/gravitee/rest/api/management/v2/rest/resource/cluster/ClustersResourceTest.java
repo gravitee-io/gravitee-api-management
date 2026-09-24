@@ -251,6 +251,30 @@ class ClustersResourceTest extends AbstractResourceTest {
         public void should_return_403_if_incorrect_permissions() {
             shouldReturn403(RolePermission.ENVIRONMENT_CLUSTER, ENV_ID, RolePermissionAction.READ, () -> rootTarget().request().get());
         }
+
+        @Test
+        void should_never_return_credentials_in_the_list() {
+            var cluster = Cluster.builder()
+                .name("secured")
+                .configuration(
+                    Map.of(
+                        "bootstrapServers",
+                        "broker:9093",
+                        "security",
+                        Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))
+                    )
+                )
+                .build();
+            when(searchClusterUseCase.execute(any())).thenReturn(new SearchClusterUseCase.Output(new Page<>(List.of(cluster), 1, 1, 1)));
+
+            final Response response = rootTarget().request().get();
+
+            var clustersResponse = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ClustersResponse.class);
+            assertThat(response.getStatus()).isEqualTo(OK_200);
+            assertThat(clustersResponse.getData().get(0).getConfiguration()).isEqualTo(
+                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
+            );
+        }
     }
 
     @Nested
