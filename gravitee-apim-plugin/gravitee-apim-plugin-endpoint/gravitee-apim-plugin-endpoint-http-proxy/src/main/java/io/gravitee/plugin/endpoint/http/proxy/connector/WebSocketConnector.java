@@ -73,6 +73,10 @@ public class WebSocketConnector extends HttpConnector {
 
             ctx.metrics().setEndpoint(buildWebSocketUri(options));
             WebSocketConnectOptions webSocketConnectOptions = new WebSocketConnectOptions(options.toJson());
+            // Extensions are negotiated independently on each leg: the gateway terminates both WebSockets and re-encodes
+            // every frame. Relaying the caller's offer would make the backend answer with parameters the gateway client
+            // never offered itself and rejects. The caller's own headers are left untouched for the caller-side handshake.
+            webSocketConnectOptions.removeHeader(HttpHeaderNames.SEC_WEBSOCKET_EXTENSIONS);
 
             // Add subprotocols: handle comma-separated values, trim whitespace, filter empty strings
             if (request.headers().contains(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL)) {
@@ -94,6 +98,8 @@ public class WebSocketConnector extends HttpConnector {
                     for (CharSequence header : hopHeaders()) {
                         ctx.response().headers().remove(header.toString());
                     }
+                    // The backend's answer describes the gateway-to-backend leg only; the caller-side handshake adds its own.
+                    ctx.response().headers().remove(HttpHeaderNames.SEC_WEBSOCKET_EXTENSIONS.toString());
 
                     return request
                         .webSocket()
