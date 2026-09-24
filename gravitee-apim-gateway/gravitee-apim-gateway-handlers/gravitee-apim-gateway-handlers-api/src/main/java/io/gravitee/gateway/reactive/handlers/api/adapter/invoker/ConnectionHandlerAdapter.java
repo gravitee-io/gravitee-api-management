@@ -26,6 +26,7 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.core.Flowable;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 
 /**
@@ -63,8 +64,32 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
         if (nextEmitter.isDisposed()) {
             connection.cancel();
         } else {
+            // Tracks the connection until the backend response head arrives, so that disposing the chain in the
+            // meantime (typically a client abort) cancels the backend call instead of letting it run until the backend
+            // answers or the read timeout fires. From the response head onward, the response chunks own cancellation.
+            final AtomicReference<ProxyConnection> pendingConnection = new AtomicReference<>(connection);
+
             // Set response handler to capture the response from the proxy connection.
-            connection.responseHandler(proxyResponse -> handleProxyResponse(connection, proxyResponse));
+            connection.responseHandler(proxyResponse -> {
+                pendingConnection.set(null);
+                handleProxyResponse(connection, proxyResponse);
+            });
+
+            // The emitter also disposes this resource on its terminal events: a response already received has cleared
+            // the pending connection, making it a no-op there. If the chain is already disposed, this runs right away.
+            nextEmitter.setCancellable(() -> cancelPendingConnection(pendingConnection));
+        }
+    }
+
+    private void cancelPendingConnection(AtomicReference<ProxyConnection> pendingConnection) {
+        final ProxyConnection connection = pendingConnection.getAndSet(null);
+        if (connection != null) {
+            ctx.withLogger(log).debug("Invoker execution has been disposed before the backend responded, cancelling the connection");
+            try {
+                connection.cancel();
+            } catch (Throwable t) {
+                ctx.withLogger(log).warn("Unable to cancel the backend connection", t);
+            }
         }
     }
 
