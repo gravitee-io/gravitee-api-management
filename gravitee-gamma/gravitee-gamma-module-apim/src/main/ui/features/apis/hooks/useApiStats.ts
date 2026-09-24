@@ -15,49 +15,75 @@
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
+import { ApimApiError } from '../../../shared/api/apimClient';
+import { useFederationEnabled } from '../../license/useFederationEnabled';
 import { searchApis } from '../services/apiList';
 import { apiListKeys } from '../utils/queryKeys';
 
 const STATS_PAGE = 1;
 const STATS_PER_PAGE = 1;
 
+export type ApiStatKey = 'total' | 'private' | 'published';
+
 export interface ApiStats {
     total: number | null;
     private: number | null;
     published: number | null;
     isLoading: boolean;
+    failed: Readonly<Record<ApiStatKey, boolean>>;
+    isError: boolean;
+}
+
+function useWarnOnCountFailure(card: ApiStatKey, error: Error | null): void {
+    useEffect(() => {
+        if (!error) return;
+        const failure = error instanceof ApimApiError ? `HTTP ${error.status}` : error.name;
+        console.warn(`[ApiStats] ${card} count query failed (${failure}), count unavailable:`, error);
+    }, [card, error]);
 }
 
 export function useApiStats(query?: string): ApiStats {
     const env = useEnvironment();
     const envId = env?.id ?? '';
+    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
+    // Waiting for the gate keeps the counts from disagreeing with the list they sit above.
+    const isEnabled = Boolean(env) && isFederationResolved;
 
     const totalQuery = useQuery({
-        queryKey: apiListKeys.count(envId, { query }),
-        queryFn: () => searchApis(envId, { query }, STATS_PAGE, STATS_PER_PAGE),
-        enabled: Boolean(env),
+        queryKey: apiListKeys.count(envId, { query }, includeFederated),
+        queryFn: () => searchApis(envId, { query }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        enabled: isEnabled,
         staleTime: 60_000,
     });
 
     const privateQuery = useQuery({
-        queryKey: apiListKeys.count(envId, { query, visibilities: ['PRIVATE'] }),
-        queryFn: () => searchApis(envId, { query, visibilities: ['PRIVATE'] }, STATS_PAGE, STATS_PER_PAGE),
-        enabled: Boolean(env),
+        queryKey: apiListKeys.count(envId, { query, visibilities: ['PRIVATE'] }, includeFederated),
+        queryFn: () => searchApis(envId, { query, visibilities: ['PRIVATE'] }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        enabled: isEnabled,
         staleTime: 60_000,
     });
 
     const publishedQuery = useQuery({
-        queryKey: apiListKeys.count(envId, { query, published: ['PUBLISHED'] }),
-        queryFn: () => searchApis(envId, { query, published: ['PUBLISHED'] }, STATS_PAGE, STATS_PER_PAGE),
-        enabled: Boolean(env),
+        queryKey: apiListKeys.count(envId, { query, published: ['PUBLISHED'] }, includeFederated),
+        queryFn: () => searchApis(envId, { query, published: ['PUBLISHED'] }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        enabled: isEnabled,
         staleTime: 60_000,
     });
+
+    useWarnOnCountFailure('total', totalQuery.error);
+    useWarnOnCountFailure('private', privateQuery.error);
+    useWarnOnCountFailure('published', publishedQuery.error);
+
+    const failed = { total: totalQuery.isError, private: privateQuery.isError, published: publishedQuery.isError };
 
     return {
         total: totalQuery.data?.pagination?.totalCount ?? null,
         private: privateQuery.data?.pagination?.totalCount ?? null,
         published: publishedQuery.data?.pagination?.totalCount ?? null,
-        isLoading: totalQuery.isLoading || privateQuery.isLoading || publishedQuery.isLoading,
+        isLoading: totalQuery.isLoading || privateQuery.isLoading || publishedQuery.isLoading || !isFederationResolved,
+        failed,
+        isError: failed.total || failed.private || failed.published,
     };
 }

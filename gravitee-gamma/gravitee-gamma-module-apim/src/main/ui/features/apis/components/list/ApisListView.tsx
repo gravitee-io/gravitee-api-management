@@ -36,6 +36,8 @@ interface ApisListViewProps {
     readonly onPerPageChange: (perPage: number) => void;
     readonly onCreateProxy: () => void;
     readonly canCreate: boolean;
+    readonly loadFailed?: boolean;
+    readonly forbidden?: boolean;
 }
 
 export function ApisListView({
@@ -53,6 +55,8 @@ export function ApisListView({
     onPerPageChange,
     onCreateProxy,
     canCreate,
+    loadFailed = false,
+    forbidden = false,
 }: ApisListViewProps) {
     const searchInputId = useId();
 
@@ -67,6 +71,7 @@ export function ApisListView({
                 placeholder="Search APIs..."
                 value={search}
                 onChange={e => onSearchChange(e.target.value)}
+                disabled={forbidden}
                 className="pl-9"
             />
         </div>
@@ -89,7 +94,7 @@ export function ApisListView({
             </div>
 
             {/* Stats cards — counts reflect the debounced search to avoid per-keystroke flicker */}
-            <ApiStatsCards query={debouncedSearch || undefined} />
+            {!forbidden && <ApiStatsCards query={debouncedSearch || undefined} />}
 
             <ApiListTable
                 apis={apis}
@@ -103,6 +108,8 @@ export function ApisListView({
                 onPageChange={onPageChange}
                 onPageSizeChange={onPerPageChange}
                 toolbar={toolbar}
+                loadFailed={loadFailed}
+                forbidden={forbidden}
             />
         </div>
     );

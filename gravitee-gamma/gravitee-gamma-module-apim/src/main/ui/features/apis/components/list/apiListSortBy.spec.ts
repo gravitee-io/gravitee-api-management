@@ -25,6 +25,9 @@ describe('toApiListSortBy', () => {
         expect(toApiListSortBy([{ id: 'API Name', desc: false }])).toBe('name');
         expect(toApiListSortBy([{ id: 'API Name', desc: true }])).toBe('-name');
         expect(toApiListSortBy([{ id: 'access', desc: false }])).toBe('paths');
+        expect(toApiListSortBy([{ id: 'access', desc: true }])).toBe('-paths');
+        expect(toApiListSortBy([{ id: 'Runtime Status', desc: false }])).toBe('status');
+        expect(toApiListSortBy([{ id: 'Runtime Status', desc: true }])).toBe('-status');
     });
 
     it('maps the Sharding Tags column to the backend asymmetric values (tags_asc / -tags_desc)', () => {
@@ -35,5 +38,7 @@ describe('toApiListSortBy', () => {
 
     it('returns undefined for a non-server-sortable column', () => {
         expect(toApiListSortBy([{ id: 'Sync Status', desc: false }])).toBeUndefined();
+        // `/apis/_search` has no sortBy field for the origin provider.
+        expect(toApiListSortBy([{ id: 'Origin', desc: false }])).toBeUndefined();
     });
 });

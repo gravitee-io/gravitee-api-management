@@ -580,8 +580,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
                     .map(integration ->
                         new OriginContext.Integration(
                             fede.getOriginContext().integrationId(),
-                            integration.getProvider(),
-                            integration.getName()
+                            integration.getName(),
+                            integration.getProvider()
                         )
                     )
                     .ifPresent(fede::setOriginContext);
