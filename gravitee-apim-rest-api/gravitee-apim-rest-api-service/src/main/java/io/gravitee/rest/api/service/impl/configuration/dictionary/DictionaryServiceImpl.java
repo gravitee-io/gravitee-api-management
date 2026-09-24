@@ -707,11 +707,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .filter(entry -> entry.getValue() != null)
             .sorted(Map.Entry.comparingByKey())
-            .collect(
-                LinkedHashMap::new,
-                (flat, entry) -> flat.put(entry.getKey(), entry.getValue().encrypted() ? ENCRYPTED_VALUE_MASK : entry.getValue().value()),
-                LinkedHashMap::putAll
-            );
+            .collect(LinkedHashMap::new, (flat, entry) -> flat.put(entry.getKey(), flatValue(entry.getValue())), LinkedHashMap::putAll);
+    }
+
+    private static String flatValue(DictionaryProperty property) {
+        if (property.encrypted()) {
+            return ENCRYPTED_VALUE_MASK;
+        }
+        return property.value();
     }
 
     /**

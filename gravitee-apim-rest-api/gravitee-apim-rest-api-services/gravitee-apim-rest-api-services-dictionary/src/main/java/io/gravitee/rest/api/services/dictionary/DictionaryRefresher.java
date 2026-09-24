@@ -89,7 +89,6 @@ public class DictionaryRefresher implements Handler<Long> {
             );
 
         try {
-            // Get a fresh version of the dictionary before updating its properties.
             dictionary = dictionaryService.updateProperties(dictionary.getId(), properties);
         } catch (DictionaryNotFoundException e) {
             log.debug("Trying to update a deleted dictionary {} - nothing to do...", dictionary.getId());
