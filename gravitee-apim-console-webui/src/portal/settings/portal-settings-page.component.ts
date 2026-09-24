@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, DestroyRef, effect, HostListener, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, HostListener, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
@@ -74,6 +74,17 @@ interface PortalSettingsPageForm {
         enabled: FormControl<boolean>;
       }>;
     }>;
+    applications: FormGroup<{
+      membership: FormGroup<{
+        enabled: FormControl<boolean>;
+        transferOwnership: FormGroup<{
+          enabled: FormControl<boolean>;
+        }>;
+        invitations: FormGroup<{
+          enabled: FormControl<boolean>;
+        }>;
+      }>;
+    }>;
   }>;
 }
 
@@ -112,6 +123,7 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
   private readonly currentSettings = signal<PortalSettings | null>(null);
   readonly settingsForm = signal<FormGroup<PortalSettingsPageForm> | null>(null);
   readonly formInitialValues = signal<PortalSettingsPageFormValue | null>(null);
+  readonly isPortalNextAccessEnabled = computed(() => this.currentSettings()?.portalNext?.access?.enabled ?? false);
   readonly hasEnterpriseLicense$ = this.licenseService.getLicense$().pipe(map(license => license.tier !== 'oss'));
 
   readonly settingsResource = rxResource({
@@ -141,13 +153,21 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
       const registrationSubscription = registrationControl.valueChanges.subscribe(enabled => {
         this.updateAutomaticValidationState(form, settings, enabled);
       });
+      const membershipControl = form.controls.portalNext.controls.applications.controls.membership.controls.enabled;
+      this.updateApplicationMembershipState(form, settings, membershipControl.value);
+      const membershipSubscription = membershipControl.valueChanges.subscribe(enabled => {
+        this.updateApplicationMembershipState(form, settings, enabled);
+      });
 
       this.settingsForm.set(form);
       this.formInitialValues.set(form.getRawValue());
       this.isSwaggerEnabled.set(settings.openAPIDocViewer?.openAPIDocType?.swagger?.enabled ?? false);
       this.isRedocEnabled.set(settings.openAPIDocViewer?.openAPIDocType?.redoc?.enabled ?? false);
 
-      onCleanup(() => registrationSubscription.unsubscribe());
+      onCleanup(() => {
+        registrationSubscription.unsubscribe();
+        membershipSubscription.unsubscribe();
+      });
     });
   }
 
@@ -186,6 +206,7 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
     const settings = this.currentSettings();
     if (settings) {
       this.updateAutomaticValidationState(form, settings, initialValues.portal.userCreation.enabled);
+      this.updateApplicationMembershipState(form, settings, initialValues.portalNext.applications.membership.enabled);
     }
     form.markAsPristine();
   }
@@ -217,6 +238,10 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
   private createForm(settings: PortalSettings): FormGroup<PortalSettingsPageForm> {
     const portal = settings.portal;
     const openApiDocType = settings.openAPIDocViewer?.openAPIDocType;
+    const membership = settings.portalNext?.applications?.membership;
+    const isPortalNextEnabled = settings.portalNext?.access?.enabled ?? false;
+    const isMembershipReadonly = PortalSettingsService.isReadonly(settings, 'portal.next.applications.membership.enabled');
+    const isMembershipEnabled = membership?.enabled ?? false;
     const form = new FormGroup<PortalSettingsPageForm>({
       portal: new FormGroup({
         apikeyHeader: new FormControl(
@@ -303,6 +328,23 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
             ),
           }),
         }),
+        applications: new FormGroup({
+          membership: new FormGroup({
+            enabled: new FormControl(
+              {
+                value: isMembershipEnabled,
+                disabled: !this.canUpdate || !isPortalNextEnabled || isMembershipReadonly,
+              },
+              { nonNullable: true },
+            ),
+            transferOwnership: new FormGroup({
+              enabled: new FormControl(membership?.transferOwnership?.enabled ?? false, { nonNullable: true }),
+            }),
+            invitations: new FormGroup({
+              enabled: new FormControl(membership?.invitations?.enabled ?? false, { nonNullable: true }),
+            }),
+          }),
+        }),
       }),
     });
 
@@ -323,6 +365,28 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
       automaticValidationControl.enable({ emitEvent: false });
     } else {
       automaticValidationControl.disable({ emitEvent: false });
+    }
+  }
+
+  private updateApplicationMembershipState(
+    form: FormGroup<PortalSettingsPageForm>,
+    settings: PortalSettings,
+    membershipEnabled: boolean,
+  ): void {
+    const membershipControls = form.controls.portalNext.controls.applications.controls.membership.controls;
+    const isPortalNextEnabled = settings.portalNext?.access?.enabled ?? false;
+    const canEditChildren = this.canUpdate && isPortalNextEnabled && membershipEnabled;
+
+    if (canEditChildren && !PortalSettingsService.isReadonly(settings, 'portal.next.applications.membership.transferOwnership.enabled')) {
+      membershipControls.transferOwnership.controls.enabled.enable({ emitEvent: false });
+    } else {
+      membershipControls.transferOwnership.controls.enabled.disable({ emitEvent: false });
+    }
+
+    if (canEditChildren && !PortalSettingsService.isReadonly(settings, 'portal.next.applications.membership.invitations.enabled')) {
+      membershipControls.invitations.controls.enabled.enable({ emitEvent: false });
+    } else {
+      membershipControls.invitations.controls.enabled.disable({ emitEvent: false });
     }
   }
 
@@ -368,6 +432,21 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
           fuzzySearch: {
             ...settings.portalNext?.catalog?.fuzzySearch,
             enabled: formValue.portalNext.catalog.fuzzySearch.enabled,
+          },
+        },
+        applications: {
+          ...settings.portalNext?.applications,
+          membership: {
+            ...settings.portalNext?.applications?.membership,
+            enabled: formValue.portalNext.applications.membership.enabled,
+            transferOwnership: {
+              ...settings.portalNext?.applications?.membership?.transferOwnership,
+              enabled: formValue.portalNext.applications.membership.transferOwnership.enabled,
+            },
+            invitations: {
+              ...settings.portalNext?.applications?.membership?.invitations,
+              enabled: formValue.portalNext.applications.membership.invitations.enabled,
+            },
           },
         },
       },

@@ -56,6 +56,18 @@
   margin-left: 16px;
 }
 
+.membership-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  margin-left: 16px;
+  padding: 16px;
+  border: 1px solid mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+  border-radius: 4px;
+  background-color: mat.m2-get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+}
+
 .viewer-setting {
   display: flex;
   flex-direction: column;

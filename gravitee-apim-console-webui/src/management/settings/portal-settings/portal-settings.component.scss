@@ -73,21 +73,6 @@ $typography: map.get(gio.$mat-theme, typography);
   display: flex;
   flex-direction: column;
   gap: 16px;
-
-  &__group {
-    display: block;
-
-    &--nested {
-      margin-top: 8px;
-      margin-left: 16px;
-    }
-  }
-
-  &__group-content {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
 }
 
 .form-field-container {

@@ -170,6 +170,68 @@
           </div>
         </mat-card-content>
       </mat-card>
+
+      <mat-card appearance="outlined" class="settings-card" formGroupName="portalNext" data-testid="application-membership-card">
+        <mat-card-header>
+          <mat-card-title>Application membership</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="settings-card__content settings-card__content--toggles">
+          @if (!isPortalNextAccessEnabled()) {
+            <gio-banner-info data-testid="portal-next-disabled-banner">
+              Enable the New Developer Portal in Console Settings to configure application membership.
+            </gio-banner-info>
+          }
+          <div formGroupName="applications">
+            <div formGroupName="membership">
+              <gio-form-slide-toggle
+                [matTooltip]="'Configuration provided by the system'"
+                [matTooltipDisabled]="!isSystemReadonly('portal.next.applications.membership.enabled')"
+              >
+                <gio-form-label>Enable Application Membership Settings</gio-form-label>
+                <span class="gio-form-slide-toggle__description">
+                  Controls member-management capabilities available in Next Gen Portal.
+                </span>
+                <mat-slide-toggle
+                  formControlName="enabled"
+                  gioFormSlideToggle
+                  aria-label="Application Membership Settings Enabled"
+                  data-testid="application-membership-toggle"
+                />
+              </gio-form-slide-toggle>
+
+              <div class="membership-options" role="group" aria-label="Application membership options">
+                <gio-form-slide-toggle
+                  formGroupName="transferOwnership"
+                  [matTooltip]="'Configuration provided by the system'"
+                  [matTooltipDisabled]="!isSystemReadonly('portal.next.applications.membership.transferOwnership.enabled')"
+                >
+                  <gio-form-label>Enable Transfer of Application Ownership</gio-form-label>
+                  <mat-slide-toggle
+                    formControlName="enabled"
+                    gioFormSlideToggle
+                    aria-label="Transfer of Application Ownership Enabled"
+                    data-testid="transfer-ownership-toggle"
+                  />
+                </gio-form-slide-toggle>
+
+                <gio-form-slide-toggle
+                  formGroupName="invitations"
+                  [matTooltip]="'Configuration provided by the system'"
+                  [matTooltipDisabled]="!isSystemReadonly('portal.next.applications.membership.invitations.enabled')"
+                >
+                  <gio-form-label>Enable Application Membership Invitation</gio-form-label>
+                  <mat-slide-toggle
+                    formControlName="enabled"
+                    gioFormSlideToggle
+                    aria-label="Application Membership Invitation Enabled"
+                    data-testid="membership-invitations-toggle"
+                  />
+                </gio-form-slide-toggle>
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     }
 
     <gio-save-bar [form]="form" [formInitialValues]="formInitialValues()" (resetClicked)="reset()" />

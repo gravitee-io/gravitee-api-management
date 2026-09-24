@@ -45,6 +45,17 @@ export class PortalSettingsPageHarness extends ComponentHarness {
   private readonly fuzzySearchToggle = this.locatorFor(
     MatSlideToggleHarness.with({ selector: '[data-testid="portal-next-fuzzy-search-toggle"]' }),
   );
+  private readonly applicationMembershipCard = this.locatorForOptional('[data-testid="application-membership-card"]');
+  private readonly portalNextDisabledBanner = this.locatorForOptional('[data-testid="portal-next-disabled-banner"]');
+  private readonly applicationMembershipToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="application-membership-toggle"]' }),
+  );
+  private readonly transferOwnershipToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="transfer-ownership-toggle"]' }),
+  );
+  private readonly membershipInvitationsToggle = this.locatorFor(
+    MatSlideToggleHarness.with({ selector: '[data-testid="membership-invitations-toggle"]' }),
+  );
   private readonly saveBar = this.locatorFor(GioSaveBarHarness);
   private readonly errorBanner = this.locatorForOptional('[data-testid="settings-load-error"]');
   private readonly retryButton = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid="settings-retry"]' }));
@@ -114,6 +125,26 @@ export class PortalSettingsPageHarness extends ComponentHarness {
 
   async getFuzzySearchToggle(): Promise<MatSlideToggleHarness> {
     return this.fuzzySearchToggle();
+  }
+
+  async hasApplicationMembershipCard(): Promise<boolean> {
+    return (await this.applicationMembershipCard()) !== null;
+  }
+
+  async hasPortalNextDisabledBanner(): Promise<boolean> {
+    return (await this.portalNextDisabledBanner()) !== null;
+  }
+
+  async getApplicationMembershipToggle(): Promise<MatSlideToggleHarness> {
+    return this.applicationMembershipToggle();
+  }
+
+  async getTransferOwnershipToggle(): Promise<MatSlideToggleHarness> {
+    return this.transferOwnershipToggle();
+  }
+
+  async getMembershipInvitationsToggle(): Promise<MatSlideToggleHarness> {
+    return this.membershipInvitationsToggle();
   }
 
   async submit(): Promise<void> {
