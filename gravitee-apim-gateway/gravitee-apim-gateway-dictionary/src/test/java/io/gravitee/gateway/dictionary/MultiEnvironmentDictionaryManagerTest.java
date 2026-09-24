@@ -17,8 +17,10 @@ package io.gravitee.gateway.dictionary;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -90,6 +92,32 @@ class MultiEnvironmentDictionaryManagerTest {
             assertThat(property(ENV, "idp-server-details")).isEqualTo("default-value");
             assertThat(property(OTHER_ENV, "idp-server-details")).isEqualTo("other-value");
         }
+
+        @Test
+        void should_skip_a_property_whose_value_is_null() {
+            Dictionary dictionary = dictionary("idp-server-details", null, ENV, "first-value", 1L);
+            Map<String, DictionaryProperty> properties = new HashMap<>(dictionary.getProperties());
+            properties.put("VALUELESS_PROP", new DictionaryProperty(null, false));
+            dictionary.setProperties(properties);
+
+            cut.deploy(dictionary);
+
+            assertThat(property(ENV, "idp-server-details")).isEqualTo("first-value");
+            assertThat(cut.getDictionaries(ENV).get("idp-server-details")).doesNotContainKey("VALUELESS_PROP");
+        }
+
+        @Test
+        void should_deploy_without_throwing_when_a_property_value_is_null() {
+            Dictionary dictionary = dictionary("idp-server-details", null, ENV, "first-value", 1L);
+            Map<String, DictionaryProperty> properties = new HashMap<>(dictionary.getProperties());
+            properties.put("NULL_PROP", null);
+            dictionary.setProperties(properties);
+
+            cut.deploy(dictionary);
+
+            assertThat(property(ENV, "idp-server-details")).isEqualTo("first-value");
+            assertThat(cut.getDictionaries(ENV).get("idp-server-details")).doesNotContainKey("NULL_PROP");
+        }
     }
 
     @Nested
@@ -152,7 +180,7 @@ class MultiEnvironmentDictionaryManagerTest {
         dictionary.setEnvironmentId(environmentId);
         dictionary.setName(id);
         dictionary.setDeployedAt(new Date(deployedAt));
-        dictionary.setProperties(Map.of("MY_PROP", propertyValue));
+        dictionary.setProperties(Map.of("MY_PROP", new DictionaryProperty(propertyValue, false)));
         return dictionary;
     }
 }

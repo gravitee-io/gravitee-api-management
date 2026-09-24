@@ -17,10 +17,12 @@ package io.gravitee.apim.infra.domain_service.dictionary;
 
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryProvider;
 import io.gravitee.apim.core.dictionary.model.DictionaryTrigger;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryType;
@@ -29,6 +31,9 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryNotFoundException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -93,7 +98,8 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         entity.setName(dictionary.getName());
         entity.setDescription(dictionary.getDescription());
         entity.setType(toEntityType(dictionary.getType()));
-        entity.setProperties(dictionary.getProperties());
+        entity.setProperties(toFlatProperties(dictionary.getProperties()));
+        entity.setPropertyOptions(toPropertyOptions(dictionary.getProperties()));
         entity.setProvider(toEntity(dictionary.getProvider()));
         entity.setTrigger(toEntity(dictionary.getTrigger()));
         return entity;
@@ -104,10 +110,46 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         entity.setName(dictionary.getName());
         entity.setDescription(dictionary.getDescription());
         entity.setType(toEntityType(dictionary.getType()));
-        entity.setProperties(dictionary.getProperties());
+        entity.setProperties(toFlatProperties(dictionary.getProperties()));
+        entity.setPropertyOptions(toPropertyOptions(dictionary.getProperties()));
         entity.setProvider(toEntity(dictionary.getProvider()));
         entity.setTrigger(toEntity(dictionary.getTrigger()));
         return entity;
+    }
+
+    private static Map<String, String> toFlatProperties(List<DictionaryProperty> properties) {
+        if (properties == null) {
+            return null;
+        }
+        return properties
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(LinkedHashMap::new, (values, property) -> values.put(property.getKey(), property.getValue()), LinkedHashMap::putAll);
+    }
+
+    /**
+     * Carries only what the manifest actually stated. A property the manifest said nothing about
+     * gets no options entry, so its stored classification stands.
+     */
+    private static Map<String, DictionaryPropertyOptions> toPropertyOptions(List<DictionaryProperty> properties) {
+        if (properties == null) {
+            return null;
+        }
+        return properties
+            .stream()
+            .filter(property -> property != null && (property.getEncrypted() != null || property.getEncryptable() != null))
+            .collect(
+                LinkedHashMap::new,
+                (options, property) ->
+                    options.put(
+                        property.getKey(),
+                        DictionaryPropertyOptions.builder()
+                            .encrypted(property.getEncrypted())
+                            .encryptable(property.getEncryptable())
+                            .build()
+                    ),
+                LinkedHashMap::putAll
+            );
     }
 
     private static DictionaryType toEntityType(io.gravitee.apim.core.dictionary.model.DictionaryType type) {

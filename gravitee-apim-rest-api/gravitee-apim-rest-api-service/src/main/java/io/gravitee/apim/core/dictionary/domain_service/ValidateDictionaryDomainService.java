@@ -17,9 +17,10 @@ package io.gravitee.apim.core.dictionary.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryType;
 import io.gravitee.apim.core.exception.ValidationDomainException;
-import java.util.Objects;
+import java.util.List;
 
 @DomainService
 public class ValidateDictionaryDomainService {
@@ -29,9 +30,7 @@ public class ValidateDictionaryDomainService {
             if (dictionary.getProperties() == null || dictionary.getProperties().isEmpty()) {
                 throw new ValidationDomainException("Manual dictionary must have at least one property.");
             }
-            if (dictionary.getProperties().values().stream().anyMatch(Objects::isNull)) {
-                throw new ValidationDomainException("Dictionary property values must not be null.");
-            }
+            rejectValuelessProperties(dictionary.getProperties());
             if (dictionary.getProvider() != null || dictionary.getTrigger() != null) {
                 throw new ValidationDomainException(
                     "Manual dictionary must not have 'dynamic' properties (provider, trigger). Set type to 'DYNAMIC' or remove them."
@@ -47,5 +46,19 @@ public class ValidateDictionaryDomainService {
                 );
             }
         }
+    }
+
+    private static void rejectValuelessProperties(List<DictionaryProperty> properties) {
+        properties
+            .stream()
+            .filter(property -> property.getValue() == null)
+            .findFirst()
+            .ifPresent(property -> {
+                throw new ValidationDomainException(
+                    "Dictionary property [" +
+                        property.getKey() +
+                        "] has no value. A property without a value cannot be deployed to the gateway; remove the property or give it a value."
+                );
+            });
     }
 }

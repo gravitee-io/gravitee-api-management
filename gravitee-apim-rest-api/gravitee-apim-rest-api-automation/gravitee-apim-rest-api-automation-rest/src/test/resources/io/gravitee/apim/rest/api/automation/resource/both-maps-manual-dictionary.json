@@ -1,0 +1,17 @@
+{
+  "hrid": "both-maps-dict",
+  "name": "Both Maps Dictionary",
+  "description": "A dictionary declaring the same key as plain and as encrypted",
+  "type": "MANUAL",
+  "deployed": false,
+  "manual": {
+    "properties": {
+      "apiKey": "plain"
+    },
+    "encryptedProperties": {
+      "apiKey": {
+        "value": "my secret API key"
+      }
+    }
+  }
+}

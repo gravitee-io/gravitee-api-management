@@ -45,4 +45,10 @@ public class NewDictionaryEntity {
     private DictionaryTriggerEntity trigger;
 
     private Map<String, String> properties;
+
+    /**
+     * Encryption options for the properties above, keyed by property key. A key omitted here keeps
+     * whatever classification it already has.
+     */
+    private Map<String, DictionaryPropertyOptions> propertyOptions;
 }

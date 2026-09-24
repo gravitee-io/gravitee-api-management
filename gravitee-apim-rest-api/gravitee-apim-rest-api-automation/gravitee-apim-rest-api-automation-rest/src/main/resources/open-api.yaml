@@ -1733,14 +1733,34 @@ components:
         - deployed
     ManualDictionarySpec:
       description: A manual dictionary with static key/value properties.
+      type: object
       properties:
         properties:
           type: object
           description: Dictionary data are key/value pairs for `MANUAL` properties
           additionalProperties:
             type: string
+        encryptedProperties:
+          type: object
+          description: >-
+            Secret properties, keyed by the property key. Their values are write-only: they are never
+            returned, so a client can compare a `GET` against its manifest without seeing a difference
+            on a value it cannot read back. A key must not appear in both `properties` and
+            `encryptedProperties`.
+          additionalProperties:
+            $ref: "#/components/schemas/EncryptableValue"
+    EncryptableValue:
+      description: A secret property value.
+      type: object
+      properties:
+        value:
+          description: >-
+            The plaintext value to encrypt on save. Not honoured yet: a request that supplies it is
+            rejected, so that a value asking to be encrypted is never stored as plaintext instead.
+          type: string
+          writeOnly: true
       required:
-        - properties
+        - value
     DynamicDictionarySpec:
       description: A dynamic dictionary populated from an external provider on a schedule.
       type: object

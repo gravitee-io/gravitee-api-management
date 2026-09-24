@@ -1,0 +1,53 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.apim.core.dictionary.model;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+
+/**
+ * A dictionary property as a caller expressed it, on its way in or out of the Management API.
+ *
+ * <p>Deliberately not {@link io.gravitee.definition.model.dictionary.DictionaryProperty}, which is
+ * the persisted and gateway-facing contract: that one is a two-field record describing what is
+ * stored, this one carries the property's key and the caller's *intent*. Both flags are nullable
+ * because {@code null} ("said nothing") has to stay distinguishable from {@code false} ("asserted
+ * plain") all the way to the service boundary — a distinction the stored contract has no use for.
+ *
+ * @author GraviteeSource Team
+ */
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(onlyExplicitlyIncluded = true)
+public class DictionaryProperty {
+
+    @ToString.Include
+    private String key;
+
+    private String value;
+
+    /** {@code null} when the caller said nothing: the stored classification then stands. */
+    @ToString.Include
+    private Boolean encrypted;
+
+    @ToString.Include
+    private Boolean encryptable;
+}

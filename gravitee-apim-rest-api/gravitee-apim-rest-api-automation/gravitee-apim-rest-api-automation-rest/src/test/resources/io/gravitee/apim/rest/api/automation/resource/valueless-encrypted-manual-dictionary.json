@@ -1,0 +1,12 @@
+{
+  "hrid": "valueless-dict",
+  "name": "Valueless Dictionary",
+  "description": "A dictionary whose encrypted property carries no value",
+  "type": "MANUAL",
+  "deployed": false,
+  "manual": {
+    "encryptedProperties": {
+      "apiKey": {}
+    }
+  }
+}

@@ -15,6 +15,9 @@
  */
 package io.gravitee.gateway.dictionary.model;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import java.util.Date;
 import java.util.Map;
 import lombok.EqualsAndHashCode;
@@ -48,5 +51,11 @@ public class Dictionary {
 
     private Date deployedAt;
 
-    private Map<String, String> properties;
+    /**
+     * A dictionary saved before property values were validated can carry a null-valued entry. This
+     * payload is history — it cannot be rejected, only read — so the null entry is dropped and the
+     * rest of the dictionary still reaches the gateway.
+     */
+    @JsonSetter(contentNulls = Nulls.SKIP)
+    private Map<String, DictionaryProperty> properties;
 }

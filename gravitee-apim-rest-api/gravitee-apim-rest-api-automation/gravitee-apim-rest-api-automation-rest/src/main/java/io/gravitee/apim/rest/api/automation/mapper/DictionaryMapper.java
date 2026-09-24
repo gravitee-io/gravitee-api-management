@@ -17,21 +17,31 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.rest.api.automation.model.DictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.model.DictionaryTrigger;
 import io.gravitee.apim.rest.api.automation.model.DictionaryType;
 import io.gravitee.apim.rest.api.automation.model.DynamicDictionarySpec;
+import io.gravitee.apim.rest.api.automation.model.EncryptableValue;
 import io.gravitee.apim.rest.api.automation.model.HttpDictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.ManualDictionarySpec;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.impl.configuration.dictionary.InvalidDictionaryPropertyOptionsException;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -47,10 +57,59 @@ public interface DictionaryMapper {
     // ===== DictionarySpec → Dictionary (core) =====
 
     @Mapping(source = "type", target = "type")
-    @Mapping(source = "manual.properties", target = "properties")
+    @Mapping(target = "properties", expression = "java(mapManualProperties(spec))")
     @Mapping(source = "dynamic.provider", target = "provider")
     @Mapping(source = "dynamic.trigger", target = "trigger")
     Dictionary toDictionary(DictionarySpec spec);
+
+    /**
+     * Merges the manifest's two property maps into one core list.
+     *
+     * <p>A key in {@code properties} states nothing about encryption, so the stored classification
+     * stands and a manifest written before {@code encryptedProperties} existed applies unchanged. A
+     * key in {@code encryptedProperties} carries a plaintext value to encrypt on save.
+     */
+    default List<DictionaryProperty> mapManualProperties(DictionarySpec spec) {
+        if (spec.getManual() == null) {
+            return null;
+        }
+        Map<String, String> plain = spec.getManual().getProperties();
+        Map<String, EncryptableValue> secret = spec.getManual().getEncryptedProperties();
+        if (plain == null && secret == null) {
+            return null;
+        }
+        rejectKeysDeclaredTwice(plain, secret);
+        return Stream.concat(
+            plain == null ? Stream.empty() : plain.entrySet().stream().map(DictionaryMapper::toPlainProperty),
+            secret == null ? Stream.empty() : secret.entrySet().stream().map(DictionaryMapper::toSecretProperty)
+        ).toList();
+    }
+
+    private static DictionaryProperty toPlainProperty(Map.Entry<String, String> property) {
+        return DictionaryProperty.builder().key(property.getKey()).value(property.getValue()).build();
+    }
+
+    private static DictionaryProperty toSecretProperty(Map.Entry<String, EncryptableValue> property) {
+        return DictionaryProperty.builder()
+            .key(property.getKey())
+            .value(property.getValue() == null ? null : property.getValue().getValue())
+            .encryptable(true)
+            .build();
+    }
+
+    private static void rejectKeysDeclaredTwice(Map<String, String> plain, Map<String, EncryptableValue> secret) {
+        if (plain == null || secret == null) {
+            return;
+        }
+        secret
+            .keySet()
+            .stream()
+            .filter(plain::containsKey)
+            .findFirst()
+            .ifPresent(key -> {
+                throw new InvalidDictionaryPropertyOptionsException(key, "it is declared in both 'properties' and 'encryptedProperties'");
+            });
+    }
 
     io.gravitee.apim.core.dictionary.model.DictionaryType toCoreType(DictionaryType type);
 
@@ -69,6 +128,45 @@ public interface DictionaryMapper {
         return null;
     }
 
+    /**
+     * Reports a secret property as its key alone. The value is never returned, so a client can compare
+     * a {@code GET} against its manifest without seeing a difference on a value it cannot read back.
+     *
+     * <p>Returns {@code null} rather than an empty map when nothing is encrypted, so a dictionary
+     * without secrets serializes exactly as it did before this field existed.
+     */
+    private static Map<String, EncryptableValue> toSpecEncryptedProperties(Set<String> encryptedKeys) {
+        if (encryptedKeys.isEmpty()) {
+            return null;
+        }
+        return encryptedKeys
+            .stream()
+            .collect(LinkedHashMap::new, (values, key) -> values.put(key, new EncryptableValue()), LinkedHashMap::putAll);
+    }
+
+    private static Set<String> encryptedKeys(Map<String, DictionaryPropertyOptions> options) {
+        if (options == null) {
+            return Set.of();
+        }
+        return options
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null && Boolean.TRUE.equals(entry.getValue().getEncrypted()))
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static Map<String, String> toSpecPlainProperties(Map<String, String> properties, Set<String> encryptedKeys) {
+        if (properties == null) {
+            return Map.of();
+        }
+        return properties
+            .entrySet()
+            .stream()
+            .filter(entry -> !encryptedKeys.contains(entry.getKey()))
+            .collect(LinkedHashMap::new, (plain, entry) -> plain.put(entry.getKey(), entry.getValue()), LinkedHashMap::putAll);
+    }
+
     // ===== DictionaryEntity → DictionaryState =====
 
     default DictionaryState toDictionaryState(DictionaryEntity entity, ExecutionContext executionContext) {
@@ -84,8 +182,10 @@ public interface DictionaryMapper {
         state.setType(toSpecType(entity.getType()));
         if (entity.getType() == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.MANUAL) {
             state.setDeployed(entity.getDeployedAt() != null);
+            Set<String> encryptedKeys = encryptedKeys(entity.getPropertyOptions());
             ManualDictionarySpec manual = new ManualDictionarySpec();
-            manual.setProperties(entity.getProperties() != null ? entity.getProperties() : Map.of());
+            manual.setProperties(toSpecPlainProperties(entity.getProperties(), encryptedKeys));
+            manual.setEncryptedProperties(toSpecEncryptedProperties(encryptedKeys));
             state.setManual(manual);
         } else {
             state.setDeployed(isEntityStarted(entity));
@@ -100,7 +200,16 @@ public interface DictionaryMapper {
     default DictionaryState toDictionaryState(DictionarySpec spec) {
         var state = new DictionaryState();
         mapSpecToState(spec, state);
+        stripSecretValues(state);
         return state;
+    }
+
+    /** A dry run echoes the caller's own payload, which must not carry the secrets back out. */
+    private static void stripSecretValues(DictionaryState state) {
+        if (state.getManual() == null || state.getManual().getEncryptedProperties() == null) {
+            return;
+        }
+        state.getManual().setEncryptedProperties(toSpecEncryptedProperties(state.getManual().getEncryptedProperties().keySet()));
     }
 
     @Mapping(target = "id", ignore = true)
