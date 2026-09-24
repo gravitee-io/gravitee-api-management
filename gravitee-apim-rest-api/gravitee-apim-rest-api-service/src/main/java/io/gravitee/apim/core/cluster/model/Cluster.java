@@ -17,13 +17,21 @@ package io.gravitee.apim.core.cluster.model;
 
 import io.gravitee.common.utils.TimeProvider;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+<<<<<<< HEAD
 @Builder
+=======
+@Builder(toBuilder = true)
+@NoArgsConstructor
+>>>>>>> e269957 (fix(rest-api): add credential-free copy of a cluster)
 @AllArgsConstructor
 @Getter
 @Setter
@@ -50,5 +58,34 @@ public class Cluster {
         if (updateCluster.getConfiguration() != null) {
             this.configuration = updateCluster.getConfiguration();
         }
+    }
+
+    public Cluster withoutCredentials() {
+        return toBuilder().configuration(withoutCredentials(configuration)).build();
+    }
+
+    private static Object withoutCredentials(Object node) {
+        if (node instanceof Map<?, ?> map) {
+            var copy = new LinkedHashMap<Object, Object>();
+            map.forEach((key, value) ->
+                copy.put(
+                    key,
+                    "security".equals(key) && value instanceof Map<?, ?> security ? protocolOnly(security) : withoutCredentials(value)
+                )
+            );
+            return copy;
+        }
+        if (node instanceof List<?> list) {
+            return list.stream().map(Cluster::withoutCredentials).toList();
+        }
+        return node;
+    }
+
+    private static Map<Object, Object> protocolOnly(Map<?, ?> security) {
+        var copy = new LinkedHashMap<Object, Object>();
+        if (security.containsKey("protocol")) {
+            copy.put("protocol", security.get("protocol"));
+        }
+        return copy;
     }
 }
