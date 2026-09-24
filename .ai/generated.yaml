@@ -230,7 +230,7 @@ entries:
     status: generated
     scope: committed
   - path: ".github/scripts/verify-ai-context.mjs"
-    hash: sha256:280129086c0ea16a93d949e185c32e6cb478250463f63504441b0145c942b0c5
+    hash: sha256:e3ae3def50d91348ab488230ee71483f2c61c9a0e95d4b2fd6ec626e7b0681ea
     status: generated
     scope: committed
   - path: "AGENTS.md"
@@ -417,4 +417,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:2feec4b50a568e8229efef0b79d9ce590ec2e873fedb93eb9bb5adb4149f71f1
+record: sha256:46c31240b9cc39eaa3c861d35d8cce0e9d59a5f4bf8485922db180b5fe3b78ec
