@@ -32,6 +32,7 @@ describe('PortalNavigationService', () => {
           provide: GioPermissionService,
           useValue: {
             hasAnyMatching: jest.fn().mockReturnValue(true),
+            hasAllMatching: jest.fn().mockReturnValue(true),
           },
         },
       ],
@@ -74,6 +75,11 @@ describe('PortalNavigationService', () => {
           icon: 'gio:list-check',
         },
         {
+          displayName: 'Authentication',
+          routerLink: 'authentication',
+          icon: 'gio:lock',
+        },
+        {
           displayName: 'Settings',
           routerLink: 'settings',
           icon: 'gio:settings',
@@ -86,6 +92,7 @@ describe('PortalNavigationService', () => {
       permissionService.hasAnyMatching = jest.fn((permissions: string[]) => {
         return permissions.includes('environment-category-r');
       });
+      permissionService.hasAllMatching = jest.fn().mockReturnValue(false);
 
       const menuItems = service.getMainMenuItems();
       expect(menuItems).toEqual([
@@ -125,6 +132,7 @@ describe('PortalNavigationService', () => {
 
     it('should return no menu items when no permissions are granted', () => {
       permissionService.hasAnyMatching = jest.fn().mockReturnValue(false);
+      permissionService.hasAllMatching = jest.fn().mockReturnValue(false);
 
       const menuItems = service.getMainMenuItems();
       expect(menuItems).toEqual([]);
@@ -138,6 +146,23 @@ describe('PortalNavigationService', () => {
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-settings-r', 'environment-settings-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-theme-r', 'environment-theme-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-documentation-r', 'environment-documentation-u']);
+    });
+
+    it('should require both identity provider read permissions to display Authentication', () => {
+      service.getMainMenuItems();
+
+      expect(permissionService.hasAllMatching).toHaveBeenCalledWith([
+        'organization-identity_provider-r',
+        'environment-identity_provider_activation-r',
+      ]);
+    });
+
+    it('should hide Authentication when one of the identity provider read permissions is missing', () => {
+      permissionService.hasAllMatching = jest.fn((permissions: string[]) => !permissions.includes('organization-identity_provider-r'));
+
+      const menuItems = service.getMainMenuItems();
+
+      expect(menuItems.map(item => item.displayName)).not.toContain('Authentication');
     });
   });
 });
