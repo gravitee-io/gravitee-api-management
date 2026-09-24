@@ -23,6 +23,7 @@ import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -39,7 +40,9 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
+import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableEmitter;
+import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -230,6 +233,50 @@ class ConnectionHandlerAdapterTest {
         verify(response, times(0)).status(anyInt());
         assertTrue(responseHeaders.isEmpty());
         verify(nextEmitter).onComplete();
+    }
+
+    @Test
+    void shouldCancelConnectionWhenDisposedBeforeBackendResponds() {
+        final TestObserver<Void> obs = Completable.create(emitter ->
+            new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection)
+        ).test();
+
+        verify(proxyConnection, never()).cancel();
+
+        obs.dispose();
+
+        verify(proxyConnection).cancel();
+    }
+
+    @Test
+    void shouldCancelConnectionOnlyOnceWhenDisposedTwice() {
+        final TestObserver<Void> obs = Completable.create(emitter ->
+            new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection)
+        ).test();
+
+        obs.dispose();
+        obs.dispose();
+
+        verify(proxyConnection, times(1)).cancel();
+    }
+
+    @Test
+    void shouldNotCancelConnectionWhenDisposedAfterBackendResponded() {
+        final TestObserver<Void> obs = Completable.create(emitter ->
+            new ConnectionHandlerAdapter(ctx, emitter).handle(proxyConnection)
+        ).test();
+
+        verify(proxyConnection).responseHandler(handlerCaptor.capture());
+        when(ctx.response()).thenReturn(response);
+        when(proxyResponse.connected()).thenReturn(true);
+        when(proxyResponse.headers()).thenReturn(HttpHeaders.create());
+
+        handlerCaptor.getValue().handle(proxyResponse);
+        obs.assertComplete();
+
+        obs.dispose();
+
+        verify(proxyConnection, never()).cancel();
     }
 
     @Test
