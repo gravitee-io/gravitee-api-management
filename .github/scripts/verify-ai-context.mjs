@@ -47,7 +47,20 @@ report();
 function main() {
   const excludes = parseArgs(process.argv.slice(2));
   const repoRoot = resolveRepoRoot();
+  const record = readRecord(repoRoot);
+  verifyEntries(repoRoot, record);
+  // Parts 3-5 need git; without it they are skipped behind one clear error.
+  const tracked = gitTrackedFiles(repoRoot);
+  if (tracked !== null) {
+    verifyIgnoreRules(repoRoot, record);
+    verifyPerMachineCopies(record, tracked);
+    verifyOrphans(repoRoot, record, tracked, excludes);
+  }
+  verifyInputs(repoRoot, record);
+  verifyPin(repoRoot, record);
+}
 
+function readRecord(repoRoot) {
   // Part 1: the record exists and its integrity line matches its body.
   const recordAbsolute = join(repoRoot, RECORD_PATH);
   if (!existsSync(recordAbsolute)) {
@@ -61,11 +74,10 @@ function main() {
   } catch (cause) {
     fail(`${RECORD_PATH}: ${cause.message}; ${PARSE_REMEDY}`);
   }
+  return record;
+}
 
-  const committedEntries = record.entries.filter(
-    (entry) => entry.scope === "committed" && entry.status === "generated",
-  );
-
+function verifyEntries(repoRoot, record) {
   // Part 2: every committed entry's bytes match its recorded fingerprint.
   // Skipped-unmanaged entries record the intended bytes of a file setup refused
   // to overwrite; their mismatch is the standing advisory, never an error.
@@ -103,76 +115,83 @@ function main() {
       );
     }
   }
+}
 
-  // Parts 3-5 need git; without it they are skipped behind one clear error.
-  const tracked = gitTrackedFiles(repoRoot);
-  if (tracked !== null) {
-    // Part 3: no committed entry may be matched by an ignore rule. A
-    // tracked-but-ignored file works today and silently drops on the next
-    // delete-and-regenerate cycle.
-    for (const path of gitIgnoredAmong(
-      repoRoot,
-      committedEntries.map((entry) => entry.path),
-    )) {
-      errors.push(
-        `${path}: committed output is matched by an ignore rule; add a negation (!${path}) to .gitignore so it cannot silently drop`,
-      );
-    }
-
-    // Membership is case-folded on both sides: two spellings are one file on
-    // case-insensitive filesystems, matching the hub's own membership tests.
-    const trackedFolded = new Set([...tracked].map((path) => path.toLowerCase()));
-    const recordedFolded = new Set(record.entries.map((entry) => entry.path.toLowerCase()));
-
-    // Part 4: per-machine copies someone committed. Regenerating cannot help,
-    // since setup rewrites the same copies and leaves them tracked. The remedy
-    // names every recorded path and never the directory holding them: a
-    // repository may commit its own files under .claude/, and untracking or
-    // ignoring the directory would take those with it.
-    const trackedPerMachine = new Map();
-    for (const entry of record.entries) {
-      if (entry.scope !== "local" || !trackedFolded.has(entry.path.toLowerCase())) continue;
-      const directory = entry.path.split("/")[0];
-      trackedPerMachine.set(directory, [...(trackedPerMachine.get(directory) ?? []), entry.path]);
-    }
-    for (const directory of [...trackedPerMachine.keys()].sort()) {
-      const paths = trackedPerMachine.get(directory);
-      const targets = untrackTargets(paths, tracked).sort().map(shellArg);
-      const count = paths.length;
-      errors.push(
-        `${count} generated per-machine ${count === 1 ? "file" : "files"} under ${directory}/ ${count === 1 ? "is" : "are"} tracked in git; untrack exactly these, add them to .gitignore, and commit both changes: git rm -r --cached -- ${targets.join(" ")}. Every path named holds generated copies only; do not widen it, since this repository may own other files nearby`,
-      );
-    }
-
-    // Part 5: a tracked file carrying the exact generated-by header but absent
-    // from the record is an orphan a hub version renamed or dropped. Exact
-    // header match per file type, never substring: a file quoting the sentence
-    // must survive. The extension filter is pinned to the set setup can emit
-    // as committed text outputs (a test in the hub asserts this stays true).
-    // The record itself cannot list itself and is exempt; the explicit clause
-    // is defence in depth, since the extension filter already excludes .yaml.
-    for (const path of tracked) {
-      if (!path.endsWith(".md") && !path.endsWith(".mjs")) continue;
-      if (path === RECORD_PATH || recordedFolded.has(path.toLowerCase())) continue;
-      if (excludes.some((prefix) => path === prefix || path.startsWith(prefix + "/"))) continue;
-      const absolute = join(repoRoot, path);
-      // Never follow a symlink: a generated output is never a symlink
-      // (reconcile refuses them), and following one can read outside the
-      // repository or block forever on a FIFO target.
-      let stat;
-      try {
-        stat = lstatSync(absolute);
-      } catch {
-        continue;
-      }
-      if (!stat.isFile()) continue;
-      if (!hasGeneratedHeader(foldLineEndings(headOf(absolute)))) continue;
-      errors.push(
-        `${path}: carries the generated-by header but is absent from the record; if it is still a generated output, ${REMEDY}; if a hub version or this repository's ${MANIFEST_PATH} no longer produces it, delete it and commit the deletion; if it is a copy of a generated file kept elsewhere on purpose, that is not supported, because generated context lives only where gbuddy setup writes it: delete the copy and commit the deletion, and to change what agents read, add or edit a rule under .ai/rules and run gbuddy setup`,
-      );
-    }
+function verifyIgnoreRules(repoRoot, record) {
+  // Part 3: no committed entry may be matched by an ignore rule. A
+  // tracked-but-ignored file works today and silently drops on the next
+  // delete-and-regenerate cycle.
+  const committedEntries = record.entries.filter(
+    (entry) => entry.scope === "committed" && entry.status === "generated",
+  );
+  for (const path of gitIgnoredAmong(
+    repoRoot,
+    committedEntries.map((entry) => entry.path),
+  )) {
+    errors.push(
+      `${path}: committed output is matched by an ignore rule; add a negation (!${path}) to .gitignore so it cannot silently drop`,
+    );
   }
+}
 
+function verifyPerMachineCopies(record, tracked) {
+  // Part 4: per-machine copies someone committed. Regenerating cannot help,
+  // since setup rewrites the same copies and leaves them tracked. The remedy
+  // names every recorded path and never the directory holding them: a
+  // repository may commit its own files under .claude/, and untracking or
+  // ignoring the directory would take those with it.
+  // Membership is case-folded on both sides: two spellings are one file on
+  // case-insensitive filesystems, matching the hub's own membership tests.
+  const trackedFolded = new Set([...tracked].map((path) => path.toLowerCase()));
+  const trackedPerMachine = new Map();
+  for (const entry of record.entries) {
+    if (entry.scope !== "local" || !trackedFolded.has(entry.path.toLowerCase())) continue;
+    const directory = entry.path.split("/")[0];
+    trackedPerMachine.set(directory, [...(trackedPerMachine.get(directory) ?? []), entry.path]);
+  }
+  for (const directory of [...trackedPerMachine.keys()].sort()) {
+    const paths = trackedPerMachine.get(directory);
+    const targets = untrackTargets(paths, tracked).sort().map(shellArg);
+    const count = paths.length;
+    errors.push(
+      `${count} generated per-machine ${count === 1 ? "file" : "files"} under ${directory}/ ${count === 1 ? "is" : "are"} tracked in git; untrack exactly these, add them to .gitignore, and commit both changes: git rm -r --cached -- ${targets.join(" ")}. Every path named holds generated copies only; do not widen it, since this repository may own other files nearby`,
+    );
+  }
+}
+
+function verifyOrphans(repoRoot, record, tracked, excludes) {
+  // Part 5: a tracked file carrying the exact generated-by header but absent
+  // from the record is an orphan a hub version renamed or dropped. Exact
+  // header match per file type, never substring: a file quoting the sentence
+  // must survive. The extension filter is pinned to the set setup can emit
+  // as committed text outputs (a test in the hub asserts this stays true).
+  // The record itself cannot list itself and is exempt; the explicit clause
+  // is defence in depth, since the extension filter already excludes .yaml.
+  // Case-folded like part 4: two spellings are one file on case-insensitive filesystems.
+  const recordedFolded = new Set(record.entries.map((entry) => entry.path.toLowerCase()));
+  for (const path of tracked) {
+    if (!path.endsWith(".md") && !path.endsWith(".mjs")) continue;
+    if (path === RECORD_PATH || recordedFolded.has(path.toLowerCase())) continue;
+    if (excludes.some((prefix) => path === prefix || path.startsWith(prefix + "/"))) continue;
+    const absolute = join(repoRoot, path);
+    // Never follow a symlink: a generated output is never a symlink
+    // (reconcile refuses them), and following one can read outside the
+    // repository or block forever on a FIFO target.
+    let stat;
+    try {
+      stat = lstatSync(absolute);
+    } catch {
+      continue;
+    }
+    if (!stat.isFile()) continue;
+    if (!hasGeneratedHeader(foldLineEndings(headOf(absolute)))) continue;
+    errors.push(
+      `${path}: carries the generated-by header but is absent from the record; if it is still a generated output, ${REMEDY}; if a hub version or this repository's ${MANIFEST_PATH} no longer produces it, delete it and commit the deletion; if it is a copy of a generated file kept elsewhere on purpose, that is not supported, because generated context lives only where gbuddy setup writes it: delete the copy and commit the deletion, and to change what agents read, add or edit a rule under .ai/rules and run gbuddy setup`,
+    );
+  }
+}
+
+function verifyInputs(repoRoot, record) {
   // Part 6: re-verify the generator's recorded inputs. Drift is a warning: the
   // committed outputs still match what they were generated from. Degradation
   // mirrors gbuddy check: unreadable counts as drift; a path resolving outside
@@ -207,7 +226,9 @@ function main() {
       warnings.push(`${input.path}: changed since the last setup run; run gbuddy setup and commit the result`);
     }
   }
+}
 
+function verifyPin(repoRoot, record) {
   // Part 7: the generating version against the manifest's pin. Gated on a pin
   // existing so a pre-pin repository (and the hub itself) stays quiet; dormant
   // on records that predate the generatedBy field.
