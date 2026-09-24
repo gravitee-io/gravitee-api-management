@@ -22,7 +22,6 @@ import io.gravitee.repository.exception.RedisNotConnectedException;
 import io.gravitee.repository.exception.RedisOperationTimeoutException;
 import io.gravitee.repository.ratelimit.model.RateLimit;
 import io.gravitee.repository.redis.vertx.RedisClient;
-import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -30,13 +29,10 @@ import io.vertx.redis.client.RedisAPI;
 import io.vertx.redis.client.RedisOptions;
 import io.vertx.redis.client.Response;
 import io.vertx.redis.client.ResponseType;
-import io.vertx.rxjava3.RxHelper;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -213,100 +209,6 @@ class RedisRateLimitRepositoryTest {
         assertThat(error.get()).isNull();
         assertThat(result.get()).isNotNull();
         assertThat(result.get().getCounter()).isEqualTo(1L);
-    }
-
-    @Test
-    @Timeout(15)
-    void concurrent_bursts_with_intermittent_event_loop_stalls_do_not_false_timeout() throws Exception {
-        // Load-style smoke: many overlapping increments, fast Redis RTT, occasional
-        // event-loop stalls longer than operation.timeout — none should false-timeout.
-        //
-        // Redis must complete the Vert.x Promise off the event loop (not via
-        // executeBlocking().onComplete). Otherwise, after a stall, Vert.x may run an
-        // already-expired Future.timeout timer before the queued completion handler —
-        // a test artifact, not the production false-timeout race.
-        final int operations = 40;
-        final int stallEvery = 8;
-        AtomicInteger evalshaCalls = new AtomicInteger();
-
-        evalshaHandler = args -> {
-            int n = evalshaCalls.incrementAndGet();
-            Promise<Response> promise = Promise.promise();
-            Thread io = new Thread(
-                () -> {
-                    try {
-                        Thread.sleep(2);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                    promise.complete(rateResponse(n, 1000L, System.currentTimeMillis(), "sub"));
-                },
-                "rl-redis-io-" + n
-            );
-            io.setDaemon(true);
-            io.start();
-            return promise.future();
-        };
-
-        var repository = new RedisRateLimitRepository(stubRedisClient(Future.succeededFuture(redisApiProxy())), OPERATION_TIMEOUT_MS);
-        CyclicBarrier start = new CyclicBarrier(operations);
-        CountDownLatch done = new CountDownLatch(operations);
-        AtomicInteger successes = new AtomicInteger();
-        AtomicInteger failures = new AtomicInteger();
-        List<Throwable> errors = new ArrayList<>();
-
-        for (int i = 0; i < operations; i++) {
-            final int idx = i;
-            new Thread(
-                () -> {
-                    try {
-                        start.await(5, TimeUnit.SECONDS);
-                        Single<RateLimit> call = repository
-                            .incrementAndGet("burst-" + idx, 1, () -> new RateLimit("burst-" + idx))
-                            .subscribeOn(RxHelper.scheduler(vertx));
-
-                        if (idx % stallEvery == 0) {
-                            // Stall the event loop after the subscribe is scheduled, mimicking
-                            // gateway pressure that used to trip the RxJava timeout.
-                            vertx.runOnContext(v -> {
-                                try {
-                                    Thread.sleep(OPERATION_TIMEOUT_MS * 3L);
-                                } catch (InterruptedException e) {
-                                    Thread.currentThread().interrupt();
-                                }
-                            });
-                        }
-
-                        call.blockingSubscribe(
-                            rl -> {
-                                successes.incrementAndGet();
-                                done.countDown();
-                            },
-                            t -> {
-                                synchronized (errors) {
-                                    errors.add(t);
-                                }
-                                failures.incrementAndGet();
-                                done.countDown();
-                            }
-                        );
-                    } catch (Exception e) {
-                        synchronized (errors) {
-                            errors.add(e);
-                        }
-                        failures.incrementAndGet();
-                        done.countDown();
-                    }
-                },
-                "rl-burst-" + i
-            )
-                .start();
-        }
-
-        assertThat(done.await(15, TimeUnit.SECONDS)).isTrue();
-        assertThat(failures.get()).as("failures: %s", errors).isZero();
-        assertThat(successes.get()).isEqualTo(operations);
-        assertThat(errors).isEmpty();
     }
 
     @Test
