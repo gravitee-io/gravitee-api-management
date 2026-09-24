@@ -82,7 +82,7 @@
     <gravitee-scoring-api.version>1.0.0</gravitee-scoring-api.version>
     <gravitee-secret-api.version>3.1.0</gravitee-secret-api.version>
     <gravitee-service-discovery-api.version>1.1.1</gravitee-service-discovery-api.version>
-    <gravitee-spec-gen-api.version>1.1.0</gravitee-spec-gen-api.version>
+    <gravitee-spec-gen-api.version>1.1.1</gravitee-spec-gen-api.version>
 
     <!-- Other dependencies version -->
     <angus-activation.version>2.0.3</angus-activation.version>
