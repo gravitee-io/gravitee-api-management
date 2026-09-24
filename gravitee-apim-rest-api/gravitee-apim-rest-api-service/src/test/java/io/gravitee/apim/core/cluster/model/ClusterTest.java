@@ -227,6 +227,26 @@ public class ClusterTest {
                     "kept"
                 )
             );
+            assertThat(redacted.getName()).isEqualTo("c");
+        }
+
+        @Test
+        void should_remove_sasl_and_ssl_from_standalone_configuration() {
+            var cluster = Cluster.builder()
+                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+                .configuration(
+                    Map.of(
+                        "bootstrapServers",
+                        "broker:9093",
+                        "security",
+                        Map.of("protocol", "SSL", "ssl", Map.of("trustStore", Map.of("password", "secret")))
+                    )
+                )
+                .build();
+
+            assertThat(cluster.withoutCredentials().getConfiguration()).isEqualTo(
+                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SSL"))
+            );
         }
 
         @Test
