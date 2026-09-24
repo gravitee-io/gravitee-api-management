@@ -15,6 +15,16 @@
  */
 import { spawn } from 'node:child_process';
 
+import { isBlank } from './string';
+
+/**
+ * The ref to diff from: the common commit when we know it, the base branch otherwise.
+ * `GIT_COMMON_COMMIT_HASH` is read as `process.env.X ?? ''`, so an API response without
+ * `base.sha` reaches us as an empty string rather than undefined — hence a blank check.
+ */
+export const diffRef = (commonCommitHash: string, baseBranch: string): string =>
+  isBlank(commonCommitHash) ? baseBranch : commonCommitHash;
+
 /**
  * Returns the files / directories changed between 2 commits
  * @param from sha of the commit where to start
@@ -22,35 +32,20 @@ import { spawn } from 'node:child_process';
  * @return {string[]} Files and directories changed. It will only contain 1st level items (element on the root of the repository)
  */
 export const changedFiles = async (from: string, to = 'HEAD'): Promise<string[]> => {
-  return new Promise((resolve, reject) => {
-    const cmd = diffCommand(from, to);
-
-    console.log(`Running "${cmd}"`);
-    const [bin, ...args] = cmd.split(' ');
-    const child = spawn(bin, args);
-
-    child.stdout.on('data', (data: Buffer) => {
-      const files = data
-        .toString()
-        .split('\n')
-        .map(keepFirstPathItem)
-        .filter(removeDuplicate)
-        .filter((f) => f.length > 0);
-
-      resolve(files);
-    });
-
-    child.stderr.on('data', (data: Buffer) => {
-      reject(new Error(data.toString()));
-    });
-
-    child.on('error', (err) => {
-      reject(err);
-    });
-  });
+  const stdout = await run('git', diffArgs(from, to));
+  return toChangedPaths(stdout);
 };
 
-const diffCommand = (from: string, to: string) => `git --no-pager diff --name-only ${from} ${to}`;
+export const toChangedPaths = (stdout: string): string[] =>
+  stdout
+    .split('\n')
+    .map(keepFirstPathItem)
+    .filter(removeDuplicate)
+    .filter((f) => f.length > 0);
+
+// Three dots: diff from the merge base, so what the base branch gained since this branch started
+// is not reported as a change of this branch.
+const diffArgs = (from: string, to: string) => ['--no-pager', 'diff', '--name-only', `${from}...${to}`];
 const keepFirstPathItem = (path: string) => path.split('/')[0];
 const removeDuplicate = (path: string, index: number, arr: string[]) => arr.indexOf(path) === index;
 
