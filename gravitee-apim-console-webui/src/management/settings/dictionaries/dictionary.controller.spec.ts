@@ -152,6 +152,7 @@ describe('DictionaryController', () => {
       await controller.deploy();
 
       expect(DictionaryService.deploy).toHaveBeenCalled();
+      expect(controller['initialDictionary']).toEqual({ properties: { large_value: 'deployed' } });
       expect(controller['propertiesDirty']).toBe(true);
       expect(controller['dictProperties']).toEqual([{ key: 'large_value', value: 'short', encrypted: false, encryptable: false }]);
     });
@@ -413,14 +414,27 @@ describe('DictionaryController', () => {
 
       it('should keep an unsaved padlock mark when the dictionary is deployed', async () => {
         DictionaryService.deploy.mockResolvedValue({
-          data: { id: 'dic-1', type: 'MANUAL', name: 'ServerName', properties: { apiKey: 'server-value' } },
+          data: { id: 'dic-1', type: 'MANUAL', name: 'ServerName', properties: { apiKey: 'deployed-value' } },
         });
         controller.encryptProperty('apiKey');
 
         await controller.deploy();
 
+        expect(controller['initialDictionary'].properties).toEqual({ apiKey: 'deployed-value' });
         expect(controller['dictionary'].propertyOptions).toEqual({ apiKey: { encryptable: true } });
         expect(controller['propertiesDirty']).toBe(true);
+      });
+
+      it('should keep an unsaved name when the dictionary is deployed', async () => {
+        DictionaryService.deploy.mockResolvedValue({
+          data: { id: 'dic-1', type: 'MANUAL', name: 'ServerName', properties: { apiKey: 'server-value' } },
+        });
+        controller['dictionary'].name = 'TypedButNotSaved';
+
+        await controller.deploy();
+
+        expect(controller['initialDictionary'].name).toBe('ServerName');
+        expect(controller['dictionary'].name).toBe('TypedButNotSaved');
       });
 
       it('should keep an unsaved name when the properties form is saved', async () => {
