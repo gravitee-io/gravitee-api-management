@@ -228,6 +228,8 @@ public interface ApiMapper {
                     return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(channelSelector));
                 } else if (selector.getActualInstance() instanceof ConditionSelector conditionSelector) {
                     return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(conditionSelector));
+                } else if (selector.getActualInstance() instanceof McpSelector mcpSelector) {
+                    return new io.gravitee.rest.api.management.v2.rest.model.Selector(map(mcpSelector));
                 }
 
                 return null;
@@ -256,6 +258,8 @@ public interface ApiMapper {
                         io.gravitee.rest.api.management.v2.rest.model.ConditionSelector conditionSelector
                 ) {
                     return new Selector(map(conditionSelector));
+                } else if (selector.getActualInstance() instanceof io.gravitee.rest.api.management.v2.rest.model.McpSelector mcpSelector) {
+                    return new Selector(map(mcpSelector));
                 }
 
                 return null;
