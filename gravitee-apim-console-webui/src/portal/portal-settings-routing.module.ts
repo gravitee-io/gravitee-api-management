@@ -26,6 +26,7 @@ import { HomepageComponent } from './homepage/homepage.component';
 import { SubscriptionFormComponent } from './subscription-form/subscription-form.component';
 import { PortalSettingsPageComponent } from './settings/portal-settings-page.component';
 import { PortalAuthenticationComponent } from './authentication/portal-authentication.component';
+import { PORTAL_AUTHENTICATION_READ_PERMISSIONS } from './authentication/portal-authentication.permissions';
 
 import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
@@ -117,7 +118,7 @@ const portalRoutes: Routes = [
         canDeactivate: [HasUnsavedChangesGuard],
         data: {
           permissions: {
-            allOf: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
+            allOf: PORTAL_AUTHENTICATION_READ_PERMISSIONS,
           },
         },
       },

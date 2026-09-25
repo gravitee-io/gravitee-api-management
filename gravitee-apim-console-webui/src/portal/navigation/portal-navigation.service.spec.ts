@@ -20,6 +20,12 @@ import { PortalNavigationService } from './portal-navigation.service';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
+const AUTHENTICATION_READ_PERMISSIONS = [
+  'organization-identity_provider-r',
+  'environment-identity_provider_activation-r',
+  'environment-settings-r',
+];
+
 describe('PortalNavigationService', () => {
   let service: PortalNavigationService;
   let permissionService: GioPermissionService;
@@ -148,21 +154,28 @@ describe('PortalNavigationService', () => {
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-documentation-r', 'environment-documentation-u']);
     });
 
-    it('should require both identity provider read permissions to display Authentication', () => {
-      service.getMainMenuItems();
+    it.each(['organization-identity_provider-r', 'environment-identity_provider_activation-r', 'environment-settings-r'])(
+      'should hide Authentication when %s is missing',
+      missingPermission => {
+        const grantedPermissions = AUTHENTICATION_READ_PERMISSIONS.filter(permission => permission !== missingPermission);
+        permissionService.hasAllMatching = jest.fn((permissions: string[]) =>
+          permissions.every(permission => grantedPermissions.includes(permission)),
+        );
 
-      expect(permissionService.hasAllMatching).toHaveBeenCalledWith([
-        'organization-identity_provider-r',
-        'environment-identity_provider_activation-r',
-      ]);
-    });
+        const menuItems = service.getMainMenuItems();
 
-    it('should hide Authentication when one of the identity provider read permissions is missing', () => {
-      permissionService.hasAllMatching = jest.fn((permissions: string[]) => !permissions.includes('organization-identity_provider-r'));
+        expect(menuItems.map(item => item.displayName)).not.toContain('Authentication');
+      },
+    );
+
+    it('should display Authentication when all the read permissions of the page are granted', () => {
+      permissionService.hasAllMatching = jest.fn((permissions: string[]) =>
+        permissions.every(permission => AUTHENTICATION_READ_PERMISSIONS.includes(permission)),
+      );
 
       const menuItems = service.getMainMenuItems();
 
-      expect(menuItems.map(item => item.displayName)).not.toContain('Authentication');
+      expect(menuItems.map(item => item.displayName)).toContain('Authentication');
     });
   });
 });

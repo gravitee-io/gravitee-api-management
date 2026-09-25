@@ -16,6 +16,7 @@
 import { Injectable } from '@angular/core';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { PORTAL_AUTHENTICATION_READ_PERMISSIONS } from '../authentication/portal-authentication.permissions';
 
 export interface MenuItem {
   icon?: string;
@@ -75,7 +76,7 @@ export class PortalNavigationService {
       displayName: 'Authentication',
       routerLink: 'authentication',
       icon: 'gio:lock',
-      allPermissions: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
+      allPermissions: PORTAL_AUTHENTICATION_READ_PERMISSIONS,
     },
     {
       displayName: 'Settings',
