@@ -248,3 +248,72 @@ tests:
                   sasl.mechanism: PLAIN
                   security.protocol: SASL_SSL
 
+  - it: Enable Kafka and set probe secured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          probe:
+            protocol: tcp
+            secured: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              secured: false
+              probe:
+                protocol: tcp
+  - it: Enable Kafka and set probe secured only
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          probe:
+            secured: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              secured: false
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "\n  probe:"
+  - it: Enable Kafka and prefer probe secured over deprecated secured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          secured: true
+          probe:
+            protocol: tcp
+            secured: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              secured: false
+              probe:
+                protocol: tcp
+  - it: Enable Kafka and keep deprecated secured
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        kafka:
+          enabled: true
+          secured: false
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: |
+            kafka:
+              enabled: true
+              secured: false
