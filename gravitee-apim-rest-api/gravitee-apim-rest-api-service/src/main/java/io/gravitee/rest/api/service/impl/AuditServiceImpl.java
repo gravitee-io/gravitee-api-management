@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -284,8 +283,24 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         }
     }
 
+<<<<<<< HEAD
+=======
+    private ObjectNode toObjectNode(Object value) {
+        if (value == null) {
+            return mapper.createObjectNode();
+        }
+        try {
+            return (ObjectNode) mapper.readTree(mapper.writeValueAsString(value));
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to serialize value for audit log diff, using empty node", e);
+            return mapper.createObjectNode();
+        }
+    }
+
+    // Synchronous on purpose: the audit user is read from the caller's security context,
+    // which an async executor thread does not carry.
+>>>>>>> 3b3be38 (fix(audit): record the authenticated user instead of system on async audit logs)
     @Override
-    @Async
     public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
         if (auditLogData.getReferenceType() == null) {
             if (executionContext.hasEnvironmentId()) {
