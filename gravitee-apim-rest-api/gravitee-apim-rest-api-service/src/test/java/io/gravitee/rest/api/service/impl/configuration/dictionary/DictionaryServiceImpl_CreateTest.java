@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Logger;
@@ -44,9 +45,13 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -272,5 +277,34 @@ public class DictionaryServiceImpl_CreateTest {
                     ENVIRONMENT_ID.equals(dict.getEnvironmentId())
             )
         );
+    }
+
+    static Stream<Arguments> optionsSentWithTheMask() {
+        return Stream.of(
+            Arguments.of("no options", null),
+            Arguments.of("encrypted", Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build())),
+            Arguments.of("encryptable", Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build()))
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("optionsSentWithTheMask")
+    public void should_reject_the_mask_on_create(String description, Map<String, DictionaryPropertyOptions> options)
+        throws TechnicalException {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setKey("my-key");
+        newDictionary.setName("My Dictionary");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK));
+        newDictionary.setPropertyOptions(options);
+
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
+        when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary))
+            .isInstanceOf(DictionaryPropertyMaskedValueException.class)
+            .hasMessageContaining("secret");
+        verify(dictionaryRepository, never()).create(any(Dictionary.class));
+        verifyNoInteractions(dataEncryptor);
     }
 }

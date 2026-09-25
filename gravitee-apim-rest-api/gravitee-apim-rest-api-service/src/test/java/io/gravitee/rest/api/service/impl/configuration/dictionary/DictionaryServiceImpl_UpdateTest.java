@@ -600,6 +600,40 @@ public class DictionaryServiceImpl_UpdateTest {
         verify(dictionaryRepository, never()).update(any());
     }
 
+    @Test
+    public void should_reject_the_mask_for_a_new_key() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("other", new DictionaryProperty("cipher", true));
+        given_stored_dictionary_without_update_stub(stored);
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put("other", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
+        properties.put("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            properties,
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build())
+        );
+
+        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
+            .isInstanceOf(DictionaryPropertyMaskedValueException.class)
+            .hasMessageContaining("secret");
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_reject_the_mask_for_a_key_stored_plain() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("hostname", new DictionaryProperty("api.example.com", false));
+        given_stored_dictionary_without_update_stub(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("hostname", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK), null);
+
+        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
+            .isInstanceOf(DictionaryPropertyMaskedValueException.class)
+            .hasMessageContaining("hostname");
+        verify(dictionaryRepository, never()).update(any());
+    }
+
     private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
         given_stored_dictionary(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);
     }
