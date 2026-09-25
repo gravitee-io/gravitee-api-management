@@ -17,7 +17,13 @@ package io.gravitee.apim.rest.api.automation.mapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.apim.rest.api.automation.model.BaseSelector;
+import io.gravitee.apim.rest.api.automation.model.FlowV4;
+import io.gravitee.apim.rest.api.automation.model.McpSelector;
 import io.gravitee.apim.rest.api.automation.model.NavigationPath;
+import io.gravitee.apim.rest.api.automation.model.Selector;
+import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -86,5 +92,41 @@ class ApiMapperTest {
     @Test
     void should_return_null_when_mapping_null_core_navigation_path() {
         assertThat(ApiMapper.INSTANCE.mapNavigationPath(null)).isNull();
+    }
+
+    @Test
+    void should_keep_mcp_selector_when_mapping_automation_flow_to_management_flow() {
+        var mcpSelector = new McpSelector().methods(Set.of("tools/call"));
+        mcpSelector.setType(BaseSelector.TypeEnum.MCP);
+        var automation = new FlowV4().name("mcp-flow").selectors(List.of(new Selector(mcpSelector)));
+
+        var management = ApiMapper.INSTANCE.map(automation);
+
+        assertThat(management.getSelectors())
+            .singleElement()
+            .extracting(io.gravitee.rest.api.management.v2.rest.model.Selector::getActualInstance)
+            .isInstanceOfSatisfying(io.gravitee.rest.api.management.v2.rest.model.McpSelector.class, selector -> {
+                assertThat(selector.getType()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.BaseSelector.TypeEnum.MCP);
+                assertThat(selector.getMethods()).containsExactly("tools/call");
+            });
+    }
+
+    @Test
+    void should_keep_mcp_selector_when_mapping_management_flow_to_automation_flow() {
+        var mcpSelector = new io.gravitee.rest.api.management.v2.rest.model.McpSelector().methods(Set.of("tools/call"));
+        mcpSelector.setType(io.gravitee.rest.api.management.v2.rest.model.BaseSelector.TypeEnum.MCP);
+        var management = new io.gravitee.rest.api.management.v2.rest.model.FlowV4()
+            .name("mcp-flow")
+            .selectors(List.of(new io.gravitee.rest.api.management.v2.rest.model.Selector(mcpSelector)));
+
+        var automation = ApiMapper.INSTANCE.map(management);
+
+        assertThat(automation.getSelectors())
+            .singleElement()
+            .extracting(Selector::getActualInstance)
+            .isInstanceOfSatisfying(McpSelector.class, selector -> {
+                assertThat(selector.getType()).isEqualTo(BaseSelector.TypeEnum.MCP);
+                assertThat(selector.getMethods()).containsExactly("tools/call");
+            });
     }
 }
