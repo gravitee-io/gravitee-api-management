@@ -18,11 +18,5 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { ConfigService } from '../services/config.service';
 
-export const registrationEnabledGuard: CanActivateFn = (_r, _s) => {
-  if (inject(ConfigService).configuration?.portal?.userCreation?.enabled) {
-    return true;
-  }
-
-  inject(Router).navigate(['log-in']);
-  return false;
-};
+export const registrationEnabledGuard: CanActivateFn = (_r, _s) =>
+  inject(ConfigService).configuration?.portal?.userCreation?.enabled === true || inject(Router).createUrlTree(['log-in']);

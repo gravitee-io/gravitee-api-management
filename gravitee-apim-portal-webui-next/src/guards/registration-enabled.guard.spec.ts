@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRoute, CanActivateFn, Router } from '@angular/router';
+import { ActivatedRoute, CanActivateFn, Router, UrlTree } from '@angular/router';
 
 import { registrationEnabledGuard } from './registration-enabled.guard';
 import { Configuration } from '../entities/configuration/configuration';
@@ -45,25 +45,21 @@ describe('registrationEnabledGuard', () => {
 
   it('should allow registration when user registration is enabled', () => {
     init({ portal: { userCreation: { enabled: true } } });
-    const spy = jest.spyOn(router, 'navigate');
 
-    expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeTruthy();
-    expect(spy).toHaveBeenCalledTimes(0);
+    expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBe(true);
   });
 
   it('should redirect to log-in when user registration is disabled', () => {
     init({ portal: { userCreation: { enabled: false } } });
-    const spy = jest.spyOn(router, 'navigate');
 
-    expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeFalsy();
-    expect(spy).toHaveBeenCalledWith(['log-in']);
+    const result = executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot });
+    expect(router.serializeUrl(result as UrlTree)).toEqual('/log-in');
   });
 
   it('should redirect to log-in when user registration is not configured', () => {
     init({});
-    const spy = jest.spyOn(router, 'navigate');
 
-    expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeFalsy();
-    expect(spy).toHaveBeenCalledWith(['log-in']);
+    const result = executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot });
+    expect(router.serializeUrl(result as UrlTree)).toEqual('/log-in');
   });
 });
