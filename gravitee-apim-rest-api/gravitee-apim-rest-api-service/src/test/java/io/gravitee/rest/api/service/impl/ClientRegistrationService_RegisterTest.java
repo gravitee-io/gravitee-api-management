@@ -16,8 +16,11 @@
 package io.gravitee.rest.api.service.impl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -106,9 +109,50 @@ public class ClientRegistrationService_RegisterTest {
         assertEquals("https://example.com/policy", clientRegistration.getPolicyUri());
     }
 
+    @Test
+    public void should_prefer_the_application_software_id_over_the_provider_one() throws TechnicalException {
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setAdditionalClientMetadata(Map.of("software_id", "APP_TEMPLATE"));
+
+        NewApplicationEntity application = setupApplicationAndProvider(
+            oAuthClientSettings,
+            "{ \"client_name\": \"gravitee\"}",
+            "PROVIDER_TEMPLATE"
+        );
+
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application);
+
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE")))
+        );
+    }
+
+    @Test
+    public void should_fall_back_on_the_provider_software_id_when_the_application_has_none() throws TechnicalException {
+        NewApplicationEntity application = setupApplicationAndProvider(
+            new OAuthClientSettings(),
+            "{ \"client_name\": \"gravitee\"}",
+            "PROVIDER_TEMPLATE"
+        );
+
+        clientRegistrationService.register(GraviteeContext.getExecutionContext(), application);
+
+        wireMockServer.verify(
+            postRequestedFor(urlEqualTo("/registrationEp")).withRequestBody(matchingJsonPath("$.software_id", equalTo("PROVIDER_TEMPLATE")))
+        );
+    }
+
     private @NotNull NewApplicationEntity setupApplicationAndProvider(
         OAuthClientSettings oAuthClientSettings,
         String registrationEndpointResponse
+    ) throws TechnicalException {
+        return setupApplicationAndProvider(oAuthClientSettings, registrationEndpointResponse, null);
+    }
+
+    private @NotNull NewApplicationEntity setupApplicationAndProvider(
+        OAuthClientSettings oAuthClientSettings,
+        String registrationEndpointResponse,
+        String providerSoftwareId
     ) throws TechnicalException {
         NewApplicationEntity application = new NewApplicationEntity();
 
@@ -120,6 +164,7 @@ public class ClientRegistrationService_RegisterTest {
         provider.setId("CRP_ID");
         provider.setName("name");
         provider.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+        provider.setSoftwareId(providerSoftwareId);
 
         when(
             mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
