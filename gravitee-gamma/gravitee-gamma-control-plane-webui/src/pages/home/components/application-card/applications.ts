@@ -78,6 +78,18 @@ const CARD_CONTENT: Record<ModuleId, CardContent> = {
             ],
         },
     },
+    am: {
+        description: 'Secure sign-in, identity providers, and tokens for your applications and agents.',
+        accent: 'primary',
+        emptyState: { cta: 'Open Access Management', ctaPath: '' },
+        upgrade: {
+            features: [
+                'OAuth 2.1, OpenID Connect, and SAML for every application',
+                'Connect your identity providers and user directories',
+                'Issue and verify agent identities',
+            ],
+        },
+    },
     esm: {
         description: 'Register Kafka clusters, expose governed Kafka services, and federate them into an event mesh.',
         accent: 'muted',

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { type UiGammaModuleResponse, parseModule } from './modules.types';
+import { type UiGammaModuleResponse, isExternalModule, parseModule } from './modules.types';
 
 describe('parseModule', () => {
     it('should parse module with exposed name', () => {
@@ -65,5 +65,15 @@ describe('parseModule', () => {
         const result = parseModule(raw);
 
         expect(result.exposedModule).toBe('Feature');
+    });
+});
+
+describe('isExternalModule', () => {
+    it('should keep the am module although it ships no UI', () => {
+        expect(isExternalModule({ id: 'am', name: 'Access Management', version: '0.1.0' })).toBe(true);
+    });
+
+    it('should not keep any other module without a UI', () => {
+        expect(isExternalModule({ id: 'backend-only', name: 'Backend', version: '1.0.0' })).toBe(false);
     });
 });
