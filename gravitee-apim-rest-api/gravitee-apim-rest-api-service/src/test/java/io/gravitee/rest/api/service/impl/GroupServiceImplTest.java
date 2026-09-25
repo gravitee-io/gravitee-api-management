@@ -387,7 +387,7 @@ public class GroupServiceImplTest {
         );
     }
 
-    // assertGroupIsNotPrimaryOwner tests (APIM-15110): ownership, not assignment.
+    // assertGroupIsNotPrimaryOwner: ownership, not assignment.
 
     @Test
     public void assertGroupIsNotPrimaryOwner_shouldDoNothing_whenGroupOwnsNoApis() {
