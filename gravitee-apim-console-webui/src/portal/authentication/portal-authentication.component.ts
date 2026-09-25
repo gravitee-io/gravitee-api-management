@@ -153,13 +153,15 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       if (!this.dataResource.hasValue()) {
         return;
       }
-      const { activations, settings } = this.dataResource.value();
-      this.applySettings(settings, activations.length > 0);
+      const { identityProviders, activations, settings } = this.dataResource.value();
+      const portalIdentityProviderIds = identityProviders.filter(identityProvider => identityProvider.enabled).map(({ id }) => id);
+      const hasPortalLoginProvider = activations.some(activation => portalIdentityProviderIds.includes(activation.identityProvider));
+      this.applySettings(settings, hasPortalLoginProvider);
       this.formInitialValues.set(this.authenticationForm.getRawValue());
 
-      // Without any activated identity provider, the login form is the only way to log in to the portal
+      // Without any identity provider usable on the portal, the login form is the only way to log in to it
       if (
-        activations.length === 0 &&
+        !hasPortalLoginProvider &&
         !this.authenticationForm.controls.localLogin.value &&
         this.canUpdateSettings &&
         !this.isLocalLoginReadonly()
@@ -272,12 +274,12 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
     return this.dataResource.hasValue() && PortalSettingsService.isReadonly(this.dataResource.value().settings, property);
   }
 
-  private applySettings(settings: PortalSettings, hasActivatedIdentityProvider: boolean): void {
+  private applySettings(settings: PortalSettings, hasPortalLoginProvider: boolean): void {
     const { forceLogin, localLogin } = this.authenticationForm.controls;
     setDisabled(forceLogin, !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, FORCE_LOGIN_PROPERTY));
     setDisabled(
       localLogin,
-      !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, LOCAL_LOGIN_PROPERTY) || !hasActivatedIdentityProvider,
+      !this.canUpdateSettings || PortalSettingsService.isReadonly(settings, LOCAL_LOGIN_PROPERTY) || !hasPortalLoginProvider,
     );
     this.authenticationForm.reset({
       forceLogin: settings.authentication?.forceLogin?.enabled ?? false,

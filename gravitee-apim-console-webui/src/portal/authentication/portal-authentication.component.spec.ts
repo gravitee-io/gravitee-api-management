@@ -155,6 +155,22 @@ describe('PortalAuthenticationComponent', () => {
       expect(await (await harness.getLocalLoginToggle()).isDisabled()).toBe(true);
     });
 
+    it('should force the login form when the only activated identity provider is not allowed for portal authentication', async () => {
+      await init();
+      const settings = settingsWith({ forceLogin: false, localLogin: false });
+      await load([internalOidc], [fakeIdentityProviderActivation({ identityProvider: 'internal' })], settings);
+
+      expectGetSettings(settings);
+      const saveRequest = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` });
+      expect(saveRequest.request.body.authentication.localLogin.enabled).toBe(true);
+      saveRequest.flush(saveRequest.request.body);
+      expectEnvironmentSettingsReload();
+      await load([internalOidc], [fakeIdentityProviderActivation({ identityProvider: 'internal' })], saveRequest.request.body);
+
+      expect(await (await harness.getLocalLoginToggle()).isChecked()).toBe(true);
+      expect(await (await harness.getLocalLoginToggle()).isDisabled()).toBe(true);
+    });
+
     it('should display the forced login form as a pending change when saving it fails', async () => {
       await init();
       const settings = settingsWith({ forceLogin: false, localLogin: false });
