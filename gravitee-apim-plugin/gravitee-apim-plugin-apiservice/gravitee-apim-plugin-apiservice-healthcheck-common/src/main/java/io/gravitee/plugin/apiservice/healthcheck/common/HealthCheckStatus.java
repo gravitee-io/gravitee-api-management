@@ -57,6 +57,9 @@ class HealthCheckStatus {
      * @return the new status after a success has been reported.
      */
     public ManagedEndpoint.Status reportSuccess() {
+        // Thresholds count consecutive checks: a success interrupts any failure streak.
+        failureCount = 0;
+
         if (currentStatus != UP) {
             successCount++;
 
@@ -83,6 +86,9 @@ class HealthCheckStatus {
      * @return the new status after a failure has been reported.
      */
     public ManagedEndpoint.Status reportFailure() {
+        // Thresholds count consecutive checks: a failure interrupts any success streak.
+        successCount = 0;
+
         if (currentStatus != DOWN) {
             failureCount++;
 
