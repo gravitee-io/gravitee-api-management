@@ -126,3 +126,6 @@ gravitee-service-authz-pdp
 gravitee-secret-provider-hc-vault
 gravitee-service-secrets
 gravitee-secret-provider-kubernetes
+
+# Agent Providers
+gravitee-agent-provider-azure-foundry

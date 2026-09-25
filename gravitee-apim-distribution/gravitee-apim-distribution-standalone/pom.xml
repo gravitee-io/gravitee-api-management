@@ -2608,6 +2608,21 @@
                     </exclusions>
                 </dependency>
 
+                <!-- Agent Providers -->
+                <dependency>
+                    <groupId>com.graviteesource.agentprovider</groupId>
+                    <artifactId>gravitee-agent-provider-azure-foundry</artifactId>
+                    <version>${gravitee-agent-provider-azure-foundry.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
                 <!-- ==== Shipped by the bundle-dev flavor, or only listed for custom images ==== -->
                 <!-- Endpoints -->
                 <dependency>

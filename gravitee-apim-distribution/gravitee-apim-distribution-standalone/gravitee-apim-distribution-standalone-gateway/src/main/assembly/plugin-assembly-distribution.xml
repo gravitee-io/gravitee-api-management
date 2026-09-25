@@ -221,6 +221,7 @@
                 <exclude>com.graviteesource.connector:gravitee-*-native-kafka:zip</exclude>
                 <exclude>io.gravitee.gamma.module:*:zip</exclude>
                 <exclude>com.graviteesource.gamma.module:*:zip</exclude>
+                <exclude>com.graviteesource.agentprovider:*:zip</exclude>
             </excludes>
             <useProjectArtifact>false</useProjectArtifact>
             <fileMode>755</fileMode>
