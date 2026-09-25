@@ -49,7 +49,6 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -297,8 +296,9 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         }
     }
 
+    // Synchronous on purpose: the audit user is read from the caller's security context,
+    // which an async executor thread does not carry.
     @Override
-    @Async
     public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
         if (auditLogData.getReferenceType() == null) {
             if (executionContext.hasEnvironmentId()) {
