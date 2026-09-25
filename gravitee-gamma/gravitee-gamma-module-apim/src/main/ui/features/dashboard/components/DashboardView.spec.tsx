@@ -50,6 +50,35 @@ describe('DashboardView', () => {
         expect(baseProps.onCreateProduct).not.toHaveBeenCalled();
     });
 
+    it('should open the upgrade dialog from the Get Started card when API Products are locked', async () => {
+        const user = userEvent.setup();
+
+        render(<DashboardView {...baseProps} apiProductsLocked />);
+
+        const upgradeButtons = screen.getAllByRole('button', { name: /upgrade to access/i });
+        await user.click(upgradeButtons[upgradeButtons.length - 1]);
+
+        expect(screen.getByRole('heading', { name: CONTENT.title })).toBeTruthy();
+        expect(baseProps.onCreateProduct).not.toHaveBeenCalled();
+    });
+
+    it('should not show the Take the tour button when no onStartTour handler is provided', () => {
+        render(<DashboardView {...baseProps} />);
+
+        expect(screen.queryByRole('button', { name: /take the tour/i })).toBeNull();
+    });
+
+    it('should call onStartTour when the Take the tour button is clicked', async () => {
+        const user = userEvent.setup();
+        const onStartTour = jest.fn();
+
+        render(<DashboardView {...baseProps} onStartTour={onStartTour} />);
+
+        await user.click(screen.getByRole('button', { name: /take the tour/i }));
+
+        expect(onStartTour).toHaveBeenCalledTimes(1);
+    });
+
     it('should not show Upgrade to access CTAs when API Products are licensed', () => {
         render(<DashboardView {...baseProps} apiProductsLocked={false} />);
 
