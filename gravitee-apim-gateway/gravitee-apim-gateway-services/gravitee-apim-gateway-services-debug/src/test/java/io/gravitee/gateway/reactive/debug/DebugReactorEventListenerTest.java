@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.after;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -90,6 +91,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -850,6 +852,20 @@ class DebugReactorEventListenerTest {
             assertThat(secretDiscoveryEventCaptor.getAllValues())
                 .extracting(event -> event.metadata().revision())
                 .containsExactly(EVENT_ID, OTHER_EVENT_ID);
+        }
+
+        @Test
+        void should_discover_secrets_before_creating_the_handler() throws JsonProcessingException {
+            givenAStalledDebugRequest();
+            final DebugReactorEventListener listener = listenerWith(registry, aConfiguration(60000));
+
+            listener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, aReactableEvent(EVENT_ID)));
+
+            // Creating the handler starts its resources, which evaluate secret expressions in their
+            // configuration: the secrets must already be discovered at that point, as on a regular deploy.
+            final InOrder inOrder = inOrder(eventManager, registry);
+            inOrder.verify(eventManager).publishEvent(eq(SecretDiscoveryEventType.DISCOVER), any(SecretDiscoveryEvent.class));
+            inOrder.verify(registry).create(any(DebugApiV2.class));
         }
 
         @Test
