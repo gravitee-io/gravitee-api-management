@@ -89,8 +89,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private DataEncryptor dataEncryptor;
 
     /**
-     * Server-owned sentinel a client cannot legitimately type. Returned on read for an encrypted
-     * value; recognized on write as "leave the stored ciphertext alone."
+     * Server-owned sentinel returned on read in place of an encrypted value. On write it means "leave
+     * the stored ciphertext alone", so it is only accepted for a key already stored encrypted.
      */
     static final String ENCRYPTED_VALUE_MASK = "••••••••••••";
 
@@ -587,6 +587,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         DictionaryProperty stored = existing == null ? null : existing.get(property.getKey());
         boolean storedEncrypted = stored != null && stored.encrypted();
         rejectContradictoryOptions(property.getKey(), options);
+        rejectMaskUnlessStoredEncrypted(property.getKey(), property.getValue(), storedEncrypted);
 
         boolean desiredEncrypted = desiredEncrypted(options, storedEncrypted);
         if (!desiredEncrypted) {
@@ -613,6 +614,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 key,
                 "'encrypted' and 'encryptable' cannot both be true — the value is either already ciphertext or plaintext to encrypt"
             );
+        }
+    }
+
+    private static void rejectMaskUnlessStoredEncrypted(String key, String value, boolean storedEncrypted) {
+        if (!storedEncrypted && ENCRYPTED_VALUE_MASK.equals(value)) {
+            throw new DictionaryPropertyMaskedValueException(key);
         }
     }
 
