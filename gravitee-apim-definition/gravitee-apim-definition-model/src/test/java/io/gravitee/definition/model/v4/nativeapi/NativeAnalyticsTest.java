@@ -56,11 +56,21 @@ class NativeAnalyticsTest {
     }
 
     @Test
-    void should_honour_an_explicit_empty_selection_rather_than_falling_back() {
-        // Unchecking everything is a decision, not an absence of one.
+    void should_treat_an_empty_selection_as_an_unconfigured_one() {
+        // Not a preference: the generated Management API model initialises the property to an empty set, so a
+        // request that omits the field is indistinguishable from one sending []. Reading empty as a deliberate
+        // "report nothing" would silence every API saved without it — every API nobody ever configured.
         var analytics = NativeAnalytics.builder().connectionEvents(Set.of()).build();
 
-        assertThat(analytics.effectiveConnectionEvents()).isEmpty();
+        assertThat(analytics.effectiveConnectionEvents()).isEqualTo(NativeConnectionEvent.LEGACY_DEFAULTS);
+    }
+
+    @Test
+    void should_leave_reporting_nothing_to_the_master_toggle() {
+        // What the empty selection no longer expresses, this does — and it always did, first and unconditionally.
+        var analytics = NativeAnalytics.builder().reporterMetricsEnabled(false).connectionEvents(Set.of()).build();
+
+        assertThat(analytics.isReporterMetricsEnabled()).isFalse();
     }
 
     @Test

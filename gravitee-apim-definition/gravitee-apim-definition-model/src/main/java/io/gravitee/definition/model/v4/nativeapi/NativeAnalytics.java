@@ -56,11 +56,20 @@ public class NativeAnalytics {
     /**
      * The events this API actually reports, resolving an unconfigured API to what it already does today.
      *
+     * <p>Empty counts as unconfigured, and that is forced rather than chosen: the generated Management API
+     * model initialises the property to an empty set, so a request that omits it arrives indistinguishable
+     * from one that sends {@code []}. Treating empty as a deliberate "report nothing" would therefore silence
+     * every API saved without the field — which is every API whose owner never touched the setting, and the
+     * exact opposite of the guarantee this rule exists to give.
+     *
+     * <p>Nothing is lost by it. Reporting nothing is what {@code reporterMetricsEnabled} is for, and it is the
+     * master switch: an API with the toggle off stays silent whatever this returns.
+     *
      * <p>Not named {@code getEffectiveConnectionEvents}: the {@code get} prefix would make Jackson serialize it
      * as a property of the API definition, persisting a derived value that would then outlive the rule that
      * produced it.
      */
     public Set<NativeConnectionEvent> effectiveConnectionEvents() {
-        return connectionEvents != null ? connectionEvents : NativeConnectionEvent.LEGACY_DEFAULTS;
+        return connectionEvents == null || connectionEvents.isEmpty() ? NativeConnectionEvent.LEGACY_DEFAULTS : connectionEvents;
     }
 }
