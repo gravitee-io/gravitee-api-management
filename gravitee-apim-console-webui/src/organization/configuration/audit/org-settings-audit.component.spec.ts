@@ -71,6 +71,17 @@ describe('OrgSettingsAuditComponent', () => {
     });
   });
 
+  it('should not display the encryption marker as a target', async () => {
+    expectDictionaryAuditListRequest();
+    expectAuditEventsNameRequest();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
+
+    expect(rowCells[0].targets).toEqual('DICTIONARY:my-dict');
+  });
+
   it('should display audit logs with event filter', async () => {
     expectAuditListRequest();
     expectAuditEventsNameRequest();
@@ -197,6 +208,30 @@ describe('OrgSettingsAuditComponent', () => {
     );
     expect(req.request.method).toEqual('GET');
     req.flush(fakeMetadataPageAudit());
+  }
+
+  function expectDictionaryAuditListRequest() {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/audit?page=1&size=10`);
+    expect(req.request.method).toEqual('GET');
+    req.flush(
+      fakeMetadataPageAudit({
+        content: [
+          {
+            id: 'dictionary-audit',
+            referenceId: 'DEFAULT',
+            referenceType: 'ENVIRONMENT',
+            user: 'system',
+            createdAt: 1650382350999,
+            event: 'DICTIONARY_UPDATED',
+            properties: { DICTIONARY: 'my-dict', DICTIONARY_ENCRYPTED: 'true' },
+            patch: '[]',
+          },
+        ],
+        metadata: { 'USER:system:name': 'system', 'DICTIONARY:my-dict:name': 'my-dict' },
+        pageElements: 1,
+        totalElements: 1,
+      }),
+    );
   }
 
   function expectAuditEventsNameRequest() {

@@ -446,6 +446,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 EventType.UNPUBLISH_DICTIONARY,
                 dictionary
             );
+
+            createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_DELETED, new Date(), dictionary, null);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }

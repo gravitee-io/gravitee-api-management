@@ -54,9 +54,18 @@
         },
         "lint": {
             "dependsOn": [
-                { "target": "lint-eslint", "params": "forward" },
-                { "target": "lint-license", "params": "forward" },
-                { "target": "lint-prettier", "params": "forward" }
+                {
+                    "target": "lint-eslint",
+                    "params": "forward"
+                },
+                {
+                    "target": "lint-license",
+                    "params": "forward"
+                },
+                {
+                    "target": "lint-prettier",
+                    "params": "forward"
+                }
             ],
             "cache": true
         },
@@ -89,5 +98,6 @@
         "@nx/angular:component": {
             "style": "scss"
         }
-    }
+    },
+    "analytics": true
 }

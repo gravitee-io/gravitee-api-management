@@ -31,6 +31,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -74,7 +75,12 @@ public class AuditResource extends AbstractResource {
         }
     )
     @GraviteeLicenseFeature("apim-audit-trail")
-    public AuditEntityMetadataPage getAudits(@BeanParam AuditParam param) {
+    public AuditEntityMetadataPage getAudits(
+        @BeanParam AuditParam param,
+        @QueryParam("encrypted") @Parameter(
+            description = "Filter on audit entries that involve an encrypted dictionary property. Only 'true' is supported."
+        ) Boolean encrypted
+    ) {
         AuditQuery query = new AuditQuery();
         query.setFrom(param.getFrom());
         query.setTo(param.getTo());
@@ -96,7 +102,7 @@ public class AuditResource extends AbstractResource {
         if (param.getEvent() != null) {
             query.setEvents(Collections.singletonList(param.getEvent()));
         }
-        applyEncryptedFilter(query, param.getEncrypted());
+        applyEncryptedFilter(query, encrypted);
 
         return new AuditEntityMetadataPage(auditService.search(GraviteeContext.getExecutionContext(), query));
     }

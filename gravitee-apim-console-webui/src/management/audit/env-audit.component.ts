@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, FormGroup, FormControl } from '@angular/forms';
-import { isEqual, mapValues } from 'lodash';
+import { isEqual } from 'lodash';
 import { BehaviorSubject, EMPTY, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { Moment } from 'moment';
@@ -26,6 +26,7 @@ import { AuditService } from '../../services-ngx/audit.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { endOfDay } from '../../util/date.util';
+import { toAuditTargets } from '../../entities/audit/auditTargets';
 
 interface AuditDataTable {
   id: string;
@@ -152,7 +153,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
           referenceType: audit.referenceType,
           reference: (auditsPage.metadata[`${audit.referenceType}:${audit.referenceId}:name`] as string) ?? audit.referenceId,
           event: audit.event,
-          targets: mapValues(audit.properties, (v, k) => auditsPage.metadata[k + ':' + v + ':name'] as string),
+          targets: toAuditTargets(audit.properties, auditsPage.metadata),
           patch: JSON.parse(audit.patch),
           displayPatch: false,
         }));
