@@ -547,9 +547,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldAllowChangingFromPrimaryOwnerToOtherRole_whenGroupIsAssignedToApisButDoesNotOwnThem() {
-        // Regression test for APIM-15110: the group is still assigned to (has access to) APIs it
-        // does not primary-own. The old guard used groupService.getApis(...) — which returns APIs
-        // the group is merely assigned to — and would have wrongly blocked this change.
+        // The group is still assigned to (has access to) APIs it does not primary-own. The old guard
+        // used groupService.getApis(...) — which returns APIs the group is merely assigned to — and
+        // would have wrongly blocked this change.
         reset(roleService, groupService, membershipService);
         when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(mock(GroupEntity.class));
 
