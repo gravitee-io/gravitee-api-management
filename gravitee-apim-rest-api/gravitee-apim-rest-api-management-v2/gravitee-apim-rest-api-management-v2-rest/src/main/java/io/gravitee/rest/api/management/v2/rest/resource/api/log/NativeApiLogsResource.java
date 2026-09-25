@@ -80,7 +80,7 @@ public class NativeApiLogsResource extends AbstractResource {
         // window. The links do not: Elasticsearch refuses a from/size page past its result window, so a `last`
         // link computed from the real total would point at a page that answers 400. Bounding it here keeps
         // every page the API advertises a page the API can serve.
-        long reachable = reachableTotal(output.response());
+        long reachable = reachableTotal(output.response(), paginationParam);
         return new NativeApiLogsResponse()
             .data(data)
             .pagination(computePaginationInfo(output.response().total(), data.size(), paginationParam))
@@ -123,12 +123,23 @@ public class NativeApiLogsResource extends AbstractResource {
     }
 
     /**
-     * How many of the matching logs can actually be paged to.
+     * How many of the matching logs can actually be paged to, at this page size.
      *
      * <p>Absent means the store imposes no window — the no-op repository, or an implementation that pages
      * without one — and then every matching log is reachable.
+     *
+     * <p>Rounded down to a whole page, because the last page has to fit entirely inside the window: the store
+     * refuses a page that starts inside it and ends past it. With a window of 10 000 and a page size of 30,
+     * the honest bound is 9 990 — take 10 000 and the last link points at page 334, whose 9 990 + 30 reaches
+     * past the window and answers 400. Page sizes that divide the window are unaffected, which is why the
+     * Console never saw it: it offers only 10, 25, 50 and 100.
      */
-    private static long reachableTotal(SearchLogsResponse<?> response) {
-        return response.maxReachableTotal() == null ? response.total() : Math.min(response.total(), response.maxReachableTotal());
+    private static long reachableTotal(SearchLogsResponse<?> response, PaginationParam paginationParam) {
+        Long window = response.maxReachableTotal();
+        if (window == null) {
+            return response.total();
+        }
+        long wholePages = (window / paginationParam.getPerPage()) * paginationParam.getPerPage();
+        return Math.min(response.total(), wholePages);
     }
 }
