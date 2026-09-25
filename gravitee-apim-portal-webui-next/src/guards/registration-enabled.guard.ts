@@ -13,10 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Enabled } from './enabled';
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
 
-export class ConfigurationPortal {
-  apikeyHeader?: string;
-  kafkaSaslMechanisms?: string[];
-  userCreation?: Enabled;
-}
+import { ConfigService } from '../services/config.service';
+
+export const registrationEnabledGuard: CanActivateFn = (_r, _s) => {
+  if (inject(ConfigService).configuration?.portal?.userCreation?.enabled) {
+    return true;
+  }
+
+  inject(Router).navigate(['log-in']);
+  return false;
+};
