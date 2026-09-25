@@ -363,6 +363,28 @@ public class ElasticsearchLogRepositoryTest extends AbstractElasticsearchReposit
         assertThat(responseUpper).isNotNull();
     }
 
+    // The console escapes Lucene reserved characters with a double backslash (e.g. "\\:" or "\\\"")
+    // so that a single backslash survives the JSON embedding of the query_string.
+    @Test
+    public void testTabular_bodyFilterWithEscapedQuotes() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("body:*john@yopmail.com\\\\\"*").page(1).size(10).build()
+        );
+        assertThat(response.getSize()).isOne();
+        assertThat(response.getLogs()).hasSize(1);
+    }
+
+    @Test
+    public void testTabular_bodyFilterWithEscapedColon() throws Exception {
+        TabularResponse response = logRepository.query(
+            queryContext,
+            tabular().timeRange(lastDays(60), hours(1)).query("body:*\\\\:*").page(1).size(10).build()
+        );
+        assertThat(response.getSize()).isEqualTo(7);
+        assertThat(response.getLogs()).hasSize(7);
+    }
+
     @Test
     public void testTabular_complexQuery_multipleConditions() throws Exception {
         TabularResponse response = logRepository.query(

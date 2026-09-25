@@ -24,7 +24,7 @@
         <#if query.query()?has_content>
         {
           "query_string": {
-            "query": "${query.query().filter()}"
+            "query": "${filter}"
           }
         },
         </#if>
