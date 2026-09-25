@@ -26,8 +26,10 @@ import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import jakarta.inject.Inject;
@@ -43,6 +45,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 
 class ApisResourceTest extends AbstractResourceTest {
 
@@ -185,6 +188,32 @@ class ApisResourceTest extends AbstractResourceTest {
             ) {
                 assertThat(response.getStatus()).isEqualTo(400);
             }
+        }
+
+        @Test
+        void should_import_listener_tracing_and_failover_settings() {
+            expectEntity("api-with-listener-tracing-and-failover-settings.json");
+
+            var input = ArgumentCaptor.forClass(ImportApiCRDUseCase.Input.class);
+            verify(importApiCRDUseCase).execute(input.capture());
+            var spec = input.getValue().spec();
+            var listener = (HttpListener) spec.getListeners().getFirst();
+            var redaction = spec.getAnalytics().getTracing().getRedaction();
+            var rule = redaction.getRules().getFirst();
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(listener.getPathMappings()).containsExactly("/products/:productId");
+                soft.assertThat(listener.getCors().isAllowPrivateNetwork()).isTrue();
+                soft.assertThat(listener.getRequestValidation().isRejectNullByte()).isTrue();
+                soft.assertThat(redaction.getDefaultReplacement()).isEqualTo("[MASKED]");
+                soft.assertThat(rule.getAttributeNamePattern()).isEqualTo("http.request.header.authorization");
+                soft.assertThat(rule.getValuePattern()).isEqualTo("^Bearer ");
+                soft.assertThat(rule.getMaskingStrategy().getType()).isEqualTo(MaskingType.PARTIAL);
+                soft.assertThat(rule.getMaskingStrategy().getReplacement()).isEqualTo("#");
+                soft.assertThat(rule.getMaskingStrategy().getPrefixLength()).isEqualTo(7);
+                soft.assertThat(rule.getMaskingStrategy().getSuffixLength()).isEqualTo(2);
+                soft.assertThat(spec.getFailover().getFailureCondition()).isEqualTo("{#response.status >= 500}");
+                soft.assertThat(spec.getFailover().isForceNextEndpointOnFailure()).isTrue();
+            });
         }
 
         @Test
