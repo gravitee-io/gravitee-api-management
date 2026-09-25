@@ -19,6 +19,7 @@ import io.gravitee.gateway.reactive.api.ExecutionWarn;
 import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.reporter.api.v4.metric.Diagnostic;
 import io.gravitee.reporter.api.v4.metric.Metrics;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.springframework.core.NestedExceptionUtils;
 
@@ -125,12 +126,19 @@ public final class UnexpectedErrorReporter {
         ctx.response().reason(reasonPhrase);
     }
 
-    /** How long the request had been running, so a recurring duration (a shutdown countdown) stands out. */
+    /**
+     * How long the request had been running, so a recurring duration (a shutdown countdown) stands out. Measured from
+     * the monotonic origin taken when the request arrived — the whole point of reading a duration here is to compare
+     * it against a configured timeout, which a wall clock adjusted mid-request would misreport.
+     */
     private static long elapsedMillis(final Metrics metrics) {
-        if (metrics == null || metrics.timestamp() == null) {
+        if (metrics == null) {
             return -1L;
         }
-        return System.currentTimeMillis() - metrics.timestamp().toEpochMilli();
+        if (metrics.getRequestStartNs() > 0) {
+            return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - metrics.getRequestStartNs());
+        }
+        return metrics.timestamp() != null ? System.currentTimeMillis() - metrics.timestamp().toEpochMilli() : -1L;
     }
 
     /**
