@@ -30,6 +30,7 @@ import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.base.BaseExecutionContext;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.HttpInvoker;
+import io.gravitee.gateway.reactive.core.context.HttpRequestInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.reactor.ApiReactor;
@@ -126,12 +127,27 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
             upstream.timeout(
                 Math.max(
                     requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
-                    requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
+                    requestTimeoutConfiguration.getRequestTimeout() - elapsedMillis(ctx)
                 ),
                 TimeUnit.MILLISECONDS,
                 onTimeout(ctx)
             )
         );
+    }
+
+    /**
+     * How long this request has been running, measured from the monotonic origin taken when it arrived. Not from the
+     * wall clock: a clock adjustment mid-request would stretch or shrink the remaining budget, and the timeout would
+     * fire early or late for reasons that have nothing to do with the request.
+     * <p>
+     * Falls back to the wall clock when no monotonic origin is available — a request that did not come through the
+     * HTTP layer.
+     */
+    static long elapsedMillis(final MutableExecutionContext ctx) {
+        final long timestampNs = ctx.request() instanceof HttpRequestInternal request ? request.timestampNs() : -1;
+        return timestampNs > 0
+            ? TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - timestampNs)
+            : System.currentTimeMillis() - ctx.request().timestamp();
     }
 
     abstract void stopNow() throws Exception;
