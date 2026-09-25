@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
-import { isEqual, mapValues } from 'lodash';
+import { isEqual } from 'lodash';
 import { BehaviorSubject, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, shareReplay, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 
@@ -27,6 +27,7 @@ import { EnvironmentService } from '../../../services-ngx/environment.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { endOfDay } from '../../../util/date.util';
+import { toAuditTargets } from '../../../entities/audit/auditTargets';
 
 interface AuditDataTable {
   id: string;
@@ -189,7 +190,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
           referenceType: audit.referenceType,
           reference: (auditsPage.metadata[`${audit.referenceType}:${audit.referenceId}:name`] as string) ?? audit.referenceId,
           event: audit.event,
-          targets: mapValues(audit.properties, (v, k) => auditsPage.metadata[k + ':' + v + ':name'] as string),
+          targets: toAuditTargets(audit.properties, auditsPage.metadata),
           patch: JSON.parse(audit.patch),
           displayPatch: false,
         }));
