@@ -634,6 +634,84 @@ public class DictionaryServiceImpl_UpdateTest {
         verify(dictionaryRepository, never()).update(any());
     }
 
+    @Test
+    public void should_keep_the_stored_ciphertext_when_an_encryptable_resubmission_decrypts_to_the_same_value()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.decrypt("cipher")).thenReturn("plaintext");
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "plaintext"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build())
+        );
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+        verify(dataEncryptor, never()).encrypt(any());
+    }
+
+    @Test
+    public void should_keep_the_stored_ciphertext_when_an_unchanged_plaintext_is_resubmitted_without_options()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.decrypt("cipher")).thenReturn("plaintext");
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "plaintext"), null);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+        verify(dataEncryptor, never()).encrypt(any());
+    }
+
+    @Test
+    public void should_encrypt_again_on_update_when_the_stored_ciphertext_cannot_be_decrypted()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("undecipherable", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.decrypt("undecipherable")).thenThrow(new GeneralSecurityException("wrong key"));
+        when(dataEncryptor.encrypt("plaintext")).thenReturn("fresh-cipher");
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "plaintext"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build())
+        );
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("fresh-cipher")
+            )
+        );
+    }
+
+    @Test
+    public void should_keep_a_resent_ciphertext_verbatim_when_no_options_are_sent() throws TechnicalException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("cipher", true));
+        given_stored_dictionary(stored);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "cipher"), null);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
+        );
+        verifyNoInteractions(dataEncryptor);
+    }
+
     private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
         given_stored_dictionary(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);
     }

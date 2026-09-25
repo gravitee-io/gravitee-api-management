@@ -603,9 +603,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return new DictionaryProperty(property.getValue(), true);
         }
         if (storedEncrypted && Objects.equals(stored.value(), property.getValue())) {
-            return stored; // resubmitted unchanged, e.g. an automation reconcile.
+            return stored; // the client resent the stored ciphertext verbatim
         }
-        return new DictionaryProperty(encryptOrFail(dictionaryId, property.getKey(), property.getValue()), true);
+        return encryptUnlessStoredDecryptsTo(dictionaryId, property.getKey(), property.getValue(), stored);
     }
 
     private static void rejectContradictoryOptions(String key, DictionaryPropertyOptions options) {
@@ -669,20 +669,24 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             );
     }
 
-    /**
-     * An encrypted key keeps that classification across a refresh, which is what makes it sticky. Its
-     * fresh value is encrypted again unless the stored ciphertext still decrypts to exactly what the
-     * provider returned — reusing it then is what lets an unchanged refresh stay a no-op. Ciphertext
-     * that no longer decrypts, from a rotated secret or a corrupt value, counts as changed.
-     */
+    /** An encrypted key keeps that classification across a refresh, which is what makes it sticky. */
     private DictionaryProperty toFetchedProperty(String dictionaryId, Map.Entry<String, String> fetched, DictionaryProperty stored) {
         if (stored == null || !stored.encrypted()) {
             return new DictionaryProperty(fetched.getValue(), false);
         }
-        if (Objects.equals(decryptStoredValue(dictionaryId, fetched.getKey(), stored.value()), fetched.getValue())) {
+        return encryptUnlessStoredDecryptsTo(dictionaryId, fetched.getKey(), fetched.getValue(), stored);
+    }
+
+    /**
+     * Reuses the stored ciphertext when it still decrypts to {@code plaintext}, so resubmitting or
+     * re-fetching an unchanged secret is a no-op whatever the cipher mode. Ciphertext that no longer
+     * decrypts, from a rotated secret or a corrupt value, counts as changed.
+     */
+    private DictionaryProperty encryptUnlessStoredDecryptsTo(String dictionaryId, String key, String plaintext, DictionaryProperty stored) {
+        if (stored != null && stored.encrypted() && Objects.equals(decryptStoredValue(dictionaryId, key, stored.value()), plaintext)) {
             return stored;
         }
-        return new DictionaryProperty(encryptOrFail(dictionaryId, fetched.getKey(), fetched.getValue()), true);
+        return new DictionaryProperty(encryptOrFail(dictionaryId, key, plaintext), true);
     }
 
     private String decryptStoredValue(String dictionaryId, String key, String ciphertext) {
