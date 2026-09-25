@@ -25,6 +25,7 @@ import io.gravitee.rest.api.model.NewGroupEntity;
 import io.gravitee.rest.api.model.UpdateGroupEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
@@ -51,6 +52,18 @@ public interface GroupService {
     Set<GroupEntity> findByUser(String username);
     Set<GroupEntity> findByUserAndEnvironment(String username, String environmentId);
     List<ApiEntity> getApis(final String environmentId, String groupId);
+
+    /**
+     * Refuses if the group still holds {@code PRIMARY_OWNER} on at least one API it owns (not merely
+     * ones it is assigned to). Only {@link RoleScope#API} is supported.
+     *
+     * Membership rows are not environment-indexed. Groups themselves belong to one environment, so
+     * this is intentionally not filtered by {@code executionContext.environmentId}: the same
+     * fail-closed check used when deleting the group. Filtering here would let a group be deleted
+     * (or its PRIMARY_OWNER demoted) while it still owned a reference recorded against another
+     * environment.
+     */
+    void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope);
     List<ApplicationEntity> getApplications(String groupId);
     int getNumberOfMembers(ExecutionContext executionContext, String groupId);
     boolean isUserAuthorizedToAccessApiData(GenericApiEntity api, List<String> excludedGroups, String username);
