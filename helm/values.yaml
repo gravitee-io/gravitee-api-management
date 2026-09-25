@@ -1610,6 +1610,10 @@ gateway:
 #      # When protocol is tcp, the probe only checks the kafka port is listening by attempting a basic TCP connection (default).
 #      # When protocol is kafka, the probe uses a kafka client library to connect to one of the kafka API deployed on this gateway instance.
 #      protocol: tcp
+#      # Whether the tcp probe connects to the kafka port over TLS (default is true). It only affects the
+#      # health probe, not the Kafka server: in `host` routing mode the server always requires TLS and SNI.
+#      # Replaces the deprecated `gateway.kafka.secured`, which is still honoured when this one is unset.
+#      secured: true
 #      # When using kafka protocol, you must provide the kafka properties with the connection info.
 #      properties:
 #        bootstrap.servers: bootstrap-myapi.mycompany.org:9092
@@ -1631,8 +1635,7 @@ gateway:
 #    tcpKeepAlive: true
 #    instances: 0
 #    requestTimeout: 35_000 # default is 35_000 ms
-#    # Forced to `true` when routingMode is `host`
-#    secured: true
+#    # `secured` is deprecated: use `probe.secured` above. `probe.secured` wins when both are set.
 #    ssl:
 #      # Forced to `true` when routingMode is `host`
 #      sni: true
