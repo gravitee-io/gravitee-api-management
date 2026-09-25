@@ -104,6 +104,11 @@
 			<groupId>io.gravitee.integration</groupId>
 			<artifactId>gravitee-integration-api</artifactId>
 		</dependency>
+		<!-- Not used by this module: shipped in the rest-api lib/ for the AIM module, which declares it as provided -->
+		<dependency>
+			<groupId>io.gravitee.agentprovider</groupId>
+			<artifactId>gravitee-agent-provider-api</artifactId>
+		</dependency>
     <dependency>
         <groupId>io.gravitee.scoring</groupId>
         <artifactId>gravitee-scoring-api</artifactId>
@@ -151,6 +156,11 @@
 			<groupId>io.gravitee.apim.repository</groupId>
 			<artifactId>gravitee-apim-repository-api</artifactId>
 		</dependency>
+
+        <dependency>
+            <groupId>io.gravitee.plugin</groupId>
+            <artifactId>gravitee-plugin-agentprovider</artifactId>
+        </dependency>
 
 		<dependency>
 			<groupId>io.gravitee.plugin</groupId>
