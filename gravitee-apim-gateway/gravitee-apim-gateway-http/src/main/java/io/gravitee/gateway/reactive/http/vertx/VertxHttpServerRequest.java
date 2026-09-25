@@ -60,6 +60,9 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.nativeRequest = nativeRequest;
         this.originalHost = hostWithPort(this.nativeRequest.authority());
         this.timestamp = options.timestamp() != null ? options.timestamp() : System.currentTimeMillis();
+        if (options.timestampNs() != null) {
+            this.timestampNs = options.timestampNs();
+        }
         this.path = options.path();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(nativeRequest.headers());
@@ -293,15 +296,19 @@ public class VertxHttpServerRequest extends AbstractRequest {
      * @param timestamp when the gateway started handling this request, in milliseconds since the
      *     epoch, taken before any work is done on it. {@code null} stamps the clock at construction,
      *     which excludes everything the dispatcher did beforehand from every latency it reports.
+     * @param timestampNs the same instant on the monotonic clock, and the origin every reported
+     *     duration is measured from. Travels with {@code timestamp} rather than being derived from
+     *     it: the two clocks share no origin. {@code null} keeps the construction-time default,
+     *     with the same blind spot as above.
      */
     @Builder
-    public record VertxHttpServerRequestOptions(String clientAuthHeaderName, String path, Long timestamp) {
+    public record VertxHttpServerRequestOptions(String clientAuthHeaderName, String path, Long timestamp, Long timestampNs) {
         public VertxHttpServerRequestOptions() {
-            this(null, null, null);
+            this(null, null, null, null);
         }
 
         public VertxHttpServerRequestOptions(String clientAuthHeaderName) {
-            this(clientAuthHeaderName, null, null);
+            this(clientAuthHeaderName, null, null, null);
         }
     }
 }
