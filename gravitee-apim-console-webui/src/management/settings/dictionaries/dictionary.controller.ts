@@ -185,29 +185,21 @@ class DictionaryController {
   deploy() {
     return this.DictionaryService.deploy(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deployed');
-      const stillEditing = { ...this.editedGeneral(), ...this.editedProperties() };
-      this.initialDictionary = cloneDeep(response.data);
-      this.dictionary = { ...this.initialDictionary, ...stillEditing };
-      this.dictProperties = this.computeProperties();
-      this.query.total = Object.keys(this.dictionary.properties || {}).length;
+      this.applyServerState(response);
     });
   }
 
   start() {
-    this.DictionaryService.start(this.dictionary).then(response => {
+    return this.DictionaryService.start(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been started');
-      this.dictionary = response.data;
-      this.dictProperties = this.computeProperties();
-      this.propertiesDirty = false;
+      this.applyServerState(response);
     });
   }
 
   stop() {
-    this.DictionaryService.stop(this.dictionary).then(response => {
+    return this.DictionaryService.stop(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been stopped');
-      this.dictionary = response.data;
-      this.dictProperties = this.computeProperties();
-      this.propertiesDirty = false;
+      this.applyServerState(response);
     });
   }
 
@@ -300,6 +292,18 @@ class DictionaryController {
       this.propertiesDirty = false;
       this.NotificationService.show('Properties has been updated');
     });
+  }
+
+  /**
+   * Deploy, start and stop save neither form, so the server copy is taken for the snapshot while both
+   * sections keep whatever is still being edited.
+   */
+  private applyServerState(response) {
+    const stillEditing = { ...this.editedGeneral(), ...this.editedProperties() };
+    this.initialDictionary = cloneDeep(response.data);
+    this.dictionary = { ...this.initialDictionary, ...stillEditing };
+    this.dictProperties = this.computeProperties();
+    this.query.total = Object.keys(this.dictionary.properties || {}).length;
   }
 
   private editedGeneral() {
