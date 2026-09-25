@@ -133,4 +133,38 @@ class LuceneEscapeTest {
 
         assertThat(result).isEqualTo(json);
     }
+
+    // --- escapeUnescapedQuotes ---
+
+    @Test
+    void should_escape_quote_preceded_by_an_even_number_of_backslashes() {
+        String result = ElasticLogRepository.escapeUnescapedQuotes("body:*\\\\\"reference\\\\\"*");
+
+        assertThat(result).isEqualTo("body:*\\\\\\\"reference\\\\\\\"*");
+    }
+
+    @Test
+    void should_escape_bare_quote() {
+        String result = ElasticLogRepository.escapeUnescapedQuotes("uri:\"/api\"");
+
+        assertThat(result).isEqualTo("uri:\\\"/api\\\"");
+    }
+
+    @Test
+    void should_keep_quote_already_escaped_for_json() {
+        String filter = "uri:\\\"/api\\\"";
+
+        String result = ElasticLogRepository.escapeUnescapedQuotes(filter);
+
+        assertThat(result).isEqualTo(filter);
+    }
+
+    @Test
+    void should_not_alter_filter_without_quote() {
+        String filter = "body:*reference\\\\:123456*";
+
+        String result = ElasticLogRepository.escapeUnescapedQuotes(filter);
+
+        assertThat(result).isSameAs(filter);
+    }
 }
