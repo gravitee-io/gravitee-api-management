@@ -46,6 +46,7 @@ import io.gravitee.gateway.env.RequestPathConfiguration;
 import io.gravitee.gateway.env.RequestPathHandling;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.opentelemetry.TracingContext;
+import io.gravitee.gateway.reactive.core.context.HttpExecutionContextInternal;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.http.vertx.ClientCloseClassifier;
@@ -87,6 +88,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -651,6 +653,26 @@ class DefaultHttpRequestDispatcherTest {
 
             verify(notFoundProcessorChainFactory).processorChain();
             verify(processorChain).execute(any(), any());
+        }
+
+        @Test
+        void should_take_the_timing_origin_before_the_acceptor_is_resolved() {
+            ProcessorChain processorChain = spy(new ProcessorChain("id", List.of()));
+            when(notFoundProcessorChainFactory.processorChain()).thenReturn(processorChain);
+            final AtomicLong resolvedAtNs = new AtomicLong();
+            when(httpAcceptorResolver.resolve(HOST, PATH, SERVER_ID)).thenAnswer(invocation -> {
+                resolvedAtNs.set(System.nanoTime());
+                return null;
+            });
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertResult();
+
+            final ArgumentCaptor<HttpExecutionContextInternal> ctx = ArgumentCaptor.forClass(HttpExecutionContextInternal.class);
+            verify(processorChain).execute(ctx.capture(), any());
+            // The origin every duration is measured from has to predate the work the dispatcher does — the path scan,
+            // the normalization, this very lookup. Taken in the request wrapper's constructor it would come after, and
+            // every reported latency would silently exclude it.
+            assertThat(ctx.getValue().request().timestampNs()).isLessThan(resolvedAtNs.get());
         }
 
         @Test

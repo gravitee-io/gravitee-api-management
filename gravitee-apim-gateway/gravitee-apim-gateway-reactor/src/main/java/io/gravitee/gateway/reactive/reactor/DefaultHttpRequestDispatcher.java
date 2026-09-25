@@ -158,6 +158,9 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // the resolution, the acceptor lookup — falls inside the window every latency metric covers.
         // Stamping it in the wrapper's constructor would start the clock once the work is done.
         final long receivedAt = System.currentTimeMillis();
+        // Same instant, monotonic clock. Every duration is derived from this one, so it has to be taken here too:
+        // left to its default it would be stamped when the request wrapper is built, once the work below is done.
+        final long receivedAtNs = System.nanoTime();
         //Keep same behavior as in Vertx4 when host was also returning the port.
         //The authority is null when the request has no Host header (nor :authority pseudo-header), as Vertx4 host() was.
         final HostAndPort authority = httpServerRequest.authority();
@@ -184,7 +187,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 // deployed. Refusing first makes every dot-segment path answer 400 alike, whether
                 // or not it targets anything. The visible cost is that a traversal aimed at an
                 // unknown context path, a 404 under RAW, is a 400 here.
-                return handleRejectedPath(httpServerRequest, serverId, receivedAt);
+                return handleRejectedPath(httpServerRequest, serverId, receivedAt, receivedAtNs);
             }
             normalizedPath = RequestPathNormalizer.normalize(rawPath);
             // No normalized form at all: the path carries a malformed percent sequence. Inside this
@@ -192,7 +195,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
             // API declares and an HTTP/2 request without a :path pseudo-header actually produces —
             // must keep reaching the acceptor exactly as it did before this setting existed.
             if (normalizedPath == null) {
-                return handleRejectedPath(httpServerRequest, serverId, receivedAt);
+                return handleRejectedPath(httpServerRequest, serverId, receivedAt, receivedAtNs);
             }
             // Both forms, deliberately: the point of this line is to answer "what did the client
             // actually send" once the gateway has started deciding on something else.
@@ -218,7 +221,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 httpServerRequest,
                 serverId,
                 pathWasNormalized ? normalizedPath : null,
-                receivedAt
+                receivedAt,
+                receivedAtNs
             );
             mutableCtx.tracer(
                 new io.gravitee.gateway.reactive.api.tracing.Tracer(vertxContext, gatewayTracingContext.opentelemetryTracer())
@@ -268,7 +272,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 httpServerRequest,
                 serverId,
                 pathWasNormalized ? normalizedPath : null,
-                receivedAt
+                receivedAt,
+                receivedAtNs
             );
             mutableCtx.request().contextPath(httpAcceptor.path());
             markTracingRoute(vertxContext, httpAcceptor.path());
@@ -388,7 +393,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         final HttpServerRequest httpServerRequest,
         String serverId,
         final String path,
-        final long receivedAt
+        final long receivedAt,
+        final long receivedAtNs
     ) {
         VertxHttpServerRequest request = new VertxHttpServerRequest(
             httpServerRequest,
@@ -397,6 +403,7 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                 .clientAuthHeaderName(requestClientAuthConfiguration.getHeaderName())
                 .path(path)
                 .timestamp(receivedAt)
+                .timestampNs(receivedAtNs)
                 .build()
         );
 
@@ -432,10 +439,15 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
      * gained the pre-processor chain and the whole tracing block in a single review round, and the
      * copy silently kept neither.
      */
-    private Completable handleRejectedPath(final HttpServerRequest httpServerRequest, final String serverId, final long receivedAt) {
+    private Completable handleRejectedPath(
+        final HttpServerRequest httpServerRequest,
+        final String serverId,
+        final long receivedAt,
+        final long receivedAtNs
+    ) {
         // Nothing is rewritten here, so the path stays the one received — which is what the report
         // has to carry for an operator to see what was actually sent.
-        final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt);
+        final MutableExecutionContext ctx = prepareExecutionContext(httpServerRequest, serverId, null, receivedAt, receivedAtNs);
         ctx.request().contextPath("/");
 
         final Context vertxContext = VertxContext.createNewDuplicatedContext(vertx.getOrCreateContext());
