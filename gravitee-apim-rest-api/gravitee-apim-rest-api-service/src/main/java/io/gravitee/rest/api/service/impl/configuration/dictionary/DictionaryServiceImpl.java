@@ -603,7 +603,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return new DictionaryProperty(property.getValue(), true);
         }
         if (storedEncrypted && Objects.equals(stored.value(), property.getValue())) {
-            return stored; // the client resent the stored ciphertext verbatim
+            // must precede the decrypt-and-compare below, or a raw ciphertext resend is encrypted twice
+            return stored;
         }
         return encryptUnlessStoredDecryptsTo(dictionaryId, property.getKey(), property.getValue(), stored);
     }
