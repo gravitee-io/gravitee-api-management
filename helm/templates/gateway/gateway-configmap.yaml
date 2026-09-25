@@ -290,7 +290,11 @@ data:
       {{- if hasKey .Values.gateway.kafka "requestTimeout" }}
       requestTimeout: {{ .Values.gateway.kafka.requestTimeout }}
       {{- end}}
-      {{- if hasKey .Values.gateway.kafka "secured" }}
+      {{- /* `secured` only drives the kafka-server health probe; `gateway.kafka.secured` is its deprecated name */}}
+      {{- $kafkaProbe := .Values.gateway.kafka.probe | default dict }}
+      {{- if hasKey $kafkaProbe "secured" }}
+      secured: {{ .Values.gateway.kafka.probe.secured }}
+      {{- else if hasKey .Values.gateway.kafka "secured" }}
       secured: {{ .Values.gateway.kafka.secured }}
       {{- end}}
       {{- if .Values.gateway.kafka.ssl }}
@@ -358,7 +362,7 @@ data:
         {{- end}}
       {{- end }}
 
-      {{- if hasKey .Values.gateway.kafka "probe" }}
+      {{- if or (hasKey $kafkaProbe "protocol") (hasKey $kafkaProbe "properties") }}
       probe:
         {{- if hasKey .Values.gateway.kafka.probe "protocol" }}
         protocol: {{ .Values.gateway.kafka.probe.protocol }}
