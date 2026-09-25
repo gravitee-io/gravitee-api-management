@@ -71,7 +71,8 @@ public class DatabaseHydrator {
                     Map.entry("numberOfShards", 5),
                     Map.entry("numberOfReplicas", 1),
                     Map.entry("refreshInterval", "1s"),
-                    Map.entry("indexName", indexName)
+                    Map.entry("indexName", indexName),
+                    Map.entry("indexLifecyclePolicyPropertyName", "index.lifecycle.name")
                 );
                 String filename;
                 if (this.anatlyticsDatabase.getDatabaseType() == AnatlyticsDatabase.DatabaseType.ELASTICSEARCH) {
