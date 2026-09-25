@@ -702,6 +702,73 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
+    public void should_keep_previous_additional_client_metadata_when_registration_service_fails() throws TechnicalException {
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(existingApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(existingApplication.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(updateApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(updateApplication.getDescription()).thenReturn("My description");
+        when(existingApplication.getType()).thenReturn(ApplicationType.BROWSER);
+        when(existingApplication.getMetadata()).thenReturn(
+            Map.of(
+                METADATA_REGISTRATION_PAYLOAD,
+                "{}",
+                METADATA_CLIENT_ID,
+                "my-previous-client-id",
+                "additional_client_metadata",
+                "{\"software_id\":\"template-app-id\"}"
+            )
+        );
+        when(applicationRepository.update(any())).thenReturn(existingApplication);
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), any())).thenReturn(mock(RoleEntity.class));
+
+        MembershipEntity po = getPrimaryOwner();
+        when(membershipService.getMembershipsByReferencesAndRole(any(), any(), any())).thenReturn(Collections.singleton(po));
+
+        // client registration is enabled
+        when(
+            parameterService.findAsBoolean(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Key.APPLICATION_REGISTRATION_ENABLED),
+                any(),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(true);
+
+        // oauth app settings contains everything required
+        ApplicationSettings settings = new ApplicationSettings();
+        OAuthClientSettings oAuthClientSettings = new OAuthClientSettings();
+        oAuthClientSettings.setGrantTypes(List.of("application-grant-type"));
+        oAuthClientSettings.setApplicationType(ApplicationType.BROWSER.name());
+        settings.setOauth(oAuthClientSettings);
+        when(updateApplication.getSettings()).thenReturn(settings);
+
+        ApplicationTypeEntity applicationTypeEntity = new ApplicationTypeEntity();
+        ApplicationGrantTypeEntity applicationGrantTypeEntity = new ApplicationGrantTypeEntity();
+        applicationGrantTypeEntity.setType("application-grant-type");
+        applicationGrantTypeEntity.setResponse_types(List.of("response-type"));
+        applicationTypeEntity.setAllowed_grant_types(List.of(applicationGrantTypeEntity));
+        applicationTypeEntity.setRequires_redirect_uris(false);
+        ConsoleConfigEntity config = getConsoleConfigEntity(false);
+
+        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+        when(applicationTypeService.getApplicationType(ApplicationType.BROWSER.name())).thenReturn(applicationTypeEntity);
+
+        // DCR throws exception
+        when(clientRegistrationService.update(any(), any(), same(updateApplication))).thenThrow(RuntimeException.class);
+        when(applicationConverter.toApplication(any(UpdateApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
+
+        // the additional client metadata must survive a failed DCR update too
+        verify(applicationRepository).update(
+            argThat(application ->
+                "{\"software_id\":\"template-app-id\"}".equals(application.getMetadata().get("additional_client_metadata"))
+            )
+        );
+    }
+
+    @Test
     public void should_update_client_id_and_application_name_of_subscriptions() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
