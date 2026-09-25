@@ -2066,6 +2066,11 @@ components:
         runPolicies:
           description: Allow the Gateway to run policies during in pre-flight request
           type: boolean
+        allowPrivateNetwork:
+          description: |
+            `Access-Control-Allow-Private-Network`: Allow private network access (PNA) requests during CORS preflight.
+          type: boolean
+          default: false
     Dlq:
       description: Dead Letter Queue to process undelivered messages.
       type: object
@@ -2273,8 +2278,25 @@ components:
               minItems: 1
               items:
                 $ref: "#/components/schemas/PathV4"
+            pathMappings:
+              description: Path patterns used to group analytics by API path (e.g. `/products/:productId`).
+              type: array
+              items:
+                type: string
+              examples:
+                - ["/products/:productId"]
             cors:
               $ref: "#/components/schemas/Cors"
+            requestValidation:
+              $ref: "#/components/schemas/RequestValidation"
+    RequestValidation:
+      description: Validation the Gateway applies to incoming requests before running flows.
+      type: object
+      properties:
+        rejectNullByte:
+          description: Reject requests whose path or query contains a null byte.
+          type: boolean
+          default: false
     HttpMethod:
       type: string
       description: The method of the selector
@@ -2455,6 +2477,68 @@ components:
         verbose:
           type: boolean
           description: Enable technical tracing to get more details on request execution. Be careful this settings can generate more noise and can impact performance.
+        redaction:
+          $ref: "#/components/schemas/TracingRedactionConfig"
+    TracingRedactionConfig:
+      description: Masking rules applied to span attributes before traces are exported.
+      type: object
+      properties:
+        defaultReplacement:
+          type: string
+          description: Fallback replacement text for FULL masking rules with no per-rule replacement. Defaults to [REDACTED].
+          examples:
+            - "[REDACTED]"
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/TracingRedactionRule"
+    TracingRedactionRule:
+      type: object
+      required:
+        - attributeNamePattern
+      properties:
+        attributeNamePattern:
+          type: string
+          description: |
+            Glob pattern, short name (no dots — matches anywhere in key hierarchy),
+            or regex:-prefixed Java regex matching the span attribute key.
+          examples:
+            - http.request.header.authorization
+        maskingStrategy:
+          $ref: "#/components/schemas/TracingMaskingStrategy"
+        valuePattern:
+          type: string
+          description: Optional Java regex (partial match). Rule only fires when the attribute value matches.
+          examples:
+            - "^Bearer "
+    TracingMaskingStrategy:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [FULL, PARTIAL]
+          description: FULL replaces the entire value; PARTIAL keeps a visible prefix and/or suffix.
+          examples:
+            - FULL
+        replacement:
+          type: string
+          description: |
+            For FULL: replacement text (default [REDACTED]).
+            For PARTIAL: single mask character (default *).
+          examples:
+            - "[REDACTED]"
+        prefixLength:
+          type: integer
+          description: PARTIAL only — number of leading characters to keep visible.
+          default: 0
+          minimum: 0
+        suffixLength:
+          type: integer
+          description: PARTIAL only — number of trailing characters to keep visible.
+          default: 0
+          minimum: 0
     Operator:
       type: string
       description: Operator function to match a URI path
