@@ -223,6 +223,29 @@ class NativeApiLogsResourceTest extends ApiResourceTest {
     }
 
     @Test
+    void getFilteredLogs_rounds_the_bound_down_to_a_whole_page() {
+        // A page size that does not divide the window leaves a partial last page: it starts inside the window
+        // and ends past it, which the store refuses. At perPage=30 the bound is 9 990, not 10 000 — otherwise
+        // `last` is page 334, whose from=9990 plus 30 reaches past the window and answers 400.
+        givenPermission(RolePermission.API_NATIVE_LOG, true);
+        when(nativeApiLogCrudService.searchLogs(any(ExecutionContext.class), eq(API), any(), eq(1), eq(30))).thenReturn(
+            new SearchLogsResponse<>(50_000L, filteredLogs(), 10_000L)
+        );
+
+        Response response = rootTarget()
+            .queryParam("from", FROM_MILLIS)
+            .queryParam("to", TO_MILLIS)
+            .queryParam("perPage", 30)
+            .request()
+            .get();
+
+        assertThat(response).hasStatus(OK_200);
+        var body = response.readEntity(NativeApiLogsResponse.class);
+        assertThat(body.getLinks().getLast()).as("the last page must fit entirely inside the window").contains("page=333");
+        assertThat(body.getReachableCount()).isEqualTo(9_990L);
+    }
+
+    @Test
     void getFilteredLogs_links_to_every_page_when_the_store_sets_no_window() {
         // The no-op repository, or any store that pages without a window, reports no bound at all.
         givenPermission(RolePermission.API_NATIVE_LOG, true);
