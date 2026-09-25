@@ -60,6 +60,7 @@ export class LogInComponent {
   });
   error = signal(200);
   isLocalLoginEnabled = inject(ConfigService).configuration.authentication?.localLogin?.enabled ?? false;
+  isRegistrationEnabled = inject(ConfigService).configuration.portal?.userCreation?.enabled ?? false;
   identityProviders$ = inject(IdentityProviderService)
     .getPortalIdentityProviders()
     .pipe(map(({ data }) => data ?? []));
