@@ -155,6 +155,20 @@ describe('PortalAuthenticationComponent', () => {
       expect(await (await harness.getLocalLoginToggle()).isDisabled()).toBe(true);
     });
 
+    it('should display the forced login form as a pending change when saving it fails', async () => {
+      await init();
+      const settings = settingsWith({ forceLogin: false, localLogin: false });
+      await load([google], [], settings);
+
+      expectGetSettings(settings);
+      httpTestingController
+        .expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/settings` })
+        .flush({ message: 'Server error' }, { status: 500, statusText: 'Internal Server Error' });
+
+      expect(await (await harness.getLocalLoginToggle()).isChecked()).toBe(true);
+      expect(fixture.componentInstance.hasUnsavedChanges()).toBe(true);
+    });
+
     it('should force the login form when no identity provider is activated', async () => {
       await init();
       const settings = settingsWith({ forceLogin: false, localLogin: false });

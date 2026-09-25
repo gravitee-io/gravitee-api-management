@@ -164,7 +164,8 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
         this.canUpdateSettings &&
         !this.isLocalLoginReadonly()
       ) {
-        this.saveSettings({ ...this.authenticationForm.getRawValue(), localLogin: true });
+        this.authenticationForm.controls.localLogin.setValue(true);
+        this.saveSettings(this.authenticationForm.getRawValue());
       }
     });
   }
