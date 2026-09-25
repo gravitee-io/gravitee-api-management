@@ -276,6 +276,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             return groups;
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
         }
     }
@@ -333,6 +334,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
         }
     }
@@ -373,6 +375,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             log.debug("findByUsername : {} - DONE", name);
             return groupEntities;
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find groups by name", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups by name", ex);
         }
     }
@@ -404,6 +407,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             log.debug("create {} - DONE", grp);
             return grp;
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to create a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to create a group", ex);
         }
     }
@@ -445,6 +449,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             return findById(executionContext, groupId);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to update a group";
+            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -531,6 +536,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             GroupEntity groupEntity = this.map(executionContext, group.get());
 
             if (groupEntity == null) {
+                log.error("An error occurs while trying to find a group {}", groupId);
                 throw new TechnicalManagementException("An error occurs while trying to find a group " + groupId);
             }
 
@@ -569,6 +575,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             return groupEntity;
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find a group", ex);
         }
     }
@@ -604,6 +611,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     break;
             }
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to associate group to all {}", associationType, ex);
             throw new TechnicalManagementException("An error occurs while trying to associate group to all " + associationType, ex);
         }
     }
@@ -636,6 +644,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups", ex);
         }
     }
@@ -658,6 +667,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             log.debug("findByEvent : {} - DONE", set);
             return set;
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find groups by event", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups by event", ex);
         }
     }
@@ -763,6 +773,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         applicationRepository.update(application);
                         applicationIds.add(application.getId());
                     } catch (TechnicalException ex) {
+                        log.error("An error occurs while trying to delete a group", ex);
                         throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                     }
                 });
@@ -796,6 +807,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             log.debug("delete {} - DONE", groupId);
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -829,6 +841,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -844,6 +857,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -870,6 +884,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -935,6 +950,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             return groupRepository.findByIds(userGroups).stream().map(this::map).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find all user groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all user groups", ex);
         }
     }
@@ -997,6 +1013,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 })
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find all application of group {}", groupId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find all application of group " + groupId, ex);
         }
     }
@@ -1186,35 +1203,55 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
     }
 
     private void verifyUserCanBeDeletedFromGroup(ExecutionContext executionContext, String groupId, String username) {
-        // Check if this group is the primary owner of any API and if the user to remove has the API primary owner role in this group
-        RoleEntity apiPORole = roleService
-            .findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
-            .orElseThrow(() -> new TechnicalManagementException("API System Role 'PRIMARY_OWNER' not found."));
-
-        Set<MembershipEntity> groupApiPrimaryOwnerMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
-            MembershipMemberType.GROUP,
+        Set<RoleEntity> userRolesInGroup = membershipService.getRoles(
+            MembershipReferenceType.GROUP,
             groupId,
-            MembershipReferenceType.API,
-            apiPORole.getId()
+            MembershipMemberType.USER,
+            username
         );
 
-        if (!groupApiPrimaryOwnerMemberships.isEmpty()) {
-            // Check if the user has the API primary owner role in this group
-            Set<RoleEntity> userRolesInGroup = membershipService.getRoles(
-                MembershipReferenceType.GROUP,
-                groupId,
-                MembershipMemberType.USER,
-                username
-            );
-
-            boolean userHasApiPrimaryOwnerRole = userRolesInGroup
-                .stream()
-                .anyMatch(role -> role.getScope() == RoleScope.API && SystemRole.PRIMARY_OWNER.name().equals(role.getName()));
-
-            if (userHasApiPrimaryOwnerRole) {
-                throw new StillPrimaryOwnerException(groupApiPrimaryOwnerMemberships.size(), ApiPrimaryOwnerMode.GROUP);
-            }
+        long ownedApiCount = countPrimaryOwnerMemberships(executionContext, groupId, RoleScope.API);
+        if (ownedApiCount > 0 && userHasPrimaryOwnerRoleForScope(userRolesInGroup, RoleScope.API)) {
+            throw new StillPrimaryOwnerException(ownedApiCount, ApiPrimaryOwnerMode.GROUP);
         }
+    }
+
+    /**
+     * Resolves the {@link SystemRole#PRIMARY_OWNER} role for the given scope. Loud-fails if the role
+     * is missing — {@code DefaultRolesUpgrader} runs at startup and creates this role, so a missing
+     * role means the boot sequence didn't complete.
+     */
+    private RoleEntity getPrimaryOwnerRoleOrThrow(ExecutionContext executionContext, RoleScope scope) {
+        return roleService
+            .findByScopeAndName(scope, SystemRole.PRIMARY_OWNER.name(), executionContext.getOrganizationId())
+            .orElseThrow(() -> new TechnicalManagementException(scope.name() + " System Role 'PRIMARY_OWNER' not found."));
+    }
+
+    @Override
+    public void assertGroupIsNotPrimaryOwner(ExecutionContext executionContext, String groupId, RoleScope scope) {
+        if (scope != RoleScope.API) {
+            throw new IllegalArgumentException("scope must be API");
+        }
+        long count = countPrimaryOwnerMemberships(executionContext, groupId, scope);
+        if (count > 0) {
+            throw new StillPrimaryOwnerException(count, ApiPrimaryOwnerMode.GROUP);
+        }
+    }
+
+    private long countPrimaryOwnerMemberships(ExecutionContext executionContext, String groupId, RoleScope scope) {
+        RoleEntity poRole = getPrimaryOwnerRoleOrThrow(executionContext, scope);
+        return membershipService
+            .getMembershipsByMemberAndReferenceAndRole(
+                MembershipMemberType.GROUP,
+                groupId,
+                MembershipReferenceType.valueOf(scope.name()),
+                poRole.getId()
+            )
+            .size();
+    }
+
+    private boolean userHasPrimaryOwnerRoleForScope(Set<RoleEntity> userRoles, RoleScope scope) {
+        return userRoles.stream().anyMatch(role -> role.getScope() == scope && SystemRole.PRIMARY_OWNER.name().equals(role.getName()));
     }
 
     @Override
@@ -1272,6 +1309,7 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             group.setApiPrimaryOwner(newApiPrimaryOwner);
             groupRepository.update(group);
         } catch (TechnicalException ex) {
+            log.error("An error occurs while trying to find or update a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find or update a group", ex);
         }
     }

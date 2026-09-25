@@ -26,8 +26,10 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
@@ -36,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -445,13 +447,10 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
             existingRoles
         );
 
-        ApiEntity api1 = new ApiEntity();
-        api1.setId("api-1");
-        api1.setName("Test API 1");
-        ApiEntity api2 = new ApiEntity();
-        api2.setId("api-2");
-        api2.setName("Test API 2");
-        when(groupService.getApis(GraviteeContext.getExecutionContext().getEnvironmentId(), GROUP_ID)).thenReturn(List.of(api1, api2));
+        // Group is still primary owner of 2 APIs (real ownership, not just assignment).
+        doThrow(new StillPrimaryOwnerException(2, ApiPrimaryOwnerMode.GROUP))
+            .when(groupService)
+            .assertGroupIsNotPrimaryOwner(GraviteeContext.getExecutionContext(), GROUP_ID, RoleScope.API);
 
         when(
             permissionService.hasPermission(
@@ -509,7 +508,86 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
             existingRoles
         );
 
-        when(groupService.getApis(GraviteeContext.getExecutionContext().getEnvironmentId(), GROUP_ID)).thenReturn(Collections.emptyList());
+        MemberEntity memberEntity = new MemberEntity();
+        memberEntity.setId(USERNAME);
+        when(membershipService.addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(
+            memberEntity
+        );
+
+        when(
+            permissionService.hasPermission(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ENVIRONMENT_GROUP),
+                eq("DEFAULT"),
+                eq(CREATE),
+                eq(UPDATE),
+                eq(DELETE)
+            )
+        ).thenReturn(true);
+
+        MemberRoleEntity newApiRole = new MemberRoleEntity();
+        newApiRole.setRoleScope(RoleScope.API);
+        newApiRole.setRoleName("USER");
+
+        GroupMembership groupMembership = new GroupMembership();
+        groupMembership.setId(USERNAME);
+        groupMembership.setRoles(Collections.singletonList(newApiRole));
+
+        final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        verify(groupService).assertGroupIsNotPrimaryOwner(GraviteeContext.getExecutionContext(), GROUP_ID, RoleScope.API);
+        verify(membershipService, times(1)).addRoleToMemberOnReference(
+            GraviteeContext.getExecutionContext(),
+            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+            new MembershipService.MembershipMember(USERNAME, null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(RoleScope.API, "USER")
+        );
+    }
+
+    @Test
+    public void shouldAllowChangingFromPrimaryOwnerToOtherRole_whenGroupIsAssignedToApisButDoesNotOwnThem() {
+        // The group is still assigned to (has access to) APIs it does not primary-own. The old guard
+        // used groupService.getApis(...) — which returns APIs the group is merely assigned to — and
+        // would have wrongly blocked this change.
+        reset(roleService, groupService, membershipService);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(mock(GroupEntity.class));
+
+        RoleEntity primaryOwnerRole = new RoleEntity();
+        primaryOwnerRole.setId("API_PRIMARY_OWNER");
+        primaryOwnerRole.setName(SystemRole.PRIMARY_OWNER.name());
+        primaryOwnerRole.setScope(RoleScope.API);
+
+        RoleEntity otherRole = new RoleEntity();
+        otherRole.setId("API_USER");
+        otherRole.setName("USER");
+        otherRole.setScope(RoleScope.API);
+
+        when(
+            roleService.findByScopeAndName(RoleScope.API, SystemRole.PRIMARY_OWNER.name(), GraviteeContext.getCurrentOrganization())
+        ).thenReturn(Optional.of(primaryOwnerRole));
+        when(roleService.findByScopeAndName(RoleScope.API, "USER", GraviteeContext.getCurrentOrganization())).thenReturn(
+            Optional.of(otherRole)
+        );
+
+        RoleEntity previousApiRole = new RoleEntity();
+        previousApiRole.setId("API_PRIMARY_OWNER");
+        previousApiRole.setName(SystemRole.PRIMARY_OWNER.name());
+        previousApiRole.setScope(RoleScope.API);
+
+        Set<RoleEntity> existingRoles = Set.of(previousApiRole);
+        when(membershipService.getRoles(MembershipReferenceType.GROUP, GROUP_ID, MembershipMemberType.USER, USERNAME)).thenReturn(
+            existingRoles
+        );
+
+        // The group is assigned to APIs (console access via ApiCriteria.groups(groupId)) but owns none.
+        ApiEntity assignedApi1 = new ApiEntity();
+        assignedApi1.setId("api-1");
+        ApiEntity assignedApi2 = new ApiEntity();
+        assignedApi2.setId("api-2");
+        when(groupService.getApis(GraviteeContext.getExecutionContext().getEnvironmentId(), GROUP_ID)).thenReturn(
+            List.of(assignedApi1, assignedApi2)
+        );
 
         MemberEntity memberEntity = new MemberEntity();
         memberEntity.setId(USERNAME);
@@ -539,7 +617,9 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(Collections.singleton(groupMembership)));
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        verify(groupService).getApis(GraviteeContext.getExecutionContext().getEnvironmentId(), GROUP_ID);
+        // The fix: the resource must no longer consult assignment (getApis) to decide this.
+        verify(groupService, never()).getApis(anyString(), anyString());
+        verify(groupService).assertGroupIsNotPrimaryOwner(GraviteeContext.getExecutionContext(), GROUP_ID, RoleScope.API);
         verify(membershipService, times(1)).addRoleToMemberOnReference(
             GraviteeContext.getExecutionContext(),
             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
@@ -609,7 +689,7 @@ public class GroupMembersResourceTest extends AbstractResourceTest {
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
-        verify(groupService, never()).getApis(anyString(), eq(GROUP_ID));
+        verify(groupService, never()).assertGroupIsNotPrimaryOwner(any(), eq(GROUP_ID), eq(RoleScope.API));
         verify(membershipService, times(1)).addRoleToMemberOnReference(
             GraviteeContext.getExecutionContext(),
             new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
