@@ -95,10 +95,14 @@ export function PlanFormStepIndicator({ steps }: Readonly<PlanFormStepIndicatorP
     );
 }
 
-/** Derive the WizardStep array dynamically based on security type and context. */
-export function buildWizardSteps(securityType: string, ctxType: 'api' | 'api-product', currentStepIndex: number): WizardStep[] {
+export function buildWizardSteps(
+    securityType: string,
+    ctxType: 'api' | 'api-product',
+    currentStepIndex: number,
+    isFederatedPlan: boolean,
+): WizardStep[] {
     const defs: string[] = ['General'];
-    if (securityType !== 'KEY_LESS') defs.push('Security');
+    if (securityType !== 'KEY_LESS' && !isFederatedPlan) defs.push('Security');
     if (ctxType === 'api') defs.push('Restrictions');
 
     return defs.map((label, i) => ({
