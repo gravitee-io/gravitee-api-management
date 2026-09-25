@@ -26,6 +26,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.definition.model.v4.nativeapi.NativeConnectionEvent;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
@@ -466,6 +467,43 @@ public class ApiMapperTest {
                 io.gravitee.definition.model.v4.analytics.Analytics mappedAnalytics = result.getAnalytics();
                 softly.assertThat(mappedAnalytics.isEnabled()).isTrue();
             });
+        }
+
+        /**
+         * The selection crosses this mapper in both directions, and the three cases are not one case: a chosen
+         * set, an explicit empty set meaning "report nothing", and absent meaning "never configured". The last
+         * two are what the nullable contract exists for — collapsing either into the other is exactly the
+         * silent behaviour change the feature is built to avoid.
+         */
+        @Test
+        void should_map_a_chosen_connection_event_selection() {
+            var wire = new Analytics().connectionEvents(
+                Set.of(Analytics.ConnectionEventsEnum.CONNECTED, Analytics.ConnectionEventsEnum.DISCONNECTED)
+            );
+
+            var core = ApiMapper.INSTANCE.map(wire);
+
+            var expected = Set.of(NativeConnectionEvent.CONNECTED, NativeConnectionEvent.DISCONNECTED);
+            assertThat(core.getConnectionEvents()).isEqualTo(expected);
+            assertThat(core.effectiveConnectionEvents()).isEqualTo(expected);
+        }
+
+        @Test
+        void should_resolve_an_empty_connection_event_selection_to_the_legacy_set() {
+            var core = ApiMapper.INSTANCE.map(new Analytics().connectionEvents(Set.of()));
+
+            assertThat(core.effectiveConnectionEvents()).isEqualTo(NativeConnectionEvent.LEGACY_DEFAULTS);
+        }
+
+        @Test
+        void should_resolve_an_omitted_connection_event_selection_to_the_legacy_set() {
+            // The case the whole nullable contract exists for, and the one that was broken: the generated
+            // model initialises the property to an empty set, so omitting it does not arrive as null. Resolving
+            // empty the same way is what makes "never configured" survive the wire — without it, the first save
+            // of an API nobody ever configured silences its connection events entirely.
+            var core = ApiMapper.INSTANCE.map(new Analytics());
+
+            assertThat(core.effectiveConnectionEvents()).isEqualTo(NativeConnectionEvent.LEGACY_DEFAULTS);
         }
 
         @Test
