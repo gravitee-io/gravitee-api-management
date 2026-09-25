@@ -18,6 +18,7 @@ import { dataTableHarness } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
@@ -71,7 +72,11 @@ function singlePageNamed(name: string): IntegrationsResponse {
 
 function renderIntegrationsPage(queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })) {
     return render(<IntegrationsPage />, {
-        wrapper: ({ children }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>,
+        wrapper: ({ children }) => (
+            <QueryClientProvider client={queryClient}>
+                <MemoryRouter initialEntries={['/integrations']}>{children}</MemoryRouter>
+            </QueryClientProvider>
+        ),
     });
 }
 

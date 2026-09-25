@@ -17,6 +17,7 @@
 import { dataTableHarness } from '@gravitee/graphene-core/testing';
 import { render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { IntegrationsTable } from './IntegrationsTable';
 import type { Integration, IntegrationAgentStatus } from '../types/integration';
@@ -56,16 +57,25 @@ const PAGE_SIZES_AT_OR_ABOVE_TOTAL_COUNT = TABLE_PAGE_SIZE_OPTIONS.filter(size =
 
 function renderTable(overrides: Partial<ComponentProps<typeof IntegrationsTable>> = {}) {
     return render(
-        <IntegrationsTable
-            integrations={INTEGRATIONS}
-            totalCount={INTEGRATIONS.length}
-            page={1}
-            pageSize={10}
-            loading={false}
-            onPageChange={jest.fn()}
-            onPageSizeChange={jest.fn()}
-            {...overrides}
-        />,
+        <MemoryRouter initialEntries={['/integrations']}>
+            <Routes>
+                <Route
+                    path="/integrations"
+                    element={
+                        <IntegrationsTable
+                            integrations={INTEGRATIONS}
+                            totalCount={INTEGRATIONS.length}
+                            page={1}
+                            pageSize={10}
+                            loading={false}
+                            onPageChange={jest.fn()}
+                            onPageSizeChange={jest.fn()}
+                            {...overrides}
+                        />
+                    }
+                />
+            </Routes>
+        </MemoryRouter>,
     );
 }
 
@@ -120,17 +130,17 @@ describe('IntegrationsTable', () => {
         expect(names).toEqual(['Acme Gateway', 'Broker North', 'Partner Apigee']);
     });
 
-    it('renders every name as plain text, offering nothing to navigate into', () => {
-        renderTable();
+    it("renders each name, gateway-style and A2A alike, as a real link to that integration's overview", () => {
+        const integrations: Integration[] = [
+            { id: 'int-gateway', name: 'Acme Gateway', provider: 'aws-api-gateway' },
+            { id: 'int-a2a', name: 'Agent Bridge', provider: 'A2A' },
+        ];
 
-        const nameCells = integrationsTable()
-            .getRows()
-            .map(row => row.getCellElement('Name'));
+        renderTable({ integrations, totalCount: integrations.length });
 
-        expect(nameCells).toHaveLength(INTEGRATIONS.length);
-        nameCells.forEach(nameCell => {
-            expect(nameCell.querySelector('a, button, [role="link"], [role="button"]')).toBeNull();
-        });
+        const linkTargets = integrations.map(({ name }) => screen.getByRole('link', { name }).getAttribute('href'));
+
+        expect(linkTargets).toEqual(['/integrations/int-gateway', '/integrations/int-a2a']);
     });
 
     it("renders each supported provider's display label in its own Provider cell", () => {

@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { normalizeCrudMapRecord } from '@gravitee/gamma-modules-sdk';
 
-export const integrationKeys = {
-    all: ['environment-integrations'] as const,
-    list: (envId: string, page: number, perPage: number) => [...integrationKeys.all, 'list', envId, page, perPage] as const,
-    detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
-    permissions: (envId: string, integrationId: string) => [...integrationKeys.all, 'permissions', envId, integrationId] as const,
-} as const;
+import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+
+export async function getIntegrationPermissions(environmentId: string, integrationId: string): Promise<string[]> {
+    const raw = await apimFetchJsonV2<Record<string, string | string[]>>(
+        environmentId,
+        `/integrations/${encodeURIComponent(integrationId)}/permissions`,
+    );
+    return normalizeCrudMapRecord('integration', raw);
+}

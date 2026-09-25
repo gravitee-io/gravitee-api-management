@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-export const integrationKeys = {
-    all: ['environment-integrations'] as const,
-    list: (envId: string, page: number, perPage: number) => [...integrationKeys.all, 'list', envId, page, perPage] as const,
-    detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
-    permissions: (envId: string, integrationId: string) => [...integrationKeys.all, 'permissions', envId, integrationId] as const,
-} as const;
+import { useQuery } from '@tanstack/react-query';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+
+import { getIntegration } from '../services/integrationDetail';
+import { integrationKeys } from '../utils/queryKeys';
+
+export function useIntegration(integrationId: string) {
+    const env = useEnvironment();
+
+    return useQuery({
+        queryKey: integrationKeys.detail(env?.id ?? '', integrationId),
+        queryFn: () => getIntegration(env!.id, integrationId),
+        enabled: Boolean(env),
+    });
+}

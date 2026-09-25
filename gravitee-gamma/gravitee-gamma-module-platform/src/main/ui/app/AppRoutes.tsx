@@ -64,6 +64,7 @@ import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTr
 import { DCR_REGISTRATION_LICENSE_FEATURE } from '../features/client-registration/license/dcrRegistrationLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
+import { RequireIntegrationDefinitionRead } from '../features/integrations/components/RequireIntegrationDefinitionRead';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ORGANIZATION_ROLE_UPDATE_PERMISSION } from '../features/roles/utils/rolePermissionConstants';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
@@ -97,6 +98,7 @@ import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitorin
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
+import { IntegrationOverviewPage } from '../pages/IntegrationOverviewPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
 import { MetadataPage } from '../pages/MetadataPage';
@@ -879,11 +881,21 @@ export function AppRoutes() {
                                 element={
                                     <NavPermissionGuard itemKey="integrations">
                                         <RequireIntegrationsAvailable>
-                                            <IntegrationsPage />
+                                            <Outlet />
                                         </RequireIntegrationsAvailable>
                                     </NavPermissionGuard>
                                 }
-                            />
+                            >
+                                <Route index element={<IntegrationsPage />} />
+                                <Route
+                                    path=":integrationId"
+                                    element={
+                                        <RequireIntegrationDefinitionRead>
+                                            <IntegrationOverviewPage />
+                                        </RequireIntegrationDefinitionRead>
+                                    }
+                                />
+                            </Route>
                             <Route
                                 path="api-score"
                                 element={
