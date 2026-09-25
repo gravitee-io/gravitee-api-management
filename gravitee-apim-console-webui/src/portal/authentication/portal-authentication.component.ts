@@ -70,7 +70,8 @@ interface IdentityProviderRow {
   description: string;
   logo: string;
   isActivated: boolean;
-  isAllowedOnPortal: boolean;
+  isActivationDisabled: boolean;
+  activationTooltip: string;
 }
 
 @Component({
@@ -132,17 +133,17 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       return [];
     }
     const { identityProviders, activations } = this.dataResource.value();
-    return identityProviders.map(identityProvider => ({
-      id: identityProvider.id,
-      name: identityProvider.name,
-      description: identityProvider.description,
-      logo: `assets/logo_${identityProvider.type.toLowerCase()}-idp.svg`,
-      isActivated: activations.some(activation => activation.identityProvider === identityProvider.id),
-      isAllowedOnPortal: identityProvider.enabled,
-    }));
+    return identityProviders.map(identityProvider =>
+      toIdentityProviderRow(
+        identityProvider,
+        activations.some(activation => activation.identityProvider === identityProvider.id),
+      ),
+    );
   });
   private readonly filteredRows = computed(() =>
-    gioTableFilterCollection(this.rows(), this.filters(), { searchTermIgnoreKeys: ['logo', 'isActivated', 'isAllowedOnPortal'] }),
+    gioTableFilterCollection(this.rows(), this.filters(), {
+      searchTermIgnoreKeys: ['logo', 'isActivated', 'isActivationDisabled', 'activationTooltip'],
+    }),
   );
   readonly pagedRows = computed(() => this.filteredRows().filteredCollection);
   readonly total = computed(() => this.filteredRows().unpaginatedLength);
@@ -282,6 +283,26 @@ export class PortalAuthenticationComponent implements HasUnsavedChanges {
       localLogin: settings.authentication?.localLogin?.enabled ?? true,
     });
   }
+}
+
+// An activation that is not allowed on the portal has no effect there, but it can still be removed
+function toIdentityProviderRow(identityProvider: IdentityProviderListItem, isActivated: boolean): IdentityProviderRow {
+  const isAllowedOnPortal = identityProvider.enabled;
+  let activationTooltip = isActivated ? 'Deactivate identity provider' : 'Activate identity provider';
+  if (!isAllowedOnPortal) {
+    activationTooltip = isActivated
+      ? 'Not allowed for portal authentication, so not displayed on the portal. Deactivate it, or enable it in Platform → Authentication.'
+      : 'Not allowed for portal authentication. Enable it in Platform → Authentication.';
+  }
+  return {
+    id: identityProvider.id,
+    name: identityProvider.name,
+    description: identityProvider.description,
+    logo: `assets/logo_${identityProvider.type.toLowerCase()}-idp.svg`,
+    isActivated,
+    isActivationDisabled: !isAllowedOnPortal && !isActivated,
+    activationTooltip,
+  };
 }
 
 function setDisabled(control: FormControl<boolean>, isDisabled: boolean): void {

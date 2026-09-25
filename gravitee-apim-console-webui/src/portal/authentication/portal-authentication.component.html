@@ -97,20 +97,11 @@
           <th mat-header-cell *matHeaderCellDef>Actions</th>
           <td mat-cell *matCellDef="let row" [attr.data-activated]="row.isActivated">
             @if (canUpdateActivation) {
-              <span
-                [matTooltip]="
-                  row.isAllowedOnPortal
-                    ? row.isActivated
-                      ? 'Deactivate identity provider'
-                      : 'Activate identity provider'
-                    : 'Not allowed for portal authentication. Enable it in Platform → Authentication.'
-                "
-                [attr.data-testid]="'idp-activation-tooltip-' + row.id"
-              >
+              <span [matTooltip]="row.activationTooltip" [attr.data-testid]="'idp-activation-tooltip-' + row.id">
                 <button
                   mat-icon-button
                   type="button"
-                  [disabled]="!row.isAllowedOnPortal"
+                  [disabled]="row.isActivationDisabled"
                   [attr.aria-label]="(row.isActivated ? 'Deactivate ' : 'Activate ') + row.name"
                   [attr.data-testid]="'idp-activation-' + row.id"
                   (click)="toggleActivation(row)"

@@ -283,6 +283,29 @@ describe('PortalAuthenticationComponent', () => {
       );
     });
 
+    it('should allow to deactivate an activated identity provider not allowed for portal authentication', async () => {
+      await init();
+      const settings = settingsWith({});
+      await load(
+        [google, internalOidc],
+        [fakeIdentityProviderActivation({ identityProvider: 'google' }), fakeIdentityProviderActivation({ identityProvider: 'internal' })],
+        settings,
+      );
+
+      expect(await harness.isActivationDisabled('internal')).toBe(false);
+      expect(await harness.getActivationTooltip('internal')).toBe(
+        'Not allowed for portal authentication, so not displayed on the portal. Deactivate it, or enable it in Platform → Authentication.',
+      );
+
+      await harness.clickActivation('internal');
+      await (await rootLoader.getHarness(GioConfirmDialogHarness)).confirm();
+
+      const updateRequest = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/identities` });
+      expect(updateRequest.request.body).toEqual([{ identityProvider: 'google' }]);
+      updateRequest.flush([]);
+      await load([google, internalOidc], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settings);
+    });
+
     it('should hide the activation action without activation update permission', async () => {
       await init(['organization-identity_provider-r', 'environment-identity_provider_activation-r', 'environment-settings-u']);
       await load([google], [fakeIdentityProviderActivation({ identityProvider: 'google' })], settingsWith({}));
