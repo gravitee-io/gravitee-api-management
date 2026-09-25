@@ -35,7 +35,7 @@ describe('LogInComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const init = async (
-    params: Partial<{ enableLocalLogin: boolean; ssoProviders: IdentityProvider[] }> = {
+    params: Partial<{ enableLocalLogin: boolean; enableRegistration: boolean; ssoProviders: IdentityProvider[] }> = {
       enableLocalLogin: true,
       ssoProviders: [],
     },
@@ -48,6 +48,7 @@ describe('LogInComponent', () => {
           useFactory: () => {
             const stub = new ConfigServiceStub();
             stub.configuration.authentication!.localLogin!.enabled = params.enableLocalLogin;
+            stub.configuration.portal = { userCreation: { enabled: params.enableRegistration ?? true } };
             return stub;
           },
         },
@@ -124,6 +125,20 @@ describe('LogInComponent', () => {
     httpTestingController.expectOne(`${TESTING_BASE_URL}/auth/login`).flush({});
     httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush({});
     httpTestingController.expectOne(`${TESTING_BASE_URL}/portal-navigation-items?area=TOP_NAVBAR&loadChildren=false`).flush({});
+  });
+
+  it('should display sign up link when user registration is enabled', async () => {
+    await init({ enableLocalLogin: true, enableRegistration: true, ssoProviders: [] });
+
+    const registration = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.log-in__registration' }));
+    expect(registration).not.toBeNull();
+  });
+
+  it('should not display sign up link when user registration is disabled', async () => {
+    await init({ enableLocalLogin: true, enableRegistration: false, ssoProviders: [] });
+
+    const registration = await harnessLoader.getHarnessOrNull(DivHarness.with({ selector: '.log-in__registration' }));
+    expect(registration).toBeNull();
   });
 
   it('should not display log-in form', async () => {

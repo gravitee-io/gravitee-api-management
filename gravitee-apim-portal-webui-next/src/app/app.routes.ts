@@ -42,6 +42,7 @@ import { RegistrationConfirmationComponent } from './registration/registration-c
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
 import { redirectGuard } from '../guards/redirect.guard';
+import { registrationEnabledGuard } from '../guards/registration-enabled.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { homepageContentResolver } from '../resolvers/homepage-content.resolver';
@@ -287,7 +288,7 @@ export const routes: Routes = [
       {
         path: 'registration',
         component: RegistrationComponent,
-        canActivate: [anonymousGuard],
+        canActivate: [anonymousGuard, registrationEnabledGuard],
       },
       {
         path: 'registration/confirm/:token',
