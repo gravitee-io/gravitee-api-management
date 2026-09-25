@@ -51,6 +51,7 @@ import { authGuard } from '../guards/auth.guard';
 import { catalogCategoriesViewGuard } from '../guards/catalog-categories-view.guard';
 import { catalogTabsViewGuard } from '../guards/catalog-tabs-view.guard';
 import { redirectGuard } from '../guards/redirect.guard';
+import { registrationEnabledGuard } from '../guards/registration-enabled.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { applicationPermissionResolver, applicationResolver, applicationTypeResolver } from '../resolvers/application.resolver';
 import { categoriesResolver } from '../resolvers/categories.resolver';
@@ -279,7 +280,7 @@ export const routes: Routes = [
       {
         path: 'registration',
         component: RegistrationComponent,
-        canActivate: [anonymousGuard],
+        canActivate: [anonymousGuard, registrationEnabledGuard],
       },
       {
         path: 'registration/confirm/:token',
