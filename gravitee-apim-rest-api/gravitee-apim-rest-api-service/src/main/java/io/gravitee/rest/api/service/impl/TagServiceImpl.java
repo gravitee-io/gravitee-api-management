@@ -141,9 +141,11 @@ public class TagServiceImpl extends AbstractService implements TagService {
         String referenceId,
         TagReferenceType referenceType
     ) {
+        // Keys are persisted normalized, so uniqueness must be checked on the normalized form
+        final var normalizedKey = IdGenerator.generate(tagEntity.getKey());
         final var optionalTag = findByReference(referenceId, referenceType)
             .stream()
-            .filter(tag -> tag.getKey().equals(tagEntity.getKey()))
+            .filter(tag -> tag.getKey().equals(normalizedKey))
             .findAny();
 
         if (optionalTag.isPresent()) {

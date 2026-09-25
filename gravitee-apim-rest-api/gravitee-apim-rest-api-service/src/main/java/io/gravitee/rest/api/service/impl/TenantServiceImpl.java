@@ -38,8 +38,10 @@ import io.gravitee.rest.api.service.exceptions.TenantNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,8 +104,14 @@ public class TenantServiceImpl extends TransactionalService implements TenantSer
         String referenceId,
         TenantReferenceType referenceType
     ) {
-        // First we prevent the duplicate tenant name
-        final List<String> tenantKeys = tenantEntities.stream().map(NewTenantEntity::getKey).collect(Collectors.toList());
+        // First we prevent the duplicate tenant name. Keys are persisted normalized, so uniqueness must be checked on the
+        // normalized form, including between the tenants of this request
+        final Set<String> tenantKeys = new HashSet<>();
+        tenantEntities.forEach(tenantEntity -> {
+            if (!tenantKeys.add(IdGenerator.generate(tenantEntity.getKey()))) {
+                throw new DuplicateTenantKeyException(tenantEntity.getName());
+            }
+        });
 
         final Optional<TenantEntity> optionalTenant = findByReference(referenceId, referenceType)
             .stream()
