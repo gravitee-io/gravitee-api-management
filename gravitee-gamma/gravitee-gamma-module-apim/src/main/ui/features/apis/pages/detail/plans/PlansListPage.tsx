@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
+import { planStatusFromSearchParam } from './planListStatusSearch';
 import { PlansTable } from './PlansTable';
 import { PlanStatusCards } from './PlanStatusCards';
 import { usePlanList } from '../../../hooks/usePlans';
@@ -28,14 +30,22 @@ interface PlansListPageProps {
 }
 
 export function PlansListPage({ ctx, counts, canUpdate }: Readonly<PlansListPageProps>) {
-    const [selectedStatus, setSelectedStatus] = useState<PlanStatus>('STAGING');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const selectedStatus = planStatusFromSearchParam(searchParams.get('status'));
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
 
     const { data, isLoading } = usePlanList(ctx, [selectedStatus], page, perPage);
 
     const handleStatusSelect = (status: PlanStatus) => {
-        setSelectedStatus(status);
+        setSearchParams(
+            prev => {
+                const next = new URLSearchParams(prev);
+                next.set('status', status);
+                return next;
+            },
+            { replace: true },
+        );
         setPage(1);
     };
 
