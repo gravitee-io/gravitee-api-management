@@ -91,4 +91,46 @@ class HealthCheckStatusTest {
         assertThat(cut.reportFailure()).isEqualTo(ManagedEndpoint.Status.DOWN);
         assertThat(cut.getCurrentStatus()).isEqualTo(ManagedEndpoint.Status.DOWN);
     }
+
+    @Test
+    void should_not_move_to_down_when_failures_are_not_consecutive() {
+        final HealthCheckStatus cut = new HealthCheckStatus(ManagedEndpoint.Status.UP, 2, 2);
+
+        assertThat(cut.reportFailure()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_DOWN);
+        assertThat(cut.reportSuccess()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_DOWN);
+        assertThat(cut.reportFailure()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_DOWN);
+        assertThat(cut.getCurrentStatus()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_DOWN);
+    }
+
+    @Test
+    void should_move_to_down_when_failure_threshold_reached_after_success_interrupted_failures() {
+        final HealthCheckStatus cut = new HealthCheckStatus(ManagedEndpoint.Status.UP, 3, 2);
+
+        cut.reportFailure();
+        cut.reportSuccess();
+
+        assertThat(cut.reportFailure()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_DOWN);
+        assertThat(cut.reportFailure()).isEqualTo(ManagedEndpoint.Status.DOWN);
+    }
+
+    @Test
+    void should_not_move_to_up_when_successes_are_not_consecutive() {
+        final HealthCheckStatus cut = new HealthCheckStatus(ManagedEndpoint.Status.DOWN, 2, 3);
+
+        assertThat(cut.reportSuccess()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_UP);
+        assertThat(cut.reportFailure()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_UP);
+        assertThat(cut.reportSuccess()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_UP);
+        assertThat(cut.getCurrentStatus()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_UP);
+    }
+
+    @Test
+    void should_move_to_up_when_success_threshold_reached_after_failure_interrupted_successes() {
+        final HealthCheckStatus cut = new HealthCheckStatus(ManagedEndpoint.Status.DOWN, 2, 3);
+
+        cut.reportSuccess();
+        cut.reportFailure();
+
+        assertThat(cut.reportSuccess()).isEqualTo(ManagedEndpoint.Status.TRANSITIONALLY_UP);
+        assertThat(cut.reportSuccess()).isEqualTo(ManagedEndpoint.Status.UP);
+    }
 }
