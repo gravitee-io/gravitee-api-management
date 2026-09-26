@@ -18,6 +18,7 @@ import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { planListSearchForStatus } from '../planListStatusSearch';
 import { PlanFormStepIndicator, buildWizardSteps } from './PlanFormStepIndicator';
 import { PlanGeneralStep } from './PlanGeneralStep';
 import { PlanRestrictionsStep } from './PlanRestrictionsStep';
@@ -28,6 +29,7 @@ import type {
     PlanContext,
     PlanFormValue,
     PlanSecurityType,
+    PlanStatus,
     RestrictionsFormData,
     SecurityFormData,
 } from '../../../../types/plan';
@@ -65,6 +67,10 @@ interface PlanFormWizardProps {
 export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, referenceTags }: Readonly<PlanFormWizardProps>) {
     const navigate = useNavigate();
     const isEdit = Boolean(planId);
+
+    const backToPlans = (status: PlanStatus) => {
+        navigate({ pathname: '..', search: planListSearchForStatus(status) }, { relative: 'path' });
+    };
 
     const { data: existingPlan, isLoading: isLoadingPlan } = usePlan(ctx, planId);
 
@@ -129,9 +135,10 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
             }
         }
         if (isEdit && planId) {
-            updateMutation.mutate({ planId, form }, { onSuccess: () => navigate('..') });
+            const listStatus = existingPlan?.status ?? 'PUBLISHED';
+            updateMutation.mutate({ planId, form }, { onSuccess: () => backToPlans(listStatus) });
         } else {
-            createMutation.mutate(form, { onSuccess: () => navigate('..') });
+            createMutation.mutate(form, { onSuccess: () => backToPlans('STAGING') });
         }
     };
 
@@ -157,7 +164,12 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
             <div className="flex flex-col gap-6">
                 {/* Header */}
                 <div className="flex items-center gap-3">
-                    <Button type="button" variant="ghost" size="icon" onClick={() => navigate('..')}>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => backToPlans(isEdit ? (existingPlan?.status ?? 'PUBLISHED') : 'PUBLISHED')}
+                    >
                         <ArrowLeftIcon className="size-4" aria-hidden />
                         <span className="sr-only">Back to plans</span>
                     </Button>
@@ -218,13 +230,19 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between pt-2">
-                    <Button type="button" variant="outline" onClick={stepIndex === 0 ? () => navigate('..') : handleBack}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={
+                            stepIndex === 0 ? () => backToPlans(isEdit ? (existingPlan?.status ?? 'PUBLISHED') : 'PUBLISHED') : handleBack
+                        }
+                    >
                         {stepIndex === 0 ? 'Cancel' : 'Previous'}
                     </Button>
 
                     {readOnly ? (
                         isLastStep ? (
-                            <Button type="button" variant="outline" onClick={() => navigate('..')}>
+                            <Button type="button" variant="outline" onClick={() => backToPlans(existingPlan?.status ?? 'PUBLISHED')}>
                                 Close
                             </Button>
                         ) : (
