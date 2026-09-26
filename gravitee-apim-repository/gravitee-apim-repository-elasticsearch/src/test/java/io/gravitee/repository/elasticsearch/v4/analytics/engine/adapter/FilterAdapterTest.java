@@ -86,11 +86,16 @@ class FilterAdapterTest {
         }
 
         /**
-         * Plan, application and entrypoint live on the connection document and nowhere else, so the
-         * request-id join is the only way to apply them.
+         * Plan, application and entrypoint are carried on the message documents now, so a
+         * query naming one can be answered without the join — which is the whole point of stamping
+         * them.
+         *
+         * <p>This predicate answers for the enriched shape alone. Whether the data in a given window
+         * actually has it is a separate question, and the repository's watermark is what asks it; the
+         * join stays for anything older. That split is why the two filter sets exist.
          */
         @Test
-        void should_keep_the_join_for_a_connection_only_dimension() {
+        void should_skip_the_join_for_a_dimension_the_message_documents_now_carry() {
             for (var name : List.of(Filter.Name.PLAN, Filter.Name.APPLICATION, Filter.Name.ENTRYPOINT)) {
                 var query = queryWith(
                     new Filter(Filter.Name.API, Filter.Operator.IN, List.of(API_ID)),
@@ -98,8 +103,27 @@ class FilterAdapterTest {
                 );
 
                 assertThat(messageFilterAdapter.isFullyAppliedOnMessages(query))
-                    .as("filter %s lives on the connection document", name)
+                    .as("filter %s is stamped on the message document", name)
+                    .isTrue();
+            }
+        }
+
+        /**
+         * The join's message phase must not filter on them, though: the documents it exists for are
+         * the ones written before the gateway stamped them, and Elasticsearch answers a term query on
+         * a missing field with no hits rather than an error — the count would silently fall to zero.
+         */
+        @Test
+        void should_leave_a_connection_dimension_out_of_the_joined_message_phase() {
+            for (var name : List.of(Filter.Name.PLAN, Filter.Name.APPLICATION, Filter.Name.ENTRYPOINT)) {
+                var filter = new Filter(name, Filter.Operator.EQ, "whatever");
+
+                assertThat(messageFilterAdapter.shouldAdaptForMessage(filter))
+                    .as("%s must not be applied on the joined message phase", name)
                     .isFalse();
+                assertThat(messageFilterAdapter.shouldAdaptForEnrichedMessage(filter))
+                    .as("%s is applied on the direct path", name)
+                    .isTrue();
             }
         }
     }

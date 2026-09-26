@@ -58,6 +58,11 @@ public class BoolQueryAdapter {
         return JsonObject.of("filter", filterAdapter.adaptForMessage(query));
     }
 
+    /** The message-side filter for the direct path; see {@link FilterAdapter#adaptForEnrichedMessage}. */
+    JsonObject enrichedMessageFilter(Query query) {
+        return JsonObject.of("filter", filterAdapter.adaptForEnrichedMessage(query));
+    }
+
     JsonObject httpFilter(Query query) {
         return JsonObject.of("filter", filterAdapter.adaptForHTTP(query));
     }

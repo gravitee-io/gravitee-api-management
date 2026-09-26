@@ -72,3 +72,20 @@
 { "gateway": "a125e26c-b289-4dbf-a5e2-6cb2897dbf20", "@timestamp": "${dateToday}T06:56:54.552Z", "request-id": "46fe0de1-04c7-4543-80d3-d34b10e2f5f6", "client-identifier": "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0", "correlation-id": "msg0004-0000-4000-8000-000000000000", "api-id": "f1608475-dd77-4603-a084-75dd775603e9", "operation": "publish", "connector-type": "entrypoint", "connector-id": "websocket", "content-length": 12, "count": 50, "count-increment": 49}
 { "index" :{ ${indexNameTodayEndpoint}, "_id": "websocket-entrypoint_3"}}
 { "gateway": "a125e26c-b289-4dbf-a5e2-6cb2897dbf20", "@timestamp": "${dateToday}T06:57:54.893Z", "request-id": "46fe0de1-04c7-4543-80d3-d34b10e2f5f6", "client-identifier": "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0", "correlation-id": "msg0006-0000-4000-8000-000000000000", "api-id": "f1608475-dd77-4603-a084-75dd775603e9", "operation": "publish", "connector-type": "endpoint", "connector-id": "kafka", "content-length": 12, "count": 50, "count-increment": 49}
+
+<#--
+  Stamped documents: what a gateway writes once it carries the connection dimensions.
+
+  On an API of their own, and late in the day on purpose. Their own API so the totals the other
+  message cases assert stay untouched; late in the day so a window can be opened that contains only
+  them — the watermark is the newest message WITHOUT a schema-version, so a window starting after it
+  is the one the direct path is allowed to serve.
+-->
+{ "index" :{ ${indexNameTodayEntrypoint}, "_id": "stamped-1-entrypoint"}}
+{ "gateway": "a125e26c-b289-4dbf-a5e2-6cb2897dbf20", "@timestamp": "${dateToday}T08:10:00.000Z", "request-id": "stamped-req-1", "client-identifier": "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0", "correlation-id": "stamped-msg-1", "api-id": "stamped-api-001", "operation": "publish", "connector-type": "entrypoint", "connector-id": "http-post", "plan-id": "stamped-plan-gold", "application-id": "stamped-app-1", "entrypoint-id": "http-post", "schema-version": 1, "content-length": 12, "count": 10, "count-increment": 10}
+{ "index" :{ ${indexNameTodayEndpoint}, "_id": "stamped-1-endpoint"}}
+{ "gateway": "a125e26c-b289-4dbf-a5e2-6cb2897dbf20", "@timestamp": "${dateToday}T08:10:00.000Z", "request-id": "stamped-req-1", "client-identifier": "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0", "correlation-id": "stamped-msg-1", "api-id": "stamped-api-001", "operation": "publish", "connector-type": "endpoint", "connector-id": "kafka", "plan-id": "stamped-plan-gold", "application-id": "stamped-app-1", "entrypoint-id": "http-post", "schema-version": 1, "content-length": 12, "count": 10, "count-increment": 10}
+{ "index" :{ ${indexNameTodayEntrypoint}, "_id": "stamped-2-entrypoint"}}
+{ "gateway": "a125e26c-b289-4dbf-a5e2-6cb2897dbf20", "@timestamp": "${dateToday}T08:20:00.000Z", "request-id": "stamped-req-2", "client-identifier": "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0", "correlation-id": "stamped-msg-2", "api-id": "stamped-api-001", "operation": "publish", "connector-type": "entrypoint", "connector-id": "http-post", "plan-id": "stamped-plan-silver", "application-id": "stamped-app-2", "entrypoint-id": "http-post", "schema-version": 1, "content-length": 12, "count": 5, "count-increment": 5}
+{ "index" :{ ${indexNameTodayEndpoint}, "_id": "stamped-2-endpoint"}}
+{ "gateway": "a125e26c-b289-4dbf-a5e2-6cb2897dbf20", "@timestamp": "${dateToday}T08:20:00.000Z", "request-id": "stamped-req-2", "client-identifier": "12ca17b49af2289436f303e0166030a21e525d266e209267433801a8fd4071a0", "correlation-id": "stamped-msg-2", "api-id": "stamped-api-001", "operation": "publish", "connector-type": "endpoint", "connector-id": "kafka", "plan-id": "stamped-plan-silver", "application-id": "stamped-app-2", "entrypoint-id": "http-post", "schema-version": 1, "content-length": 12, "count": 5, "count-increment": 5}

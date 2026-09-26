@@ -70,7 +70,7 @@ public class MessageMeasuresQueryAdapter {
      * says the join ran and matched nothing.
      */
     public String adapt(MeasuresQuery query) {
-        return json(query, queryAdapter.messageFilter(query)).toString();
+        return json(query, queryAdapter.enrichedMessageFilter(query)).toString();
     }
 
     private JsonObject json(MeasuresQuery query, JsonObject boolQuery) {

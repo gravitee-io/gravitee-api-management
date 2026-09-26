@@ -40,6 +40,18 @@
   ,"operation":"${metrics.getOperation().getLabel()}"
   ,"connector-type":"${metrics.getConnectorType().getLabel()}"
   ,"connector-id":"${metrics.getConnectorId()}"
+  <#if (metrics.getPlanId())??>
+  ,"plan-id":"${metrics.getPlanId()}"
+  </#if>
+  <#if (metrics.getApplicationId())??>
+  ,"application-id":"${metrics.getApplicationId()}"
+  </#if>
+  <#if (metrics.getEntrypointId())??>
+  ,"entrypoint-id":"${metrics.getEntrypointId()?j_string}"
+  </#if>
+  <#if (metrics.getSchemaVersion())??>
+  ,"schema-version":${metrics.getSchemaVersion()}
+  </#if>
   <#if contentLength??>
     ,"content-length":${contentLength}
   </#if>

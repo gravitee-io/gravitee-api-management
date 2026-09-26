@@ -2241,6 +2241,58 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         /**
+         * The path the stamped documents unlock, and the one case the rest of this class cannot reach:
+         * every other message fixture predates the connection dimensions, so every other case joins.
+         *
+         * <p>The fixture holds four stamped documents on {@code stamped-api-001}, late in the day, two
+         * legs each: 20 messages on the gold plan, 10 on silver. A plan filter on them is answerable
+         * only from the message documents themselves — there is no connection document behind them at
+         * all, so a query that still joined would return nothing.
+         */
+        @Nested
+        class MessageDirectPath {
+
+            private static final String STAMPED_API = "stamped-api-001";
+
+            private static MeasuresQuery plannedQuery(io.gravitee.repository.analytics.engine.api.query.TimeRange window, String plan) {
+                var metrics = List.of(new MetricMeasuresQuery(Metric.MESSAGES, Set.of(Measure.COUNT)));
+                var filters = List.of(
+                    new Filter(Filter.Name.API, Filter.Operator.IN, List.of(STAMPED_API)),
+                    new Filter(Filter.Name.PLAN, Filter.Operator.IN, List.of(plan))
+                );
+                return new MeasuresQuery(window, filters, metrics);
+            }
+
+            /** A window holding only stamped documents: the plan is read straight off the messages. */
+            @Test
+            void should_filter_on_a_plan_without_the_connection_join() {
+                var from = NOW.plus(Duration.ofHours(8));
+                var window = new io.gravitee.repository.analytics.engine.api.query.TimeRange(from, TOMORROW);
+
+                var gold = cut.searchMessageMeasures(QUERY_CONTEXT, plannedQuery(window, "stamped-plan-gold"));
+                var silver = cut.searchMessageMeasures(QUERY_CONTEXT, plannedQuery(window, "stamped-plan-silver"));
+
+                assertThat(MessageMeasures.messagesOf(gold)).isEqualTo(20L);
+                assertThat(MessageMeasures.messagesOf(silver)).isEqualTo(10L);
+            }
+
+            /**
+             * The same filter over a window that reaches back into the unstamped documents. The
+             * watermark keeps that window on the join, and the join finds no connection document for
+             * this API — so the honest answer there is zero, not a number built from half the data.
+             *
+             * <p>That is the whole point of the gate: the two paths do not agree on data written
+             * before the dimensions existed, so the choice between them cannot be left to chance.
+             */
+            @Test
+            void should_keep_the_join_for_a_window_reaching_back_before_the_dimensions_existed() {
+                var gold = cut.searchMessageMeasures(QUERY_CONTEXT, plannedQuery(buildTimeRange(), "stamped-plan-gold"));
+
+                assertThat(MessageMeasures.messagesOf(gold)).isZero();
+            }
+        }
+
+        /**
          * {@code searchMessageFacets} had no call site anywhere in the repository, so the skip added by
          * this change was never executed under test. The expected splits come from the fixture: 308
          * subscribe against 102 publish, and a perfect 205/205 across the two legs — the gateway writes
