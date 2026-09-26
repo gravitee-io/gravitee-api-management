@@ -21,6 +21,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { Chips } from './Chips';
+import { CORS_HTTP_METHODS } from './corsHttpMethods';
+import { DEFAULT_HTTP_HEADERS } from './defaultHttpHeaders';
 import { InfoTooltip } from './InfoTooltip';
 import { ToggleRow } from './ToggleRow';
 import { useApiDetail } from '../../../hooks/useApiDetail';
@@ -29,12 +31,6 @@ import type { Cors } from '../../../types';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
-
-const COMMON_ALLOW_HEADERS = ['Accept', 'Authorization', 'Content-Type', 'Origin', 'X-API-Key', 'X-Requested-With'];
-
-const COMMON_EXPOSE_HEADERS = ['Content-Length', 'Content-Range', 'X-Request-Id'];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -263,7 +259,7 @@ export function ApiCorsPage() {
                             hint="HTTP methods that may be used in cross-origin requests."
                             values={methods}
                             disabled={fieldsDisabled || !canEdit}
-                            suggestions={HTTP_METHODS}
+                            suggestions={CORS_HTTP_METHODS}
                             placeholder="GET, POST, …"
                             onChange={v => {
                                 setMethods(v);
@@ -276,7 +272,8 @@ export function ApiCorsPage() {
                             hint="Headers the client is allowed to send in the actual request."
                             values={allowHeaders}
                             disabled={fieldsDisabled || !canEdit}
-                            suggestions={COMMON_ALLOW_HEADERS}
+                            suggestions={DEFAULT_HTTP_HEADERS}
+                            addOnBlur={false}
                             placeholder="Content-Type, Authorization, …"
                             onChange={v => {
                                 setAllowHeaders(v);
@@ -289,7 +286,8 @@ export function ApiCorsPage() {
                             hint="Headers from the response that the browser is allowed to surface to JavaScript."
                             values={exposeHeaders}
                             disabled={fieldsDisabled || !canEdit}
-                            suggestions={COMMON_EXPOSE_HEADERS}
+                            suggestions={DEFAULT_HTTP_HEADERS}
+                            addOnBlur={false}
                             placeholder="X-Request-Id, …"
                             onChange={v => {
                                 setExposeHeaders(v);

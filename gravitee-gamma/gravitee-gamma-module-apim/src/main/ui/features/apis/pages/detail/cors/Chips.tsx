@@ -14,11 +14,22 @@
  * limitations under the License.
  */
 import { Badge, Label } from '@gravitee/graphene-core';
-import { PlusIcon, XIcon } from '@gravitee/graphene-core/icons';
-import type { ReactNode } from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { XIcon } from '@gravitee/graphene-core/icons';
+import type { KeyboardEvent, ReactNode } from 'react';
+import { useCallback, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { InfoTooltip } from './InfoTooltip';
+
+const DROPDOWN_MAX_HEIGHT_PX = 224;
+const DROPDOWN_OFFSET_PX = 4;
+
+interface DropdownPosition {
+    top: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+}
 
 export interface ChipsProps {
     label: string;
@@ -26,26 +37,130 @@ export interface ChipsProps {
     values: string[];
     placeholder: string;
     disabled?: boolean;
-    suggestions?: string[];
+    suggestions?: readonly string[];
+    /** When false, blur discards the draft (Classic CORS headers). Default true. */
+    addOnBlur?: boolean;
     onChange: (next: string[]) => void;
 }
 
-export function Chips({ label, hint, values, placeholder, disabled, suggestions, onChange }: ChipsProps) {
+export function Chips({ label, hint, values, placeholder, disabled, suggestions, addOnBlur = true, onChange }: ChipsProps) {
     const [draft, setDraft] = useState('');
+    const [open, setOpen] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(-1);
+    const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition | null>(null);
+    const rootRef = useRef<HTMLDivElement>(null);
+    const reactId = useId();
+    const listId = `${reactId}-suggestions`;
+    const optionId = (index: number) => `${reactId}-option-${index}`;
 
-    const add = (v: string) => {
-        const trimmed = v.trim();
-        if (!trimmed || values.includes(trimmed)) return;
+    const add = (value: string, keepSuggestionsOpen = false) => {
+        const trimmed = value.trim();
+        if (!trimmed || values.includes(trimmed)) {
+            return;
+        }
         onChange([...values, trimmed]);
         setDraft('');
+        setOpen(keepSuggestionsOpen);
+        setActiveIndex(-1);
     };
 
     const remove = useCallback((v: string) => onChange(values.filter(x => x !== v)), [onChange, values]);
 
-    const filteredSuggestions = useMemo(() => (suggestions ?? []).filter(s => !values.includes(s)), [suggestions, values]);
+    const filteredSuggestions = useMemo(() => {
+        if (!suggestions || suggestions.length === 0) {
+            return [];
+        }
+        const query = draft.trim().toLowerCase();
+        return suggestions.filter(suggestion => {
+            if (values.includes(suggestion)) {
+                return false;
+            }
+            return !query || suggestion.toLowerCase().includes(query);
+        });
+    }, [draft, suggestions, values]);
+
+    const hasAutocomplete = Boolean(suggestions && suggestions.length > 0);
+    const showSuggestions = !disabled && open && hasAutocomplete && filteredSuggestions.length > 0;
+    const activeDescendant = showSuggestions && activeIndex >= 0 ? optionId(activeIndex) : undefined;
+
+    const updateDropdownPosition = useCallback(() => {
+        const root = rootRef.current;
+        if (!root) {
+            setDropdownPosition(null);
+            return;
+        }
+        const rect = root.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom - DROPDOWN_OFFSET_PX;
+        const spaceAbove = rect.top - DROPDOWN_OFFSET_PX;
+        const openAbove = spaceBelow < DROPDOWN_MAX_HEIGHT_PX && spaceAbove > spaceBelow;
+        const maxHeight = Math.min(DROPDOWN_MAX_HEIGHT_PX, Math.max(0, openAbove ? spaceAbove : spaceBelow));
+
+        if (maxHeight <= 0) {
+            setDropdownPosition(null);
+            return;
+        }
+
+        setDropdownPosition({
+            top: openAbove ? rect.top - DROPDOWN_OFFSET_PX - maxHeight : rect.bottom + DROPDOWN_OFFSET_PX,
+            left: rect.left,
+            width: rect.width,
+            maxHeight,
+        });
+    }, []);
+
+    useLayoutEffect(() => {
+        if (!showSuggestions) {
+            setDropdownPosition(null);
+            return;
+        }
+        updateDropdownPosition();
+        window.addEventListener('resize', updateDropdownPosition);
+        window.addEventListener('scroll', updateDropdownPosition, true);
+        return () => {
+            window.removeEventListener('resize', updateDropdownPosition);
+            window.removeEventListener('scroll', updateDropdownPosition, true);
+        };
+    }, [showSuggestions, updateDropdownPosition, filteredSuggestions.length, draft, values.length]);
+
+    const openSuggestions = () => {
+        if (!disabled && hasAutocomplete) {
+            setOpen(true);
+        }
+    };
+
+    const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (hasAutocomplete && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+            event.preventDefault();
+            if (filteredSuggestions.length === 0) {
+                return;
+            }
+            setOpen(true);
+            setActiveIndex(current => {
+                if (event.key === 'ArrowDown') {
+                    return (current + 1) % filteredSuggestions.length;
+                }
+                return current <= 0 ? filteredSuggestions.length - 1 : current - 1;
+            });
+            return;
+        }
+        if (event.key === 'Enter' && activeIndex >= 0 && filteredSuggestions[activeIndex]) {
+            event.preventDefault();
+            add(filteredSuggestions[activeIndex], true);
+            return;
+        }
+        if (event.key === 'Enter' || event.key === ',') {
+            event.preventDefault();
+            add(draft);
+        } else if (event.key === 'Backspace' && !draft && values.length) {
+            remove(values[values.length - 1]);
+        } else if (event.key === 'Escape') {
+            setOpen(false);
+            setActiveIndex(-1);
+        }
+    };
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-2" ref={rootRef}>
             <div className="flex items-center gap-1.5">
                 <Label className={disabled ? 'text-muted-foreground' : ''}>{label}</Label>
                 <InfoTooltip content={hint} />
@@ -68,37 +183,64 @@ export function Chips({ label, hint, values, placeholder, disabled, suggestions,
                     placeholder={values.length === 0 ? placeholder : ''}
                     value={draft}
                     disabled={disabled}
-                    onChange={e => setDraft(e.target.value)}
-                    onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ',') {
-                            e.preventDefault();
-                            add(draft);
-                        } else if (e.key === 'Backspace' && !draft && values.length) {
-                            remove(values[values.length - 1]);
-                        }
+                    role={hasAutocomplete ? 'combobox' : undefined}
+                    aria-expanded={hasAutocomplete ? showSuggestions : undefined}
+                    aria-controls={showSuggestions ? listId : undefined}
+                    aria-autocomplete={hasAutocomplete ? 'list' : undefined}
+                    aria-activedescendant={activeDescendant}
+                    autoComplete="off"
+                    onChange={event => {
+                        setDraft(event.target.value);
+                        setOpen(true);
+                        setActiveIndex(-1);
                     }}
+                    onFocus={openSuggestions}
+                    onClick={openSuggestions}
+                    onKeyDown={handleInputKeyDown}
                     onBlur={() => {
-                        if (draft.trim()) add(draft);
+                        if (addOnBlur && draft.trim()) {
+                            add(draft);
+                        } else if (!addOnBlur) {
+                            setDraft('');
+                        }
+                        setOpen(false);
+                        setActiveIndex(-1);
                     }}
                 />
             </div>
 
-            {!disabled && filteredSuggestions.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="text-xs text-muted-foreground">Suggested:</span>
-                    {filteredSuggestions.map(s => (
-                        <button
-                            key={s}
-                            type="button"
-                            onClick={() => add(s)}
-                            className="inline-flex items-center gap-0.5 text-xs text-primary hover:underline"
-                        >
-                            <PlusIcon className="size-3" />
-                            {s}
-                        </button>
-                    ))}
-                </div>
-            )}
+            {showSuggestions && dropdownPosition
+                ? createPortal(
+                      <ul
+                          id={listId}
+                          role="listbox"
+                          className="fixed z-[100] overflow-y-auto rounded-md border bg-popover p-1 shadow-md"
+                          style={{
+                              top: dropdownPosition.top,
+                              left: dropdownPosition.left,
+                              width: dropdownPosition.width,
+                              maxHeight: dropdownPosition.maxHeight,
+                          }}
+                          onMouseDown={event => event.preventDefault()}
+                      >
+                          {filteredSuggestions.map((suggestion, index) => (
+                              <li key={suggestion}>
+                                  <button
+                                      type="button"
+                                      id={optionId(index)}
+                                      role="option"
+                                      aria-selected={index === activeIndex}
+                                      className={`flex w-full rounded-sm px-2 py-1.5 text-left text-sm font-mono ${index === activeIndex ? 'bg-accent' : 'hover:bg-accent'}`}
+                                      onClick={() => add(suggestion, true)}
+                                  >
+                                      {suggestion}
+                                  </button>
+                              </li>
+                          ))}
+                      </ul>,
+                      document.body,
+                  )
+                : null}
         </div>
     );
 }

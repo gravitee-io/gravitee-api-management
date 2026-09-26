@@ -15,7 +15,8 @@
  */
 import { Badge, Button } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
-import { useMemo, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export interface ChipInputProps {
     readonly id?: string;
@@ -34,6 +35,16 @@ export interface ChipInputProps {
     readonly addOnBlur?: boolean;
 }
 
+const DROPDOWN_MAX_HEIGHT_PX = 224;
+const DROPDOWN_OFFSET_PX = 4;
+
+interface DropdownPosition {
+    top: number;
+    left: number;
+    width: number;
+    maxHeight: number;
+}
+
 export function ChipInput({
     id,
     values,
@@ -50,8 +61,10 @@ export function ChipInput({
     const [draft, setDraft] = useState('');
     const [open, setOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(-1);
+    const [dropdownPosition, setDropdownPosition] = useState<DropdownPosition | null>(null);
+    const rootRef = useRef<HTMLDivElement>(null);
 
-    const add = (value: string) => {
+    const add = (value: string, keepSuggestionsOpen = false) => {
         if (disabled) {
             return;
         }
@@ -61,7 +74,7 @@ export function ChipInput({
         }
         onChange([...values, trimmed]);
         setDraft('');
-        setOpen(false);
+        setOpen(keepSuggestionsOpen);
         setActiveIndex(-1);
     };
 
@@ -85,8 +98,53 @@ export function ChipInput({
     const showSuggestions = !disabled && open && filteredSuggestions.length > 0;
     const activeDescendant = showSuggestions && activeIndex >= 0 ? optionId(activeIndex) : undefined;
 
+    const updateDropdownPosition = useCallback(() => {
+        const root = rootRef.current;
+        if (!root) {
+            setDropdownPosition(null);
+            return;
+        }
+        const rect = root.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom - DROPDOWN_OFFSET_PX;
+        const spaceAbove = rect.top - DROPDOWN_OFFSET_PX;
+        const openAbove = spaceBelow < DROPDOWN_MAX_HEIGHT_PX && spaceAbove > spaceBelow;
+        const maxHeight = Math.min(DROPDOWN_MAX_HEIGHT_PX, Math.max(0, openAbove ? spaceAbove : spaceBelow));
+
+        if (maxHeight <= 0) {
+            setDropdownPosition(null);
+            return;
+        }
+
+        setDropdownPosition({
+            top: openAbove ? rect.top - DROPDOWN_OFFSET_PX - maxHeight : rect.bottom + DROPDOWN_OFFSET_PX,
+            left: rect.left,
+            width: rect.width,
+            maxHeight,
+        });
+    }, []);
+
+    useLayoutEffect(() => {
+        if (!showSuggestions) {
+            setDropdownPosition(null);
+            return;
+        }
+        updateDropdownPosition();
+        window.addEventListener('resize', updateDropdownPosition);
+        window.addEventListener('scroll', updateDropdownPosition, true);
+        return () => {
+            window.removeEventListener('resize', updateDropdownPosition);
+            window.removeEventListener('scroll', updateDropdownPosition, true);
+        };
+    }, [showSuggestions, updateDropdownPosition, filteredSuggestions.length, draft, values.length]);
+
+    const openSuggestions = () => {
+        if (!disabled && suggestions.length > 0) {
+            setOpen(true);
+        }
+    };
+
     return (
-        <div className="relative">
+        <div className="relative" ref={rootRef}>
             <div className={`flex min-h-9 flex-wrap gap-1.5 rounded-md border bg-muted/30 p-2 ${disabled ? 'opacity-50' : ''}`}>
                 {values.map((value, index) => (
                     <Badge key={`${value}-${index}`} variant="secondary" className="gap-0.5 pr-1 font-normal">
@@ -124,7 +182,8 @@ export function ChipInput({
                         setOpen(true);
                         setActiveIndex(-1);
                     }}
-                    onFocus={() => setOpen(true)}
+                    onFocus={openSuggestions}
+                    onClick={openSuggestions}
                     onKeyDown={event => {
                         if (suggestions.length > 0 && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
                             event.preventDefault();
@@ -142,7 +201,7 @@ export function ChipInput({
                         }
                         if (event.key === 'Enter' && activeIndex >= 0 && filteredSuggestions[activeIndex]) {
                             event.preventDefault();
-                            add(filteredSuggestions[activeIndex]);
+                            add(filteredSuggestions[activeIndex], true);
                             return;
                         }
                         if (event.key === 'Enter' || (addOnComma && event.key === ',')) {
@@ -166,29 +225,38 @@ export function ChipInput({
                     }}
                 />
             </div>
-            {showSuggestions ? (
-                <ul
-                    id={listId}
-                    role="listbox"
-                    className="absolute z-50 mt-1 max-h-56 w-full overflow-auto rounded-md border bg-popover p-1 shadow-md"
-                    onMouseDown={event => event.preventDefault()}
-                >
-                    {filteredSuggestions.map((suggestion, index) => (
-                        <li key={suggestion}>
-                            <button
-                                type="button"
-                                id={optionId(index)}
-                                role="option"
-                                aria-selected={index === activeIndex}
-                                className={`flex w-full rounded-sm px-2 py-1.5 text-left text-sm ${index === activeIndex ? 'bg-accent' : 'hover:bg-accent'}`}
-                                onClick={() => add(suggestion)}
-                            >
-                                {suggestion}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            ) : null}
+            {showSuggestions && dropdownPosition
+                ? createPortal(
+                      <ul
+                          id={listId}
+                          role="listbox"
+                          className="fixed z-[100] overflow-y-auto rounded-md border bg-popover p-1 shadow-md"
+                          style={{
+                              top: dropdownPosition.top,
+                              left: dropdownPosition.left,
+                              width: dropdownPosition.width,
+                              maxHeight: dropdownPosition.maxHeight,
+                          }}
+                          onMouseDown={event => event.preventDefault()}
+                      >
+                          {filteredSuggestions.map((suggestion, index) => (
+                              <li key={suggestion}>
+                                  <button
+                                      type="button"
+                                      id={optionId(index)}
+                                      role="option"
+                                      aria-selected={index === activeIndex}
+                                      className={`flex w-full rounded-sm px-2 py-1.5 text-left text-sm ${index === activeIndex ? 'bg-accent' : 'hover:bg-accent'}`}
+                                      onClick={() => add(suggestion, true)}
+                                  >
+                                      {suggestion}
+                                  </button>
+                              </li>
+                          ))}
+                      </ul>,
+                      document.body,
+                  )
+                : null}
         </div>
     );
 }
