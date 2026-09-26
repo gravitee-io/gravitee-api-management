@@ -38,8 +38,20 @@ import io.gravitee.apim.rest.api.automation.model.PlanSecurityType;
 import io.gravitee.apim.rest.api.automation.model.PlanV4;
 import io.gravitee.apim.rest.api.automation.model.StepV4;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
+import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.RequestValidation;
+import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.analytics.tracing.MaskingType;
+import io.gravitee.definition.model.v4.analytics.tracing.Tracing;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingMaskingStrategy;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionConfig;
+import io.gravitee.definition.model.v4.analytics.tracing.TracingRedactionRule;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -53,6 +65,7 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.assertj.core.groups.Tuple;
@@ -98,6 +111,70 @@ class ApiResourceTest extends AbstractResourceTest {
                     assertThat(state.getCrossId()).isEqualTo(API_CROSS_ID);
                     assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
+                });
+            }
+        }
+
+        @Test
+        void should_get_listener_tracing_and_failover_settings() {
+            var maskingStrategy = new TracingMaskingStrategy();
+            maskingStrategy.setType(MaskingType.PARTIAL);
+            maskingStrategy.setReplacement("#");
+            maskingStrategy.setPrefixLength(7);
+            maskingStrategy.setSuffixLength(2);
+            var rule = new TracingRedactionRule();
+            rule.setAttributeNamePattern("http.request.header.authorization");
+            rule.setValuePattern("^Bearer ");
+            rule.setMaskingStrategy(maskingStrategy);
+            var redaction = new TracingRedactionConfig();
+            redaction.setDefaultReplacement("[MASKED]");
+            redaction.setRules(List.of(rule));
+            var tracing = new Tracing();
+            tracing.setEnabled(true);
+            tracing.setRedaction(redaction);
+            var spec = ApiCRDSpec.builder()
+                .id(API_ID)
+                .crossId(API_CROSS_ID)
+                .hrid(HRID)
+                .listeners(
+                    List.of(
+                        HttpListener.builder()
+                            .paths(List.of(Path.builder().path("/test-hrid").build()))
+                            .pathMappings(Set.of("/products/:productId"))
+                            .cors(Cors.builder().enabled(true).allowPrivateNetwork(true).build())
+                            .requestValidation(RequestValidation.builder().rejectNullByte(true).build())
+                            .entrypoints(List.of(Entrypoint.builder().type("http-proxy").build()))
+                            .build()
+                    )
+                )
+                .analytics(Analytics.builder().enabled(true).tracing(tracing).build())
+                .failover(
+                    Failover.builder().enabled(true).failureCondition("{#response.status >= 500}").forceNextEndpointOnFailure(true).build()
+                )
+                .build();
+
+            try (var ctx = mockStatic(GraviteeContext.class)) {
+                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(exportApiCRDUseCase.execute(any(ExportApiCRDUseCase.Input.class))).thenReturn(new ExportApiCRDUseCase.Output(spec));
+
+                var state = expectEntity(HRID, false);
+
+                var listener = state.getListeners().getFirst().getHttpListener();
+                var stateRedaction = state.getAnalytics().getTracing().getRedaction();
+                var stateRule = stateRedaction.getRules().getFirst();
+                SoftAssertions.assertSoftly(soft -> {
+                    soft.assertThat(listener.getPathMappings()).containsExactly("/products/:productId");
+                    soft.assertThat(listener.getCors().getAllowPrivateNetwork()).isTrue();
+                    soft.assertThat(listener.getRequestValidation().getRejectNullByte()).isTrue();
+                    soft.assertThat(stateRedaction.getDefaultReplacement()).isEqualTo("[MASKED]");
+                    soft.assertThat(stateRule.getAttributeNamePattern()).isEqualTo("http.request.header.authorization");
+                    soft.assertThat(stateRule.getValuePattern()).isEqualTo("^Bearer ");
+                    soft.assertThat(stateRule.getMaskingStrategy().getType().getValue()).isEqualTo("PARTIAL");
+                    soft.assertThat(stateRule.getMaskingStrategy().getReplacement()).isEqualTo("#");
+                    soft.assertThat(stateRule.getMaskingStrategy().getPrefixLength()).isEqualTo(7);
+                    soft.assertThat(stateRule.getMaskingStrategy().getSuffixLength()).isEqualTo(2);
+                    soft.assertThat(state.getFailover().getFailureCondition()).isEqualTo("{#response.status >= 500}");
+                    soft.assertThat(state.getFailover().getForceNextEndpointOnFailure()).isTrue();
                 });
             }
         }
