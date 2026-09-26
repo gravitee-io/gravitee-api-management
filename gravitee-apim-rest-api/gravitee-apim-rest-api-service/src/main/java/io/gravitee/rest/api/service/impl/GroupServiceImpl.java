@@ -276,7 +276,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             }
             return groups;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
         }
     }
@@ -334,7 +333,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .sorted(Comparator.comparing(GroupSimpleEntity::getName))
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all groups", ex);
         }
     }
@@ -375,7 +373,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             log.debug("findByUsername : {} - DONE", name);
             return groupEntities;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find groups by name", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups by name", ex);
         }
     }
@@ -407,7 +404,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             log.debug("create {} - DONE", grp);
             return grp;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to create a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to create a group", ex);
         }
     }
@@ -449,7 +445,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             return findById(executionContext, groupId);
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to update a group";
-            log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
     }
@@ -536,7 +531,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             GroupEntity groupEntity = this.map(executionContext, group.get());
 
             if (groupEntity == null) {
-                log.error("An error occurs while trying to find a group {}", groupId);
                 throw new TechnicalManagementException("An error occurs while trying to find a group " + groupId);
             }
 
@@ -575,7 +569,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             return groupEntity;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find a group", ex);
         }
     }
@@ -611,7 +604,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                     break;
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to associate group to all {}", associationType, ex);
             throw new TechnicalManagementException("An error occurs while trying to associate group to all " + associationType, ex);
         }
     }
@@ -644,7 +636,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 .sorted(Comparator.comparing(GroupEntity::getName))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups", ex);
         }
     }
@@ -667,7 +658,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             log.debug("findByEvent : {} - DONE", set);
             return set;
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find groups by event", ex);
             throw new TechnicalManagementException("An error occurs while trying to find groups by event", ex);
         }
     }
@@ -773,7 +763,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                         applicationRepository.update(application);
                         applicationIds.add(application.getId());
                     } catch (TechnicalException ex) {
-                        log.error("An error occurs while trying to delete a group", ex);
                         throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
                     }
                 });
@@ -807,7 +796,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
 
             log.debug("delete {} - DONE", groupId);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -841,7 +829,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -857,7 +844,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -884,7 +870,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 }
             }
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to delete a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a group", ex);
         }
     }
@@ -950,7 +935,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         try {
             return groupRepository.findByIds(userGroups).stream().map(this::map).collect(Collectors.toSet());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all user groups", ex);
             throw new TechnicalManagementException("An error occurs while trying to find all user groups", ex);
         }
     }
@@ -1013,7 +997,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
                 })
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find all application of group {}", groupId, ex);
             throw new TechnicalManagementException("An error occurs while trying to find all application of group " + groupId, ex);
         }
     }
@@ -1309,7 +1292,6 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
             group.setApiPrimaryOwner(newApiPrimaryOwner);
             groupRepository.update(group);
         } catch (TechnicalException ex) {
-            log.error("An error occurs while trying to find or update a group", ex);
             throw new TechnicalManagementException("An error occurs while trying to find or update a group", ex);
         }
     }
