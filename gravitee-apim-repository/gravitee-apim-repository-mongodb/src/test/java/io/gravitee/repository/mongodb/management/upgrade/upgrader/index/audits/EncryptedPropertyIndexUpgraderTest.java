@@ -21,17 +21,29 @@ import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import org.bson.Document;
 import org.junit.jupiter.api.Test;
 
-class PropertiesIndexUpgraderTest {
+class EncryptedPropertyIndexUpgraderTest {
 
     @Test
-    void should_define_a_wildcard_index_on_audits() {
-        Index index = new PropertiesIndexUpgrader().buildIndex();
+    void should_index_the_encrypted_property_on_audits() {
+        Index index = new EncryptedPropertyIndexUpgrader().buildIndex();
 
         assertThat(index.getCollection()).isEqualTo("audits");
-        assertThat(index.options().getName()).isEqualTo("p1");
+        assertThat(index.options().getName()).isEqualTo("pe1");
 
         Document keys = index.toIndexDefinition().getIndexKeys();
         assertThat(keys).hasSize(1);
-        assertThat(keys.get("properties.$**")).isEqualTo(1);
+        assertThat(keys.get("properties.ENCRYPTED")).isEqualTo(1);
+    }
+
+    @Test
+    void should_only_index_audits_carrying_the_encrypted_property() {
+        Document options = new EncryptedPropertyIndexUpgrader()
+            .buildIndex()
+            .toIndexDefinition()
+            .getIndexOptions();
+
+        assertThat(options.get("partialFilterExpression")).isEqualTo(
+            new Document("properties.ENCRYPTED", new Document("$exists", true))
+        );
     }
 }

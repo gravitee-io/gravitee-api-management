@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.upgrade.upgrader.index.audits;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
+
+import com.mongodb.client.model.Filters;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.Index;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.index.IndexUpgrader;
 import org.springframework.stereotype.Component;
@@ -22,19 +25,23 @@ import org.springframework.stereotype.Component;
 /**
  * @author GraviteeSource Team
  */
-@Component("AuditsPropertiesIndexUpgrader")
-public class PropertiesIndexUpgrader extends IndexUpgrader {
+@Component("AuditsEncryptedPropertyIndexUpgrader")
+public class EncryptedPropertyIndexUpgrader extends IndexUpgrader {
+
+    private static final String ENCRYPTED_PROPERTY_FIELD =
+        "properties." + ENCRYPTED.name();
 
     /**
-     * Audit properties are a free-form map, so every key has to be covered by a single wildcard index rather than
-     * by one index per key.
+     * Partial rather than plain: a plain index would store every audit lacking the property under {@code null}, so
+     * every audit write would pay for a filter only encrypted-change audits can match.
      */
     @Override
     protected Index buildIndex() {
         return Index.builder()
             .collection("audits")
-            .name("p1")
-            .key("properties.$**", ascending())
+            .name("pe1")
+            .key(ENCRYPTED_PROPERTY_FIELD, ascending())
+            .partialFilterExpression(Filters.exists(ENCRYPTED_PROPERTY_FIELD))
             .build();
     }
 }

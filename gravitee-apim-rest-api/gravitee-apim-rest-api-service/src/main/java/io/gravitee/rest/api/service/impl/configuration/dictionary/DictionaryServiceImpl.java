@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY_ENCRYPTED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -493,7 +493,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
         auditProperties.put(DICTIONARY, dictionaryName);
         if (hasEncryptedProperty(oldValue) || hasEncryptedProperty(newValue)) {
-            auditProperties.put(DICTIONARY_ENCRYPTED, Boolean.TRUE.toString());
+            auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
         }
 
         auditService.createAuditLog(
@@ -509,10 +509,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {
-        if (dictionary == null || dictionary.getProperties() == null) {
-            return false;
-        }
-        return dictionary.getProperties().values().stream().filter(Objects::nonNull).anyMatch(DictionaryProperty::encrypted);
+        return dictionary != null && hasEncryptedProperty(dictionary.getProperties());
+    }
+
+    private static boolean hasEncryptedProperty(Map<String, DictionaryProperty> properties) {
+        return properties != null && properties.values().stream().filter(Objects::nonNull).anyMatch(DictionaryProperty::encrypted);
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {

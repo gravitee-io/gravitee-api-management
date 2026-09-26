@@ -205,7 +205,7 @@ describe('EnvAuditComponent', () => {
             user: 'system',
             createdAt: 1650382350999,
             event: 'DICTIONARY_UPDATED',
-            properties: { DICTIONARY: 'my-dict', DICTIONARY_ENCRYPTED: 'true' },
+            properties: { DICTIONARY: 'my-dict', ENCRYPTED: 'true' },
             patch: '[]',
           },
         ],

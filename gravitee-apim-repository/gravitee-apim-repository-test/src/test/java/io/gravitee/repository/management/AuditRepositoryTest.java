@@ -26,11 +26,11 @@ import io.gravitee.repository.management.api.search.AuditCriteria;
 import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Audit;
+import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.Plan;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -121,24 +121,24 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_search_with_property() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.PLAN.name(), "123").build();
+    public void should_search_with_property() throws Exception {
+        auditRepository.create(encryptedDictionaryAudit("encrypted", "DEFAULT"));
+
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.ENCRYPTED.name(), "true").build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertNotNull(auditPage);
-        assertEquals(2, auditPage.getTotalElements(), "total elements");
-        assertEquals(
-            Set.of("new", "searchable1"),
-            auditPage.getContent().stream().map(Audit::getId).collect(Collectors.toSet()),
-            "audits carrying PLAN=123"
-        );
+        assertEquals(1, auditPage.getTotalElements(), "total elements");
+        assertEquals("encrypted", auditPage.getContent().getFirst().getId(), "find audit with id 'encrypted'");
     }
 
     @Test
-    public void should_search_with_property_matching_nothing() {
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.PLAN.name(), "nope").build();
+    public void should_search_with_property_matching_nothing() throws Exception {
+        auditRepository.create(encryptedDictionaryAudit("encrypted", "DEFAULT"));
+
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.ENCRYPTED.name(), "false").build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
@@ -148,10 +148,13 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void should_search_with_property_combined_with_another_criterion() {
+    public void should_search_with_property_combined_with_another_criterion() throws Exception {
+        auditRepository.create(encryptedDictionaryAudit("encrypted", "DEFAULT"));
+        auditRepository.create(encryptedDictionaryAudit("encryptedElsewhere", "other-env"));
+
         AuditCriteria auditCriteria = new AuditCriteria.Builder()
             .environmentIds(List.of("DEFAULT"))
-            .property(Audit.AuditProperties.PLAN.name(), "123")
+            .property(Audit.AuditProperties.ENCRYPTED.name(), "true")
             .build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
@@ -159,21 +162,21 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(auditPage);
         assertEquals(1, auditPage.getTotalElements(), "total elements");
-        assertEquals("new", auditPage.getContent().getFirst().getId(), "find audit with id 'new'");
+        assertEquals("encrypted", auditPage.getContent().getFirst().getId(), "find audit with id 'encrypted'");
     }
 
     @Test
     public void should_keep_every_property_of_a_matched_audit() throws Exception {
-        auditRepository.create(multiPropertyAudit());
+        auditRepository.create(encryptedDictionaryAudit("encrypted", "DEFAULT"));
 
-        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.PLAN.name(), "789").build();
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().property(Audit.AuditProperties.ENCRYPTED.name(), "true").build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
 
         Page<Audit> auditPage = auditRepository.search(auditCriteria, page);
 
         assertEquals(1, auditPage.getTotalElements(), "total elements");
         assertEquals(
-            Map.of(Audit.AuditProperties.PLAN.name(), "789", Audit.AuditProperties.API.name(), "456"),
+            Map.of(Audit.AuditProperties.DICTIONARY.name(), "my-dictionary", Audit.AuditProperties.ENCRYPTED.name(), "true"),
             auditPage.getContent().getFirst().getProperties(),
             "every property of the matched audit"
         );
@@ -181,7 +184,7 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void should_not_inflate_total_elements_for_an_audit_with_several_properties() throws Exception {
-        auditRepository.create(multiPropertyAudit());
+        auditRepository.create(encryptedDictionaryAudit("multiProperty", "multi-property-env"));
 
         AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("multi-property-env")).build();
         Pageable page = new PageableBuilder().pageNumber(0).pageSize(10).build();
@@ -192,15 +195,17 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, auditPage.getPageElements(), "page elements");
     }
 
-    private static Audit multiPropertyAudit() {
+    private static Audit encryptedDictionaryAudit(String id, String environmentId) {
         final Audit audit = new Audit();
-        audit.setId("multiProperty");
-        audit.setOrganizationId("multi-property-org");
-        audit.setEnvironmentId("multi-property-env");
-        audit.setReferenceType(Audit.AuditReferenceType.API);
-        audit.setReferenceId("1");
-        audit.setEvent(Plan.AuditEvent.PLAN_CREATED.name());
-        audit.setProperties(Map.of(Audit.AuditProperties.PLAN.name(), "789", Audit.AuditProperties.API.name(), "456"));
+        audit.setId(id);
+        audit.setOrganizationId("DEFAULT");
+        audit.setEnvironmentId(environmentId);
+        audit.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);
+        audit.setReferenceId(environmentId);
+        audit.setEvent(Dictionary.AuditEvent.DICTIONARY_UPDATED.name());
+        audit.setProperties(
+            Map.of(Audit.AuditProperties.DICTIONARY.name(), "my-dictionary", Audit.AuditProperties.ENCRYPTED.name(), "true")
+        );
         audit.setUser("JohnDoe");
         audit.setPatch("diff");
         audit.setCreatedAt(new Date(1486771200000L));

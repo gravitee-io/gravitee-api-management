@@ -17,7 +17,7 @@ import { mapValues, omit } from 'lodash';
 
 // Audit properties are also the audit search's only queryable index, so some of them classify the
 // change instead of naming an entity it was made against. Those are not targets.
-const CLASSIFICATION_PROPERTIES = ['DICTIONARY_ENCRYPTED'];
+const CLASSIFICATION_PROPERTIES = ['ENCRYPTED'];
 
 export function toAuditTargets(properties: Record<string, string>, metadata: Record<string, unknown>): Record<string, string> {
   return mapValues(omit(properties, CLASSIFICATION_PROPERTIES), (value, key) => metadata[`${key}:${value}:name`] as string);
