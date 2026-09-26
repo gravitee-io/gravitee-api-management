@@ -63,10 +63,10 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     public static final String TOKEN_AUTH_SCHEMA = "bearer";
 
     private final JWTVerifier jwtVerifier;
-    private CookieGenerator cookieGenerator;
-    private UserService userService;
-    private TokenService tokenService;
-    private AuthoritiesProvider authoritiesProvider;
+    private final CookieGenerator cookieGenerator;
+    private final UserService userService;
+    private final TokenService tokenService;
+    private final AuthoritiesProvider authoritiesProvider;
 
     public TokenAuthenticationFilter(
         final String jwtSecret,
@@ -84,7 +84,6 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
     }
 
     @Override
-    @SuppressWarnings(value = "unchecked")
     public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
         throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
@@ -97,7 +96,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                 .filter(cookie -> AUTH_COOKIE_NAME.equals(cookie.getName()))
                 .findAny();
             if (optionalStringToken.isPresent()) {
-                stringToken = decode(optionalStringToken.get().getValue(), defaultCharset().name());
+                stringToken = decode(optionalStringToken.get().getValue(), defaultCharset());
             }
         }
 
@@ -119,6 +118,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
                         userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
                         userDetails.setOrganizationId(jwt.getClaim(Claims.ORG).asString());
+                        userDetails.setGcat(jwt.getClaim(Claims.GCAT).asString());
 
                         SecurityContextHolder.getContext().setAuthentication(
                             new UsernamePasswordAuthenticationToken(userDetails, null, authorities)
