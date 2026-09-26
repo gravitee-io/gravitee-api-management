@@ -17,35 +17,54 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-import { getApiAvailability } from '../services/environmentHealthApis';
+import { getApiAvailability, getApiAvailabilityAverage } from '../services/environmentHealthApis';
 import { availabilityFromMetric, type AvailabilityView } from '../utils/availability';
+import type { HealthTimeRange, Timeframe } from '../utils/healthTimeframe';
 import { environmentHealthKeys } from '../utils/queryKeys';
 
+/**
+ * Mirrors Classic's per-row pair: `health?type=availability` for the percentage, and
+ * `health/average?type=AVAILABILITY&from&to&interval` for the window. Classic reuses the cached health
+ * payload when the timeframe changes and re-requests only the average, so the keys are split the same way.
+ */
 export function useEnvironmentHealthAvailability({
     apiId,
-    from,
-    to,
+    timeframe,
+    range,
     enabled,
     reloadToken = 0,
 }: {
     apiId: string;
-    from: number;
-    to: number;
+    timeframe: Timeframe;
+    range: HealthTimeRange;
     enabled: boolean;
     reloadToken?: number;
 }) {
     const env = useEnvironment();
-    const result = useQuery({
-        queryKey: environmentHealthKeys.availability(env?.id ?? '', apiId, from, to, reloadToken),
-        queryFn: ({ signal }) => getApiAvailability(env!.id, apiId, from, to, signal),
-        enabled: Boolean(env) && enabled,
+    const isEnabled = Boolean(env) && enabled;
+
+    const health = useQuery({
+        queryKey: environmentHealthKeys.availability(env?.id ?? '', apiId, reloadToken),
+        queryFn: ({ signal }) => getApiAvailability(env!.id, apiId, signal),
+        enabled: isEnabled,
+        // Refresh and timeframe changes move the key, so nothing else needs to refetch. Without this a
+        // remounted cell re-requested what it already had.
+        staleTime: Infinity,
     });
 
-    const availability: AvailabilityView | undefined = result.data ? availabilityFromMetric(result.data) : undefined;
+    const average = useQuery({
+        queryKey: environmentHealthKeys.availabilityAverage(env?.id ?? '', apiId, timeframe, reloadToken),
+        queryFn: ({ signal }) => getApiAvailabilityAverage(env!.id, apiId, range, signal),
+        enabled: isEnabled,
+        staleTime: Infinity,
+    });
+
+    const availability: AvailabilityView | undefined =
+        health.data || average.data ? availabilityFromMetric(health.data, average.data, timeframe) : undefined;
 
     return {
         availability,
-        isLoading: result.isLoading,
-        isError: result.isError,
+        isLoading: health.isLoading || average.isLoading,
+        isError: health.isError || average.isError,
     };
 }

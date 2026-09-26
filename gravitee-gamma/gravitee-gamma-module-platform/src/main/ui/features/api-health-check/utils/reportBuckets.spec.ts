@@ -31,9 +31,8 @@ describe('reportBuckets', () => {
         expect(bucketAvailability(Number.NaN)).toBeNull();
     });
 
-    it('counts operational, warning, and error APIs and ignores skipped samples', () => {
+    it('counts only warning and error APIs, ignoring healthy and skipped samples', () => {
         expect(summarizeReportBuckets([99, 88, 64, null, undefined])).toEqual({
-            operational: 1,
             inWarning: 1,
             inError: 1,
         });

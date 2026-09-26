@@ -18,14 +18,16 @@ import { useQuery } from '@tanstack/react-query';
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
 import { fetchEnvironmentHealthReport } from '../services/environmentHealthApis';
+import type { Timeframe } from '../utils/healthTimeframe';
 import { environmentHealthKeys } from '../utils/queryKeys';
 
-export function useEnvironmentHealthReport({ from, to, reloadToken }: { from: number; to: number; reloadToken: number }) {
+export function useEnvironmentHealthReport({ timeframe, reloadToken }: { timeframe: Timeframe; reloadToken: number }) {
     const env = useEnvironment();
     const result = useQuery({
-        queryKey: environmentHealthKeys.report(env?.id ?? '', from, to, reloadToken),
-        queryFn: ({ signal }) => fetchEnvironmentHealthReport(env!.id, from, to, signal),
+        queryKey: environmentHealthKeys.report(env?.id ?? '', timeframe, reloadToken),
+        queryFn: ({ signal }) => fetchEnvironmentHealthReport(env!.id, timeframe, signal),
         enabled: Boolean(env),
+        staleTime: Infinity,
     });
 
     return {

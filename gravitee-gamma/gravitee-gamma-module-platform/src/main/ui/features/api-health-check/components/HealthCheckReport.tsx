@@ -13,44 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription, Card, CardContent, Skeleton } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, AlertTitle } from '@gravitee/graphene-core';
 import { CircleCheckIcon, CircleXIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 
 import type { HealthCheckReport } from '../types';
 import { AVAILABILITY_ERROR_THRESHOLD, AVAILABILITY_WARNING_THRESHOLD } from '../utils/reportBuckets';
 
-function MetricCard({
-    label,
-    hint,
-    value,
-    tone,
-    isLoading,
-}: Readonly<{
-    label: string;
-    hint: string;
-    value: number;
-    tone: 'success' | 'warning' | 'error';
-    isLoading: boolean;
-}>) {
-    const toneClass = tone === 'error' ? 'text-destructive' : tone === 'warning' ? 'text-warning' : 'text-success';
-    const Icon = tone === 'error' ? CircleXIcon : tone === 'warning' ? TriangleAlertIcon : CircleCheckIcon;
-
-    return (
-        <div className="rounded-xl border p-4">
-            <div className="flex items-start justify-between gap-2">
-                {isLoading ? (
-                    <Skeleton className="h-7 w-10 rounded" />
-                ) : (
-                    <p className={`text-2xl font-semibold tabular-nums ${toneClass}`}>{value}</p>
-                )}
-                <Icon className={`size-4 shrink-0 ${toneClass}`} aria-hidden />
-            </div>
-            <p className="mt-1 text-sm font-medium">{label}</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">{hint}</p>
-        </div>
-    );
+function pluralize(count: number): string {
+    return count === 1 ? '1 API is' : `${count} APIs are`;
 }
 
+/**
+ * Classic's report banner, not a summary chart.
+ *
+ * It names only the APIs that are degraded. There is no backend aggregate for this page and the table is
+ * paginated, so an "operational" total would be a number the UI cannot stand behind -- which is why Classic
+ * never shows one either.
+ */
 export function HealthCheckReport({
     report,
     isLoading,
@@ -64,53 +43,43 @@ export function HealthCheckReport({
         return (
             <Alert variant="destructive">
                 <TriangleAlertIcon className="size-4" aria-hidden />
+                <AlertTitle>API Health Check Report</AlertTitle>
                 <AlertDescription>Failed to load the API Health Check report.</AlertDescription>
             </Alert>
         );
     }
 
-    const operational = report?.operational ?? 0;
     const inError = report?.inError ?? 0;
     const inWarning = report?.inWarning ?? 0;
-    const checked = operational + inError + inWarning;
-    const summary =
-        checked === 0
-            ? 'No availability samples in this timeframe yet.'
-            : inError === 0 && inWarning === 0
-              ? 'All checked APIs are operational.'
-              : 'Availability for APIs with health check enabled in this timeframe.';
+    const degraded = !isLoading && (inError > 0 || inWarning > 0);
+
+    const variant = degraded && inError > 0 ? 'destructive' : degraded ? 'warning' : 'default';
+    const Icon = degraded && inError > 0 ? CircleXIcon : degraded ? TriangleAlertIcon : CircleCheckIcon;
 
     return (
-        <Card>
-            <CardContent className="space-y-4 pt-6">
-                <div>
-                    <h2 className="text-base font-semibold">API Health Check Report</h2>
-                    <p className="text-muted-foreground mt-1 text-xs">{isLoading ? 'Loading…' : summary}</p>
-                </div>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <MetricCard
-                        label="Operational"
-                        hint={`Availability > ${AVAILABILITY_WARNING_THRESHOLD}%`}
-                        value={operational}
-                        tone="success"
-                        isLoading={isLoading}
-                    />
-                    <MetricCard
-                        label="In warning"
-                        hint={`Availability ≤ ${AVAILABILITY_WARNING_THRESHOLD}%`}
-                        value={inWarning}
-                        tone="warning"
-                        isLoading={isLoading}
-                    />
-                    <MetricCard
-                        label="In error"
-                        hint={`Availability ≤ ${AVAILABILITY_ERROR_THRESHOLD}%`}
-                        value={inError}
-                        tone="error"
-                        isLoading={isLoading}
-                    />
-                </div>
-            </CardContent>
-        </Card>
+        <Alert variant={variant}>
+            <Icon className="size-4" aria-hidden />
+            <AlertTitle>API Health Check Report</AlertTitle>
+            <AlertDescription>
+                {isLoading ? (
+                    'Loading...'
+                ) : !degraded ? (
+                    'All APIs are operational'
+                ) : (
+                    <span className="flex flex-col">
+                        {inError > 0 && (
+                            <span>
+                                {pluralize(inError)} in error (HealthCheck availability &lt;= {AVAILABILITY_ERROR_THRESHOLD}%)
+                            </span>
+                        )}
+                        {inWarning > 0 && (
+                            <span>
+                                {pluralize(inWarning)} in warning (HealthCheck availability &lt;= {AVAILABILITY_WARNING_THRESHOLD}%)
+                            </span>
+                        )}
+                    </span>
+                )}
+            </AlertDescription>
+        </Alert>
     );
 }

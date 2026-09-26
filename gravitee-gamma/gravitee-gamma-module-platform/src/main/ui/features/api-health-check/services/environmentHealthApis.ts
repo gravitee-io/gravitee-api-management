@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { ApiAvailabilityMetric, ApiSearchHit, ApiSearchResponse, EnvironmentHealthApi } from '../types';
+import { apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import type { ApiAvailabilityMetric, ApiHealthAverage, ApiSearchHit, ApiSearchResponse, EnvironmentHealthApi } from '../types';
 import { reportAvailabilityPctFromMetric } from '../utils/availability';
 import { healthCheckEnabled } from '../utils/healthCheckEnabled';
-import { HEALTH_CHECK_FILTER_QUERY, V4_HTTP_PROXY_API_TYPES } from '../utils/healthCheckQuery';
+import { HEALTH_CHECK_DEFINITION_VERSIONS, HEALTH_CHECK_FILTER_QUERY } from '../utils/healthCheckQuery';
+import type { Timeframe } from '../utils/healthTimeframe';
 import { summarizeReportBuckets, type HealthCheckReport } from '../utils/reportBuckets';
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
@@ -44,7 +45,6 @@ export function toEnvironmentHealthApi(hit: ApiSearchHit): EnvironmentHealthApi 
         lifecycleState: hit.lifecycleState,
         workflowState: hit.workflowState,
         origin: hit.originContext?.origin,
-        pictureUrl: hit._links?.pictureUrl,
         healthcheckEnabled: healthCheckEnabled(hit),
     };
 }
@@ -63,27 +63,41 @@ export async function searchEnvironmentHealthApis(
         headers: JSON_HEADERS,
         body: JSON.stringify({
             query: params.query || undefined,
-            apiTypes: [...V4_HTTP_PROXY_API_TYPES],
+            definitionVersions: [...HEALTH_CHECK_DEFINITION_VERSIONS],
         }),
         signal,
     });
 }
 
-export async function getApiAvailability(
+/**
+ * Classic's call: v1 `/apis/{id}/health?type=availability`. One request returns every timeframe, so the
+ * timeframe select re-reads the same payload instead of re-fetching every row.
+ */
+export async function getApiAvailability(environmentId: string, apiId: string, signal?: AbortSignal): Promise<ApiAvailabilityMetric> {
+    return apimFetchJsonV1Env<ApiAvailabilityMetric>(environmentId, `/apis/${encodeURIComponent(apiId)}/health?type=availability`, {
+        signal,
+    });
+}
+
+/**
+ * Classic's second per-row call: the availability average over the selected window. Classic refreshes this
+ * on a timeframe change while reusing the cached `health?type=availability` payload, and so does Gamma.
+ */
+export async function getApiAvailabilityAverage(
     environmentId: string,
     apiId: string,
-    from: number,
-    to: number,
+    range: { from: number; to: number; interval: number },
     signal?: AbortSignal,
-): Promise<ApiAvailabilityMetric> {
-    const path = `/apis/${encodeURIComponent(apiId)}/health/availability?from=${from}&to=${to}&field=endpoint`;
-    return apimFetchJsonV2<ApiAvailabilityMetric>(environmentId, path, { signal });
+): Promise<ApiHealthAverage> {
+    const query = `type=AVAILABILITY&from=${range.from}&to=${range.to}&interval=${range.interval}`;
+    return apimFetchJsonV1Env<ApiHealthAverage>(environmentId, `/apis/${encodeURIComponent(apiId)}/health/average?${query}`, {
+        signal,
+    });
 }
 
 export async function fetchEnvironmentHealthReport(
     environmentId: string,
-    from: number,
-    to: number,
+    timeframe: Timeframe,
     signal?: AbortSignal,
 ): Promise<HealthCheckReport> {
     const samples: Array<number | null> = [];
@@ -111,8 +125,8 @@ export async function fetchEnvironmentHealthReport(
             const chunkResults = await Promise.all(
                 chunk.map(async hit => {
                     try {
-                        const metric = await getApiAvailability(environmentId, hit.id, from, to, signal);
-                        return { sample: reportAvailabilityPctFromMetric(metric), failed: false };
+                        const metric = await getApiAvailability(environmentId, hit.id, signal);
+                        return { sample: reportAvailabilityPctFromMetric(metric, timeframe), failed: false };
                     } catch (error) {
                         if (signal?.aborted || isAbortError(error)) {
                             throw error;

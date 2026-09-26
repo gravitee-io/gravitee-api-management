@@ -19,8 +19,14 @@ export const AVAILABILITY_WARNING_THRESHOLD = 95;
 
 export type AvailabilityBucket = 'operational' | 'warning' | 'error';
 
+/**
+ * What Classic's report banner reports: how many health-checked APIs are degraded.
+ *
+ * Deliberately no "operational" count. The page is paginated and there is no backend aggregate, so any
+ * total the UI puts next to the table would be a number it cannot stand behind. Classic only ever names
+ * the APIs that are in error or in warning, and stays silent about the rest.
+ */
 export interface HealthCheckReport {
-    readonly operational: number;
     readonly inWarning: number;
     readonly inError: number;
 }
@@ -48,11 +54,8 @@ export function summarizeReportBuckets(samples: ReadonlyArray<number | null | un
             if (bucket === 'warning') {
                 return { ...acc, inWarning: acc.inWarning + 1 };
             }
-            if (bucket === 'operational') {
-                return { ...acc, operational: acc.operational + 1 };
-            }
             return acc;
         },
-        { operational: 0, inWarning: 0, inError: 0 },
+        { inWarning: 0, inError: 0 },
     );
 }

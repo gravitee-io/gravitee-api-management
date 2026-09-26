@@ -61,6 +61,7 @@ export function ApiHealthCheckPage() {
     const [now, setNow] = useState(() => Date.now());
 
     const order = useMemo(() => sortToOrder(sorting), [sorting]);
+    // Same window Classic sends to health/average: now - duration, now, duration / 30 buckets.
     const range = useMemo(() => resolveHealthTimeRange(timeframe, undefined, now), [now, timeframe]);
 
     useEffect(() => {
@@ -91,14 +92,15 @@ export function ApiHealthCheckPage() {
         setSearchParams(next, { replace: true });
     }, [order, page, pageSize, query, setSearchParams]);
 
+    // No reloadToken: Refresh re-runs the report and each row's availability, as Classic does, but not the
+    // table search itself -- that response carries full API definitions and runs to megabytes.
     const list = useEnvironmentHealthApis({
         query,
         page,
         perPage: pageSize,
         sortBy: order,
-        reloadToken: now,
     });
-    const report = useEnvironmentHealthReport({ from: range.from, to: range.to, reloadToken: now });
+    const report = useEnvironmentHealthReport({ timeframe, reloadToken: now });
 
     const handleSortingChange = useCallback<Dispatch<SetStateAction<TableSortingState>>>(updater => {
         setSorting(previous => (typeof updater === 'function' ? updater(previous) : updater));
@@ -179,8 +181,8 @@ export function ApiHealthCheckPage() {
                         page={page}
                         pageSize={pageSize}
                         sorting={sorting}
-                        from={range.from}
-                        to={range.to}
+                        timeframe={timeframe}
+                        range={range}
                         reloadToken={now}
                         dashboardHref={dashboardHref}
                         onSearchChange={handleSearchChange}
