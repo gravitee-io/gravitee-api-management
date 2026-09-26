@@ -147,7 +147,7 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         final String filterSeparator = " AND ";
         final String[] filters = query.filter().split(filterSeparator);
         return stream(filters)
-            .map(f -> f.split(":"))
+            .map(f -> f.split(":", 2))
             .filter(filter -> {
                 final String filterKey = filter[0];
                 return (log && filterKey.contains("body")) || (!log && !filterKey.contains("body"));
@@ -171,6 +171,9 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
     private String createElasticsearchJsonQuery(final TabularQuery query) {
         final Map<String, Object> data = new HashMap<>();
         data.put("query", query);
+        if (query.query() != null) {
+            data.put("filter", escapeUnescapedQuotes(query.query().filter()));
+        }
 
         return this.freeMarkerComponent.generateFromTemplate(LOG_TEMPLATE, data);
     }
@@ -299,6 +302,28 @@ public class ElasticLogRepository extends AbstractElasticsearchRepository implem
         }
         String escaped = escapeForJsonLucene(filter);
         return json.replace("\"" + filter + "\"", "\"" + escaped + "\"");
+    }
+
+    /**
+     * Escapes each double quote that would otherwise terminate the JSON string the filter
+     * is embedded in, i.e. a quote preceded by an even number of backslashes. A quote
+     * already JSON-escaped ({@code \"}) is kept as is, so it still reaches Lucene as a
+     * phrase delimiter.
+     */
+    static String escapeUnescapedQuotes(String filter) {
+        if (filter == null || filter.indexOf('"') < 0) {
+            return filter;
+        }
+        final StringBuilder escaped = new StringBuilder(filter.length() + 8);
+        int backslashes = 0;
+        for (char c : filter.toCharArray()) {
+            if (c == '"' && backslashes % 2 == 0) {
+                escaped.append('\\');
+            }
+            escaped.append(c);
+            backslashes = c == '\\' ? backslashes + 1 : 0;
+        }
+        return escaped.toString();
     }
 
     /**
