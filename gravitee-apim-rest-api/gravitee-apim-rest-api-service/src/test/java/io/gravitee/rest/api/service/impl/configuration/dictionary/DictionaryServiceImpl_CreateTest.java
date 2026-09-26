@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_CREATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -253,6 +254,41 @@ public class DictionaryServiceImpl_CreateTest {
         dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
 
         verify(appender, never()).doAppend(argThat(event -> event.getFormattedMessage().contains("super-secret-value")));
+    }
+
+    @Test
+    public void should_mark_audit_as_encrypted_when_a_property_is_encrypted() throws Exception {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setName("my-dict");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("secret", "s3cr3t"));
+        newDictionary.setPropertyOptions(Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build()));
+
+        when(dictionaryRepository.findById(any())).thenReturn(Optional.empty());
+        when(dictionaryRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("s3cr3t")).thenReturn("ENCRYPTED");
+
+        dictionaryService.create(new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID), newDictionary);
+
+        verify(auditService).createAuditLog(
+            any(ExecutionContext.class),
+            argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED)))
+        );
+    }
+
+    @Test
+    public void should_not_mark_audit_as_encrypted_when_no_property_is_encrypted() throws TechnicalException {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setName("my-dict");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("plain", "value"));
+
+        when(dictionaryRepository.findById(any())).thenReturn(Optional.empty());
+        when(dictionaryRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        dictionaryService.create(new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID), newDictionary);
+
+        verify(auditService).createAuditLog(any(ExecutionContext.class), argThat(data -> !data.getProperties().containsKey(ENCRYPTED)));
     }
 
     @Test

@@ -18,13 +18,13 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router-dom';
 
+import { LoginPage } from './LoginPage';
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { buildBootstrapConfig, buildUser, TEST_MANAGEMENT_BASE } from '../../../testing/factories';
 import { respondWith, respondWithError, trackHandler } from '../../../testing/helpers';
 import { server } from '../../../testing/server';
 import { useAuthStore } from '../auth.store';
 import type { SocialIdentityProvider } from '../auth.types';
-import { LoginPage } from './LoginPage';
 
 function renderLoginPage(initialPath = '/login') {
     return render(

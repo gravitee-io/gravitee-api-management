@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.model.audit;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -28,6 +29,7 @@ public class AuditQuery {
     private List<String> applicationIds;
     private AuditReferenceType referenceType;
     private List<String> events;
+    private Map<String, String> properties;
     private long from;
     private long to;
     private int size;
@@ -71,6 +73,14 @@ public class AuditQuery {
 
     public void setEvents(List<String> events) {
         this.events = events;
+    }
+
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+        this.properties = properties;
     }
 
     public long getFrom() {

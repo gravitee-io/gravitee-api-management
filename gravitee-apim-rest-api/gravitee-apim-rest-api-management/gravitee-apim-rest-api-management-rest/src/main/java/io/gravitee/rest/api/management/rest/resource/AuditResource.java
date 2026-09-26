@@ -94,6 +94,7 @@ public class AuditResource extends AbstractResource {
         if (param.getEvent() != null) {
             query.setEvents(Collections.singletonList(param.getEvent()));
         }
+        param.applyEncryptedFilterTo(query);
 
         return new AuditEntityMetadataPage(auditService.search(GraviteeContext.getExecutionContext(), query));
     }
