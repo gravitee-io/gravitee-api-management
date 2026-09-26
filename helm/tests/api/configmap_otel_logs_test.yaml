@@ -2,16 +2,22 @@ suite: Test Management API configmap for the OTel logs repository scope
 templates:
   - "api/api-configmap.yaml"
 tests:
-  - it: Default values render no otel-logs block (type "none")
+  - it: Default values render otel-logs with type "none" and no elasticsearch block
     template: api/api-configmap.yaml
     asserts:
       - hasDocuments:
           count: 1
       - isKind:
           of: ConfigMap
+      # The configmap replaces the whole gravitee.yml: without an explicit `type: none` the optional
+      # OTEL_LOGS scope loads no repository at all, and the gamma trace detail fails with a 500
+      # instead of falling back to the no-op OtelLogRepository.
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "otel-logs:\\s+type: none"
       - notMatchRegex:
           path: data["gravitee.yml"]
-          pattern: "otel-logs:"
+          pattern: "otel-logs:\\s+type: none\\s+elasticsearch:"
 
   - it: Type elasticsearch renders the block with endpoints and index template
     template: api/api-configmap.yaml
@@ -105,8 +111,8 @@ tests:
         otelLogs:
           type: loki
     asserts:
-      # The block-level guard is `ne … "none"`, so any non-"none" type renders `otel-logs.type: <value>`
-      # without forcing it through the ES branch. A Loki-backed impl would add its own block next to the
+      # The block always renders `otel-logs.type: <value>`; only the elasticsearch type goes through
+      # the ES branch. A Loki-backed impl would add its own block next to the
       # elasticsearch one — this test pins that the structure is type-agnostic, not ES-only.
       - matchRegex:
           path: data["gravitee.yml"]
