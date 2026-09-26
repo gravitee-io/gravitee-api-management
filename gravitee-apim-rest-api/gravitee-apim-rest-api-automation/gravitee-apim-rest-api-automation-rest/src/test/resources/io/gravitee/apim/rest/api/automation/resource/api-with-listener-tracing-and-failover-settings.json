@@ -1,0 +1,97 @@
+{
+    "name": "api-v4-with-listener-tracing-and-failover-settings",
+    "hrid": "api-hrid",
+    "description": "API v4 CRD spec carrying HTTP listener, tracing redaction and failover settings",
+    "version": "1.0",
+    "type": "PROXY",
+    "listeners": [
+        {
+            "type": "HTTP",
+            "paths": [
+                {
+                    "path": "/test-hrid"
+                }
+            ],
+            "pathMappings": ["/products/:productId"],
+            "cors": {
+                "enabled": true,
+                "allowOrigin": ["https://app.example.com"],
+                "allowPrivateNetwork": true
+            },
+            "requestValidation": {
+                "rejectNullByte": true
+            },
+            "entrypoints": [
+                {
+                    "type": "http-proxy",
+                    "qos": "AUTO"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "Default HTTP proxy group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "Default HTTP proxy",
+                    "type": "http-proxy",
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "https://api.gravitee.io/echo"
+                    },
+                    "secondary": false
+                }
+            ]
+        }
+    ],
+    "analytics": {
+        "enabled": true,
+        "tracing": {
+            "enabled": true,
+            "redaction": {
+                "defaultReplacement": "[MASKED]",
+                "rules": [
+                    {
+                        "attributeNamePattern": "http.request.header.authorization",
+                        "valuePattern": "^Bearer ",
+                        "maskingStrategy": {
+                            "type": "PARTIAL",
+                            "replacement": "#",
+                            "prefixLength": 7,
+                            "suffixLength": 2
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "failover": {
+        "enabled": true,
+        "failureCondition": "{#response.status >= 500}",
+        "forceNextEndpointOnFailure": true
+    },
+    "flowExecution": {
+        "mode": "DEFAULT",
+        "matchRequired": false
+    },
+    "state": "STARTED",
+    "lifecycleState": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "flows": [],
+    "plans": [
+        {
+            "name": "Keyless plan",
+            "hrid": "KEY_LESS",
+            "description": "No authentication",
+            "type": "API",
+            "status": "PUBLISHED",
+            "validation": "AUTO",
+            "mode": "STANDARD",
+            "security": {
+                "type": "KEY_LESS"
+            }
+        }
+    ]
+}

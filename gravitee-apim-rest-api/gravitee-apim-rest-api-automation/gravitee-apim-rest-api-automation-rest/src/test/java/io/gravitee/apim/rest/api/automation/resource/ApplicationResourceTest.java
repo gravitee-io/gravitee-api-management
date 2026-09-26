@@ -29,6 +29,8 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.rest.api.automation.model.ApplicationState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.application.ApplicationSettings;
+import io.gravitee.rest.api.model.application.OAuthClientSettings;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -36,6 +38,8 @@ import io.gravitee.rest.api.service.common.HRIDToUUID;
 import io.gravitee.rest.api.service.exceptions.ApplicationNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
+import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Nested;
@@ -72,6 +76,31 @@ class ApplicationResourceTest extends AbstractResourceTest {
                     assertThat(state.getOrganizationId()).isEqualTo(ORGANIZATION);
                     assertThat(state.getEnvironmentId()).isEqualTo(ENVIRONMENT);
                 });
+            }
+        }
+
+        @Test
+        void should_get_oauth_additional_client_metadata() {
+            var oauth = OAuthClientSettings.builder()
+                .applicationType("backend_to_backend")
+                .grantTypes(List.of("client_credentials"))
+                .additionalClientMetadata(Map.of("software_id", "3d5a2f0e-1c4b-4c8a-9f7e-2b6d8e0a1c34"))
+                .build();
+            try (var ctx = mockStatic(GraviteeContext.class)) {
+                ctx.when(GraviteeContext::getExecutionContext).thenReturn(new ExecutionContext(ORGANIZATION, ENVIRONMENT));
+                when(applicationService.findById(any(), any())).thenReturn(
+                    ApplicationEntity.builder()
+                        .id(APPLICATION_ID)
+                        .hrid(HRID)
+                        .settings(ApplicationSettings.builder().oauth(oauth).build())
+                        .build()
+                );
+
+                var state = expectEntity(HRID);
+
+                assertThat(state.getSettings().getOauth().getAdditionalClientMetadata()).containsExactly(
+                    Map.entry("software_id", "3d5a2f0e-1c4b-4c8a-9f7e-2b6d8e0a1c34")
+                );
             }
         }
 

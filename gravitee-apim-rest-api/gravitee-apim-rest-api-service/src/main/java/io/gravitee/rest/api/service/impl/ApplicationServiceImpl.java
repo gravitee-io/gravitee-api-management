@@ -673,6 +673,8 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 final String registrationPayload = applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD);
                 if (registrationPayload != null) {
                     updateClientRegistration(executionContext, updateApplicationEntity, registrationPayload, metadata, applicationToUpdate);
+                } else {
+                    keepPreviousOAuthMetadata(applicationToUpdate, metadata);
                 }
             }
 
@@ -916,6 +918,25 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         }
     }
 
+    /**
+     * Carries the OAuth metadata of an application over to the update being built. The metadata map of an updated
+     * application is rebuilt from scratch — {@code applicationConverter.toApplication} returns an empty one for an
+     * OAuth application — so a key that is not re-applied is <b>dropped</b> from the persisted application rather than
+     * left untouched. Whenever the update has no fresh registration response to store, the previous values have to be
+     * put back explicitly.
+     */
+    private static void keepPreviousOAuthMetadata(Application applicationToUpdate, Map<String, String> metadata) {
+        if (applicationToUpdate.getMetadata() == null) {
+            return;
+        }
+        for (String key : List.of(METADATA_CLIENT_ID, METADATA_REGISTRATION_PAYLOAD, METADATA_ADDITIONAL_CLIENT_METADATA)) {
+            String previousValue = applicationToUpdate.getMetadata().get(key);
+            if (previousValue != null) {
+                metadata.put(key, previousValue);
+            }
+        }
+    }
+
     private void updateClientRegistration(
         ExecutionContext executionContext,
         UpdateApplicationEntity updateApplicationEntity,
@@ -937,8 +958,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             );
         } catch (Exception e) {
             log.error("Failed to update OAuth client data from client registration. Keeping old OAuth client data.", e);
-            metadata.put(METADATA_CLIENT_ID, applicationToUpdate.getMetadata().get(METADATA_CLIENT_ID));
-            metadata.put(METADATA_REGISTRATION_PAYLOAD, applicationToUpdate.getMetadata().get(METADATA_REGISTRATION_PAYLOAD));
+            keepPreviousOAuthMetadata(applicationToUpdate, metadata);
         }
     }
 

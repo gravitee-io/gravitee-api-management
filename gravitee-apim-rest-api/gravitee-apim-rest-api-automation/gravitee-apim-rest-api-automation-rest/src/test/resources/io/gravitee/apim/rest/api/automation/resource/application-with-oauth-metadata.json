@@ -1,0 +1,16 @@
+{
+  "hrid": "application-hrid",
+  "name": "oauth-app",
+  "description": "test application.",
+  "settings": {
+    "oauth": {
+      "applicationType": "web",
+      "grantTypes": ["authorization_code"],
+      "redirectUris": ["https://example.com/callback"],
+      "additionalClientMetadata": {
+        "software_id": "template-app-id"
+      }
+    }
+  },
+  "origin": "kubernetes"
+}
