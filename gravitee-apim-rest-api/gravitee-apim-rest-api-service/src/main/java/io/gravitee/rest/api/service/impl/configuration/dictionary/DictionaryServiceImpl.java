@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.DICT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -46,11 +47,10 @@ import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -84,6 +84,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     @Autowired
     private ObjectMapper mapper;
+
+    @Autowired
+    private DataEncryptor dataEncryptor;
+
+    /**
+     * Server-owned sentinel returned on read in place of an encrypted value. On write it means "leave
+     * the stored ciphertext alone", so it is only accepted for a key already stored encrypted.
+     */
+    static final String ENCRYPTED_VALUE_MASK = "••••••••••••";
 
     @Override
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
@@ -289,29 +298,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
                 .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
 
-            Dictionary dictionary = convert(updateDictionaryEntity, dictionaryToUpdate);
+            Dictionary updatedDictionary = dictionaryRepository.update(
+                withUnmanagedFieldsOf(convert(updateDictionaryEntity, dictionaryToUpdate), id, dictionaryToUpdate)
+            );
 
-            dictionary.setId(id);
-            dictionary.setKey(dictionaryToUpdate.getKey());
-            dictionary.setCreatedAt(dictionaryToUpdate.getCreatedAt());
-            dictionary.setEnvironmentId(dictionaryToUpdate.getEnvironmentId());
-            dictionary.setUpdatedAt(new Date());
-            dictionary.setState(dictionaryToUpdate.getState());
-
-            Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
-
-            // Force a new start event if the dictionary is already started when updating.
-            if (updatedDictionary.getType() == DictionaryType.DYNAMIC && updatedDictionary.getState() == LifecycleState.STARTED) {
-                eventService.createDynamicDictionaryEvent(
-                    executionContext,
-                    Collections.singleton(executionContext.getEnvironmentId()),
-                    executionContext.getOrganizationId(),
-                    EventType.START_DICTIONARY,
-                    id
-                );
-            }
-
-            // Audit
+            restartIfAlreadyStarted(executionContext, id, updatedDictionary);
             createAuditLog(
                 executionContext,
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
@@ -329,49 +320,80 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
     }
 
+    private static Dictionary withUnmanagedFieldsOf(Dictionary dictionary, String id, Dictionary stored) {
+        dictionary.setId(id);
+        dictionary.setKey(stored.getKey());
+        dictionary.setCreatedAt(stored.getCreatedAt());
+        dictionary.setEnvironmentId(stored.getEnvironmentId());
+        dictionary.setUpdatedAt(new Date());
+        dictionary.setState(stored.getState());
+        return dictionary;
+    }
+
+    /** A running dynamic dictionary needs a fresh start event to pick the update up. */
+    private void restartIfAlreadyStarted(ExecutionContext executionContext, String id, Dictionary dictionary) {
+        if (dictionary.getType() != DictionaryType.DYNAMIC || dictionary.getState() != LifecycleState.STARTED) {
+            return;
+        }
+        eventService.createDynamicDictionaryEvent(
+            executionContext,
+            Collections.singleton(executionContext.getEnvironmentId()),
+            executionContext.getOrganizationId(),
+            EventType.START_DICTIONARY,
+            id
+        );
+    }
+
     @Override
     public DictionaryEntity updateProperties(final String id, final Map<String, String> properties) {
         try {
             log.debug("Update dynamic dictionary properties {}", id);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
-            if (optDictionary.isEmpty()) {
-                throw new DictionaryNotFoundException(id);
-            }
-            Dictionary dictionary = optDictionary.get();
+            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
             if (dictionary.getState() != LifecycleState.STARTED) {
                 log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
                 return convert(dictionary);
             }
-            dictionary.setProperties(toFetchedProperties(id, properties, dictionary.getProperties()));
+            Map<String, DictionaryProperty> refreshed = toFetchedProperties(id, properties, dictionary.getProperties());
+            if (Objects.equals(refreshed, dictionary.getProperties())) {
+                return convert(dictionary);
+            }
+
+            dictionary.setProperties(refreshed);
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
-            EnvironmentEntity environment = environmentService.findById(dictionary.getEnvironmentId());
-            ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
-
-            // Create publish event
-            eventService.createDictionaryEvent(
-                executionContext,
-                Collections.singleton(executionContext.getEnvironmentId()),
-                executionContext.getOrganizationId(),
-                EventType.PUBLISH_DICTIONARY,
-                dictionary
-            );
-            // Audit
-            createAuditLog(
-                executionContext,
-                Dictionary.AuditEvent.DICTIONARY_UPDATED,
-                updatedDictionary.getUpdatedAt(),
-                optDictionary.get(),
-                updatedDictionary
-            );
+            publishRefreshedProperties(dictionary, updatedDictionary);
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to update dictionary '" + id + "' properties", ex);
         }
+    }
+
+    /**
+     * Publishes and audits a refresh in the dictionary's own environment, which the refresher — a
+     * scheduled job with no execution context of its own — cannot supply.
+     */
+    private void publishRefreshedProperties(Dictionary dictionary, Dictionary updatedDictionary) {
+        EnvironmentEntity environment = environmentService.findById(dictionary.getEnvironmentId());
+        ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
+
+        eventService.createDictionaryEvent(
+            executionContext,
+            Collections.singleton(executionContext.getEnvironmentId()),
+            executionContext.getOrganizationId(),
+            EventType.PUBLISH_DICTIONARY,
+            dictionary
+        );
+        createAuditLog(
+            executionContext,
+            Dictionary.AuditEvent.DICTIONARY_UPDATED,
+            updatedDictionary.getUpdatedAt(),
+            dictionary,
+            updatedDictionary
+        );
     }
 
     @Override
@@ -500,15 +522,20 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * classified. A key the options do not mention keeps the classification it already has, so a
      * caller can save a dictionary it only partly edited — and a caller that knows nothing about
      * encryption cannot take it away.
+     *
+     * <p>Omitting {@code properties} altogether leaves the stored ones alone, so an edit confined to
+     * the provider or the trigger cannot silently drop a value or its encrypted classification. An
+     * empty map still means "clear them", which is how the last property is deleted.
      */
-    private static Map<String, DictionaryProperty> toTypedProperties(
+    private Map<String, DictionaryProperty> toTypedProperties(
         String dictionaryId,
         Map<String, String> properties,
         Map<String, DictionaryPropertyOptions> options,
         Map<String, DictionaryProperty> existing
     ) {
         if (properties == null) {
-            return null;
+            rejectOptionsWithoutProperty(Map.of(), options);
+            return existing;
         }
         rejectOptionsWithoutProperty(properties, options);
         rejectValuelessProperties(properties);
@@ -551,71 +578,80 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             });
     }
 
-    private static DictionaryProperty toTypedProperty(
+    private DictionaryProperty toTypedProperty(
         String dictionaryId,
         Map.Entry<String, String> property,
         DictionaryPropertyOptions options,
         Map<String, DictionaryProperty> existing
     ) {
         DictionaryProperty stored = existing == null ? null : existing.get(property.getKey());
-        if (options == null) {
-            return keepStoredClassification(dictionaryId, property, stored);
-        }
-        rejectContradictoryOptions(property.getKey(), options);
-        rejectUnsupportedEncryptable(property.getKey(), options);
-        if (options.getEncrypted() == null) {
-            return keepStoredClassification(dictionaryId, property, stored);
-        }
-        if (Boolean.FALSE.equals(options.getEncrypted()) && stored != null && stored.encrypted()) {
-            throw new DictionaryPropertyEncryptedToPlainException(dictionaryId, property.getKey());
-        }
-        return new DictionaryProperty(property.getValue(), options.getEncrypted());
-    }
-
-    /**
-     * Applies the stored classification to a property the caller said nothing about. An encrypted
-     * property keeps that classification only while its value is the stored ciphertext: a different
-     * value is plaintext the caller supplied, and nothing on this path encrypts, so carrying the flag
-     * over would label a live plaintext value as ciphertext.
-     */
-    private static DictionaryProperty keepStoredClassification(
-        String dictionaryId,
-        Map.Entry<String, String> property,
-        DictionaryProperty stored
-    ) {
         boolean storedEncrypted = stored != null && stored.encrypted();
-        if (storedEncrypted && !Objects.equals(stored.value(), property.getValue())) {
-            throw new DictionaryPropertyEncryptedToPlainException(dictionaryId, property.getKey());
+        rejectContradictoryOptions(property.getKey(), options);
+        rejectMaskUnlessStoredEncrypted(property.getKey(), property.getValue(), storedEncrypted);
+
+        boolean desiredEncrypted = desiredEncrypted(options, storedEncrypted);
+        if (!desiredEncrypted) {
+            if (storedEncrypted) {
+                throw new DictionaryPropertyEncryptedToPlainException(dictionaryId, property.getKey());
+            }
+            return new DictionaryProperty(property.getValue(), false);
         }
-        return new DictionaryProperty(property.getValue(), storedEncrypted);
+        if (storedEncrypted && ENCRYPTED_VALUE_MASK.equals(property.getValue())) {
+            return stored;
+        }
+        if (options != null && Boolean.TRUE.equals(options.getEncrypted())) {
+            return new DictionaryProperty(property.getValue(), true);
+        }
+        if (storedEncrypted && Objects.equals(stored.value(), property.getValue())) {
+            // must precede the decrypt-and-compare below, or a raw ciphertext resend is encrypted twice
+            return stored;
+        }
+        return encryptUnlessStoredDecryptsTo(dictionaryId, property.getKey(), property.getValue(), stored);
     }
 
-    private static void rejectContradictoryOptions(String propertyKey, DictionaryPropertyOptions options) {
-        if (Boolean.TRUE.equals(options.getEncrypted()) && Boolean.TRUE.equals(options.getEncryptable())) {
+    private static void rejectContradictoryOptions(String key, DictionaryPropertyOptions options) {
+        if (options != null && Boolean.TRUE.equals(options.getEncrypted()) && Boolean.TRUE.equals(options.getEncryptable())) {
             throw new InvalidDictionaryPropertyOptionsException(
-                propertyKey,
+                key,
                 "'encrypted' and 'encryptable' cannot both be true — the value is either already ciphertext or plaintext to encrypt"
             );
         }
     }
 
-    private static void rejectUnsupportedEncryptable(String propertyKey, DictionaryPropertyOptions options) {
+    private static void rejectMaskUnlessStoredEncrypted(String key, String value, boolean storedEncrypted) {
+        if (!storedEncrypted && ENCRYPTED_VALUE_MASK.equals(value)) {
+            throw new DictionaryPropertyMaskedValueException(key);
+        }
+    }
+
+    private static boolean desiredEncrypted(DictionaryPropertyOptions options, boolean storedEncrypted) {
+        if (options == null) {
+            return storedEncrypted;
+        }
         if (Boolean.TRUE.equals(options.getEncryptable())) {
-            throw new InvalidDictionaryPropertyOptionsException(
-                propertyKey,
-                "'encryptable' is not supported yet — a submitted value is stored as it arrives; supply an already-encrypted value with 'encrypted' set to true instead"
+            return true;
+        }
+        return options.getEncrypted() == null ? storedEncrypted : options.getEncrypted();
+    }
+
+    private String encryptOrFail(String dictionaryId, String key, String value) {
+        try {
+            return dataEncryptor.encrypt(value);
+        } catch (GeneralSecurityException e) {
+            throw new TechnicalManagementException(
+                "Failed to encrypt dictionary property [" + key + "] on dictionary [" + dictionaryId + "]",
+                e
             );
         }
     }
 
     /**
-     * Re-applies each key's stored classification to the value the provider just fetched. A fetch
-     * declares no classification of its own, so it lands on the same rule as a caller that said
-     * nothing: the stored one stands, and an encrypted property whose value the fetch would replace
-     * fails the refresh rather than labelling the fetched plaintext as ciphertext. A fetch that
-     * yields a property without a value fails it too, for the same reason the write path rejects one.
+     * Re-applies each key's stored classification to the value the provider just fetched. The fetch
+     * carries plaintext only, so it can neither declare nor change a classification. A fetch that
+     * yields a property without a value fails the refresh, for the same reason the write path rejects
+     * one.
      */
-    private static Map<String, DictionaryProperty> toFetchedProperties(
+    private Map<String, DictionaryProperty> toFetchedProperties(
         String dictionaryId,
         Map<String, String> fetched,
         Map<String, DictionaryProperty> existing
@@ -629,14 +665,50 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .collect(
                 Collectors.toMap(Map.Entry::getKey, entry ->
-                    keepStoredClassification(dictionaryId, entry, existing == null ? null : existing.get(entry.getKey()))
+                    toFetchedProperty(dictionaryId, entry, existing == null ? null : existing.get(entry.getKey()))
                 )
             );
+    }
+
+    /** An encrypted key keeps that classification across a refresh, which is what makes it sticky. */
+    private DictionaryProperty toFetchedProperty(String dictionaryId, Map.Entry<String, String> fetched, DictionaryProperty stored) {
+        if (stored == null || !stored.encrypted()) {
+            return new DictionaryProperty(fetched.getValue(), false);
+        }
+        return encryptUnlessStoredDecryptsTo(dictionaryId, fetched.getKey(), fetched.getValue(), stored);
+    }
+
+    /**
+     * Reuses the stored ciphertext when it still decrypts to {@code plaintext}, so resubmitting or
+     * re-fetching an unchanged secret is a no-op whatever the cipher mode. Ciphertext that no longer
+     * decrypts, from a rotated secret or a corrupt value, counts as changed.
+     */
+    private DictionaryProperty encryptUnlessStoredDecryptsTo(String dictionaryId, String key, String plaintext, DictionaryProperty stored) {
+        if (stored != null && stored.encrypted() && Objects.equals(decryptStoredValue(dictionaryId, key, stored.value()), plaintext)) {
+            return stored;
+        }
+        return new DictionaryProperty(encryptOrFail(dictionaryId, key, plaintext), true);
+    }
+
+    private String decryptStoredValue(String dictionaryId, String key, String ciphertext) {
+        try {
+            return dataEncryptor.decrypt(ciphertext);
+        } catch (GeneralSecurityException e) {
+            log.warn(
+                "Stored value of dictionary property [{}] on dictionary [{}] could not be decrypted; it will be encrypted again",
+                key,
+                dictionaryId
+            );
+            return null;
+        }
     }
 
     /**
      * Flattens the stored properties for the wire, ordered by key so a client diffing successive
      * reads — a GitOps reconcile in particular — sees no drift from the storage layer's map ordering.
+     *
+     * <p>An encrypted value is replaced by {@link #ENCRYPTED_VALUE_MASK}: the ciphertext never leaves
+     * through this read.
      */
     private static Map<String, String> toFlatProperties(Map<String, DictionaryProperty> typed) {
         if (typed == null) {
@@ -647,7 +719,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .filter(entry -> entry.getValue() != null)
             .sorted(Map.Entry.comparingByKey())
-            .collect(LinkedHashMap::new, (flat, entry) -> flat.put(entry.getKey(), entry.getValue().value()), LinkedHashMap::putAll);
+            .collect(LinkedHashMap::new, (flat, entry) -> flat.put(entry.getKey(), flatValue(entry.getValue())), LinkedHashMap::putAll);
+    }
+
+    private static String flatValue(DictionaryProperty property) {
+        if (property.encrypted()) {
+            return ENCRYPTED_VALUE_MASK;
+        }
+        return property.value();
     }
 
     /**
