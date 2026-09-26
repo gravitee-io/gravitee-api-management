@@ -231,6 +231,11 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-haproxy</artifactId>
         </dependency>
+        <!-- Netty only negotiates WebSocket permessage-deflate window bits when JZlib is on the classpath. -->
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jzlib</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>io.projectreactor</groupId>
