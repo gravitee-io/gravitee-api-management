@@ -257,6 +257,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public CreateGroupDomainServiceInMemory createGroupDomainService(GroupQueryServiceInMemory groupQueryService) {
+        return new CreateGroupDomainServiceInMemory(groupQueryService);
+    }
+
+    @Bean
     public MembershipCrudServiceInMemory membershipCrudService() {
         return new MembershipCrudServiceInMemory();
     }

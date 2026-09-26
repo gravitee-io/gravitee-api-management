@@ -29,6 +29,7 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
@@ -36,6 +37,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.UnaryOperator;
 
 @DomainService
@@ -50,6 +52,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService;
     private final ImportDefinitionPlanDomainService importDefinitionPlanDomainService;
     private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
+    private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -60,7 +63,8 @@ public class ImportDefinitionUpdateDomainService {
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
         ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
-        ImportDefinitionPageDomainService importDefinitionPageDomainService
+        ImportDefinitionPageDomainService importDefinitionPageDomainService,
+        ImportApiGroupsDomainService importApiGroupsDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -71,6 +75,7 @@ public class ImportDefinitionUpdateDomainService {
         this.importDefinitionMetadataDomainService = importDefinitionMetadataDomainService;
         this.importDefinitionPlanDomainService = importDefinitionPlanDomainService;
         this.importDefinitionPageDomainService = importDefinitionPageDomainService;
+        this.importApiGroupsDomainService = importApiGroupsDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -85,12 +90,23 @@ public class ImportDefinitionUpdateDomainService {
         );
         var apiExport = apiWithIds.getApiExport();
 
+        // Defer group resolution for NATIVE APIs: groups are resolved/created only after validation passes.
+        // For PROXY/MESSAGE, validation is coupled in ApiService.update, so groups are resolved before update
+        // to avoid breaking changes in the legacy service.
+        var groupNames = apiExport.getGroups();
+
         var updatedApi = switch (existingPromotedApi.getType()) {
-            case PROXY, MESSAGE -> updateApiDomainService.updateV4(
-                ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
-                auditInfo
-            );
-            case NATIVE -> updateNativeApi(apiId, apiWithIds.getApiExport(), auditInfo);
+            case PROXY, MESSAGE -> {
+                apiExport.setGroups(importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo));
+                yield updateApiDomainService.updateV4(
+                    ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
+                    auditInfo
+                );
+            }
+            case NATIVE -> {
+                apiExport.setGroups(null);
+                yield updateNativeApi(apiId, apiExport, groupNames, auditInfo);
+            }
             default -> throw new IllegalStateException("Unsupported API type: " + existingPromotedApi.getType());
         };
 
@@ -110,20 +126,23 @@ public class ImportDefinitionUpdateDomainService {
         return updatedApi;
     }
 
-    private Api updateNativeApi(String apiId, ApiExport apiExport, AuditInfo auditInfo) {
+    private Api updateNativeApi(String apiId, ApiExport apiExport, Set<String> groupNames, AuditInfo auditInfo) {
         var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(auditInfo.organizationId(), apiId);
         var updateOperator = toNativeApiUpdateOperator(apiExport);
         return updateNativeApiDomainService.update(
             apiId,
             updateOperator,
-            (existingApi, apiToUpdate) ->
-                validateApiDomainService.validateAndSanitizeForUpdate(
+            (existingApi, apiToUpdate) -> {
+                var validated = validateApiDomainService.validateAndSanitizeForUpdate(
                     existingApi,
                     apiToUpdate,
                     primaryOwner,
                     auditInfo.environmentId(),
                     auditInfo.organizationId()
-                ),
+                );
+                var resolvedGroupIds = importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo);
+                return validated.toBuilder().groups(resolvedGroupIds).build();
+            },
             auditInfo,
             primaryOwner,
             oneShotIndexation(auditInfo)
@@ -131,8 +150,8 @@ public class ImportDefinitionUpdateDomainService {
     }
 
     private UnaryOperator<Api> toNativeApiUpdateOperator(ApiExport apiExport) {
-        return currentApi ->
-            currentApi
+        return currentApi -> {
+            var builder = currentApi
                 .toBuilder()
                 .name(apiExport.getName())
                 .description(apiExport.getDescription())
@@ -161,7 +180,11 @@ public class ImportDefinitionUpdateDomainService {
                             .properties(apiExport.getProperties())
                             .build()
                         : null
-                )
-                .build();
+                );
+            if (apiExport.getGroups() != null) {
+                builder.groups(apiExport.getGroups());
+            }
+            return builder.build();
+        };
     }
 }

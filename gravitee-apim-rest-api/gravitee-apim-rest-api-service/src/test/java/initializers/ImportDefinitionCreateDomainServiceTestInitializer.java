@@ -25,6 +25,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.CategoryDomainServiceInMemory;
 import inmemory.CategoryQueryServiceInMemory;
 import inmemory.CreateCategoryApiDomainServiceInMemory;
+import inmemory.CreateGroupDomainServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
@@ -59,6 +60,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Role;
@@ -217,7 +219,8 @@ public class ImportDefinitionCreateDomainServiceTestInitializer {
             apiIdsCalculatorDomainService,
             metadataCrudService,
             documentationValidationDomainService,
-            categoryDomainService
+            categoryDomainService,
+            new ImportApiGroupsDomainService(groupQueryService, new CreateGroupDomainServiceInMemory(groupQueryService))
         );
     }
 }

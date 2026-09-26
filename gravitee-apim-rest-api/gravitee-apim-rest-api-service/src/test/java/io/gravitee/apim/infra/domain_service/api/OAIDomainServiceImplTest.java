@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -56,7 +55,7 @@ class OAIDomainServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, null);
+        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null);
     }
 
     @ParameterizedTest
@@ -130,7 +129,6 @@ class OAIDomainServiceImplTest {
 
             service = new OAIDomainServiceImpl(
                 new PolicyOperationVisitorManagerImpl(),
-                new GroupQueryServiceInMemory(),
                 new TagQueryServiceInMemory(),
                 endpointConnectorPluginService,
                 policyPluginCrudService
