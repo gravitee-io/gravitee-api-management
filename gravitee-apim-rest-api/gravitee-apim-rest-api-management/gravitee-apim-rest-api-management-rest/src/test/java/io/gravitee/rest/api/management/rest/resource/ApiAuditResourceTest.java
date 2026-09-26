@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,11 +78,19 @@ public class ApiAuditResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_ignore_the_encrypted_filter_which_only_the_environment_audits_support() {
+    public void should_filter_the_api_audits_by_encrypted() {
         final Response response = apiAuditsTarget().queryParam("encrypted", true).request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        assertNull(capturedQuery().getProperties());
+        assertEquals("true", capturedQuery().getProperties().get("ENCRYPTED"));
+    }
+
+    @Test
+    public void should_reject_an_encrypted_filter_it_cannot_answer() {
+        final Response response = apiAuditsTarget().queryParam("encrypted", false).request().get();
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        verify(auditService, never()).search(any(), any());
     }
 
     private AuditQuery capturedQuery() {

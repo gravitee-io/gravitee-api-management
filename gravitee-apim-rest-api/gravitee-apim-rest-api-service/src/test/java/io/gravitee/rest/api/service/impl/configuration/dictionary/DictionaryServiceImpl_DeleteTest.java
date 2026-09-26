@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY_ENCRYPTED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_DELETED;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -88,7 +88,7 @@ public class DictionaryServiceImpl_DeleteTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> "true".equals(auditLogData.getProperties().get(DICTIONARY_ENCRYPTED)))
+            argThat(auditLogData -> "true".equals(auditLogData.getProperties().get(ENCRYPTED)))
         );
     }
 
@@ -100,7 +100,7 @@ public class DictionaryServiceImpl_DeleteTest {
 
         verify(auditService).createAuditLog(
             eq(GraviteeContext.getExecutionContext()),
-            argThat(auditLogData -> !auditLogData.getProperties().containsKey(DICTIONARY_ENCRYPTED))
+            argThat(auditLogData -> !auditLogData.getProperties().containsKey(ENCRYPTED))
         );
     }
 
