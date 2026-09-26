@@ -80,6 +80,29 @@ tests:
       - matchRegex:
           path: data["gravitee.yml"]
           pattern: "pattern: \\^regex\\$"
+  - it: Set user password policy description
+    template: api/api-configmap.yaml
+    set:
+      api:
+        user:
+          password:
+            policy:
+              description: Ask IT for the house rules.
+    asserts:
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "description: Ask IT for the house rules."
+      # Same regex the negative case below asserts is absent, so neither is vacuous.
+      - matchRegex:
+          path: data["gravitee.yml"]
+          pattern: "password:\\s+policy:"
+  - it: Render no password policy when none is set
+    template: api/api-configmap.yaml
+    asserts:
+      # Narrow on purpose: 'policy:' alone also matches the HTTP security headers.
+      - notMatchRegex:
+          path: data["gravitee.yml"]
+          pattern: "password:\\s+policy:"
   - it: Check DB Less mode
     set:
       global:
