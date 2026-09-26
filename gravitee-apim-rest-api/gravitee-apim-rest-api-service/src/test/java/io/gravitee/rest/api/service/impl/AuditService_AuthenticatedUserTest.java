@@ -53,6 +53,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -76,7 +77,7 @@ class AuditService_AuthenticatedUserTest {
     void setUp() {
         reset(auditRepository);
         UserDetails userDetails = new UserDetails(USERNAME, "", Collections.emptyList());
-        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null));
+        SecurityContextHolder.setContext(new SecurityContextImpl(new UsernamePasswordAuthenticationToken(userDetails, null)));
     }
 
     @AfterEach
