@@ -201,13 +201,13 @@ class AuditServiceImplTest {
             AuditQuery query = new AuditQuery();
             query.setPage(1);
             query.setSize(10);
-            query.setProperties(Map.of("DICTIONARY_ENCRYPTED", "true"));
+            query.setProperties(Map.of("ENCRYPTED", "true"));
 
             auditService.search(executionContext, query);
 
             ArgumentCaptor<AuditCriteria> criteria = ArgumentCaptor.forClass(AuditCriteria.class);
             verify(auditRepository).search(criteria.capture(), any());
-            assertThat(criteria.getValue().getProperties()).containsEntry("DICTIONARY_ENCRYPTED", "true");
+            assertThat(criteria.getValue().getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test

@@ -15,9 +15,14 @@
  */
 package io.gravitee.rest.api.management.rest.resource.param;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
+
+import io.gravitee.rest.api.model.audit.AuditQuery;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.QueryParam;
+import java.util.Map;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -58,6 +63,20 @@ public class AuditParam {
     @QueryParam("page")
     @DefaultValue("1")
     private int page;
+
+    @QueryParam("encrypted")
+    @Parameter(description = "Filter on audit entries that involve an encrypted property. Only 'true' is supported.")
+    private Boolean encrypted;
+
+    public void applyEncryptedFilterTo(AuditQuery query) {
+        if (encrypted == null) {
+            return;
+        }
+        if (!encrypted) {
+            throw new BadRequestException("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
+        }
+        query.setProperties(Map.of(ENCRYPTED.name(), Boolean.TRUE.toString()));
+    }
 
     public String getEnvironmentId() {
         return environmentId;

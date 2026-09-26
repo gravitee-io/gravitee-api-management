@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -218,6 +219,20 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         verify(dictionaryRepository).update(argThat(dict -> dict.getProperties().keySet().equals(Set.of("kept"))));
         verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+    }
+
+    @Test
+    public void should_mark_audit_as_encrypted_when_the_refresh_drops_the_last_encrypted_property() throws TechnicalException {
+        Dictionary existing = startedDynamicDictionaryWith(
+            Map.of("secret", new DictionaryProperty("ENC(secret)", true), "plain", new DictionaryProperty("value", false))
+        );
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "value"));
+
+        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
     }
 
     @Test

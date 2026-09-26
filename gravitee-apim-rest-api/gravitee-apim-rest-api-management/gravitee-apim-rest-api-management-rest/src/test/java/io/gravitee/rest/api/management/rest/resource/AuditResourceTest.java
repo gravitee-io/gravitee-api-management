@@ -106,7 +106,7 @@ public class AuditResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         ArgumentCaptor<AuditQuery> query = ArgumentCaptor.forClass(AuditQuery.class);
         verify(auditService).search(any(), query.capture());
-        assertEquals("true", query.getValue().getProperties().get("DICTIONARY_ENCRYPTED"));
+        assertEquals("true", query.getValue().getProperties().get("ENCRYPTED"));
     }
 
     @Test

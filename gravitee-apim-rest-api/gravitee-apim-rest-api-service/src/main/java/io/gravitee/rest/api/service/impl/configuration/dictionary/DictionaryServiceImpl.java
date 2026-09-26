@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
-import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY_ENCRYPTED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -361,12 +361,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 return convert(dictionary);
             }
 
+            Map<String, DictionaryProperty> propertiesBeforeRefresh = dictionary.getProperties();
             dictionary.setProperties(refreshed);
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
-            publishRefreshedProperties(dictionary, updatedDictionary);
+            publishRefreshedProperties(dictionary, updatedDictionary, propertiesBeforeRefresh);
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
@@ -376,9 +377,14 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     /**
      * Publishes and audits a refresh in the dictionary's own environment, which the refresher — a
-     * scheduled job with no execution context of its own — cannot supply.
+     * scheduled job with no execution context of its own — cannot supply. {@code dictionary} already
+     * carries the refreshed properties, so the encrypted marker reads the ones it held before.
      */
-    private void publishRefreshedProperties(Dictionary dictionary, Dictionary updatedDictionary) {
+    private void publishRefreshedProperties(
+        Dictionary dictionary,
+        Dictionary updatedDictionary,
+        Map<String, DictionaryProperty> propertiesBeforeRefresh
+    ) {
         EnvironmentEntity environment = environmentService.findById(dictionary.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
 
@@ -394,7 +400,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             Dictionary.AuditEvent.DICTIONARY_UPDATED,
             updatedDictionary.getUpdatedAt(),
             dictionary,
-            updatedDictionary
+            updatedDictionary,
+            hasEncryptedProperty(propertiesBeforeRefresh) || hasEncryptedProperty(updatedDictionary)
         );
     }
 
@@ -460,12 +467,30 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         Dictionary oldValue,
         Dictionary newValue
     ) {
+        createAuditLog(
+            executionContext,
+            event,
+            createdAt,
+            oldValue,
+            newValue,
+            hasEncryptedProperty(oldValue) || hasEncryptedProperty(newValue)
+        );
+    }
+
+    private void createAuditLog(
+        ExecutionContext executionContext,
+        Audit.AuditEvent event,
+        Date createdAt,
+        Dictionary oldValue,
+        Dictionary newValue,
+        boolean involvesEncryptedProperty
+    ) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
         Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
         auditProperties.put(DICTIONARY, dictionaryName);
-        if (hasEncryptedProperty(oldValue) || hasEncryptedProperty(newValue)) {
-            auditProperties.put(DICTIONARY_ENCRYPTED, Boolean.TRUE.toString());
+        if (involvesEncryptedProperty) {
+            auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
         }
 
         auditService.createAuditLog(
@@ -481,10 +506,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {
-        if (dictionary == null || dictionary.getProperties() == null) {
-            return false;
-        }
-        return dictionary.getProperties().values().stream().filter(Objects::nonNull).anyMatch(DictionaryProperty::encrypted);
+        return dictionary != null && hasEncryptedProperty(dictionary.getProperties());
+    }
+
+    private static boolean hasEncryptedProperty(Map<String, DictionaryProperty> properties) {
+        return properties != null && properties.values().stream().filter(Objects::nonNull).anyMatch(DictionaryProperty::encrypted);
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {

@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
-import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY_ENCRYPTED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -592,7 +592,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(Map.of(), null));
 
-        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(DICTIONARY_ENCRYPTED))));
+        verify(auditService).createAuditLog(any(), argThat(data -> "true".equals(data.getProperties().get(ENCRYPTED))));
     }
 
     @Test

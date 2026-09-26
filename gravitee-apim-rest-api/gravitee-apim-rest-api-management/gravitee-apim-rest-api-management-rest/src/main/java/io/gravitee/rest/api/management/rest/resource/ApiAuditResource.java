@@ -75,6 +75,7 @@ public class ApiAuditResource extends AbstractResource {
         if (param.getEvent() != null) {
             query.setEvents(Collections.singletonList(param.getEvent()));
         }
+        param.applyEncryptedFilterTo(query);
 
         return auditService.search(GraviteeContext.getExecutionContext(), query);
     }
