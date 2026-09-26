@@ -112,7 +112,11 @@ function buildResourceFilteringFlow(
 
 // ─── Public transformers ───────────────────────────────────────────────────────
 
-export function planFormToPayload(form: PlanFormValue, ctx: PlanContext): Omit<ManagedPlan, 'id' | 'order'> {
+export function planFormToPayload(
+    form: PlanFormValue,
+    ctx: PlanContext,
+    definitionVersion: NonNullable<ManagedPlan['definitionVersion']>,
+): Omit<ManagedPlan, 'id' | 'order'> {
     const isKeyless = form.securityType === 'KEY_LESS';
 
     const characteristics = form.general.characteristics;
@@ -149,7 +153,7 @@ export function planFormToPayload(form: PlanFormValue, ctx: PlanContext): Omit<M
         },
         selectionRule: !isKeyless && form.security.selectionRule.trim() ? form.security.selectionRule.trim() : undefined,
         flows: flows.length > 0 ? flows : undefined,
-        definitionVersion: 'V4',
+        definitionVersion,
         mode: 'STANDARD',
     };
 

@@ -128,6 +128,7 @@ interface PlanGeneralStepProps {
      * set are shown disabled. `undefined` while the parent is still loading.
      */
     referenceTags?: string[];
+    shardingTagsReadOnly?: boolean;
 }
 
 export function PlanGeneralStep({
@@ -138,6 +139,7 @@ export function PlanGeneralStep({
     errors,
     readOnly = false,
     referenceTags,
+    shardingTagsReadOnly = false,
 }: Readonly<PlanGeneralStepProps>) {
     const [groupsOpen, setGroupsOpen] = useState(false);
     const [tagsOpen, setTagsOpen] = useState(false);
@@ -149,7 +151,8 @@ export function PlanGeneralStep({
     // A tag can be selected only when it belongs to the parent entity's tags (subset rule) and the
     // current user is allowed to use it — matching the classic console plan general step.
     const allowedTags = referenceTags ?? [];
-    const isTagDisabled = (id: string) => isShardingTagDisabled(id, { allowedTags, userTags, readOnly });
+    const tagsReadOnly = readOnly || shardingTagsReadOnly;
+    const isTagDisabled = (id: string) => isShardingTagDisabled(id, { allowedTags, userTags, readOnly: tagsReadOnly });
 
     function toggleGroup(id: string) {
         const next = value.excludedGroups.includes(id) ? value.excludedGroups.filter(g => g !== id) : [...value.excludedGroups, id];
@@ -330,7 +333,7 @@ export function PlanGeneralStep({
                                     role="combobox"
                                     aria-expanded={tagsOpen}
                                     className="w-full justify-between font-normal"
-                                    disabled={readOnly}
+                                    disabled={tagsReadOnly}
                                 >
                                     <span className="truncate text-left">
                                         {selectedTagLabels || <span className="text-muted-foreground">None</span>}

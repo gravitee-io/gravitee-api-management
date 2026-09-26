@@ -95,19 +95,28 @@ export function useCreatePlan(ctx: PlanContext) {
     const envId = env?.id ?? '';
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: (form: PlanFormValue) => createPlan(envId, ctx, planFormToPayload(form, ctx)),
+        mutationFn: (form: PlanFormValue) => createPlan(envId, ctx, planFormToPayload(form, ctx, 'V4')),
         onSuccess: () => invalidatePlans(qc, ctx, envId),
     });
 }
 
-/** Update an existing plan — mutate receives { planId, form }. */
+/** Update an existing plan — mutate receives { planId, form, definitionVersion }. */
 export function useUpdatePlan(ctx: PlanContext) {
     const env = useEnvironment();
     const envId = env?.id ?? '';
     const qc = useQueryClient();
     return useMutation({
-        mutationFn: ({ planId, form }: { planId: string; form: PlanFormValue }) =>
-            updatePlan(envId, ctx, planId, planFormToPayload(form, ctx)),
+        mutationFn: ({
+            planId,
+            form,
+            definitionVersion,
+            order,
+        }: {
+            planId: string;
+            form: PlanFormValue;
+            definitionVersion: NonNullable<ManagedPlan['definitionVersion']>;
+            order?: ManagedPlan['order'];
+        }) => updatePlan(envId, ctx, planId, { ...planFormToPayload(form, ctx, definitionVersion), order }),
         onSuccess: updated => {
             qc.setQueryData(apiPlanKeys.detail(envId, ctx, updated.id), updated);
             invalidatePlans(qc, ctx, envId);
