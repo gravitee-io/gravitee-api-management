@@ -133,8 +133,8 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         log.debug("JdbcCommandRepository.create({})", item);
         try {
             jdbcTemplate.update(getOrm().buildInsertPreparedStatementCreator(item));
-            storeAcknowledgments(item, false);
-            storeTags(item, false);
+            storeAcknowledgments(item);
+            storeTags(item);
             return findById(item.getId()).orElse(null);
         } catch (final Exception ex) {
             log.error("Failed to create command", ex);
@@ -165,11 +165,14 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
             throw new IllegalStateException();
         }
         try {
-            // Rewrite the child rows before the command itself, in the same table order as delete and
+            // Write the child rows before the command itself, in the same table order as delete and
             // deleteByExpiredAtBefore. update runs concurrently with those from independently scheduled
             // services, and taking the row locks in opposite orders is what made PostgreSQL deadlock.
-            storeAcknowledgments(item, true);
-            storeTags(item, true);
+            // Only the rows that actually change are written: every node acknowledges the same command
+            // concurrently, and deleting then re-inserting unchanged rows made one of them fail on a
+            // duplicate primary key.
+            syncChildRows(COMMAND_ACKNOWLEDGMENTS, "acknowledgment", item.getId(), item.getAcknowledgments());
+            syncChildRows(COMMAND_TAGS, "tag", item.getId(), item.getTags());
             jdbcTemplate.update(getOrm().buildUpdatePreparedStatementCreator(item, item.getId()));
             return findById(item.getId()).orElseThrow(() ->
                 new IllegalStateException(format("No command found with id [%s]", item.getId()))
@@ -362,11 +365,8 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         }
     }
 
-    private void storeAcknowledgments(Command command, boolean deleteFirst) {
-        log.debug("JdbcCommandRepository.storeAcknowledgments({}, {})", command, deleteFirst);
-        if (deleteFirst) {
-            jdbcTemplate.update("delete from " + COMMAND_ACKNOWLEDGMENTS + " where command_id = ?", command.getId());
-        }
+    private void storeAcknowledgments(Command command) {
+        log.debug("JdbcCommandRepository.storeAcknowledgments({})", command);
         List<String> acknowledgments = getOrm().filterStrings(command.getAcknowledgments());
         if (!acknowledgments.isEmpty()) {
             jdbcTemplate.batchUpdate(
@@ -376,17 +376,37 @@ public class JdbcCommandRepository extends JdbcAbstractCrudRepository<Command, S
         }
     }
 
-    private void storeTags(Command command, boolean deleteFirst) {
-        log.debug("JdbcCommandRepository.storeTags({}, {})", command, deleteFirst);
-        if (deleteFirst) {
-            jdbcTemplate.update("delete from " + COMMAND_TAGS + " where command_id = ?", command.getId());
-        }
-
+    private void storeTags(Command command) {
+        log.debug("JdbcCommandRepository.storeTags({})", command);
         List<String> tags = getOrm().filterStrings(command.getTags());
         if (!tags.isEmpty()) {
             jdbcTemplate.batchUpdate(
                 "insert into " + COMMAND_TAGS + " ( command_id, tag ) values ( ?, ? )",
                 getOrm().getBatchStringSetter(command.getId(), tags)
+            );
+        }
+    }
+
+    private void syncChildRows(String table, String column, String commandId, Collection<String> values) {
+        Set<String> wanted = new LinkedHashSet<>(getOrm().filterStrings(values));
+        Set<String> stored = new HashSet<>(
+            jdbcTemplate.queryForList("select " + column + " from " + table + " where command_id = ?", String.class, commandId)
+        );
+
+        for (String value : stored) {
+            if (!wanted.contains(value)) {
+                jdbcTemplate.update("delete from " + table + " where command_id = ? and " + column + " = ?", commandId, value);
+            }
+        }
+
+        List<String> added = wanted
+            .stream()
+            .filter(value -> !stored.contains(value))
+            .toList();
+        if (!added.isEmpty()) {
+            jdbcTemplate.batchUpdate(
+                "insert into " + table + " ( command_id, " + column + " ) values ( ?, ? )",
+                getOrm().getBatchStringSetter(commandId, added)
             );
         }
     }
