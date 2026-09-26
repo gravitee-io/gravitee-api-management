@@ -104,14 +104,16 @@ public class DebugReactorEventListener extends ReactorEventListener {
                     return;
                 }
 
-                reactorHandlerRegistry.create(debugApi);
-
+                // Discover secrets before creating the handler: starting it starts the API resources,
+                // which evaluate secret expressions from their configuration right away.
                 var secretDiscoveryEvent = new SecretDiscoveryEvent(
                     debugApi.getEnvironmentId(),
                     debugApi.getDefinition(),
                     new DefinitionMetadata(debugApi.getRevision())
                 );
                 eventManager.publishEvent(SecretDiscoveryEventType.DISCOVER, secretDiscoveryEvent);
+
+                reactorHandlerRegistry.create(debugApi);
 
                 HttpRequest debugApiRequest = debugApi.getRequest();
 
