@@ -64,9 +64,13 @@ public abstract class AbstractRequest implements MutableRequest, HttpRequestInte
     protected HttpVersion version;
     protected long timestamp;
     /**
-     * Monotonic counterpart of {@link #timestamp}, taken when the request is created rather than assigned by each
-     * implementation: an implementation that forgot to set it would silently downgrade every duration derived from it
-     * back to the wall clock, with nothing failing to say so. See {@link #timestampNs()}.
+     * Monotonic counterpart of {@link #timestamp}, and the origin every reported duration is measured from.
+     * <p>
+     * Initialised here as a fallback rather than left to each implementation: one that forgot to set it would
+     * silently downgrade every duration derived from it back to the wall clock, with nothing failing to say so. An
+     * implementation that knows when the request actually arrived is expected to overwrite it — stamping it at
+     * construction excludes whatever happened before the wrapper existed, which on the HTTP path is the path scan,
+     * the normalization and the acceptor lookup. See {@link #timestampNs()}.
      */
     protected long timestampNs = System.nanoTime();
     protected String remoteAddress;
