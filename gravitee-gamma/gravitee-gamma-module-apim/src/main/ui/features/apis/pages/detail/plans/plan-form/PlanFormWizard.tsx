@@ -18,6 +18,7 @@ import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { planListSearchForStatus } from '../planListStatusSearch';
 import { PlanFormStepIndicator, buildWizardSteps } from './PlanFormStepIndicator';
 import { PlanGeneralStep } from './PlanGeneralStep';
 import { PlanRestrictionsStep } from './PlanRestrictionsStep';
@@ -28,6 +29,7 @@ import type {
     PlanContext,
     PlanFormValue,
     PlanSecurityType,
+    PlanStatus,
     RestrictionsFormData,
     SecurityFormData,
 } from '../../../../types/plan';
@@ -66,7 +68,17 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
     const navigate = useNavigate();
     const isEdit = Boolean(planId);
 
+    // Route-relative, which is what react-router does by default: the create route is two URL segments
+    // (`new/:securityType`) and a path-relative `..` would strip only one, landing on `plans/new` — which
+    // the sibling `:planId` route then matches with planId="new".
+    const backToPlans = (status: PlanStatus) => {
+        navigate({ pathname: '..', search: planListSearchForStatus(status) });
+    };
+
     const { data: existingPlan, isLoading: isLoadingPlan } = usePlan(ctx, planId);
+    // The bucket the list should open on when leaving this form. `usePlan` is disabled without a planId,
+    // so a create form always reads PUBLISHED; an edit form returns to the bucket the plan is in.
+    const listStatus: PlanStatus = existingPlan?.status ?? 'PUBLISHED';
 
     const [form, setForm] = useState<PlanFormValue>({
         securityType,
@@ -147,10 +159,10 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
             setSubmitError(null);
             updateMutation.mutate(
                 { planId, form, definitionVersion: fetchedVersion ?? 'V4', order: existingPlan?.order },
-                { onSuccess: () => navigate('..') },
+                { onSuccess: () => backToPlans(listStatus) },
             );
         } else {
-            createMutation.mutate(form, { onSuccess: () => navigate('..') });
+            createMutation.mutate(form, { onSuccess: () => backToPlans('STAGING') });
         }
     };
 
@@ -176,7 +188,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
             <div className="flex flex-col gap-6">
                 {/* Header */}
                 <div className="flex items-center gap-3">
-                    <Button type="button" variant="ghost" size="icon" onClick={() => navigate('..')}>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => backToPlans(listStatus)}>
                         <ArrowLeftIcon className="size-4" aria-hidden />
                         <span className="sr-only">Back to plans</span>
                     </Button>
@@ -237,13 +249,13 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
 
                 {/* Navigation */}
                 <div className="flex items-center justify-between pt-2">
-                    <Button type="button" variant="outline" onClick={stepIndex === 0 ? () => navigate('..') : handleBack}>
+                    <Button type="button" variant="outline" onClick={stepIndex === 0 ? () => backToPlans(listStatus) : handleBack}>
                         {stepIndex === 0 ? 'Cancel' : 'Previous'}
                     </Button>
 
                     {readOnly ? (
                         isLastStep ? (
-                            <Button type="button" variant="outline" onClick={() => navigate('..')}>
+                            <Button type="button" variant="outline" onClick={() => backToPlans(listStatus)}>
                                 Close
                             </Button>
                         ) : (
