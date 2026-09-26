@@ -15,12 +15,15 @@
  */
 import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import { searchApiProducts } from '../../api-products/services/apiProduct';
 import { apiProductKeys } from '../../api-products/utils/queryKeys';
 import { searchApis } from '../../apis/services/apiList';
+import { isForbiddenError } from '../../apis/utils/apiRequestError';
 import { apiListKeys } from '../../apis/utils/queryKeys';
 import { ApimLicenseFeature } from '../../license/apimFeatures';
+import { useFederationEnabled } from '../../license/useFederationEnabled';
 
 const STATS_PAGE = 1;
 const STATS_PER_PAGE = 1;
@@ -34,17 +37,30 @@ export interface DashboardStats {
     isError: boolean;
 }
 
+function useStatsFailureLog(subject: string, envId: string, isError: boolean, error: unknown): void {
+    useEffect(() => {
+        if (!isError) return;
+        if (isForbiddenError(error)) {
+            console.warn(`[DashboardStats] User lacks permission to count ${subject} in environment`, envId, error);
+        } else {
+            console.error(`[DashboardStats] Failed to count ${subject} in environment`, envId, error);
+        }
+    }, [subject, isError, error, envId]);
+}
+
 export function useDashboardStats(): DashboardStats {
     const env = useEnvironment();
     const envId = env?.id ?? '';
     const hasApiProducts = useHasFeature(ApimLicenseFeature.API_PRODUCTS);
+    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
     // Guard on envId too — env may be truthy but id not yet populated
     const enabled = Boolean(envId);
 
     const totalApisQuery = useQuery({
-        queryKey: apiListKeys.count(envId, {}),
-        queryFn: () => searchApis(envId, {}, STATS_PAGE, STATS_PER_PAGE),
-        enabled,
+        queryKey: apiListKeys.count(envId, {}, includeFederated),
+        queryFn: () => searchApis(envId, {}, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
+        // Waiting for the gate keeps the count from disagreeing with the API Proxies list it links to.
+        enabled: enabled && isFederationResolved,
         staleTime: 60_000,
     });
 
@@ -56,6 +72,9 @@ export function useDashboardStats(): DashboardStats {
         enabled: enabled && hasApiProducts,
         staleTime: 60_000,
     });
+
+    useStatsFailureLog('APIs', envId, totalApisQuery.isError, totalApisQuery.error);
+    useStatsFailureLog('API Products', envId, hasApiProducts && totalProductsQuery.isError, totalProductsQuery.error);
 
     const totalApis = totalApisQuery.data?.pagination?.totalCount ?? null;
     const totalProducts = hasApiProducts ? (totalProductsQuery.data?.pagination?.totalCount ?? null) : 0;
