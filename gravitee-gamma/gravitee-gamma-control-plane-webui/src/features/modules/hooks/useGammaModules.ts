@@ -19,7 +19,7 @@ import { useState, useEffect } from 'react';
 import { useBootstrapStore } from '../../../shared/config/bootstrap.store';
 import { useAuthStore } from '../../auth/auth.store';
 import { useModulesStore } from '../modules.store';
-import { type GammaModule, type GammaModuleResponse, hasUi, parseModule } from '../modules.types';
+import { type GammaModule, type GammaModuleResponse, hasUi, isExternalModule, parseExternalModule, parseModule } from '../modules.types';
 
 const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRIES ?? '')
     .split(',')
@@ -76,7 +76,8 @@ export function useGammaModules(): { modules: GammaModule[]; loading: boolean; e
                         `${gammaBaseURL}/organizations/${organizationId}/modules/${m.id}/assets/mf-manifest.json`,
                 }));
                 registerRemotes(remotes, { force: true });
-                setModules(parsed);
+                const external = Array.isArray(data) ? data.filter(isExternalModule).map(parseExternalModule) : [];
+                setModules([...parsed, ...external]);
             })
             .catch(err => {
                 if (!controller.signal.aborted) {
