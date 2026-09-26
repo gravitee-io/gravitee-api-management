@@ -80,6 +80,38 @@ describe('GioPermissionGuard', () => {
             },
           },
           {
+            path: 'all-of-granted',
+            component: TestComponent,
+            canActivate: [PermissionGuard.checkRouteDataPermissions],
+            data: {
+              permissions: {
+                allOf: ['api-rating-r', 'api-rating_answer-r'],
+              },
+            },
+          },
+          {
+            path: 'all-of-missing-one',
+            component: TestComponent,
+            canActivate: [PermissionGuard.checkRouteDataPermissions],
+            data: {
+              permissions: {
+                allOf: ['api-rating-r', 'api-rating-u'],
+                unauthorizedFallbackTo: '../test',
+              },
+            },
+          },
+          {
+            path: 'any-of-and-all-of',
+            component: TestComponent,
+            canActivate: [PermissionGuard.checkRouteDataPermissions],
+            data: {
+              permissions: {
+                anyOf: ['api-rating-r'],
+                allOf: ['api-rating-r', 'api-rating-u'],
+              },
+            },
+          },
+          {
             path: '**',
             component: TestComponent,
             canActivate: [],
@@ -97,7 +129,7 @@ describe('GioPermissionGuard', () => {
     ngZone = TestBed.inject(NgZone);
     const gioPermissionService = TestBed.inject(GioPermissionService);
 
-    gioPermissionService._setPermissions(['api-rating-r']);
+    gioPermissionService._setPermissions(['api-rating-r', 'api-rating_answer-r']);
     fixture = TestBed.createComponent(TestRootComponent);
     fixture.detectChanges();
   });
@@ -121,5 +153,23 @@ describe('GioPermissionGuard', () => {
     await ngZone.run(() => router.navigateByUrl('/test3'));
 
     expect(router.url).toBe('/test');
+  });
+
+  it('should navigate when user has all the permissions listed in allOf', async () => {
+    await ngZone.run(() => router.navigateByUrl('/all-of-granted'));
+
+    expect(router.url).toBe('/all-of-granted');
+  });
+
+  it('should fall back when user is missing one of the permissions listed in allOf', async () => {
+    await ngZone.run(() => router.navigateByUrl('/all-of-missing-one'));
+
+    expect(router.url).toBe('/test');
+  });
+
+  it('should require both anyOf and allOf when both are set', async () => {
+    await ngZone.run(() => router.navigateByUrl('/any-of-and-all-of'));
+
+    expect(router.url).toBe('/');
   });
 });
