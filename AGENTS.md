@@ -35,7 +35,7 @@ Run this as a self-review before pushing, and apply it when reviewing others' ch
 3. **Acceptance criteria** — each one met.
 4. **Plan followed** — no silent drift. Only the author can check this; reviewers check the observable equivalent: the diff matches the PR's stated scope and deviations are noted.
 5. **Tests cover behaviour** — every behaviour change has a test that would fail without it, asserting behaviour, not implementation. Authors confirm RED → GREEN → REFACTOR; reviewers check the evidence, never the author's process.
-6. **Clean code** — meaningful names, no dead code, explicit imports, no leaked internals.
+6. **Engineering fit** — names describe what things are; sibling and parallel paths remain consistent; explicit imports are used; dead code, stale references, and non-functional UI are removed; boundary and edge cases are handled explicitly; existing utilities are preferred over hand-rolled logic; layer boundaries and encapsulation are preserved.
 
 Delivering findings: anchor each to file and line, quote the evidence, verify each claim against the code before filing, grade severity (blocker / improvement / nit) and origin, and order by reviewer value; the **peer-code-review** skill (run `gbuddy setup`) carries the full format.
 

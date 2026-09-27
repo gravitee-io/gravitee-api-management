@@ -66,7 +66,7 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/debugging/SKILL.md"
-    hash: sha256:a72ec4b533f481750ff68bd31496e0c48c84654c6d61a420721e0f05a88c989d
+    hash: sha256:24146544bfde9ace1bb236c8220e4282608cddb7713414531ec3df05136d186b
     status: generated
     scope: local
   - path: ".agents/skills/debugging/directives-template.md"
@@ -82,7 +82,7 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/git-github/SKILL.md"
-    hash: sha256:ba5ac442be7c0ff9a23492f36ab39d416014d484916da73e205ba92225f23e98
+    hash: sha256:37e4a9f31bccd2cfcb392d668778f80efb4a73fbc5c4b435b460fcd7dbb30b54
     status: generated
     scope: local
   - path: ".agents/skills/git-github/directives-template.md"
@@ -114,11 +114,11 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/git-github/references/worktrees.md"
-    hash: sha256:960713b07cf1c30b9a33f0aa939609cb25e08e72f566946628e84aa1fbc17ab2
+    hash: sha256:625cdf0d2393ae435b2a46b8a6ad58e5d356663a007740de6c7b79cbb07d477a
     status: generated
     scope: local
   - path: ".agents/skills/peer-code-review/SKILL.md"
-    hash: sha256:a06b7b63c883e0d982cbe571401c25fb1e4fa73367f993a57de85750625f6747
+    hash: sha256:fd180c144340ddc37b248538551e614896b74b96fa7e5549c22fb5ec7136d527
     status: generated
     scope: local
   - path: ".agents/skills/planning/SKILL.md"
@@ -126,7 +126,7 @@ entries:
     status: generated
     scope: local
   - path: ".agents/skills/self-code-review/SKILL.md"
-    hash: sha256:943b86fad4cd1e4f97bee28d7a831f2d742af0b98bb299f966183e24a9132f49
+    hash: sha256:da1e184c1caabff7f2b107b642fe282778ff1d196db8b7cdf99db68c8d8ab748
     status: generated
     scope: local
   - path: ".agents/skills/write-tests/SKILL.md"
@@ -154,7 +154,7 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/debugging/SKILL.md"
-    hash: sha256:a72ec4b533f481750ff68bd31496e0c48c84654c6d61a420721e0f05a88c989d
+    hash: sha256:24146544bfde9ace1bb236c8220e4282608cddb7713414531ec3df05136d186b
     status: generated
     scope: local
   - path: ".claude/skills/debugging/directives-template.md"
@@ -170,7 +170,7 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/git-github/SKILL.md"
-    hash: sha256:ba5ac442be7c0ff9a23492f36ab39d416014d484916da73e205ba92225f23e98
+    hash: sha256:37e4a9f31bccd2cfcb392d668778f80efb4a73fbc5c4b435b460fcd7dbb30b54
     status: generated
     scope: local
   - path: ".claude/skills/git-github/directives-template.md"
@@ -202,11 +202,11 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/git-github/references/worktrees.md"
-    hash: sha256:960713b07cf1c30b9a33f0aa939609cb25e08e72f566946628e84aa1fbc17ab2
+    hash: sha256:625cdf0d2393ae435b2a46b8a6ad58e5d356663a007740de6c7b79cbb07d477a
     status: generated
     scope: local
   - path: ".claude/skills/peer-code-review/SKILL.md"
-    hash: sha256:a06b7b63c883e0d982cbe571401c25fb1e4fa73367f993a57de85750625f6747
+    hash: sha256:fd180c144340ddc37b248538551e614896b74b96fa7e5549c22fb5ec7136d527
     status: generated
     scope: local
   - path: ".claude/skills/planning/SKILL.md"
@@ -214,7 +214,7 @@ entries:
     status: generated
     scope: local
   - path: ".claude/skills/self-code-review/SKILL.md"
-    hash: sha256:943b86fad4cd1e4f97bee28d7a831f2d742af0b98bb299f966183e24a9132f49
+    hash: sha256:da1e184c1caabff7f2b107b642fe282778ff1d196db8b7cdf99db68c8d8ab748
     status: generated
     scope: local
   - path: ".claude/skills/write-tests/SKILL.md"
@@ -226,7 +226,7 @@ entries:
     status: generated
     scope: local
   - path: ".github/instructions/code-review.instructions.md"
-    hash: sha256:099ebc0d75d677d12cdc8e55aca4241a24551a3b76a9b47fde81f3742848c2e9
+    hash: sha256:f3ac38c3b1ac59d05937bd19b722a93db920637a0bab45c61ef66de78536b19d
     status: generated
     scope: committed
   - path: ".github/scripts/verify-ai-context.mjs"
@@ -234,7 +234,7 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:307ef05893bc4b791da58bac5beb5539838d4fd1bfb837f6a54250b20f40bac2
+    hash: sha256:e2a6c9ce872eb138c818da89175c3f7c7afdaef0712a473956e8f1860b86eb0d
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -417,4 +417,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:46c31240b9cc39eaa3c861d35d8cce0e9d59a5f4bf8485922db180b5fe3b78ec
+record: sha256:75ee7b83c5a3b45a64e3f98a39693b76687d30b14d344f80cf52856faeee860e
