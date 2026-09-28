@@ -17,10 +17,10 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
-import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
+import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
@@ -47,6 +47,10 @@ public class SharedPolicyGroupMapper {
 
                 return SharedPolicyGroupReactorDeployable.builder()
                     .sharedPolicyGroupId(event.getId())
+                    .environmentId(reactableSharedPolicyGroup.getEnvironmentId())
+                    .allEnvironments(
+                        event.getSyncAction() == DistributedSyncAction.UNDEPLOY && reactableSharedPolicyGroup.getEnvironmentId() == null
+                    )
                     .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
@@ -64,15 +68,20 @@ public class SharedPolicyGroupMapper {
     private Flowable<DistributedEvent> toSharedPolicyGroupDistributedEvent(final SharedPolicyGroupReactorDeployable deployable) {
         return Flowable.fromCallable(() -> {
             try {
-                DistributedEvent.DistributedEventBuilder builder = DistributedEvent.builder()
-                    .id(deployable.id())
+                ReactableSharedPolicyGroup payloadSource = deployable.reactableSharedPolicyGroup();
+                if (payloadSource == null) {
+                    payloadSource = ReactableSharedPolicyGroup.builder()
+                        .id(deployable.sharedPolicyGroupId())
+                        .environmentId(deployable.environmentId())
+                        .build();
+                }
+                return DistributedEvent.builder()
+                    .id(deployable.sharedPolicyGroupId())
                     .type(DistributedEventType.SHARED_POLICY_GROUP)
                     .syncAction(SyncActionMapper.to(deployable.syncAction()))
-                    .updatedAt(new Date());
-                if (deployable.syncAction() == SyncAction.DEPLOY) {
-                    builder.payload(objectMapper.writeValueAsString(deployable.reactableSharedPolicyGroup()));
-                }
-                return builder.build();
+                    .updatedAt(new Date())
+                    .payload(objectMapper.writeValueAsString(payloadSource))
+                    .build();
             } catch (Exception e) {
                 log.warn("Error while building distributed event from shared policy group reactor", e);
                 return null;

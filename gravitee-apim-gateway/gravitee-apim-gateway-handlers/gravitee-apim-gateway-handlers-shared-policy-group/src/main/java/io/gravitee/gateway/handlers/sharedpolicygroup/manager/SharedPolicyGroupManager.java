@@ -27,7 +27,14 @@ public interface SharedPolicyGroupManager {
      */
     boolean register(ReactableSharedPolicyGroup sharedPolicyGroup);
 
-    void unregister(String sharedPolicyGroupId);
+    void unregister(String sharedPolicyGroupId, String environmentId);
+
+    /**
+     * Remove every deployed copy of this cross id.
+     * An undeploy event with no environment applies to all environments.
+     * @param sharedPolicyGroupId The cross id of the Shared Policy Group.
+     */
+    void unregisterAll(String sharedPolicyGroupId);
 
     void refresh();
 
@@ -38,9 +45,11 @@ public interface SharedPolicyGroupManager {
     Collection<ReactableSharedPolicyGroup> sharedPolicyGroups();
 
     /**
-     * Retrieve a deployed {@link ReactableSharedPolicyGroup} using its ID.
-     * @param sharedPolicyGroupId The ID of the deployed Shared Policy Group.
+     * Retrieve a deployed {@link ReactableSharedPolicyGroup} using its cross id and environment.
+     * The same cross id is deployed once per environment on a multi-environment gateway.
+     * @param sharedPolicyGroupId The cross id of the deployed Shared Policy Group.
+     * @param environmentId The environment the Shared Policy Group was deployed in.
      * @return A deployed {@link ReactableSharedPolicyGroup}
      */
-    ReactableSharedPolicyGroup get(String sharedPolicyGroupId);
+    ReactableSharedPolicyGroup get(String sharedPolicyGroupId, String environmentId);
 }
