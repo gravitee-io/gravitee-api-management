@@ -49,7 +49,8 @@ describeIfV4EmulationEngine('API - V4 - Native Kafka - Import - Gravitee Definit
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
             api: MAPIV2ApisFaker.apiV4NativeKafka({
-              groups: [group.id],
+              // Import definition uses group names (resolved to IDs on the created API)
+              groups: [group.name],
             }),
           }),
         }),
