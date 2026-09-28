@@ -22,6 +22,7 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    TruncatedCell,
     type DataTableProps,
 } from '@gravitee/graphene-core';
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
@@ -65,13 +66,20 @@ function buildColumns({
             id: 'name',
             accessorKey: 'name',
             header: ({ column }: ColHeader<QualityRule>) => <DataTableColumnHeader column={column} title="Rule name" />,
-            cell: ({ row }: ColCell<QualityRule>) => <span className="text-sm font-medium">{row.original.name}</span>,
+            // Widen the cell so the hover target covers the column rather than a sliver of it.
+            // The cap cannot be `max-w-full`: the column sizes itself to its content, so an
+            // unbroken name would widen it and scroll the table sideways.
+            cell: ({ row }: ColCell<QualityRule>) => (
+                <TruncatedCell className="w-full max-w-md text-sm font-medium" value={row.original.name} />
+            ),
         },
         {
             id: 'description',
             accessorKey: 'description',
             header: ({ column }: ColHeader<QualityRule>) => <DataTableColumnHeader column={column} title="Description" />,
-            cell: ({ row }: ColCell<QualityRule>) => <span className="text-sm text-muted-foreground">{row.original.description}</span>,
+            cell: ({ row }: ColCell<QualityRule>) => (
+                <TruncatedCell className="w-full max-w-2xl text-sm text-muted-foreground" value={row.original.description} />
+            ),
         },
     ];
 
