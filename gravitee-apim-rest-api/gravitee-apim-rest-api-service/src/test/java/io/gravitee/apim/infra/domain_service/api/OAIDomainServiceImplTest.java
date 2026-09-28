@@ -26,7 +26,6 @@ import static org.mockito.Mockito.when;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -63,7 +62,7 @@ class OAIDomainServiceImplTest {
         importConfiguration = mock(ImportConfiguration.class);
         when(importConfiguration.getImportWhitelist()).thenReturn(List.of());
         when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
-        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, null, importConfiguration);
+        oaiDomainService = new OAIDomainServiceImpl(policyOperationVisitorManager, null, null, null, importConfiguration);
     }
 
     @Test
@@ -159,7 +158,6 @@ class OAIDomainServiceImplTest {
             when(endpointConnectorPluginService.getDefaultSharedConfiguration(anyString())).thenReturn("{}");
             service = new OAIDomainServiceImpl(
                 new PolicyOperationVisitorManagerImpl(),
-                new GroupQueryServiceInMemory(),
                 new TagQueryServiceInMemory(),
                 endpointConnectorPluginService,
                 policyPluginCrudService,
@@ -259,7 +257,6 @@ class OAIDomainServiceImplTest {
 
             service = new OAIDomainServiceImpl(
                 new PolicyOperationVisitorManagerImpl(),
-                new GroupQueryServiceInMemory(),
                 new TagQueryServiceInMemory(),
                 endpointConnectorPluginService,
                 policyPluginCrudService,

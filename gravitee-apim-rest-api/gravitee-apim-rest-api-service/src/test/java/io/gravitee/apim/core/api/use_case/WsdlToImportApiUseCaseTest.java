@@ -32,7 +32,6 @@ import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -111,7 +110,6 @@ class WsdlToImportApiUseCaseTest {
             new WsdlParserDomainServiceImpl(importConfiguration),
             new OAIDomainServiceImpl(
                 new PolicyOperationVisitorManagerImpl(),
-                new GroupQueryServiceInMemory(),
                 new TagQueryServiceInMemory(),
                 endpointConnectorPluginService,
                 policyPluginCrudService,
