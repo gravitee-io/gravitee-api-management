@@ -1304,10 +1304,15 @@ describe('AppRoutes', () => {
 
         renderIntegrationOverviewUrl(integration.id);
 
-        await waitFor(() => expect(notifyError).toHaveBeenCalledWith(expect.any(ApimApiError), expect.stringMatching(/\S/)));
+        await waitFor(() =>
+            expect(notifyError).toHaveBeenCalledWith(
+                expect.any(ApimApiError),
+                'Integration could not be loaded. Please refresh and try again.',
+            ),
+        );
         expect(notifyError).toHaveBeenCalledTimes(1);
         const overview = screen.getByTestId('integration-overview-page');
-        await waitFor(() => expect(overview.textContent).toBe(notifyError.mock.calls[0][1]));
+        await waitFor(() => expect(overview.textContent).toBe('Integration could not be loaded. Please refresh and try again.'));
         expect(within(overview).queryByRole('heading')).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`);
         notifyError.mockRestore();

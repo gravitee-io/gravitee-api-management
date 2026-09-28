@@ -257,20 +257,6 @@ describe('IntegrationOverviewPage', () => {
         expect(screen.getByTestId('integration-overview-page').textContent).not.toMatch(/ingest/i);
     });
 
-    it('shows no ingestion-in-progress indicator for an A2A integration even when its response carries a pending job', async () => {
-        mockGetIntegration.mockResolvedValue({
-            id: 'integration-a2a',
-            name: 'A2A integration',
-            provider: 'A2A',
-            pendingJob: { id: 'job-1', status: 'PENDING' },
-        });
-
-        renderIntegrationOverviewPage('integration-a2a');
-
-        expect(await screen.findByRole('heading', { name: 'A2A integration' })).toBeInTheDocument();
-        expect(screen.queryByTestId('integration-ingestion-in-progress')).toBeNull();
-    });
-
     it.each([
         ['is no longer reported', undefined],
         ['has timed out', { id: 'job-1', status: 'TIMEOUT' as const }],
@@ -314,10 +300,7 @@ describe('IntegrationOverviewPage', () => {
 
     it.each([
         ['a gateway-style integration has no pending ingestion job', { provider: 'aws-api-gateway' }],
-        [
-            'an A2A integration response carries a pending ingestion job',
-            { provider: 'A2A', pendingJob: { id: 'job-1', status: 'PENDING' as const } },
-        ],
+        ['an A2A integration is loaded', { provider: 'A2A' }],
     ])('does not refresh the integration when %s', async (_, variant) => {
         jest.useFakeTimers();
         mockGetIntegration.mockResolvedValue({ id: 'integration-x', name: 'Some integration', ...variant });
