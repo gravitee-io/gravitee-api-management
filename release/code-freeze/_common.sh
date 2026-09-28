@@ -153,4 +153,26 @@ EOF
     echo "Mergify: backporting to ${branch} on ${label}"
 }
 
+# Asks before anything that leaves the machine or deletes local work. `y` runs it, `s` skips it and
+# carries on, anything else aborts the freeze — resume later with the step number.
+# Reads from /dev/tty so it still asks when called inside a command substitution.
+confirm() {
+    local answer
+    echo "" >&2
+    echo ">>> About to run: $*" >&2
+    read -r -p ">>> Proceed? [y]es / [s]kip / [N]o (abort): " answer < /dev/tty
+    case "$answer" in
+        y|Y) return 0 ;;
+        s|S) echo ">>> Skipped." >&2; return 1 ;;
+        *) echo ">>> Aborted." >&2; exit 1 ;;
+    esac
+}
+
+# Runs the command only once confirmed.
+run_confirmed() {
+    if confirm "$*"; then
+        "$@"
+    fi
+}
+
 echo "Code freeze context: version=${FULL_VERSION} branch=${BRANCH_NAME}"

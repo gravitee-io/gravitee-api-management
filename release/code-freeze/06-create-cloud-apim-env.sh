@@ -58,9 +58,10 @@ git -C "$CLOUD_APIM_REPO" add \
     application/apim.logstash.applicationset.yaml
 
 git -C "$CLOUD_APIM_REPO" commit -m "feat: deploy ${ENV_DIR_NAME} environment"
-git -C "$CLOUD_APIM_REPO" push -u origin "$CLOUD_APIM_BRANCH"
+git -C "$CLOUD_APIM_REPO" --no-pager show --stat HEAD
+run_confirmed git -C "$CLOUD_APIM_REPO" push -u origin "$CLOUD_APIM_BRANCH"
 
-gh pr create \
+run_confirmed gh pr create \
     --repo gravitee-io/cloud-apim \
     --base main \
     --head "$CLOUD_APIM_BRANCH" \

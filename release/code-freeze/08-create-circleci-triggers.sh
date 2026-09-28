@@ -115,6 +115,11 @@ for SCHEDULE in "${SCHEDULES[@]}"; do
             }
         }')
 
+    echo "$PAYLOAD"
+    if ! confirm "create CircleCI schedule '${TARGET_NAME}'"; then
+        continue
+    fi
+
     RESPONSE=$(curl -s -X POST \
         -H "Circle-Token: $CIRCLECI_TOKEN" \
         -H "Content-Type: application/json" \

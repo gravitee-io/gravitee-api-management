@@ -36,7 +36,7 @@ cd "$REPO_ROOT/helm"
 
 helm dep up
 helm package -d charts .
-helm push "./charts/apim-${ALPHA_VERSION}.tgz" oci://graviteeio.azurecr.io/helm/
+run_confirmed helm push "./charts/apim-${ALPHA_VERSION}.tgz" oci://graviteeio.azurecr.io/helm/
 
 cd "$REPO_ROOT"
 

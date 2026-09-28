@@ -37,6 +37,6 @@ fi
 echo "Creating GitHub label '${BRANCH_LABEL}'..."
 
 RANDOM_COLOR=$(printf '%06X' $((RANDOM * RANDOM % 16777216)))
-gh label create "$BRANCH_LABEL" --repo "$GITHUB_REPO" --description "Mergify: apply on ${BRANCH_NAME}" --color "$RANDOM_COLOR"
+run_confirmed gh label create "$BRANCH_LABEL" --repo "$GITHUB_REPO" --description "Mergify: apply on ${BRANCH_NAME}" --color "$RANDOM_COLOR"
 
 echo "GitHub label '${BRANCH_LABEL}' created."

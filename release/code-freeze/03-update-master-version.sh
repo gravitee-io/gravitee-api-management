@@ -69,6 +69,7 @@ git -C "$REPO_ROOT" add pom.xml \
 
 git -C "$REPO_ROOT" commit -m "chore: prepare next version (${MAJOR}.${NEXT_MINOR})"
 
-git -C "$REPO_ROOT" push origin master
+git -C "$REPO_ROOT" --no-pager show HEAD
+run_confirmed git -C "$REPO_ROOT" push origin master
 
 echo "Changes committed and pushed on master."

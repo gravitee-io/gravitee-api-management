@@ -50,6 +50,7 @@ git -C "$REPO_ROOT" add pom.xml \
 
 git -C "$REPO_ROOT" commit -m "chore: prepare first alpha version"
 
-git -C "$REPO_ROOT" push -u origin "$BRANCH_NAME"
+git -C "$REPO_ROOT" --no-pager show HEAD
+run_confirmed git -C "$REPO_ROOT" push -u origin "$BRANCH_NAME"
 
 echo "Changes committed and pushed on branch '$BRANCH_NAME'."
