@@ -32,6 +32,7 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -39,6 +40,7 @@ import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.time.ZonedDateTime;
@@ -133,8 +135,15 @@ public class RollbackApiUseCase {
                 }
                 yield apiUpdatedV2;
             }
+            // NATIVE APIs are V4 too, but neither Api#rollbackTo nor rollbackPlansV4 handle them. Asking to roll one
+            // back is a legitimate request for an unsupported operation, so it answers 400 - unlike the cases below,
+            // which mean the stored event carries a definition we cannot make sense of at all.
+            case NativeApi ignored -> throw new ValidationDomainException(
+                "Rolling back a NATIVE API is not supported",
+                "api.rollback.native"
+            );
             case null, default -> throw new IllegalStateException(
-                "Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(input.eventId)
+                "Cannot rollback this API: only V2 and V4 HTTP APIs are supported (%s)".formatted(input.eventId)
             );
         };
 
