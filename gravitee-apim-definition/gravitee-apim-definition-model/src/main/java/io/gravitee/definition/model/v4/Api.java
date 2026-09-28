@@ -30,7 +30,6 @@ import io.gravitee.definition.model.v4.listener.entrypoint.AbstractEntrypoint;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.definition.model.v4.plan.Plan;
-import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import jakarta.annotation.Nullable;
@@ -175,12 +174,5 @@ public class Api extends AbstractApi {
     @JsonIgnore
     public boolean isTcpProxy() {
         return ApiType.PROXY.equals(getType()) && listeners.stream().anyMatch(TcpListener.class::isInstance);
-    }
-
-    public boolean updateDynamicProperties(Function<List<Property>, UpdateDynamicPropertiesResult> updateOperator) {
-        var updated = updateOperator.apply(getProperties());
-        setProperties(updated.orderedProperties());
-
-        return updated.needToUpdate();
     }
 }
