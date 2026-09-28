@@ -551,13 +551,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
             // the additional_client_metadata merge in convert(), which keeps the same precedence as register().
             registrationRequest.setSoftwareId(provider.getSoftwareId());
 
-<<<<<<< HEAD
             Map<String, String> claimInjections = resolveClaimInjections(provider.getClaimMappings(), idpClaims);
 
-            return registrationProviderClient.update(
-=======
             ClientRegistrationResponse updatedRegistrationResponse = registrationProviderClient.update(
->>>>>>> d9a2781 (fix(rest-api): keep stored DCR client secret when update response omits it)
                 registrationResponse.getRegistrationAccessToken(),
                 registrationResponse.getRegistrationClientUri(),
                 convert(registrationRequest, application),
