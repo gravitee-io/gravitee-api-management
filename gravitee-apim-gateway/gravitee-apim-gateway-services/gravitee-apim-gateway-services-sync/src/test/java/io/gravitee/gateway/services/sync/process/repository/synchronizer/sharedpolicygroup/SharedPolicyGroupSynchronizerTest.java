@@ -18,9 +18,11 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.shared
 import static io.gravitee.repository.management.model.Event.EventProperties.SHARED_POLICY_GROUP_ID;
 import static io.gravitee.repository.management.model.EventType.DEPLOY_SHARED_POLICY_GROUP;
 import static io.gravitee.repository.management.model.EventType.UNDEPLOY_SHARED_POLICY_GROUP;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -51,6 +53,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -179,6 +182,7 @@ class SharedPolicyGroupSynchronizerTest {
         void should_unregister_api_when_fetching_close_events() throws InterruptedException {
             Event event = new Event();
             event.setId("id");
+            event.setEnvironments(Set.of("env"));
             event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "id"));
             event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
 
@@ -186,6 +190,65 @@ class SharedPolicyGroupSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(sharedPolicyGroupDeployer).undeploy(any());
+        }
+
+        @Test
+        void should_undeploy_the_environment_carried_by_the_event() throws InterruptedException {
+            Event event = new Event();
+            event.setId("id");
+            event.setEnvironments(Set.of("env"));
+            event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "spg-id"));
+            event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of("env")).test().await().assertComplete();
+
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
+                SharedPolicyGroupReactorDeployable.class
+            );
+            verify(sharedPolicyGroupDeployer).undeploy(deployableCaptor.capture());
+            assertThat(deployableCaptor.getValue().sharedPolicyGroupId()).isEqualTo("spg-id");
+            assertThat(deployableCaptor.getValue().environmentId()).isEqualTo("env");
+        }
+
+        @Test
+        void should_undeploy_every_copy_when_the_event_lists_no_environment() throws InterruptedException {
+            Event event = new Event();
+            event.setId("id");
+            event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "spg-id"));
+            event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
+            event.setPayload("description text, not a definition");
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
+                SharedPolicyGroupReactorDeployable.class
+            );
+            verify(sharedPolicyGroupDeployer).undeploy(deployableCaptor.capture());
+            assertThat(deployableCaptor.getValue().sharedPolicyGroupId()).isEqualTo("spg-id");
+            assertThat(deployableCaptor.getValue().allEnvironments()).isTrue();
+        }
+
+        @Test
+        void should_undeploy_each_environment_listed_on_the_event() throws InterruptedException {
+            Event event = new Event();
+            event.setId("id");
+            event.setEnvironments(Set.of("env-a", "env-b"));
+            event.setProperties(Map.of(SHARED_POLICY_GROUP_ID.getValue(), "spg-id"));
+            event.setType(UNDEPLOY_SHARED_POLICY_GROUP);
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
+                SharedPolicyGroupReactorDeployable.class
+            );
+            verify(sharedPolicyGroupDeployer, times(2)).undeploy(deployableCaptor.capture());
+            assertThat(deployableCaptor.getAllValues())
+                .extracting(SharedPolicyGroupReactorDeployable::environmentId)
+                .containsExactlyInAnyOrder("env-a", "env-b");
+            assertThat(deployableCaptor.getAllValues()).allSatisfy(deployable -> assertThat(deployable.allEnvironments()).isFalse());
         }
     }
 }
