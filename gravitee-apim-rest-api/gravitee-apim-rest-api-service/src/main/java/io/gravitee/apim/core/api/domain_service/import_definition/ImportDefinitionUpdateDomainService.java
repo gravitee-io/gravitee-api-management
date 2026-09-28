@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service.import_definition;
 
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
+import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
@@ -31,6 +32,7 @@ import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.definition.model.v4.AbstractApi;
@@ -39,6 +41,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -57,6 +60,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ImportDefinitionPlanDomainService importDefinitionPlanDomainService;
     private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
     private final ApiImportDomainService apiImportDomainService;
+    private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -68,7 +72,8 @@ public class ImportDefinitionUpdateDomainService {
         ImportDefinitionMetadataDomainService importDefinitionMetadataDomainService,
         ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
         ImportDefinitionPageDomainService importDefinitionPageDomainService,
-        ApiImportDomainService apiImportDomainService
+        ApiImportDomainService apiImportDomainService,
+        ImportApiGroupsDomainService importApiGroupsDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -80,6 +85,7 @@ public class ImportDefinitionUpdateDomainService {
         this.importDefinitionPlanDomainService = importDefinitionPlanDomainService;
         this.importDefinitionPageDomainService = importDefinitionPageDomainService;
         this.apiImportDomainService = apiImportDomainService;
+        this.importApiGroupsDomainService = importApiGroupsDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -103,12 +109,31 @@ public class ImportDefinitionUpdateDomainService {
             apiExport.setProperties(existingDefinition.getProperties());
         }
 
+        // Defer group resolution for NATIVE APIs: groups are resolved/created only after validation passes.
+        // For PROXY/MESSAGE, validation is coupled in ApiService.update, so groups are resolved before update
+        // to avoid breaking changes in the legacy service.
+        //
+        // Null or empty groupNames means "groups field absent / do not change": keep existing membership.
+        // OpenAPI models default missing arrays to [], so empty must be treated like null on update.
+        // Non-empty names are resolved (and missing names auto-created) then applied as the authoritative set.
+        var groupNames = apiExport.getGroups();
+
         var updatedApi = switch (existingPromotedApi.getType()) {
-            case PROXY, MESSAGE -> updateApiDomainService.updateV4(
-                ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
-                auditInfo
-            );
-            case NATIVE -> updateNativeApi(apiId, apiWithIds.getApiExport(), auditInfo);
+            case PROXY, MESSAGE -> {
+                if (isEmpty(groupNames)) {
+                    apiExport.setGroups(null);
+                } else {
+                    apiExport.setGroups(importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo));
+                }
+                yield updateApiDomainService.updateV4(
+                    ApiModelFactory.fromApiExport(apiExport, auditInfo.environmentId()).toBuilder().id(apiId).build(),
+                    auditInfo
+                );
+            }
+            case NATIVE -> {
+                apiExport.setGroups(null);
+                yield updateNativeApi(apiId, apiExport, groupNames, auditInfo);
+            }
             default -> throw new IllegalStateException("Unsupported API type: " + existingPromotedApi.getType());
         };
 
@@ -148,24 +173,54 @@ public class ImportDefinitionUpdateDomainService {
         apiImportDomainService.createMedias(apiMedia, apiId, new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()));
     }
 
-    private Api updateNativeApi(String apiId, ApiExport apiExport, AuditInfo auditInfo) {
+    private Api updateNativeApi(String apiId, ApiExport apiExport, Set<String> groupNames, AuditInfo auditInfo) {
         var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(auditInfo.organizationId(), apiId);
         var updateOperator = toNativeApiUpdateOperator(apiExport);
         return updateNativeApiDomainService.update(
             apiId,
             updateOperator,
-            (existingApi, apiToUpdate) ->
-                validateApiDomainService.validateAndSanitizeForUpdate(
+            (existingApi, apiToUpdate) -> {
+                // When import specifies groups, clear existing groups before validation so that
+                // validated only contains what validation adds (e.g. primary-owner group), not old
+                // membership groups. When groups are absent/empty, keep existing groups as-is.
+                var apiForValidation = !isEmpty(groupNames) ? apiToUpdate.toBuilder().groups(null).build() : apiToUpdate;
+                var validated = validateApiDomainService.validateAndSanitizeForUpdate(
                     existingApi,
-                    apiToUpdate,
+                    apiForValidation,
                     primaryOwner,
                     auditInfo.environmentId(),
                     auditInfo.organizationId()
-                ),
+                );
+                if (isEmpty(groupNames)) {
+                    return validated;
+                }
+                // Merge resolved import groups with groups validation added (e.g. primary-owner group)
+                var resolvedGroupIds = importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo);
+                var mergedGroups = mergeGroups(validated.getGroups(), resolvedGroupIds);
+                return validated.toBuilder().groups(mergedGroups).build();
+            },
             auditInfo,
             primaryOwner,
             oneShotIndexation(auditInfo)
         );
+    }
+
+    /**
+     * Null-safe union of two group ID sets.
+     * Validation may have added primary-owner group; resolved groups come from the import.
+     */
+    private Set<String> mergeGroups(Set<String> fromValidation, Set<String> fromImport) {
+        if (fromValidation == null && fromImport == null) {
+            return null;
+        }
+        var merged = new HashSet<String>();
+        if (fromValidation != null) {
+            merged.addAll(fromValidation);
+        }
+        if (fromImport != null) {
+            merged.addAll(fromImport);
+        }
+        return merged.isEmpty() ? null : merged;
     }
 
     private UnaryOperator<Api> toNativeApiUpdateOperator(ApiExport apiExport) {
