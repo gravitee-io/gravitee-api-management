@@ -180,7 +180,7 @@
         <!-- gravitee-connector-http is shared with the engine (gateway tests-sdk & standalone-container),
              so it stays here. The full bundled-plugin version catalog moved to
              gravitee-apim-distribution/pom.xml (the distribution owns which plugin versions it ships). -->
-    <gravitee-connector-http.version>6.0.0</gravitee-connector-http.version>
+    <gravitee-connector-http.version>6.0.1</gravitee-connector-http.version>
   </properties>
 
   <scm>
