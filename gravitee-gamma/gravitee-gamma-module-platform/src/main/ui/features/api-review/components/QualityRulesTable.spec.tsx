@@ -91,6 +91,26 @@ describe('QualityRulesTable', () => {
         expect(screen.queryByText('No manual rules to display.')).not.toBeInTheDocument();
     });
 
+    it('renders a long rule name in full', () => {
+        const name = 'A'.repeat(120);
+        renderTable({ rules: [{ id: 'rule-long', name, description: 'Short.', weight: 0 }] });
+
+        expect(screen.getByText(name)).toBeInTheDocument();
+    });
+
+    it('renders a long description in full', () => {
+        const description = 'B'.repeat(400);
+        renderTable({ rules: [{ id: 'rule-long', name: 'Short name', description, weight: 0 }] });
+
+        expect(screen.getByText(description)).toBeInTheDocument();
+    });
+
+    it('shows an em dash for a rule with no description', () => {
+        renderTable({ rules: [{ id: 'rule-bare', name: 'Primary owner is a group', description: '', weight: 0 }] });
+
+        expect(screen.getByText('—')).toBeInTheDocument();
+    });
+
     it('shows the empty message when there are no rules', () => {
         renderTable({ rules: [] });
         expect(screen.getByText('No manual rules to display.')).toBeInTheDocument();

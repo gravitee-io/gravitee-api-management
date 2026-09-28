@@ -33,11 +33,14 @@ export function QualityRuleDeleteDialog({
     return (
         <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
             <DialogContent className="max-w-sm">
-                <DialogHeader>
+                {/* min-w-0: the header is a grid item, so without it an unbroken rule name sets
+                    the min-content width and pushes the text outside the dialog. */}
+                <DialogHeader className="min-w-0">
                     <DialogTitle>Delete manual rule</DialogTitle>
-                    <DialogDescription>
-                        Are you sure you want to delete manual rule <span className="font-medium text-foreground">{rule?.name}</span>?
-                        Reviewers will no longer see it when they accept or reject an API.
+                    <DialogDescription className="min-w-0">
+                        Are you sure you want to delete manual rule{' '}
+                        <span className="font-medium text-foreground break-words">{rule?.name}</span>? Reviewers will no longer see it when
+                        they accept or reject an API.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="border-t px-6 py-4 gap-2">
