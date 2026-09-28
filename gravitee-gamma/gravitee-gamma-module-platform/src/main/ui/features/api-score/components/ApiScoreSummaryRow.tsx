@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@gravitee/graphene-core';
+import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@gravitee/graphene-core';
 import { ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 
 import type { EnvironmentScoringOverview } from '../types/scoring';
-import { formatScorePercent, SCORE_PILL_CLASS, scoreTone } from '../utils/scoring';
+import { formatDateAgo, formatScorePercent, SCORE_PILL_CLASS, scoreTone } from '../utils/scoring';
 
 function formatCount(value: number | null | undefined): string {
     return value === null || value === undefined ? '—' : String(value);
 }
 
-export function ApiScoreSummaryRow({ overview }: Readonly<{ overview: EnvironmentScoringOverview }>) {
+export function ApiScoreSummaryRow({ overview, evaluatedAt }: Readonly<{ overview: EnvironmentScoringOverview; evaluatedAt: Date }>) {
     const score = overview.score ?? 0;
     const tone = scoreTone(score);
 
@@ -31,6 +31,7 @@ export function ApiScoreSummaryRow({ overview }: Readonly<{ overview: Environmen
         <Card>
             <CardHeader>
                 <CardTitle>Overview</CardTitle>
+                <CardDescription>Last evaluated {formatDateAgo(evaluatedAt)}</CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="grid grid-cols-2 gap-6 sm:grid-cols-5" data-testid="api-score-overview">

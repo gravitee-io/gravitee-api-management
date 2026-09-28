@@ -106,10 +106,11 @@ beforeEach(() => {
 });
 
 describe('ApiScoringPage', () => {
-    it('shows the never-evaluated empty state', () => {
+    it('shows the educational empty state when the API has never been scored', () => {
         renderPage();
-        expect(screen.getByText('This API has never been scored before')).toBeInTheDocument();
-        expect(screen.getByText('Click on the Evaluate button to get the first score.')).toBeInTheDocument();
+        expect(screen.getByTestId('api-scoring-educational-empty')).toBeInTheDocument();
+        expect(screen.getByText('Why run API Score?')).toBeInTheDocument();
+        expect(screen.getByText('How it works')).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /^evaluate$/i })).toBeEnabled();
     });
 
@@ -128,11 +129,12 @@ describe('ApiScoringPage', () => {
         expect(screen.getByText(/a request is currently processing/i)).toBeInTheDocument();
     });
 
-    it('renders the score percent, last evaluated time, and severity pills', () => {
+    it('renders the score percent beside the title, last evaluated time, and severity pills', () => {
         idleScoring({ scoring: SCORED });
         renderPage();
-        expect(screen.getByText('67%')).toBeInTheDocument();
-        expect(screen.getByText(/last evaluated 10 days ago/i)).toBeInTheDocument();
+        expect(screen.getByTestId('api-score-percent')).toHaveTextContent('67%');
+        expect(screen.getByText(/last evaluated 1 week ago/i)).toBeInTheDocument();
+        expect(screen.queryByText(/Get personalized recommendations to enhance your API's quality/i)).not.toBeInTheDocument();
         expect(screen.getByRole('radio', { name: 'All (3)' })).toBeInTheDocument();
         expect(screen.getByRole('radio', { name: 'Errors (2)' })).toBeInTheDocument();
         expect(screen.getByRole('radio', { name: 'Warnings (1)' })).toBeInTheDocument();
@@ -159,13 +161,32 @@ describe('ApiScoringPage', () => {
             },
         });
         renderPage();
+        expect(screen.getByTestId('api-score-percent')).toHaveTextContent('100%');
         expect(screen.getByText('All clear')).toBeInTheDocument();
         expect(screen.getByText(/everything looks great/i)).toBeInTheDocument();
+    });
+
+    it('keeps scored asset accordions below all clear at 100%, like Gamma Baby', () => {
+        idleScoring({
+            scoring: {
+                createdAt: new Date().toISOString(),
+                summary: { all: 0, errors: 0, warnings: 0, infos: 0, hints: 0, score: 1 },
+                assets: [
+                    { name: 'payment-openapi.yaml', type: 'SWAGGER', diagnostics: [] },
+                    { name: 'gravitee-definition.json', type: 'GRAVITEE_DEFINITION', diagnostics: [] },
+                ],
+            },
+        });
+        renderPage();
+        expect(screen.getByText('All clear')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /payment-openapi\.yaml/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /gravitee-definition\.json/i })).toBeInTheDocument();
     });
 
     it('shows the no-scorable-assets empty state when the report has no summary', () => {
         idleScoring({ scoring: { createdAt: new Date().toISOString(), assets: [] } });
         renderPage();
+        expect(screen.getByText('Score this API against the environment rulesets.')).toBeInTheDocument();
         expect(screen.getByText('No scorable assets')).toBeInTheDocument();
         expect(screen.getByText("This API's assets did not match any rulesets.")).toBeInTheDocument();
     });
@@ -232,7 +253,7 @@ describe('ApiScoringPage', () => {
         renderPage();
         expect(mockNotify.error).toHaveBeenCalledWith(error, 'An error occurred while getting your API Scoring.');
         expect(screen.queryByText('An error occurred while getting your API Scoring.')).not.toBeInTheDocument();
-        expect(screen.queryByText('This API has never been scored before')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('api-scoring-educational-empty')).not.toBeInTheDocument();
     });
 
     it('does not show no-scorable-assets when the report has asset errors and no summary', () => {
