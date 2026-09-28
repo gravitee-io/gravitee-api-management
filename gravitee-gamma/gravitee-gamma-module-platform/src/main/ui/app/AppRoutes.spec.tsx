@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 import type { License } from '@gravitee/gamma-modules-sdk/types';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import type { ComponentType } from 'react';
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
+
+import type * as GammaModulesSdk from '@gravitee/gamma-modules-sdk';
 
 import { AppRoutes } from './AppRoutes';
 import { ROUTES } from '../config/routes';
 import { useApiScoreEnabled } from '../features/api-score/hooks/useApiScoreEnabled';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
-import { ApimApiError, resetApimClientForTests } from '../shared/api/apimClient';
+import { ApimApiError, loadApimBootstrap, resetApimClientForTests } from '../shared/api/apimClient';
 import { useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPermissions';
 import { markNavItemDenied, resetDeniedNavItemsForEnvironment } from '../shared/nav/deniedNavItems';
 import { notify } from '../shared/notify/notify';
@@ -43,6 +45,7 @@ jest.mock('@gravitee/gamma-modules-sdk/routing', () => ({
 }));
 
 const mockUseLayoutConfig = jest.fn();
+const mockUseEnvironment = jest.fn<{ id: string } | undefined, []>();
 const mockUseHasPermission = jest.fn().mockReturnValue(true);
 const mockUseHasFeature = jest.fn().mockReturnValue(true);
 const mockUseHasEnvironmentPermission = jest.fn().mockReturnValue(true);
@@ -104,7 +107,8 @@ jest.mock('../shared/hooks/useEnvironmentPermissions', () => ({
 }));
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
-    useEnvironment: () => ({ id: 'env-1' }),
+    normalizeCrudMapRecord: jest.requireActual<typeof GammaModulesSdk>('@gravitee/gamma-modules-sdk').normalizeCrudMapRecord,
+    useEnvironment: () => mockUseEnvironment(),
     useHasPermission: (options: unknown) => mockUseHasPermission(options),
     useHasFeature: (feature: unknown) => mockUseHasFeature(feature),
     permissionService: {
@@ -505,6 +509,52 @@ function spyOnApimFetch(integrationsResponse: () => Promise<Response> = okIntegr
     });
 }
 
+const GATEWAY_INTEGRATION = { id: 'integration-gateway', name: 'Payments gateway', provider: 'aws-api-gateway', agentStatus: 'CONNECTED' };
+
+const A2A_INTEGRATION = { id: 'integration-a2a', name: 'Support agents', provider: 'A2A', agentStatus: 'CONNECTED' };
+
+const INGESTED_AGENT = {
+    id: 'agent-1',
+    name: 'Ticket triage agent',
+    agentCardUrl: 'https://agents.example.test/.well-known/agent-card.json',
+};
+
+const INGESTED_AGENTS_RESPONSE = {
+    data: [INGESTED_AGENT],
+    pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
+};
+
+function spyOnIntegrationOverviewFetch(
+    integration: { id: string },
+    permissionsResponse: () => Promise<Response>,
+    detailResponse: () => Promise<Response> = () => jsonResponse(integration),
+    ingestedAgentsResponse?: () => Promise<Response>,
+) {
+    resetApimClientForTests();
+    return jest.spyOn(global, 'fetch').mockImplementation(input => {
+        const url = String(input);
+        if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
+        if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
+        if (url.endsWith(`/integrations/${integration.id}/permissions`)) return permissionsResponse();
+        if (ingestedAgentsResponse && url.split('?')[0].endsWith(`/integrations/${integration.id}/apis`)) return ingestedAgentsResponse();
+        if (url.endsWith(`/integrations/${integration.id}`)) return detailResponse();
+        return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
+    });
+}
+
+function renderIntegrationOverviewUrl(integrationId: string) {
+    renderIntegrationPath(`/integrations/${integrationId}`);
+}
+
+function renderIntegrationPath(path: string) {
+    render(
+        <MemoryRouter initialEntries={[path]}>
+            <AppRoutes />
+            <LocationProbe />
+        </MemoryRouter>,
+    );
+}
+
 function integrationsRequestUrls(fetchSpy: ReturnType<typeof spyOnApimFetch>): string[] {
     return fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => /integration/i.test(url));
 }
@@ -518,6 +568,7 @@ describe('AppRoutes', () => {
             rootPath: '/platform',
         });
         mockUseRealIntegrationsPage = false;
+        mockUseEnvironment.mockReset().mockReturnValue({ id: 'env-1' });
         mockUseHasPermission.mockReset().mockReturnValue(true);
         mockUseHasFeature.mockReset().mockReturnValue(true);
         mockUseHasEnvironmentPermission.mockReset().mockReturnValue(true);
@@ -999,6 +1050,291 @@ describe('AppRoutes', () => {
         expect(integrationsRequestUrls(fetchSpy)).toEqual([INTEGRATIONS_REQUEST_URL]);
         fetchSpy.mockRestore();
     });
+
+    it.each([
+        ['a gateway-style', GATEWAY_INTEGRATION, 'AWS API Gateway'],
+        ['an A2A', A2A_INTEGRATION, 'A2A Protocol'],
+    ])(
+        'opens %s integration overview on the shared integration id route, showing its name and provider',
+        async (_kind, integration, providerLabel) => {
+            const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R' }));
+            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+            mockSetLicense(ENTITLED_LICENSE);
+
+            renderIntegrationOverviewUrl(integration.id);
+
+            const overview = await screen.findByTestId('integration-overview-page');
+            expect(await within(overview).findByRole('heading', { name: integration.name })).not.toBeNull();
+            expect(within(overview).getByText(providerLabel)).not.toBeNull();
+            expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`);
+            fetchSpy.mockRestore();
+        },
+    );
+
+    // Each row uses its own integration id because AppRoutes shares one QueryClient across tests: a cached
+    // grant for the same id from the test above would otherwise let the overview mount before the refetch.
+    it.each([
+        [
+            'a gateway-style integration with no permissions',
+            { ...GATEWAY_INTEGRATION, id: 'gateway-no-permissions' },
+            () => jsonResponse({}),
+        ],
+        [
+            'an A2A integration without definition read',
+            { ...A2A_INTEGRATION, id: 'a2a-definition-create-only' },
+            () => jsonResponse({ DEFINITION: 'C' }),
+        ],
+        [
+            'a gateway-style integration whose permissions request fails',
+            { ...GATEWAY_INTEGRATION, id: 'gateway-permissions-failed' },
+            forbiddenIntegrationsResponse,
+        ],
+        [
+            'an A2A integration whose permissions request fails',
+            { ...A2A_INTEGRATION, id: 'a2a-permissions-failed' },
+            forbiddenIntegrationsResponse,
+        ],
+    ])(
+        'redirects a direct visit to %s back to the Integrations list without loading its details',
+        async (_case, integration, permissionsResponse) => {
+            const fetchSpy = spyOnIntegrationOverviewFetch(integration, permissionsResponse);
+            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+            mockSetLicense(ENTITLED_LICENSE);
+
+            renderIntegrationOverviewUrl(integration.id);
+
+            await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
+            expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+            expect(screen.getByTestId('integrations-page')).not.toBeNull();
+            expect(
+                fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => url.endsWith(`/integrations/${integration.id}`)),
+            ).toEqual([]);
+            fetchSpy.mockRestore();
+        },
+    );
+
+    it('keeps a direct overview visit on its URL without loading details while the integration permissions request is pending', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'gateway-permissions-pending' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => new Promise<Response>(() => undefined));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationOverviewUrl(integration.id);
+
+        await waitFor(() =>
+            expect(
+                fetchSpy.mock.calls
+                    .map(([input]) => String(input))
+                    .filter(url => url.endsWith(`/integrations/${integration.id}/permissions`)),
+            ).toHaveLength(1),
+        );
+        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`);
+        expect(fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => url.endsWith(`/integrations/${integration.id}`))).toEqual(
+            [],
+        );
+        fetchSpy.mockRestore();
+    });
+
+    it('keeps a direct overview visit on its URL without requesting permissions or details while no environment is selected', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'gateway-no-environment' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R' }));
+        mockUseEnvironment.mockReturnValue(undefined);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        // Bootstrap up front so a permissions request built from a missing environment would be sent right after
+        // mount instead of waiting on the client bootstrap, and the flush below lets it land.
+        await loadApimBootstrap();
+
+        renderIntegrationOverviewUrl(integration.id);
+
+        await act(() => new Promise(resolve => setTimeout(resolve, 0)));
+        expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`);
+        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(screen.queryByText(integration.name)).toBeNull();
+        const requestedUrls = fetchSpy.mock.calls.map(([input]) => String(input));
+        expect(requestedUrls.filter(url => url.endsWith(`/integrations/${integration.id}/permissions`))).toEqual([]);
+        expect(requestedUrls.filter(url => url.endsWith(`/integrations/${integration.id}`))).toEqual([]);
+        fetchSpy.mockRestore();
+    });
+
+    it('warns once with the integration id when the overview permissions request fails', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'gateway-permissions-failed-warning' };
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, forbiddenIntegrationsResponse);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationOverviewUrl(integration.id);
+
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(String(warn.mock.calls[0][0])).toContain(integration.id);
+        fetchSpy.mockRestore();
+        warn.mockRestore();
+    });
+
+    it('does not warn when the overview permissions request resolves without definition read', async () => {
+        const integration = { ...A2A_INTEGRATION, id: 'a2a-definition-create-only-no-warning' };
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'C' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationOverviewUrl(integration.id);
+
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
+        expect(warn).not.toHaveBeenCalled();
+        fetchSpy.mockRestore();
+        warn.mockRestore();
+    });
+
+    it.each([
+        [
+            'a gateway-style integration when the user lacks environment-integration-r',
+            { ...GATEWAY_INTEGRATION, id: 'gateway-no-environment-read' },
+            { federation: { enabled: true } },
+            ENTITLED_LICENSE,
+            ['environment-integration-r'],
+        ],
+        [
+            'an A2A integration when the user lacks environment-integration-r',
+            { ...A2A_INTEGRATION, id: 'a2a-no-environment-read' },
+            { federation: { enabled: true } },
+            ENTITLED_LICENSE,
+            ['environment-integration-r'],
+        ],
+        [
+            'an A2A integration when Federation is not enabled for the organization',
+            { ...A2A_INTEGRATION, id: 'a2a-federation-disabled' },
+            { federation: { enabled: false } },
+            ENTITLED_LICENSE,
+            [],
+        ],
+        [
+            'a gateway-style integration when the installed license tier is oss',
+            { ...GATEWAY_INTEGRATION, id: 'gateway-oss-license' },
+            { federation: { enabled: true } },
+            OSS_LICENSE,
+            [],
+        ],
+    ])(
+        'redirects a direct overview visit to %s the same way as the list, without any integration request',
+        async (_case, integration, consoleSettings, license, deniedPermissions) => {
+            const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R' }));
+            mockUseConsoleSettings.mockReturnValue(consoleSettings);
+            mockSetLicense(license);
+            denyPermissions(...deniedPermissions);
+
+            renderIntegrationOverviewUrl(integration.id);
+
+            await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/applications'));
+            expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+            expect(screen.getByTestId('applications-page')).not.toBeNull();
+            expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
+            fetchSpy.mockRestore();
+        },
+    );
+
+    it('renders only the name and provider of an A2A integration with ingested agents, with no agent card, agent link or agents request', async () => {
+        const integration = { ...A2A_INTEGRATION, id: 'a2a-with-ingested-agents' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(
+            integration,
+            () => jsonResponse({ DEFINITION: 'R' }),
+            () => jsonResponse(integration),
+            () => jsonResponse(INGESTED_AGENTS_RESPONSE),
+        );
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationOverviewUrl(integration.id);
+
+        const overview = await screen.findByTestId('integration-overview-page');
+        await within(overview).findByRole('heading', { name: integration.name });
+        expect(overview.textContent).toBe(`${integration.name}A2A Protocol`);
+        expect(within(overview).queryAllByRole('link')).toEqual([]);
+        expect(overview.textContent).not.toContain(INGESTED_AGENT.name);
+        expect(overview.textContent).not.toContain(INGESTED_AGENT.agentCardUrl);
+        expect(integrationsRequestUrls(fetchSpy).filter(url => url.includes(`/integrations/${integration.id}/apis`))).toEqual([]);
+        fetchSpy.mockRestore();
+    });
+
+    it('resolves no agent detail view for a nested agent URL under an A2A integration', async () => {
+        const fetchSpy = spyOnIntegrationOverviewFetch(
+            A2A_INTEGRATION,
+            () => jsonResponse({ DEFINITION: 'R' }),
+            () => jsonResponse(A2A_INTEGRATION),
+            () => jsonResponse(INGESTED_AGENTS_RESPONSE),
+        );
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        const nestedAgentPath = `/integrations/${A2A_INTEGRATION.id}/agents/${INGESTED_AGENT.id}`;
+
+        // Nothing under the nested URL triggers the API client, so bootstrap it up front: once it is cached a matching
+        // route would fire its integration requests right after mount, and the flush below lets them land.
+        await loadApimBootstrap();
+        expect(fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => url.endsWith('/ui/bootstrap'))).toHaveLength(1);
+
+        renderIntegrationPath(nestedAgentPath);
+
+        await act(() => new Promise(resolve => setTimeout(resolve, 0)));
+        expect(screen.getByTestId('location').textContent).toBe(nestedAgentPath);
+        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+        expect(screen.queryByTestId('integrations-page')).toBeNull();
+        expect(screen.queryByText(/skills|capabilities|agent card/i)).toBeNull();
+        expect(screen.queryByText(INGESTED_AGENT.name)).toBeNull();
+        expect(integrationsRequestUrls(fetchSpy).filter(url => url.includes(`/integrations/${A2A_INTEGRATION.id}`))).toEqual([]);
+        fetchSpy.mockRestore();
+    });
+
+    it('raises one error notification and shows no name, provider or agent status when the overview details request returns 404', async () => {
+        const integration = { ...A2A_INTEGRATION, id: 'a2a-details-not-found' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(
+            integration,
+            () => jsonResponse({ DEFINITION: 'R' }),
+            () => jsonResponse({ httpStatus: 404, message: 'Integration not found' }, 404),
+        );
+        const notifyError = jest.spyOn(notify, 'error').mockImplementation(() => undefined);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationOverviewUrl(integration.id);
+
+        await waitFor(() => expect(notifyError).toHaveBeenCalledWith(expect.any(ApimApiError), expect.stringMatching(/\S/)));
+        expect(notifyError).toHaveBeenCalledTimes(1);
+        const overview = screen.getByTestId('integration-overview-page');
+        await waitFor(() => expect(overview.textContent).toBe(notifyError.mock.calls[0][1]));
+        expect(within(overview).queryByRole('heading')).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`);
+        notifyError.mockRestore();
+        fetchSpy.mockRestore();
+    });
+
+    it.each([
+        ['CONNECTED', 'Connected', 'Disconnected', false],
+        ['DISCONNECTED', 'Disconnected', 'Connected', true],
+    ])(
+        'shows the agent connection state a gateway-style integration reports as %s on its overview',
+        async (agentStatus, shownLabel, hiddenLabel, showsGuidance) => {
+            const integration = { ...GATEWAY_INTEGRATION, id: `gateway-agent-${agentStatus.toLowerCase()}`, agentStatus };
+            const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R' }));
+            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+            mockSetLicense(ENTITLED_LICENSE);
+
+            renderIntegrationOverviewUrl(integration.id);
+
+            const section = await screen.findByTestId('integration-agent-connection');
+            expect(within(section).getByRole('heading', { name: 'Agent connection' })).not.toBeNull();
+            expect(within(section).getByText(shownLabel)).not.toBeNull();
+            expect(within(section).queryByText(hiddenLabel)).toBeNull();
+            expect(within(section).queryByText(/Check your agent status/) !== null).toBe(showsGuidance);
+            fetchSpy.mockRestore();
+        },
+    );
 
     it('adds the Integrations nav item when the license lands after the first render', () => {
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
