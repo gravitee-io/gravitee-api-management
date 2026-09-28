@@ -37,6 +37,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -111,4 +112,15 @@ public abstract class AbstractApi implements Serializable, ApiDefinition {
     public abstract List<Plugin> getPlugins();
 
     public abstract List<? extends AbstractListener<? extends AbstractEntrypoint>> getListeners();
+
+    /**
+     * Dynamic properties are held by {@link AbstractApi#properties}, so every V4 API type supports them, not only the HTTP ones.
+     */
+    @Override
+    public boolean updateDynamicProperties(Function<List<Property>, UpdateDynamicPropertiesResult> updateOperator) {
+        var updated = updateOperator.apply(getProperties());
+        setProperties(updated.orderedProperties());
+
+        return updated.needToUpdate();
+    }
 }

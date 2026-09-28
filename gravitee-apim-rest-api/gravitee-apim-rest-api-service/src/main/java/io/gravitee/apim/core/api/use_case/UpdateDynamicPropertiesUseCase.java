@@ -28,7 +28,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.definition.model.v4.AbstractApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -107,25 +111,19 @@ public class UpdateDynamicPropertiesUseCase {
         // We can force a redeployment only if:
         // - the API was synchronized before the properties are updated (i.e. no manual changes have been done by a user)
         // - and the properties have changed
-        if (isApiSynchronized && needRedployment(api.getApiDefinitionHttpV4().getProperties(), previousProperties)) {
+        if (isApiSynchronized && needRedployment(getCurrentProperties(api), previousProperties)) {
             // Get the api from latest deployment event of the api to deploy the api with the same dynamic properties configuration
             // It avoids to deploy changes on the configuration that has not been explicitly deployed by the user
             apiEventQueryService
                 .findLastPublishedApi(auditInfo.organizationId(), auditInfo.environmentId(), api.getId())
                 .ifPresent(deployedApi -> {
-                    if (
-                        deployedApi.getApiDefinitionHttpV4().getServices() == null ||
-                        deployedApi.getApiDefinitionHttpV4().getServices().getDynamicProperty() == null
-                    ) {
+                    final Service deployedDynamicPropertiesService = getDynamicPropertyService(deployedApi);
+                    if (deployedDynamicPropertiesService == null) {
                         return;
                     }
-                    final Service deployedDynamicPropertiesService = deployedApi
-                        .getApiDefinitionHttpV4()
-                        .getServices()
-                        .getDynamicProperty();
                     // If the deployed api has the service enabled, then redeploy with the service enabled.
                     if (deployedDynamicPropertiesService.isEnabled()) {
-                        updated.getApiDefinitionHttpV4().getServices().setDynamicProperty(deployedDynamicPropertiesService);
+                        setDynamicPropertyService(updated, deployedDynamicPropertiesService);
                     }
                 });
             apiStateDomainService.deploy(updated, String.format("%s sync", input.pluginId()), auditInfo);
@@ -150,7 +148,54 @@ public class UpdateDynamicPropertiesUseCase {
      * @return the copy of the list of properties
      */
     private static List<Property> getCurrentProperties(Api api) {
-        return Optional.ofNullable(api.getApiDefinitionHttpV4().getProperties()).orElse(Collections.emptyList()).stream().toList();
+        return Optional.ofNullable(api.getApiDefinitionValue())
+            .filter(AbstractApi.class::isInstance)
+            .map(AbstractApi.class::cast)
+            .map(AbstractApi::getProperties)
+            .orElse(Collections.emptyList())
+            .stream()
+            .toList();
+    }
+
+    /**
+     * Read the dynamic properties service whatever the V4 API type is (HTTP or Native).
+     *
+     * @param api to extract the service from
+     * @return the dynamic properties service, or null when the API type has no services or none is configured
+     */
+    private static Service getDynamicPropertyService(Api api) {
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api httpV4 -> httpV4.getServices() == null
+                ? null
+                : httpV4.getServices().getDynamicProperty();
+            case NativeApi nativeV4 -> nativeV4.getServices() == null ? null : nativeV4.getServices().getDynamicProperty();
+            case null, default -> null;
+        };
+    }
+
+    /**
+     * Set the dynamic properties service whatever the V4 API type is (HTTP or Native). No-op for API types without services.
+     *
+     * @param api to set the service on
+     * @param dynamicPropertyService the service to set
+     */
+    private static void setDynamicPropertyService(Api api, Service dynamicPropertyService) {
+        switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api httpV4 -> {
+                if (httpV4.getServices() == null) {
+                    httpV4.setServices(new ApiServices());
+                }
+                httpV4.getServices().setDynamicProperty(dynamicPropertyService);
+            }
+            case NativeApi nativeV4 -> {
+                if (nativeV4.getServices() == null) {
+                    nativeV4.setServices(new NativeApiServices());
+                }
+                nativeV4.getServices().setDynamicProperty(dynamicPropertyService);
+            }
+            // Only HTTP and Native V4 APIs hold services; getDynamicPropertyService() already filtered the others out
+            case null, default -> {}
+        }
     }
 
     private AuditInfo buildAuditInfo(Input input, Api apiForUpdate) {
