@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Alert, AlertDescription } from '@gravitee/graphene-core';
 
-export const integrationKeys = {
-    all: ['environment-integrations'] as const,
-    list: (envId: string, page: number, perPage: number) => [...integrationKeys.all, 'list', envId, page, perPage] as const,
-    detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
-    permissions: (envId: string, integrationId: string) => [...integrationKeys.all, 'permissions', envId, integrationId] as const,
-} as const;
+export function IntegrationIngestionInProgress() {
+    return (
+        <Alert data-testid="integration-ingestion-in-progress">
+            <AlertDescription>Ingestion in progress. This may take some time depending on volume.</AlertDescription>
+        </Alert>
+    );
+}
