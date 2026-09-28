@@ -29,6 +29,6 @@ import java.lang.annotation.Target;
  * @author GraviteeSource Team
  */
 @NameBinding
-@Target({ ElementType.METHOD })
+@Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequirePortalAuth {}
