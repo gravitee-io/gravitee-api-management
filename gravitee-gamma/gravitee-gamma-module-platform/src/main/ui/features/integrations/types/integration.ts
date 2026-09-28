@@ -15,11 +15,20 @@
  */
 export type IntegrationAgentStatus = 'CONNECTED' | 'DISCONNECTED';
 
+export type IngestionJobStatus = 'PENDING' | 'SUCCESS' | 'ERROR' | 'TIMEOUT';
+
+export interface IntegrationIngestionJob {
+    id: string;
+    startedAt?: string;
+    status: IngestionJobStatus;
+}
+
 export interface Integration {
     id: string;
     name: string;
     provider: string;
     agentStatus?: IntegrationAgentStatus;
+    pendingJob?: IntegrationIngestionJob;
 }
 
 export interface IntegrationsPagination {

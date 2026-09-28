@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { Integration } from '../types/integration';
 
-export const integrationKeys = {
-    all: ['environment-integrations'] as const,
-    list: (envId: string, page: number, perPage: number) => [...integrationKeys.all, 'list', envId, page, perPage] as const,
-    detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
-    permissions: (envId: string, integrationId: string) => [...integrationKeys.all, 'permissions', envId, integrationId] as const,
-} as const;
+export const A2A_PROVIDER = 'A2A';
+
+export function isA2aIntegration(integration: Pick<Integration, 'provider'>): boolean {
+    return integration.provider === A2A_PROVIDER;
+}

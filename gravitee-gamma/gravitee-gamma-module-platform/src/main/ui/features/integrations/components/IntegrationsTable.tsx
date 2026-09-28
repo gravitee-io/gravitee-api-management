@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import { DataTable, type DataTableProps } from '@gravitee/graphene-core';
+import { Button, DataTable, type DataTableProps } from '@gravitee/graphene-core';
+import { Link } from 'react-router-dom';
 
 import { IntegrationProviderLabel } from './IntegrationProviderLabel';
 import { IntegrationStatusBadge } from './IntegrationStatusBadge';
@@ -28,7 +29,11 @@ const COLUMNS: DataTableProps<Integration>['columns'] = [
         accessorKey: 'name',
         enableSorting: false,
         header: 'Name',
-        cell: ({ row }: ColCell<Integration>) => <span className="text-sm font-medium text-foreground">{row.original.name}</span>,
+        cell: ({ row }: ColCell<Integration>) => (
+            <Button asChild variant="link" className="h-auto p-0 text-left text-sm font-medium text-foreground hover:underline">
+                <Link to={row.original.id}>{row.original.name}</Link>
+            </Button>
+        ),
     },
     {
         id: 'provider',
