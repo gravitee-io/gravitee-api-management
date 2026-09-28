@@ -117,6 +117,24 @@ class ManagementApiServicesManagerTest {
                     assertThat(fakeService.hasBeenRestarted).isFalse();
                 });
         }
+
+        @Test
+        void should_deploy_services_for_native_api() {
+            final Api api = ApiFixtures.aNativeApi();
+
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class)).thenReturn(
+                List.of(new FakeDynamicPropertiesApiServiceFactory(true))
+            );
+
+            cut.deployServices(api);
+            assertThat(cut.servicesByApi).hasSize(1).containsKey(api.getId());
+            assertThat(cut.servicesByApi.get(api.getId()))
+                .hasSize(1)
+                .first()
+                .satisfies(managementApiService ->
+                    assertThat(((FakeDynamicPropertiesApiService) managementApiService).hasBeenStarted).isTrue()
+                );
+        }
     }
 
     @Nested
@@ -173,6 +191,24 @@ class ManagementApiServicesManagerTest {
                     assertThat(fakeService.hasBeenStopped).isFalse();
                     assertThat(fakeService.hasBeenRestarted).isFalse();
                 });
+        }
+
+        @Test
+        void should_start_dp_for_native_api() {
+            final Api api = ApiFixtures.aNativeApi();
+
+            when(apiServicePluginManager.getAllFactories(ManagementApiServiceFactory.class)).thenReturn(
+                List.of(new FakeHttpDynamicPropertiesApiServiceFactory(true))
+            );
+
+            cut.startDynamicProperties(api);
+            assertThat(cut.servicesByApi).hasSize(1).containsKey(api.getId());
+            assertThat(cut.servicesByApi.get(api.getId()))
+                .hasSize(1)
+                .first()
+                .satisfies(managementApiService ->
+                    assertThat(((FakeHttpDynamicPropertiesApiService) managementApiService).hasBeenStarted).isTrue()
+                );
         }
     }
 
@@ -281,6 +317,19 @@ class ManagementApiServicesManagerTest {
                     assertThat(restartedService.hasBeenStopped).isFalse();
                     assertThat(restartedService.hasBeenRestarted).isTrue();
                 });
+        }
+
+        @Test
+        void should_restart_services_for_native_api_with_its_native_definition() {
+            final Api api = ApiFixtures.aNativeApi();
+            final FakeDynamicPropertiesApiService fakeService = new FakeDynamicPropertiesApiService();
+            cut.servicesByApi.put(api.getId(), List.of(fakeService));
+
+            cut.updateServices(api);
+
+            assertThat(fakeService.hasBeenRestarted).isTrue();
+            // the service must be handed the native definition, not the null HTTP one
+            assertThat(fakeService.updatedWith).isNotNull().isSameAs(api.getApiDefinitionNativeV4());
         }
     }
 
@@ -411,9 +460,12 @@ class ManagementApiServicesManagerTest {
             return Completable.complete();
         }
 
+        protected AbstractApi updatedWith;
+
         @Override
         public Completable update(AbstractApi api) {
             hasBeenRestarted = true;
+            updatedWith = api;
             return Completable.complete();
         }
     }
