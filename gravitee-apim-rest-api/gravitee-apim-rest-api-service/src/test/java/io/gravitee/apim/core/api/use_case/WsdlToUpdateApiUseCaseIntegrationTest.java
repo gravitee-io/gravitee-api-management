@@ -35,7 +35,6 @@ import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
@@ -100,7 +99,6 @@ class WsdlToUpdateApiUseCaseIntegrationTest {
 
         var oaiDomainService = new OAIDomainServiceImpl(
             new PolicyOperationVisitorManagerImpl(),
-            new GroupQueryServiceInMemory(),
             new TagQueryServiceInMemory(),
             endpointConnectorPluginService,
             policyPluginCrudService,
