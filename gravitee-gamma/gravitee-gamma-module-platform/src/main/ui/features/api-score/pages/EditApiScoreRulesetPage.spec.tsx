@@ -32,6 +32,10 @@ jest.mock('../../../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn(), info: jest.fn() },
 }));
 
+jest.mock('../../../shared/copyToClipboard', () => ({
+    copyTextToClipboardWithNotifyHandler: jest.fn(),
+}));
+
 const mockUseScoringRuleset = jest.mocked(useScoringRuleset);
 const mockUseUpdateScoringRuleset = jest.mocked(useUpdateScoringRuleset);
 const mockUseDeleteScoringRuleset = jest.mocked(useDeleteScoringRuleset);
@@ -88,6 +92,7 @@ describe('EditApiScoreRulesetPage', () => {
         expect(screen.getByTestId('name-input')).toHaveValue('Style');
         expect(screen.getByTestId('description')).toHaveValue('lint OpenAPI');
         expect(screen.getByText('rules: []')).not.toBeNull();
+        expect(screen.getByRole('button', { name: /copy code to clipboard/i })).not.toBeNull();
         expect(screen.getByText('To update your ruleset, delete the current one and upload the new version.')).not.toBeNull();
         expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
         expect(screen.getByRole('link', { name: /Go back/ })).toHaveAttribute('href', '/api-score/rulesets');

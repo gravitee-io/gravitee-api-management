@@ -15,6 +15,16 @@
  */
 import type { EnvironmentScoringOverview } from '../types/scoring';
 
+const DATE_AGO_INTERVALS = [
+    ['year', 31_536_000],
+    ['month', 2_592_000],
+    ['week', 604_800],
+    ['day', 86_400],
+    ['hour', 3600],
+    ['minute', 60],
+    ['second', 1],
+] as const;
+
 export type ScoreTone = 'success' | 'warning' | 'error';
 
 export const SCORE_PILL_CLASS: Record<ScoreTone, string> = {
@@ -25,6 +35,22 @@ export const SCORE_PILL_CLASS: Record<ScoreTone, string> = {
 
 export function formatScorePercent(score: number): string {
     return `${Math.round(score * 100)}%`;
+}
+
+/** Classic Console `dateAgo` pipe — always relative, including beyond one week. */
+export function formatDateAgo(value: string | number | Date | undefined, now = Date.now()): string {
+    if (value === undefined || value === null || value === '') return '';
+    const then = new Date(value).getTime();
+    if (Number.isNaN(then)) return String(value);
+    const seconds = Math.floor((now - then) / 1000);
+    if (seconds < 29) return 'just now';
+    for (const [unit, size] of DATE_AGO_INTERVALS) {
+        const count = Math.floor(seconds / size);
+        if (count > 0) {
+            return count === 1 ? `${count} ${unit} ago` : `${count} ${unit}s ago`;
+        }
+    }
+    return String(value);
 }
 
 export function scoreTone(score: number): ScoreTone {

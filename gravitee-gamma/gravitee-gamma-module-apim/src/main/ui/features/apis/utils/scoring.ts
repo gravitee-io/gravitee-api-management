@@ -18,6 +18,7 @@ import type { ApiScoring, ScoringAsset, ScoringAsyncJob, ScoringDiagnostic, Scor
 const DATE_AGO_INTERVALS = [
     ['year', 31_536_000],
     ['month', 2_592_000],
+    ['week', 604_800],
     ['day', 86_400],
     ['hour', 3600],
     ['minute', 60],
@@ -31,7 +32,15 @@ export function formatScorePercent(score: number): string {
     return `${Math.round(score * 100)}%`;
 }
 
-export function scoreTone(score: number): 'success' | 'warning' | 'error' {
+export type ScoreTone = 'success' | 'warning' | 'error';
+
+export const SCORE_PILL_CLASS: Record<ScoreTone, string> = {
+    success: 'border-success/20 text-success bg-success/10',
+    warning: 'text-warning border-warning/30 bg-warning/10',
+    error: 'border-destructive/20 text-destructive bg-destructive/10',
+};
+
+export function scoreTone(score: number): ScoreTone {
     if (score >= 0.8) return 'success';
     if (score >= 0.4) return 'warning';
     return 'error';
@@ -39,6 +48,22 @@ export function scoreTone(score: number): 'success' | 'warning' | 'error' {
 
 export function formatLineColumn(diagnostic: ScoringDiagnostic): string {
     return `${diagnostic.range.start.line}:${diagnostic.range.start.character}`;
+}
+
+/** Gamma Baby / Console copy when the API omits `name` (e.g. Gravitee definition assets). */
+export function scoringAssetDisplayName(asset: ScoringAsset): string {
+    const trimmed = asset.name?.trim();
+    if (trimmed) return trimmed;
+    switch (asset.type) {
+        case 'GRAVITEE_DEFINITION':
+            return 'gravitee-definition.json';
+        case 'SWAGGER':
+            return 'openapi.yaml';
+        case 'ASYNCAPI':
+            return 'asyncapi.yaml';
+        default:
+            return asset.type;
+    }
 }
 
 /** Classic Console `dateAgo` pipe — always relative, including beyond one week. */

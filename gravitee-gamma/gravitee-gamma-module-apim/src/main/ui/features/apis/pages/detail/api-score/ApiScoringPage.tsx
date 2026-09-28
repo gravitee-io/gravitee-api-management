@@ -13,21 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, AlertDescription, Button, DataTableEmptyState, Skeleton, ToggleGroup, ToggleGroupItem } from '@gravitee/graphene-core';
-import { RocketIcon, SearchIcon, ShieldIcon } from '@gravitee/graphene-core/icons';
+import {
+    Alert,
+    AlertDescription,
+    Badge,
+    Button,
+    DataTableEmptyState,
+    Skeleton,
+    ToggleGroup,
+    ToggleGroupItem,
+} from '@gravitee/graphene-core';
+import { RocketIcon, ShieldCheckIcon, ShieldIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 
 import { ApiScoringAssetCard } from './ApiScoringAssetCard';
+import { ApiScoringEducationalEmptyState } from './ApiScoringEducationalEmptyState';
 import { notify } from '../../../../../shared/notify';
 import { useApiScoreEnabled } from '../../../hooks/useApiScoreEnabled';
 import { useApiScoring } from '../../../hooks/useApiScoring';
-import type { ApiScoringSummary, ScoringFilter } from '../../../types/scoring';
+import type { ApiScoringSummary, ScoringAsset, ScoringFilter } from '../../../types/scoring';
 import {
     filterAssetsBySeverity,
     formatDateAgo,
     formatEvaluationErrors,
     formatScorePercent,
+    SCORE_PILL_CLASS,
     scoringJobToastMessage,
     scoreTone,
 } from '../../../utils/scoring';
@@ -47,12 +58,6 @@ const FILTER_COUNT_KEY: Record<ScoringFilter, keyof ApiScoringSummary> = {
     INFO: 'infos',
     HINT: 'hints',
 };
-
-const SCORE_TONE_CLASS = {
-    success: 'text-success',
-    warning: 'text-warning',
-    error: 'text-destructive',
-} as const;
 
 export function ApiScoringPage() {
     const { apiId } = useParams<{ apiId: string }>();
@@ -113,24 +118,36 @@ export function ApiScoringPage() {
     const noScorableAssets = !isError && !neverEvaluated && !scoreAvailable && !hasAssetErrors;
     const lastEvaluatedAt = scoring?.createdAt;
     const showFilters = scoreAvailable && summary.all !== 0;
+    let scoredAssets: ScoringAsset[] = [];
+    if (scoreAvailable && scoring) {
+        scoredAssets = allClear ? scoring.assets : filteredAssets;
+    }
 
     return (
         <div className="space-y-6">
             <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">
-                        API Score
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <h1 className="text-2xl font-semibold tracking-tight">API Score</h1>
                         {scoreAvailable ? (
-                            <span className={`ml-2 ${SCORE_TONE_CLASS[scoreTone(summary.score)]}`}>
+                            <Badge
+                                variant="outline"
+                                className={`gap-1 tabular-nums ${SCORE_PILL_CLASS[scoreTone(summary.score)]}`}
+                                data-testid="api-score-percent"
+                            >
+                                <ShieldCheckIcon className="size-3.5" aria-hidden />
                                 {formatScorePercent(summary.score)}
-                            </span>
+                            </Badge>
                         ) : null}
-                    </h1>
+                    </div>
                     {scoreAvailable && lastEvaluatedAt ? (
                         <p className="text-sm text-muted-foreground">Last evaluated {formatDateAgo(lastEvaluatedAt)}</p>
                     ) : null}
+                    {noScorableAssets ? (
+                        <p className="text-sm text-muted-foreground">Score this API against the environment rulesets.</p>
+                    ) : null}
                 </div>
-                <Button type="button" size="sm" onClick={() => evaluate()} disabled={pending}>
+                <Button type="button" onClick={() => evaluate()} disabled={pending}>
                     Evaluate
                 </Button>
             </div>
@@ -162,14 +179,7 @@ export function ApiScoringPage() {
                 </ToggleGroup>
             ) : null}
 
-            {neverEvaluated ? (
-                <DataTableEmptyState
-                    variant="first-use"
-                    icon={<SearchIcon className="size-8" aria-hidden />}
-                    title="This API has never been scored before"
-                    description="Click on the Evaluate button to get the first score."
-                />
-            ) : null}
+            {neverEvaluated ? <ApiScoringEducationalEmptyState /> : null}
 
             {allClear ? (
                 <DataTableEmptyState
@@ -189,9 +199,9 @@ export function ApiScoringPage() {
                 />
             ) : null}
 
-            {scoreAvailable && !allClear
-                ? filteredAssets.map(asset => <ApiScoringAssetCard key={`${asset.name}-${asset.type}`} asset={asset} />)
-                : null}
+            {scoredAssets.map(asset => (
+                <ApiScoringAssetCard key={`${asset.name}-${asset.type}`} asset={asset} />
+            ))}
         </div>
     );
 }

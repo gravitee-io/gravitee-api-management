@@ -46,4 +46,9 @@ describe('ApiScoringAssetCard', () => {
         rerender(<ApiScoringAssetCard asset={asset({ diagnostics: [diagnostic()] })} />);
         expect(screen.getByRole('button', { name: /petstore.yaml/i })).toHaveAttribute('aria-expanded', 'true');
     });
+
+    it('shows gravitee-definition.json when the API omits the Gravitee definition asset name', () => {
+        render(<ApiScoringAssetCard asset={asset({ name: '', type: 'GRAVITEE_DEFINITION' })} />);
+        expect(screen.getByText('gravitee-definition.json')).toBeInTheDocument();
+    });
 });
