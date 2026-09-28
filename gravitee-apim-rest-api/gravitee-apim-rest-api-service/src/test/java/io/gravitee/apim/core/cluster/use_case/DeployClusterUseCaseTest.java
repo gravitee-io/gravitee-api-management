@@ -18,6 +18,8 @@ package io.gravitee.apim.core.cluster.use_case;
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.AuditCrudServiceInMemory;
@@ -28,13 +30,17 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterLifecycleState;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
@@ -62,6 +68,7 @@ class DeployClusterUseCaseTest {
         .build();
 
     private final ClusterCrudServiceInMemory clusterCrudService = new ClusterCrudServiceInMemory();
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
     private final EventCrudInMemory eventCrudInMemory = new EventCrudInMemory();
     private final EventLatestCrudInMemory eventLatestCrudInMemory = new EventLatestCrudInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
@@ -89,7 +96,8 @@ class DeployClusterUseCaseTest {
             eventCrudInMemory,
             eventLatestCrudInMemory,
             auditService,
-            new ObjectMapper()
+            new ObjectMapper(),
+            new ClusterConfigurationAccessDomainService(permissionDomainService)
         );
     }
 
@@ -232,5 +240,58 @@ class DeployClusterUseCaseTest {
 
         assertThat(auditCrudService.storage()).hasSize(1);
         assertThat(auditCrudService.storage().get(0).getEvent()).isEqualTo("CLUSTER_DEPLOYED");
+    }
+
+    @Test
+    void should_not_return_credentials_to_a_caller_who_cannot_edit_the_configuration() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+            .name("My Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+            .configuration(
+                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
+            )
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+        when(
+            permissionDomainService.hasPermission(
+                ORG_ID,
+                USER_ID,
+                RolePermission.CLUSTER_CONFIGURATION,
+                CLUSTER_ID,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        var output = useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
+
+        assertThat(output.cluster().getConfiguration()).isEqualTo(
+            Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
+        );
+    }
+
+    @Test
+    void should_not_return_configuration_to_a_caller_who_cannot_read_it() {
+        Cluster existing = Cluster.builder()
+            .id(CLUSTER_ID)
+            .crossId(CLUSTER_CROSS_ID)
+            .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
+            .name("My Cluster")
+            .environmentId(ENV_ID)
+            .organizationId(ORG_ID)
+            .lifecycleState(ClusterLifecycleState.UNDEPLOYED)
+            .configuration(
+                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
+            )
+            .build();
+        clusterCrudService.initWith(List.of(existing));
+
+        var output = useCase.execute(new DeployClusterUseCase.Input(CLUSTER_ID, AUDIT_INFO));
+
+        assertThat(output.cluster().getConfiguration()).isNull();
     }
 }
