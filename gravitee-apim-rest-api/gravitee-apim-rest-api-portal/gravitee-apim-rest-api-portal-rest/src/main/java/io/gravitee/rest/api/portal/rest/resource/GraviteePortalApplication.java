@@ -33,6 +33,7 @@ import io.gravitee.rest.api.portal.rest.provider.domain.NotFoundDomainExceptionM
 import io.gravitee.rest.api.portal.rest.provider.domain.TechnicalDomainExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.domain.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.portal.rest.resource.bootstrap.PortalUIBootstrapResource;
+import io.gravitee.rest.api.portal.rest.security.RequirePortalAuthFilter;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
 import io.gravitee.rest.api.rest.filter.MaintenanceFilter;
 import io.gravitee.rest.api.rest.filter.PermissionsFilter;
@@ -84,6 +85,7 @@ public class GraviteePortalApplication extends ResourceConfig {
         register(SecurityContextFilter.class);
         register(GraviteeContextResponseFilter.class);
         register(PermissionsFilter.class);
+        register(RequirePortalAuthFilter.class);
         register(UriBuilderRequestFilter.class);
         register(ByteArrayOutputStreamWriter.class);
         register(JacksonFeature.class);
