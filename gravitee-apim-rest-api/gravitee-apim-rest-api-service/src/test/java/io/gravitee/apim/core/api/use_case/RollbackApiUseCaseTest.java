@@ -31,6 +31,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import fixtures.ApiModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
+import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.*;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -52,6 +53,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.event.model.Event;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.Role;
@@ -272,7 +274,7 @@ class RollbackApiUseCaseTest {
         // Then
         assertThat(throwable)
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(event.getId()));
+            .hasMessage("Cannot rollback this API: only V2 and V4 HTTP APIs are supported (%s)".formatted(event.getId()));
     }
 
     @Test
@@ -292,7 +294,38 @@ class RollbackApiUseCaseTest {
         // Then
         assertThat(throwable)
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(event.getId()));
+            .hasMessage("Cannot rollback this API: only V2 and V4 HTTP APIs are supported (%s)".formatted(event.getId()));
+    }
+
+    @Test
+    void should_not_rollback_a_native_api() throws Exception {
+        // Given a real NATIVE definition in the event: it is a V4 API, but neither Api#rollbackTo nor
+        // rollbackPlansV4 handle it
+        var nativeDefinition = ApiDefinitionFixtures.aNativeApiV4("api-id");
+        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            .id(nativeDefinition.getId())
+            .name(nativeDefinition.getName())
+            .version(nativeDefinition.getApiVersion())
+            .definitionVersion(nativeDefinition.getDefinitionVersion())
+            // ApiAdapter#toApiDefinition picks NativeApi on the repository model's type, not on the definition
+            .type(io.gravitee.definition.model.v4.ApiType.NATIVE)
+            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(nativeDefinition))
+            .build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+            .build();
+        eventQueryService.initWith(List.of(event));
+
+        // When
+        var throwable = catchThrowable(() -> useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO)));
+
+        // Then: a ValidationDomainException, which management-v2 answers with a 400 - not the 500 an
+        // IllegalStateException would produce
+        assertThat(throwable).isInstanceOf(ValidationDomainException.class).hasMessage("Rolling back a NATIVE API is not supported");
+        assertThat(((ValidationDomainException) throwable).getTechnicalCode()).isEqualTo("api.rollback.native");
     }
 
     @Test
@@ -312,7 +345,7 @@ class RollbackApiUseCaseTest {
         // Then
         assertThat(throwable)
             .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Cannot rollback an API that is not a V4 or V2 API (%s)".formatted(event.getId()));
+            .hasMessage("Cannot rollback this API: only V2 and V4 HTTP APIs are supported (%s)".formatted(event.getId()));
     }
 
     @Test

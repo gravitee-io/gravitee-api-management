@@ -791,6 +791,17 @@ public class ApiResource extends AbstractResource {
                 )
                 .build();
             case V4 -> {
+                // NATIVE APIs are V4 too, but ApiDuplicateService only handles HTTP ones
+                if (currentEntity instanceof NativeApiEntity) {
+                    yield Response.status(Response.Status.BAD_REQUEST)
+                        .entity(
+                            new Error()
+                                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                                .message("Duplicating NATIVE API is not supported")
+                                .technicalCode("api.duplicate.native")
+                        )
+                        .build();
+                }
                 duplicate = duplicateApiService.duplicate(
                     GraviteeContext.getExecutionContext(),
                     (ApiEntity) currentEntity,
