@@ -43,6 +43,8 @@ import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.infra.domain_service.api.CategoryDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.ApiServices;
 import io.gravitee.definition.model.v4.service.Service;
@@ -344,6 +346,76 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
     }
 
+    @Nested
+    class WhenApiIsNative {
+
+        private final ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+
+        @Test
+        void should_update_native_api_with_new_properties() {
+            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(false);
+            var api = givenApi(
+                buildNativeApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build()))
+            );
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(Property.builder().key("key").value("value").dynamic(true).build())
+                )
+            );
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties()).containsExactlyInAnyOrder(
+                Property.builder().key("user-prop").value("value").dynamic(false).build(),
+                Property.builder().key("key").value("value").dynamic(true).build()
+            );
+            assertAuditHasBeenCreated();
+        }
+
+        @Test
+        void should_redeploy_native_api_using_the_last_deployed_api_definition() {
+            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(true);
+            // Case were a user disable and save the API, but without deploying it
+            var api = givenApi(
+                buildNativeApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build()))
+            );
+            api.getApiDefinitionNativeV4().getServices().getDynamicProperty().setEnabled(false);
+
+            // Last event of the deployed api carries its own, still enabled, service instance. It has to be a distinct
+            // instance: toBuilder() copies the definition by reference, so mutating it would mutate the saved api too.
+            final Service deployedService = Service.builder().type(HTTP_DYNAMIC_PROPERTIES).enabled(true).build();
+            final Api lastDeployedApi = api
+                .toBuilder()
+                .apiDefinitionNativeV4(
+                    ApiDefinitionFixtures.aNativeApiV4().toBuilder().services(new NativeApiServices(deployedService)).build()
+                )
+                .build();
+            apiEventQueryServiceInMemory.initWith(List.of(lastDeployedApi));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(Property.builder().key("key").value("value").dynamic(true).build())
+                )
+            );
+
+            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), any());
+            assertSoftly(softly -> {
+                var definition = apiCaptor.getValue().getApiDefinitionNativeV4();
+                // the deployed service instance itself must be carried over, not just an enabled flag
+                softly.assertThat(definition.getServices().getDynamicProperty()).isSameAs(deployedService);
+                softly
+                    .assertThat(definition.getProperties())
+                    .containsExactlyInAnyOrder(
+                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
+                        Property.builder().key("key").value("value").dynamic(true).build()
+                    );
+            });
+        }
+    }
+
     private Api givenApi(Api api) {
         apiCrudServiceInMemory.initWith(List.of(api));
         apiEventQueryServiceInMemory.initWith(List.of(api.toBuilder().build()));
@@ -352,6 +424,22 @@ class UpdateDynamicPropertiesUseCaseTest {
 
     private static Api buildApiWithProperties(List<Property> properties) {
         return ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).apiDefinitionHttpV4(anApiDefinitionWithProperties(properties)).build();
+    }
+
+    private static Api buildNativeApiWithProperties(List<Property> properties) {
+        return ApiFixtures.aNativeApi()
+            .toBuilder()
+            .id(API_ID)
+            .apiDefinitionNativeV4(aNativeApiDefinitionWithProperties(properties))
+            .build();
+    }
+
+    private static NativeApi aNativeApiDefinitionWithProperties(List<Property> properties) {
+        return ApiDefinitionFixtures.aNativeApiV4()
+            .toBuilder()
+            .services(new NativeApiServices(Service.builder().type(HTTP_DYNAMIC_PROPERTIES).enabled(true).build()))
+            .properties(properties)
+            .build();
     }
 
     private static io.gravitee.definition.model.v4.Api anApiDefinitionWithProperties(List<Property> properties) {

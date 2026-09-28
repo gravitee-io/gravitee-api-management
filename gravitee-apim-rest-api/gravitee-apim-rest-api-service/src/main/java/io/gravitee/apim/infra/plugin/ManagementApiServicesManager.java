@@ -22,6 +22,7 @@ import io.gravitee.apim.rest.api.common.apiservices.ManagementApiService;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementApiServiceFactory;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.reactivex.rxjava3.core.Completable;
@@ -66,25 +67,15 @@ public class ManagementApiServicesManager extends AbstractService {
     @SuppressWarnings("java:S6204")
     public void deployServices(Api api) {
         log.debug("Deploying services for api: {}", api.getId());
-        List<ManagementApiService> services = switch (api.getApiDefinitionValue()) {
-            case io.gravitee.definition.model.v4.Api v4Api -> apiServicePluginManager
+        final DefaultManagementDeploymentContext deploymentContext = deploymentContext(api);
+        List<ManagementApiService> services = deploymentContext == null
+            ? List.of()
+            : apiServicePluginManager
                 .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
                 .stream()
-                .map(managementApiServiceFactory ->
-                    managementApiServiceFactory.createService(new DefaultManagementDeploymentContext(v4Api, applicationContext))
-                )
+                .map(managementApiServiceFactory -> managementApiServiceFactory.createService(deploymentContext))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-            case NativeApi v4NativeApi -> apiServicePluginManager
-                .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
-                .stream()
-                .map(managementApiServiceFactory ->
-                    managementApiServiceFactory.createService(new DefaultManagementDeploymentContext(v4NativeApi, applicationContext))
-                )
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-            default -> List.of();
-        };
         Completable.concat(services.stream().map(ManagementApiService::start).collect(Collectors.toList()))
             .doOnError(throwable -> log.error("Unable to start management-api-service: {}", throwable.getMessage(), throwable))
             .blockingAwait();
@@ -108,14 +99,14 @@ public class ManagementApiServicesManager extends AbstractService {
         if (!api.getDefinitionVersion().equals(DefinitionVersion.V4)) {
             return;
         }
+        final DefaultManagementDeploymentContext deploymentContext = deploymentContext(api);
+        if (deploymentContext == null) {
+            return;
+        }
         List<ManagementApiService> services = apiServicePluginManager
             .<ManagementApiServiceFactory<?>>getAllFactories(ManagementApiServiceFactory.class)
             .stream()
-            .map(managementApiServiceFactory ->
-                managementApiServiceFactory.createService(
-                    new DefaultManagementDeploymentContext(api.getApiDefinitionHttpV4(), applicationContext)
-                )
-            )
+            .map(managementApiServiceFactory -> managementApiServiceFactory.createService(deploymentContext))
             .filter(Objects::nonNull)
             .filter(service -> "http-dynamic-properties".equals(service.id()))
             .collect(Collectors.toList());
@@ -131,17 +122,43 @@ public class ManagementApiServicesManager extends AbstractService {
     @SuppressWarnings("java:S6204")
     public void updateServices(Api api) {
         log.debug("Restarting services for api: {}", api.getId());
+        final AbstractApi updatedDefinition = v4Definition(api);
         final List<ManagementApiService> managedApi = servicesByApi.get(api.getId());
-        if (managedApi != null && !managedApi.isEmpty()) {
+        if (updatedDefinition != null && managedApi != null && !managedApi.isEmpty()) {
             Completable.concat(
                 managedApi
                     .stream()
-                    .map(managementApiService -> managementApiService.update(api.getApiDefinitionHttpV4()))
+                    .map(managementApiService -> managementApiService.update(updatedDefinition))
                     .collect(Collectors.toList())
             ).blockingAwait();
             return;
         }
         deployServices(api);
+    }
+
+    /**
+     * Build a deployment context holding the V4 API definition, whatever the V4 API type is (HTTP or Native).
+     *
+     * @param api to build the context for
+     * @return the deployment context, or null when the API is not a V4 one
+     */
+    private DefaultManagementDeploymentContext deploymentContext(Api api) {
+        return switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api v4Api -> new DefaultManagementDeploymentContext(v4Api, applicationContext);
+            case NativeApi v4NativeApi -> new DefaultManagementDeploymentContext(v4NativeApi, applicationContext);
+            case null, default -> null;
+        };
+    }
+
+    /**
+     * Get the V4 API definition whatever the V4 API type is (HTTP or Native), so that management API services are handed
+     * the definition they are able to handle instead of a null one.
+     *
+     * @param api to extract the definition from
+     * @return the V4 definition, or null when the API is not a V4 one
+     */
+    private static AbstractApi v4Definition(Api api) {
+        return api.getApiDefinitionValue() instanceof AbstractApi v4Definition ? v4Definition : null;
     }
 
     private static void stopManagementApiServices(Stream<ManagementApiService> apiServices) {
