@@ -27,6 +27,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
@@ -58,7 +59,20 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
         var validateClusterService = new ValidateClusterService(jsonSchemaChecker, clusterConfigurationSchemaService, new ObjectMapper());
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+<<<<<<< HEAD
         updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService, permissionDomainService);
+=======
+        updateClusterUseCase = new UpdateClusterUseCase(
+            clusterCrudService,
+            validateClusterService,
+            auditService,
+            permissionDomainService,
+            objectMapper,
+            new ClusterConfigurationAccessDomainService(permissionDomainService)
+        );
+        clusterQueryService.reset();
+        apiQueryService.reset();
+>>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
@@ -177,9 +191,97 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
             .build();
 
         // When
-        var updatedCluster = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+        updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then
-        assertThat(updatedCluster.cluster().getConfiguration()).isEqualTo(existingCluster.getConfiguration());
+        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
+            Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"))
+        );
+    }
+
+    @Test
+    void should_not_return_credentials_to_a_caller_who_cannot_edit_the_configuration() {
+        // Given
+        givenStoredClusterWithCredentials();
+        when(
+            permissionDomainService.hasPermission(
+                ORG_ID,
+                USER_ID,
+                RolePermission.CLUSTER_CONFIGURATION,
+                GENERATED_UUID,
+                RolePermissionAction.UPDATE
+            )
+        ).thenReturn(false);
+        when(
+            permissionDomainService.hasPermission(
+                ORG_ID,
+                USER_ID,
+                RolePermission.CLUSTER_CONFIGURATION,
+                GENERATED_UUID,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+        var toUpdate = UpdateCluster.builder().description("new description").build();
+
+        // When
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then
+        assertThat(output.cluster().getDescription()).isEqualTo("new description");
+        assertThat(output.cluster().getConfiguration()).isEqualTo(
+            Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SASL_SSL"))
+        );
+    }
+
+    @Test
+    void should_not_return_configuration_to_a_caller_who_cannot_read_it() {
+        // Given
+        givenStoredClusterWithCredentials();
+        when(
+            permissionDomainService.hasPermission(
+                ORG_ID,
+                USER_ID,
+                RolePermission.CLUSTER_CONFIGURATION,
+                GENERATED_UUID,
+                RolePermissionAction.UPDATE
+            )
+        ).thenReturn(false);
+        var toUpdate = UpdateCluster.builder().description("new description").build();
+
+        // When
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then
+        assertThat(output.cluster().getConfiguration()).isNull();
+        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
+            credentialsConfiguration()
+        );
+    }
+
+    @Test
+    void should_return_credentials_to_a_configuration_editor() {
+        // Given
+        givenStoredClusterWithCredentials();
+        var toUpdate = UpdateCluster.builder().description("new description").build();
+
+        // When
+        var output = updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
+
+        // Then
+        assertThat(output.cluster().getConfiguration()).isEqualTo(credentialsConfiguration());
+    }
+
+    private static Map<String, Object> credentialsConfiguration() {
+        return Map.of(
+            "bootstrapServers",
+            "localhost:9092",
+            "security",
+            Map.of("protocol", "SASL_SSL", "sasl", Map.of("mechanism", Map.of("type", "PLAIN", "username", "u", "password", "p")))
+        );
+    }
+
+    private void givenStoredClusterWithCredentials() {
+        existingCluster.setConfiguration(credentialsConfiguration());
+        ((ClusterCrudServiceInMemory) clusterCrudService).initWith(List.of(existingCluster));
     }
 }
