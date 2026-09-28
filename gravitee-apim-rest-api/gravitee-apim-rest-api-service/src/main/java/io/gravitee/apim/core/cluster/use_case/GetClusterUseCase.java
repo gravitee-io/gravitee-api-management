@@ -17,6 +17,7 @@ package io.gravitee.apim.core.cluster.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import lombok.AllArgsConstructor;
 
@@ -25,12 +26,14 @@ import lombok.AllArgsConstructor;
 public class GetClusterUseCase {
 
     private final ClusterCrudService clusterCrudService;
+    private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
 
-    public record Input(String clusterId, String environmentId) {}
+    public record Input(String clusterId, String environmentId, String organizationId, String userId) {}
 
     public record Output(Cluster cluster) {}
 
     public Output execute(Input input) {
-        return new Output(this.clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.environmentId));
+        var cluster = clusterCrudService.findByIdAndEnvironmentId(input.clusterId, input.environmentId);
+        return new Output(clusterConfigurationAccessDomainService.visibleTo(cluster, input.organizationId, input.userId));
     }
 }
