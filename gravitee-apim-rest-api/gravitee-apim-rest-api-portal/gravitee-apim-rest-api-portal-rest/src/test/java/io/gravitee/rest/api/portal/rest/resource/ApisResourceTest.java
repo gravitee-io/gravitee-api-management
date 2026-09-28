@@ -299,6 +299,16 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_get_apis_for_authenticated_user_when_portal_login_forced() {
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
+
+        final Response response = target().request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        assertEquals(5, response.readEntity(ApisResponse.class).getData().size());
+    }
+
+    @Test
     public void shouldGetPublishedApiWithPaginatedLink() {
         final Response response = target().queryParam("page", 3).queryParam("size", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
