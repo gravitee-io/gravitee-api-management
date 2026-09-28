@@ -37,6 +37,7 @@ import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.node.opentelemetry.tracer.noop.NoOpTracer;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
+import io.gravitee.plugin.endpoint.http.proxy.client.WebSocketClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.gravitee.reporter.api.v4.metric.Metrics;
@@ -191,7 +192,7 @@ class WebSocketConnectorTest {
     }
 
     private void connect() {
-        new WebSocketConnector(configuration, sharedConfiguration, new HttpClientFactory())
+        new WebSocketConnector(configuration, sharedConfiguration, new HttpClientFactory(), new WebSocketClientFactory())
             .connect(ctx)
             .test()
             .awaitDone(TIMEOUT_SECONDS, TimeUnit.SECONDS)
