@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
@@ -47,6 +48,7 @@ public class DeployClusterUseCase {
     private final EventLatestCrudService eventLatestCrudService;
     private final AuditDomainService auditService;
     private final ObjectMapper objectMapper;
+    private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
 
@@ -78,7 +80,13 @@ public class DeployClusterUseCase {
 
         createAuditLog(beforeDeploy, updatedCluster, input.auditInfo());
 
-        return new Output(updatedCluster);
+        return new Output(
+            clusterConfigurationAccessDomainService.visibleTo(
+                updatedCluster,
+                input.auditInfo().organizationId(),
+                input.auditInfo().actor().userId()
+            )
+        );
     }
 
     private void publishEvent(AuditInfo auditInfo, Cluster cluster) {

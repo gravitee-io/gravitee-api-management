@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.EnvironmentAuditLogEntity;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
@@ -48,6 +49,7 @@ public class UpdateClusterUseCase {
     private final AuditDomainService auditService;
     private final PermissionDomainService permissionDomainService;
     private final ObjectMapper objectMapper;
+    private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
 
     public record Input(String clusterId, UpdateCluster updateCluster, AuditInfo auditInfo) {}
 
@@ -92,7 +94,13 @@ public class UpdateClusterUseCase {
 
         createAuditLog(clusterToUpdate, updatedCluster, input.auditInfo());
 
-        return new Output(updatedCluster);
+        return new Output(
+            clusterConfigurationAccessDomainService.visibleTo(
+                updatedCluster,
+                input.auditInfo().organizationId(),
+                input.auditInfo().actor().userId()
+            )
+        );
     }
 
     private Object generateConnectionCrossIds(Object configuration) {
