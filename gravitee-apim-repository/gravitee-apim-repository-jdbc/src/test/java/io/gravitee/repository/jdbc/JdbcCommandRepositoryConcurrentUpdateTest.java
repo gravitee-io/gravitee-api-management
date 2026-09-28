@@ -15,9 +15,9 @@
  */
 package io.gravitee.repository.jdbc;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import io.gravitee.repository.config.AbstractRepositoryTest;
 import io.gravitee.repository.management.api.CommandRepository;
@@ -34,9 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 /**
@@ -46,7 +44,6 @@ import org.testcontainers.containers.JdbcDatabaseContainer;
  * duplicate primary key once the other transaction commits.
  */
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-@RunWith(SpringJUnit4ClassRunner.class)
 public class JdbcCommandRepositoryConcurrentUpdateTest extends AbstractRepositoryTest {
 
     private static final String TAG = "DATA_TO_INDEX";
@@ -68,8 +65,8 @@ public class JdbcCommandRepositoryConcurrentUpdateTest extends AbstractRepositor
         // The race depends on PostgreSQL READ COMMITTED semantics (a blocked DELETE re-checks the
         // rows it waited on, but never sees rows inserted concurrently).
         assumeTrue(
-            "Only reproducible on PostgreSQL",
-            jdbcDatabaseContainer.getDockerImageName().contains(DatabaseConfigurationEnum.POSTGRESQL.getDockerImageName())
+            jdbcDatabaseContainer.getDockerImageName().contains(DatabaseConfigurationEnum.POSTGRESQL.getDockerImageName()),
+            "Only reproducible on PostgreSQL"
         );
         String prefix = graviteeProperties.getProperty("management.jdbc.prefix", "");
         String acknowledgments = prefix + "command_acknowledgments";
