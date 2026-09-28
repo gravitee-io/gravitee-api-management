@@ -87,14 +87,16 @@ public class ClusterResource extends AbstractResource {
     public Response getCluster() {
         var executionContext = GraviteeContext.getExecutionContext();
 
-        var cluster = getClusterUseCase.execute(new GetClusterUseCase.Input(clusterId, executionContext.getEnvironmentId())).cluster();
-        if (!hasPermission(executionContext, RolePermission.CLUSTER_CONFIGURATION, clusterId, RolePermissionAction.UPDATE)) {
-            if (hasPermission(executionContext, RolePermission.CLUSTER_CONFIGURATION, clusterId, RolePermissionAction.READ)) {
-                cluster = cluster.withoutCredentials();
-            } else {
-                cluster.setConfiguration(null);
-            }
-        }
+        var cluster = getClusterUseCase
+            .execute(
+                new GetClusterUseCase.Input(
+                    clusterId,
+                    executionContext.getEnvironmentId(),
+                    executionContext.getOrganizationId(),
+                    getAuthenticatedUser()
+                )
+            )
+            .cluster();
 
         return Response.ok(this.getLocationHeader(cluster.getId())).entity(ClusterMapper.INSTANCE.map(cluster)).build();
     }

@@ -318,5 +318,24 @@ public class ClusterTest {
 
             assertThat(redacted.getConfiguration()).isEqualTo(configuration);
         }
+
+        @Test
+        void should_drop_every_security_field_when_security_has_no_protocol() {
+            var configuration = Map.of("bootstrapServers", "broker:9092", "security", Map.of("sasl", Map.of("password", "secret")));
+            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("c").configuration(configuration).build();
+
+            var redacted = cluster.withoutCredentials();
+
+            assertThat(redacted.getConfiguration()).isEqualTo(Map.of("bootstrapServers", "broker:9092", "security", Map.of()));
+        }
+
+        @Test
+        void should_leave_non_map_configuration_root_untouched() {
+            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("c").configuration("raw").build();
+
+            var redacted = cluster.withoutCredentials();
+
+            assertThat(redacted.getConfiguration()).isEqualTo("raw");
+        }
     }
 }

@@ -22,7 +22,7 @@ export interface Cluster {
   type: ClusterType;
   name: string;
   description?: string;
-  configuration: KafkaClusterStandaloneConfiguration;
+  configuration?: KafkaClusterStandaloneConfiguration;
   updatedAt: Date;
   createdAt: Date;
   groups: string[];
