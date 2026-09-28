@@ -28,7 +28,6 @@ import com.google.common.io.Resources;
 import fixtures.core.model.AuditInfoFixtures;
 import initializers.ImportDefinitionCreateDomainServiceTestInitializer;
 import inmemory.ApiCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
 import inmemory.PolicyPluginCrudServiceInMemory;
 import inmemory.TagQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.InvalidImportWithOASValidationPolicyException;
@@ -51,6 +50,7 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.impl.swagger.policy.impl.PolicyOperationVisitorManagerImpl;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.util.List;
+import java.util.Set;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -79,8 +79,9 @@ class OAIToImportApiUseCaseTest {
     @BeforeEach
     void setUp() {
         importDefinitionCreateDomainServiceTestInitializer = new ImportDefinitionCreateDomainServiceTestInitializer(apiCrudService);
-        var groupQueryService = new GroupQueryServiceInMemory();
-        groupQueryService.initWith(List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build()));
+        importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
+            List.of(Group.builder().id("1").name("group1").environmentId(ENVIRONMENT_ID).build())
+        );
         var tagQueryService = new TagQueryServiceInMemory();
         tagQueryService.initWith(
             List.of(
@@ -126,7 +127,6 @@ class OAIToImportApiUseCaseTest {
         useCase = new OAIToImportApiUseCase(
             new OAIDomainServiceImpl(
                 policyOperationVisitorManager,
-                groupQueryService,
                 tagQueryService,
                 endpointConnectorPluginService,
                 policyPluginCrudService,
@@ -152,7 +152,10 @@ class OAIToImportApiUseCaseTest {
 
         var importDefinition = output.apiWithFlows();
         assertThat(importDefinition).isNotNull();
-        assertThat(importDefinition.getGroups()).containsExactly("1");
+        assertThat(importDefinition.getGroups()).hasSize(2).contains("1");
+        var group2 = importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(ENVIRONMENT_ID, Set.of("group2"));
+        assertThat(group2).hasSize(1);
+        assertThat(importDefinition.getGroups()).contains(group2.getFirst().getId());
     }
 
     @Test

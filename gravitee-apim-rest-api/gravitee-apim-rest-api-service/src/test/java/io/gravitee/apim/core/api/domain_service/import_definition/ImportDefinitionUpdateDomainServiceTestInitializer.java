@@ -26,6 +26,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.CreateGroupDomainServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -47,6 +48,7 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
@@ -154,7 +156,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             metadataDomainServiceInitializer.initialize(),
             planDomainServiceInitializer.initialize(environmentId),
             pageDomainServiceTestInitializer.initialize(),
-            apiImportDomainService
+            apiImportDomainService,
+            new ImportApiGroupsDomainService(groupQueryServiceInMemory, new CreateGroupDomainServiceInMemory(groupQueryServiceInMemory))
         );
     }
 
