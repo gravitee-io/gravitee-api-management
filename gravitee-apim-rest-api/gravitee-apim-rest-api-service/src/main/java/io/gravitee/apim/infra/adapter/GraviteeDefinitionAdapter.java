@@ -136,6 +136,7 @@ public interface GraviteeDefinitionAdapter {
     @Mapping(target = "properties", source = "apiEntity.apiDefinitionNativeV4.properties")
     @Mapping(target = "resources", source = "apiEntity.apiDefinitionNativeV4.resources")
     @Mapping(target = "endpointGroups", source = "apiEntity.apiDefinitionNativeV4.endpointGroups")
+    @Mapping(target = "services", source = "apiEntity.apiDefinitionNativeV4.services")
     @Mapping(target = "primaryOwner", source = "primaryOwner")
     @Mapping(target = "workflowState", source = "workflowState")
     @Mapping(target = "groups", source = "groups")
