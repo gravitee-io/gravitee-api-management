@@ -860,6 +860,7 @@ class DebugReactorEventListenerTest {
             final DebugReactorEventListener listener = listenerWith(registry, aConfiguration(60000));
 
             listener.onEvent(getAReactorEvent(ReactorEvent.DEBUG, aReactableEvent(EVENT_ID)));
+            awaitTheRequestToBeSent();
 
             // Creating the handler starts its resources, which evaluate secret expressions in their
             // configuration: the secrets must already be discovered at that point, as on a regular deploy.
