@@ -13,7 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { formatScorePercent, hasOverviewScore, isApiScoreEnabled, isScoreAvailable, SCORE_PILL_CLASS, scoreTone } from './scoring';
+import {
+    formatDateAgo,
+    formatScorePercent,
+    hasOverviewScore,
+    isApiScoreEnabled,
+    isScoreAvailable,
+    SCORE_PILL_CLASS,
+    scoreTone,
+} from './scoring';
+
+describe('formatDateAgo', () => {
+    const now = Date.parse('2026-01-11T00:00:00Z');
+
+    it('formats relative times like Classic Console dateAgo', () => {
+        expect(formatDateAgo(new Date(now - 10_000).toISOString(), now)).toBe('just now');
+        expect(formatDateAgo(new Date(now - 604_800_000).toISOString(), now)).toBe('1 week ago');
+        expect(formatDateAgo(new Date(now - 86_400_000).toISOString(), now)).toBe('1 day ago');
+        expect(formatDateAgo(new Date(now - 2 * 86_400_000).toISOString(), now)).toBe('2 days ago');
+    });
+});
 
 describe('formatScorePercent', () => {
     it('rounds a 0-1 score to a whole percent', () => {

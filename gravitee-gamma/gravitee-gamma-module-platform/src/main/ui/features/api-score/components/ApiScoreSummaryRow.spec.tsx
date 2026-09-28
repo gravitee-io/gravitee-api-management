@@ -27,9 +27,11 @@ const OVERVIEW: EnvironmentScoringOverview = {
     infos: 2,
 };
 
+const EVALUATED_AT = new Date('2026-01-01T00:00:00Z');
+
 describe('ApiScoreSummaryRow', () => {
     it('renders Average score then Errors, Warnings, Hints, Infos', () => {
-        render(<ApiScoreSummaryRow overview={OVERVIEW} />);
+        render(<ApiScoreSummaryRow overview={OVERVIEW} evaluatedAt={EVALUATED_AT} />);
 
         expect(screen.getAllByText(/Average score|Errors|Warnings|Hints|Infos/).map(node => node.textContent)).toEqual([
             'Average score',
@@ -43,5 +45,14 @@ describe('ApiScoreSummaryRow', () => {
         expect(screen.getByText('5')).not.toBeNull();
         expect(screen.getByText('1')).not.toBeNull();
         expect(screen.getByText('2')).not.toBeNull();
+    });
+
+    it('shows when the environment score was last evaluated', () => {
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2026-01-11T00:00:00Z'));
+        render(<ApiScoreSummaryRow overview={OVERVIEW} evaluatedAt={new Date('2026-01-01T00:00:00Z')} />);
+
+        expect(screen.getByText(/last evaluated 1 week ago/i)).not.toBeNull();
+        jest.useRealTimers();
     });
 });
