@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static io.gravitee.common.http.HttpStatusCode.UNAUTHORIZED_401;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -40,6 +41,7 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
     private static final String API = "my-api";
     private static final String PAGE = "my-page";
     private static final String ANOTHER_PAGE = "another-page";
+    private static final String PAGE_CONTENT = "openapi: 3.0.0";
     private ApiEntity mockApi;
     private PageEntity mockPage;
     private PageEntity mockAnotherPage;
@@ -83,6 +85,37 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveMetadataCleared() {
+        allowPortalAccessToApiPages();
+
+        Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
+        assertEquals(OK_200, anotherResponse.getStatus());
+
+        assertTrue(mockAnotherPage.getMetadata().isEmpty());
+    }
+
+    @Test
+    public void shouldGetPageContentWhenPortalLoginNotForced() {
+        allowPortalAccessToApiPages();
+        mockAnotherPage.setContent(PAGE_CONTENT);
+
+        Response response = target(API).path("pages").path(ANOTHER_PAGE).path("content").request().get();
+
+        assertEquals(OK_200, response.getStatus());
+        assertEquals(PAGE_CONTENT, response.readEntity(String.class));
+    }
+
+    @Test
+    public void shouldRejectPageContentWhenPortalLoginForced() {
+        allowPortalAccessToApiPages();
+        mockAnotherPage.setContent(PAGE_CONTENT);
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
+
+        Response response = target(API).path("pages").path(ANOTHER_PAGE).path("content").request().get();
+
+        assertEquals(UNAUTHORIZED_401, response.getStatus());
+    }
+
+    private void allowPortalAccessToApiPages() {
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(
             mock(GenericApiEntity.class)
         );
@@ -96,10 +129,5 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
                 any(PageEntity.class)
             )
         ).thenReturn(true);
-
-        Response anotherResponse = target(API).path("pages").path(ANOTHER_PAGE).request().get();
-        assertEquals(OK_200, anotherResponse.getStatus());
-
-        assertTrue(mockAnotherPage.getMetadata().isEmpty());
     }
 }
