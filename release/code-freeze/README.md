@@ -6,6 +6,10 @@ giving the new line everything it needs to build, deploy and release on its own.
 `release/code-freeze.sh` runs the nine steps below in order; each is also runnable on its own, and
 the entry point takes a step number to resume from (`./release/code-freeze.sh 5`).
 
+**It asks before anything that leaves the machine** — the two pushes, the label, the chart, the
+`cloud-apim` pull request, each schedule, whose payload is printed first. `y` runs it, `s` skips it
+and carries on, anything else stops the freeze where it is; `-f` answers `y` to all of them.
+
 This file is the one place the freeze is written down. Its counterpart at the other end of a
 version's life is [`../end-of-life/README.md`](../end-of-life/README.md).
 
@@ -30,6 +34,9 @@ as an argument, so the freeze releases whatever master currently says it is.
 - Docker running, for the Helm push through Azure ACR.
 - `cloud-apim` cloned **beside** `gravitee-api-management`; step 00 clones it if it is missing.
 - Admin rights on the repository: step 03 pushes master directly, and master is protected.
+- **A Keeper record for the new environment, created beforehand**: step 06 asks for its UID and
+  refuses the previous environment's, which would point the new environment at the old one's
+  database.
 
 ## The steps
 
@@ -41,8 +48,8 @@ as an argument, so the freeze releases whatever master currently says it is.
 | 03 | `03-update-master-version.sh` | Bumps `<revision>` to the next minor on both poms, **moves the pin with it**, updates the portal OpenAPI and the chart; empties the chart's `artifacthub.io/changes`; adds the new line's Mergify backport rule; pushes master | master |
 | 04 | `04-create-github-label.sh` | `gh label create apply-on-<major>-<minor>-x` | GitHub |
 | 05 | `05-publish-helm-charts.sh` | `helm package` then `helm push` to `oci://graviteeio.azurecr.io/helm/` | Azure ACR |
-| 06 | `06-create-cloud-apim-env.sh` | Copies the previous environment, wires it into the three applicationsets, opens the pull request | cloud-apim |
-| 07 | `07-update-google-oauth.sh` | **Manual.** Prints the origins and redirect URIs to add, then waits on Enter | Google Cloud Console |
+| 06 | `06-create-cloud-apim-env.sh` | Copies the previous environment, renames the version through `values.yaml`, **asks for the new Keeper record**, adds the otel-collector values, wires it into the three applicationsets, opens the pull request | cloud-apim |
+| 07 | `07-update-google-oauth.sh` | **Manual.** Prints the origins and redirect URIs to add — Gamma console included — then waits on Enter | Google Cloud Console |
 | 08 | `08-create-circleci-triggers.sh` | Creates the branch's four scheduled pipelines, from the table it declares | CircleCI |
 
 Then, from the script's own closing summary, three things nobody has scripted: update the plugins
@@ -154,6 +161,20 @@ still do not.
 Apart from the pin, no step re-reads what it wrote. The closing summary prints what the scripts
 *meant* to do, computed from the same variables they used, not from the repository.
 
+## What the first freeze added
+
+Run for the first time on 2026-09-28, cutting `4.13.x`. Three things it found, all of them outside
+this repository, which is why the inventory had missed them:
+
+- **`values.yaml` in `cloud-apim` names the version in three separators** — `4-12-x` for hosts and
+  secrets, `4_12_x` for indices, `4.12.x` for image tags. All three are renamed now, and a grep
+  refuses to go on if one is left.
+- **The Keeper record is per environment.** Keeping the previous one pointed the new environment at
+  the previous one's database. Step 06 asks for the UID, refuses the one it is replacing, and reads
+  the file back.
+- **The otel-collector has its own `values-<env>.yaml`**, and the Gamma console its own OAuth
+  origin and redirect URI.
+
 ## Checks after the freeze
 
 - [ ] `<major>.<minor>.x` exists on the remote, at `<revision>-alpha.1-SNAPSHOT` in **both** poms.
@@ -168,5 +189,6 @@ Apart from the pin, no step re-reads what it wrote. The closing summary prints w
 - [ ] The `cloud-apim` pull request is open, and merged once reviewed.
 - [ ] The Google OAuth client carries the four redirect URIs and two origins of the new environment.
 - [ ] The new branch's four schedules exist, at the hours step 08 declares, and none is duplicated.
+      A schedule answered `s` is created by nobody, and nothing says so afterwards — this is the check that catches it.
 - [ ] A release from the new branch is possible — `yarn prepare_distribution_release --version=… --dry-run`
       passes its preconditions.
