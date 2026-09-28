@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -77,5 +79,120 @@ class SharedPolicyGroupMapperTest {
     @Test
     void should_return_empty_with_wrong_payload() {
         cut.to(DistributedEvent.builder().payload("wrong").build()).test().assertNoValues().assertComplete();
+    }
+
+    @SneakyThrows
+    @Test
+    void should_keep_environment_id_from_the_distributed_payload() {
+        ReactableSharedPolicyGroup reactableSharedPolicyGroup = new ReactableSharedPolicyGroup();
+        reactableSharedPolicyGroup.setId("spg-id");
+        reactableSharedPolicyGroup.setEnvironmentId("env-b");
+        DistributedEvent distributedEvent = DistributedEvent.builder()
+            .id("spg-id")
+            .payload(objectMapper.writeValueAsString(reactableSharedPolicyGroup))
+            .updatedAt(new Date())
+            .type(DistributedEventType.SHARED_POLICY_GROUP)
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .build();
+
+        cut
+            .to(distributedEvent)
+            .test()
+            .assertValue(result -> {
+                assertThat(result.environmentId()).isEqualTo("env-b");
+                assertThat(result.sharedPolicyGroupId()).isEqualTo("spg-id");
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @SneakyThrows
+    @Test
+    void should_write_environment_id_into_the_undeploy_payload() {
+        SharedPolicyGroupReactorDeployable deployable = SharedPolicyGroupReactorDeployable.builder()
+            .sharedPolicyGroupId("spg-id")
+            .environmentId("env-b")
+            .syncAction(SyncAction.UNDEPLOY)
+            .build();
+
+        cut
+            .to(deployable)
+            .test()
+            .assertValue(event -> {
+                assertThat(event.getId()).isEqualTo("spg-id");
+                ReactableSharedPolicyGroup payload = objectMapper.readValue(event.getPayload(), ReactableSharedPolicyGroup.class);
+                assertThat(payload.getId()).isEqualTo("spg-id");
+                assertThat(payload.getEnvironmentId()).isEqualTo("env-b");
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @SneakyThrows
+    @Test
+    void should_round_trip_an_undeploy_and_keep_the_environment() {
+        SharedPolicyGroupReactorDeployable deployable = SharedPolicyGroupReactorDeployable.builder()
+            .sharedPolicyGroupId("spg-id")
+            .environmentId("env-b")
+            .syncAction(SyncAction.UNDEPLOY)
+            .build();
+
+        DistributedEvent distributedEvent = cut.to(deployable).blockingFirst();
+
+        cut
+            .to(distributedEvent)
+            .test()
+            .assertValue(result -> {
+                assertThat(result.syncAction()).isEqualTo(SyncAction.UNDEPLOY);
+                assertThat(result.environmentId()).isEqualTo("env-b");
+                assertThat(result.sharedPolicyGroupId()).isEqualTo("spg-id");
+                assertThat(result.allEnvironments()).isFalse();
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @SneakyThrows
+    @Test
+    void should_round_trip_an_undeploy_of_every_environment() {
+        SharedPolicyGroupReactorDeployable deployable = SharedPolicyGroupReactorDeployable.builder()
+            .sharedPolicyGroupId("spg-id")
+            .allEnvironments(true)
+            .syncAction(SyncAction.UNDEPLOY)
+            .build();
+
+        DistributedEvent distributedEvent = cut.to(deployable).blockingFirst();
+
+        cut
+            .to(distributedEvent)
+            .test()
+            .assertValue(result -> {
+                assertThat(result.syncAction()).isEqualTo(SyncAction.UNDEPLOY);
+                assertThat(result.allEnvironments()).isTrue();
+                assertThat(result.sharedPolicyGroupId()).isEqualTo("spg-id");
+                return true;
+            })
+            .assertComplete();
+    }
+
+    @SneakyThrows
+    @Test
+    void should_use_the_reactable_id_when_the_deployable_id_is_unset() {
+        ReactableSharedPolicyGroup reactableSharedPolicyGroup = new ReactableSharedPolicyGroup();
+        reactableSharedPolicyGroup.setId("spg-id");
+        reactableSharedPolicyGroup.setEnvironmentId("env-b");
+        SharedPolicyGroupReactorDeployable deployable = SharedPolicyGroupReactorDeployable.builder()
+            .reactableSharedPolicyGroup(reactableSharedPolicyGroup)
+            .syncAction(SyncAction.DEPLOY)
+            .build();
+
+        cut
+            .to(deployable)
+            .test()
+            .assertValue(event -> {
+                assertThat(event.getId()).isEqualTo("spg-id");
+                return true;
+            })
+            .assertComplete();
     }
 }

@@ -156,14 +156,30 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
     }
 
     private Flowable<SharedPolicyGroupReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
-        return eventsByType
-            .flatMapMaybe(sharedPolicyGroupMapper::toId)
-            .map(sharedPolicyGroupId ->
-                SharedPolicyGroupReactorDeployable.builder()
-                    .syncAction(SyncAction.UNDEPLOY)
-                    .sharedPolicyGroupId(sharedPolicyGroupId)
-                    .build()
-            );
+        return eventsByType.flatMap(event ->
+            sharedPolicyGroupMapper
+                .toId(event)
+                .flatMapPublisher(sharedPolicyGroupId -> {
+                    Set<String> environments = event.getEnvironments();
+                    // Empty or null means all environments. Do not read the payload: a delete event stores the description text there.
+                    if (environments == null || environments.isEmpty()) {
+                        return Flowable.just(
+                            SharedPolicyGroupReactorDeployable.builder()
+                                .syncAction(SyncAction.UNDEPLOY)
+                                .sharedPolicyGroupId(sharedPolicyGroupId)
+                                .allEnvironments(true)
+                                .build()
+                        );
+                    }
+                    return Flowable.fromIterable(environments).map(environmentId ->
+                        SharedPolicyGroupReactorDeployable.builder()
+                            .syncAction(SyncAction.UNDEPLOY)
+                            .sharedPolicyGroupId(sharedPolicyGroupId)
+                            .environmentId(environmentId)
+                            .build()
+                    );
+                })
+        );
     }
 
     private Flowable<SharedPolicyGroupReactorDeployable> deploySharedPolicyGroup(
