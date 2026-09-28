@@ -37,6 +37,7 @@ import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentation
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.media.model.Media;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -51,6 +52,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -75,6 +77,7 @@ public class ImportDefinitionCreateDomainService {
     private final MetadataCrudService metadataCrudService;
     private final DocumentationValidationDomainService documentationValidationDomainService;
     private final CategoryDomainService categoryDomainService;
+    private final ImportApiGroupsDomainService importApiGroupsDomainService;
 
     public ImportDefinitionCreateDomainService(
         ApiImportDomainService apiImportDomainService,
@@ -87,7 +90,8 @@ public class ImportDefinitionCreateDomainService {
         ApiIdsCalculatorDomainService apiIdsCalculatorDomainService,
         MetadataCrudService metadataCrudService,
         DocumentationValidationDomainService documentationValidationDomainService,
-        CategoryDomainService categoryDomainService
+        CategoryDomainService categoryDomainService,
+        ImportApiGroupsDomainService importApiGroupsDomainService
     ) {
         this.apiImportDomainService = apiImportDomainService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
@@ -100,6 +104,7 @@ public class ImportDefinitionCreateDomainService {
         this.metadataCrudService = metadataCrudService;
         this.documentationValidationDomainService = documentationValidationDomainService;
         this.categoryDomainService = categoryDomainService;
+        this.importApiGroupsDomainService = importApiGroupsDomainService;
     }
 
     public ApiWithFlows create(AuditInfo auditInfo, ImportDefinition importDefinition) {
@@ -112,14 +117,29 @@ public class ImportDefinitionCreateDomainService {
             .orElse(auditInfo.actor().userId());
         PrimaryOwnerEntity primaryOwner = resolvePrimaryOwner(organizationId, environmentId, primaryOwnerId, auditInfo);
         var apiWithIds = apiIdsCalculatorDomainService.recalculateApiDefinitionIds(environmentId, importDefinition);
-        var api = ApiModelFactory.fromApiExport(apiWithIds.getApiExport(), environmentId);
+        var apiExport = apiWithIds.getApiExport();
+        // Groups are resolved/created only after API validation passes to avoid orphaned groups on failure.
+        var groupNames = apiExport.getGroups();
+        apiExport.setGroups(null);
+
+        var api = ApiModelFactory.fromApiExport(apiExport, environmentId);
         var apiWithResolvedCategories = resolveCategoriesForImport(api, environmentId);
         var createdApi = createApiDomainService.create(
             apiWithResolvedCategories,
             primaryOwner,
             auditInfo,
-            apiToValidate ->
-                validateApiDomainService.validateAndSanitizeForCreation(apiToValidate, primaryOwner, environmentId, organizationId),
+            apiToValidate -> {
+                var validated = validateApiDomainService.validateAndSanitizeForCreation(
+                    apiToValidate,
+                    primaryOwner,
+                    environmentId,
+                    organizationId
+                );
+                // Merge resolved group IDs with groups validation added (defaults, primary-owner group)
+                var resolvedGroupIds = importApiGroupsDomainService.resolveOrCreateGroupIds(groupNames, auditInfo);
+                var mergedGroups = mergeGroups(validated.getGroups(), resolvedGroupIds);
+                return validated.toBuilder().groups(mergedGroups).build();
+            },
             oneShotIndexation(auditInfo)
         );
 
@@ -142,6 +162,24 @@ public class ImportDefinitionCreateDomainService {
         }
         var resolvedIds = categoryDomainService.resolveToCategoryIds(environmentId, api.getCategories());
         return resolvedIds != null ? api.toBuilder().categories(resolvedIds).build() : api;
+    }
+
+    /**
+     * Null-safe union of two group ID sets.
+     * Validation may have added default groups and/or primary-owner group; resolved groups come from the import.
+     */
+    private Set<String> mergeGroups(Set<String> fromValidation, Set<String> fromImport) {
+        if (fromValidation == null && fromImport == null) {
+            return null;
+        }
+        var merged = new HashSet<String>();
+        if (fromValidation != null) {
+            merged.addAll(fromValidation);
+        }
+        if (fromImport != null) {
+            merged.addAll(fromImport);
+        }
+        return merged.isEmpty() ? null : merged;
     }
 
     private PrimaryOwnerEntity resolvePrimaryOwner(
