@@ -123,6 +123,22 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     @Test
+    void should_return_400_when_duplicating_a_native_api() {
+        var apiEntity = ApiFixtures.aModelNativeApiV4().toBuilder().id(API).build();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
+
+        final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+        var error = response.readEntity(Error.class);
+        assertThat(error.getHttpStatus()).isEqualTo(BAD_REQUEST_400);
+        assertThat(error.getMessage()).isEqualTo("Duplicating NATIVE API is not supported");
+        assertThat(error.getTechnicalCode()).isEqualTo("api.duplicate.native");
+
+        verifyNoInteractions(apiDuplicateService);
+    }
+
+    @Test
     void should_duplicate_v4_api() {
         ApiEntity apiEntity = ApiFixtures.aModelHttpApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API, true, true, true)).thenReturn(apiEntity);
