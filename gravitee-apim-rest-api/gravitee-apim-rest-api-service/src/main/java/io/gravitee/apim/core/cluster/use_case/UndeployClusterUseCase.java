@@ -21,6 +21,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.domain_service.UndeployClusterDomainService;
 import io.gravitee.apim.core.cluster.domain_service.VirtualClusterBoundApisQueryService;
 import io.gravitee.apim.core.cluster.model.Cluster;
@@ -37,6 +38,7 @@ public class UndeployClusterUseCase {
     private final ClusterCrudService clusterCrudService;
     private final UndeployClusterDomainService undeployClusterDomainService;
     private final VirtualClusterBoundApisQueryService virtualClusterBoundApisQueryService;
+    private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
 
     public record Input(String clusterId, AuditInfo auditInfo) {}
 
@@ -69,6 +71,12 @@ public class UndeployClusterUseCase {
 
         Cluster updatedCluster = undeployClusterDomainService.undeploy(cluster, input.auditInfo());
 
-        return new Output(updatedCluster);
+        return new Output(
+            clusterConfigurationAccessDomainService.visibleTo(
+                updatedCluster,
+                input.auditInfo().organizationId(),
+                input.auditInfo().actor().userId()
+            )
+        );
     }
 }
