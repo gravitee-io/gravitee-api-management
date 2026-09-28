@@ -30,6 +30,7 @@ import io.gravitee.secrets.api.event.SecretDiscoveryEventType;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -48,7 +49,7 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
 
     private static final int PARALLELISM = Runtime.getRuntime().availableProcessors() * 2;
     private static final String SHARED_POLICY_GROUP_DEFINITION_KIND = "shared-policy-group";
-    private final Map<String, ReactableSharedPolicyGroup> sharedPolicyGroups = new ConcurrentHashMap<>();
+    private final Map<SharedPolicyGroupKey, ReactableSharedPolicyGroup> sharedPolicyGroups = new ConcurrentHashMap<>();
 
     private final EventManager eventManager;
     private final LicenseManager licenseManager;
@@ -68,7 +69,9 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
                 if (!SHARED_POLICY_GROUP_DEFINITION_KIND.equals(definition.kind())) {
                     return;
                 }
-                ReactableSharedPolicyGroup spg = sharedPolicyGroups.get(definition.id());
+                ReactableSharedPolicyGroup spg = sharedPolicyGroups.get(
+                    new SharedPolicyGroupKey(definition.id(), secretDiscoveryEvent.envId())
+                );
                 if (spg == null) {
                     log.trace("Received SecretDiscoveryEvent for Shared Policy Group {}, but not found in manager", definition.id());
                     return;
@@ -86,8 +89,22 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
     }
 
     @Override
-    public void unregister(String sharedPolicyGroupId) {
-        undeploy(sharedPolicyGroupId);
+    public void unregister(String sharedPolicyGroupId, String environmentId) {
+        undeploy(sharedPolicyGroupId, environmentId);
+    }
+
+    @Override
+    public void unregisterAll(String sharedPolicyGroupId) {
+        List<SharedPolicyGroupKey> keys = sharedPolicyGroups
+            .keySet()
+            .stream()
+            .filter(key -> Objects.equals(key.sharedPolicyGroupId(), sharedPolicyGroupId))
+            .toList();
+        if (keys.isEmpty()) {
+            log.warn("Shared Policy Group [{}] is not deployed in any environment", sharedPolicyGroupId);
+            return;
+        }
+        keys.forEach(key -> undeploy(key.sharedPolicyGroupId(), key.environmentId()));
     }
 
     @Override
@@ -127,13 +144,13 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
     }
 
     @Override
-    public ReactableSharedPolicyGroup get(String sharedPolicyGroupId) {
-        return sharedPolicyGroups.get(sharedPolicyGroupId);
+    public ReactableSharedPolicyGroup get(String sharedPolicyGroupId, String environmentId) {
+        return sharedPolicyGroups.get(new SharedPolicyGroupKey(sharedPolicyGroupId, environmentId));
     }
 
     private boolean register(ReactableSharedPolicyGroup sharedPolicyGroup, boolean force) {
-        // Get deployed Shared Policy Group
-        ReactableSharedPolicyGroup deployedSharedPolicyGroup = get(sharedPolicyGroup.getId());
+        // Get deployed Shared Policy Group. Copies that share a cross id in different environments are independent.
+        ReactableSharedPolicyGroup deployedSharedPolicyGroup = get(sharedPolicyGroup.getId(), sharedPolicyGroup.getEnvironmentId());
 
         List<Plugin> plugins = sharedPolicyGroup.getDefinition().getPlugins();
 
@@ -186,9 +203,13 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
                 new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())
             )
         );
-        sharedPolicyGroups.put(sharedPolicyGroup.getId(), sharedPolicyGroup);
+        sharedPolicyGroups.put(keyOf(sharedPolicyGroup), sharedPolicyGroup);
         eventManager.publishEvent(SharedPolicyGroupEvent.DEPLOY, sharedPolicyGroup);
-        log.info("Shared Policy Group [{}] has been deployed", sharedPolicyGroup.getId());
+        log.info(
+            "Shared Policy Group [{}] of environment [{}] has been deployed",
+            sharedPolicyGroup.getId(),
+            sharedPolicyGroup.getEnvironmentId()
+        );
     }
 
     private void update(ReactableSharedPolicyGroup sharedPolicyGroup) {
@@ -202,8 +223,7 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
                 new DefinitionMetadata(sharedPolicyGroup.getDefinition().getVersion())
             )
         );
-        ReactableSharedPolicyGroup previousSharedPolicyGroup = sharedPolicyGroups.get(sharedPolicyGroup.getId());
-        sharedPolicyGroups.put(sharedPolicyGroup.getId(), sharedPolicyGroup);
+        ReactableSharedPolicyGroup previousSharedPolicyGroup = sharedPolicyGroups.put(keyOf(sharedPolicyGroup), sharedPolicyGroup);
         eventManager.publishEvent(SharedPolicyGroupEvent.UPDATE, sharedPolicyGroup);
         if (previousSharedPolicyGroup != null) {
             eventManager.publishEvent(
@@ -215,13 +235,23 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
                 )
             );
         }
-        log.info("Shared Policy Group [{}] has been updated", sharedPolicyGroup.getId());
+        log.info(
+            "Shared Policy Group [{}] of environment [{}] has been updated",
+            sharedPolicyGroup.getId(),
+            sharedPolicyGroup.getEnvironmentId()
+        );
     }
 
-    private void undeploy(String sharedPolicyGroupId) {
-        ReactableSharedPolicyGroup currentSharedPolicyGroup = sharedPolicyGroups.remove(sharedPolicyGroupId);
+    private void undeploy(String sharedPolicyGroupId, String environmentId) {
+        ReactableSharedPolicyGroup currentSharedPolicyGroup = sharedPolicyGroups.remove(
+            new SharedPolicyGroupKey(sharedPolicyGroupId, environmentId)
+        );
         if (currentSharedPolicyGroup != null) {
-            log.debug("Undeployment of Shared Policy Group [{}]", currentSharedPolicyGroup.getEnvironmentId());
+            log.debug(
+                "Undeployment of Shared Policy Group [{}] of environment [{}]",
+                currentSharedPolicyGroup.getId(),
+                currentSharedPolicyGroup.getEnvironmentId()
+            );
 
             eventManager.publishEvent(SharedPolicyGroupEvent.UNDEPLOY, currentSharedPolicyGroup);
             eventManager.publishEvent(
@@ -232,9 +262,25 @@ public class SharedPolicyGroupManagerImpl implements SharedPolicyGroupManager {
                     new DefinitionMetadata(currentSharedPolicyGroup.getDefinition().getVersion())
                 )
             );
-            log.info("[{}] has been undeployed", currentSharedPolicyGroup.getId());
+            log.info(
+                "Shared Policy Group [{}] of environment [{}] has been undeployed",
+                currentSharedPolicyGroup.getId(),
+                currentSharedPolicyGroup.getEnvironmentId()
+            );
+        } else {
+            log.warn("Shared Policy Group [{}] of environment [{}] is not deployed", sharedPolicyGroupId, environmentId);
         }
     }
+
+    private static SharedPolicyGroupKey keyOf(ReactableSharedPolicyGroup sharedPolicyGroup) {
+        return new SharedPolicyGroupKey(sharedPolicyGroup.getId(), sharedPolicyGroup.getEnvironmentId());
+    }
+
+    /**
+     * Gateway identity of one Shared Policy Group deployment. The cross id is shared across environments;
+     * the environment keeps each copy, and its Vault bindings, independent.
+     */
+    private record SharedPolicyGroupKey(String sharedPolicyGroupId, String environmentId) {}
 
     private ExecutorService createExecutor(int threadCount) {
         return Executors.newFixedThreadPool(
