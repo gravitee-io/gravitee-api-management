@@ -649,7 +649,7 @@ public class GatewayRunner {
             SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer
                 .applicationContext()
                 .getBean(SharedPolicyGroupManager.class);
-            sharedPolicyGroupManager.unregister(sharedPolicyGroup);
+            sharedPolicyGroupManager.unregister(sharedPolicyGroup, environmentId);
             deployedSharedPolicyGroupsForTest.remove(new SharedPolicyGroupKey(sharedPolicyGroup, environmentId));
         }
     }
@@ -785,7 +785,7 @@ public class GatewayRunner {
 
     public void undeploySharedPolicyGroup(ReactableSharedPolicyGroup reactableSharedPolicyGroup) {
         SharedPolicyGroupManager sharedPolicyGroupManager = gatewayContainer.applicationContext().getBean(SharedPolicyGroupManager.class);
-        sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId());
+        sharedPolicyGroupManager.unregister(reactableSharedPolicyGroup.getId(), reactableSharedPolicyGroup.getEnvironmentId());
     }
 
     public void undeployApiProductForClass() {

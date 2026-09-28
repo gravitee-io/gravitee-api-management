@@ -64,15 +64,20 @@ public class SharedPolicyGroupDeployer implements Deployer<SharedPolicyGroupReac
     @Override
     public Completable undeploy(final SharedPolicyGroupReactorDeployable deployable) {
         return Completable.fromRunnable(() -> {
+            String environmentId = deployable.allEnvironments() ? "all" : deployable.environmentId();
             try {
-                sharedPolicyGroupManager.unregister(deployable.sharedPolicyGroupId());
-                log.debug("Shared Policy Group [{}] undeployed ", deployable.sharedPolicyGroupId());
+                if (deployable.allEnvironments()) {
+                    sharedPolicyGroupManager.unregisterAll(deployable.sharedPolicyGroupId());
+                } else {
+                    sharedPolicyGroupManager.unregister(deployable.sharedPolicyGroupId(), environmentId);
+                }
+                log.debug("Shared Policy Group [{}] of environment [{}] undeployed", deployable.sharedPolicyGroupId(), environmentId);
             } catch (Exception e) {
                 throw new SyncException(
                     String.format(
-                        "An error occurred when trying to undeploy shared policy group [%s] [%s].",
+                        "An error occurred when trying to undeploy shared policy group [%s] of environment [%s].",
                         deployable.sharedPolicyGroupId(),
-                        deployable.reactableSharedPolicyGroup().getDefinition().getVersion()
+                        environmentId
                     ),
                     e
                 );

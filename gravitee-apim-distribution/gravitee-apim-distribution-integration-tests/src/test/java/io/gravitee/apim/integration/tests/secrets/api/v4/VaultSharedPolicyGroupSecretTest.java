@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.ok;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import com.graviteesource.secretprovider.hcvault.HCVaultSecretProvider;
 import com.graviteesource.secretprovider.hcvault.HCVaultSecretProviderFactory;
@@ -44,6 +45,7 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.sharedpolicygroup.SharedPolicyGroup;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
+import io.gravitee.gateway.handlers.sharedpolicygroup.manager.SharedPolicyGroupManager;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -242,6 +244,77 @@ public class VaultSharedPolicyGroupSecretTest {
                         .id("spg-secret-header-on-request")
                         .name("spg-secret-header-on-request")
                         .environmentId("DEFAULT")
+                        .version(version)
+                        .phase(SharedPolicyGroup.Phase.REQUEST)
+                        .policies(
+                            List.of(
+                                Step.builder()
+                                    .name("Transform headers with secret")
+                                    .enabled(true)
+                                    .policy("transform-headers")
+                                    .configuration(
+                                        """
+                                        {
+                                            "scope": "REQUEST",
+                                            "addHeaders": [
+                                              {
+                                                "name": "Authorization",
+                                                "value": "ApiKey {#secrets.get('/vault/secret/test:api-key')}"
+                                              }
+                                            ]
+                                        }
+                                        """
+                                    )
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+                .build();
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class SharedPolicyGroupSameIdAcrossEnvironments extends AbstractVaultSpgTest {
+
+        @Test
+        @DeployApi("/apis/v4/http/secrets/vault/api-spg-secret.json")
+        void should_keep_resolving_the_first_environment_after_the_same_id_is_deployed_elsewhere(HttpClient httpClient) {
+            wiremock.stubFor(get("/endpoint").willReturn(ok("response from backend")));
+
+            deploySharedPolicyGroup(sharedPolicyGroup("DEFAULT", "128"));
+            deploySharedPolicyGroup(sharedPolicyGroup("other-env", "5"));
+
+            httpClient
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.body();
+                })
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertComplete();
+
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")).withHeader("Authorization", equalTo("ApiKey ".concat(apiKey))));
+            assertThat(getBean(SharedPolicyGroupManager.class).sharedPolicyGroups())
+                .extracting(ReactableSharedPolicyGroup::getId, ReactableSharedPolicyGroup::getEnvironmentId)
+                .containsExactlyInAnyOrder(
+                    tuple("spg-secret-header-on-request", "DEFAULT"),
+                    tuple("spg-secret-header-on-request", "other-env")
+                );
+        }
+
+        private ReactableSharedPolicyGroup sharedPolicyGroup(String environmentId, String version) {
+            return ReactableSharedPolicyGroup.builder()
+                .id("spg-secret-header-on-request")
+                .environmentId(environmentId)
+                .definition(
+                    SharedPolicyGroup.builder()
+                        .id("spg-secret-header-on-request")
+                        .name("spg-secret-header-on-request")
+                        .environmentId(environmentId)
                         .version(version)
                         .phase(SharedPolicyGroup.Phase.REQUEST)
                         .policies(
