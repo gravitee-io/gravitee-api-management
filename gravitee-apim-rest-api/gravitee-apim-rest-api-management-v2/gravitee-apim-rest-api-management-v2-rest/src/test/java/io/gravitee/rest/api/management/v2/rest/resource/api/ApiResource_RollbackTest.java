@@ -19,12 +19,16 @@ import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
@@ -61,6 +65,8 @@ class ApiResource_RollbackTest extends ApiResourceTest {
         super.setUp();
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        // the use case is a singleton mock in the test context: clear stubbing left by a previous test
+        reset(rollbackApiUseCase);
     }
 
     @Test
@@ -104,6 +110,21 @@ class ApiResource_RollbackTest extends ApiResourceTest {
             soft.assertThat(input.eventId()).isEqualTo(EVENT_ID);
             soft.assertThat(input.auditInfo()).isInstanceOf(AuditInfo.class);
         });
+    }
+
+    @Test
+    void should_return_400_when_rolling_back_a_native_api() {
+        doThrow(new ValidationDomainException("Rolling back a NATIVE API is not supported", "api.rollback.native"))
+            .when(rollbackApiUseCase)
+            .execute(any(RollbackApiUseCase.Input.class));
+
+        final Response response = rootTarget().request().post(Entity.json(aRollbackPayload(EVENT_ID)));
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+        var error = response.readEntity(Error.class);
+        assertThat(error.getHttpStatus()).isEqualTo(BAD_REQUEST_400);
+        assertThat(error.getMessage()).isEqualTo("Rolling back a NATIVE API is not supported");
+        assertThat(error.getTechnicalCode()).isEqualTo("api.rollback.native");
     }
 
     private ApiRollback aRollbackPayload(String eventId) {
