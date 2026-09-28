@@ -42,14 +42,21 @@ set -euo pipefail
 # Usage:
 #   ./release/code-freeze.sh           # Run all steps from the beginning
 #   ./release/code-freeze.sh 5         # Resume from step 05
+#   ./release/code-freeze.sh -f [5]    # Same, without asking before pushes and publications
 #
 # Each step can also be run independently:
-#   ./release/code-freeze/05-publish-helm-charts.sh
+#   ./release/code-freeze/05-publish-helm-charts.sh [-f]
 #
 # =============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)/code-freeze"
-START_FROM="${1:-0}"
+START_FROM=0
+for ARG in "$@"; do
+    case "$ARG" in
+        -f) export CODE_FREEZE_FORCE=true ;;
+        *) START_FROM="$ARG" ;;
+    esac
+done
 
 STEPS=(
     "00-check-repos.sh"

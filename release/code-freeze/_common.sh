@@ -156,10 +156,18 @@ EOF
 # Asks before anything that leaves the machine or deletes local work. `y` runs it, `s` skips it and
 # carries on, anything else aborts the freeze — resume later with the step number.
 # Reads from /dev/tty so it still asks when called inside a command substitution.
+# `-f` on a step, or on code-freeze.sh through CODE_FREEZE_FORCE, answers yes to all of them.
+if [ "${1:-}" = "-f" ]; then
+    CODE_FREEZE_FORCE=true
+fi
 confirm() {
     local answer
     echo "" >&2
     echo ">>> About to run: $*" >&2
+    if [ "${CODE_FREEZE_FORCE:-false}" = "true" ]; then
+        echo ">>> Forced (-f)." >&2
+        return 0
+    fi
     read -r -p ">>> Proceed? [y]es / [s]kip / [N]o (abort): " answer < /dev/tty
     case "$answer" in
         y|Y) return 0 ;;
