@@ -31,9 +31,12 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.portal.rest.model.Api;
 import io.gravitee.rest.api.portal.rest.model.ApisResponse;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
@@ -135,6 +138,44 @@ public class ApisResourceNotAuthenticatedTest extends AbstractResourceTest {
         assertEquals(2, apiResponse.getData().size());
         assertEquals("A", apiResponse.getData().get(0).getName());
         assertEquals("C", apiResponse.getData().get(1).getName());
+    }
+
+    @Test
+    public void should_reject_api_list_when_portal_login_forced() {
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
+
+        final Response response = target().request().get();
+
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
+    }
+
+    @Test
+    public void should_reject_api_search_when_portal_login_forced() {
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
+
+        final Response response = target("/_search").queryParam("q", "A").request().post(Entity.json(null));
+
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
+    }
+
+    @Test
+    public void should_reject_api_categories_when_portal_login_forced() {
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
+
+        final Response response = target("/categories").request().get();
+
+        assertEquals(HttpStatusCode.UNAUTHORIZED_401, response.getStatus());
+    }
+
+    @Test
+    public void should_keep_portal_configuration_public_when_portal_login_forced() {
+        doReturn(true).when(configService).portalLoginForced(GraviteeContext.getExecutionContext());
+        doReturn(new PortalSettingsEntity()).when(configService).getPortalSettings(GraviteeContext.getExecutionContext());
+        doReturn(new ConsoleSettingsEntity()).when(configService).getConsoleSettings(GraviteeContext.getExecutionContext());
+
+        final Response response = root().path("environments/DEFAULT/configuration").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
     }
 
     private static ApiEntity createApiEntity(String id, String name, Visibility visibility, ApiLifecycleState apiLifecycleState) {
