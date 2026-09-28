@@ -39,6 +39,13 @@ public class SharedPolicyGroupReactorDeployable implements SharedPolicyGroupDepl
 
     private String sharedPolicyGroupId;
 
+    private String environmentId;
+
+    /**
+     * True when the undeploy event lists no environment, which means every environment.
+     */
+    private boolean allEnvironments;
+
     private ReactableSharedPolicyGroup reactableSharedPolicyGroup;
 
     private SyncAction syncAction;
@@ -53,5 +60,12 @@ public class SharedPolicyGroupReactorDeployable implements SharedPolicyGroupDepl
             return reactableSharedPolicyGroup.getId();
         }
         return sharedPolicyGroupId;
+    }
+
+    public String environmentId() {
+        if (environmentId == null && reactableSharedPolicyGroup != null) {
+            return reactableSharedPolicyGroup.getEnvironmentId();
+        }
+        return environmentId;
     }
 }

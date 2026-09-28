@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.synchronizer.sharedpolicygroup;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -28,8 +29,10 @@ import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.gateway.handlers.sharedpolicygroup.ReactableSharedPolicyGroup;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SharedPolicyGroupDeployer;
+import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup.SharedPolicyGroupReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -47,6 +50,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -167,6 +171,30 @@ class DistributedSharedPolicyGroupSynchronizerTest {
 
             verify(sharedPolicyGroupDeployer).undeploy(any());
             verify(sharedPolicyGroupDeployer).doAfterUndeployment(any());
+        }
+
+        @Test
+        void should_undeploy_the_environment_carried_by_an_incremental_event() throws InterruptedException, JsonProcessingException {
+            sharedPolicyGroup.setEnvironmentId("env-b");
+            DistributedEvent distributedEvent = DistributedEvent.builder()
+                .id("spg-id")
+                .payload(objectMapper.writeValueAsString(sharedPolicyGroup))
+                .type(DistributedEventType.SHARED_POLICY_GROUP)
+                .syncAction(DistributedSyncAction.UNDEPLOY)
+                .updatedAt(new Date())
+                .build();
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
+            long now = Instant.now().toEpochMilli();
+            cut.synchronize(now, now).test().await().assertComplete();
+
+            ArgumentCaptor<SharedPolicyGroupReactorDeployable> deployableCaptor = ArgumentCaptor.forClass(
+                SharedPolicyGroupReactorDeployable.class
+            );
+            verify(sharedPolicyGroupDeployer).undeploy(deployableCaptor.capture());
+            assertThat(deployableCaptor.getValue().syncAction()).isEqualTo(SyncAction.UNDEPLOY);
+            assertThat(deployableCaptor.getValue().environmentId()).isEqualTo("env-b");
+            assertThat(deployableCaptor.getValue().sharedPolicyGroupId()).isEqualTo("spg-id");
         }
     }
 }
