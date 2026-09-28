@@ -16,19 +16,17 @@
 package io.gravitee.apim.core.cluster.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterSearchCriteria;
 import io.gravitee.apim.core.cluster.query_service.ClusterQueryService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
-import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.cluster.ClusterType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import java.util.Collections;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -40,7 +38,7 @@ public class SearchClusterUseCase {
 
     private final ClusterQueryService clusterQueryService;
     private final MembershipQueryService membershipQueryService;
-    private final PermissionDomainService permissionDomainService;
+    private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
 
     @Builder
     public record Input(
@@ -82,25 +80,10 @@ public class SearchClusterUseCase {
         return new SearchClusterUseCase.Output(
             clusterQueryService
                 .search(criteriaBuilder.build(), pageable, generateSortable(input.sortBy))
-                .map(cluster -> {
-                    setClusterConfigurationIfPermitted(input, cluster);
-                    return cluster;
-                })
+                .map(cluster ->
+                    clusterConfigurationAccessDomainService.visibleInListTo(cluster, cluster.getOrganizationId(), input.userId())
+                )
         );
-    }
-
-    private void setClusterConfigurationIfPermitted(Input input, Cluster cluster) {
-        if (
-            !permissionDomainService.hasPermission(
-                cluster.getOrganizationId(),
-                input.userId(),
-                RolePermission.CLUSTER_CONFIGURATION,
-                cluster.getId(),
-                RolePermissionAction.READ
-            )
-        ) {
-            cluster.setConfiguration(null);
-        }
     }
 
     private Optional<Sortable> generateSortable(String sortBy) {

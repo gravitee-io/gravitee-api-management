@@ -26,6 +26,7 @@ import static org.mockito.Mockito.mock;
 import inmemory.AbstractUseCaseTest;
 import inmemory.ClusterQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
+import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
@@ -49,7 +50,11 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        searchClusterUseCase = new SearchClusterUseCase(clusterQueryService, membershipQueryService, permissionDomainService);
+        searchClusterUseCase = new SearchClusterUseCase(
+            clusterQueryService,
+            membershipQueryService,
+            new ClusterConfigurationAccessDomainService(permissionDomainService)
+        );
         initDb();
     }
 
@@ -264,6 +269,35 @@ class SearchClusterUseCaseTest extends AbstractUseCaseTest {
                     "Kafka Cluster A",
                     "Kafka Cluster B"
                 )
+        );
+    }
+
+    @Test
+    void should_never_return_credentials_in_the_list() {
+        clusterQueryService.initWith(
+            List.of(
+                Cluster.builder()
+                    .id("secured-cluster")
+                    .name("secured")
+                    .environmentId(ENV_ID)
+                    .organizationId(ORG_ID)
+                    .configuration(
+                        Map.of(
+                            "bootstrapServers",
+                            "broker:9093",
+                            "security",
+                            Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret"))
+                        )
+                    )
+                    .build()
+            )
+        );
+        lenient().when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
+
+        var result = searchClusterUseCase.execute(new SearchClusterUseCase.Input(ENV_ID, null, null, null, null, true, "admin"));
+
+        assertThat(result.pageResult().getContent().get(0).getConfiguration()).isEqualTo(
+            Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL"))
         );
     }
 
