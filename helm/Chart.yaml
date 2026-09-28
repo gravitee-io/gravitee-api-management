@@ -1,8 +1,8 @@
 apiVersion: v1
 name: apim
 # Also update CHANGELOG.md
-version: 4.13.0
-appVersion: 4.13.0
+version: 4.14.0
+appVersion: 4.14.0
 description: Official Gravitee.io Helm chart for API Management
 home: https://gravitee.io
 sources:
@@ -29,52 +29,4 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes: |
-    - kind: added
-      description: "`gateway.edge` exposes the Edge Reactor server configuration: `port`, `host`, `secured` and `ssl.*` (clientAuth, keystore, truststore). `gateway.edge.server.port` is deprecated in favour of `gateway.edge.port`"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19435
-    - kind: added
-      description: "`gateway.kafka.routingHostMode.virtualClusterBrokerDomainPattern` sets a broker domain pattern for Kafka APIs backed by a Virtual Cluster only, leaving the other Kafka APIs' domains untouched"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19201
-    - kind: added
-      description: "Support multiple custom domains for native Kafka APIs with `gateway.kafka.routingHostMode.domains` (list)"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/17691
-    - kind: deprecated
-      description: "`gateway.kafka.routingHostMode.defaultDomain` is deprecated in favor of `domains` and ignored when `domains` is set"
-    - kind: changed
-      description: "`gateway.kafka.routingHostMode` pattern examples now use the `{domain}` placeholder, substituted with each configured domain in turn; hardcoding a domain there collapses every entry onto the same hostname (`{defaultDomain}` remains a supported alias)"
-    - kind: added
-      description: "Document `gateway.services.metrics.kafka.durations.principalName` to add the principal_name tag to Kafka duration metrics (disabled by default)"
-    - kind: added
-      description: 'Render config/hazelcast.xml for gateway Hazelcast clustering (gateway.cluster.type=hazelcast) with Kubernetes discovery. Cluster name defaults to release-sharding_tags for Redis distributed-event isolation; require gateway.cluster when gateway.distributedSync is enabled'
-    - kind: fixed
-      description: 'Allow Hazelcast cluster and Redis distributed sync'
-      links:
-        - name: Github Issue
-          url: https://github.com/gravitee-io/issues/issues/11583
-    - kind: added
-      description: "`gateway.ssl.keystore.certificates` and `gateway.servers[].ssl.keystore.certificates` declare a PEM keystore (list of `cert`/`key` pairs) on the gateway HTTP listeners, the only keystore format usable under BC-FIPS approved-only mode"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19547
-    - kind: added
-      description: "`gateway.http.http2.connectionWindowSize` and `gateway.http.http2.streamWindowSize` (also per server under `gateway.servers[]`) set the gateway HTTP/2 flow-control windows, unset by default so the 65535 bytes protocol default is kept. Set both or neither: raising the stream window alone leaves the connection window as the bottleneck"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19653
-    - kind: added
-      description: "`es.lifecycle.policies.eventMetrics` sets the ILM policy for the gravitee-event-metrics-* data streams, which the chart previously could not render"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/19361
-    - kind: added
-      description: "`es.lifecycle.policies.decisions` sets the ILM policy for the gravitee-decisions-* data streams"
-      links:
-        - name: Github PR
-          url: https://github.com/gravitee-io/gravitee-api-management/pull/20258
+  artifacthub.io/changes:
