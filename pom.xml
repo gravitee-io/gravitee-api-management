@@ -67,7 +67,7 @@
         <gravitee-kubernetes.version>3.7.1</gravitee-kubernetes.version>
         <gravitee-node.version>8.3.2</gravitee-node.version>
         <gravitee-notifier-api.version>2.0.0</gravitee-notifier-api.version>
-        <gravitee-platform-repository-api.version>1.4.0</gravitee-platform-repository-api.version>
+        <gravitee-platform-repository-api.version>2.0.0</gravitee-platform-repository-api.version>
         <gravitee-plugin.version>5.1.5</gravitee-plugin.version>
         <gravitee-plugin-common-configurations.version>1.1.2</gravitee-plugin-common-configurations.version>
         <gravitee-policy-api.version>1.11.0</gravitee-policy-api.version>
@@ -214,7 +214,7 @@
         <gravitee-policy-message-filtering.version>1.1.4</gravitee-policy-message-filtering.version>
         <gravitee-policy-mock.version>1.15.0</gravitee-policy-mock.version>
         <gravitee-policy-mtls.version>3.0.0</gravitee-policy-mtls.version>
-        <gravitee-policy-oauth2.version>5.2.1</gravitee-policy-oauth2.version>
+        <gravitee-policy-oauth2.version>5.3.1</gravitee-policy-oauth2.version>
         <gravitee-policy-oas-validation.version>2.0.3</gravitee-policy-oas-validation.version>
         <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
