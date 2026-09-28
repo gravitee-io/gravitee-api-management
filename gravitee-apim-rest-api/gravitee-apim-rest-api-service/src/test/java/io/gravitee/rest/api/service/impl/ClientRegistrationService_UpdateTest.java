@@ -237,7 +237,6 @@ public class ClientRegistrationService_UpdateTest {
     }
 
     @Test
-<<<<<<< HEAD
     public void should_prefer_the_application_software_id_over_the_provider_one_on_update()
         throws TechnicalException, JsonProcessingException {
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
@@ -269,7 +268,25 @@ public class ClientRegistrationService_UpdateTest {
             mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
         ).thenReturn(newSet(provider));
 
-=======
+        wireMockServer.stubFor(
+            get(urlEqualTo("/am")).willReturn(
+                aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
+            )
+        );
+
+        clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            new ObjectMapper().writeValueAsString(existingPayload),
+            updateApplicationEntity,
+            null
+        );
+
+        wireMockServer.verify(
+            putRequestedFor(urlEqualTo("/registration")).withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE")))
+        );
+    }
+
+    @Test
     public void should_keep_registered_secret_and_management_credentials_when_update_response_omits_them()
         throws TechnicalException, JsonProcessingException {
         ClientRegistrationResponse previous = givenPreviousRegistration();
@@ -282,7 +299,8 @@ public class ClientRegistrationService_UpdateTest {
         ClientRegistrationResponse updated = clientRegistrationService.update(
             GraviteeContext.getExecutionContext(),
             new ObjectMapper().writeValueAsString(previous),
-            givenApplicationUpdate()
+            givenApplicationUpdate(),
+            null
         );
 
         assertEquals("previousSecret", updated.getClientSecret());
@@ -311,7 +329,8 @@ public class ClientRegistrationService_UpdateTest {
         ClientRegistrationResponse updated = clientRegistrationService.update(
             GraviteeContext.getExecutionContext(),
             new ObjectMapper().writeValueAsString(previous),
-            givenApplicationUpdate()
+            givenApplicationUpdate(),
+            null
         );
 
         assertEquals("rotatedSecret", updated.getClientSecret());
@@ -335,25 +354,11 @@ public class ClientRegistrationService_UpdateTest {
         when(
             mockClientRegistrationProviderRepository.findAllByEnvironment(eq(GraviteeContext.getExecutionContext().getEnvironmentId()))
         ).thenReturn(newSet(provider));
->>>>>>> d9a2781 (fix(rest-api): keep stored DCR client secret when update response omits it)
         wireMockServer.stubFor(
             get(urlEqualTo("/am")).willReturn(
                 aResponse().withBody("{\"token_endpoint\": \"tokenEp\",\"registration_endpoint\": \"registrationEp\"}")
             )
         );
-<<<<<<< HEAD
-
-        clientRegistrationService.update(
-            GraviteeContext.getExecutionContext(),
-            new ObjectMapper().writeValueAsString(existingPayload),
-            updateApplicationEntity,
-            null
-        );
-
-        wireMockServer.verify(
-            putRequestedFor(urlEqualTo("/registration")).withRequestBody(matchingJsonPath("$.software_id", equalTo("APP_TEMPLATE")))
-        );
-=======
         return previous;
     }
 
@@ -365,7 +370,6 @@ public class ClientRegistrationService_UpdateTest {
         UpdateApplicationEntity updateApplicationEntity = new UpdateApplicationEntity();
         updateApplicationEntity.setSettings(applicationSettings);
         return updateApplicationEntity;
->>>>>>> d9a2781 (fix(rest-api): keep stored DCR client secret when update response omits it)
     }
 
     @Test
