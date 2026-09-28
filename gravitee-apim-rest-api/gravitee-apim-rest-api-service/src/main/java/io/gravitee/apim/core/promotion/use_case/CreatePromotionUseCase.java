@@ -117,7 +117,7 @@ public class CreatePromotionUseCase {
         generateCrossIds(api);
         var apiId = api.getId();
         var authenticatedUser = userCrudService.getBaseUser(auditInfo.actor().userId());
-        var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.GROUPS, Excludable.MEMBERS, Excludable.IDS));
+        var apiDefinition = apiExportDomainService.export(apiId, auditInfo, Set.of(Excludable.MEMBERS, Excludable.IDS));
         var sourceEnvironment = environmentCrudService.get(auditInfo.environmentId());
 
         var promotionQuery = new PromotionQueryService.PromotionQuery(

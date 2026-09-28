@@ -222,6 +222,130 @@ class ImportApiDefinitionUseCaseTest {
         }
 
         @Test
+        void should_create_a_new_api_resolving_and_auto_creating_groups_by_name() {
+            importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
+                List.of(
+                    fixtures.core.model.GroupFixtures.aGroup("developers-id")
+                        .toBuilder()
+                        .name("Developers")
+                        .environmentId(ENVIRONMENT_ID)
+                        .build()
+                )
+            );
+
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = "a-custom-id";
+            importDefinition.getApiExport().setId(customId);
+            importDefinition.getApiExport().setGroups(Set.of("Developers", "Helios"));
+
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            var createdApi = apiCrudService.get(customId);
+            assertThat(createdApi.getGroups()).hasSize(2).contains("developers-id");
+            assertThat(
+                importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(ENVIRONMENT_ID, Set.of("Helios"))
+            ).hasSize(1);
+        }
+
+        @Test
+        void should_not_create_missing_groups_when_api_validation_fails() {
+            // Given: mock validation to throw an exception
+            when(
+                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenThrow(new ValidationDomainException("Invalid listener configuration"));
+
+            var importDefinition = anApiProxyImportDefinition();
+            importDefinition.getApiExport().setGroups(Set.of("NewGroup1", "NewGroup2"));
+
+            // When: import fails due to validation
+            var throwable = catchThrowable(() -> useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO)));
+
+            // Then: validation error is thrown
+            assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+
+            // And: no groups were created (deferred group resolution prevents orphaned groups)
+            assertThat(
+                importDefinitionCreateDomainServiceTestInitializer.groupQueryService.findByNames(
+                    ENVIRONMENT_ID,
+                    Set.of("NewGroup1", "NewGroup2")
+                )
+            ).isEmpty();
+        }
+
+        @Test
+        void should_preserve_validation_added_groups_when_import_has_no_groups() {
+            // Given: validation adds default groups (e.g., API_CREATE groups, primary-owner group)
+            var validationAddedGroupId = "default-api-create-group-id";
+            when(
+                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenAnswer(invocation -> {
+                var api = (io.gravitee.apim.core.api.model.Api) invocation.getArgument(0);
+                return api.toBuilder().groups(Set.of(validationAddedGroupId)).build();
+            });
+
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = "api-no-groups";
+            importDefinition.getApiExport().setId(customId);
+            importDefinition.getApiExport().setGroups(null); // No groups in import
+
+            // When
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            // Then: validation-added groups are preserved
+            var createdApi = apiCrudService.get(customId);
+            assertThat(createdApi.getGroups()).containsExactly(validationAddedGroupId);
+        }
+
+        @Test
+        void should_merge_imported_groups_with_validation_added_groups() {
+            // Given: existing group to resolve + validation adds a default group
+            var validationAddedGroupId = "primary-owner-group-id";
+            importDefinitionCreateDomainServiceTestInitializer.groupQueryService.initWith(
+                List.of(
+                    fixtures.core.model.GroupFixtures.aGroup("developers-id")
+                        .toBuilder()
+                        .name("Developers")
+                        .environmentId(ENVIRONMENT_ID)
+                        .build()
+                )
+            );
+            when(
+                importDefinitionCreateDomainServiceTestInitializer.validateApiDomainService.validateAndSanitizeForCreation(
+                    any(),
+                    any(),
+                    any(),
+                    any()
+                )
+            ).thenAnswer(invocation -> {
+                var api = (io.gravitee.apim.core.api.model.Api) invocation.getArgument(0);
+                // Validation adds primary-owner group (simulating GROUP type primary owner)
+                return api.toBuilder().groups(Set.of(validationAddedGroupId)).build();
+            });
+
+            var importDefinition = anApiProxyImportDefinition();
+            final String customId = "api-with-merged-groups";
+            importDefinition.getApiExport().setId(customId);
+            importDefinition.getApiExport().setGroups(Set.of("Developers")); // Import specifies groups
+
+            // When
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            // Then: both validation-added and resolved import groups are present
+            var createdApi = apiCrudService.get(customId);
+            assertThat(createdApi.getGroups()).hasSize(2).contains(validationAddedGroupId, "developers-id");
+        }
+
+        @Test
         void should_create_a_new_api_without_sub_entities_with_user_defined_id() {
             // Given
             var importDefinition = anApiProxyImportDefinition();

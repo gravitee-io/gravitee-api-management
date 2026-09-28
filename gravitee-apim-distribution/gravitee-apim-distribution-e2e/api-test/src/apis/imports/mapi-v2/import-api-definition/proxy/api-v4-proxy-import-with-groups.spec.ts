@@ -49,7 +49,8 @@ describeIfV4EmulationEngine('API - V4 - Proxy - Import - Gravitee Definition - W
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
             api: MAPIV2ApisFaker.apiV4Proxy({
-              groups: [group.id],
+              // Import definition uses group names (resolved to IDs on the created API)
+              groups: [group.name],
             }),
           }),
         }),
