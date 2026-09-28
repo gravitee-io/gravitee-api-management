@@ -86,6 +86,12 @@ public class Cluster {
         return node;
     }
 
+    /**
+     * Allowlist over the {@code security} block, mirroring the Kafka security config
+     * ({@code protocol}, {@code sasl}, {@code ssl}): only the protocol is kept, so a credential
+     * field added under {@code security} later stays hidden. The configuration schemas keep every
+     * credential under {@code security}; a credential placed anywhere else must be handled here.
+     */
     private static Map<Object, Object> protocolOnly(Map<?, ?> security) {
         var copy = new LinkedHashMap<Object, Object>();
         if (security.containsKey("protocol")) {

@@ -19,8 +19,11 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import io.gravitee.apim.core.cluster.model.Cluster;
+=======
+>>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
 import io.gravitee.apim.core.cluster.model.DeployedCluster;
 >>>>>>> 6739246 (fix(rest-api): hide cluster credentials from users who cannot edit the cluster)
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
@@ -116,7 +119,7 @@ public class ClustersResource extends AbstractResource {
         );
 
         return new ClustersResponse()
-            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent().stream().map(Cluster::withoutCredentials).toList()))
+            .data(ClusterMapper.INSTANCE.map(result.pageResult().getContent()))
             .pagination(
                 PaginationInfo.computePaginationInfo(
                     result.pageResult().getTotalElements(),
