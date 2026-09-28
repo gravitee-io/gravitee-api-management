@@ -17,6 +17,7 @@
 import { dataTableHarness } from '@gravitee/graphene-core/testing';
 import { render, screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { IntegrationsTable } from './IntegrationsTable';
 import type { Integration, IntegrationAgentStatus } from '../types/integration';
@@ -44,6 +45,8 @@ const UNMAPPED_PROVIDER_TOKEN = 'kong';
 const OBJECT_PROTOTYPE_MEMBER_PROVIDER_TOKEN = 'constructor';
 // The v2 DTO declares agentStatus nullable, so the wire can send an explicit null that the optional field type cannot express.
 const WIRE_NULL_AGENT_STATUS = null as unknown as IntegrationAgentStatus;
+const UNRECOGNIZED_AGENT_STATUS_TOKEN = 'UNKNOWN';
+const WIRE_UNRECOGNIZED_AGENT_STATUS = UNRECOGNIZED_AGENT_STATUS_TOKEN as unknown as IntegrationAgentStatus;
 
 const A2A_INTEGRATIONS_WITHOUT_AGENT_STATUS: [description: string, integration: Integration][] = [
     ['omits the agentStatus key', { id: 'int-a2a', name: 'Agent Bridge', provider: 'A2A' }],
@@ -56,16 +59,25 @@ const PAGE_SIZES_AT_OR_ABOVE_TOTAL_COUNT = TABLE_PAGE_SIZE_OPTIONS.filter(size =
 
 function renderTable(overrides: Partial<ComponentProps<typeof IntegrationsTable>> = {}) {
     return render(
-        <IntegrationsTable
-            integrations={INTEGRATIONS}
-            totalCount={INTEGRATIONS.length}
-            page={1}
-            pageSize={10}
-            loading={false}
-            onPageChange={jest.fn()}
-            onPageSizeChange={jest.fn()}
-            {...overrides}
-        />,
+        <MemoryRouter initialEntries={['/integrations']}>
+            <Routes>
+                <Route
+                    path="/integrations"
+                    element={
+                        <IntegrationsTable
+                            integrations={INTEGRATIONS}
+                            totalCount={INTEGRATIONS.length}
+                            page={1}
+                            pageSize={10}
+                            loading={false}
+                            onPageChange={jest.fn()}
+                            onPageSizeChange={jest.fn()}
+                            {...overrides}
+                        />
+                    }
+                />
+            </Routes>
+        </MemoryRouter>,
     );
 }
 
@@ -120,17 +132,17 @@ describe('IntegrationsTable', () => {
         expect(names).toEqual(['Acme Gateway', 'Broker North', 'Partner Apigee']);
     });
 
-    it('renders every name as plain text, offering nothing to navigate into', () => {
-        renderTable();
+    it("renders each name, gateway-style and A2A alike, as a real link to that integration's overview", () => {
+        const integrations: Integration[] = [
+            { id: 'int-gateway', name: 'Acme Gateway', provider: 'aws-api-gateway' },
+            { id: 'int-a2a', name: 'Agent Bridge', provider: 'A2A' },
+        ];
 
-        const nameCells = integrationsTable()
-            .getRows()
-            .map(row => row.getCellElement('Name'));
+        renderTable({ integrations, totalCount: integrations.length });
 
-        expect(nameCells).toHaveLength(INTEGRATIONS.length);
-        nameCells.forEach(nameCell => {
-            expect(nameCell.querySelector('a, button, [role="link"], [role="button"]')).toBeNull();
-        });
+        const linkTargets = integrations.map(({ name }) => screen.getByRole('link', { name }).getAttribute('href'));
+
+        expect(linkTargets).toEqual(['/integrations/int-gateway', '/integrations/int-a2a']);
     });
 
     it("renders each supported provider's display label in its own Provider cell", () => {
@@ -249,6 +261,23 @@ describe('IntegrationsTable', () => {
         expect(statusLessRow.getCellElement('Status').querySelector('[data-slot="badge"]')).toBeNull();
         expect(integrationsTable().getRow('Connected Bearer').getCellText('Status')).toBe('Connected');
         expect(integrationsTable().getRow('Disconnected Bearer').getCellText('Status')).toBe('Disconnected');
+    });
+
+    it('renders no badge and warns once, naming the status, for an unrecognized agent status', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+        const integrations: Integration[] = [
+            { id: 'int-status', name: 'Status Bearer', provider: 'solace', agentStatus: WIRE_UNRECOGNIZED_AGENT_STATUS },
+        ];
+
+        renderTable({ integrations, totalCount: integrations.length });
+
+        const row = integrationsTable().getRow('Status Bearer');
+
+        expect(row.getCellElement('Status').querySelector('[data-slot="badge"]')).toBeNull();
+        expect(row.getCellText('Status')).toBe('');
+        expect(warn).toHaveBeenCalledTimes(1);
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining(UNRECOGNIZED_AGENT_STATUS_TOKEN));
+        warn.mockRestore();
     });
 
     it.each([

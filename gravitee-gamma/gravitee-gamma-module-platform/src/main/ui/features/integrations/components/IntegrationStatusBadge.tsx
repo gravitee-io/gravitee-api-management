@@ -35,7 +35,7 @@ export function IntegrationStatusBadge({ agentStatus }: Readonly<{ agentStatus: 
     useEffect(() => {
         if (unrecognizedStatus) {
             console.warn(
-                `Integration agent status "${unrecognizedStatus}" is not one of ${Object.keys(STATUS_CONFIG).join(', ')}; rendering an empty Status cell`,
+                `Integration agent status "${unrecognizedStatus}" is not one of ${Object.keys(STATUS_CONFIG).join(', ')}; rendering no status badge`,
             );
         }
     }, [unrecognizedStatus]);
