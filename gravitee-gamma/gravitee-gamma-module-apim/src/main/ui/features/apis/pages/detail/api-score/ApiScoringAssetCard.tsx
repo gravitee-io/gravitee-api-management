@@ -18,8 +18,10 @@ import { useEffect, useState } from 'react';
 import { ApiScoringDiagnosticsTable, ScoringAssetTypeBadge } from './ApiScoringDiagnosticsTable';
 import { CollapsibleSection } from '../../../components/CollapsibleSection';
 import type { ScoringAsset } from '../../../types/scoring';
+import { scoringAssetDisplayName } from '../../../utils/scoring';
 
 export function ApiScoringAssetCard({ asset }: Readonly<{ asset: ScoringAsset }>) {
+    const displayName = scoringAssetDisplayName(asset);
     const hasFindings = asset.diagnostics.length > 0;
     const [open, setOpen] = useState(hasFindings);
 
@@ -33,12 +35,12 @@ export function ApiScoringAssetCard({ asset }: Readonly<{ asset: ScoringAsset }>
             onOpenChange={setOpen}
             title={
                 <span className="flex min-w-0 items-center gap-2 text-left">
-                    <span className="truncate">{asset.name}</span>
+                    <span className="truncate">{displayName}</span>
                     <ScoringAssetTypeBadge type={asset.type} />
                 </span>
             }
         >
-            <ApiScoringDiagnosticsTable diagnostics={asset.diagnostics} ariaLabel={`${asset.name} diagnostics`} />
+            <ApiScoringDiagnosticsTable diagnostics={asset.diagnostics} ariaLabel={`${displayName} diagnostics`} />
         </CollapsibleSection>
     );
 }

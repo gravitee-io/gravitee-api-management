@@ -98,10 +98,17 @@ describe('ApiScoreDashboardPage', () => {
     });
 
     it('renders the Overview stats and APIs table without an Evaluate button', () => {
-        renderPage();
+        jest.useFakeTimers();
+        jest.setSystemTime(new Date('2026-01-11T00:00:00Z'));
+        try {
+            renderPage();
 
-        expect(screen.getByText('Overview')).not.toBeNull();
-        expect(screen.getByText('83%')).not.toBeNull();
+            expect(screen.getByText('Overview')).not.toBeNull();
+            expect(screen.getByText(/last evaluated just now/i)).not.toBeNull();
+            expect(screen.getByText('83%')).not.toBeNull();
+        } finally {
+            jest.useRealTimers();
+        }
         expect(screen.getByText('Average score')).not.toBeNull();
         expect(screen.getByText('Petstore')).not.toBeNull();
         expect(screen.queryByRole('button', { name: /evaluate/i })).toBeNull();

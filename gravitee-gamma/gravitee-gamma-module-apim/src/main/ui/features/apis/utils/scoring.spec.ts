@@ -21,6 +21,7 @@ import {
     formatEvaluationErrors,
     formatLineColumn,
     formatScorePercent,
+    scoringAssetDisplayName,
     isApiScoreEnabled,
     latestScoringJob,
     paginateItems,
@@ -61,6 +62,17 @@ describe('scoreTone', () => {
     });
 });
 
+describe('scoringAssetDisplayName', () => {
+    it('falls back to Gamma Baby labels when name is missing', () => {
+        expect(scoringAssetDisplayName({ name: '', type: 'GRAVITEE_DEFINITION', diagnostics: [] })).toBe('gravitee-definition.json');
+        expect(scoringAssetDisplayName({ name: '  ', type: 'SWAGGER', diagnostics: [] })).toBe('openapi.yaml');
+    });
+
+    it('keeps the API-provided page name when present', () => {
+        expect(scoringAssetDisplayName({ name: 'petstore.yaml', type: 'SWAGGER', diagnostics: [] })).toBe('petstore.yaml');
+    });
+});
+
 describe('formatLineColumn', () => {
     it('formats the diagnostic start as line:character', () => {
         expect(formatLineColumn(diagnostic())).toBe('84:4');
@@ -78,8 +90,9 @@ describe('formatDateAgo', () => {
         expect(formatDateAgo(new Date(now - 86_400_000).toISOString(), now)).toBe('1 day ago');
     });
 
-    it('returns a plural relative unit matching the Gamma screen (10 days ago)', () => {
-        expect(formatDateAgo(new Date(now - 10 * 86_400_000).toISOString(), now)).toBe('10 days ago');
+    it('uses weeks before days when the gap is at least one week (Classic dateAgo)', () => {
+        expect(formatDateAgo(new Date(now - 10 * 86_400_000).toISOString(), now)).toBe('1 week ago');
+        expect(formatDateAgo(new Date(now - 2 * 86_400_000).toISOString(), now)).toBe('2 days ago');
     });
 });
 

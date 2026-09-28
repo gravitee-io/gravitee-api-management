@@ -65,12 +65,19 @@ describe('API_PROXY_NAV_GROUPS', () => {
 
     it('keeps General to what identifies the API, User Permissions included', () => {
         const general = GROUPS.find(g => g.label === 'General')!;
-        expect(general.items.map(i => i.path)).toEqual(['overview', 'general', 'user-permissions', 'authorization', 'metadata']);
+        expect(general.items.map(i => i.path)).toEqual([
+            'overview',
+            'general',
+            'user-permissions',
+            'authorization',
+            'metadata',
+            'api-score',
+        ]);
         expect(general.items.find(i => i.path === 'general')!.label).toBe('Settings');
     });
 
     it('uses SparklesIcon for API Score so CORS can keep ShieldCheckIcon', () => {
-        const apiScore = GROUPS.find(g => g.label === 'Monitoring')!.items.find(item => item.path === 'api-score')!;
+        const apiScore = GROUPS.find(g => g.label === 'General')!.items.find(item => item.path === 'api-score')!;
         const cors = GROUPS.find(g => g.label === 'Design')!.items.find(item => item.path === 'cors')!;
         expect(apiScore.icon).toBe(SparklesIcon);
         expect(cors.icon).toBe(ShieldCheckIcon);
@@ -237,7 +244,7 @@ const FEDERATED_KEPT_PATHS = ['general', 'plans', 'consumers', 'broadcasts', 'us
 // by every call, so a filter that pruned or re-shaped it in place would leave any expected value read later —
 // even one read at the top of a test — already carrying the damage the test is meant to catch.
 const SHIPPED_PATHS = GROUPS.flatMap(group => group.items.map(item => item.path));
-const SHIPPED_API_SCORE_ITEM = { ...GROUPS.find(group => group.label === 'Monitoring')!.items.find(item => item.path === 'api-score')! };
+const SHIPPED_API_SCORE_ITEM = { ...GROUPS.find(group => group.label === 'General')!.items.find(item => item.path === 'api-score')! };
 
 describe('withFederatedRestrictions', () => {
     it('returns the groups unchanged when the API is not federated', () => {
@@ -328,11 +335,11 @@ describe('withApiScoreEnabled', () => {
         expect(withApiScoreEnabled(GROUPS, true)).toBe(GROUPS);
     });
 
-    it('omits API Score from the Monitoring group when the portal flag is off', () => {
+    it('omits API Score from the General group when the portal flag is off', () => {
         const restricted = withApiScoreEnabled(GROUPS, false);
-        const monitoring = restricted.find(g => g.label === 'Monitoring')!;
-        expect(monitoring.items.find(item => item.path === 'api-score')).toBeUndefined();
-        expect(monitoring.items.find(item => item.path === 'notifications')).toBeDefined();
+        const general = restricted.find(g => g.label === 'General')!;
+        expect(general.items.find(item => item.path === 'api-score')).toBeUndefined();
+        expect(general.items.find(item => item.path === 'metadata')).toBeDefined();
     });
 });
 

@@ -15,7 +15,7 @@
  */
 import { DataTableEmptyState, Skeleton } from '@gravitee/graphene-core';
 import { ShieldCheckIcon } from '@gravitee/graphene-core/icons';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { notify } from '../../../shared/notify';
@@ -33,6 +33,7 @@ export function ApiScoreDashboardPage() {
     const location = useLocation();
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(DEFAULT_API_SCORE_LIST_PAGE_SIZE);
+    const evaluatedAtRef = useRef(new Date());
 
     const overviewQuery = useScoringOverview();
     const apisQuery = useApisScoring({ page, perPage: pageSize });
@@ -63,7 +64,9 @@ export function ApiScoreDashboardPage() {
                     />
                 </div>
             ) : null}
-            {!overviewQuery.isLoading && showOverview ? <ApiScoreSummaryRow overview={overview} /> : null}
+            {!overviewQuery.isLoading && showOverview ? (
+                <ApiScoreSummaryRow overview={overview} evaluatedAt={evaluatedAtRef.current} />
+            ) : null}
 
             <ApiScoreApisTable
                 apis={apisQuery.apis}

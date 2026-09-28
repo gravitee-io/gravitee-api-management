@@ -91,6 +91,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'user-permissions', label: 'User Permissions', icon: UsersIcon },
             { path: 'authorization', label: 'Authorization', icon: LockIcon, comingSoon: true },
             { path: 'metadata', label: 'Metadata', icon: DatabaseIcon },
+            { path: 'api-score', label: 'API Score', icon: SparklesIcon },
         ],
     },
     {
@@ -123,7 +124,6 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'alerts', label: 'Alerts', icon: TriangleAlertIcon },
             { path: 'audit-logs', label: 'Audit Logs', icon: ScrollTextIcon },
             { path: 'endpoints/health-check-dashboard', label: 'Health Check Dashboard', icon: ActivityIcon },
-            { path: 'api-score', label: 'API Score', icon: SparklesIcon },
         ],
     },
     {
