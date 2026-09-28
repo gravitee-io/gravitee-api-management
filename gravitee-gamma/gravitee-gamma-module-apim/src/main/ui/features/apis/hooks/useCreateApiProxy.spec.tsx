@@ -111,16 +111,79 @@ describe('useCreateApiProxy — outcome after creation', () => {
         expect(ask.callCount).toBe(0);
     });
 
-    it('reports a failed review request with a pointer to the General page', async () => {
+    it('resolves with a warning, not an error, when the review request fails', async () => {
         mockCreationChain();
         trackHandler('post', `${TEST_V2_BASE}/apis/:apiId/reviews/_ask`, { message: 'Review is still in progress.' }, 400);
         const { result } = renderHook(() => useCreateApiProxy(), { wrapper: createWrapper() });
 
         result.current.mutate({ ...DRAFT, askForReview: true });
 
-        await waitFor(() => expect(result.current.isError).toBe(true));
-        expect(result.current.error?.message).toBe(
-            'API "Flights" was created but the review could not be requested. Ask for a review from the API General page.',
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(result.current.data?.api.id).toBe('api-1');
+        expect(result.current.data?.warnings).toHaveLength(1);
+        expect(result.current.data?.warnings[0]).toContain('The review could not be requested');
+        expect(result.current.data?.warnings[0]).toContain('Review is still in progress.');
+    });
+
+    it('still asks for a review when plan creation fails', async () => {
+        const { ask } = mockCreationChain();
+        trackHandler('post', `${TEST_V2_BASE}/apis/:apiId/plans`, { message: 'Plugin [key-less] cannot be found' }, 404);
+        const { result } = renderHook(() => useCreateApiProxy(), { wrapper: createWrapper() });
+
+        result.current.mutate({ ...DRAFT, askForReview: true });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(ask.callCount).toBe(1);
+    });
+
+    it('names the failed step and quotes the server message in the warning', async () => {
+        mockCreationChain();
+        trackHandler('post', `${TEST_V2_BASE}/apis/:apiId/plans`, { message: 'Plan name already used.' }, 400);
+        const { result } = renderHook(() => useCreateApiProxy(), { wrapper: createWrapper() });
+
+        result.current.mutate(DRAFT);
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(result.current.data?.warnings[0]).toBe(
+            'The plan could not be created. Open the API to add a plan. (Plan name already used.)',
         );
+    });
+
+    it('collects one warning per failed step and still resolves with the created API', async () => {
+        mockCreationChain();
+        trackHandler('post', `${TEST_V2_BASE}/apis/:apiId/plans`, { message: 'Plan name already used.' }, 400);
+        trackHandler('post', `${TEST_V2_BASE}/apis/:apiId/reviews/_ask`, { message: 'Review is still in progress.' }, 400);
+        const { result } = renderHook(() => useCreateApiProxy(), { wrapper: createWrapper() });
+
+        result.current.mutate({ ...DRAFT, askForReview: true });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(result.current.data?.api.id).toBe('api-1');
+        expect(result.current.data?.warnings).toHaveLength(2);
+        // The publish step is skipped, not reported: the plan warning already says there is nothing to publish.
+        expect(result.current.data?.warnings.some(warning => warning.includes('published'))).toBe(false);
+    });
+
+    it('still starts the API when deploying immediately after plan creation failed', async () => {
+        const { start } = mockCreationChain();
+        trackHandler('post', `${TEST_V2_BASE}/apis/:apiId/plans`, { message: 'Plan name already used.' }, 400);
+        const { result } = renderHook(() => useCreateApiProxy(), { wrapper: createWrapper() });
+
+        result.current.mutate({ ...DRAFT, deployImmediately: true });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(start.callCount).toBe(1);
+    });
+
+    it('rejects when the API itself could not be created', async () => {
+        mockCreationChain();
+        trackHandler('post', `${TEST_V2_BASE}/apis`, { message: 'Context path already used.' }, 400);
+        const { result } = renderHook(() => useCreateApiProxy(), { wrapper: createWrapper() });
+
+        result.current.mutate(DRAFT);
+
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(result.current.error?.message).toBe('Context path already used.');
+        expect(result.current.data).toBeUndefined();
     });
 });

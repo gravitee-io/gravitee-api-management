@@ -25,7 +25,6 @@ import {
     ZapIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ProxyFlowVisualization } from './ProxyFlowVisualization';
@@ -89,7 +88,7 @@ interface ApiProxyWizardProps {
 export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     const navigate = useNavigate();
     const { state, dispatch } = useApiCreation();
-    const { mutate, isPending, error: createError, isSuccess, data } = useCreateApiProxy();
+    const { mutate, reset, isPending, error: createError } = useCreateApiProxy();
     const { enabled: apiReviewEnabled } = useApiReviewEnabled();
     const outcome = resolveCreationOutcome(state.form, apiReviewEnabled);
 
@@ -101,14 +100,8 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
 
     const StepContent = contentMap[activeStep];
 
-    useEffect(() => {
-        if (isSuccess && data) {
-            notify.success('API created');
-            navigate(`../../${data.id}/overview`);
-        }
-    }, [isSuccess, data, navigate]);
-
     function handleNext() {
+        reset();
         const validator = validatorMap[activeStep];
         if (validator) {
             const errors = validator(state.form);
@@ -122,6 +115,7 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     }
 
     function handleBack() {
+        reset();
         if (activeStep === 0) {
             navigate('..');
         } else {
@@ -131,7 +125,16 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     }
 
     function handleCreate() {
-        mutate({ ...state.form, ...outcome });
+        mutate(
+            { ...state.form, ...outcome },
+            {
+                onSuccess(data) {
+                    notify.success('API created');
+                    data.warnings.forEach(w => notify.warning(w));
+                    navigate(`../../${data.api.id}/overview`);
+                },
+            },
+        );
     }
 
     const hasErrors = Object.keys(state.validationErrors).length > 0;
