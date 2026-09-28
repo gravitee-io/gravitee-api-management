@@ -54,6 +54,7 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
@@ -63,6 +64,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Media;
@@ -317,6 +319,7 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
             .analytics(NativeAnalytics.builder().enabled(true).reporterMetricsEnabled(true).build())
             .endpointGroups(List.of(endpointGroup))
             .flows(List.of(flow))
+            .services(new NativeApiServices(Service.builder().type("http-dynamic-properties").enabled(true).configuration("{}").build()))
             .build();
     }
 
@@ -611,6 +614,11 @@ class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
         assertThat(responseApi.getLinks()).isNull();
         assertThat(responseApi.getProperties()).hasSize(1);
         assertThat(responseApi.getResources()).hasSize(1);
+
+        assertThat(responseApi.getServices()).isNotNull();
+        assertThat(responseApi.getServices().getDynamicProperty()).isNotNull();
+        assertThat(responseApi.getServices().getDynamicProperty().getType()).isEqualTo("http-dynamic-properties");
+        assertThat(responseApi.getServices().getDynamicProperty().getEnabled()).isTrue();
 
         assertThat(responseApi.getListeners()).hasSize(1);
 
