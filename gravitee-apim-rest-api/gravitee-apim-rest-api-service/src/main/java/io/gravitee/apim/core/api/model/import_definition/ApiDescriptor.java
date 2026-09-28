@@ -34,6 +34,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.nativeapi.NativeAnalytics;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
@@ -150,7 +151,8 @@ public sealed interface ApiDescriptor {
         NativeAnalytics analytics,
         List<NativeFlow> flows,
         List<Property> properties,
-        List<Resource> resources
+        List<Resource> resources,
+        NativeApiServices services
     ) implements ApiDescriptor {
         @JsonProperty("definitionVersion")
         @Override
