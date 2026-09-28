@@ -15,7 +15,11 @@
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type { Integration } from '../types/integration';
+import { isA2aIntegration } from '../utils/integrationKind';
 
 export async function getIntegration(environmentId: string, integrationId: string): Promise<Integration> {
-    return apimFetchJsonV2<Integration>(environmentId, `/integrations/${encodeURIComponent(integrationId)}`);
+    const integration = await apimFetchJsonV2<Integration>(environmentId, `/integrations/${encodeURIComponent(integrationId)}`);
+    if (!isA2aIntegration(integration)) return integration;
+    const { agentStatus: _agentStatus, pendingJob: _pendingJob, ...a2aIntegration } = integration;
+    return a2aIntegration;
 }

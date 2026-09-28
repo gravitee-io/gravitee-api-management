@@ -46,7 +46,7 @@ const OBJECT_PROTOTYPE_MEMBER_PROVIDER_TOKEN = 'constructor';
 // The v2 DTO declares agentStatus nullable, so the wire can send an explicit null that the optional field type cannot express.
 const WIRE_NULL_AGENT_STATUS = null as unknown as IntegrationAgentStatus;
 const UNRECOGNIZED_AGENT_STATUS_TOKEN = 'UNKNOWN';
-const WIRE_UNRECOGNIZED_AGENT_STATUS = UNRECOGNIZED_AGENT_STATUS_TOKEN as unknown as IntegrationAgentStatus;
+const OBJECT_PROTOTYPE_MEMBER_AGENT_STATUS_TOKEN = 'constructor';
 
 const A2A_INTEGRATIONS_WITHOUT_AGENT_STATUS: [description: string, integration: Integration][] = [
     ['omits the agentStatus key', { id: 'int-a2a', name: 'Agent Bridge', provider: 'A2A' }],
@@ -263,22 +263,30 @@ describe('IntegrationsTable', () => {
         expect(integrationsTable().getRow('Disconnected Bearer').getCellText('Status')).toBe('Disconnected');
     });
 
-    it('renders no badge and warns once, naming the status, for an unrecognized agent status', () => {
-        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-        const integrations: Integration[] = [
-            { id: 'int-status', name: 'Status Bearer', provider: 'solace', agentStatus: WIRE_UNRECOGNIZED_AGENT_STATUS },
-        ];
+    it.each([UNRECOGNIZED_AGENT_STATUS_TOKEN, OBJECT_PROTOTYPE_MEMBER_AGENT_STATUS_TOKEN])(
+        'renders no badge and warns once, naming the status, for unrecognized agent status %s',
+        agentStatusToken => {
+            const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+            const integrations: Integration[] = [
+                {
+                    id: 'int-status',
+                    name: 'Status Bearer',
+                    provider: 'solace',
+                    agentStatus: agentStatusToken as unknown as IntegrationAgentStatus,
+                },
+            ];
 
-        renderTable({ integrations, totalCount: integrations.length });
+            renderTable({ integrations, totalCount: integrations.length });
 
-        const row = integrationsTable().getRow('Status Bearer');
+            const row = integrationsTable().getRow('Status Bearer');
 
-        expect(row.getCellElement('Status').querySelector('[data-slot="badge"]')).toBeNull();
-        expect(row.getCellText('Status')).toBe('');
-        expect(warn).toHaveBeenCalledTimes(1);
-        expect(warn).toHaveBeenCalledWith(expect.stringContaining(UNRECOGNIZED_AGENT_STATUS_TOKEN));
-        warn.mockRestore();
-    });
+            expect(row.getCellElement('Status').querySelector('[data-slot="badge"]')).toBeNull();
+            expect(row.getCellText('Status')).toBe('');
+            expect(warn).toHaveBeenCalledTimes(1);
+            expect(warn).toHaveBeenCalledWith(expect.stringContaining(agentStatusToken));
+            warn.mockRestore();
+        },
+    );
 
     it.each([
         [3, 10],

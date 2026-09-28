@@ -30,7 +30,7 @@ export function useIntegration(integrationId: string) {
     return useQuery({
         queryKey: integrationKeys.detail(env?.id ?? '', integrationId),
         queryFn: () => getIntegration(env!.id, integrationId),
-        enabled: Boolean(env),
+        enabled: Boolean(env && integrationId),
         refetchInterval: query =>
             query.state.status === 'success' && query.state.data && isIngestionInProgress(query.state.data)
                 ? INGESTION_POLL_INTERVAL_MS
