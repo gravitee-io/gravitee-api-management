@@ -26,12 +26,8 @@ import io.gravitee.gateway.reactive.api.context.http.HttpPlainExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionFailureException;
 import io.reactivex.rxjava3.core.CompletableEmitter;
 import io.reactivex.rxjava3.core.Flowable;
-<<<<<<< HEAD
-import lombok.extern.slf4j.Slf4j;
-=======
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.CustomLog;
->>>>>>> 372bd5f (fix(gateway): cancel the backend call when the client aborts a v4-emulated v2 API)
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The {@link ConnectionHandlerAdapter} allows to manage the response chunks coming from the upstream.
@@ -88,11 +84,11 @@ public class ConnectionHandlerAdapter implements Handler<ProxyConnection> {
     private void cancelPendingConnection(AtomicReference<ProxyConnection> pendingConnection) {
         final ProxyConnection connection = pendingConnection.getAndSet(null);
         if (connection != null) {
-            ctx.withLogger(log).debug("Invoker execution has been disposed before the backend responded, cancelling the connection");
+            log.debug("Invoker execution has been disposed before the backend responded, cancelling the connection");
             try {
                 connection.cancel();
             } catch (Throwable t) {
-                ctx.withLogger(log).warn("Unable to cancel the backend connection", t);
+                log.warn("Unable to cancel the backend connection", t);
             }
         }
     }
