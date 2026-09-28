@@ -63,7 +63,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
 
 /**
  * Drives the connector against a raw TCP backend that answers the WebSocket handshake the way an RFC 7692 server
@@ -123,7 +122,6 @@ class WebSocketConnectorTest {
         lenient().when(ctx.response()).thenReturn(response);
         lenient().when(ctx.metrics()).thenReturn(metrics);
         lenient().when(ctx.getTracer()).thenReturn(new Tracer(null, new NoOpTracer()));
-        lenient().when(ctx.withLogger(any())).thenReturn(mock(Logger.class));
         lenient().when(ctx.getComponent(Vertx.class)).thenReturn(vertx);
         lenient().when(ctx.getComponent(Configuration.class)).thenReturn(mock(Configuration.class));
         lenient().when(ctx.interruptWith(any(ExecutionFailure.class))).thenReturn(Completable.complete());
