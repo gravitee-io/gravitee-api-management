@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources;
 
+import io.gravitee.gamma.infra.gravitee_plugin.resource.PluginResource;
 import io.gravitee.gamma.rest.resources.observability.GammaObservabilityResource;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.container.ResourceContext;
@@ -47,5 +48,10 @@ public class GammaRootResource {
     @Path("/organizations/{orgId}/environments/{envId}/observability")
     public GammaObservabilityResource getObservabilityResource() {
         return resourceContext.getResource(GammaObservabilityResource.class);
+    }
+
+    @Path("/organizations/{orgId}/plugins")
+    public PluginResource getPluginResource() {
+        return resourceContext.getResource(PluginResource.class);
     }
 }
