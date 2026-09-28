@@ -18,6 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.group.crud_service.GroupCrudService;
 import io.gravitee.apim.core.group.model.Group;
 import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -26,10 +27,22 @@ import java.util.HashMap;
 public class GroupCrudServiceInMemory implements GroupCrudService {
 
     private final HashMap<String, Group> groups = new HashMap<>();
+    private final GroupQueryServiceInMemory groupQueryService;
+
+    public GroupCrudServiceInMemory() {
+        this(null);
+    }
+
+    public GroupCrudServiceInMemory(GroupQueryServiceInMemory groupQueryService) {
+        this.groupQueryService = groupQueryService;
+    }
 
     @Override
     public Group create(Group group) {
         groups.put(group.getId(), group);
+        if (groupQueryService != null) {
+            groupQueryService.initWith(List.of(group));
+        }
         return group;
     }
 
