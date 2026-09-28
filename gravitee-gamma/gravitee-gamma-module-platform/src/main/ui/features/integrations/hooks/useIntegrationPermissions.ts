@@ -27,5 +27,6 @@ export function useIntegrationPermissions(integrationId: string) {
         queryKey: integrationKeys.permissions(env?.id ?? '', integrationId),
         queryFn: () => getIntegrationPermissions(env!.id, integrationId),
         enabled: Boolean(env && integrationId),
+        staleTime: 60_000,
     });
 }

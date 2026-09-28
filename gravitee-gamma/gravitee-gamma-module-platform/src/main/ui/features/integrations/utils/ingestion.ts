@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { isA2aIntegration } from './integrationKind';
 import type { Integration } from '../types/integration';
 
 export function isIngestionInProgress(integration: Integration): boolean {
-    return !isA2aIntegration(integration) && integration.pendingJob?.status === 'PENDING';
+    return integration.pendingJob?.status === 'PENDING';
 }
