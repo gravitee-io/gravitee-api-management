@@ -26,11 +26,10 @@ import { of } from 'rxjs';
 
 import { GioPermissionService } from './gio-permission.service';
 
-const hasPermission = (gioPermissionService: GioPermissionService, permissions: string[]): boolean => {
-  if (!permissions) {
-    return true;
-  }
-  return gioPermissionService.hasAnyMatching(permissions);
+const hasPermission = (gioPermissionService: GioPermissionService, anyOf: string[], allOf: string[]): boolean => {
+  const hasAnyOf = !anyOf || gioPermissionService.hasAnyMatching(anyOf);
+  const hasAllOf = !allOf || gioPermissionService.hasAllMatching(allOf);
+  return hasAnyOf && hasAllOf;
 };
 
 export const PermissionGuard: {
@@ -39,9 +38,10 @@ export const PermissionGuard: {
   checkRouteDataPermissions: (route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) => {
     const gioPermissionService = inject(GioPermissionService);
     const router = inject(Router);
-    const permissions = route.data.permissions?.anyOf;
+    const anyOf = route.data.permissions?.anyOf;
+    const allOf = route.data.permissions?.allOf;
     const unauthorizedFallbackTo = route.data.permissions?.unauthorizedFallbackTo;
-    if (hasPermission(gioPermissionService, permissions)) {
+    if (hasPermission(gioPermissionService, anyOf, allOf)) {
       return of(true);
     }
     if (unauthorizedFallbackTo) {

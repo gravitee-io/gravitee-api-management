@@ -20,6 +20,12 @@ import { PortalNavigationService } from './portal-navigation.service';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 
+const AUTHENTICATION_READ_PERMISSIONS = [
+  'organization-identity_provider-r',
+  'environment-identity_provider_activation-r',
+  'environment-settings-r',
+];
+
 describe('PortalNavigationService', () => {
   let service: PortalNavigationService;
   let permissionService: GioPermissionService;
@@ -32,6 +38,7 @@ describe('PortalNavigationService', () => {
           provide: GioPermissionService,
           useValue: {
             hasAnyMatching: jest.fn().mockReturnValue(true),
+            hasAllMatching: jest.fn().mockReturnValue(true),
           },
         },
       ],
@@ -74,6 +81,11 @@ describe('PortalNavigationService', () => {
           icon: 'gio:list-check',
         },
         {
+          displayName: 'Authentication',
+          routerLink: 'authentication',
+          icon: 'gio:lock',
+        },
+        {
           displayName: 'Settings',
           routerLink: 'settings',
           icon: 'gio:settings',
@@ -86,6 +98,7 @@ describe('PortalNavigationService', () => {
       permissionService.hasAnyMatching = jest.fn((permissions: string[]) => {
         return permissions.includes('environment-category-r');
       });
+      permissionService.hasAllMatching = jest.fn().mockReturnValue(false);
 
       const menuItems = service.getMainMenuItems();
       expect(menuItems).toEqual([
@@ -125,6 +138,7 @@ describe('PortalNavigationService', () => {
 
     it('should return no menu items when no permissions are granted', () => {
       permissionService.hasAnyMatching = jest.fn().mockReturnValue(false);
+      permissionService.hasAllMatching = jest.fn().mockReturnValue(false);
 
       const menuItems = service.getMainMenuItems();
       expect(menuItems).toEqual([]);
@@ -138,6 +152,30 @@ describe('PortalNavigationService', () => {
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-settings-r', 'environment-settings-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-theme-r', 'environment-theme-u']);
       expect(permissionService.hasAnyMatching).toHaveBeenCalledWith(['environment-documentation-r', 'environment-documentation-u']);
+    });
+
+    it.each(['organization-identity_provider-r', 'environment-identity_provider_activation-r', 'environment-settings-r'])(
+      'should hide Authentication when %s is missing',
+      missingPermission => {
+        const grantedPermissions = AUTHENTICATION_READ_PERMISSIONS.filter(permission => permission !== missingPermission);
+        permissionService.hasAllMatching = jest.fn((permissions: string[]) =>
+          permissions.every(permission => grantedPermissions.includes(permission)),
+        );
+
+        const menuItems = service.getMainMenuItems();
+
+        expect(menuItems.map(item => item.displayName)).not.toContain('Authentication');
+      },
+    );
+
+    it('should display Authentication when all the read permissions of the page are granted', () => {
+      permissionService.hasAllMatching = jest.fn((permissions: string[]) =>
+        permissions.every(permission => AUTHENTICATION_READ_PERMISSIONS.includes(permission)),
+      );
+
+      const menuItems = service.getMainMenuItems();
+
+      expect(menuItems.map(item => item.displayName)).toContain('Authentication');
     });
   });
 });
