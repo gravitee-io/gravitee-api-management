@@ -17,6 +17,7 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation } from '@tanstack/react-query';
 
 import { ApimApiError } from '../../../shared/api/apimClient';
+import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
 import { createApiPlan, createApiProxy, publishApiPlan, startApiProxy } from '../services/apiProxy';
 import { askApiReview } from '../services/apiReview';
 import { updateApiResources } from '../services/resources';
@@ -27,26 +28,40 @@ import { apiProxyKeys } from '../utils/queryKeys';
 
 export type { ApiProxyCreated };
 
-async function failWith<T>(action: Promise<T>, message: string): Promise<T> {
+export interface ApiProxyCreationResult {
+    /** What `POST /apis` returned. The API exists on the server even when a later step failed. */
+    readonly api: ApiProxyCreated;
+    /** One entry per post-creation step that failed; empty when every step succeeded. */
+    readonly warnings: string[];
+}
+
+/**
+ * Runs a step that happens after the API already exists. A failure is recorded and the remaining
+ * steps still run: aborting here would silently skip work the user explicitly asked for, such as
+ * the review request behind "Create & ask for review".
+ */
+async function runStep<T>(action: Promise<T>, warnings: string[], message: string): Promise<T | undefined> {
     try {
         return await action;
     } catch (err) {
-        throw new ApimApiError(err instanceof ApimApiError ? err.status : 0, message);
+        warnings.push(`${message} (${extractErrorMessage(err, 'no reason given')})`);
+        return undefined;
     }
 }
 
 export function useCreateApiProxy() {
     const env = useEnvironment();
 
-    return useMutation<ApiProxyCreated, ApimApiError, ApiProxyDraft>({
+    return useMutation<ApiProxyCreationResult, ApimApiError, ApiProxyDraft>({
         mutationKey: apiProxyKeys.create(),
-        mutationFn: async (form: ApiProxyDraft) => {
+        mutationFn: async (form: ApiProxyDraft): Promise<ApiProxyCreationResult> => {
             if (!env) throw new ApimApiError(0, 'Environment not ready');
             const { id: environmentId } = env;
 
-            let created: ApiProxyCreated;
+            // Only this call may reject: until it succeeds nothing exists, so retrying is safe.
+            let api: ApiProxyCreated;
             try {
-                created = await createApiProxy(environmentId, mapFormToCreateRequest(form));
+                api = await createApiProxy(environmentId, mapFormToCreateRequest(form));
             } catch (err) {
                 throw new ApimApiError(
                     err instanceof ApimApiError ? err.status : 0,
@@ -54,38 +69,48 @@ export function useCreateApiProxy() {
                 );
             }
 
+            const warnings: string[] = [];
+
             const resources = buildApiResources(form);
             if (resources.length > 0) {
-                await failWith(
-                    updateApiResources(environmentId, created.id, resources),
-                    `API "${created.name}" was created but the OAuth2 resource could not be configured. Open the API to finish setup.`,
+                await runStep(
+                    updateApiResources(environmentId, api.id, resources),
+                    warnings,
+                    'The OAuth2 resource could not be configured. Open the API to finish the resource setup.',
                 );
             }
 
-            const plan = await failWith(
-                createApiPlan(environmentId, created.id, mapFormToPlanRequest(form)),
-                `API "${created.name}" was created but plan creation failed. Open the API to configure a plan manually.`,
+            const plan = await runStep(
+                createApiPlan(environmentId, api.id, mapFormToPlanRequest(form)),
+                warnings,
+                'The plan could not be created. Open the API to add a plan.',
             );
 
-            await failWith(
-                publishApiPlan(environmentId, created.id, plan.id),
-                `API "${created.name}" was created but the plan could not be published. Open the API to publish the plan.`,
-            );
+            // No plan means nothing to publish, and the warning above already says so.
+            if (plan) {
+                await runStep(
+                    publishApiPlan(environmentId, api.id, plan.id),
+                    warnings,
+                    'The plan could not be published. Open the API to publish the plan.',
+                );
+            }
 
             // With API Review on, the API cannot start until a reviewer accepts it, so asking replaces deploying.
             if (form.askForReview) {
-                await failWith(
-                    askApiReview(environmentId, created.id),
-                    `API "${created.name}" was created but the review could not be requested. Ask for a review from the API General page.`,
+                await runStep(
+                    askApiReview(environmentId, api.id),
+                    warnings,
+                    'The review could not be requested. Ask for a review from the API General page.',
                 );
             } else if (form.deployImmediately) {
-                await failWith(
-                    startApiProxy(environmentId, created.id),
-                    `API "${created.name}" was created successfully but could not be started. Start it from the API detail page.`,
+                await runStep(
+                    startApiProxy(environmentId, api.id),
+                    warnings,
+                    'The API could not be started. Start it from the API detail page.',
                 );
             }
 
-            return created;
+            return { api, warnings };
         },
     });
 }

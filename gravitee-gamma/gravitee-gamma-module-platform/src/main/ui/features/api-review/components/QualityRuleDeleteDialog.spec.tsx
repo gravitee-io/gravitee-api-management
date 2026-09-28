@@ -34,6 +34,17 @@ describe('QualityRuleDeleteDialog', () => {
         expect(screen.getByText('Primary owner is a group')).toBeInTheDocument();
     });
 
+    it('wraps a long unbroken rule name instead of spilling out of the dialog', () => {
+        const name = 'sddasdsadadasdadsddasd'.repeat(3);
+        renderDialog({ rule: { ...RULE, name } });
+
+        const rendered = screen.getByText(name);
+        expect(rendered).toHaveClass('break-words');
+        // The header is a grid item: without min-w-0 the unbroken name sets the min-content
+        // width and the text renders outside the dialog instead of wrapping.
+        expect(rendered.closest('[data-slot="dialog-header"]')).toHaveClass('min-w-0');
+    });
+
     it('confirms and cancels', () => {
         const { onClose, onConfirm } = renderDialog();
         fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
