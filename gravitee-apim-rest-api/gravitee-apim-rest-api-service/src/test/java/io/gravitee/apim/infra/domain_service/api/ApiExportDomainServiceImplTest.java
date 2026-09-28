@@ -67,6 +67,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
+import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -432,6 +433,24 @@ class ApiExportDomainServiceImplTest {
         assertThat(export.pages()).contains(EXPECTED_MARKDOWN_PAGE);
         assertThat(export.members()).hasSize(1);
         assertThat(export.members()).contains(EXPECTED_MEMBER);
+    }
+
+    @Test
+    void export_service_must_export_services_of_a_native_api() {
+        // Given
+        String apiId = UUID.randomUUID().toString();
+
+        Service dynamicProperty = Service.builder().type("http-dynamic-properties").enabled(true).configuration("{}").build();
+        Api api = ApiFixtures.aNativeApi();
+        api.getApiDefinitionNativeV4().setServices(new NativeApiServices(dynamicProperty));
+        when(apiCrudService.findById(anyString())).thenReturn(Optional.of(api));
+
+        // When
+        GraviteeDefinition export = sut.export(apiId, getAuditInfo(), EnumSet.noneOf(Excludable.class));
+
+        // Then
+        assertThat(((ApiDescriptor.Native) export.api()).services()).isNotNull();
+        assertThat(((ApiDescriptor.Native) export.api()).services().getDynamicProperty()).isEqualTo(dynamicProperty);
     }
 
     @Test
