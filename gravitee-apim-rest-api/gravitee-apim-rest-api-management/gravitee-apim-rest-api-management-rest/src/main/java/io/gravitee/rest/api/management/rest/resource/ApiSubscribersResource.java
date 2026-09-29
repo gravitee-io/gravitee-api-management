@@ -30,6 +30,8 @@ import io.gravitee.rest.api.model.common.SortableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -95,6 +97,7 @@ public class ApiSubscribersResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Collection<ApplicationListItem> getApiSubscribers(
         @QueryParam("query") final String query,
         @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,
@@ -157,6 +160,7 @@ public class ApiSubscribersResource extends AbstractResource {
         content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ApplicationListItemPagedResult.class))
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public ApplicationListItemPagedResult getApiSubscribersPaged(
         @QueryParam("query") final String query,
         @QueryParam("exclude") final List<ApplicationExcludeFilter> exclude,

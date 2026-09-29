@@ -105,6 +105,7 @@ public class ApiMediaResource extends AbstractResource {
     @GET
     @Path("/{hash}")
     @Operation(summary = "Retrieve a media for an API")
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
     public Response getApiMediaImage(@Context Request request, @PathParam("hash") String hash) {
         MediaEntity mediaEntity = mediaService.findByHashAndApiId(hash, api);
 
