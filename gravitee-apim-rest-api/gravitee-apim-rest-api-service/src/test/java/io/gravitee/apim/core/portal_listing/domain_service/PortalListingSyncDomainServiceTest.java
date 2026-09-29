@@ -496,6 +496,38 @@ class PortalListingSyncDomainServiceTest {
     }
 
     @Test
+    void validate_for_conflicts_does_not_recreate_api_folders_that_already_exist_when_listing_for_the_first_time() {
+        var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+        apiCrud.initWith(
+            List.of(
+                io.gravitee.apim.core.api.model.Api.builder()
+                    .id(apiId)
+                    .name(API_HRID)
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .portalNavigation(List.of(new NavigationPath("/md", "How to")))
+                    .build()
+            )
+        );
+        // The api's own portal_navigation apply materializes its folder independently of any listing.
+        syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());
+
+        var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
+
+        syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing);
+
+        var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        var updatesCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
+        org.mockito.Mockito.verify(validator).validate(
+            createsCaptor.capture(),
+            updatesCaptor.capture(),
+            org.mockito.ArgumentMatchers.anyString()
+        );
+        assertThat(createsCaptor.getValue())
+            .extracting("type")
+            .containsExactly(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API);
+    }
+
+    @Test
     void validate_for_conflicts_propagates_api_nav_visibility_to_folder_validation_items() {
         var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
         apiCrud.initWith(
@@ -606,6 +638,59 @@ class PortalListingSyncDomainServiceTest {
             var listing = aListing(
                 List.of(new PortalListingApiEntry(apiHridA, "/projects/beta", 1), new PortalListingApiEntry(apiHridB, "/projects/alpha", 2))
             );
+
+            assertThatCode(() -> syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing)).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    class ListingAnApiWithFoldersAlreadyMaterialized {
+
+        @BeforeEach
+        void wireInRealValidator() {
+            var realValidator = new PortalNavigationItemValidatorService(
+                navItemQuery,
+                pageContentQuery,
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            );
+            var portalListingCrud = new PortalListingCrudServiceInMemory();
+            var apiDocSync = new ApiDocumentationSyncDomainService(
+                navItemCrud,
+                navItemQuery,
+                mock(PortalNavigationItemValidatorService.class)
+            );
+            var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, navItemQuery);
+            syncService = new PortalListingSyncDomainService(
+                pageContentQuery,
+                apiDocSync,
+                new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync, apiCrud),
+                new ApiFolderSubtreeReconciler(
+                    navItemQuery,
+                    apiCrud,
+                    new NavigationSyncPlanExecutor(navItemCrud, navItemQuery, pageContentCrud),
+                    automationManaged
+                ),
+                realValidator
+            );
+        }
+
+        @Test
+        void does_not_reject_listing_an_api_whose_own_navigation_folders_already_exist() {
+            var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
+            apiCrud.initWith(
+                List.of(
+                    io.gravitee.apim.core.api.model.Api.builder()
+                        .id(apiId)
+                        .name(API_HRID)
+                        .environmentId(AUDIT_INFO.environmentId())
+                        .portalNavigation(List.of(new NavigationPath("/md", "How to")))
+                        .build()
+                )
+            );
+            syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());
+
+            var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));
 
             assertThatCode(() -> syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing)).doesNotThrowAnyException();
         }
