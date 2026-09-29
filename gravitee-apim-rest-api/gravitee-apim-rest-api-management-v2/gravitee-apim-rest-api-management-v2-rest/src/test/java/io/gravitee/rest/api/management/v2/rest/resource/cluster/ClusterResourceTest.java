@@ -107,27 +107,7 @@ class ClusterResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         GraviteeContext.cleanContext();
-<<<<<<< HEAD
-        reset(updateClusterUseCase, deleteClusterUseCase, getClusterPermissionsUseCase);
-    }
-
-    private static Cluster clusterWithCredentials() {
-        return Cluster.builder()
-            .id(CLUSTER_ID)
-            .configuration(
-                Map.of("bootstrapServers", "broker:9093", "security", Map.of("protocol", "SASL_SSL", "sasl", Map.of("password", "secret")))
-            )
-            .build();
-=======
-        reset(
-            getClusterUseCase,
-            updateClusterUseCase,
-            deleteClusterUseCase,
-            getClusterPermissionsUseCase,
-            deployClusterUseCase,
-            undeployClusterUseCase
-        );
->>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
+        reset(getClusterUseCase, updateClusterUseCase, deleteClusterUseCase, getClusterPermissionsUseCase);
     }
 
     @Nested

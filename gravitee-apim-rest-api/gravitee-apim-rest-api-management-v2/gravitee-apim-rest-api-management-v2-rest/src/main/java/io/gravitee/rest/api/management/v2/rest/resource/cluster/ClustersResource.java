@@ -17,11 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.resource.cluster;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-<<<<<<< HEAD
-=======
-import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
-import io.gravitee.apim.core.cluster.model.DeployedCluster;
->>>>>>> 6739246 (fix(rest-api): hide cluster credentials from users who cannot edit the cluster)
 import io.gravitee.apim.core.cluster.use_case.CreateClusterUseCase;
 import io.gravitee.apim.core.cluster.use_case.SearchClusterUseCase;
 import io.gravitee.common.http.MediaType;
