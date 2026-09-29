@@ -301,6 +301,23 @@ public class ApiMapperTest {
     }
 
     @Test
+    public void should_keep_property_classification_when_to_repository_from_api_entity() throws Exception {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setId("id");
+        apiEntity.setName("name");
+        apiEntity.setApiVersion("1");
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setProperties(List.of(new Property("secret", "ciphertext", true, true)));
+
+        when(categoryMapper.toCategoryId(any(), any())).thenReturn(Set.of());
+
+        Api repo = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(repo.getDefinition()).contains("\"key\":\"secret\"").contains("\"encrypted\":true").contains("\"dynamic\":true");
+    }
+
+    @Test
     public void shouldIncludeAllowedInApiProductsWhenToRepositoryFromApiEntity() throws Exception {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("id");

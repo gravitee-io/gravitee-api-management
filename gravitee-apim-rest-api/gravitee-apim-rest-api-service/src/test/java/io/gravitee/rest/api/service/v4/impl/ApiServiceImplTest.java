@@ -1064,7 +1064,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void shouldNotUpdate_WhenEncryptedPropertyIsMadePlain() throws Exception {
+    public void should_not_update_when_an_encrypted_property_is_made_plain() throws Exception {
         prepareUpdate();
         givenStoredProperties(List.of(new Property("secret-key", "encrypted-value", true, false)));
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", false, false)));
@@ -1076,7 +1076,7 @@ public class ApiServiceImplTest {
     }
 
     @Test
-    public void shouldUpdate_WhenEncryptedDynamicPropertyIsEchoedBack() throws Exception {
+    public void should_update_when_an_encrypted_dynamic_property_is_echoed_back() throws Exception {
         prepareUpdate();
         givenStoredProperties(List.of(new Property("secret-key", "encrypted-value", true, true)));
         when(propertiesService.encryptProperties(any())).thenAnswer(invocation -> invocation.getArgument(0));
