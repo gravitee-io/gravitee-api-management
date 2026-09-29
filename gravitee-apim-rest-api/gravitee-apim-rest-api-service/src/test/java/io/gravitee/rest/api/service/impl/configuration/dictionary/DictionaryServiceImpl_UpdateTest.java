@@ -697,6 +697,49 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
+    public void should_encrypt_again_on_update_when_the_stored_value_is_not_base64() throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("not base64!", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.decrypt("not base64!")).thenThrow(new IllegalArgumentException("Illegal base64 character 20"));
+        when(dataEncryptor.encrypt("plaintext")).thenReturn("fresh-cipher");
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "plaintext"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build())
+        );
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("fresh-cipher")
+            )
+        );
+    }
+
+    @Test
+    public void should_renew_an_encrypted_property_edited_without_options_when_the_stored_value_is_not_base64()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("not base64!", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.decrypt("not base64!")).thenThrow(new IllegalArgumentException("Illegal base64 character 20"));
+        when(dataEncryptor.encrypt("renewed-plaintext")).thenReturn("renewed-cipher");
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", "renewed-plaintext"), null);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("renewed-cipher")
+            )
+        );
+    }
+
+    @Test
     public void should_keep_a_resent_ciphertext_verbatim_when_no_options_are_sent() throws TechnicalException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));

@@ -693,7 +693,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private String decryptStoredValue(String dictionaryId, String key, String ciphertext) {
         try {
             return dataEncryptor.decrypt(ciphertext);
-        } catch (GeneralSecurityException e) {
+        } catch (GeneralSecurityException | IllegalArgumentException e) {
             log.warn(
                 "Stored value of dictionary property [{}] on dictionary [{}] could not be decrypted; it will be encrypted again",
                 key,

@@ -242,6 +242,28 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
+    public void should_re_encrypt_when_the_stored_value_is_not_base64() throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("not base64!", true)));
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        given_environment();
+
+        when(dataEncryptor.decrypt("not base64!")).thenThrow(new IllegalArgumentException("Illegal base64 character 20"));
+        when(dataEncryptor.encrypt("fetched-plaintext")).thenReturn("ENC(fetched-plaintext)");
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-plaintext"));
+
+        verify(dictionaryRepository).update(
+            argThat(
+                dict ->
+                    dict.getProperties().get("secret").encrypted() &&
+                    dict.getProperties().get("secret").value().equals("ENC(fetched-plaintext)")
+            )
+        );
+        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+    }
+
+    @Test
     public void should_re_encrypt_sticky_key_on_refresh_when_the_underlying_value_genuinely_changed()
         throws TechnicalException, GeneralSecurityException {
         Dictionary existing = new Dictionary();
