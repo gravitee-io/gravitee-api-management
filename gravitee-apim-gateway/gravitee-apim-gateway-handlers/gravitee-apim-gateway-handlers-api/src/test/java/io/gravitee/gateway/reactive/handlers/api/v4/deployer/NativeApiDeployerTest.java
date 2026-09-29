@@ -23,8 +23,10 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.reactive.handlers.api.el.ApiTemplateVariableProvider;
 import io.gravitee.gateway.reactive.handlers.api.v4.NativeApi;
 import io.gravitee.gateway.reactor.ReactableApi;
 import java.util.List;
@@ -91,6 +93,30 @@ class NativeApiDeployerTest {
             Property.builder().key("key2").value("VALUE2").encrypted(false).build(),
             Property.builder().key("key3").value("value3").encrypted(false).build()
         );
+    }
+
+    @SneakyThrows
+    @Test
+    void should_expose_the_decrypted_value_to_the_expression_language() {
+        final NativeApi nativeApi = new NativeApi(
+            io.gravitee.definition.model.v4.nativeapi.NativeApi.builder()
+                .properties(
+                    List.of(
+                        Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build(),
+                        Property.builder().key("plain").value("value").build()
+                    )
+                )
+                .build()
+        );
+        when(dataEncryptor.decrypt("ciphertext")).thenReturn("s3cr3t");
+
+        cut.initialize(nativeApi);
+
+        final TemplateEngine engine = TemplateEngine.templateEngine();
+        new ApiTemplateVariableProvider(nativeApi).provide(engine.getTemplateContext());
+
+        engine.eval("{#api.properties['secret']}", String.class).test().assertValue("s3cr3t");
+        engine.eval("{#api.properties['plain']}", String.class).test().assertValue("value");
     }
 
     @SneakyThrows
