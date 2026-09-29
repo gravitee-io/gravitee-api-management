@@ -1,0 +1,101 @@
+{
+    "id": "api-v4-with-encrypted-properties",
+    "name": "api-v4-with-encrypted-properties",
+    "gravitee": "4.0.0",
+    "type": "proxy",
+    "listeners": [
+        {
+            "type": "http",
+            "paths": [
+                {
+                    "path": "/test"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "default-group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "default",
+                    "type": "http-proxy",
+                    "weight": 1,
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "http://localhost:8080/endpoint"
+                    }
+                }
+            ]
+        }
+    ],
+    "flows": [
+        {
+            "name": "flow-1",
+            "enabled": true,
+            "selectors": [
+                {
+                    "type": "http",
+                    "path": "/",
+                    "pathOperator": "START_WITH",
+                    "methods": ["GET"]
+                }
+            ],
+            "request": [
+                {
+                    "name": "Transform Headers",
+                    "enabled": true,
+                    "policy": "transform-headers",
+                    "configuration": {
+                        "whitelistHeaders": [],
+                        "addHeaders": [
+                            {
+                                "name": "X-Encrypted-Manual-Property",
+                                "value": "{#api.properties['encrypted-manual']}"
+                            },
+                            {
+                                "name": "X-Encrypted-Dynamic-Property",
+                                "value": "{#api.properties['encrypted-dynamic']}"
+                            },
+                            {
+                                "name": "X-Plain-Dynamic-Property",
+                                "value": "{#api.properties['plain-dynamic']}"
+                            }
+                        ],
+                        "scope": "REQUEST",
+                        "removeHeaders": []
+                    }
+                }
+            ]
+        }
+    ],
+    "properties": [
+        {
+            "key": "encrypted-manual",
+            "value": "${ENCRYPTED_MANUAL_VALUE}",
+            "encrypted": true,
+            "dynamic": false
+        },
+        {
+            "key": "encrypted-dynamic",
+            "value": "${ENCRYPTED_DYNAMIC_VALUE}",
+            "encrypted": true,
+            "dynamic": true
+        },
+        {
+            "key": "plain-dynamic",
+            "value": "this is a plain dynamic property",
+            "encrypted": false,
+            "dynamic": true
+        }
+    ],
+    "analytics": {
+        "enabled": false
+    }
+}
