@@ -17,11 +17,7 @@ export interface Cluster {
   id: string;
   name: string;
   description?: string;
-<<<<<<< HEAD
   configuration: KafkaClusterConfiguration;
-=======
-  configuration?: KafkaClusterStandaloneConfiguration;
->>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
   updatedAt: Date;
   createdAt: Date;
   groups: string[];
