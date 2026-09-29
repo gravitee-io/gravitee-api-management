@@ -26,6 +26,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.rxjava3.core.Vertx;
+import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -79,6 +80,7 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
 
     private final ObjectMapper objectMapper;
     private final Vertx vertx;
+    private HttpClient httpClient;
 
     public ValidatePageSourceDomainServiceImpl(ObjectMapper objectMapper, Vertx vertx) {
         this.objectMapper = objectMapper;
@@ -157,11 +159,21 @@ public class ValidatePageSourceDomainServiceImpl implements ValidatePageSourceDo
             reqOptions.putHeader("Authorization", "Basic " + Base64.getEncoder().encodeToString(auth.getBytes()));
         }
 
-        return vertx
-            .createHttpClient()
+        return httpClient()
             .rxRequest(reqOptions)
             .flatMap(req -> req.rxSend().flatMap(resp -> Single.just(resp.statusCode() == 200)))
             .blockingGet();
+    }
+
+    /**
+     * Vert.x holds on to every client it creates until the Vert.x instance itself is closed, so a client per
+     * validation would accumulate for as long as the node runs. A single client serves them all.
+     */
+    private synchronized HttpClient httpClient() {
+        if (httpClient == null) {
+            httpClient = vertx.createHttpClient();
+        }
+        return httpClient;
     }
 
     private RequestOptions getGithubRequestOptions(Map<String, Object> config) {
