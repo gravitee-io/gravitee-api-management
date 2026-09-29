@@ -21,7 +21,8 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import lombok.RequiredArgsConstructor;
 
 /**
- * Ensures that when the item has an id, it does not already exist in the environment.
+ * Ensures that when the item has an id, it does not already exist in the environment, ignoring ids declared
+ * in {@link CreateValidationContext#itemIdsBeingReplaced()}.
  */
 @RequiredArgsConstructor
 public class UniqueItemIdRule implements CreatePortalNavigationItemValidationRule {
@@ -35,6 +36,9 @@ public class UniqueItemIdRule implements CreatePortalNavigationItemValidationRul
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
+        if (ctx.itemIdsBeingReplaced().contains(item.getId())) {
+            return;
+        }
         var existingItem = navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, item.getId());
         if (existingItem != null) {
             throw new ItemAlreadyExistsException(item.getId().toString());

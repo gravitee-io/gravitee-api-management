@@ -107,24 +107,24 @@ public class CreateOrUpdatePortalDocumentationUseCase {
             Optional.ofNullable(sanitized.order())
         );
 
+        var area = sanitized.area() != null ? sanitized.area() : PortalArea.TOP_NAVBAR;
         var existing = portalPageContentQueryService.findById(sanitized.portalPageContentId());
+        var sameTypeUpdate = existing.filter(current -> current.getType() == sanitized.type());
+        var updateContent = UpdatePortalPageContent.builder().content(sanitized.content()).build();
+        sameTypeUpdate.ifPresent(current -> pageContentValidatorService.validateForUpdate(current, updateContent));
+
+        syncDomainService.validatePlacement(input.auditInfo(), buildNew(sanitized, meta), area, input.visibility());
+
         PortalPageContent<?> saved;
-        if (existing.isPresent()) {
-            var current = existing.get();
-            if (current.getType() != sanitized.type()) {
-                portalPageContentCrudService.delete(current.getId());
-                saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
-            } else {
-                var updateContent = UpdatePortalPageContent.builder().content(sanitized.content()).build();
-                pageContentValidatorService.validateForUpdate(current, updateContent);
-                current.update(updateContent, meta);
-                saved = portalPageContentCrudService.update(current);
-            }
+        if (sameTypeUpdate.isPresent()) {
+            var current = sameTypeUpdate.get();
+            current.update(updateContent, meta);
+            saved = portalPageContentCrudService.update(current);
         } else {
+            existing.ifPresent(current -> portalPageContentCrudService.delete(current.getId()));
             saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
         }
 
-        var area = sanitized.area() != null ? sanitized.area() : PortalArea.TOP_NAVBAR;
         syncDomainService.materialize(input.auditInfo(), saved, area, input.visibility());
 
         return new Output(saved.getId(), warnings);

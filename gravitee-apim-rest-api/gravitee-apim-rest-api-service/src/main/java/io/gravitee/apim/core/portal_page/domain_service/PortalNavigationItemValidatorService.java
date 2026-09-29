@@ -51,12 +51,14 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -123,6 +125,16 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
 
     @Override
     public void validate(List<CreatePortalNavigationItem> creates, List<PendingUpdate> updates, String environmentId) {
+        validate(creates, updates, environmentId, Set.of(), Set.of());
+    }
+
+    private void validate(
+        List<CreatePortalNavigationItem> creates,
+        List<PendingUpdate> updates,
+        String environmentId,
+        Set<PortalPageContentId> pendingContentIds,
+        Set<PortalNavigationItemId> itemIdsBeingReplaced
+    ) {
         List<PortalNavigationItem> navigationItems = shouldFetch(creates, updates) ? fetchAllNavigationItems(environmentId) : List.of();
         Map<PortalNavigationItemId, PortalNavigationItem> itemsById = navigationItems
             .stream()
@@ -144,7 +156,9 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             itemsById,
             pendingItemsById,
             pendingUpdatesByExistingId,
-            pendingSegmentClaims
+            pendingSegmentClaims,
+            pendingContentIds,
+            itemIdsBeingReplaced
         );
         UpdateValidationContext updateCtx = new UpdateValidationContext(
             navigationItems,
@@ -230,7 +244,25 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
 
     @Override
     public void validateOne(CreatePortalNavigationItem item, String environmentId) {
-        validate(List.of(item), List.of(), environmentId);
+        validate(List.of(item), List.of(), environmentId, Set.of(), Set.of());
+    }
+
+    /** Like {@link #validateOne(CreatePortalNavigationItem, String)}, treating each id in {@code pendingContentIds} as existing. */
+    public void validateOne(CreatePortalNavigationItem item, String environmentId, Set<PortalPageContentId> pendingContentIds) {
+        validate(List.of(item), List.of(), environmentId, pendingContentIds, Set.of());
+    }
+
+    /**
+     * Like {@link #validateOne(CreatePortalNavigationItem, String, Set)}, additionally excluding each id in
+     * {@code itemIdsBeingReplaced} from conflict checks — see {@link CreateValidationContext#itemIdsBeingReplaced()}.
+     */
+    public void validateOne(
+        CreatePortalNavigationItem item,
+        String environmentId,
+        Set<PortalPageContentId> pendingContentIds,
+        Set<PortalNavigationItemId> itemIdsBeingReplaced
+    ) {
+        validate(List.of(item), List.of(), environmentId, pendingContentIds, itemIdsBeingReplaced);
     }
 
     @Override
