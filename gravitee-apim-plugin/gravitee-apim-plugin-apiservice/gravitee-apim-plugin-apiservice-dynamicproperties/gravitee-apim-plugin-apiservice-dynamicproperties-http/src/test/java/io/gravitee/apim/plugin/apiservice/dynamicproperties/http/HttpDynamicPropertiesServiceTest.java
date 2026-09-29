@@ -55,6 +55,8 @@ import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.cluster.Member;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneMember;
+import io.reactivex.rxjava3.core.Scheduler;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
@@ -65,6 +67,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -116,6 +119,8 @@ class HttpDynamicPropertiesServiceTest {
     private EventManager eventManager;
     private ObjectMapper objectMapper;
     private TestScheduler testScheduler;
+    private TimerCountingScheduler countingScheduler;
+    private final AtomicLong timersConsumed = new AtomicLong();
 
     @Mock
     private ClusterManager clusterManager;
@@ -139,7 +144,9 @@ class HttpDynamicPropertiesServiceTest {
 
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
         testScheduler = new TestScheduler(INSTANT_NOW.toEpochMilli(), TimeUnit.MILLISECONDS);
-        RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+        countingScheduler = new TimerCountingScheduler(testScheduler);
+        timersConsumed.set(0);
+        RxJavaPlugins.setComputationSchedulerHandler(s -> countingScheduler);
     }
 
     @AfterEach
@@ -882,9 +889,58 @@ class HttpDynamicPropertiesServiceTest {
      * @param configuration the configuration needed to build the {@link CronTrigger}
      */
     private void advanceTimeBy(final int delay, HttpDynamicPropertiesService cut, HttpDynamicPropertiesServiceConfiguration configuration) {
-        testScheduler.advanceTimeBy(delay, TimeUnit.MILLISECONDS);
-        TimeProvider.overrideClock(Clock.fixed(Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS)), ZoneId.systemDefault()));
+        awaitNextTimerScheduled();
+        TimeProvider.overrideClock(
+            Clock.fixed(Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS) + delay), ZoneId.systemDefault())
+        );
         cut.cronTrigger = new CronTrigger(configuration.getSchedule());
+        testScheduler.advanceTimeBy(delay, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Blocks until the reactive chain has armed the timer for the cycle about to be triggered.
+     * <p>
+     * {@code repeat()} re-subscribes on an I/O thread once a cycle ends, so the timer for the next one
+     * is scheduled slightly after the event is published. Advancing virtual time before that happens
+     * drops the tick and the cycle never runs.
+     */
+    private void awaitNextTimerScheduled() {
+        final long expected = timersConsumed.incrementAndGet();
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .until(() -> countingScheduler.scheduledTimers.get() >= expected);
+    }
+
+    /**
+     * Delegates to the {@link TestScheduler} and counts the delayed tasks scheduled on it, so the test
+     * can tell when the next cycle is armed instead of guessing with a fixed sleep.
+     */
+    private static final class TimerCountingScheduler extends Scheduler {
+
+        private final TestScheduler delegate;
+        private final AtomicLong scheduledTimers = new AtomicLong();
+
+        private TimerCountingScheduler(TestScheduler delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Worker createWorker() {
+            return delegate.createWorker();
+        }
+
+        @Override
+        public long now(TimeUnit unit) {
+            return delegate.now(unit);
+        }
+
+        @Override
+        public Disposable scheduleDirect(Runnable run, long delay, TimeUnit unit) {
+            if (delay > 0) {
+                scheduledTimers.incrementAndGet();
+            }
+            return delegate.scheduleDirect(run, delay, unit);
+        }
     }
 
     private HttpDynamicPropertiesService buildServiceFor(AbstractApi api) {
