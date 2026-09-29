@@ -39,6 +39,7 @@ import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
+import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -1531,6 +1532,40 @@ class PatchApiUseCaseTest {
             execute(PatchApiUseCase.PatchType.MERGE_PATCH, mergePatch("name", "new-name"), false);
 
             verify(dataEncryptor, never()).encrypt(any());
+        }
+
+        @Test
+        void rejects_making_an_encrypted_property_plain() {
+            givenExistingApi(apiWithProperties(List.of(Property.builder().key("secret-key").value("ciphertext").encrypted(true).build())));
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "ciphertext", "encrypted", false)));
+
+            var throwable = catchThrowable(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, false));
+
+            assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
+            verify(updateApiDomainService, never()).updateV4(any(), any());
+        }
+
+        @Test
+        void rejects_making_an_encrypted_property_plain_on_dry_run() {
+            givenExistingApi(apiWithProperties(List.of(Property.builder().key("secret-key").value("ciphertext").encrypted(true).build())));
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "ciphertext", "encrypted", false)));
+
+            var throwable = catchThrowable(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, true));
+
+            assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
+            verify(updateApiDomainService, never()).validateV4(any(), any());
+        }
+
+        @Test
+        void allows_renewing_an_encrypted_property() {
+            givenExistingApi(apiWithProperties(List.of(Property.builder().key("secret-key").value("ciphertext").encrypted(true).build())));
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "new-plaintext", "encryptable", true)));
+
+            var output = execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, false);
+
+            assertThat(httpV4Def(output.api()).getProperties()).containsExactly(
+                Property.builder().key("secret-key").value("enc(new-plaintext)").encrypted(true).build()
+            );
         }
 
         @Test
