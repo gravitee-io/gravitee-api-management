@@ -87,11 +87,14 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
         onSuccess: newApi => sideEffectsRef.current.onDuplicateSuccess?.(newApi),
     });
 
+    // Both refetch whenever the dialog reopens; refetching on window focus instead would blank an
+    // open dialog back to its loading state, since that state now follows isFetching.
     const promotionTargetsQuery = useQuery({
         queryKey: apiPromotionKeys.targets(env?.id ?? ''),
         queryFn: () => getPromotionTargets(env!.id),
         enabled: promoteDialogOpen && Boolean(env?.id),
         retry: false,
+        refetchOnWindowFocus: false,
     });
 
     const pendingPromotionsQuery = useQuery({
@@ -99,11 +102,15 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
         queryFn: () => getPendingPromotions(apiId!),
         enabled: promoteDialogOpen && Boolean(apiId),
         retry: false,
+        refetchOnWindowFocus: false,
     });
 
     const promoteMutation = useMutation({
         mutationFn: (target: { targetEnvCockpitId: string; targetEnvName: string }) => promoteApi(env!.id, apiId!, target),
-        onSuccess: () => sideEffectsRef.current.onPromoteSuccess?.(),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: apiPromotionKeys.pending(apiId ?? '') });
+            sideEffectsRef.current.onPromoteSuccess?.();
+        },
     });
 
     const performImportSubmission = (submission: ApiImportSubmission) => {
