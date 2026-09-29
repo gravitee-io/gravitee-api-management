@@ -491,22 +491,22 @@ class HttpDynamicPropertiesServiceTest {
             advanceTimeBy(5_000, cut, configuration);
 
             // Ensure first event has been published
-            eventObs.awaitCount(1);
+            awaitEventCount(eventObs, 1);
 
             // Wait for the second http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure second event has been published
-            eventObs.awaitCount(2);
+            awaitEventCount(eventObs, 2);
 
             // Wait for the third http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure third event has been published
-            eventObs.awaitCount(3);
+            awaitEventCount(eventObs, 3);
 
             // Wait for the fourth http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure fourth event has been published
-            eventObs.awaitCount(4);
+            awaitEventCount(eventObs, 4);
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
@@ -736,7 +736,7 @@ class HttpDynamicPropertiesServiceTest {
             advanceTimeBy(5_000, cut, configuration);
 
             // Ensure first event has been published
-            eventObs.awaitCount(1);
+            awaitEventCount(eventObs, 1);
 
             final HttpDynamicPropertiesServiceConfiguration updatedConfiguration = configuration
                 .toBuilder()
@@ -750,7 +750,7 @@ class HttpDynamicPropertiesServiceTest {
             // Wait for the second http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure second event has been published
-            eventObs.awaitCount(2);
+            awaitEventCount(eventObs, 2);
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
@@ -827,7 +827,7 @@ class HttpDynamicPropertiesServiceTest {
             advanceTimeBy(5_000, cut, configuration);
 
             // Ensure first event has been published
-            eventObs.awaitCount(1);
+            awaitEventCount(eventObs, 1);
 
             // create new api to not share same object references
             final Api updatedApi = apiWithDynamicPropertiesEnabled();
@@ -853,6 +853,22 @@ class HttpDynamicPropertiesServiceTest {
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
         }
+    }
+
+    /**
+     * Blocks until the given number of events has been published, and fails the test if they never are.
+     * <p>
+     * {@link TestObserver#awaitCount(int)} cannot be used for this: it gives up after a hardcoded 5 seconds
+     * and returns silently, letting the test move on to a step that disposes the scheduled job, so the awaited
+     * event never gets published and a later, unrelated assertion is the one that fails.
+     *
+     * @param eventObs the observer collecting the published events
+     * @param count    the number of events to wait for
+     */
+    private static void awaitEventCount(TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs, int count) {
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> eventObs.assertValueCount(count));
     }
 
     /**
