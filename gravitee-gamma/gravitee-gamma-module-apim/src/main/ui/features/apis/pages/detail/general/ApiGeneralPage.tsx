@@ -230,7 +230,9 @@ export function ApiGeneralPage() {
     const promoteState = resolvePromoteState({
         cockpitNotAccepted,
         hasLoadError: promoteLoadError !== null,
-        isLoading: promotionTargetsQuery.isLoading || pendingPromotionsQuery.isLoading,
+        // isFetching, not isLoading: reopening the dialog serves the cached lists first, which would
+        // offer a destination that was promoted to moments ago as if it were still free.
+        isLoading: promotionTargetsQuery.isFetching || pendingPromotionsQuery.isFetching,
     });
 
     const pendingPromotions = pendingPromotionsQuery.data ?? [];
@@ -612,7 +614,7 @@ export function ApiGeneralPage() {
                                             promoteMutation.reset();
                                             setPromoteOpen(true);
                                         }}
-                                        disabled={isKubernetesManaged || api?.lifecycleState === 'DEPRECATED'}
+                                        disabled={isKubernetesManaged || api?.lifecycleState === 'DEPRECATED' || !reviewClearsLifecycle}
                                     >
                                         <ExternalLinkIcon className="size-3.5" /> Promote
                                     </Button>
