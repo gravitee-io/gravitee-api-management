@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,6 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -238,6 +240,25 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
                     dict.getProperties().get("secret").encrypted() &&
                     dict.getProperties().get("secret").value().equals("ENC(fetched-plaintext)")
             )
+        );
+    }
+
+    @Test
+    public void should_audit_the_refresh_against_the_properties_it_replaced() throws TechnicalException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old", false)));
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
+
+        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
+        assertThat(((Dictionary) auditLogData.getValue().getOldValue()).getProperties()).isEqualTo(
+            Map.of("plain", new DictionaryProperty("old", false))
+        );
+        assertThat(((Dictionary) auditLogData.getValue().getNewValue()).getProperties()).isEqualTo(
+            Map.of("plain", new DictionaryProperty("new", false))
         );
     }
 

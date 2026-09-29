@@ -359,12 +359,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 return convert(dictionary);
             }
 
+            Dictionary beforeRefresh = copyOf(dictionary);
             dictionary.setProperties(refreshed);
             dictionary.setUpdatedAt(new Date());
             dictionary.setDeployedAt(dictionary.getUpdatedAt());
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
-            publishRefreshedProperties(dictionary, updatedDictionary);
+            publishRefreshedProperties(dictionary, updatedDictionary, beforeRefresh);
 
             return convert(updatedDictionary);
         } catch (TechnicalException ex) {
@@ -376,7 +377,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * Publishes and audits a refresh in the dictionary's own environment, which the refresher — a
      * scheduled job with no execution context of its own — cannot supply.
      */
-    private void publishRefreshedProperties(Dictionary dictionary, Dictionary updatedDictionary) {
+    private void publishRefreshedProperties(Dictionary dictionary, Dictionary updatedDictionary, Dictionary beforeRefresh) {
         EnvironmentEntity environment = environmentService.findById(dictionary.getEnvironmentId());
         ExecutionContext executionContext = new ExecutionContext(environment.getOrganizationId(), environment.getId());
 
@@ -391,9 +392,27 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             executionContext,
             Dictionary.AuditEvent.DICTIONARY_UPDATED,
             updatedDictionary.getUpdatedAt(),
-            dictionary,
+            beforeRefresh,
             updatedDictionary
         );
+    }
+
+    private static Dictionary copyOf(Dictionary dictionary) {
+        Dictionary copy = new Dictionary();
+        copy.setId(dictionary.getId());
+        copy.setEnvironmentId(dictionary.getEnvironmentId());
+        copy.setName(dictionary.getName());
+        copy.setKey(dictionary.getKey());
+        copy.setDescription(dictionary.getDescription());
+        copy.setType(dictionary.getType());
+        copy.setCreatedAt(dictionary.getCreatedAt());
+        copy.setUpdatedAt(dictionary.getUpdatedAt());
+        copy.setDeployedAt(dictionary.getDeployedAt());
+        copy.setState(dictionary.getState());
+        copy.setProperties(dictionary.getProperties());
+        copy.setProvider(dictionary.getProvider());
+        copy.setTrigger(dictionary.getTrigger());
+        return copy;
     }
 
     @Override
