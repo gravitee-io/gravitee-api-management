@@ -111,7 +111,7 @@ public class PortalListingSyncDomainService {
         var apiId = entry.apiId(auditInfo);
         var existing = findExistingRow(auditInfo, portalId, apiId);
         return switch (existing) {
-            case null -> validationItemsForNewRow(auditInfo, portalId, apiId, entry);
+            case null -> validationItemsForNewRow(auditInfo, portalId, apiId, entry, envFolders);
             case PortalNavigationApi navApi -> validationItemsForExistingRow(auditInfo, portalId, apiId, entry, navApi, envFolders);
             default -> throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
         };
@@ -124,9 +124,16 @@ public class PortalListingSyncDomainService {
         );
     }
 
-    private ValidationItems validationItemsForNewRow(AuditInfo auditInfo, PortalId portalId, String apiId, PortalListingApiEntry entry) {
+    private ValidationItems validationItemsForNewRow(
+        AuditInfo auditInfo,
+        PortalId portalId,
+        String apiId,
+        PortalListingApiEntry entry,
+        List<PortalNavigationItem> envFolders
+    ) {
         var rowCreate = navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry);
-        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, List.of());
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, currentFolders);
         var creates = new ArrayList<CreatePortalNavigationItem>(subtree.creates().size() + 1);
         creates.add(rowCreate);
         creates.addAll(subtree.creates());
