@@ -116,8 +116,7 @@ public class HttpProvider implements Provider {
                 .filter(response -> response.statusCode() == HttpStatusCode.OK_200)
                 .flatMap(response -> response.rxBody().toMaybe())
                 .observeOn(Schedulers.computation())
-                .map(buffer -> mapper.map(buffer.toString()))
-                .doFinally(httpClient::close);
+                .map(buffer -> mapper.map(buffer.toString()));
         });
     }
 
