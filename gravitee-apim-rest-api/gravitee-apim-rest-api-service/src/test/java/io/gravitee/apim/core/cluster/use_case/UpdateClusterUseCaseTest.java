@@ -59,20 +59,13 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
         var clusterConfigurationSchemaService = new ClusterConfigurationSchemaService();
         var validateClusterService = new ValidateClusterService(jsonSchemaChecker, clusterConfigurationSchemaService, new ObjectMapper());
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-<<<<<<< HEAD
-        updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService, permissionDomainService);
-=======
         updateClusterUseCase = new UpdateClusterUseCase(
             clusterCrudService,
             validateClusterService,
             auditService,
             permissionDomainService,
-            objectMapper,
             new ClusterConfigurationAccessDomainService(permissionDomainService)
         );
-        clusterQueryService.reset();
-        apiQueryService.reset();
->>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
@@ -190,13 +183,13 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
             .configuration(Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "SSL")))
             .build();
 
+        var storedConfiguration = existingCluster.getConfiguration();
+
         // When
         updateClusterUseCase.execute(new UpdateClusterUseCase.Input(GENERATED_UUID, toUpdate, AUDIT_INFO));
 
         // Then
-        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
-            Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"))
-        );
+        assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(storedConfiguration);
     }
 
     @Test

@@ -27,12 +27,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-<<<<<<< HEAD
-@Builder
-=======
 @Builder(toBuilder = true)
-@NoArgsConstructor
->>>>>>> e269957 (fix(rest-api): add credential-free copy of a cluster)
 @AllArgsConstructor
 @Getter
 @Setter
