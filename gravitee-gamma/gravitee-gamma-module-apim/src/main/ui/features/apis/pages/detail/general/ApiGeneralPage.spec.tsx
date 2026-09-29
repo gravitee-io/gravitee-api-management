@@ -800,6 +800,30 @@ describe('ApiGeneralPage', () => {
         await waitFor(() => expect(within(select).getByRole('option', { name: 'Staging' }).selected).toBe(true));
     });
 
+    it('does not offer the just-promoted destination again when the dialog is reopened', async () => {
+        jest.spyOn(apiServices, 'getPromotionTargets').mockResolvedValue([{ id: 'env#1', name: 'Production' }]);
+        jest.spyOn(apiServices, 'getPendingPromotions')
+            .mockResolvedValueOnce([])
+            .mockResolvedValue([{ status: 'CREATED', targetEnvCockpitId: 'env#1' }]);
+        jest.spyOn(apiServices, 'promoteApi').mockResolvedValue(undefined);
+        renderPage();
+
+        fireEvent.click(screen.getByRole('button', { name: /^promote$/i }));
+        const firstDialog = await screen.findByRole('dialog');
+        await within(firstDialog).findByLabelText('Environment');
+        fireEvent.click(within(firstDialog).getByRole('button', { name: /^promote$/i }));
+        await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+
+        fireEvent.click(screen.getByRole('button', { name: /^promote$/i }));
+        const reopened = await screen.findByRole('dialog');
+
+        // The refreshed pending list has to land before the form is actionable, otherwise the
+        // destination that was just promoted to is still offered and can be submitted again.
+        const select = await within(reopened).findByLabelText('Environment');
+        expect(within(select).getByRole('option', { name: /production \(pending\)/i })).toBeDisabled();
+        expect(within(reopened).getByRole('button', { name: /^promote$/i })).toBeDisabled();
+    });
+
     it('drops only Duplicate from the action strip for a native API', () => {
         mockUseApiDetailContext.mockReturnValue({
             api: { ...STUB_API, type: 'NATIVE' },
@@ -1585,6 +1609,31 @@ describe('ApiGeneralPage — API review', () => {
         withApi({ workflowState: 'DRAFT' });
         renderPage();
         expect(screen.queryByRole('button', { name: /ask for a review/i })).not.toBeInTheDocument();
+    });
+
+    it('disables Promote while a review is pending', () => {
+        withApi({ workflowState: 'DRAFT' });
+        renderPage();
+        expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
+    });
+
+    it('disables Promote while the review is in progress', () => {
+        withApi({ workflowState: 'IN_REVIEW' });
+        renderPage();
+        expect(screen.getByRole('button', { name: /promote/i })).toBeDisabled();
+    });
+
+    it('enables Promote once the review is accepted', () => {
+        withApi({ workflowState: 'REVIEW_OK' });
+        renderPage();
+        expect(screen.getByRole('button', { name: /promote/i })).not.toBeDisabled();
+    });
+
+    it('keeps Promote enabled on a draft while review is disabled', () => {
+        mockUseApiReviewEnabled.mockReturnValue({ enabled: false, isFetched: true });
+        withApi({ workflowState: 'DRAFT' });
+        renderPage();
+        expect(screen.getByRole('button', { name: /promote/i })).not.toBeDisabled();
     });
 
     it('offers no Ask for a review on a federated draft, keeping Delete in the API Events card', () => {
