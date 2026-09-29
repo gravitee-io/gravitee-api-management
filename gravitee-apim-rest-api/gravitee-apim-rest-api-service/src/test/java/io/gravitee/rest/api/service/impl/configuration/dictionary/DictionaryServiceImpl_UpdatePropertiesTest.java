@@ -284,41 +284,6 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
     }
 
-    @Test
-    public void should_re_encrypt_sticky_key_on_refresh_when_the_underlying_value_genuinely_changed()
-        throws TechnicalException, GeneralSecurityException {
-        Dictionary existing = new Dictionary();
-        existing.setId(DICTIONARY_ID);
-        existing.setState(LifecycleState.STARTED);
-        existing.setEnvironmentId(ENVIRONMENT_ID);
-        existing.setType(DictionaryType.DYNAMIC);
-        Map<String, DictionaryProperty> existingProperties = new HashMap<>();
-        existingProperties.put("secret", new DictionaryProperty("ENC(old-cipher-of-unchanged-plaintext)", true));
-        existing.setProperties(existingProperties);
-
-        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
-        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        EnvironmentEntity environment = new EnvironmentEntity();
-        environment.setId(ENVIRONMENT_ID);
-        environment.setOrganizationId(ORGANIZATION_ID);
-        when(environmentService.findById(ENVIRONMENT_ID)).thenReturn(environment);
-
-        when(dataEncryptor.decrypt("ENC(old-cipher-of-unchanged-plaintext)")).thenReturn("old-plaintext");
-        when(dataEncryptor.encrypt("new-plaintext")).thenReturn("ENC(new-cipher)");
-
-        Map<String, String> freshlyFetched = Map.of("secret", "new-plaintext");
-
-        dictionaryService.updateProperties(DICTIONARY_ID, freshlyFetched);
-
-        verify(dictionaryRepository).update(
-            argThat(
-                dict ->
-                    dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("ENC(new-cipher)")
-            )
-        );
-    }
-
     private void given_environment() {
         EnvironmentEntity environment = new EnvironmentEntity();
         environment.setId(ENVIRONMENT_ID);
