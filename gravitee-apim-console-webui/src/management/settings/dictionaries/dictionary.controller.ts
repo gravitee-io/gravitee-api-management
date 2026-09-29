@@ -183,31 +183,23 @@ class DictionaryController {
   }
 
   deploy() {
-    this.DictionaryService.deploy(this.dictionary).then(response => {
+    return this.DictionaryService.deploy(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been deployed');
-      this.dictionary = response.data;
-      this.initialDictionary = cloneDeep(this.dictionary);
-      this.dictProperties = this.computeProperties();
-      this.query.total = Object.keys(this.dictionary.properties || {}).length;
-      this.propertiesDirty = false;
+      this.applyServerState(response, this.editedSections());
     });
   }
 
   start() {
-    this.DictionaryService.start(this.dictionary).then(response => {
+    return this.DictionaryService.start(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been started');
-      this.dictionary = response.data;
-      this.dictProperties = this.computeProperties();
-      this.propertiesDirty = false;
+      this.applyServerState(response, this.editedSections());
     });
   }
 
   stop() {
-    this.DictionaryService.stop(this.dictionary).then(response => {
+    return this.DictionaryService.stop(this.dictionary).then(response => {
       this.NotificationService.show('Dictionary ' + this.dictionary.name + ' has been stopped');
-      this.dictionary = response.data;
-      this.dictProperties = this.computeProperties();
-      this.propertiesDirty = false;
+      this.applyServerState(response, this.editedSections());
     });
   }
 
@@ -302,6 +294,18 @@ class DictionaryController {
     });
   }
 
+  /**
+   * Deploy, start and stop save neither form, so the caller keeps whatever is still being edited
+   * (both sections for those three, only the other one for a form save) while the server copy
+   * becomes the new snapshot.
+   */
+  private applyServerState(response, stillEditing) {
+    this.initialDictionary = cloneDeep(response.data);
+    this.dictionary = { ...this.initialDictionary, ...stillEditing };
+    this.dictProperties = this.computeProperties();
+    this.query.total = Object.keys(this.dictionary.properties || {}).length;
+  }
+
   private editedGeneral() {
     return {
       name: this.dictionary.name,
@@ -317,16 +321,14 @@ class DictionaryController {
       : { propertyOptions: this.dictionary.propertyOptions };
   }
 
+  private editedSections() {
+    return { ...this.editedGeneral(), ...this.editedProperties() };
+  }
+
   // No properties-only endpoint exists, so a form writes its own section onto a fresh read.
   private saveDictionary(change, keepEditing) {
     return this.DictionaryService.get(this.dictionary.id).then(response =>
-      this.DictionaryService.update(change(response.data)).then(saved => {
-        const stillEditing = keepEditing();
-        this.initialDictionary = cloneDeep(saved.data);
-        this.dictionary = { ...this.initialDictionary, ...stillEditing };
-        this.dictProperties = this.computeProperties();
-        this.query.total = Object.keys(this.dictionary.properties || {}).length;
-      }),
+      this.DictionaryService.update(change(response.data)).then(saved => this.applyServerState(saved, keepEditing())),
     );
   }
 
