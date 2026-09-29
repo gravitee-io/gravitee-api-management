@@ -25,6 +25,8 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -35,23 +37,28 @@ public class HomepageReconciler {
     private final PortalNavigationItemCrudService navigationItemCrudService;
     private final PortalPageContentCrudService pageContentCrudService;
 
-    public void dropStaleHomepages(String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
-        dropHomepagesMatching(environmentId, new NavigationItemReference.PortalReference(PortalId.of(portalId)), activeHomepageId);
-        dropHomepagesMatching(environmentId, NavigationItemReference.defaultReference(), activeHomepageId);
+    /** Homepages that {@link #dropStaleHomepages} would remove, without removing them. */
+    public List<PortalNavigationItem> findStaleHomepages(String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
+        return Stream.concat(
+            staleHomepagesMatching(environmentId, new NavigationItemReference.PortalReference(PortalId.of(portalId)), activeHomepageId),
+            staleHomepagesMatching(environmentId, NavigationItemReference.defaultReference(), activeHomepageId)
+        ).toList();
     }
 
-    private void dropHomepagesMatching(String environmentId, NavigationItemReference reference, PortalNavigationItemId activeHomepageId) {
-        var stale = navigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-            environmentId,
-            PortalArea.HOMEPAGE,
-            reference
-        );
-        var itemsToDelete = stale
+    public void dropStaleHomepages(String environmentId, String portalId, PortalNavigationItemId activeHomepageId) {
+        findStaleHomepages(environmentId, portalId, activeHomepageId).forEach(this::deleteItemAndContent);
+    }
+
+    private Stream<PortalNavigationItem> staleHomepagesMatching(
+        String environmentId,
+        NavigationItemReference reference,
+        PortalNavigationItemId activeHomepageId
+    ) {
+        return navigationItemsQueryService
+            .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.HOMEPAGE, reference)
             .stream()
             .filter(item -> !item.getId().equals(activeHomepageId))
-            .filter(item -> item.getAutomationMetadata() == null)
-            .toList();
-        itemsToDelete.forEach(this::deleteItemAndContent);
+            .filter(item -> item.getAutomationMetadata() == null);
     }
 
     private void deleteItemAndContent(PortalNavigationItem item) {

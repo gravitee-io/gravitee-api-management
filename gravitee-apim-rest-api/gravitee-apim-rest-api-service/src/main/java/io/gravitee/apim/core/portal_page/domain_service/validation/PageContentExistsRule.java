@@ -22,7 +22,8 @@ import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQuerySer
 import lombok.RequiredArgsConstructor;
 
 /**
- * For PAGE type with a non-null portalPageContentId, ensures the page content exists.
+ * For PAGE type with a non-null portalPageContentId, ensures the page content exists, unless the id is
+ * declared pending via {@link CreateValidationContext#pendingContentIds()}.
  */
 @RequiredArgsConstructor
 public class PageContentExistsRule implements CreatePortalNavigationItemValidationRule {
@@ -36,6 +37,9 @@ public class PageContentExistsRule implements CreatePortalNavigationItemValidati
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
+        if (ctx.pendingContentIds().contains(item.getPortalPageContentId())) {
+            return;
+        }
         var existingPageContent = pageContentQueryService.findById(item.getPortalPageContentId());
         if (existingPageContent.isEmpty()) {
             throw new PageContentNotFoundException(item.getPortalPageContentId().toString());

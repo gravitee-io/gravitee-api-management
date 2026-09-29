@@ -47,6 +47,7 @@ import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -111,7 +112,7 @@ class PortalDocumentationSyncDomainServiceTest {
     void materialize_invokes_nav_item_validator_on_create_path() {
         syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
 
-        verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()));
+        verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()), eq(Set.of(DOC_ID)), eq(Set.of()));
     }
 
     @Test
@@ -324,6 +325,37 @@ class PortalDocumentationSyncDomainServiceTest {
 
         assertThat(navItemCrud.storage()).hasSize(1);
         assertThat(navItemCrud.storage().get(0).getId()).isEqualTo(existing.getId());
+    }
+
+    @Test
+    void validate_placement_writes_nothing_when_moving_an_existing_page_to_a_conflicting_homepage() {
+        var syncWithRealValidator = new PortalDocumentationSyncDomainService(
+            navItemCrud,
+            navItemQuery,
+            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+            new PortalNavigationItemValidatorService(
+                navItemQuery,
+                new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            )
+        );
+        var existingHomepage = automationOwnedHomepagePage();
+        navItemCrud.create(existingHomepage);
+        pageContentCrud.create(staleContent(existingHomepage));
+        syncWithRealValidator.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        var storageBefore = List.copyOf(navItemCrud.storage());
+
+        assertThatThrownBy(() ->
+            syncWithRealValidator.validatePlacement(
+                AUDIT_INFO,
+                markdownDoc("Getting Started", "/projects/alpha", 1),
+                PortalArea.HOMEPAGE,
+                null
+            )
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
+
+        assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
 
     @Test

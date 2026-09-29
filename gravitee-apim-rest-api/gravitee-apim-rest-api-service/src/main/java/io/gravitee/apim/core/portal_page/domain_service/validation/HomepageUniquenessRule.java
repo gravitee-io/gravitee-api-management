@@ -22,7 +22,8 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import lombok.RequiredArgsConstructor;
 
 /**
- * For HOMEPAGE area, ensures no top-level item already exists in that area.
+ * For HOMEPAGE area, ensures no top-level item already exists in that area, ignoring ids declared in
+ * {@link CreateValidationContext#itemIdsBeingReplaced()}.
  */
 @RequiredArgsConstructor
 public class HomepageUniquenessRule implements CreatePortalNavigationItemValidationRule {
@@ -36,11 +37,11 @@ public class HomepageUniquenessRule implements CreatePortalNavigationItemValidat
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
-        var existingHomepage = navigationItemsQueryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-            environmentId,
-            PortalArea.HOMEPAGE,
-            item.getReference()
-        );
+        var existingHomepage = navigationItemsQueryService
+            .findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.HOMEPAGE, item.getReference())
+            .stream()
+            .filter(existing -> !ctx.itemIdsBeingReplaced().contains(existing.getId()))
+            .toList();
         if (!existingHomepage.isEmpty()) {
             throw new HomepageAlreadyExistsException();
         }
