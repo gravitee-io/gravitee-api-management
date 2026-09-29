@@ -263,6 +263,20 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
+    public void should_publish_the_refreshed_properties() throws TechnicalException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old", false)));
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
+
+        ArgumentCaptor<Dictionary> published = ArgumentCaptor.forClass(Dictionary.class);
+        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), published.capture());
+        assertThat(published.getValue().getProperties()).isEqualTo(Map.of("plain", new DictionaryProperty("new", false)));
+    }
+
+    @Test
     public void should_re_encrypt_when_the_stored_value_is_not_base64() throws TechnicalException, GeneralSecurityException {
         Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("not base64!", true)));
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
