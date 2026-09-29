@@ -19,19 +19,39 @@ import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationVa
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Context built once per create validation (single or bulk) to hold shared data and avoid repeated fetches.
+ *
+ * {@code pendingContentIds} lets a caller declare that a content id, though not yet persisted, is about to be
+ * written by the same operation this validation is gating — see {@link PageContentExistsRule}.
+ *
+ * {@code itemIdsBeingReplaced} lets a caller exclude an existing item's id from a conflict check — see
+ * {@link UniqueItemIdRule} and {@link HomepageUniquenessRule}.
  */
 public record CreateValidationContext(
     List<PortalNavigationItem> navigationItems,
     Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
     Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
     Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId,
-    List<PendingSegmentClaim> pendingSegmentClaims
+    List<PendingSegmentClaim> pendingSegmentClaims,
+    Set<PortalPageContentId> pendingContentIds,
+    Set<PortalNavigationItemId> itemIdsBeingReplaced
 ) {
+    public CreateValidationContext(
+        List<PortalNavigationItem> navigationItems,
+        Map<PortalNavigationItemId, PortalNavigationItem> itemsById,
+        Map<PortalNavigationItemId, CreatePortalNavigationItem> pendingItemsById,
+        Map<PortalNavigationItemId, PendingUpdate> pendingUpdatesByExistingId,
+        List<PendingSegmentClaim> pendingSegmentClaims
+    ) {
+        this(navigationItems, itemsById, pendingItemsById, pendingUpdatesByExistingId, pendingSegmentClaims, Set.of(), Set.of());
+    }
+
     public static CreateValidationContext empty() {
         return new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of());
     }

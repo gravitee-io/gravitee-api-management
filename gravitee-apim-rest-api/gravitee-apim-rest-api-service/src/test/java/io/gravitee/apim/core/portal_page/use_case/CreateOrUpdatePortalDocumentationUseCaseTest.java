@@ -20,7 +20,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -34,6 +36,7 @@ import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdownValidator;
 import io.gravitee.apim.core.gravitee_markdown.exception.GraviteeMarkdownContentEmptyException;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.Portal;
+import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.GraviteePortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalDocumentationSyncDomainService;
@@ -42,7 +45,10 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVali
 import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
+import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.service_provider.PortalNavigationTemplatingService;
@@ -305,6 +311,121 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
         assertThat(throwable.getMessage()).contains("the portal to attach the documentation to does not exist in this environment");
         assertThat(crudService.storage()).isEmpty();
         assertThat(navCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_not_persist_content_when_a_second_homepage_is_rejected() {
+        seedDefaultPortal();
+        var realUseCase = useCaseWithRealNavigationValidation();
+        var firstHomepageId = PortalPageContentId.of(
+            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-1").id()
+        );
+        var secondHomepageId = PortalPageContentId.of(
+            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-2").id()
+        );
+
+        realUseCase.execute(homepageInput(firstHomepageId, "Home", "# Hello"));
+        queryService.initWith(crudService.storage());
+
+        var throwable = catchThrowable(() -> realUseCase.execute(homepageInput(secondHomepageId, "Home 2", "# Hello 2")));
+
+        assertThat(throwable).isInstanceOf(HomepageAlreadyExistsException.class);
+        assertThat(crudService.storage()).hasSize(1);
+        assertThat(crudService.storage().get(0).getId()).isEqualTo(firstHomepageId);
+        assertThat(navCrudService.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_not_update_content_when_moving_it_to_a_conflicting_homepage() {
+        seedDefaultPortal();
+        var realUseCase = useCaseWithRealNavigationValidation();
+        var homepageId = PortalPageContentId.of(
+            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-1").id()
+        );
+
+        realUseCase.execute(homepageInput(homepageId, "Home", "# Hello"));
+        queryService.initWith(crudService.storage());
+        realUseCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
+        queryService.initWith(crudService.storage());
+
+        var throwable = catchThrowable(() ->
+            realUseCase.execute(
+                new CreateOrUpdatePortalDocumentationUseCase.Input(
+                    AUDIT_INFO,
+                    DOC_ID,
+                    PORTAL_ID,
+                    "Getting Started",
+                    PortalPageContentType.GRAVITEE_MARKDOWN,
+                    "# New content",
+                    "/projects/alpha",
+                    1,
+                    PortalArea.HOMEPAGE,
+                    null
+                )
+            )
+        );
+
+        assertThat(throwable).isInstanceOf(HomepageAlreadyExistsException.class);
+        var stored = crudService
+            .storage()
+            .stream()
+            .filter(c -> c.getId().equals(DOC_ID))
+            .findFirst()
+            .orElseThrow();
+        assertThat(((GraviteeMarkdownPageContent) stored).getContent().value()).isEqualTo("# Original");
+        var navPage = navCrudService
+            .storage()
+            .stream()
+            .filter(PortalNavigationPage.class::isInstance)
+            .map(PortalNavigationPage.class::cast)
+            .filter(page -> DOC_ID.equals(page.getPortalPageContentId()))
+            .findFirst()
+            .orElseThrow();
+        assertThat(navPage.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+    }
+
+    private CreateOrUpdatePortalDocumentationUseCase useCaseWithRealNavigationValidation() {
+        var gmdContentValidator = new GraviteePortalPageContentValidatorService(
+            new GraviteeMarkdownValidator(),
+            navQueryService,
+            mock(PortalNavigationEnclosingApiDomainService.class),
+            mock(PortalNavigationTemplatingService.class),
+            mock(ApiTemplateModelProvider.class),
+            mock(EnvironmentTemplateModelProvider.class)
+        );
+        return new CreateOrUpdatePortalDocumentationUseCase(
+            validator,
+            crudService,
+            queryService,
+            new PortalPageContentValidatorService(List.of(gmdContentValidator)),
+            new PortalDocumentationSyncDomainService(
+                navCrudService,
+                navQueryService,
+                new HomepageReconciler(navQueryService, navCrudService, crudService),
+                new PortalNavigationItemValidatorService(
+                    navQueryService,
+                    PortalPageContentQueryServiceInMemory.sharing(crudService.storage()),
+                    new ApiProductQueryServiceInMemory(),
+                    new PortalNavigationItemSourceDomainServiceInMemory()
+                )
+            ),
+            scopeEnforcer
+        );
+    }
+
+    private static CreateOrUpdatePortalDocumentationUseCase.Input homepageInput(PortalPageContentId id, String name, String content) {
+        return new CreateOrUpdatePortalDocumentationUseCase.Input(
+            AUDIT_INFO,
+            id,
+            PORTAL_ID,
+            name,
+            PortalPageContentType.GRAVITEE_MARKDOWN,
+            content,
+            null,
+            0,
+            PortalArea.HOMEPAGE,
+            null
+        );
     }
 
     private void seedDefaultPortal() {
