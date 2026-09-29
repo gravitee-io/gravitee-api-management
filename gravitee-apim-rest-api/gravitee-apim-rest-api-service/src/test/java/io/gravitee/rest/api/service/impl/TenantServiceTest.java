@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -121,6 +123,50 @@ public class TenantServiceTest {
 
         assertThatThrownBy(() ->
             tenantService.create(new ExecutionContext(REFERENCE_ID, null), List.of(newTenant), REFERENCE_ID, REFERENCE_TYPE)
+        ).isInstanceOf(DuplicateTenantKeyException.class);
+
+        verify(tenantRepository, never()).create(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = { "${TenantName}|tenantname", "TenantName|tenantname", "My Tenant|my-tenant" })
+    public void should_throw_DuplicateTenantKeyException_when_key_normalizes_to_an_existing_key(String rawKey, String storedKey)
+        throws TechnicalException {
+        var newTenant = new NewTenantEntity();
+        newTenant.setKey(rawKey);
+        newTenant.setName("New Tenant Name");
+
+        var existingTenant = new Tenant();
+        existingTenant.setId("existing-id");
+        existingTenant.setKey(storedKey);
+        existingTenant.setName("Existing Tenant Name");
+        existingTenant.setReferenceId(REFERENCE_ID);
+        existingTenant.setReferenceType(io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION);
+
+        when(
+            tenantRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TenantReferenceType.ORGANIZATION)
+        ).thenReturn(Set.of(existingTenant));
+
+        assertThatThrownBy(() ->
+            tenantService.create(new ExecutionContext(REFERENCE_ID, null), List.of(newTenant), REFERENCE_ID, REFERENCE_TYPE)
+        ).isInstanceOf(DuplicateTenantKeyException.class);
+
+        verify(tenantRepository, never()).create(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_throw_DuplicateTenantKeyException_when_two_new_keys_normalize_to_the_same_key() throws TechnicalException {
+        var firstTenant = new NewTenantEntity();
+        firstTenant.setKey("TenantName");
+        firstTenant.setName("First Tenant Name");
+        var secondTenant = new NewTenantEntity();
+        secondTenant.setKey("tenantname");
+        secondTenant.setName("Second Tenant Name");
+
+        assertThatThrownBy(() ->
+            tenantService.create(new ExecutionContext(REFERENCE_ID, null), List.of(firstTenant, secondTenant), REFERENCE_ID, REFERENCE_TYPE)
         ).isInstanceOf(DuplicateTenantKeyException.class);
 
         verify(tenantRepository, never()).create(any());

@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -134,6 +136,32 @@ public class TagServiceTest {
         assertThatThrownBy(() ->
             tagService.create(new ExecutionContext(REFERENCE_ID, null), newTag, REFERENCE_ID, REFERENCE_TYPE)
         ).isInstanceOf(DuplicateTagKeyException.class);
+
+        verify(tagRepository, never()).create(any());
+        verifyNoInteractions(auditService);
+    }
+
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = { "${TagName}|tagname", "TagName|tagname", "My Tag|my-tag" })
+    public void should_throw_DuplicateTagKeyException_when_key_normalizes_to_an_existing_key(String rawKey, String storedKey)
+        throws TechnicalException {
+        var newTag = new NewTagEntity();
+        newTag.setKey(rawKey);
+        newTag.setName("New Tag Name");
+
+        var existingTag = new Tag();
+        existingTag.setId("existing-id");
+        existingTag.setKey(storedKey);
+        existingTag.setReferenceId(REFERENCE_ID);
+        existingTag.setReferenceType(io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION);
+
+        when(tagRepository.findByReference(REFERENCE_ID, io.gravitee.repository.management.model.TagReferenceType.ORGANIZATION)).thenReturn(
+            Set.of(existingTag)
+        );
+
+        assertThatThrownBy(() -> tagService.create(new ExecutionContext(REFERENCE_ID, null), newTag, REFERENCE_ID, REFERENCE_TYPE))
+            .isInstanceOf(DuplicateTagKeyException.class)
+            .hasMessageContaining(storedKey);
 
         verify(tagRepository, never()).create(any());
         verifyNoInteractions(auditService);
