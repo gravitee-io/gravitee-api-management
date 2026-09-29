@@ -1,3 +1,9 @@
+/**
+ * Asciidoctor 4 ships an ESM browser build that uses `import.meta`, which Jest cannot load; the
+ * CommonJS one behind the `require` condition resolves its own path from the document base URI.
+ *
+ * @jest-environment-options {"customExportConditions": ["require", "node"]}
+ */
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
@@ -39,6 +45,18 @@ describe('GvPageAsciiDocComponent', () => {
   let spectator: Spectator<GvPageAsciiDocComponent>;
   let component: GvPageAsciiDocComponent;
   const docPage: Page = { name: 'A Page', id: '86de4f08-aa02-40f0-aa73-4b3e0e97fef4', content: '', type: 'ASCIIDOC', order: 1 };
+  let base: HTMLBaseElement;
+
+  // A file:// test URL would make this jsdom deny localStorage for the opaque origin, so only the base URI points to a file
+  beforeAll(() => {
+    base = document.createElement('base');
+    base.href = 'file:///';
+    document.head.appendChild(base);
+  });
+
+  afterAll(() => {
+    base.remove();
+  });
 
   beforeEach(() => {
     spectator = createComponent();
