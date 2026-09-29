@@ -17,18 +17,17 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.PropertiesService;
 import java.security.GeneralSecurityException;
 import java.util.List;
-import lombok.CustomLog;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@CustomLog
 @Component
 public class PropertiesServiceImpl extends TransactionalService implements PropertiesService {
 
@@ -46,7 +45,7 @@ public class PropertiesServiceImpl extends TransactionalService implements Prope
                     property.setValue(dataEncryptor.encrypt(property.getValue()));
                     property.setEncrypted(true);
                 } catch (GeneralSecurityException e) {
-                    log.error("Error encrypting property value", e);
+                    throw new TechnicalManagementException("Unable to encrypt property [" + property.getKey() + "]", e);
                 }
             }
         }

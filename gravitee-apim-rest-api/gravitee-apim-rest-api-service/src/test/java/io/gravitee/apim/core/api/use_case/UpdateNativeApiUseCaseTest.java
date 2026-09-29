@@ -49,6 +49,7 @@ import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
@@ -367,6 +368,53 @@ public class UpdateNativeApiUseCaseTest {
         );
         verify(categoryDomainService, times(1)).toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID));
         assertThat(indexer.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_reject_making_an_encrypted_property_plain() {
+        var existingApi = ApiFixtures.aNativeApi();
+        existingApi
+            .getApiDefinitionNativeV4()
+            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+        apiCrudService.initWith(List.of(existingApi));
+        var apiToUpdate = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(List.of(EncryptableProperty.builder().key("secret").value("ciphertext").build()))
+            .build();
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
+
+        assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class).isThrownBy(() ->
+            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
+        );
+        assertThat(apiCrudService.get(existingApi.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
+            Property.builder().key("secret").value("ciphertext").encrypted(true).build()
+        );
+    }
+
+    @Test
+    void should_reject_making_an_encrypted_property_plain_before_encrypting_the_other_properties() throws GeneralSecurityException {
+        var existingApi = ApiFixtures.aNativeApi();
+        existingApi
+            .getApiDefinitionNativeV4()
+            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+        apiCrudService.initWith(List.of(existingApi));
+        when(dataEncryptor.encrypt(any())).thenThrow(new GeneralSecurityException("broken encryption secret"));
+        var apiToUpdate = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(
+                List.of(
+                    EncryptableProperty.builder().key("secret").value("ciphertext").build(),
+                    EncryptableProperty.builder().key("other").value("value").encryptable(true).build()
+                )
+            )
+            .build();
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
+
+        assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class).isThrownBy(() ->
+            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
+        );
     }
 
     private static UpdateNativeApi anUpdateNativeApi() {

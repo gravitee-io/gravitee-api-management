@@ -28,12 +28,14 @@ import io.gravitee.apim.core.api.domain_service.NotificationCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
@@ -59,6 +61,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
@@ -105,6 +108,7 @@ public class ImportApiCRDUseCase {
     private final ValidateApiCRDDomainService validateCRDDomainService;
     private final NotificationCRDDomainService notificationCRDService;
     private final PortalListingSyncDomainService portalListingSyncDomainService;
+    private final PropertyDomainService propertyDomainService;
 
     public ImportApiCRDUseCase(
         ApiCrudService apiCrudService,
@@ -130,7 +134,8 @@ public class ImportApiCRDUseCase {
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
         ValidateApiCRDDomainService validateCRDDomainService,
         NotificationCRDDomainService notificationCRDService,
-        PortalListingSyncDomainService portalListingSyncDomainService
+        PortalListingSyncDomainService portalListingSyncDomainService,
+        PropertyDomainService propertyDomainService
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
@@ -156,6 +161,7 @@ public class ImportApiCRDUseCase {
         this.validateCRDDomainService = validateCRDDomainService;
         this.notificationCRDService = notificationCRDService;
         this.portalListingSyncDomainService = portalListingSyncDomainService;
+        this.propertyDomainService = propertyDomainService;
     }
 
     public record Output(ApiCRDStatus status) {}
@@ -203,8 +209,10 @@ public class ImportApiCRDUseCase {
 
             var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
 
+            var apiToCreate = ApiModelFactory.fromCrd(input.spec, environmentId);
+            encryptProperties(apiToCreate, input.spec.getProperties());
             var createdApi = createApiDomainService.create(
-                ApiModelFactory.fromCrd(input.spec, environmentId),
+                apiToCreate,
                 primaryOwner,
                 input.auditInfo,
                 api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId),
@@ -539,5 +547,11 @@ public class ImportApiCRDUseCase {
                 .stream()
                 .anyMatch(plan -> plan.getStatus() == PlanStatus.PUBLISHED || plan.getStatus() == PlanStatus.DEPRECATED)
         );
+    }
+
+    private void encryptProperties(Api api, List<EncryptableProperty> properties) {
+        if (properties != null && api.getApiDefinitionValue() instanceof AbstractApi definition) {
+            definition.setProperties(propertyDomainService.encryptProperties(properties));
+        }
     }
 }

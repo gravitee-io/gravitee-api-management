@@ -17,12 +17,16 @@ package io.gravitee.apim.core.api.domain_service.property;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.property.Property;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
 
@@ -49,9 +53,47 @@ public class PropertyDomainService {
             try {
                 asPropertyBuilder.value(dataEncryptor.encrypt(property.getValue())).encrypted(true);
             } catch (GeneralSecurityException e) {
-                log.error("Error encrypting property value", e);
+                throw new TechnicalDomainException("Unable to encrypt property [" + property.getKey() + "]", e);
             }
         }
         return asPropertyBuilder.build();
+    }
+
+    public List<Property> keepStoredEncryption(String apiId, List<Property> storedProperties, List<Property> fetchedProperties) {
+        Map<String, Property> encryptedDynamicPropertiesByKey = storedProperties
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(Property::isDynamic)
+            .filter(Property::isEncrypted)
+            .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
+        return fetchedProperties
+            .stream()
+            .map(fetched -> {
+                var stored = encryptedDynamicPropertiesByKey.get(fetched.getKey());
+                return stored == null ? fetched : reEncrypt(apiId, stored, fetched);
+            })
+            .toList();
+    }
+
+    private Property reEncrypt(String apiId, Property stored, Property fetched) {
+        try {
+            if (dataEncryptor.decrypt(stored.getValue()).equals(fetched.getValue())) {
+                return stored;
+            }
+            return Property.builder()
+                .key(fetched.getKey())
+                .value(dataEncryptor.encrypt(fetched.getValue()))
+                .encrypted(true)
+                .dynamic(fetched.isDynamic())
+                .build();
+        } catch (GeneralSecurityException | RuntimeException e) {
+            log.error(
+                "Unable to refresh encrypted dynamic property [{}] of API [{}]; keeping the stored value",
+                fetched.getKey(),
+                apiId,
+                e
+            );
+            return stored;
+        }
     }
 }

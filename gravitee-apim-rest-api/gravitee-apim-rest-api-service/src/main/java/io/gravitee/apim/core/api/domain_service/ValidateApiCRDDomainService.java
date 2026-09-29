@@ -17,6 +17,8 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
+import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
+import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
 import io.gravitee.apim.core.documentation.domain_service.ValidatePagesDomainService;
@@ -72,8 +74,12 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
 
     private final ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator;
 
+    private final ApiQueryService apiQueryService;
+
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
+        rejectMakingEncryptedPropertiesPlain(input);
+
         var errors = new ArrayList<Error>();
 
         var sanitizedBuilder = input.spec().toBuilder();
@@ -149,6 +155,14 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .peek(sanitized -> sanitizedBuilder.plans(sanitized.plans()), errors::addAll);
 
         return Validator.Result.ofBoth(new ValidateApiCRDDomainService.Input(input.auditInfo(), sanitizedBuilder.build()), errors);
+    }
+
+    private void rejectMakingEncryptedPropertiesPlain(Input input) {
+        apiQueryService
+            .findByEnvironmentIdAndCrossId(input.auditInfo().environmentId(), input.spec().getCrossId())
+            .ifPresent(existingApi ->
+                PropertyClassificationValidator.rejectEncryptedToPlain(existingApi.getApiDefinitionValue(), input.spec().getProperties())
+            );
     }
 
     private void validateAndSanitizeHttpV4ForCreation(Input input, ApiCRDSpec.ApiCRDSpecBuilder sanitizedBuilder, ArrayList<Error> errors) {

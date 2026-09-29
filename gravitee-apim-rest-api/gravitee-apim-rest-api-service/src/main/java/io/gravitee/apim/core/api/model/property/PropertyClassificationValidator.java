@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.api.model.property;
 
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
-import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.definition.model.ApiDefinition;
 import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.property.Property;
 import java.util.List;
@@ -28,8 +28,8 @@ public final class PropertyClassificationValidator {
 
     private PropertyClassificationValidator() {}
 
-    public static void rejectEncryptedToPlain(Api storedApi, List<EncryptableProperty> incomingProperties) {
-        if (storedApi != null && storedApi.getApiDefinitionValue() instanceof AbstractApi definition) {
+    public static void rejectEncryptedToPlain(ApiDefinition storedDefinition, List<EncryptableProperty> incomingProperties) {
+        if (storedDefinition instanceof AbstractApi definition) {
             rejectEncryptedToPlain(definition.getProperties(), incomingProperties);
         }
     }

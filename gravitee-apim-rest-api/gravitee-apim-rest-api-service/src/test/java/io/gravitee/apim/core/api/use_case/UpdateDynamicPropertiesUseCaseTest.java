@@ -20,6 +20,7 @@ import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,8 +34,10 @@ import inmemory.InMemoryAlternative;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -42,6 +45,7 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.infra.domain_service.api.CategoryDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeApiServices;
@@ -51,6 +55,7 @@ import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.repository.management.api.ApiCategoryOrderRepository;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.CategoryMapper;
+import java.security.GeneralSecurityException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -67,6 +72,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -81,6 +87,11 @@ class UpdateDynamicPropertiesUseCaseTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String API_ID = "api-id";
+    private static final DataEncryptor DATA_ENCRYPTOR = new DataEncryptor(
+        new MockEnvironment(),
+        "api.properties.encryption.secret",
+        "vvLJ4Q8Khvv9tm2tIPdkGEdmgKUruAL6"
+    );
 
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final EnvironmentCrudServiceInMemory environmentCrudServiceInMemory = new EnvironmentCrudServiceInMemory();
@@ -92,6 +103,7 @@ class UpdateDynamicPropertiesUseCaseTest {
     CategoryDomainService categoryDomainService = new CategoryDomainServiceImpl(categoryMapper, apiCategoryOrderRepository);
 
     private ApiStateDomainService apiStateDomainService;
+    private AuditDomainService auditDomainService;
 
     private UpdateDynamicPropertiesUseCase cut;
 
@@ -110,14 +122,16 @@ class UpdateDynamicPropertiesUseCaseTest {
     @BeforeEach
     void setUp() {
         apiStateDomainService = mock(ApiStateDomainService.class);
+        auditDomainService = spy(new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()));
         environmentCrudServiceInMemory.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).build()));
         cut = new UpdateDynamicPropertiesUseCase(
             apiCrudServiceInMemory,
             apiStateDomainService,
             environmentCrudServiceInMemory,
-            new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()),
+            auditDomainService,
             apiEventQueryServiceInMemory,
-            categoryDomainService
+            categoryDomainService,
+            new PropertyDomainService(DATA_ENCRYPTOR)
         );
     }
 
@@ -467,5 +481,97 @@ class UpdateDynamicPropertiesUseCaseTest {
                     ""
                 )
             );
+    }
+
+    @Nested
+    class WithEncryptedDynamicProperties {
+
+        private final ArgumentCaptor<Api> apiCaptor = ArgumentCaptor.forClass(Api.class);
+
+        @BeforeEach
+        void setUp() {
+            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(true);
+        }
+
+        @Test
+        void should_keep_encrypted_property_when_value_unchanged() throws GeneralSecurityException {
+            var stored = encryptedDynamic("secret", "s3cret");
+            var api = givenApi(buildApiWithProperties(List.of(stored)));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "s3cret")))
+            );
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(stored);
+            assertThat(auditCrudServiceInMemory.storage()).isEmpty();
+            verify(apiStateDomainService, never()).deploy(any(), any(), any());
+        }
+
+        @Test
+        void should_store_a_changed_value_encrypted_and_redeploy_ciphertext_only() throws GeneralSecurityException {
+            var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"))));
+
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w"))));
+
+            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            assertThat(persisted.isEncrypted()).isTrue();
+            assertThat(persisted.isDynamic()).isTrue();
+            assertThat(DATA_ENCRYPTOR.decrypt(persisted.getValue())).isEqualTo("n3w");
+
+            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), any());
+            assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties()).containsExactly(persisted);
+            var auditCaptor = ArgumentCaptor.forClass(ApiAuditLogEntity.class);
+            verify(auditDomainService).createApiAuditLog(auditCaptor.capture());
+            assertThat(((Api) auditCaptor.getValue().newValue()).getApiDefinitionHttpV4().getProperties()).containsExactly(persisted);
+        }
+
+        @Test
+        void should_purge_an_encrypted_property_missing_from_the_source_and_bring_it_back_plain() throws GeneralSecurityException {
+            var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"), fetched("other", "v1"))));
+
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("other", "v2"))));
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
+                fetched("other", "v2")
+            );
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(fetched("other", "v2"), fetched("secret", "s3cret"))
+                )
+            );
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
+                fetched("other", "v2"),
+                fetched("secret", "s3cret")
+            );
+        }
+
+        @Test
+        void should_keep_stored_property_when_its_value_cannot_be_decrypted() {
+            var corrupted = Property.builder().key("secret").value("not-a-ciphertext!").encrypted(true).dynamic(true).build();
+            var api = givenApi(buildApiWithProperties(List.of(corrupted, fetched("other", "v1"))));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(fetched("secret", "n3w"), fetched("other", "v2"))
+                )
+            );
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
+                fetched("other", "v2"),
+                corrupted
+            );
+        }
+
+        private static Property encryptedDynamic(String key, String plaintext) throws GeneralSecurityException {
+            return Property.builder().key(key).value(DATA_ENCRYPTOR.encrypt(plaintext)).encrypted(true).dynamic(true).build();
+        }
+
+        private static Property fetched(String key, String value) {
+            return Property.builder().key(key).value(value).dynamic(true).build();
+        }
     }
 }

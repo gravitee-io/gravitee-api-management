@@ -637,7 +637,7 @@ public class ApiMapper {
                     apiEntity
                         .getProperties()
                         .stream()
-                        .map(propertyEntity -> new Property(propertyEntity.getKey(), propertyEntity.getValue()))
+                        .map(property -> new Property(property.getKey(), property.getValue(), property.isEncrypted(), property.isDynamic()))
                         .toList()
                 );
             }
