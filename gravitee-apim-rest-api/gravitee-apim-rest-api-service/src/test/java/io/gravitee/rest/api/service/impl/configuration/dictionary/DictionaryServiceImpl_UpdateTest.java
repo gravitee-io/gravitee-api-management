@@ -52,8 +52,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -242,8 +246,9 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_keep_value_verbatim_when_the_options_declare_it_encrypted() throws TechnicalException {
+    public void should_keep_value_verbatim_when_the_options_declare_it_encrypted() throws TechnicalException, GeneralSecurityException {
         given_stored_dictionary(new HashMap<>());
+        when(dataEncryptor.decrypt("cipher")).thenReturn("plaintext");
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("secret", "cipher"),
@@ -422,10 +427,12 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_store_a_renewed_ciphertext_when_the_options_declare_it_encrypted() throws TechnicalException {
+    public void should_store_a_renewed_ciphertext_when_the_options_declare_it_encrypted()
+        throws TechnicalException, GeneralSecurityException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("cipher", true));
         given_stored_dictionary(stored);
+        when(dataEncryptor.decrypt("renewed-cipher")).thenReturn("renewed-plaintext");
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             Map.of("secret", "renewed-cipher"),
@@ -440,7 +447,7 @@ public class DictionaryServiceImpl_UpdateTest {
                     dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("renewed-cipher")
             )
         );
-        verifyNoInteractions(dataEncryptor);
+        verify(dataEncryptor, never()).encrypt(any());
     }
 
     @Test
@@ -597,6 +604,32 @@ public class DictionaryServiceImpl_UpdateTest {
         assertThatThrownBy(() ->
             dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity)
         ).isInstanceOf(InvalidDictionaryPropertyOptionsException.class);
+        verify(dictionaryRepository, never()).update(any());
+    }
+
+    static Stream<Arguments> decryptionFailures() {
+        return Stream.of(
+            Arguments.of("not base64", new IllegalArgumentException("Illegal base64 character 20")),
+            Arguments.of("wrong key", new GeneralSecurityException("Given final block not properly padded"))
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("decryptionFailures")
+    public void should_reject_a_declared_ciphertext_that_does_not_decrypt(String description, Exception decryptionFailure)
+        throws TechnicalException, GeneralSecurityException {
+        given_stored_dictionary_without_update_stub(new HashMap<>());
+        when(dataEncryptor.decrypt("not-a-ciphertext")).thenThrow(decryptionFailure);
+
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
+            Map.of("secret", "not-a-ciphertext"),
+            Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build())
+        );
+
+        assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
+            .isInstanceOf(InvalidDictionaryPropertyOptionsException.class)
+            .hasMessageContaining("secret")
+            .hasMessageNotContaining("not-a-ciphertext");
         verify(dictionaryRepository, never()).update(any());
     }
 

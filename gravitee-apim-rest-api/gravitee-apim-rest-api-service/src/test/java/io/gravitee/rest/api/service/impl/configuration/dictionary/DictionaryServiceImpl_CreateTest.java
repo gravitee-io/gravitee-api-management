@@ -42,6 +42,7 @@ import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -212,7 +213,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void should_create_dictionary_with_encrypted_property_declared_by_caller() throws TechnicalException {
+    public void should_create_dictionary_with_encrypted_property_declared_by_caller() throws TechnicalException, GeneralSecurityException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
@@ -223,6 +224,7 @@ public class DictionaryServiceImpl_CreateTest {
         when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
         when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
         when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.decrypt("cipher")).thenReturn("plaintext");
         dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
 
         verify(dictionaryRepository).create(
@@ -277,6 +279,35 @@ public class DictionaryServiceImpl_CreateTest {
                     ENVIRONMENT_ID.equals(dict.getEnvironmentId())
             )
         );
+    }
+
+    static Stream<Arguments> decryptionFailures() {
+        return Stream.of(
+            Arguments.of("not base64", new IllegalArgumentException("Illegal base64 character 20")),
+            Arguments.of("wrong key", new GeneralSecurityException("Given final block not properly padded"))
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("decryptionFailures")
+    public void should_reject_a_declared_ciphertext_that_does_not_decrypt(String description, Exception decryptionFailure)
+        throws TechnicalException, GeneralSecurityException {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setKey("my-key");
+        newDictionary.setName("My Dictionary");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("secret", "not-a-ciphertext"));
+        newDictionary.setPropertyOptions(Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build()));
+
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
+        when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
+        when(dataEncryptor.decrypt("not-a-ciphertext")).thenThrow(decryptionFailure);
+
+        assertThatThrownBy(() -> dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary))
+            .isInstanceOf(InvalidDictionaryPropertyOptionsException.class)
+            .hasMessageContaining("secret")
+            .hasMessageNotContaining("not-a-ciphertext");
+        verify(dictionaryRepository, never()).create(any(Dictionary.class));
     }
 
     static Stream<Arguments> optionsSentWithTheMask() {

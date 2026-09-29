@@ -600,6 +600,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             return stored;
         }
         if (options != null && Boolean.TRUE.equals(options.getEncrypted())) {
+            rejectUndecryptableCiphertext(property.getKey(), property.getValue());
             return new DictionaryProperty(property.getValue(), true);
         }
         if (storedEncrypted && Objects.equals(stored.value(), property.getValue())) {
@@ -621,6 +622,18 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     private static void rejectMaskUnlessStoredEncrypted(String key, String value, boolean storedEncrypted) {
         if (!storedEncrypted && ENCRYPTED_VALUE_MASK.equals(value)) {
             throw new DictionaryPropertyMaskedValueException(key);
+        }
+    }
+
+    /** Ciphertext the gateway cannot decrypt would reach EL as stored, so it is refused before it is stored. */
+    private void rejectUndecryptableCiphertext(String key, String value) {
+        try {
+            dataEncryptor.decrypt(value);
+        } catch (GeneralSecurityException | IllegalArgumentException e) {
+            throw new InvalidDictionaryPropertyOptionsException(
+                key,
+                "'encrypted' is set but the value is not ciphertext this installation can decrypt"
+            );
         }
     }
 
