@@ -20,11 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-<<<<<<< HEAD
-=======
 import java.util.HashMap;
 import java.util.List;
->>>>>>> e269957 (fix(rest-api): add credential-free copy of a cluster)
 import java.util.Map;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -76,97 +73,6 @@ public class ClusterTest {
             () -> assertThat(cluster.getConfiguration()).isEqualTo(newConfiguration)
         );
     }
-<<<<<<< HEAD
-=======
-
-    @Test
-    public void should_deserialize_kafka_cluster_configuration() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Object configuration = Map.of(
-            "connections",
-            List.of(
-                Map.of("name", "primary", "bootstrapServers", "kafka1:9092", "security", Map.of("protocol", "PLAINTEXT")),
-                Map.of("name", "secondary", "bootstrapServers", "kafka2:9092", "security", Map.of("protocol", "SSL"))
-            )
-        );
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER).configuration(configuration).build();
-
-        KafkaClusterConfiguration kafkaConfig = cluster.getKafkaClusterConfiguration(objectMapper);
-
-        assertThat(kafkaConfig.connections()).hasSize(2);
-        assertThat(kafkaConfig.connections().get(0).name()).isEqualTo("primary");
-        assertThat(kafkaConfig.connections().get(0).bootstrapServers()).isEqualTo("kafka1:9092");
-        assertThat(kafkaConfig.connections().get(1).name()).isEqualTo("secondary");
-        assertThat(kafkaConfig.connections().get(1).bootstrapServers()).isEqualTo("kafka2:9092");
-    }
-
-    @Test
-    public void should_deserialize_kafka_cluster_connection_configuration() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        Object configuration = Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"));
-        Cluster cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).configuration(configuration).build();
-
-        KafkaClusterStandaloneConfiguration connectionConfig = cluster.getKafkaClusterStandaloneConfiguration(objectMapper);
-
-        assertThat(connectionConfig.bootstrapServers()).isEqualTo("localhost:9092");
-    }
-
-    @Test
-    public void deploy_should_set_deployed_state_and_increment_version() {
-        Cluster cluster = Cluster.builder().id("cluster-1").lifecycleState(ClusterLifecycleState.UNDEPLOYED).build();
-
-        cluster.deploy();
-
-        assertAll(
-            () -> assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED),
-            () -> assertThat(cluster.getVersion()).isEqualTo(1),
-            () -> assertThat(cluster.getDeployedAt()).isNotNull(),
-            () -> assertThat(cluster.getUpdatedAt()).isNotNull()
-        );
-    }
-
-    @Test
-    public void deploy_should_increment_existing_version() {
-        Cluster cluster = Cluster.builder().id("cluster-1").lifecycleState(ClusterLifecycleState.PENDING).version(2).build();
-
-        cluster.deploy();
-
-        assertThat(cluster.getVersion()).isEqualTo(3);
-        assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.DEPLOYED);
-    }
-
-    @Test
-    public void undeploy_should_set_undeployed_state() {
-        Cluster cluster = Cluster.builder().id("cluster-1").lifecycleState(ClusterLifecycleState.DEPLOYED).version(1).build();
-
-        cluster.undeploy();
-
-        assertAll(
-            () -> assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED),
-            () -> assertThat(cluster.getDeployedAt()).isNotNull(),
-            () -> assertThat(cluster.getUpdatedAt()).isNotNull(),
-            () -> assertThat(cluster.getVersion()).isEqualTo(1)
-        );
-    }
-
-    @Test
-    public void update_should_transition_deployed_to_pending() {
-        Cluster cluster = Cluster.builder().id("cluster-1").name("Original").lifecycleState(ClusterLifecycleState.DEPLOYED).build();
-
-        cluster.update(UpdateCluster.builder().name("Updated").build());
-
-        assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.PENDING);
-        assertThat(cluster.getName()).isEqualTo("Updated");
-    }
-
-    @Test
-    public void update_should_keep_undeployed_state() {
-        Cluster cluster = Cluster.builder().id("cluster-1").name("Original").lifecycleState(ClusterLifecycleState.UNDEPLOYED).build();
-
-        cluster.update(UpdateCluster.builder().name("Updated").build());
-
-        assertThat(cluster.getLifecycleState()).isEqualTo(ClusterLifecycleState.UNDEPLOYED);
-    }
 
     @Nested
     class WithoutCredentials {
@@ -194,7 +100,6 @@ public class ClusterTest {
         @Test
         void should_remove_sasl_and_ssl_from_every_connection() {
             var cluster = Cluster.builder()
-                .type(ClusterType.KAFKA_CLUSTER)
                 .name("c")
                 .configuration(Map.of("connections", List.of(securedConnection("a"), securedConnection("b")), "extra", "kept"))
                 .build();
@@ -236,7 +141,6 @@ public class ClusterTest {
         @Test
         void should_remove_sasl_and_ssl_from_standalone_configuration() {
             var cluster = Cluster.builder()
-                .type(ClusterType.KAFKA_CLUSTER_STANDALONE)
                 .configuration(
                     Map.of(
                         "bootstrapServers",
@@ -254,7 +158,7 @@ public class ClusterTest {
 
         @Test
         void should_return_null_configuration_when_configuration_is_null() {
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER).name("c").configuration(null).build();
+            var cluster = Cluster.builder().name("c").configuration(null).build();
 
             var redacted = cluster.withoutCredentials();
 
@@ -264,7 +168,7 @@ public class ClusterTest {
         @Test
         void should_leave_security_unchanged_when_it_only_has_protocol() {
             var configuration = Map.of("bootstrapServers", "broker:9092", "security", Map.of("protocol", "PLAINTEXT"));
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("c").configuration(configuration).build();
+            var cluster = Cluster.builder().name("c").configuration(configuration).build();
 
             var redacted = cluster.withoutCredentials();
 
@@ -281,7 +185,7 @@ public class ClusterTest {
             var configuration = new HashMap<String, Object>();
             configuration.put("connections", List.of(connection));
 
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER).name("c").configuration(configuration).build();
+            var cluster = Cluster.builder().name("c").configuration(configuration).build();
 
             var redacted = cluster.withoutCredentials();
 
@@ -293,7 +197,7 @@ public class ClusterTest {
         @Test
         void should_leave_non_map_security_value_untouched() {
             var configuration = Map.of("bootstrapServers", "broker:9092", "security", "opaque-string");
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("c").configuration(configuration).build();
+            var cluster = Cluster.builder().name("c").configuration(configuration).build();
 
             var redacted = cluster.withoutCredentials();
 
@@ -305,17 +209,7 @@ public class ClusterTest {
             var configuration = new HashMap<String, Object>();
             configuration.put("bootstrapServers", "broker:9092");
             configuration.put("security", null);
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("c").configuration(configuration).build();
-
-            var redacted = cluster.withoutCredentials();
-
-            assertThat(redacted.getConfiguration()).isEqualTo(configuration);
-        }
-
-        @Test
-        void should_keep_virtual_cluster_configuration_unchanged() {
-            var configuration = Map.of("backends", List.of(Map.of("clusterCrossId", "c", "connectionCrossId", "k")));
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_VIRTUAL_CLUSTER).name("c").configuration(configuration).build();
+            var cluster = Cluster.builder().name("c").configuration(configuration).build();
 
             var redacted = cluster.withoutCredentials();
 
@@ -325,7 +219,7 @@ public class ClusterTest {
         @Test
         void should_drop_every_security_field_when_security_has_no_protocol() {
             var configuration = Map.of("bootstrapServers", "broker:9092", "security", Map.of("sasl", Map.of("password", "secret")));
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("c").configuration(configuration).build();
+            var cluster = Cluster.builder().name("c").configuration(configuration).build();
 
             var redacted = cluster.withoutCredentials();
 
@@ -334,12 +228,11 @@ public class ClusterTest {
 
         @Test
         void should_leave_non_map_configuration_root_untouched() {
-            var cluster = Cluster.builder().type(ClusterType.KAFKA_CLUSTER_STANDALONE).name("c").configuration("raw").build();
+            var cluster = Cluster.builder().name("c").configuration("raw").build();
 
             var redacted = cluster.withoutCredentials();
 
             assertThat(redacted.getConfiguration()).isEqualTo("raw");
         }
     }
->>>>>>> e269957 (fix(rest-api): add credential-free copy of a cluster)
 }

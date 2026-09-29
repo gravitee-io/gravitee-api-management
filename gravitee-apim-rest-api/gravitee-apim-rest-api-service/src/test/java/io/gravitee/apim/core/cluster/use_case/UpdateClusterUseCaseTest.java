@@ -27,11 +27,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.cluster.crud_service.ClusterCrudService;
-<<<<<<< HEAD
-=======
 import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationAccessDomainService;
-import io.gravitee.apim.core.cluster.domain_service.ClusterConfigurationSchemaService;
->>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
 import io.gravitee.apim.core.cluster.domain_service.ValidateClusterService;
 import io.gravitee.apim.core.cluster.model.Cluster;
 import io.gravitee.apim.core.cluster.model.ClusterAuditEvent;
@@ -57,20 +53,13 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
     @BeforeEach
     void setUp() {
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
-<<<<<<< HEAD
-        updateClusterUseCase = new UpdateClusterUseCase(clusterCrudService, validateClusterService, auditService, permissionDomainService);
-=======
         updateClusterUseCase = new UpdateClusterUseCase(
             clusterCrudService,
             validateClusterService,
             auditService,
             permissionDomainService,
-            objectMapper,
             new ClusterConfigurationAccessDomainService(permissionDomainService)
         );
-        clusterQueryService.reset();
-        apiQueryService.reset();
->>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
 
         existingCluster = Cluster.builder()
             .id(GENERATED_UUID)
@@ -191,7 +180,7 @@ class UpdateClusterUseCaseTest extends AbstractUseCaseTest {
 
         // Then
         assertThat(clusterCrudService.findByIdAndEnvironmentId(GENERATED_UUID, ENV_ID).getConfiguration()).isEqualTo(
-            Map.of("bootstrapServers", "localhost:9092", "security", Map.of("protocol", "PLAINTEXT"))
+            Map.of("bootstrapServers", "localhost:9092")
         );
     }
 

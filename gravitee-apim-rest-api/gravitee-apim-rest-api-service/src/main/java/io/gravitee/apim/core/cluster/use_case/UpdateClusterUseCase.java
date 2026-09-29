@@ -42,11 +42,7 @@ public class UpdateClusterUseCase {
     private final ValidateClusterService validateClusterService;
     private final AuditDomainService auditService;
     private final PermissionDomainService permissionDomainService;
-<<<<<<< HEAD
-=======
-    private final ObjectMapper objectMapper;
     private final ClusterConfigurationAccessDomainService clusterConfigurationAccessDomainService;
->>>>>>> 9e65441 (fix(rest-api): redact cluster configuration in every cluster response)
 
     public record Input(String clusterId, UpdateCluster updateCluster, AuditInfo auditInfo) {}
 
