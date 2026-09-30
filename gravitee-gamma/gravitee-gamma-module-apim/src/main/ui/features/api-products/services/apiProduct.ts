@@ -106,6 +106,11 @@ export async function getApiProductApis(
     return apimFetchJsonV2<ApiListResponse>(environmentId, `/api-products/${productId}/apis?${params}`);
 }
 
+/**
+ * Only an HTTP proxy is offered: an agent asset — an LLM, MCP or A2A proxy — belongs to the AI Workspace that
+ * provisioned it, and the API refuses it in any other product. Asking for the one type we want rather than
+ * excluding the ones we do not keeps a future proxy type out without anyone remembering to add it here.
+ */
 export async function searchApisAllowedInProducts(
     environmentId: string,
     query: string,
@@ -116,6 +121,6 @@ export async function searchApisAllowedInProducts(
     return apimFetchJsonV2<ApiListResponse>(environmentId, `/apis/_search?${params}`, {
         method: 'POST',
         headers: JSON_HEADERS,
-        body: JSON.stringify({ query: query || undefined, allowedInApiProducts: true }),
+        body: JSON.stringify({ query: query || undefined, apiTypes: ['V4_HTTP_PROXY'], allowedInApiProducts: true }),
     });
 }
