@@ -50,6 +50,9 @@ interface GeneralStepProps {
     tenantsLoading: boolean;
     availableTenants: Tenant[];
     isTcp?: boolean;
+    isReadOnly?: boolean;
+    /** Secondary only applies with health-check (HTTP proxy APIs). */
+    showSecondary?: boolean;
     onChange: <K extends keyof EndpointFormState>(key: K, value: EndpointFormState[K]) => void;
 }
 
@@ -59,6 +62,8 @@ function EndpointGeneralStep({
     tenantsLoading,
     availableTenants,
     isTcp = false,
+    isReadOnly = false,
+    showSecondary = false,
     onChange,
 }: Readonly<GeneralStepProps>) {
     const nameError = (() => {
@@ -84,7 +89,13 @@ function EndpointGeneralStep({
                 <Label htmlFor="ep-name" className="text-sm">
                     Name <span className="text-destructive">*</span>
                 </Label>
-                <Input id="ep-name" value={form.name} onChange={e => onChange('name', e.target.value)} placeholder="my-endpoint" />
+                <Input
+                    id="ep-name"
+                    value={form.name}
+                    onChange={e => onChange('name', e.target.value)}
+                    placeholder="my-endpoint"
+                    disabled={isReadOnly}
+                />
                 {nameError && <p className="text-xs text-destructive">{nameError}</p>}
                 <p className="text-xs text-muted-foreground">Must be unique in this group. Colons are not allowed.</p>
             </div>
@@ -101,6 +112,7 @@ function EndpointGeneralStep({
                                 value={form.tcpTargetHost}
                                 onChange={e => onChange('tcpTargetHost', e.target.value)}
                                 placeholder="postgres.internal.example.com"
+                                disabled={isReadOnly}
                             />
                             {tcpHostError && <p className="text-xs text-destructive">{tcpHostError}</p>}
                         </div>
@@ -116,6 +128,7 @@ function EndpointGeneralStep({
                                 value={form.tcpTargetPort}
                                 onChange={e => onChange('tcpTargetPort', e.target.value)}
                                 placeholder="5432"
+                                disabled={isReadOnly}
                             />
                             {tcpPortError && <p className="text-xs text-destructive">{tcpPortError}</p>}
                         </div>
@@ -129,6 +142,7 @@ function EndpointGeneralStep({
                             checked={form.tcpTargetSecured}
                             onCheckedChange={v => onChange('tcpTargetSecured', v)}
                             aria-label="Enable TLS to the backend"
+                            disabled={isReadOnly}
                         />
                     </div>
                 </>
@@ -142,6 +156,7 @@ function EndpointGeneralStep({
                         value={form.target}
                         onChange={e => onChange('target', e.target.value)}
                         placeholder="https://backend.example.com"
+                        disabled={isReadOnly}
                     />
                     {targetError && <p className="text-xs text-destructive">{targetError}</p>}
                 </div>
@@ -160,6 +175,7 @@ function EndpointGeneralStep({
                         const n = parseInt(e.target.value, 10);
                         if (!isNaN(n)) onChange('weight', n);
                     }}
+                    disabled={isReadOnly}
                 />
                 {weightError && <p className="text-xs text-destructive">{weightError}</p>}
                 <p className="text-xs text-muted-foreground">Used by weighted load balancers. Must be at least 1.</p>
@@ -172,9 +188,21 @@ function EndpointGeneralStep({
                     selectedKeys={form.tenants}
                     tenants={availableTenants}
                     isLoading={tenantsLoading}
+                    disabled={isReadOnly}
                     onChange={keys => onChange('tenants', keys)}
                 />
             </div>
+
+            {showSecondary && (
+                <SwitchRow
+                    id="ep-secondary"
+                    label="Secondary endpoint"
+                    desc='A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all primary endpoints are marked as "DOWN" by health-check service.'
+                    checked={form.secondary}
+                    onChange={value => onChange('secondary', value)}
+                    disabled={isReadOnly}
+                />
+            )}
         </div>
     );
 }
@@ -336,6 +364,8 @@ export function EndpointForm({
                         tenantsLoading={tenantsLoading}
                         availableTenants={availableTenants}
                         isTcp={isTcp}
+                        isReadOnly={isReadOnly}
+                        showSecondary={showHealthCheck}
                         onChange={setField}
                     />
                 )}
@@ -347,12 +377,14 @@ export function EndpointForm({
                             desc="Use the endpoint group's shared connection configuration."
                             checked={form.inheritConfiguration}
                             onChange={value => setField('inheritConfiguration', value)}
+                            disabled={isReadOnly}
                         />
                         {!form.inheritConfiguration && (
                             <ConfigurationStep
                                 config={configOverride}
                                 proxyError={proxyError}
                                 isTcp={isTcp}
+                                disabled={isReadOnly}
                                 onChange={patch => {
                                     setConfigOverride(prev => ({ ...prev, ...patch }));
                                     setProxyError(null);
@@ -396,7 +428,9 @@ export function EndpointForm({
                             type="button"
                             size="sm"
                             onClick={handleSave}
-                            disabled={!generalValid || !configurationValid || isSaving || (showHealthCheck && !healthCheckValid)}
+                            disabled={
+                                isReadOnly || !generalValid || !configurationValid || isSaving || (showHealthCheck && !healthCheckValid)
+                            }
                         >
                             {isSaving ? 'Saving…' : isEdit ? 'Save endpoint' : 'Add endpoint'}
                         </Button>

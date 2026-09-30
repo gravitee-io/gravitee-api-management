@@ -510,6 +510,81 @@ describe('ApiEndpointsPage', () => {
         });
     });
 
+    describe('secondary endpoint', () => {
+        function advanceEndpointFormToSave() {
+            fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
+            fireEvent.click(screen.getByRole('button', { name: /^next$/i }));
+        }
+
+        it('persists secondary=true when toggled while adding an endpoint', () => {
+            renderPage();
+            fireEvent.click(screen.getByRole('button', { name: 'Add endpoint' }));
+
+            fireEvent.change(screen.getByPlaceholderText('my-endpoint'), { target: { value: 'fallback' } });
+            fireEvent.change(screen.getByPlaceholderText('https://backend.example.com'), {
+                target: { value: 'https://fallback.example.com' },
+            });
+            fireEvent.click(screen.getByLabelText(/^secondary endpoint$/i));
+            expect(screen.getByLabelText(/^secondary endpoint$/i)).toBeChecked();
+
+            advanceEndpointFormToSave();
+            fireEvent.click(screen.getByRole('button', { name: /^add endpoint$/i }));
+
+            const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
+            const newEndpoint = savedGroups[0].endpoints?.find(e => e.name === 'fallback');
+            expect(newEndpoint?.secondary).toBe(true);
+            expect(newEndpoint?.configuration?.target).toBe('https://fallback.example.com');
+        });
+
+        it('loads secondary=true from the DTO and persists secondary=false when cleared', () => {
+            const secondaryEndpoint = {
+                ...ENDPOINT_A,
+                secondary: true,
+            };
+            mockUseApiDetailContext.mockReturnValue({
+                api: {
+                    ...HTTP_PROXY_API_BASE,
+                    endpointGroups: [{ ...GROUP_1, endpoints: [secondaryEndpoint] }],
+                },
+                isLoading: false,
+            });
+            renderPage();
+
+            expect(screen.getByText('Secondary')).toBeInTheDocument();
+
+            fireEvent.click(screen.getByRole('button', { name: 'Edit endpoint ep-a' }));
+            const secondarySwitch = screen.getByLabelText(/^secondary endpoint$/i);
+            expect(secondarySwitch).toBeChecked();
+
+            fireEvent.click(secondarySwitch);
+            expect(secondarySwitch).not.toBeChecked();
+
+            advanceEndpointFormToSave();
+            fireEvent.click(screen.getByRole('button', { name: /save endpoint/i }));
+
+            const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
+            expect(savedGroups[0].endpoints?.[0]?.secondary).toBe(false);
+        });
+
+        it('sends an explicit secondary=false for a newly added primary endpoint', () => {
+            renderPage();
+            fireEvent.click(screen.getByRole('button', { name: 'Add endpoint' }));
+
+            fireEvent.change(screen.getByPlaceholderText('my-endpoint'), { target: { value: 'primary-ep' } });
+            fireEvent.change(screen.getByPlaceholderText('https://backend.example.com'), {
+                target: { value: 'https://primary.example.com' },
+            });
+            expect(screen.getByLabelText(/^secondary endpoint$/i)).not.toBeChecked();
+
+            advanceEndpointFormToSave();
+            fireEvent.click(screen.getByRole('button', { name: /^add endpoint$/i }));
+
+            const savedGroups: EndpointGroupDto[] = mockMutate.mock.calls[0][0];
+            const newEndpoint = savedGroups[0].endpoints?.find(e => e.name === 'primary-ep');
+            expect(newEndpoint?.secondary).toBe(false);
+        });
+    });
+
     // ── TCP endpoint groups ────────────────────────────────────────────────────
 
     describe('tcp-proxy endpoint group editing', () => {

@@ -29,7 +29,8 @@ import { ApiEndpointGroupsStandardComponent } from './api-endpoint-groups-standa
 import { ApiEndpointGroupsStandardHarness } from './api-endpoint-groups-standard.harness';
 
 import { ApiEndpointGroupsModule } from '../api-endpoint-groups.module';
-import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin } from '../../../../../entities/management-api-v2';
+import { ApiV4, EndpointGroupV4, fakeApiV4, fakeConnectorPlugin, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
+import { fakeHTTPProxyEndpointGroupV4 } from '../../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { expectTenantsGetRequest } from '../../../../../services-ngx/tenant.service.spec';
@@ -189,6 +190,68 @@ describe('ApiEndpointGroupsStandardComponent', () => {
         ['', 'another endpoint', 'localhost:9093', '5', ''],
       ]);
     });
+
+    it('should display Secondary badge for secondary HTTP-proxy endpoints', async () => {
+      const httpGroup = fakeHTTPProxyEndpointGroupV4({
+        name: 'http-group',
+        endpoints: [
+          {
+            name: 'an endpoint',
+            type: 'http-proxy',
+            weight: 1,
+            inheritConfiguration: true,
+            secondary: false,
+            configuration: { target: 'https://primary.example.com' },
+          },
+          {
+            name: 'another endpoint',
+            type: 'http-proxy',
+            weight: 5,
+            inheritConfiguration: true,
+            secondary: true,
+            configuration: { target: 'https://fallback.example.com' },
+          },
+        ],
+      });
+      const apiV4 = fakeProxyApiV4({
+        id: API_ID,
+        endpointGroups: [httpGroup],
+      });
+      await initComponent(apiV4);
+
+      expect(await componentHarness.getTableRows(0)).toEqual([
+        ['', 'an endpoint', 'https://primary.example.com', '', '1', ''],
+        ['', 'another endpoint', 'https://fallback.example.com', 'Secondary', '5', ''],
+      ]);
+    });
+
+    it('should not display Secondary badge for secondary kafka endpoints', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          {
+            ...group1,
+            endpoints: [
+              {
+                ...group1.endpoints[0],
+                secondary: false,
+              },
+              {
+                ...group1.endpoints[1],
+                secondary: true,
+              },
+            ],
+          },
+        ],
+      });
+      await initComponent(apiV4);
+
+      expect(await componentHarness.getTableRows(0)).toEqual([
+        ['', 'an endpoint', 'localhost:9092', '1', ''],
+        ['', 'another endpoint', 'localhost:9093', '5', ''],
+      ]);
+    });
+
     it('should a warning in kafka endpoint group if failover is enabled', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,

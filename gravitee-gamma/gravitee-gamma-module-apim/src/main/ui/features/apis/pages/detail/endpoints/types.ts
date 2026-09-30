@@ -30,12 +30,12 @@ export interface EndpointFormState {
     tcpTargetPort: string;
     tcpTargetSecured: boolean;
     weight: number;
-    backup: boolean;
+    secondary: boolean;
     inheritConfiguration: boolean;
     tenants: string[];
     /**
      * Original backend DTO — preserved so that fields we don't manage in the form
-     * (services, secondary, etc.) survive a save round-trip.
+     * (services, etc.) survive a save round-trip.
      */
     _originalDto?: EndpointDto;
     /**
@@ -251,7 +251,7 @@ export function newEndpointRow(groupHealthCheck?: HealthCheckFormState): Endpoin
         tcpTargetPort: '',
         tcpTargetSecured: false,
         weight: 1,
-        backup: false,
+        secondary: false,
         inheritConfiguration: true,
         tenants: [],
         healthCheck: {

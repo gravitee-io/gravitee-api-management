@@ -134,22 +134,29 @@ const toGeneralInfo = (api: ApiV4, endpoint: EndpointV4): string | undefined => 
 };
 
 const toEndpointOptions = (api: ApiV4, endpointGroup: EndpointGroupV4, endpoint: EndpointV4): Endpoint['options'] => {
+  const options: Endpoint['options'] = [];
+
   switch (api.type + '.' + endpoint.type) {
     case 'PROXY.http-proxy': {
+      if (endpoint.secondary) {
+        options.push({
+          class: 'gio-badge-neutral',
+          tooltip: 'Secondary endpoint',
+          textContent: 'Secondary',
+        });
+      }
       const groupHealthCheckEnabled = get(endpointGroup, 'services.healthCheck.enabled', false);
       const endpointHealthCheckEnabled = get(endpoint, 'services.healthCheck.enabled', false);
       if (groupHealthCheckEnabled || endpointHealthCheckEnabled) {
-        return [
-          {
-            class: 'gio-badge-neutral',
-            tooltip: endpointHealthCheckEnabled
-              ? 'Health check enabled by endpoint configuration'
-              : 'Health check enabled via inherited group configuration',
-            textContent: 'Health Check',
-          },
-        ];
+        options.push({
+          class: 'gio-badge-neutral',
+          tooltip: endpointHealthCheckEnabled
+            ? 'Health check enabled by endpoint configuration'
+            : 'Health check enabled via inherited group configuration',
+          textContent: 'Health Check',
+        });
       }
-      return [];
+      break;
     }
     case 'NATIVE.native-kafka': {
       const groupSecurityProtocol = get(endpointGroup.sharedConfiguration, 'security.protocol');
@@ -157,19 +164,18 @@ const toEndpointOptions = (api: ApiV4, endpointGroup: EndpointGroupV4, endpoint:
         ? undefined
         : get(endpoint.sharedConfigurationOverride, 'security.protocol');
       if (groupSecurityProtocol || endpointSecurityProtocol) {
-        return [
-          {
-            class: 'gio-badge-neutral',
-            tooltip: endpointSecurityProtocol
-              ? `Security protocol override by endpoint configuration`
-              : 'Security protocol inherited from group configuration',
-            textContent: endpointSecurityProtocol ?? groupSecurityProtocol,
-          },
-        ];
+        options.push({
+          class: 'gio-badge-neutral',
+          tooltip: endpointSecurityProtocol
+            ? `Security protocol override by endpoint configuration`
+            : 'Security protocol inherited from group configuration',
+          textContent: endpointSecurityProtocol ?? groupSecurityProtocol,
+        });
       }
+      break;
     }
   }
-  return [];
+  return options;
 };
 
 const getTenantNameByKey = (tenants: Tenant[], tenantKey: string): string => {

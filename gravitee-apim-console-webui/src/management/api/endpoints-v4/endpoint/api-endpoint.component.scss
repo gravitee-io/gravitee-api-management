@@ -45,6 +45,20 @@
       border-radius: 8px;
     }
 
+    &__secondary {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      &__checkbox {
+        margin-left: 8px;
+
+        &__label {
+          white-space: initial;
+        }
+      }
+    }
+
     &__tab-content {
       padding: 24px 0;
     }

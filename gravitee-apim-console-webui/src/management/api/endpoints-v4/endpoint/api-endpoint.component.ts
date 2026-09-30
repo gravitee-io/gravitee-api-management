@@ -143,7 +143,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       configuration: this.formGroup.get('configuration').value,
       sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfigurationOverride').value,
       inheritConfiguration,
-      ...(this.endpoint?.secondary != null ? { secondary: this.endpoint.secondary } : {}),
+      secondary: this.formGroup.get('secondary').value ?? false,
     };
 
     if (this.isHttpProxyApi) {
@@ -251,6 +251,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     let inheritConfiguration = !!sharedConfigurationOverride;
     let weight = null;
     let tenants = null;
+    let secondary = false;
 
     if (this.mode === 'edit') {
       this.endpointIndex = +this.activatedRoute.snapshot.params.endpointIndex;
@@ -265,6 +266,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       name = this.endpoint.name;
       weight = this.endpoint.weight;
       tenants = this.endpoint.tenants;
+      secondary = this.endpoint.secondary ?? false;
       inheritConfiguration = this.endpoint.inheritConfiguration;
       configuration = this.endpoint.configuration;
       if (!inheritConfiguration) {
@@ -326,6 +328,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       ]),
       weight: new UntypedFormControl({ value: weight, disabled: this.isReadOnly }),
       tenants: new UntypedFormControl({ value: tenants, disabled: this.isReadOnly }),
+      secondary: new UntypedFormControl({ value: secondary, disabled: this.isReadOnly }),
       inheritConfiguration: new UntypedFormControl({ value: inheritConfiguration, disabled: this.isReadOnly }),
       configuration: new UntypedFormControl({ value: configuration, disabled: this.isReadOnly }),
       sharedConfigurationOverride: new UntypedFormControl({
