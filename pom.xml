@@ -87,7 +87,7 @@
     <!-- Other dependencies version -->
     <angus-activation.version>2.0.3</angus-activation.version>
     <angus-mail.version>2.0.5</angus-mail.version>
-    <archunit-junit5.version>1.5.0</archunit-junit5.version>
+    <archunit-junit5.version>1.5.1</archunit-junit5.version>
     <asm.version>9.10.1</asm.version>
     <awaitility.version>4.3.0</awaitility.version>
     <batik-transcoder.version>1.19</batik-transcoder.version>
