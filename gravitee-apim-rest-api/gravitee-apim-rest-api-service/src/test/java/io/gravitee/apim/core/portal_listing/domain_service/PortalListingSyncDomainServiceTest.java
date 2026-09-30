@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
@@ -54,6 +55,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -66,6 +68,8 @@ import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalListingSyncDomainServiceTest {
@@ -99,11 +103,15 @@ class PortalListingSyncDomainServiceTest {
         pageContentQuery.reset();
         pageContentCrud.reset();
         apiCrud.reset();
+        validator = mock(PortalNavigationValidator.class);
+        syncService = newSyncService(validator);
+    }
+
+    private PortalListingSyncDomainService newSyncService(PortalNavigationValidator validator) {
         var portalListingCrud = new PortalListingCrudServiceInMemory();
         var apiDocSync = new ApiDocumentationSyncDomainService(navItemCrud, navItemQuery, mock(PortalNavigationItemValidatorService.class));
         var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, navItemQuery);
-        validator = mock(PortalNavigationValidator.class);
-        syncService = new PortalListingSyncDomainService(
+        return new PortalListingSyncDomainService(
             pageContentQuery,
             apiDocSync,
             new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync, apiCrud),
@@ -408,6 +416,15 @@ class PortalListingSyncDomainServiceTest {
             .build();
     }
 
+    private static Api anApi(String hrid, List<NavigationPath> navPaths) {
+        return Api.builder()
+            .id(HRIDToUUID.api().context(AUDIT_INFO).hrid(hrid).id())
+            .name(hrid)
+            .environmentId(AUDIT_INFO.environmentId())
+            .portalNavigation(navPaths)
+            .build();
+    }
+
     private static PortalListing aListing(List<PortalListingApiEntry> apis) {
         return PortalListing.of(LISTING_ID, AUDIT_INFO.environmentId(), AUDIT_INFO.organizationId(), PORTAL_ID, apis);
     }
@@ -498,16 +515,7 @@ class PortalListingSyncDomainServiceTest {
     @Test
     void validate_for_conflicts_does_not_recreate_api_folders_that_already_exist_when_listing_for_the_first_time() {
         var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
-        apiCrud.initWith(
-            List.of(
-                io.gravitee.apim.core.api.model.Api.builder()
-                    .id(apiId)
-                    .name(API_HRID)
-                    .environmentId(AUDIT_INFO.environmentId())
-                    .portalNavigation(List.of(new NavigationPath("/md", "How to")))
-                    .build()
-            )
-        );
+        apiCrud.initWith(List.of(anApi(API_HRID, List.of(new NavigationPath("/md", "How to")))));
         // The api's own portal_navigation apply materializes its folder independently of any listing.
         syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());
 
@@ -515,16 +523,10 @@ class PortalListingSyncDomainServiceTest {
 
         syncService.validateForConflicts(AUDIT_INFO, PORTAL_ID, listing);
 
-        var createsCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
-        var updatesCaptor = org.mockito.ArgumentCaptor.forClass(List.class);
-        org.mockito.Mockito.verify(validator).validate(
-            createsCaptor.capture(),
-            updatesCaptor.capture(),
-            org.mockito.ArgumentMatchers.anyString()
-        );
-        assertThat(createsCaptor.getValue())
-            .extracting("type")
-            .containsExactly(io.gravitee.apim.core.portal_page.model.PortalNavigationItemType.API);
+        var createsCaptor = ArgumentCaptor.forClass(List.class);
+        var updatesCaptor = ArgumentCaptor.forClass(List.class);
+        verify(validator).validate(createsCaptor.capture(), updatesCaptor.capture(), ArgumentMatchers.anyString());
+        assertThat(createsCaptor.getValue()).extracting("type").containsExactly(PortalNavigationItemType.API);
     }
 
     @Test
@@ -579,25 +581,7 @@ class PortalListingSyncDomainServiceTest {
                 new ApiProductQueryServiceInMemory(),
                 new PortalNavigationItemSourceDomainServiceInMemory()
             );
-            var portalListingCrud = new PortalListingCrudServiceInMemory();
-            var apiDocSync = new ApiDocumentationSyncDomainService(
-                navItemCrud,
-                navItemQuery,
-                mock(PortalNavigationItemValidatorService.class)
-            );
-            var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, navItemQuery);
-            syncService = new PortalListingSyncDomainService(
-                pageContentQuery,
-                apiDocSync,
-                new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync, apiCrud),
-                new ApiFolderSubtreeReconciler(
-                    navItemQuery,
-                    apiCrud,
-                    new NavigationSyncPlanExecutor(navItemCrud, navItemQuery, pageContentCrud),
-                    automationManaged
-                ),
-                realValidator
-            );
+            syncService = newSyncService(realValidator);
         }
 
         @Test
@@ -654,40 +638,13 @@ class PortalListingSyncDomainServiceTest {
                 new ApiProductQueryServiceInMemory(),
                 new PortalNavigationItemSourceDomainServiceInMemory()
             );
-            var portalListingCrud = new PortalListingCrudServiceInMemory();
-            var apiDocSync = new ApiDocumentationSyncDomainService(
-                navItemCrud,
-                navItemQuery,
-                mock(PortalNavigationItemValidatorService.class)
-            );
-            var automationManaged = new AutomationManagedNavigationItemsQueryService(portalListingCrud, navItemQuery);
-            syncService = new PortalListingSyncDomainService(
-                pageContentQuery,
-                apiDocSync,
-                new NavigationItemEntryMaterializer(navItemCrud, navItemQuery, apiDocSync, apiCrud),
-                new ApiFolderSubtreeReconciler(
-                    navItemQuery,
-                    apiCrud,
-                    new NavigationSyncPlanExecutor(navItemCrud, navItemQuery, pageContentCrud),
-                    automationManaged
-                ),
-                realValidator
-            );
+            syncService = newSyncService(realValidator);
         }
 
         @Test
         void does_not_reject_listing_an_api_whose_own_navigation_folders_already_exist() {
             var apiId = HRIDToUUID.api().context(AUDIT_INFO).hrid(API_HRID).id();
-            apiCrud.initWith(
-                List.of(
-                    io.gravitee.apim.core.api.model.Api.builder()
-                        .id(apiId)
-                        .name(API_HRID)
-                        .environmentId(AUDIT_INFO.environmentId())
-                        .portalNavigation(List.of(new NavigationPath("/md", "How to")))
-                        .build()
-                )
-            );
+            apiCrud.initWith(List.of(anApi(API_HRID, List.of(new NavigationPath("/md", "How to")))));
             syncService.syncApiFolders(AUDIT_INFO, apiId, List.of());
 
             var listing = aListing(List.of(new PortalListingApiEntry(API_HRID, "/projects/alpha", 1)));

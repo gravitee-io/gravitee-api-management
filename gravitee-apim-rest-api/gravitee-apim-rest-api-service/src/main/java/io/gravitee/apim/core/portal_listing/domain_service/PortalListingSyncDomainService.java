@@ -109,10 +109,12 @@ public class PortalListingSyncDomainService {
         PortalListingApiEntry entry
     ) {
         var apiId = entry.apiId(auditInfo);
+        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
+        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, currentFolders);
         var existing = findExistingRow(auditInfo, portalId, apiId);
         return switch (existing) {
-            case null -> validationItemsForNewRow(auditInfo, portalId, apiId, entry, envFolders);
-            case PortalNavigationApi navApi -> validationItemsForExistingRow(auditInfo, portalId, apiId, entry, navApi, envFolders);
+            case null -> validationItemsForNewRow(auditInfo, portalId, apiId, entry, subtree);
+            case PortalNavigationApi navApi -> validationItemsForExistingRow(auditInfo, portalId, entry, navApi, subtree);
             default -> throw PathConflictException.navigationIdTaken(PathConflictException.EntryKind.LISTING, entry.location());
         };
     }
@@ -129,11 +131,9 @@ public class PortalListingSyncDomainService {
         PortalId portalId,
         String apiId,
         PortalListingApiEntry entry,
-        List<PortalNavigationItem> envFolders
+        ValidationItems subtree
     ) {
         var rowCreate = navigationItemEntryMaterializer.itemForValidation(auditInfo, portalId, apiId, entry);
-        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
-        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, currentFolders);
         var creates = new ArrayList<CreatePortalNavigationItem>(subtree.creates().size() + 1);
         creates.add(rowCreate);
         creates.addAll(subtree.creates());
@@ -143,13 +143,10 @@ public class PortalListingSyncDomainService {
     private ValidationItems validationItemsForExistingRow(
         AuditInfo auditInfo,
         PortalId portalId,
-        String apiId,
         PortalListingApiEntry entry,
         PortalNavigationApi navApi,
-        List<PortalNavigationItem> envFolders
+        ValidationItems subtree
     ) {
-        var currentFolders = apiFolderSubtreeReconciler.collectFolderDescendantsFrom(envFolders, apiId);
-        var subtree = apiFolderSubtreeReconciler.itemsForValidation(auditInfo, apiId, currentFolders);
         var rowUpdate = navigationItemEntryMaterializer.updateForValidation(auditInfo, portalId, entry, navApi);
         var updates = new ArrayList<>(subtree.updates());
         updates.add(rowUpdate);
