@@ -26,6 +26,7 @@ import io.gravitee.apim.core.theme.model.NewTheme;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
 import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -180,6 +181,90 @@ public class CurrentThemeDomainServiceTest {
             cut.disablePreviousEnabledTheme(newPortalNextTheme);
 
             assertThat(themeCrudService.storage()).contains(currentPortalTheme);
+        }
+    }
+
+    @Nested
+    class DeactivateAndFallback {
+
+        @Test
+        void should_activate_another_existing_theme_of_the_same_type() {
+            var deactivated = Theme.builder()
+                .id("deactivated")
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceId(ENV_ID)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .enabled(true)
+                .createdAt(ZonedDateTime.now())
+                .build();
+            var other = Theme.builder()
+                .id("other")
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceId(ENV_ID)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .enabled(false)
+                .createdAt(ZonedDateTime.now())
+                .build();
+            themeCrudService.initWith(Arrays.asList(deactivated, other));
+
+            cut.deactivateAndFallback(deactivated);
+
+            assertThat(themeCrudService.storage())
+                .filteredOn(t -> t.getId().equals("deactivated"))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(false);
+            assertThat(themeCrudService.storage())
+                .filteredOn(t -> t.getId().equals("other"))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(true);
+        }
+
+        @Test
+        void should_only_deactivate_when_no_other_theme_of_the_same_type_exists() {
+            var deactivated = Theme.builder()
+                .id("deactivated")
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceId(ENV_ID)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .enabled(true)
+                .createdAt(ZonedDateTime.now())
+                .build();
+            themeCrudService.initWith(List.of(deactivated));
+
+            cut.deactivateAndFallback(deactivated);
+
+            assertThat(themeCrudService.storage()).singleElement().extracting(Theme::isEnabled).isEqualTo(false);
+        }
+
+        @Test
+        void should_not_fall_back_to_a_theme_of_a_different_type() {
+            var deactivated = Theme.builder()
+                .id("deactivated")
+                .type(ThemeType.PORTAL_NEXT)
+                .referenceId(ENV_ID)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .enabled(true)
+                .createdAt(ZonedDateTime.now())
+                .build();
+            var differentType = Theme.builder()
+                .id("different-type")
+                .type(ThemeType.PORTAL)
+                .referenceId(ENV_ID)
+                .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                .enabled(false)
+                .createdAt(ZonedDateTime.now().minusDays(1))
+                .build();
+            themeCrudService.initWith(Arrays.asList(deactivated, differentType));
+
+            cut.deactivateAndFallback(deactivated);
+
+            assertThat(themeCrudService.storage())
+                .filteredOn(t -> t.getId().equals("different-type"))
+                .singleElement()
+                .extracting(Theme::isEnabled)
+                .isEqualTo(false);
         }
     }
 }
