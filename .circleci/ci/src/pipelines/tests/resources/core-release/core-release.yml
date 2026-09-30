@@ -210,10 +210,6 @@ jobs:
           fingerprints:
             - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
       - keeper/env-export:
-          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
-          var-name: GITHUB_TOKEN
-      - gh/setup
-      - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
       - keeper/env-export:
@@ -229,10 +225,10 @@ jobs:
           command: |-
             # The lane checked out the tag, and the branch has moved on since — it carries the commit
             # reopening the next development version. The pin has to be advanced there, not on the tag.
-            # --no-track: a remote starting point sets an upstream on its own, and this branch is pushed
+            # --no-track: a remote starting point sets an upstream on its own, and the branch is pushed
             # explicitly below.
             git fetch origin 4.13.x
-            git checkout -B chore/pin-core-4.13.x --no-track origin/4.13.x
+            git checkout -B 4.13.x --no-track origin/4.13.x
 
             sed -i "s#<apim.core.version>.*</apim.core.version>#<apim.core.version>4.13.0</apim.core.version>#" gravitee-apim-distribution/pom.xml
 
@@ -250,25 +246,10 @@ jobs:
             fi
 
             git add --update
-            git commit -m "chore(distribution): pin core 4.13.0"
-            # Rebuilt from the base branch every time, so the push replaces whatever was there. A release that
-            # lands before the previous pin was merged updates that pull request instead of opening a rival —
-            # only the newest core is worth reviewing. Anything pushed onto this branch by hand goes with it.
-            git push --force origin chore/pin-core-4.13.x
-
-            TITLE="chore(distribution): pin core 4.13.0"
-            BODY="Core 4.13.0 has been published. Merging this makes the distribution assemble it.
-
-            Its integration tests run against the pinned core, so a green build here is the evidence that this core is ready to ship. Until it is merged, 4.13.x keeps releasing on the core it already pins.
-
-            This branch is rebuilt on every core release: a newer core replaces this one rather than opening a second pull request."
-
-            if [ "$(gh pr list --head chore/pin-core-4.13.x --state open --json number --jq 'length')" = "0" ]; then
-              gh pr create --base 4.13.x --head chore/pin-core-4.13.x --title "$TITLE" --body "$BODY"
-            else
-              echo "A pin pull request is already open on chore/pin-core-4.13.x, bringing it up to core 4.13.0."
-              gh pr edit chore/pin-core-4.13.x --title "$TITLE" --body "$BODY"
-            fi
+            git commit -m 'chore(distribution): pin core 4.13.0 [skip ci]'
+            # No --force, unlike the pull request branch this replaced: a commit that landed on 4.13.x since
+            # the fetch above fails this push instead of being overwritten by the pin.
+            git push origin 4.13.x
 workflows:
   core_release:
     jobs:
@@ -299,7 +280,7 @@ workflows:
       - job-pin-core:
           context:
             - cicd-orchestrator
-          name: Open the pinning pull request
+          name: Pin the core
           requires:
             - Publish release
           filters:
@@ -311,4 +292,3 @@ workflows:
                 - /^core_(\d+\.\d+\.\d+(-[a-z]+\.\d+)?)$/
 orbs:
   keeper: gravitee-io/keeper@0.7.1
-  gh: circleci/github-cli@1.0.5

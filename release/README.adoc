@@ -113,13 +113,13 @@ Before triggering anything, the command checks two things, both read-only, so th
 * the version matches the root pom of the branch it will release from — the same check the distribution lane makes, narrowed to the one reactor this lane moves;
 * `core_4.13.0` does not already exist. An existing tag means that version has already been released, and pushing it again fails halfway — after the branch has been committed to and reopened on the next version, a state that has to be unwound by hand.
 
-`--dry-run` runs the same job with the pushes disarmed, which is as far as a rehearsal goes here: a tag cannot be pushed provisionally, so what it rehearses is the commit, the tag and the bump — not the publication, and not the pull request that follows it.
+`--dry-run` runs the same job with the pushes disarmed, which is as far as a rehearsal goes here: a tag cannot be pushed provisionally, so what it rehearses is the commit, the tag and the bump — not the publication, and not the pin commit that follows it.
 
 Only the root pom is advanced. The distribution carries its own triplet and releases under its own tag, so a core release leaves it where it is.
 
-What a core release never touches is `apim.core.version` — the version of the core the distribution assembles. Advancing that pin is a separate, reviewed change: it is the moment someone decides a core is ready to ship.
+What a core release never touches in the commit it pushes is `apim.core.version` — the version of the core the distribution assembles. That pin moves in a commit of its own, which the release lane pushes onto the support branch once the core is published: publishing a core is what decides it ships, so there is nothing left to approve afterwards.
 
-The release lane opens that pull request itself, once the core is published, and brings it up to date on every later core release rather than opening a second one. Merging it is the decision; leaving it costs nothing, the branch keeping the core it already pins.
+That commit carries `[skip ci]`. It moves one property, and what builds against the new pin is the branch's own work — its nightly, its pull requests, and the distribution release that ships it.
 
 == Hotfixes
 

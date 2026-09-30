@@ -59,11 +59,11 @@ export class WorkflowCoreRelease {
         filters: WorkflowCoreRelease.tagOnly,
       }),
 
-      // After publication, never before: the pull request's integration tests resolve the core it
-      // pins, and that core has to exist by then.
+      // After publication, never before: the branch assembles the pinned core on its next build, and
+      // that core has to exist by then.
       new workflow.WorkflowJob(pinCoreJob, {
         context: config.jobContext,
-        name: 'Open the pinning pull request',
+        name: 'Pin the core',
         requires: ['Publish release'],
         filters: WorkflowCoreRelease.tagOnly,
       }),

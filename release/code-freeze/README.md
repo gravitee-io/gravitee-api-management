@@ -63,9 +63,9 @@ assembles a core the other publishes.
 
 What that does not do is make the new line releasable. A release refuses a SNAPSHOT pin — locally,
 through `assertPinIsReleasable`, before the pipeline is even triggered, and again in the publishing
-lane through Maven. **The branch's first act therefore has to be a core release, followed by merging
-the pinning pull request the core lane opens on it.** The refusal is loud and immediate; what nobody
-says is what to do about it.
+lane through Maven. **The branch's first act therefore has to be a core release: the core lane
+commits the new pin onto the branch itself, so there is nothing to merge afterwards.** The refusal is
+loud and immediate; what nobody says is what to do about it.
 
 ### The schedules are declared, not copied
 
@@ -159,8 +159,8 @@ Apart from the pin, no step re-reads what it wrote. The closing summary prints w
 - [ ] `<major>.<minor>.x` exists on the remote, at `<revision>-alpha.1-SNAPSHOT` in **both** poms.
 - [ ] Master builds at `<major>.<minor+1>.0-SNAPSHOT` in **both** poms.
 - [ ] The new branch pins `<revision>-alpha.1-SNAPSHOT`, and master pins `<major>.<minor+1>.0-SNAPSHOT`.
-- [ ] Releasing the new line for real is understood to need a core release first, and its pinning
-      pull request merged.
+- [ ] Releasing the new line for real is understood to need a core release first, which advances the
+      pin on its own.
 - [ ] `.mergify.yml` names the new branch, and **still names the line that has not been retired yet**.
 - [ ] The bridge compatibility matrix names the new line, on the branch and on master.
 - [ ] The `apply-on-<major>-<minor>-x` label exists.
