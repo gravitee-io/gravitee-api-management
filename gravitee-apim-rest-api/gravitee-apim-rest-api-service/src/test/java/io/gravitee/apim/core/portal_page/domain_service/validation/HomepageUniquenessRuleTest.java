@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -116,15 +117,7 @@ class HomepageUniquenessRuleTest {
     void an_existing_homepage_declared_ignorable_does_not_conflict() {
         var staleHomepage = PortalNavigationItem.from(homepageCreateItem(null), ORG_ID, ENV_ID, null);
         navigationItemsQueryService.storage().add(staleHomepage);
-        var ctx = new CreateValidationContext(
-            java.util.List.of(),
-            java.util.Map.of(),
-            java.util.Map.of(),
-            java.util.Map.of(),
-            java.util.List.of(),
-            java.util.Set.of(),
-            java.util.Set.of(staleHomepage.getId())
-        );
+        var ctx = CreateValidationContext.replacing(Set.of(staleHomepage.getId()));
 
         assertThatCode(() -> rule.validate(homepageCreateItem(null), ENV_ID, ctx)).doesNotThrowAnyException();
     }
