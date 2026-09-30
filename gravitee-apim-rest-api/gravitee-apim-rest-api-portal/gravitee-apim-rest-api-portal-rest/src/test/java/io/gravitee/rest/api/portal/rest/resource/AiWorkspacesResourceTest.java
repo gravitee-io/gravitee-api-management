@@ -19,12 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
+import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -39,6 +41,9 @@ import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspacesResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -71,6 +76,9 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
     @Autowired
     private ApiKeyQueryServiceInMemory keys;
 
+    @Autowired
+    private AnalyticsEngineQueryService analytics;
+
     @Override
     protected String contextPath() {
         return "ai-workspaces/";
@@ -80,6 +88,13 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
     void setUp() {
         resetAllMocks();
         GraviteeContext.setCurrentEnvironment("DEFAULT");
+        when(
+            parameterService.findAsBoolean(
+                any(ExecutionContext.class),
+                eq(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(true);
         doReturn(Set.of(ApplicationListItem.builder().id("app-1").build()))
             .when(applicationService)
             .findByUser(any(ExecutionContext.class), eq(USER_NAME));
@@ -177,6 +192,37 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         Response response = target("missing").request().get();
 
         assertThat(response.getStatus()).isEqualTo(404);
+    }
+
+    @Test
+    void disabled_capability_is_not_found() {
+        when(
+            parameterService.findAsBoolean(
+                any(ExecutionContext.class),
+                eq(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED),
+                eq(ParameterReferenceType.ENVIRONMENT)
+            )
+        ).thenReturn(false);
+
+        assertThat(target().request().get().getStatus()).isEqualTo(404);
+        assertThat(target("ws-1").request().get().getStatus()).isEqualTo(404);
+    }
+
+    @Test
+    void consumption_returns_zeros_when_analytics_fails() {
+        products.initWith(List.of(workspace("Alpha")));
+        subscriptions.initWith(List.of(subscription("ws-1")));
+        when(analytics.searchFacets(any(), any())).thenThrow(new RuntimeException("down"));
+
+        Response response = target("ws-1/consumption").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        AiWorkspaceConsumption body = response.readEntity(AiWorkspaceConsumption.class);
+        assertThat(body.getTokens()).isZero();
+        assertThat(body.getRequests()).isZero();
+        assertThat(body.getCost()).isZero();
+        assertThat(body.getFrom()).isNotNull();
+        assertThat(body.getTo()).isNotNull();
     }
 
     private static ApiProduct workspace(String name) {

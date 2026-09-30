@@ -549,6 +549,11 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
+    public io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService analyticsEngineQueryService() {
+        return mock(io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService.class);
+    }
+
+    @Bean
     public EntrypointService entrypointService() {
         return mock(EntrypointService.class);
     }

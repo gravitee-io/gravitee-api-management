@@ -17,13 +17,18 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
+import io.gravitee.apim.core.ai_workspace.exception.AiWorkspaceNotFoundException;
+import io.gravitee.apim.core.ai_workspace.use_case.GetMyAiWorkspaceConsumptionUseCase;
 import io.gravitee.apim.core.ai_workspace.use_case.GetMyAiWorkspaceUseCase;
 import io.gravitee.apim.core.ai_workspace.use_case.ListMyAiWorkspacesUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.AiWorkspaceMapper;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
@@ -45,12 +50,18 @@ public class AiWorkspacesResource extends AbstractResource {
     private GetMyAiWorkspaceUseCase getMyAiWorkspaceUseCase;
 
     @Inject
+    private GetMyAiWorkspaceConsumptionUseCase getMyAiWorkspaceConsumptionUseCase;
+
+    @Inject
     private ApplicationService applicationService;
+
+    @Inject
+    private ParameterService parameterService;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response list(@BeanParam PaginationParam pagination, @QueryParam("name") String name) {
-        requireAuthenticated();
+        requireEnabled();
         var executionContext = getExecutionContext();
         var page = listMyAiWorkspacesUseCase
             .execute(
@@ -64,16 +75,36 @@ public class AiWorkspacesResource extends AbstractResource {
     @Path("{aiWorkspaceId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response get(@PathParam("aiWorkspaceId") String aiWorkspaceId) {
-        requireAuthenticated();
+        requireEnabled();
         var details = getMyAiWorkspaceUseCase
             .execute(new GetMyAiWorkspaceUseCase.Input(getExecutionContext(), applicationIds(), aiWorkspaceId))
             .details();
         return Response.ok(AiWorkspaceMapper.toDetails(details)).build();
     }
 
-    private void requireAuthenticated() {
+    @GET
+    @Path("{aiWorkspaceId}/consumption")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response consumption(@PathParam("aiWorkspaceId") String aiWorkspaceId) {
+        requireEnabled();
+        var consumption = getMyAiWorkspaceConsumptionUseCase
+            .execute(new GetMyAiWorkspaceConsumptionUseCase.Input(getExecutionContext(), applicationIds(), aiWorkspaceId))
+            .consumption();
+        return Response.ok(AiWorkspaceMapper.toConsumption(consumption)).build();
+    }
+
+    private void requireEnabled() {
         if (!isAuthenticated()) {
             throw new UnauthorizedAccessException();
+        }
+        if (
+            !parameterService.findAsBoolean(
+                getExecutionContext(),
+                Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ) {
+            throw new AiWorkspaceNotFoundException("ai-workspaces");
         }
     }
 
