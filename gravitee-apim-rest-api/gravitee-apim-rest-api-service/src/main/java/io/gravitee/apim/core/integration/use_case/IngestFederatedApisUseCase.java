@@ -49,6 +49,7 @@ import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.factory.PlanModelFactory;
+import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.DeleteSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -96,6 +97,7 @@ public class IngestFederatedApisUseCase {
     private final HomepageDomainService homepageDomainService;
     private final ClearIngestedApiDocumentationDomainService clearIngestedApiDocumentationDomainService;
     private final IntegrationCrudService integrationCrudService;
+    private final HtmlSanitizer htmlSanitizer;
 
     public Completable execute(Input input) {
         log.info("Ingesting {} federated APIs [jobId={}]", input.apisToIngest().size(), input.ingestJobId);
@@ -271,7 +273,21 @@ public class IngestFederatedApisUseCase {
         return switch (page.pageType()) {
             case SWAGGER -> Stream.of(buildSwaggerPage(referenceId, page));
             case ASYNCAPI -> Stream.of(buildAsyncApiPage(referenceId, page));
-            case ASCIIDOC, MARKDOWN, MARKDOWN_TEMPLATE -> {
+            case MARKDOWN -> {
+                var safety = htmlSanitizer.isSafe(page.content());
+                if (!safety.isSafe()) {
+                    log.warn(
+                        "Skipping ingested markdown page {} of API {}: unsafe content ({})",
+                        page.filename(),
+                        referenceId,
+                        safety.getRejectedMessage()
+                    );
+                    yield Stream.empty();
+                }
+                yield Stream.of(buildDocumentationPage(referenceId, page, Page.Type.MARKDOWN));
+            }
+            case ASCIIDOC -> Stream.of(buildDocumentationPage(referenceId, page, Page.Type.ASCIIDOC));
+            case MARKDOWN_TEMPLATE -> {
                 log.error("Impossible to import {} documentation for {}", page.pageType(), integrationApi.name());
                 yield Stream.empty();
             }
@@ -309,6 +325,24 @@ public class IngestFederatedApisUseCase {
             .published(true)
             .visibility(Page.Visibility.PRIVATE)
             .homepage(true)
+            .createdAt(now)
+            .updatedAt(now)
+            .ingested(true)
+            .build();
+    }
+
+    private Page buildDocumentationPage(String referenceId, IntegrationApi.Page page, Page.Type type) {
+        var now = Date.from(TimeProvider.instantNow());
+        return Page.builder()
+            .id(UuidString.generateRandom())
+            .name(page.filename())
+            .content(page.content())
+            .type(type)
+            .referenceId(referenceId)
+            .referenceType(Page.ReferenceType.API)
+            .published(true)
+            .visibility(Page.Visibility.PRIVATE)
+            .homepage(false)
             .createdAt(now)
             .updatedAt(now)
             .ingested(true)
