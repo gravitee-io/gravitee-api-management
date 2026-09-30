@@ -247,14 +247,10 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         validate(List.of(item), List.of(), environmentId, Set.of(), Set.of());
     }
 
-    /** Like {@link #validateOne(CreatePortalNavigationItem, String)}, treating each id in {@code pendingContentIds} as existing. */
-    public void validateOne(CreatePortalNavigationItem item, String environmentId, Set<PortalPageContentId> pendingContentIds) {
-        validate(List.of(item), List.of(), environmentId, pendingContentIds, Set.of());
-    }
-
     /**
-     * Like {@link #validateOne(CreatePortalNavigationItem, String, Set)}, additionally excluding each id in
-     * {@code itemIdsBeingReplaced} from conflict checks — see {@link CreateValidationContext#itemIdsBeingReplaced()}.
+     * Like {@link #validateOne(CreatePortalNavigationItem, String)}, additionally treating each id in {@code pendingContentIds}
+     * as existing, and excluding each id in {@code itemIdsBeingReplaced} from conflict checks — see
+     * {@link CreateValidationContext#itemIdsBeingReplaced()}.
      */
     public void validateOne(
         CreatePortalNavigationItem item,
