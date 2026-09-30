@@ -16,6 +16,7 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { By } from '@angular/platform-browser';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -24,12 +25,13 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
-import { ApiPropertiesComponent } from './api-properties.component';
+import { ApiPropertiesComponent, ENCRYPTED_VALUE_MASK } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
 import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
@@ -114,7 +116,7 @@ describe('ApiPropertiesComponent', () => {
       },
       {
         key: 'key2',
-        value: '*************',
+        value: ENCRYPTED_VALUE_MASK,
         isValueDisabled: true,
         characteristic: 'Encrypted',
       },
@@ -173,6 +175,59 @@ describe('ApiPropertiesComponent', () => {
     expect(await dynamicValueInput.isDisabled()).toEqual(true);
   });
 
+  it('should block copy and paste on an encrypted value (EXT-165)', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'encryptedKey', value: 'cipher', encrypted: true }],
+      }),
+    );
+    fixture.detectChanges();
+
+    const valueInput = fixture.debugElement.query(By.css('[data-testid="property-value"]'));
+    const copyEvent = new Event('copy', { cancelable: true });
+    const pasteEvent = new Event('paste', { cancelable: true });
+
+    valueInput.triggerEventHandler('copy', copyEvent);
+    valueInput.triggerEventHandler('paste', pasteEvent);
+
+    expect(copyEvent.defaultPrevented).toEqual(true);
+    expect(pasteEvent.defaultPrevented).toEqual(true);
+  });
+
+  it('should show a security tooltip on an encrypted value (EXT-165)', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'encryptedKey', value: 'cipher', encrypted: true }],
+      }),
+    );
+
+    const tooltip = await loader.getHarness(MatTooltipHarness.with({ selector: '[data-testid="property-value"]' }));
+    await tooltip.show();
+    expect(await tooltip.getTooltipText()).toEqual('Encrypted - value hidden for security');
+  });
+
+  it('should not block copy and paste on a plain value', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'plainKey', value: 'plain-value', encrypted: false }],
+      }),
+    );
+    fixture.detectChanges();
+
+    const valueInput = fixture.debugElement.query(By.css('[data-testid="property-value"]'));
+    const copyEvent = new Event('copy', { cancelable: true });
+    const pasteEvent = new Event('paste', { cancelable: true });
+
+    valueInput.triggerEventHandler('copy', copyEvent);
+    valueInput.triggerEventHandler('paste', pasteEvent);
+
+    expect(copyEvent.defaultPrevented).toEqual(false);
+    expect(pasteEvent.defaultPrevented).toEqual(false);
+  });
+
   it('should allow encrypting a dynamic property row', async () => {
     expectGetApi(
       fakeApiV4({
@@ -188,6 +243,23 @@ describe('ApiPropertiesComponent', () => {
 
     const encryptValueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
     expect(await encryptValueButton.isDisabled()).toEqual(false);
+  });
+
+  it('should not offer a renew action on an encrypted dynamic property row', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'cipher', encrypted: true, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const renewButtons = await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Renew encrypted value"]' }));
+    expect(renewButtons).toEqual([]);
   });
 
   it('should renew encrypted value', async () => {
@@ -243,6 +315,31 @@ describe('ApiPropertiesComponent', () => {
         value: 'newEncryptedValue',
       },
     ]);
+  });
+
+  it('should keep a dynamic property value disabled even if renew is invoked directly', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'encryptedValue', encrypted: true, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    component.renewEncryptedPropertyValue(component.apiProperties[0]._id);
+    fixture.detectChanges();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const firstRow = (await table.getRows())[0];
+    const valueCell = (await firstRow.getCells())[1];
+    const valueInput = await valueCell.getHarness(MatInputHarness);
+
+    expect(await valueInput.isDisabled()).toEqual(true);
   });
 
   it('should encrypt value', async () => {

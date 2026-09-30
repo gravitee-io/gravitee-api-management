@@ -85,7 +85,14 @@
         <td mat-cell *matCellDef="let element" [formGroupName]="element._id">
           <mat-form-field class="apiProperties__table__field">
             <mat-label>Value</mat-label>
-            <input matInput formControlName="value" />
+            <input
+              matInput
+              formControlName="value"
+              data-testid="property-value"
+              [matTooltip]="element.encrypted ? 'Encrypted - value hidden for security' : null"
+              (copy)="element.encrypted ? blockClipboardEvent($event) : null"
+              (paste)="element.encrypted ? blockClipboardEvent($event) : null"
+            />
           </mat-form-field>
         </td>
       </ng-container>
@@ -105,7 +112,7 @@
         <td mat-cell *matCellDef="let element">
           <ng-container>
             <button
-              *ngIf="element.encrypted || element.encryptable"
+              *ngIf="(element.encrypted || element.encryptable) && !element.dynamic"
               type="button"
               mat-icon-button
               aria-label="Renew encrypted value"

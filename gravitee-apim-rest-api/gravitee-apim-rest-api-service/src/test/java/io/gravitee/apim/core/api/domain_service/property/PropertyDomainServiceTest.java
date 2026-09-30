@@ -16,15 +16,18 @@
 package io.gravitee.apim.core.api.domain_service.property;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.property.Property;
 import java.security.GeneralSecurityException;
@@ -80,7 +83,7 @@ public class PropertyDomainServiceTest {
         when(dataEncryptor.encrypt(eq(encryptableProperty.getValue()))).thenReturn("encrypted value");
 
         // When
-        var result = cut.encryptProperties(List.of(encryptedProperty, encryptableProperty, notEncryptableDynamicProperty));
+        var result = cut.encryptProperties(null, List.of(encryptedProperty, encryptableProperty, notEncryptableDynamicProperty));
 
         // Then
         verify(dataEncryptor, times(1)).encrypt(anyString());
@@ -120,7 +123,7 @@ public class PropertyDomainServiceTest {
         when(dataEncryptor.encrypt(eq(encryptableProperty.getValue()))).thenThrow(new GeneralSecurityException());
 
         // When
-        var result = cut.encryptProperties(List.of(encryptedProperty, encryptableProperty, notEncryptableDynamicProperty));
+        var result = cut.encryptProperties(null, List.of(encryptedProperty, encryptableProperty, notEncryptableDynamicProperty));
 
         // Then
         verify(dataEncryptor, times(1)).encrypt(anyString());
@@ -136,11 +139,11 @@ public class PropertyDomainServiceTest {
     public void should_remove_null_properties() {
         // Given
         var encryptableProperties = new ArrayList<EncryptableProperty>();
-        encryptableProperties.add(EncryptableProperty.builder().build());
+        encryptableProperties.add(EncryptableProperty.builder().key("k1").value("v1").build());
         encryptableProperties.add(null);
 
         // When
-        var result = cut.encryptProperties(encryptableProperties);
+        var result = cut.encryptProperties(null, encryptableProperties);
 
         // Then
         assertThat(result).hasSize(1);
@@ -149,9 +152,48 @@ public class PropertyDomainServiceTest {
     @Test
     public void should_handle_null_property_list() {
         // When
-        var result = cut.encryptProperties(null);
+        var result = cut.encryptProperties(null, null);
 
         // Then
         assertThat(result).isNotNull().isEmpty();
+    }
+
+    @Test
+    public void should_reject_an_encrypted_property_reclassified_to_plain() throws GeneralSecurityException {
+        // Given
+        var stored = List.of(Property.builder().key("secret").value("cipher").dynamic(true).encrypted(true).build());
+        var incoming = EncryptableProperty.builder()
+            .key("secret")
+            .value("plain-again")
+            .dynamic(true)
+            .encrypted(false)
+            .encryptable(false)
+            .build();
+
+        // When / Then
+        assertThatThrownBy(() -> cut.encryptProperties(stored, List.of(incoming)))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("secret");
+        verify(dataEncryptor, never()).encrypt(anyString());
+    }
+
+    @Test
+    public void should_allow_renewing_an_encrypted_property_via_encryptable() throws GeneralSecurityException {
+        // Given
+        var stored = List.of(Property.builder().key("secret").value("old-cipher").dynamic(true).encrypted(true).build());
+        var incoming = EncryptableProperty.builder()
+            .key("secret")
+            .value("new-plain")
+            .dynamic(true)
+            .encrypted(false)
+            .encryptable(true)
+            .build();
+        when(dataEncryptor.encrypt("new-plain")).thenReturn("new-cipher");
+
+        // When
+        var result = cut.encryptProperties(stored, List.of(incoming));
+
+        // Then
+        assertThat(result).containsExactly(Property.builder().key("secret").value("new-cipher").dynamic(true).encrypted(true).build());
     }
 }

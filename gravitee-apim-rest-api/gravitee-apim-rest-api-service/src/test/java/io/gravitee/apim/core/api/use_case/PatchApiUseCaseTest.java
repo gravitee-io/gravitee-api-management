@@ -1534,6 +1534,22 @@ class PatchApiUseCaseTest {
         }
 
         @Test
+        void merge_patch_rejects_an_encrypted_property_reclassified_to_plain() throws Exception {
+            var encrypted = new Property();
+            encrypted.setKey("secret-key");
+            encrypted.setValue("already-encrypted-value");
+            encrypted.setEncrypted(true);
+            givenExistingApi(apiWithProperties(List.of(encrypted)));
+
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "plain-again")));
+
+            assertThatThrownBy(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, false)).isInstanceOf(
+                ValidationDomainException.class
+            );
+            verify(dataEncryptor, never()).encrypt(any());
+        }
+
+        @Test
         void json_patch_add_op_with_encryptable_property_encrypts_value() {
             var body = patch("add", "/properties", List.of(Map.of("key", "secret-key", "value", "plaintext", "encryptable", true)));
 

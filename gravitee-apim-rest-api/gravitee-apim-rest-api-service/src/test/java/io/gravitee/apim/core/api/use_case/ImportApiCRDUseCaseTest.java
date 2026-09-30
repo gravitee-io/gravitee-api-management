@@ -463,6 +463,7 @@ class ImportApiCRDUseCaseTest {
 
         updateNativeApiUseCase = new UpdateNativeApiUseCase(
             apiPrimaryOwnerService,
+            apiCrudService,
             propertyDomainService,
             validateApiDomainService,
             updateNativeApiDomainService

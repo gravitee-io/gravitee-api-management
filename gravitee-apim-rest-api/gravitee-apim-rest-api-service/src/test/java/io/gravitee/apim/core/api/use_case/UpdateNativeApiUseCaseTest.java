@@ -23,6 +23,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
@@ -187,6 +188,7 @@ public class UpdateNativeApiUseCaseTest {
 
         cut = new UpdateNativeApiUseCase(
             apiPrimaryOwnerService,
+            apiCrudService,
             propertyDomainService,
             validateApiDomainService,
             updateNativeApiDomainService
@@ -367,6 +369,43 @@ public class UpdateNativeApiUseCaseTest {
         );
         verify(categoryDomainService, times(1)).toCategoryKey(eq(apiToUpdate), eq(ENVIRONMENT_ID));
         assertThat(indexer.storage()).hasSize(1);
+    }
+
+    @Test
+    void should_reject_an_encrypted_property_reclassified_to_plain() {
+        var existingApi = ApiFixtures.aNativeApi()
+            .toBuilder()
+            .apiDefinitionNativeV4(
+                ApiFixtures.aNativeApi()
+                    .getApiDefinitionNativeV4()
+                    .toBuilder()
+                    .properties(List.of(Property.builder().key("secret").value("cipher").encrypted(true).dynamic(false).build()))
+                    .build()
+            )
+            .build();
+        apiCrudService.initWith(List.of(existingApi));
+
+        var updateNativeApi = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(
+                List.of(
+                    EncryptableProperty.builder()
+                        .key("secret")
+                        .value("plain-again")
+                        .encrypted(false)
+                        .encryptable(false)
+                        .dynamic(false)
+                        .build()
+                )
+            )
+            .build();
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
+
+        assertThatExceptionOfType(ValidationDomainException.class).isThrownBy(() ->
+            cut.execute(new UpdateNativeApiUseCase.Input(updateNativeApi, auditInfo))
+        );
+        verifyNoInteractions(dataEncryptor);
     }
 
     private static UpdateNativeApi anUpdateNativeApi() {

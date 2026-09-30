@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService.oneShotIndexation;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -38,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class UpdateNativeApiUseCase {
 
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
+    private final ApiCrudService apiCrudService;
     private final PropertyDomainService propertyDomainService;
     private final ValidateApiDomainService validateApiDomainService;
     private final UpdateNativeApiDomainService updateNativeApiDomainService;
@@ -51,7 +53,9 @@ public class UpdateNativeApiUseCase {
             updateApi.getId()
         );
 
-        var encryptedProperties = propertyDomainService.encryptProperties(input.apiToUpdate().getProperties());
+        var existingDefinition = apiCrudService.get(updateApi.getId()).getApiDefinitionNativeV4();
+        var existingProperties = existingDefinition != null ? existingDefinition.getProperties() : null;
+        var encryptedProperties = propertyDomainService.encryptProperties(existingProperties, input.apiToUpdate().getProperties());
 
         var updating = update(input.apiToUpdate(), encryptedProperties);
 
