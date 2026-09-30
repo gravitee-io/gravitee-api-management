@@ -249,6 +249,49 @@ class PortalDocumentationSyncDomainServiceTest {
     }
 
     @Test
+    void doc_apply_resolves_from_parent_when_caller_omits_visibility_on_an_existing_page() {
+        var parentFolderId = expectedFolderId("/projects/alpha");
+        navItemCrud.initWith(
+            List.of(
+                PortalNavigationFolder.builder()
+                    .id(parentFolderId)
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("alpha")
+                    .segment("alpha")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .build(),
+                PortalNavigationPage.builder()
+                    .id(expectedNavItemId())
+                    .organizationId(AUDIT_INFO.organizationId())
+                    .environmentId(AUDIT_INFO.environmentId())
+                    .title("Setup")
+                    .segment("setup")
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .parentId(parentFolderId)
+                    .portalPageContentId(DOC_ID)
+                    .published(true)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .build()
+            )
+        );
+
+        syncService.materialize(AUDIT_INFO, markdownDoc("Setup", "/projects/alpha", 0), PortalArea.TOP_NAVBAR, null);
+
+        var page = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(PortalNavigationPage.class::isInstance)
+            .findFirst()
+            .orElseThrow();
+        assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+    }
+
+    @Test
     void materialize_points_at_deterministic_folder_id_even_when_folder_missing() {
         syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/unknown", 1));
 

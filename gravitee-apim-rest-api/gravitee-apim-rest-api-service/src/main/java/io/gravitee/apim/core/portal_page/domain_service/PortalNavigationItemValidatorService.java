@@ -51,6 +51,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
@@ -180,11 +181,19 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
     }
 
     // Include pre-existing descendants of pending container creates and of pending container updates that change visibility.
+    // Descendants that already have their own pending update in this batch are skipped: that update is their validation.
     private List<PendingUpdate> withDescendantsOfPendingContainers(
         List<CreatePortalNavigationItem> creates,
         List<PendingUpdate> updates,
         String environmentId
     ) {
+        var alreadyPendingIds = updates
+            .stream()
+            .map(PendingUpdate::existing)
+            .filter(Objects::nonNull)
+            .map(PortalNavigationItem::getId)
+            .collect(Collectors.toSet());
+
         var descendantsOfCreates = creates
             .stream()
             .filter(PortalNavigationItemValidatorService::isPendingContainer)
@@ -193,9 +202,9 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .stream()
             .filter(PortalNavigationItemValidatorService::isContainerVisibilityChange)
             .flatMap(update -> descendantsOf(update.existing().getId(), environmentId).stream());
-        var descendantUpdates = Stream.concat(descendantsOfCreates, descendantsOfUpdates).map(
-            PortalNavigationItemValidatorService::asUnchangedUpdate
-        );
+        var descendantUpdates = Stream.concat(descendantsOfCreates, descendantsOfUpdates)
+            .filter(descendant -> !alreadyPendingIds.contains(descendant.getId()))
+            .map(PortalNavigationItemValidatorService::asUnchangedUpdate);
         return Stream.concat(updates.stream(), descendantUpdates).toList();
     }
 
@@ -234,6 +243,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             .visibility(item.getVisibility())
             .published(item.getPublished())
             .source(item.getSource())
+            .url(item instanceof PortalNavigationLink link ? link.getUrl() : null)
             .build();
     }
 
