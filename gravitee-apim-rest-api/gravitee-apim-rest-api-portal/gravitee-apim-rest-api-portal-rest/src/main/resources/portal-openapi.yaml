@@ -21,6 +21,8 @@ servers:
 tags:
     - name: Analytics
       description: All about application analytics
+    - name: AI Workspace
+      description: Gamma AI Workspaces mapped to the current user
     - name: Api
       description: All about APIs
     - name: Api Product
@@ -45,6 +47,105 @@ security:
     - CookieAuth: []
 
 paths:
+    /ai-workspaces:
+        get:
+            tags:
+                - AI Workspace
+            summary: List the caller's Gamma AI Workspaces
+            description: |
+                Workspaces the authenticated user is mapped to in this environment.
+                The name filter is a case-insensitive fragment applied before paging.
+            operationId: listAiWorkspaces
+            parameters:
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+                - name: name
+                  in: query
+                  required: false
+                  description: Case-insensitive fragment matched against the workspace name.
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Page of workspaces mapped to the caller
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AiWorkspacesResponse"
+                "401":
+                    description: Authentication required
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: Portal AI Workspace is not enabled for this environment
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+    /ai-workspaces/{aiWorkspaceId}:
+        get:
+            tags:
+                - AI Workspace
+            summary: Get one Gamma AI Workspace mapped to the caller
+            operationId: getAiWorkspace
+            parameters:
+                - name: aiWorkspaceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Workspace details, key and models
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AiWorkspace"
+                "401":
+                    description: Authentication required
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: Workspace cannot be found for this caller, or Portal AI Workspace is not enabled
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+    /ai-workspaces/{aiWorkspaceId}/consumption:
+        get:
+            tags:
+                - AI Workspace
+            summary: Consumption of the caller's own traffic over the last 30 days
+            operationId: getAiWorkspaceConsumption
+            parameters:
+                - name: aiWorkspaceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                "200":
+                    description: Tokens, requests and cost. Zeros when analytics has no data.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AiWorkspaceConsumption"
+                "401":
+                    description: Authentication required
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: Workspace cannot be found for this caller, or Portal AI Workspace is not enabled
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
     /apis:
         get:
             tags:
@@ -4837,6 +4938,100 @@ components:
                     items:
                         $ref: "#/components/schemas/Error"
 
+        AiWorkspacesResponse:
+            type: object
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AiWorkspaceSummary"
+                page:
+                    type: integer
+                size:
+                    type: integer
+                total:
+                    type: integer
+                    format: int64
+        AiWorkspaceSummary:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                budget:
+                    $ref: "#/components/schemas/AiWorkspaceBudget"
+        AiWorkspace:
+            type: object
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                budget:
+                    $ref: "#/components/schemas/AiWorkspaceBudget"
+                endpointUrl:
+                    type: string
+                key:
+                    $ref: "#/components/schemas/AiWorkspaceKey"
+                models:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AiWorkspaceModel"
+        AiWorkspaceBudget:
+            type: object
+            description: Allocated budget in currency units for the plan window.
+            properties:
+                amount:
+                    type: number
+                    format: double
+                period:
+                    type: string
+                    description: HOUR, DAY, WEEK or MONTH
+        AiWorkspaceKey:
+            type: object
+            properties:
+                value:
+                    type: string
+                status:
+                    type: string
+                createdAt:
+                    type: string
+                    format: date-time
+        AiWorkspaceModel:
+            type: object
+            description: Model name and prices per million tokens. Provider credentials are never returned.
+            properties:
+                name:
+                    type: string
+                inputPrice:
+                    type: number
+                    format: double
+                outputPrice:
+                    type: number
+                    format: double
+        AiWorkspaceConsumption:
+            type: object
+            properties:
+                tokens:
+                    type: integer
+                    format: int64
+                requests:
+                    type: integer
+                    format: int64
+                cost:
+                    type: number
+                    format: double
+                from:
+                    type: string
+                    format: date-time
+                to:
+                    type: string
+                    format: date-time
         ApisResponse:
             properties:
                 data:
@@ -7385,6 +7580,8 @@ components:
                 mtls:
                     $ref: "#/components/schemas/Enabled"
                 analytics:
+                    $ref: "#/components/schemas/Enabled"
+                aiWorkspaces:
                     $ref: "#/components/schemas/Enabled"
                 applications:
                     $ref: "#/components/schemas/ConfigurationPortalNextApplications"
