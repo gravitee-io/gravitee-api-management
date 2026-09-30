@@ -115,6 +115,8 @@ public class ScoringProviderImpl implements ScoringProvider {
             case GRAVITEE_FEDERATED -> Format.GRAVITEE_FEDERATED;
             case GRAVITEE_NATIVE -> Format.GRAVITEE_NATIVE;
             case GRAVITEE_V2 -> Format.GRAVITEE_V2;
+            case OPENAPI -> Format.OPENAPI;
+            case ASYNCAPI -> Format.ASYNCAPI;
         };
     }
 
