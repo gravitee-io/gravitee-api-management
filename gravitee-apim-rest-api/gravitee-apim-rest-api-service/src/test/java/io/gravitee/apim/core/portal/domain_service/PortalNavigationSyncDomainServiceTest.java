@@ -16,11 +16,14 @@
 package io.gravitee.apim.core.portal.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalListingCrudServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
@@ -36,6 +39,8 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalNavigationStructure;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal.query_service.AutomationManagedNavigationItemsQueryService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalLinkSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
@@ -550,6 +555,40 @@ class PortalNavigationSyncDomainServiceTest {
         var captured = verifyValidate();
         assertThat(captured.creates()).isEmpty();
         assertThat(captured.updates()).hasSize(2);
+    }
+
+    @Test
+    void validate_for_conflicts_accepts_adding_the_missing_folder_of_an_orphan_portal_link() {
+        new PortalLinkSyncDomainService(crud, query).materialize(
+            AUDIT_INFO,
+            PORTAL_ID.toString(),
+            "external-docs",
+            "External Docs",
+            "https://docs.example.com",
+            "/missing",
+            0,
+            null
+        );
+        var syncServiceWithRealValidator = new PortalNavigationSyncDomainService(
+            query,
+            new AutomationManagedNavigationItemsQueryService(portalListingCrud, query),
+            new NavigationSyncPlanExecutor(crud, query, pageContentCrud),
+            new PortalNavigationItemValidatorService(
+                query,
+                pageContentQuery,
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            )
+        );
+
+        assertThatCode(() ->
+            syncServiceWithRealValidator.validateForConflicts(
+                AUDIT_INFO,
+                PORTAL_ID,
+                PortalNavigationStructure.empty(),
+                PortalNavigationStructure.ofTopNavbar(List.of(new NavigationPath("/missing", null)))
+            )
+        ).doesNotThrowAnyException();
     }
 
     private record CapturedValidate(
