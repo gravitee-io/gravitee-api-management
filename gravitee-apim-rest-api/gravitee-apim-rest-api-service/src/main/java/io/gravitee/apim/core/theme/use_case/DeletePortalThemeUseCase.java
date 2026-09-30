@@ -20,6 +20,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.crud_service.PortalCrudService;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.theme.crud_service.ThemeCrudService;
+import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.exception.PortalThemeInUseException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class DeletePortalThemeUseCase {
 
     private final ThemeCrudService themeCrudService;
     private final PortalCrudService portalCrudService;
+    private final CurrentThemeDomainService currentThemeDomainService;
 
     public record Input(AuditInfo auditInfo, String themeId) {}
 
@@ -50,6 +52,7 @@ public class DeletePortalThemeUseCase {
             throw new PortalThemeInUseException(theme.getId(), referencingPortalIds);
         }
 
+        currentThemeDomainService.deactivateAndFallback(theme);
         themeCrudService.delete(theme.getId());
     }
 }

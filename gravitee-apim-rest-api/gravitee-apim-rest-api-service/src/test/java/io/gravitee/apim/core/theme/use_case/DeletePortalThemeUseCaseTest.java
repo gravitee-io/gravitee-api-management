@@ -20,10 +20,12 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.ThemeCrudServiceInMemory;
+import inmemory.ThemeQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.model.Portal;
 import io.gravitee.apim.core.portal.model.PortalId;
+import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.exception.PortalThemeInUseException;
 import io.gravitee.apim.core.theme.exception.ThemeNotFoundException;
 import io.gravitee.apim.core.theme.model.Theme;
@@ -51,7 +53,12 @@ class DeletePortalThemeUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new DeletePortalThemeUseCase(themeCrudService, portalCrudService);
+        var themeQueryService = new ThemeQueryServiceInMemory(themeCrudService);
+        useCase = new DeletePortalThemeUseCase(
+            themeCrudService,
+            portalCrudService,
+            new CurrentThemeDomainService(themeQueryService, themeCrudService)
+        );
     }
 
     @AfterEach
@@ -101,6 +108,20 @@ class DeletePortalThemeUseCaseTest {
         useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, THEME_ID));
 
         assertThat(themeCrudService.storage()).extracting(Theme::getId).containsExactly("other");
+    }
+
+    @Test
+    void reactivates_another_theme_when_deleting_the_enabled_unreferenced_theme() {
+        var otherTheme = anEnvironmentTheme("other").toBuilder().enabled(false).build();
+        themeCrudService.initWith(List.of(anEnvironmentTheme(THEME_ID), otherTheme));
+
+        useCase.execute(new DeletePortalThemeUseCase.Input(AUDIT_INFO, THEME_ID));
+
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals("other"))
+            .singleElement()
+            .extracting(Theme::isEnabled)
+            .isEqualTo(true);
     }
 
     @Test
