@@ -18,7 +18,14 @@ import { Card, CardContent, CardHeader, CardTitle, Input, Separator, Switch } fr
 
 import { SystemReadonlyHint } from '../../organization-settings/components/SystemReadonlyHint';
 import type { ApiLoggingFieldReadonly } from '../utils/apiLoggingFormState';
-import type { ApiLoggingFieldErrors, ApiLoggingFormState } from '../utils/apiLoggingValidators';
+import type { ApiLoggingFieldError, ApiLoggingFieldErrors, ApiLoggingFormState } from '../utils/apiLoggingValidators';
+
+function fieldErrorMessages(error: ApiLoggingFieldError | undefined): string[] {
+    if (!error) {
+        return [];
+    }
+    return Array.isArray(error) ? error : [error];
+}
 
 function ToggleRow({
     id,
@@ -64,12 +71,13 @@ function Field({
     id: string;
     label: string;
     value: string;
-    error?: string;
+    error?: ApiLoggingFieldError;
     disabled: boolean;
     systemReadonly: boolean;
     onChange: (value: string) => void;
     type?: 'text' | 'number';
 }>) {
+    const messages = fieldErrorMessages(error);
     const errorId = `${id}-error`;
     return (
         <div className="space-y-1.5">
@@ -83,14 +91,18 @@ function Field({
                     value={value}
                     onChange={event => onChange(event.target.value)}
                     disabled={disabled}
-                    aria-invalid={Boolean(error)}
-                    aria-describedby={error ? errorId : undefined}
+                    aria-invalid={messages.length > 0}
+                    aria-describedby={messages.length > 0 ? errorId : undefined}
                 />
             </SystemReadonlyHint>
-            {error ? (
-                <p id={errorId} className="text-sm text-destructive" role="alert">
-                    {error}
-                </p>
+            {messages.length > 0 ? (
+                <div id={errorId} className="space-y-1">
+                    {messages.map(message => (
+                        <p key={message} className="text-sm text-destructive" role="alert">
+                            {message}
+                        </p>
+                    ))}
+                </div>
             ) : null}
         </div>
     );

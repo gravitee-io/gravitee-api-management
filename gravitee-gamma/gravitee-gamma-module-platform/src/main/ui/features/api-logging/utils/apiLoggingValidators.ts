@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-import { isValidIso8601Duration, parseIso8601DurationSeconds } from './iso8601Duration';
+import { duration } from 'moment';
+
+import { isValidIso8601Duration } from './iso8601Duration';
 import { WindowedCount, WindowedCountFormatError } from './windowedCount';
 
 export interface ApiLoggingFormState {
@@ -34,7 +36,17 @@ export interface ApiLoggingFormState {
 
 export type ApiLoggingFieldKey = keyof ApiLoggingFormState;
 
-export type ApiLoggingFieldErrors = Partial<Record<ApiLoggingFieldKey, string>>;
+export type ApiLoggingFieldError = string | string[];
+
+export type ApiLoggingFieldErrors = Partial<Record<ApiLoggingFieldKey, ApiLoggingFieldError>>;
+
+function setFieldErrors(errors: ApiLoggingFieldErrors, key: ApiLoggingFieldKey, ...messages: (string | undefined)[]): void {
+    const resolved = messages.filter((message): message is string => message !== undefined);
+    if (resolved.length === 0) {
+        return;
+    }
+    errors[key] = resolved.length === 1 ? resolved[0] : resolved;
+}
 
 const PROBABILISTIC_MIN = 0.01;
 const PROBABILISTIC_MAX = 1;
@@ -42,8 +54,14 @@ const COUNT_MIN = 1;
 const WINDOWED_COUNT_FORMAT_ERROR =
     'The sampling value must follow this format: COUNT/DURATION, where COUNT > 0 and DURATION is in ISO-8601 format (e.g., 1/PT1S)';
 
-function requiredError(value: string): string | undefined {
-    return value.trim() === '' ? 'Value is required' : undefined;
+type SamplingFieldRole = 'default' | 'limit';
+
+function fieldLabel(role: SamplingFieldRole): 'Default' | 'Limit' {
+    return role === 'default' ? 'Default' : 'Limit';
+}
+
+function requiredError(value: string, role: SamplingFieldRole): string | undefined {
+    return value.trim() === '' ? `${fieldLabel(role)} value is required` : undefined;
 }
 
 function parseProbabilistic(value: string): number | null {
@@ -59,61 +77,61 @@ function parseCount(value: string): { parsed: number | null; integerError?: stri
         return { parsed: null };
     }
     if (!/^\d+$/.test(value.trim())) {
-        return { parsed: null, integerError: 'Value should be an integer' };
+        return { parsed: null, integerError: 'integer' };
     }
     return { parsed: Number(value) };
 }
 
-function validateProbabilisticField(value: string): string | undefined {
-    const required = requiredError(value);
+function validateProbabilisticField(value: string, role: SamplingFieldRole): string | undefined {
+    const required = requiredError(value, role);
     if (required) {
         return required;
     }
 
     const parsed = parseProbabilistic(value);
     if (parsed === null) {
-        return 'Value should be a number';
+        return `${fieldLabel(role)} value should be a number`;
     }
     if (parsed < PROBABILISTIC_MIN) {
-        return `Value should be at least ${PROBABILISTIC_MIN}`;
+        return `${fieldLabel(role)} value should be at least ${PROBABILISTIC_MIN}`;
     }
     if (parsed > PROBABILISTIC_MAX) {
-        return `Value should not be greater than ${PROBABILISTIC_MAX}`;
+        return `${fieldLabel(role)} value should not be greater than ${PROBABILISTIC_MAX}`;
     }
 
     return undefined;
 }
 
-function validateCountField(value: string): string | undefined {
-    const required = requiredError(value);
+function validateCountField(value: string, role: SamplingFieldRole): string | undefined {
+    const required = requiredError(value, role);
     if (required) {
         return required;
     }
 
     const { parsed, integerError } = parseCount(value);
     if (integerError) {
-        return integerError;
+        return `${fieldLabel(role)} value should be an integer`;
     }
     if (parsed !== null && parsed < COUNT_MIN) {
-        return `Value should be at least ${COUNT_MIN}`;
+        return `${fieldLabel(role)} value should be at least ${COUNT_MIN}`;
     }
 
     return undefined;
 }
 
-function validateTemporalField(value: string): string | undefined {
-    const required = requiredError(value);
+function validateTemporalField(value: string, role: SamplingFieldRole): string | undefined {
+    const required = requiredError(value, role);
     if (required) {
         return required;
     }
     if (!isValidIso8601Duration(value)) {
-        return 'Value should conform to ISO-8601 duration format';
+        return `${fieldLabel(role)} value should conform to ISO-8601 duration format`;
     }
     return undefined;
 }
 
-function validateWindowedCountField(value: string): string | undefined {
-    const required = requiredError(value);
+function validateWindowedCountField(value: string, role: SamplingFieldRole): string | undefined {
+    const required = requiredError(value, role);
     if (required) {
         return required;
     }
@@ -152,11 +170,22 @@ function compareCount(defaultValue: string, limitValue: string): string | undefi
 }
 
 function compareTemporal(defaultValue: string, limitValue: string): string | undefined {
-    const defaultSeconds = parseIso8601DurationSeconds(defaultValue);
-    const limitSeconds = parseIso8601DurationSeconds(limitValue);
-    if (defaultSeconds !== null && limitSeconds !== null && defaultSeconds < limitSeconds) {
-        return 'Default should be greater than Limit';
+    if (defaultValue.trim() === '' || limitValue.trim() === '') {
+        return undefined;
     }
+
+    const compareError = 'Default should be greater than Limit';
+
+    try {
+        const defaultDuration = duration(defaultValue.trim());
+        const limitDuration = duration(limitValue.trim());
+        if (defaultDuration < limitDuration) {
+            return compareError;
+        }
+    } catch {
+        return compareError;
+    }
+
     return undefined;
 }
 
@@ -182,8 +211,8 @@ export function validateApiLoggingForm(state: ApiLoggingFormState): ApiLoggingFi
         errors.maxDurationMillis = 'Max duration must be a number';
     }
 
-    const probabilisticDefaultError = validateProbabilisticField(state.probabilisticDefault);
-    const probabilisticLimitError = validateProbabilisticField(state.probabilisticLimit);
+    const probabilisticDefaultError = validateProbabilisticField(state.probabilisticDefault, 'default');
+    const probabilisticLimitError = validateProbabilisticField(state.probabilisticLimit, 'limit');
     const probabilisticCompareError = compareProbabilistic(state.probabilisticDefault, state.probabilisticLimit);
 
     if (probabilisticDefaultError) {
@@ -198,8 +227,8 @@ export function validateApiLoggingForm(state: ApiLoggingFormState): ApiLoggingFi
         errors.probabilisticLimit = probabilisticCompareError;
     }
 
-    const countDefaultError = validateCountField(state.countDefault);
-    const countLimitError = validateCountField(state.countLimit);
+    const countDefaultError = validateCountField(state.countDefault, 'default');
+    const countLimitError = validateCountField(state.countLimit, 'limit');
     const countCompareError = compareCount(state.countDefault, state.countLimit);
 
     if (countDefaultError) {
@@ -214,24 +243,15 @@ export function validateApiLoggingForm(state: ApiLoggingFormState): ApiLoggingFi
         errors.countLimit = countCompareError;
     }
 
-    const temporalDefaultError = validateTemporalField(state.temporalDefault);
-    const temporalLimitError = validateTemporalField(state.temporalLimit);
+    const temporalDefaultError = validateTemporalField(state.temporalDefault, 'default');
+    const temporalLimitError = validateTemporalField(state.temporalLimit, 'limit');
     const temporalCompareError = compareTemporal(state.temporalDefault, state.temporalLimit);
 
-    if (temporalDefaultError) {
-        errors.temporalDefault = temporalDefaultError;
-    } else if (temporalCompareError) {
-        errors.temporalDefault = temporalCompareError;
-    }
+    setFieldErrors(errors, 'temporalDefault', temporalDefaultError, temporalCompareError);
+    setFieldErrors(errors, 'temporalLimit', temporalLimitError, temporalCompareError);
 
-    if (temporalLimitError) {
-        errors.temporalLimit = temporalLimitError;
-    } else if (temporalCompareError) {
-        errors.temporalLimit = temporalCompareError;
-    }
-
-    const windowedDefaultError = validateWindowedCountField(state.windowedCountDefault);
-    const windowedLimitError = validateWindowedCountField(state.windowedCountLimit);
+    const windowedDefaultError = validateWindowedCountField(state.windowedCountDefault, 'default');
+    const windowedLimitError = validateWindowedCountField(state.windowedCountLimit, 'limit');
     const windowedCompareError = compareWindowedCount(state.windowedCountDefault, state.windowedCountLimit);
 
     if (windowedDefaultError) {

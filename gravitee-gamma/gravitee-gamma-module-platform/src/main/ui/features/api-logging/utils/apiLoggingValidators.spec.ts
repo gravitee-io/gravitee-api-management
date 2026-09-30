@@ -43,7 +43,7 @@ describe('apiLoggingValidators', () => {
             probabilisticDefault: 'not-a-number',
         });
 
-        expect(errors.probabilisticDefault).toBe('Value should be a number');
+        expect(errors.probabilisticDefault).toBe('Default value should be a number');
     });
 
     it('requires probabilistic default to stay below the limit', () => {
@@ -79,6 +79,43 @@ describe('apiLoggingValidators', () => {
         expect(errors.temporalLimit).toBe('Default should be greater than Limit');
     });
 
+    it('reports temporal compare errors alongside ISO format errors on default', () => {
+        const errors = validateApiLoggingForm({
+            ...VALID_STATE,
+            temporalDefault: 'PT1SS',
+            temporalLimit: 'PT1S',
+        });
+
+        expect(errors.temporalDefault).toEqual([
+            'Default value should conform to ISO-8601 duration format',
+            'Default should be greater than Limit',
+        ]);
+        expect(errors.temporalLimit).toBe('Default should be greater than Limit');
+    });
+
+    it('accepts valid temporal default and limit with no errors', () => {
+        const errors = validateApiLoggingForm({
+            ...VALID_STATE,
+            temporalDefault: 'PT10S',
+            temporalLimit: 'PT1S',
+        });
+
+        expect(errors.temporalDefault).toBeUndefined();
+        expect(errors.temporalLimit).toBeUndefined();
+        expect(isApiLoggingFormValid({ ...VALID_STATE, temporalDefault: 'PT10S', temporalLimit: 'PT1S' })).toBe(true);
+    });
+
+    it('does not report temporal compare when both values fail ISO format with equal compare seconds', () => {
+        const errors = validateApiLoggingForm({
+            ...VALID_STATE,
+            temporalDefault: 'PT0Seconds',
+            temporalLimit: 'PT0Seconds',
+        });
+
+        expect(errors.temporalDefault).toBe('Default value should conform to ISO-8601 duration format');
+        expect(errors.temporalLimit).toBe('Limit value should conform to ISO-8601 duration format');
+    });
+
     it('requires windowed count default rate to stay below the limit rate', () => {
         const errors = validateApiLoggingForm({
             ...VALID_STATE,
@@ -98,31 +135,31 @@ describe('apiLoggingValidators', () => {
             temporalDefault: '',
         });
 
-        expect(errors.probabilisticDefault).toBe('Value is required');
-        expect(errors.countLimit).toBe('Value is required');
-        expect(errors.temporalDefault).toBe('Value is required');
+        expect(errors.probabilisticDefault).toBe('Default value is required');
+        expect(errors.countLimit).toBe('Limit value is required');
+        expect(errors.temporalDefault).toBe('Default value is required');
     });
 
     it('enforces probabilistic bounds', () => {
         expect(validateApiLoggingForm({ ...VALID_STATE, probabilisticDefault: '0.001' }).probabilisticDefault).toBe(
-            'Value should be at least 0.01',
+            'Default value should be at least 0.01',
         );
         expect(validateApiLoggingForm({ ...VALID_STATE, probabilisticLimit: '1.1' }).probabilisticLimit).toBe(
-            'Value should not be greater than 1',
+            'Limit value should not be greater than 1',
         );
     });
 
     it('rejects non-integer and sub-minimum count values', () => {
-        expect(validateApiLoggingForm({ ...VALID_STATE, countDefault: '12.5' }).countDefault).toBe('Value should be an integer');
-        expect(validateApiLoggingForm({ ...VALID_STATE, countLimit: '0' }).countLimit).toBe('Value should be at least 1');
+        expect(validateApiLoggingForm({ ...VALID_STATE, countDefault: '12.5' }).countDefault).toBe('Default value should be an integer');
+        expect(validateApiLoggingForm({ ...VALID_STATE, countLimit: '0' }).countLimit).toBe('Limit value should be at least 1');
     });
 
     it('rejects invalid temporal ISO-8601 values', () => {
         expect(validateApiLoggingForm({ ...VALID_STATE, temporalDefault: 'P1Y' }).temporalDefault).toBe(
-            'Value should conform to ISO-8601 duration format',
+            'Default value should conform to ISO-8601 duration format',
         );
         expect(validateApiLoggingForm({ ...VALID_STATE, temporalLimit: 'not-a-duration' }).temporalLimit).toBe(
-            'Value should conform to ISO-8601 duration format',
+            'Limit value should conform to ISO-8601 duration format',
         );
     });
 

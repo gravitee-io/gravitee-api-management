@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { CORS_DEFAULT_HTTP_HEADERS, CORS_HTTP_METHODS } from '../../../../../shared/cors';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Skeleton, Switch, TooltipProvider } from '@gravitee/graphene-core';
 import { GlobeIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,14 +28,6 @@ import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiCors } from '../../../services/apis';
 import type { Cors } from '../../../types';
 import { apiDetailKeys } from '../../../utils/queryKeys';
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
-
-const COMMON_ALLOW_HEADERS = ['Accept', 'Authorization', 'Content-Type', 'Origin', 'X-API-Key', 'X-Requested-With'];
-
-const COMMON_EXPOSE_HEADERS = ['Content-Length', 'Content-Range', 'X-Request-Id'];
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -263,7 +256,7 @@ export function ApiCorsPage() {
                             hint="HTTP methods that may be used in cross-origin requests."
                             values={methods}
                             disabled={fieldsDisabled || !canEdit}
-                            suggestions={HTTP_METHODS}
+                            suggestions={CORS_HTTP_METHODS}
                             placeholder="GET, POST, …"
                             onChange={v => {
                                 setMethods(v);
@@ -276,7 +269,8 @@ export function ApiCorsPage() {
                             hint="Headers the client is allowed to send in the actual request."
                             values={allowHeaders}
                             disabled={fieldsDisabled || !canEdit}
-                            suggestions={COMMON_ALLOW_HEADERS}
+                            suggestions={CORS_DEFAULT_HTTP_HEADERS}
+                            addOnBlur={false}
                             placeholder="Content-Type, Authorization, …"
                             onChange={v => {
                                 setAllowHeaders(v);
@@ -289,7 +283,8 @@ export function ApiCorsPage() {
                             hint="Headers from the response that the browser is allowed to surface to JavaScript."
                             values={exposeHeaders}
                             disabled={fieldsDisabled || !canEdit}
-                            suggestions={COMMON_EXPOSE_HEADERS}
+                            suggestions={CORS_DEFAULT_HTTP_HEADERS}
+                            addOnBlur={false}
                             placeholder="X-Request-Id, …"
                             onChange={v => {
                                 setExposeHeaders(v);

@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { ChipInputField as ChipInput, type ChipInputFieldProps as ChipInputProps } from '../../../shared/chip-input';
+export * from '../../../../../../gamma-ui-shared/src/chip-input/index';
