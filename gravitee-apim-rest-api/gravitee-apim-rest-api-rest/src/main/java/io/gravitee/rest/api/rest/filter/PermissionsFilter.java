@@ -28,10 +28,11 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.ResourceInfo;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.ext.Provider;
 import java.security.Principal;
-import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -87,10 +88,10 @@ public class PermissionsFilter implements ContainerRequestFilter {
             case APPLICATION -> hasPermission(executionContext, permission, getApplicationId(requestContext));
             case API -> hasPermission(executionContext, permission, getApiId(requestContext));
             case GROUP -> hasPermission(executionContext, permission, getGroupId(requestContext));
-            case INTEGRATION -> hasPermission(executionContext, permission, getId(INTEGRATION_ID_PARAM, requestContext));
-            case CLUSTER -> hasPermission(executionContext, permission, getId(CLUSTER_ID_PARAM, requestContext));
-            case API_PRODUCT -> hasPermission(executionContext, permission, getId(API_PRODUCT_ID_PARAM, requestContext));
-            case AI_CATALOG -> hasPermission(executionContext, permission, getId(CATALOG_ID_PARAM, requestContext));
+            case INTEGRATION -> hasPermission(executionContext, permission, getId(requestContext, INTEGRATION_ID_PARAM));
+            case CLUSTER -> hasPermission(executionContext, permission, getId(requestContext, CLUSTER_ID_PARAM));
+            case API_PRODUCT -> hasPermission(executionContext, permission, getId(requestContext, API_PRODUCT_ID_PARAM));
+            case AI_CATALOG -> hasPermission(executionContext, permission, getId(requestContext, CATALOG_ID_PARAM));
             case PLATFORM -> false;
         };
     }
@@ -100,30 +101,30 @@ public class PermissionsFilter implements ContainerRequestFilter {
     }
 
     private String getGroupId(ContainerRequestContext requestContext) {
-        String groupId = getId(GROUP_ID_PARAM_V1, requestContext);
-        return groupId == null ? getId(GROUP_ID_PARAM_V2, requestContext) : groupId;
+        return getId(requestContext, GROUP_ID_PARAM_V1, GROUP_ID_PARAM_V2);
     }
 
     private String getApiId(ContainerRequestContext requestContext) {
-        String apiId = getId(API_ID_PARAM_V1, requestContext);
-        return apiId == null ? getId(API_ID_PARAM_V2, requestContext) : apiId;
+        return getId(requestContext, API_ID_PARAM_V1, API_ID_PARAM_V2);
     }
 
     private String getApplicationId(ContainerRequestContext requestContext) {
-        String applicationId = getId(APPLICATION_ID_PARAM_V1, requestContext);
-        return applicationId == null ? getId(APPLICATION_ID_PARAM_V2, requestContext) : applicationId;
+        return getId(requestContext, APPLICATION_ID_PARAM_V1, APPLICATION_ID_PARAM_V2);
     }
 
-    private String getId(String key, ContainerRequestContext requestContext) {
-        List<String> pathParams = requestContext.getUriInfo().getPathParameters().get(key);
-        if (pathParams != null) {
-            return pathParams.iterator().next();
-        }
-        List<String> queryParams = requestContext.getUriInfo().getQueryParameters().get(key);
-        if (queryParams != null) {
-            return queryParams.iterator().next();
-        }
-        return null;
+    /**
+     * Path parameters always take precedence over query parameters, whatever the key order,
+     * so that a query parameter can never override the resource identified by the path.
+     */
+    private String getId(ContainerRequestContext requestContext, String... keys) {
+        MultivaluedMap<String, String> pathParams = requestContext.getUriInfo().getPathParameters();
+        MultivaluedMap<String, String> queryParams = requestContext.getUriInfo().getQueryParameters();
+        return Stream.of(pathParams, queryParams)
+            .filter(Objects::nonNull)
+            .flatMap(params -> Stream.of(keys).map(params::getFirst))
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
     }
 
     private Optional<Permissions> findRequiredPermissions() {
