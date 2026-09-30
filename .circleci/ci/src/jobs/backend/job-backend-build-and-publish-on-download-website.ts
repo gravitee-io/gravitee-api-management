@@ -206,6 +206,6 @@ done`,
         ],
       }),
     );
-    return new Job(BackendBuildAndPublishOnDownloadWebsiteJob.jobName, OpenJdkNodeExecutor.create('large'), steps);
+    return new Job(BackendBuildAndPublishOnDownloadWebsiteJob.jobName, OpenJdkNodeExecutor.create('xlarge'), steps);
   }
 }
