@@ -1016,6 +1016,47 @@ class CreatePortalNavigationItemValidatorServiceTest {
 
             assertDoesNotThrow(() -> validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID));
         }
+
+        @Test
+        void should_accept_when_folder_is_updated_to_private_with_pre_existing_private_link_descendant_not_in_batch() {
+            var folder = PortalNavigationItemFixtures.aFolder("public-folder");
+            folder.markAsRoot();
+            navigationItemsQueryService.storage().add(folder);
+            var preExistingLink = PortalNavigationItemFixtures.aLink("00000000-0000-0000-0000-0000000000aa", "Docs", folder.getId());
+            preExistingLink.setVisibility(PortalVisibility.PRIVATE);
+            navigationItemsQueryService.storage().add(preExistingLink);
+
+            var pendingUpdate = asPrivate(folder);
+
+            assertDoesNotThrow(() -> validatorService.validate(List.of(), List.of(pendingUpdate), ENV_ID));
+        }
+
+        @Test
+        void should_accept_when_folder_and_its_child_are_both_explicitly_updated_to_private_in_the_same_batch() {
+            var folder = PortalNavigationItemFixtures.aFolder("public-folder");
+            folder.markAsRoot();
+            navigationItemsQueryService.storage().add(folder);
+            var preExistingChild = PortalNavigationItemFixtures.aPage("Setup", folder.getId());
+            navigationItemsQueryService.storage().add(preExistingChild);
+
+            var folderPendingUpdate = asPrivate(folder);
+            var childPendingUpdate = asPrivate(preExistingChild);
+
+            assertDoesNotThrow(() -> validatorService.validate(List.of(), List.of(folderPendingUpdate, childPendingUpdate), ENV_ID));
+        }
+
+        private PortalNavigationValidator.PendingUpdate asPrivate(PortalNavigationItem item) {
+            var update = UpdatePortalNavigationItem.builder()
+                .type(item.getType())
+                .title(item.getTitle())
+                .segment(item.getSegment())
+                .order(item.getOrder())
+                .parentId(item.getParentId())
+                .visibility(PortalVisibility.PRIVATE)
+                .published(item.getPublished())
+                .build();
+            return new PortalNavigationValidator.PendingUpdate(update, item);
+        }
     }
 
     @Nested
