@@ -21,7 +21,14 @@ export const observability = defineObservabilityFeatures({
     scopeApiTypes: ['HTTP_PROXY'],
     features: {
         dashboards: { enabled: true, templates: observabilityTemplates },
-        logs: { enabled: true },
+        logs: {
+            enabled: true,
+            entityLinks: {
+                api: '/apim/apis/:apiId',
+                plan: '/apim/apis/:apiId/plans',
+                application: '/platform/applications/:applicationId',
+            },
+        },
         tracing: { enabled: true },
     },
     nav: { label: 'Observability' },
