@@ -48,6 +48,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.theme.domain_service.CurrentThemeDomainService;
 import io.gravitee.apim.core.theme.model.Theme;
 import io.gravitee.apim.core.theme.model.ThemeType;
+import java.time.ZonedDateTime;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -376,5 +377,47 @@ class CreateOrUpdatePortalUseCaseTest {
             .singleElement()
             .extracting(Theme::isEnabled)
             .isEqualTo(false);
+    }
+
+    @Test
+    void should_reactivate_another_existing_theme_when_active_theme_is_cleared() {
+        var clearedThemeId = "22222222-2222-2222-2222-222222222222";
+        var otherThemeId = "33333333-3333-3333-3333-333333333333";
+        var portal = PortalFixtures.aPortal();
+        portalCrudService.initWith(List.of(portal.withActiveThemeId(clearedThemeId)));
+        themeCrudService.initWith(
+            List.of(
+                Theme.builder()
+                    .id(clearedThemeId)
+                    .type(ThemeType.PORTAL_NEXT)
+                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(true)
+                    .createdAt(ZonedDateTime.now())
+                    .build(),
+                Theme.builder()
+                    .id(otherThemeId)
+                    .type(ThemeType.PORTAL_NEXT)
+                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(false)
+                    .createdAt(ZonedDateTime.now())
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(new CreateOrUpdatePortalUseCase.Input(AUDIT_INFO, portal));
+
+        assertThat(output.portal().getActiveThemeId()).isNull();
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals(clearedThemeId))
+            .singleElement()
+            .extracting(Theme::isEnabled)
+            .isEqualTo(false);
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals(otherThemeId))
+            .singleElement()
+            .extracting(Theme::isEnabled)
+            .isEqualTo(true);
     }
 }
