@@ -339,7 +339,7 @@ export interface EndpointDto {
     name: string;
     type: string;
     weight?: number;
-    backup?: boolean;
+    secondary?: boolean;
     inheritConfiguration?: boolean;
     configuration?: { target?: string | TcpTarget; [key: string]: unknown };
     tenants?: string[];

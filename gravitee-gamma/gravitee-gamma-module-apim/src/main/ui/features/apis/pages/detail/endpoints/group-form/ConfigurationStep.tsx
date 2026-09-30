@@ -41,6 +41,8 @@ interface ConfigurationStepProps {
     targetError?: string | null;
     onTargetChange?: (value: string) => void;
     isTcp?: boolean;
+    /** Disables all configuration controls (e.g. Kubernetes-managed / no update permission). */
+    disabled?: boolean;
 }
 
 // ─── Number input helper ───────────────────────────────────────────────────────
@@ -484,9 +486,10 @@ export function ConfigurationStep({
     targetError,
     onTargetChange,
     isTcp = false,
+    disabled = false,
 }: Readonly<ConfigurationStepProps>) {
     return (
-        <div className="space-y-6">
+        <fieldset disabled={disabled} className="m-0 min-w-0 space-y-6 border-0 p-0 disabled:opacity-60">
             {showDefaultEndpointTarget && (
                 <div className="space-y-4">
                     <Alert>
@@ -541,6 +544,6 @@ export function ConfigurationStep({
                     </>
                 )}
             </div>
-        </div>
+        </fieldset>
     );
 }

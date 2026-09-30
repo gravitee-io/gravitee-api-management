@@ -19,6 +19,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTabHarness } from '@angular/material/tabs/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 
 export class ApiEndpointHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint';
@@ -29,6 +30,7 @@ export class ApiEndpointHarness extends ComponentHarness {
   private getConfigurationToggle = this.locatorFor(MatSlideToggleHarness);
   private getWeightButton = this.locatorFor(MatInputHarness.with({ selector: '#weight' }));
   private getTenantsSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName=tenants]' }));
+  private getSecondaryCheckbox = this.locatorFor(MatCheckboxHarness.with({ selector: '[formControlName=secondary]' }));
   private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
   private getHealthCheckTab = this.locatorFor(MatTabHarness.with({ label: 'Health-check' }));
   private getHealthCheckInheritToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName=inherit]' }));
@@ -95,5 +97,19 @@ export class ApiEndpointHarness extends ComponentHarness {
 
   public async selectTenant(tenant: string): Promise<void> {
     return this.getTenantsSelect().then(select => select.clickOptions({ text: tenant }));
+  }
+
+  public async isSecondaryCheckboxChecked(): Promise<boolean> {
+    return this.getSecondaryCheckbox().then(checkbox => checkbox.isChecked());
+  }
+
+  public async isSecondaryCheckboxVisible(): Promise<boolean> {
+    return this.getSecondaryCheckbox()
+      .then(() => true)
+      .catch(() => false);
+  }
+
+  public async toggleSecondaryCheckbox(): Promise<void> {
+    return this.getSecondaryCheckbox().then(checkbox => checkbox.toggle());
   }
 }
