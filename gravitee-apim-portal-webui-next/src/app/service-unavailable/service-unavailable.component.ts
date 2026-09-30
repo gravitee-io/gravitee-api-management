@@ -30,7 +30,8 @@ export class ServiceUnavailableComponent implements OnInit {
   public activatedRoute = inject(ActivatedRoute);
   public router = inject(Router);
 
-  public message = 'Portal API unreachable or error occurs, please check logs';
+  public message =
+    "Portal API unreachable or error occurs, please check logs. If the problem persists, try clearing this site's cookies and retry.";
 
   ngOnInit() {
     const state = this.router.lastSuccessfulNavigation?.extras.state;

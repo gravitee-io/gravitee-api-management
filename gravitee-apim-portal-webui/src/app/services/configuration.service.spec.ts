@@ -39,6 +39,7 @@ describe('ConfigurationService', () => {
       document.body.innerHTML = `
         <span id="loader" class="loader"></span>
         <div id="gravitee-bootstrap-error" style="display: none">
+          <span id="gravitee-bootstrap-error-message">Portal API unreachable</span>
           <button id="gravitee-bootstrap-error-retry" type="button">Retry</button>
         </div>
       `;
@@ -62,6 +63,22 @@ describe('ConfigurationService', () => {
       expect(spectator.service.hasBootstrapFailed()).toEqual(true);
       expect(errorElement.style.display).not.toEqual('none');
       expect(loaderElement.style.display).toEqual('none');
+    });
+
+    it('should show the maintenance message when the bootstrap call fails because of maintenance mode', async () => {
+      const loaded = spectator.service.load();
+
+      spectator.expectOne('./assets/config.json', HttpMethod.GET).flush({ baseURL: 'https://apim.example.com/portal' });
+      spectator
+        .expectOne('https://apim.example.com/portal/ui/bootstrap', HttpMethod.GET)
+        .flush(
+          { errors: [{ code: 'errors.maintenance.mode', message: 'Portal is under maintenance', status: '503' }] },
+          { status: 503, statusText: 'Service Unavailable' },
+        );
+
+      await expect(loaded).resolves.toEqual(false);
+      expect(errorElement.style.display).not.toEqual('none');
+      expect(document.getElementById('gravitee-bootstrap-error-message').textContent).toEqual('Portal is under maintenance');
     });
 
     it('should reload the page when retrying after a bootstrap failure', async () => {

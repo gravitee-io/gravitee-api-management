@@ -45,7 +45,9 @@ describe('ServiceUnavailableComponent', () => {
   });
 
   it('should show the default unavailable message', () => {
-    expect(fixture.nativeElement.textContent).toContain('Portal API unreachable or error occurs, please check logs');
+    expect(fixture.nativeElement.textContent).toContain(
+      "Portal API unreachable or error occurs, please check logs. If the problem persists, try clearing this site's cookies and retry.",
+    );
   });
 
   it('should load the portal home again when clicking retry', async () => {
