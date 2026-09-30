@@ -38,11 +38,8 @@ set_core_pin "${NEXT_REVISION}-SNAPSHOT"
 sed -i.bak "s|version: \"${REVISION}-SNAPSHOT\"|version: \"${NEXT_REVISION}-SNAPSHOT\"|" "$PORTAL_OPENAPI"
 rm -f "$PORTAL_OPENAPI.bak"
 
-# helm/Chart.yaml: bump version and appVersion, clear artifacthub changes
-sed -i.bak "s|version: ${REVISION}|version: ${NEXT_REVISION}|" "$HELM_CHART"
-rm -f "$HELM_CHART.bak"
-sed -i.bak "s|appVersion: ${REVISION}|appVersion: ${NEXT_REVISION}|" "$HELM_CHART"
-rm -f "$HELM_CHART.bak"
+# helm/Chart.yaml: bump the chart, clear artifacthub changes
+set_chart_version "${NEXT_REVISION}"
 awk '
   !in_block && /^  artifacthub.io\/changes:/ {
     print "  artifacthub.io/changes:"

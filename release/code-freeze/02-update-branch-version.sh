@@ -38,9 +38,8 @@ set_core_pin "${ALPHA_VERSION_SNAPSHOT}"
 sed -i.bak "s|version: \"${REVISION}-SNAPSHOT\"|version: \"${ALPHA_VERSION_SNAPSHOT}\"|" "$PORTAL_OPENAPI"
 rm -f "$PORTAL_OPENAPI.bak"
 
-# helm/Chart.yaml: update version without -SNAPSHOT
-sed -i.bak "s|version: ${REVISION}|version: ${ALPHA_VERSION}|" "$HELM_CHART"
-rm -f "$HELM_CHART.bak"
+# helm/Chart.yaml: the alpha the branch publishes, without -SNAPSHOT
+set_chart_version "${ALPHA_VERSION}"
 
 # Commit
 git -C "$REPO_ROOT" add pom.xml \
