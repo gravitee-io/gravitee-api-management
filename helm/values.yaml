@@ -316,6 +316,8 @@ redis:
   download: true
 #  repositoryVersion: 3.3.0
 
+# @deprecated Removed in APIM 4.15: this subchart runs a Bitnami image that no longer receives security updates.
+# Deploy MongoDB outside this chart and point `mongo.*` at it.
 mongodb:
   enabled: false
   architecture: replicaset
@@ -394,6 +396,8 @@ es:
     plugins:
       ingest: geoip, user_agent # geoip and user_agent plugins are enabled by default
 
+# @deprecated Removed in APIM 4.15: this subchart runs a Bitnami image that no longer receives security updates.
+# Deploy Elasticsearch outside this chart and point `es.*` at it.
 elasticsearch:
   enabled: false
   name: "elasticsearch"
