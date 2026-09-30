@@ -69,6 +69,9 @@ interface PortalSettingsPageForm {
     analytics: FormGroup<{
       enabled: FormControl<boolean>;
     }>;
+    aiWorkspaces: FormGroup<{
+      enabled: FormControl<boolean>;
+    }>;
     catalog: FormGroup<{
       fuzzySearch: FormGroup<{
         enabled: FormControl<boolean>;
@@ -317,6 +320,15 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
             { nonNullable: true },
           ),
         }),
+        aiWorkspaces: new FormGroup({
+          enabled: new FormControl(
+            {
+              value: settings.portalNext?.aiWorkspaces?.enabled ?? false,
+              disabled: !this.canUpdate || PortalSettingsService.isReadonly(settings, 'portal.next.aiWorkspaces.enabled'),
+            },
+            { nonNullable: true },
+          ),
+        }),
         catalog: new FormGroup({
           fuzzySearch: new FormGroup({
             enabled: new FormControl(
@@ -426,6 +438,10 @@ export class PortalSettingsPageComponent implements HasUnsavedChanges {
         analytics: {
           ...settings.portalNext?.analytics,
           enabled: formValue.portalNext.analytics.enabled,
+        },
+        aiWorkspaces: {
+          ...settings.portalNext?.aiWorkspaces,
+          enabled: formValue.portalNext.aiWorkspaces.enabled,
         },
         catalog: {
           ...settings.portalNext?.catalog,

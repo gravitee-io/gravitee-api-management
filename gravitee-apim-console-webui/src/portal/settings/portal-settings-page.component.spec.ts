@@ -227,6 +227,11 @@ describe('PortalSettingsPageComponent', () => {
     { label: 'mTLS', getToggle: (page: PortalSettingsPageHarness) => page.getMtlsToggle(), capability: 'mtls' },
     { label: 'analytics', getToggle: (page: PortalSettingsPageHarness) => page.getAnalyticsToggle(), capability: 'analytics' },
     {
+      label: 'AI workspaces',
+      getToggle: (page: PortalSettingsPageHarness) => page.getAiWorkspacesToggle(),
+      capability: 'aiWorkspaces',
+    },
+    {
       label: 'fuzzy search',
       getToggle: (page: PortalSettingsPageHarness) => page.getFuzzySearchToggle(),
       capability: 'fuzzySearch',
@@ -235,6 +240,7 @@ describe('PortalSettingsPageComponent', () => {
     const settings = fakePortalSettings();
     settings.portalNext.mtls.enabled = false;
     settings.portalNext.analytics.enabled = false;
+    settings.portalNext.aiWorkspaces = { enabled: false };
     settings.portalNext.catalog.fuzzySearch.enabled = false;
     await init(settings);
 
@@ -250,6 +256,7 @@ describe('PortalSettingsPageComponent', () => {
 
     expect(savedSettings.portalNext.mtls.enabled).toBe(capability === 'mtls');
     expect(savedSettings.portalNext.analytics.enabled).toBe(capability === 'analytics');
+    expect(savedSettings.portalNext.aiWorkspaces?.enabled).toBe(capability === 'aiWorkspaces');
     expect(savedSettings.portalNext.catalog.fuzzySearch.enabled).toBe(capability === 'fuzzySearch');
   });
 

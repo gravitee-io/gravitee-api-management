@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceConsumption;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceKey;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceModelInfo;
@@ -59,6 +60,16 @@ public final class AiWorkspaceMapper {
         target.setEndpointUrl(details.endpointUrl());
         target.setKey(toKey(details.key()));
         target.setModels(details.models() == null ? List.of() : details.models().stream().map(AiWorkspaceMapper::toModel).toList());
+        return target;
+    }
+
+    public static io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption toConsumption(AiWorkspaceConsumption consumption) {
+        var target = new io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption();
+        target.setTokens(consumption.tokens());
+        target.setRequests(consumption.requests());
+        target.setCost(consumption.cost());
+        target.setFrom(OffsetDateTime.ofInstant(consumption.from(), ZoneOffset.UTC));
+        target.setTo(OffsetDateTime.ofInstant(consumption.to(), ZoneOffset.UTC));
         return target;
     }
 

@@ -232,6 +232,9 @@ export function fakePortalConfiguration(attributes?: Partial<PortalConfiguration
       analytics: {
         enabled: false,
       },
+      aiWorkspaces: {
+        enabled: false,
+      },
       applications: {
         membership: {
           enabled: false,
