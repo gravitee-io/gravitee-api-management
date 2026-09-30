@@ -22,4 +22,7 @@
   <mat-card-content>
     {{ message }}
   </mat-card-content>
+  <mat-card-actions>
+    <button mat-flat-button type="button" (click)="retry()" i18n="@@serviceUnavailableRetry">Retry</button>
+  </mat-card-actions>
 </mat-card>
