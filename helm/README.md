@@ -164,9 +164,9 @@ If neither `mongo.uri` or `mongo.servers` are provided, you have to define the f
 
 ### Mongo ReplicaSet
 
-| Parameter                    | Description                           | Default |
-| ---------------------------- | ------------------------------------- | ------- |
-| `mongodb-replicaset.enabled` | Enable deployment of Mongo replicaset | `false` |
+| Parameter         | Description                                                                                                                              | Default |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `mongodb.enabled` | **Deprecated.** Enable deployment of Mongo replicaset. Removed in APIM 4.15: deploy MongoDB outside this chart and point `mongo.*` at it | `false` |
 
 See [MongoDB replicaset](https://artifacthub.io/packages/helm/bitnami/mongodb) for detailed documentation on helm chart.
 
@@ -191,9 +191,9 @@ See [MongoDB replicaset](https://artifacthub.io/packages/helm/bitnami/mongodb) f
 
 ### Elasticsearch cluster
 
-| Parameter               | Description                                | Default |
-| ----------------------- | ------------------------------------------ | ------- |
-| `elasticsearch.enabled` | Enable deployment of Elasticsearch cluster | `false` |
+| Parameter               | Description                                                                                                                                      | Default |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------- |
+| `elasticsearch.enabled` | **Deprecated.** Enable deployment of Elasticsearch cluster. Removed in APIM 4.15: deploy Elasticsearch outside this chart and point `es.*` at it | `false` |
 
 See [Elasticsearch](https://artifacthub.io/packages/helm/bitnami/elasticsearch) for detailed documentation on optional requirements helm chart.
 
