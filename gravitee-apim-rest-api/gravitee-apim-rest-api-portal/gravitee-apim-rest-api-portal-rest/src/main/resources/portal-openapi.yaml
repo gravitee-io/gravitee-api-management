@@ -53,99 +53,23 @@ paths:
                 - AI Workspace
             summary: List the caller's Gamma AI Workspaces
             description: |
-                Workspaces the authenticated user is mapped to in this environment.
-                The name filter is a case-insensitive fragment applied before paging.
+                AI workspaces in this environment where the caller owns an application with an accepted subscription.
+                A caller with no workspace gets an empty page.
             operationId: listAiWorkspaces
             parameters:
                 - $ref: "#/components/parameters/pageNumberParam"
                 - $ref: "#/components/parameters/pageSizeParam"
-                - name: name
-                  in: query
-                  required: false
-                  description: Case-insensitive fragment matched against the workspace name.
-                  schema:
-                      type: string
             responses:
-                "200":
+                200:
                     description: Page of workspaces mapped to the caller
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/AiWorkspacesResponse"
-                "401":
-                    description: Authentication required
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "404":
-                    description: Portal AI Workspace is not enabled for this environment
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-    /ai-workspaces/{aiWorkspaceId}:
-        get:
-            tags:
-                - AI Workspace
-            summary: Get one Gamma AI Workspace mapped to the caller
-            operationId: getAiWorkspace
-            parameters:
-                - name: aiWorkspaceId
-                  in: path
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                "200":
-                    description: Workspace details, key and models
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/AiWorkspace"
-                "401":
-                    description: Authentication required
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "404":
-                    description: Workspace cannot be found for this caller, or Portal AI Workspace is not enabled
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-    /ai-workspaces/{aiWorkspaceId}/consumption:
-        get:
-            tags:
-                - AI Workspace
-            summary: Consumption of the caller's own traffic over the last 30 days
-            operationId: getAiWorkspaceConsumption
-            parameters:
-                - name: aiWorkspaceId
-                  in: path
-                  required: true
-                  schema:
-                      type: string
-            responses:
-                "200":
-                    description: Tokens, requests and cost. Zeros when analytics has no data.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/AiWorkspaceConsumption"
-                "401":
-                    description: Authentication required
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
-                "404":
-                    description: Workspace cannot be found for this caller, or Portal AI Workspace is not enabled
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+                401:
+                    $ref: "#/components/responses/UnauthorizedError"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /apis:
         get:
             tags:
@@ -4939,21 +4863,21 @@ components:
                         $ref: "#/components/schemas/Error"
 
         AiWorkspacesResponse:
-            type: object
             properties:
                 data:
+                    description: List of AI workspaces mapped to the caller.
                     type: array
                     items:
                         $ref: "#/components/schemas/AiWorkspaceSummary"
-                page:
-                    type: integer
-                size:
-                    type: integer
-                total:
-                    type: integer
-                    format: int64
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
         AiWorkspaceSummary:
             type: object
+            required:
+                - id
+                - name
             properties:
                 id:
                     type: string
@@ -4962,76 +4886,30 @@ components:
                 description:
                     type: string
                 budget:
-                    $ref: "#/components/schemas/AiWorkspaceBudget"
-        AiWorkspace:
-            type: object
-            properties:
-                id:
-                    type: string
-                name:
-                    type: string
-                description:
-                    type: string
-                budget:
-                    $ref: "#/components/schemas/AiWorkspaceBudget"
-                endpointUrl:
-                    type: string
-                key:
-                    $ref: "#/components/schemas/AiWorkspaceKey"
-                models:
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/AiWorkspaceModel"
+                    description: Absent when the plan has no readable budget configuration. The workspace is still listed.
+                    allOf:
+                        - $ref: "#/components/schemas/AiWorkspaceBudget"
         AiWorkspaceBudget:
             type: object
-            description: Allocated budget in currency units for the plan window.
+            description: Allocated budget for the plan window. The amount is in US dollars.
             properties:
                 amount:
                     type: number
                     format: double
+                    description: Budget amount in US dollars, converted from the cost-ratelimit micro-dollar limit (limit / 1_000_000).
                 period:
                     type: string
-                    description: HOUR, DAY, WEEK or MONTH
-        AiWorkspaceKey:
-            type: object
-            properties:
-                value:
-                    type: string
-                status:
-                    type: string
-                createdAt:
-                    type: string
-                    format: date-time
-        AiWorkspaceModel:
-            type: object
-            description: Model name and prices per million tokens. Provider credentials are never returned.
-            properties:
-                name:
-                    type: string
-                inputPrice:
-                    type: number
-                    format: double
-                outputPrice:
-                    type: number
-                    format: double
-        AiWorkspaceConsumption:
-            type: object
-            properties:
-                tokens:
-                    type: integer
-                    format: int64
-                requests:
-                    type: integer
-                    format: int64
-                cost:
-                    type: number
-                    format: double
-                from:
-                    type: string
-                    format: date-time
-                to:
-                    type: string
-                    format: date-time
+                    enum:
+                        - HOUR
+                        - DAY
+                        - WEEK
+                        - MONTH
+                    description: |
+                        Plan window. periodTime and periodTimeUnit are converted to minutes first
+                        (SECONDS, MINUTES, HOURS, DAYS, WEEKS, MONTHS). A missing unit is treated as minutes,
+                        which is how Gamma writes a week (periodTime 10080, periodTimeUnit MINUTES).
+                        The minute totals are 60 HOUR, 1440 DAY, 10080 WEEK and 43200 MONTH.
+                        Absent when the window is not one of those.
         ApisResponse:
             properties:
                 data:
@@ -7580,8 +7458,6 @@ components:
                 mtls:
                     $ref: "#/components/schemas/Enabled"
                 analytics:
-                    $ref: "#/components/schemas/Enabled"
-                aiWorkspaces:
                     $ref: "#/components/schemas/Enabled"
                 applications:
                     $ref: "#/components/schemas/ConfigurationPortalNextApplications"
