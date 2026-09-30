@@ -24,6 +24,7 @@ import { FeatureEnum } from '../model/feature.enum';
 })
 export class ConfigurationService {
   private config: any;
+  private bootstrapFailed = false;
 
   constructor(private http: HttpClient) {}
 
@@ -52,6 +53,7 @@ export class ConfigurationService {
           .get(`${bootstrapUrl}`)
           .toPromise()
           .then((bootstrapResponse: any) => {
+            this.bootstrapFailed = false;
             const environmentBaseUrl = `${bootstrapResponse.baseURL}/environments/${bootstrapResponse.environmentId}`;
             this.config = {};
             this.config.baseURL = environmentBaseUrl;
@@ -72,11 +74,32 @@ export class ConfigurationService {
             );
           })
           .catch(() => {
-            // Do not block the application if the bootstrap fails
+            // Without the bootstrap response there is no API to talk to: show an error instead of running on defaults
+            this.bootstrapFailed = true;
+            this.showBootstrapError();
             resolve(false);
           });
       });
     });
+  }
+
+  public hasBootstrapFailed(): boolean {
+    return this.bootstrapFailed;
+  }
+
+  private showBootstrapError() {
+    const errorElement = document.getElementById('gravitee-bootstrap-error');
+    if (errorElement) {
+      errorElement.style.display = 'flex';
+    }
+    const retryElement = document.getElementById('gravitee-bootstrap-error-retry');
+    if (retryElement) {
+      retryElement.onclick = () => window.location.reload();
+    }
+    const loaderElement = document.getElementById('loader');
+    if (loaderElement) {
+      loaderElement.style.display = 'none';
+    }
   }
 
   _sanitizeBaseURLs(config: any): string {

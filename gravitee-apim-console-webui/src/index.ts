@@ -109,6 +109,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
     .catch((error) => {
       document.getElementById('gravitee-error').style.display = 'block';
       document.getElementById('gravitee-error-banner-message').innerText = 'Management API unreachable or error occurs, please check logs';
+      document.getElementById('gravitee-error-banner-retry').addEventListener('click', () => window.location.reload());
       document.getElementById('loader').style.display = 'none';
       throw error;
     });

@@ -13,19 +13,93 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createHttpFactory, SpectatorService } from '@ngneat/spectator/jest';
+import { createHttpFactory, HttpMethod, SpectatorHttp } from '@ngneat/spectator/jest';
 
 import { ConfigurationService } from './configuration.service';
 
+const flushPromises = () => new Promise(resolve => setTimeout(resolve));
+
 describe('ConfigurationService', () => {
-  let service: SpectatorService<ConfigurationService>;
+  let spectator: SpectatorHttp<ConfigurationService>;
   const createService = createHttpFactory(ConfigurationService);
 
   beforeEach(() => {
-    service = createService();
+    spectator = createService();
   });
 
   it('should be created', () => {
-    expect(service).toBeTruthy();
+    expect(spectator.service).toBeTruthy();
+  });
+
+  describe('load', () => {
+    let errorElement: HTMLElement;
+    let loaderElement: HTMLElement;
+
+    beforeEach(() => {
+      document.body.innerHTML = `
+        <span id="loader" class="loader"></span>
+        <div id="gravitee-bootstrap-error" style="display: none">
+          <button id="gravitee-bootstrap-error-retry" type="button">Retry</button>
+        </div>
+      `;
+      errorElement = document.getElementById('gravitee-bootstrap-error');
+      loaderElement = document.getElementById('loader');
+    });
+
+    afterEach(() => {
+      document.body.innerHTML = '';
+    });
+
+    it('should show the bootstrap error and flag the failure when the bootstrap call fails', async () => {
+      const loaded = spectator.service.load();
+
+      spectator.expectOne('./assets/config.json', HttpMethod.GET).flush({ baseURL: 'https://apim.example.com/portal' });
+      spectator
+        .expectOne('https://apim.example.com/portal/ui/bootstrap', HttpMethod.GET)
+        .flush(null, { status: 400, statusText: 'Bad Request' });
+
+      await expect(loaded).resolves.toEqual(false);
+      expect(spectator.service.hasBootstrapFailed()).toEqual(true);
+      expect(errorElement.style.display).not.toEqual('none');
+      expect(loaderElement.style.display).toEqual('none');
+    });
+
+    it('should reload the page when retrying after a bootstrap failure', async () => {
+      const originalLocation = window.location;
+      const reload = jest.fn();
+      Object.defineProperty(window, 'location', { configurable: true, value: { ...originalLocation, reload } });
+
+      try {
+        const loaded = spectator.service.load();
+        spectator.expectOne('./assets/config.json', HttpMethod.GET).flush({ baseURL: 'https://apim.example.com/portal' });
+        spectator
+          .expectOne('https://apim.example.com/portal/ui/bootstrap', HttpMethod.GET)
+          .flush(null, { status: 400, statusText: 'Bad Request' });
+        await loaded;
+
+        document.getElementById('gravitee-bootstrap-error-retry').click();
+
+        expect(reload).toHaveBeenCalledTimes(1);
+      } finally {
+        Object.defineProperty(window, 'location', { configurable: true, value: originalLocation });
+      }
+    });
+
+    it('should keep the bootstrap error hidden when the bootstrap call succeeds', async () => {
+      const loaded = spectator.service.load();
+
+      spectator.expectOne('./assets/config.json', HttpMethod.GET).flush({ baseURL: 'https://apim.example.com/portal' });
+      spectator
+        .expectOne('https://apim.example.com/portal/ui/bootstrap', HttpMethod.GET)
+        .flush({ baseURL: 'https://apim.example.com/portal', environmentId: 'DEFAULT' });
+      await flushPromises();
+      spectator.controller.expectOne('https://apim.example.com/portal/environments/DEFAULT/theme?type=PORTAL').flush({});
+      spectator.controller.expectOne('https://apim.example.com/portal/environments/DEFAULT/configuration').flush({});
+
+      await expect(loaded).resolves.toEqual(true);
+      expect(spectator.service.hasBootstrapFailed()).toEqual(false);
+      expect(errorElement.style.display).toEqual('none');
+      expect(loaderElement.style.display).not.toEqual('none');
+    });
   });
 });
