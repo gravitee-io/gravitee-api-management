@@ -29,6 +29,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -43,13 +44,13 @@ public class AiWorkspacesResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response list(@BeanParam PaginationParam pagination) {
+    public Response list(@BeanParam PaginationParam pagination, @QueryParam("name") String name) {
         if (!isAuthenticated()) {
             throw new UnauthorizedAccessException();
         }
         var executionContext = getExecutionContext();
         var workspaces = listMyAiWorkspacesUseCase
-            .execute(new ListMyAiWorkspacesUseCase.Input(executionContext, applicationIds()))
+            .execute(new ListMyAiWorkspacesUseCase.Input(executionContext, applicationIds(), name))
             .workspaces()
             .stream()
             .map(AiWorkspaceMapper.INSTANCE::toSummary)
