@@ -46,4 +46,5 @@ describe('iso8601Duration', () => {
         expect(isValidIso8601Duration('P1M')).toBe(false);
         expect(isValidIso8601Duration('P1W')).toBe(false);
     });
+
 });

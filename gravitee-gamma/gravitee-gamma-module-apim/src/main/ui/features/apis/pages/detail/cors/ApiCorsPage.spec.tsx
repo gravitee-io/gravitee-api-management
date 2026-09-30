@@ -125,6 +125,39 @@ it('renders existing origins, methods and headers as chips', () => {
     expect(screen.getByText('Authorization')).not.toBeNull();
 });
 
+it('renders allow-headers autocomplete in a portal outside clipped cards', () => {
+    mockUseHasPermission.mockReturnValue(true);
+    mockUseApiDetail.mockReturnValue({
+        data: {
+            id: 'api-1',
+            name: 'Test API',
+            listeners: [{ type: 'HTTP', cors: { ...ENABLED_CORS, allowHeaders: [] } }],
+        },
+        isLoading: false,
+        isError: false,
+    });
+    render(
+        <MemoryRouter initialEntries={['/apis/api-1/cors']}>
+            <Routes>
+                <Route
+                    path="apis/:apiId/cors"
+                    element={
+                        <div className="h-24 overflow-hidden">
+                            <ApiCorsPage />
+                        </div>
+                    }
+                />
+            </Routes>
+        </MemoryRouter>,
+    );
+
+    const input = screen.getByRole('combobox', { name: /access-control-allow-headers/i });
+    fireEvent.focus(input);
+
+    const listbox = screen.getByRole('listbox');
+    expect(document.body.contains(listbox)).toBe(true);
+});
+
 // ─── 3. Wildcard warning: shown when * is in allowOrigin ─────────────────────
 
 it('shows wildcard warning banner when * is in Allow-Origin', () => {
@@ -188,7 +221,8 @@ it('disables chip inputs when CORS is disabled (enabled: false)', () => {
     renderPage({ ...ENABLED_CORS, enabled: false });
 
     expect(screen.getByRole('textbox', { name: /access-control-allow-origin/i })).toBeDisabled();
-    expect(screen.getByRole('textbox', { name: /access-control-allow-methods/i })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: /access-control-allow-methods/i })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: /access-control-allow-headers/i })).toBeDisabled();
 });
 
 // ─── 9. Save / Discard bar (isDirty) ─────────────────────────────────────────

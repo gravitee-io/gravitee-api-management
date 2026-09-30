@@ -138,4 +138,15 @@ describe('ApiLoggingSettingsPage', () => {
         fireEvent.click(screen.getByRole('button', { name: /Save changes/i }));
         expect(mutate).not.toHaveBeenCalled();
     });
+
+    it('shows temporal ISO and compare errors and keeps Save disabled for invalid default duration', () => {
+        renderPage();
+
+        fireEvent.change(screen.getByLabelText('Temporal default'), { target: { value: 'PT1SS' } });
+        fireEvent.change(screen.getByLabelText('Temporal limit'), { target: { value: 'PT1S' } });
+
+        expect(screen.getAllByText('Default value should conform to ISO-8601 duration format')).toHaveLength(1);
+        expect(screen.getAllByText('Default should be greater than Limit')).toHaveLength(2);
+        expect(screen.getByRole('button', { name: /Save changes/i })).toHaveProperty('disabled', true);
+    });
 });

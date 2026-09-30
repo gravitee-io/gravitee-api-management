@@ -53,3 +53,4 @@ export function parseIso8601DurationSeconds(value: string): number | null {
 export function isValidIso8601Duration(value: string): boolean {
     return parseIso8601DurationSeconds(value) !== null;
 }
+
