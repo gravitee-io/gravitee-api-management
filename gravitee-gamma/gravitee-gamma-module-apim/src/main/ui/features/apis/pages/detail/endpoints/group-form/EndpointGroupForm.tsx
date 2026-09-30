@@ -175,7 +175,9 @@ export function EndpointGroupForm({
             )}
 
             <div>
-                {currentStep === 'general' && <GeneralStep form={form} existingGroupNames={existingGroupNames} onFormChange={patchForm} />}
+                {currentStep === 'general' && (
+                    <GeneralStep form={form} existingGroupNames={existingGroupNames} onFormChange={patchForm} readOnly={isReadOnly} />
+                )}
                 {currentStep === 'configuration' && (
                     <ConfigurationStep
                         config={form.sharedConfig}
@@ -189,6 +191,7 @@ export function EndpointGroupForm({
                             setTargetError(null);
                         }}
                         isTcp={isTcp}
+                        disabled={isReadOnly}
                     />
                 )}
                 {currentStep === 'health-check' && showHealthCheck && (
@@ -225,7 +228,9 @@ export function EndpointGroupForm({
                             type="button"
                             size="sm"
                             onClick={handleSave}
-                            disabled={isSaving || !generalValid || !configurationValid || (showHealthCheck && !healthCheckValid)}
+                            disabled={
+                                isReadOnly || isSaving || !generalValid || !configurationValid || (showHealthCheck && !healthCheckValid)
+                            }
                         >
                             {isSaving ? 'Saving…' : 'Save endpoint group'}
                         </Button>

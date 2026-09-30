@@ -31,6 +31,7 @@ import { RouterModule } from '@angular/router';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
@@ -47,6 +48,7 @@ import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form
 
     MatButtonModule,
     MatCardModule,
+    MatCheckboxModule,
     MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
