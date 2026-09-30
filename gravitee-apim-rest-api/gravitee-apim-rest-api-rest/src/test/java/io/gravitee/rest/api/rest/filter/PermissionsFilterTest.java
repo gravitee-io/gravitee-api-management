@@ -18,6 +18,7 @@ package io.gravitee.rest.api.rest.filter;
 import static io.gravitee.rest.api.model.permissions.RolePermission.API_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermission.APPLICATION_ANALYTICS;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ENVIRONMENT_API;
+import static io.gravitee.rest.api.model.permissions.RolePermission.GROUP_MEMBER;
 import static io.gravitee.rest.api.model.permissions.RolePermission.INTEGRATION_DEFINITION;
 import static io.gravitee.rest.api.model.permissions.RolePermission.ORGANIZATION_TENANT;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -75,6 +77,8 @@ public class PermissionsFilterTest {
     private static final String ORGANIZATION_ID = "ORG_ID";
 
     private static final String INTEGRATION_ID = "INTEGRATION_ID";
+
+    private static final String GROUP_ID = "GROUP_ID";
 
     @BeforeEach
     public void setUp() {
@@ -262,6 +266,100 @@ public class PermissionsFilterTest {
             when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
             permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
             verify(permissionService, times(1)).hasPermission(any(), eq(INTEGRATION_DEFINITION), eq(INTEGRATION_ID), eq(UPDATE));
+        }
+    }
+
+    @Nested
+    class ParameterPrecedence {
+
+        private static final String OTHER_ID = "OTHER_ID";
+
+        private MultivaluedHashMap<String, String> pathParams;
+        private MultivaluedHashMap<String, String> queryParams;
+
+        @BeforeEach
+        public void initUriMock() {
+            pathParams = new MultivaluedHashMap<>();
+            queryParams = new MultivaluedHashMap<>();
+            UriInfo uriInfo = mock(UriInfo.class);
+            when(uriInfo.getPathParameters()).thenReturn(pathParams);
+            when(uriInfo.getQueryParameters()).thenReturn(queryParams);
+            when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+        }
+
+        private void requirePermission(RolePermission rolePermission) {
+            Permission perm = mock(Permission.class);
+            when(perm.value()).thenReturn(rolePermission);
+            when(perm.acls()).thenReturn(new RolePermissionAction[] { UPDATE });
+            when(permissions.value()).thenReturn(new Permission[] { perm });
+        }
+
+        @Test
+        public void should_check_api_from_path_apiId_when_query_api_is_also_provided() {
+            requirePermission(API_ANALYTICS);
+            pathParams.putSingle("apiId", API_ID);
+            queryParams.putSingle("api", OTHER_ID);
+
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+            verify(permissionService).hasPermission(any(), eq(API_ANALYTICS), eq(API_ID), eq(UPDATE));
+        }
+
+        @Test
+        public void should_check_api_from_path_api_when_query_apiId_is_also_provided() {
+            requirePermission(API_ANALYTICS);
+            pathParams.putSingle("api", API_ID);
+            queryParams.putSingle("apiId", OTHER_ID);
+
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+            verify(permissionService).hasPermission(any(), eq(API_ANALYTICS), eq(API_ID), eq(UPDATE));
+        }
+
+        @Test
+        public void should_check_api_from_query_api_when_no_path_parameter() {
+            requirePermission(API_ANALYTICS);
+            queryParams.putSingle("api", API_ID);
+
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+            verify(permissionService).hasPermission(any(), eq(API_ANALYTICS), eq(API_ID), eq(UPDATE));
+        }
+
+        @Test
+        public void should_check_application_from_path_applicationId_when_query_application_is_also_provided() {
+            requirePermission(APPLICATION_ANALYTICS);
+            pathParams.putSingle("applicationId", APPLICATION_ID);
+            queryParams.putSingle("application", OTHER_ID);
+
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+            verify(permissionService).hasPermission(any(), eq(APPLICATION_ANALYTICS), eq(APPLICATION_ID), eq(UPDATE));
+        }
+
+        @Test
+        public void should_check_group_from_path_groupId_when_query_group_is_also_provided() {
+            requirePermission(GROUP_MEMBER);
+            pathParams.putSingle("groupId", GROUP_ID);
+            queryParams.putSingle("group", OTHER_ID);
+
+            permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext());
+
+            verify(permissionService).hasPermission(any(), eq(GROUP_MEMBER), eq(GROUP_ID), eq(UPDATE));
+        }
+
+        @Test
+        public void should_be_forbidden_when_permission_only_granted_on_the_query_parameter_api() {
+            requirePermission(API_ANALYTICS);
+            pathParams.putSingle("apiId", API_ID);
+            queryParams.putSingle("api", OTHER_ID);
+            when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
+            when(permissionService.hasPermission(any(), eq(API_ANALYTICS), eq(OTHER_ID), any())).thenReturn(true);
+
+            assertThrows(ForbiddenAccessException.class, () ->
+                permissionFilter.filter(permissions, containerRequestContext, GraviteeContext.getExecutionContext())
+            );
         }
     }
 
