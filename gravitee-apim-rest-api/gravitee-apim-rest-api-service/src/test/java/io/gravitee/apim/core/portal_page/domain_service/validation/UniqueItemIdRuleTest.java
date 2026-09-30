@@ -27,8 +27,6 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -68,7 +66,7 @@ class UniqueItemIdRuleTest {
     @Test
     void an_existing_item_declared_ignorable_does_not_conflict() {
         navigationItemsQueryService.storage().add(PortalNavigationItem.from(pageCreateItem(ITEM_ID), ORG_ID, ENV_ID, null));
-        var ctx = new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(), Set.of(), Set.of(ITEM_ID));
+        var ctx = CreateValidationContext.replacing(Set.of(ITEM_ID));
 
         assertThatCode(() -> rule.validate(pageCreateItem(ITEM_ID), ENV_ID, ctx)).doesNotThrowAnyException();
     }

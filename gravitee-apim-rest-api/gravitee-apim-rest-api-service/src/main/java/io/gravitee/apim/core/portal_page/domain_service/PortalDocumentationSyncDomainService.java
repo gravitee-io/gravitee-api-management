@@ -21,6 +21,7 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -111,11 +112,7 @@ public class PortalDocumentationSyncDomainService {
         PortalNavigationItemContainer parent
     ) implements NavigationItemPlan {}
 
-    private record CreateNew(
-        PortalNavigationItemId navigationItemId,
-        CreatePortalNavigationItem create,
-        PortalNavigationItemContainer parent
-    ) implements NavigationItemPlan {}
+    private record CreateNew(CreatePortalNavigationItem create, PortalNavigationItemContainer parent) implements NavigationItemPlan {}
 
     private NavigationItemPlan plan(
         AuditInfo auditInfo,
@@ -150,7 +147,7 @@ public class PortalDocumentationSyncDomainService {
             return new UpdateInPlace(page, update, parent);
         }
 
-        final var segment = Slug.from(meta.name(), siblingsSlugs(envId, parentId, null));
+        final var segment = Slug.from(meta.name(), siblingsSlugs(envId, parentId, navigationItemId));
         var create = CreatePortalNavigationItem.builder()
             .id(navigationItemId)
             .title(meta.name())
@@ -165,7 +162,7 @@ public class PortalDocumentationSyncDomainService {
             .published(DEFAULT_PUBLISHED)
             .automationMetadata(meta.trimmedForNavItem())
             .build();
-        return new CreateNew(navigationItemId, create, parent);
+        return new CreateNew(create, parent);
     }
 
     private void validate(
@@ -176,9 +173,12 @@ public class PortalDocumentationSyncDomainService {
         PortalNavigationItemId navigationItemId,
         PortalNavigationItem existing
     ) {
+        if (existing instanceof PortalNavigationPage page && page.getArea() != targetArea) {
+            throw InvalidPortalNavigationItemDataException.areaCannotChange(navigationItemId.toString());
+        }
         switch (plan) {
             case UpdateInPlace(var page, var update, var ignoredParent) -> validatorService.validateToUpdate(update, page);
-            case CreateNew(var ignoredId, var create, var ignoredParent) -> {
+            case CreateNew(var create, var ignoredParent) -> {
                 var itemIdsBeingReplaced = new HashSet<PortalNavigationItemId>();
                 if (existing != null) {
                     itemIdsBeingReplaced.add(navigationItemId);
@@ -206,7 +206,7 @@ public class PortalDocumentationSyncDomainService {
                 page.attachTo(parent);
                 navigationItemCrudService.update(page);
             }
-            case CreateNew(var ignoredId, var create, var parent) -> {
+            case CreateNew(var create, var parent) -> {
                 if (existing != null) {
                     navigationItemCrudService.delete(navigationItemId);
                 }
