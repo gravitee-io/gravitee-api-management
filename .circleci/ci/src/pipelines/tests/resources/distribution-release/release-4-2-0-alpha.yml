@@ -657,6 +657,7 @@ jobs:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
+            MAVEN_OPTS: -Xmx2048m
       - run:
           name: Maven build APIM distribution
           command: mvn --settings .gravitee.settings.xml -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
@@ -664,6 +665,7 @@ jobs:
             BUILD_ID: "1234"
             BUILD_NUMBER: "1234"
             GIT_COMMIT: 784ff35ca
+            MAVEN_OPTS: -Xmx2048m
       - cmd-save-maven-job-cache:
           jobName: job-backend-build-and-publish-on-download-website
       - run:
