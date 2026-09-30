@@ -29,8 +29,6 @@ import { updateApiCors } from '../../../services/apis';
 import type { Cors } from '../../../types';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export function ApiCorsPage() {

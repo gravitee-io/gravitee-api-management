@@ -13,10 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Badge, Button, cn, Popover, PopoverAnchor, PopoverContent } from '@gravitee/graphene-core';
+import {
+    Badge,
+    Button,
+    cn,
+    Combobox,
+    ComboboxChip,
+    ComboboxChips,
+    ComboboxChipsInput,
+    ComboboxContent,
+    ComboboxItem,
+    ComboboxList,
+    useComboboxAnchor,
+} from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 import type { KeyboardEvent } from 'react';
-import { useCallback, useId, useMemo, useState } from 'react';
+import { useId, useMemo, useRef, useState } from 'react';
+
+import { commitChipDraft, filterChipSuggestions } from './chipInputFieldUtils';
+
+/** Matches Classic mat-autocomplete panel height; inline styles because shared lib classes are not in Graphene CSS. */
+const SUGGESTIONS_LIST_MAX_HEIGHT = '14rem';
+
+const chipsContainerClass = (disabled: boolean, invalid: boolean, fieldClassName?: string) =>
+    cn(
+        'flex flex-wrap gap-1.5 rounded-md border bg-muted/30 p-2 min-h-9',
+        disabled && 'opacity-50',
+        invalid && 'border-destructive',
+        fieldClassName,
+    );
 
 export interface ChipInputFieldProps {
     readonly id?: string;
@@ -25,21 +50,18 @@ export interface ChipInputFieldProps {
     readonly onChange: (next: string[]) => void;
     readonly placeholder: string;
     readonly disabled?: boolean;
-    /** When true, pressing comma also commits the current draft value (off by default for URI-like values). */
     readonly addOnComma?: boolean;
-    /** Optional autocomplete values, matching Classic `gio-form-tags-input` `[autocompleteOptions]`. */
     readonly suggestions?: readonly string[];
     readonly invalid?: boolean;
     readonly describedBy?: string;
     readonly required?: boolean;
-    /** When false, blur discards the draft instead of committing it (Classic CORS headers). Default true. */
     readonly addOnBlur?: boolean;
     readonly monospace?: boolean;
     readonly fieldClassName?: string;
     readonly inputClassName?: string;
 }
 
-export function ChipInputField({
+function PlainChipInputField({
     id,
     inputAriaLabel,
     values,
@@ -47,7 +69,6 @@ export function ChipInputField({
     placeholder,
     disabled = false,
     addOnComma = false,
-    suggestions = [],
     invalid = false,
     describedBy,
     required = false,
@@ -57,26 +78,6 @@ export function ChipInputField({
     inputClassName,
 }: ChipInputFieldProps) {
     const [draft, setDraft] = useState('');
-    const [open, setOpen] = useState(false);
-    const [activeIndex, setActiveIndex] = useState(-1);
-    const reactId = useId();
-    const fieldId = id ?? reactId;
-    const listId = `${fieldId}-suggestions`;
-    const optionId = (index: number) => `${fieldId}-option-${index}`;
-
-    const add = (value: string, keepSuggestionsOpen = false) => {
-        if (disabled) {
-            return;
-        }
-        const trimmed = value.trim();
-        if (!trimmed || values.includes(trimmed)) {
-            return;
-        }
-        onChange([...values, trimmed]);
-        setDraft('');
-        setOpen(keepSuggestionsOpen);
-        setActiveIndex(-1);
-    };
 
     const removeAt = (index: number) => {
         if (disabled) {
@@ -85,79 +86,45 @@ export function ChipInputField({
         onChange(values.filter((_, itemIndex) => itemIndex !== index));
     };
 
-    const filteredSuggestions = useMemo(() => {
-        if (suggestions.length === 0) {
-            return [];
+    const addDraft = () => {
+        if (disabled) {
+            return;
         }
-        const query = draft.trim().toLowerCase();
-        return suggestions.filter(suggestion => {
-            if (values.includes(suggestion)) {
-                return false;
-            }
-            return !query || suggestion.toLowerCase().includes(query);
-        });
-    }, [draft, suggestions, values]);
-
-    const hasAutocomplete = suggestions.length > 0;
-    const listOpen = !disabled && open && hasAutocomplete && filteredSuggestions.length > 0;
-    const activeDescendant = listOpen && activeIndex >= 0 ? optionId(activeIndex) : undefined;
-
-    const openSuggestions = useCallback(() => {
-        if (!disabled && hasAutocomplete) {
-            setOpen(true);
+        if (commitChipDraft(values, draft, onChange)) {
+            setDraft('');
         }
-    }, [disabled, hasAutocomplete]);
+    };
 
     const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-        if (hasAutocomplete && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) {
+        const isEnterKey = event.key === 'Enter';
+        const isCommaKey = addOnComma && event.key === ',';
+        if (isEnterKey || isCommaKey) {
             event.preventDefault();
-            if (filteredSuggestions.length === 0) {
-                return;
-            }
-            setOpen(true);
-            setActiveIndex(current => {
-                if (event.key === 'ArrowDown') {
-                    return (current + 1) % filteredSuggestions.length;
-                }
-                return current <= 0 ? filteredSuggestions.length - 1 : current - 1;
-            });
-            return;
-        }
-        if (event.key === 'Enter' && activeIndex >= 0 && filteredSuggestions[activeIndex]) {
-            event.preventDefault();
-            add(filteredSuggestions[activeIndex], true);
-            return;
-        }
-        if (event.key === 'Enter' || (addOnComma && event.key === ',')) {
-            event.preventDefault();
-            add(draft);
+            addDraft();
         } else if (event.key === 'Backspace' && !draft && values.length > 0) {
             removeAt(values.length - 1);
-        } else if (event.key === 'Escape') {
-            setOpen(false);
-            setActiveIndex(-1);
         }
     };
 
     const chipTextClass = monospace ? 'font-mono text-xs' : 'font-normal';
-    const optionTextClass = monospace ? 'font-mono' : '';
 
-    const field = (
-        <div className={cn('flex flex-wrap gap-1.5 rounded-md border bg-muted/30 p-2 min-h-9', disabled && 'opacity-50', fieldClassName)}>
+    return (
+        <div className={chipsContainerClass(disabled, invalid, fieldClassName)}>
             {values.map((value, index) => (
                 <Badge key={`${value}-${index}`} variant="secondary" className={cn('gap-0.5 pr-1', chipTextClass)}>
                     {value}
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        className="ml-0.5 shrink-0 hover:text-destructive"
-                        onClick={() => removeAt(index)}
-                        aria-label={`Remove ${value}`}
-                        disabled={disabled}
-                    >
-                        <XIcon className="size-3" aria-hidden />
-                    </Button>
+                    {!disabled ? (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon-xs"
+                            className="ml-0.5 shrink-0 hover:text-destructive"
+                            onClick={() => removeAt(index)}
+                            aria-label={`Remove ${value}`}
+                        >
+                            <XIcon className="size-3" aria-hidden />
+                        </Button>
+                    ) : null}
                 </Badge>
             ))}
             <input
@@ -167,80 +134,165 @@ export function ChipInputField({
                 value={draft}
                 disabled={disabled}
                 aria-label={inputAriaLabel}
-                role={hasAutocomplete ? 'combobox' : undefined}
-                aria-expanded={hasAutocomplete ? listOpen : undefined}
-                aria-controls={listOpen ? listId : undefined}
-                aria-autocomplete={hasAutocomplete ? 'list' : undefined}
-                aria-activedescendant={activeDescendant}
                 aria-invalid={invalid || undefined}
                 aria-describedby={describedBy}
                 aria-required={required || undefined}
                 autoComplete="off"
-                onChange={event => {
-                    setDraft(event.target.value);
-                    setOpen(true);
-                    setActiveIndex(-1);
-                }}
-                onFocus={openSuggestions}
-                onClick={openSuggestions}
+                onChange={event => setDraft(event.target.value)}
                 onKeyDown={handleInputKeyDown}
                 onBlur={() => {
                     if (addOnBlur) {
-                        add(draft);
+                        addDraft();
                     } else {
                         setDraft('');
                     }
-                    setOpen(false);
-                    setActiveIndex(-1);
                 }}
             />
         </div>
     );
+}
 
-    if (!hasAutocomplete) {
-        return field;
-    }
+function AutocompleteChipInputField(props: ChipInputFieldProps) {
+    const {
+        id,
+        inputAriaLabel,
+        values,
+        onChange,
+        placeholder,
+        disabled = false,
+        addOnComma = false,
+        suggestions = [],
+        invalid = false,
+        describedBy,
+        required = false,
+        addOnBlur = true,
+        monospace = false,
+        fieldClassName,
+        inputClassName,
+    } = props;
+
+    const [draft, setDraft] = useState('');
+    const [popupOpen, setPopupOpen] = useState(false);
+    const suppressSuggestionOpenRef = useRef(false);
+    const reactId = useId();
+    const fieldId = id ?? reactId;
+    const anchorRef = useComboboxAnchor();
+
+    const filteredSuggestions = useMemo(
+        () => filterChipSuggestions(suggestions, values, draft),
+        [draft, suggestions, values],
+    );
+
+    const chipTextClass = monospace ? 'font-mono text-xs' : 'font-normal';
+    const optionTextClass = monospace ? 'font-mono' : '';
+
+    const commitDraftFromInput = (input: HTMLInputElement) => {
+        if (commitChipDraft(values, input.value, onChange)) {
+            setDraft('');
+            input.value = '';
+        }
+    };
+
+    const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        const isEnterKey = event.key === 'Enter';
+        const isCommaKey = addOnComma && event.key === ',';
+        if (isEnterKey || isCommaKey) {
+            event.preventDefault();
+            commitDraftFromInput(event.currentTarget);
+        } else if (event.key === 'Backspace' && !event.currentTarget.value && values.length > 0 && !disabled) {
+            onChange(values.slice(0, -1));
+        }
+    };
+
+    const openSuggestions = () => {
+        if (disabled || suppressSuggestionOpenRef.current) {
+            suppressSuggestionOpenRef.current = false;
+            return;
+        }
+        setPopupOpen(true);
+    };
 
     return (
-        <Popover
-            open={listOpen}
-            onOpenChange={next => {
-                if (!next) {
-                    setOpen(false);
-                    setActiveIndex(-1);
+        <Combobox
+            multiple
+            open={popupOpen}
+            onOpenChange={open => {
+                if (open && suppressSuggestionOpenRef.current) {
+                    suppressSuggestionOpenRef.current = false;
+                    setPopupOpen(false);
+                    return;
+                }
+                setPopupOpen(open);
+            }}
+            value={values}
+            onValueChange={next => {
+                const nextValues = Array.isArray(next) ? next : [next].filter(Boolean);
+                onChange(nextValues);
+                if (nextValues.length > values.length) {
+                    setPopupOpen(true);
+                } else if (nextValues.length < values.length) {
+                    suppressSuggestionOpenRef.current = true;
+                    setPopupOpen(false);
                 }
             }}
+            disabled={disabled}
+            autoComplete="list"
         >
-            <PopoverAnchor asChild>{field}</PopoverAnchor>
-            <PopoverContent
-                hideWhenDetached
-                align="start"
-                side="bottom"
-                className="max-h-56 w-[var(--radix-popover-trigger-width)] overflow-y-auto p-1"
-                onOpenAutoFocus={event => event.preventDefault()}
-                onCloseAutoFocus={event => event.preventDefault()}
-            >
-                <ul id={listId} role="listbox" onMouseDown={event => event.preventDefault()}>
-                    {filteredSuggestions.map((suggestion, index) => (
-                        <li key={suggestion}>
-                            <button
-                                type="button"
-                                id={optionId(index)}
-                                role="option"
-                                aria-selected={index === activeIndex}
-                                className={cn(
-                                    'flex w-full rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent',
-                                    index === activeIndex && 'bg-accent',
-                                    optionTextClass,
-                                )}
-                                onClick={() => add(suggestion, true)}
-                            >
-                                {suggestion}
-                            </button>
-                        </li>
+            <ComboboxChips ref={anchorRef} className={chipsContainerClass(disabled, invalid, fieldClassName)}>
+                {values.map(value => (
+                    <ComboboxChip key={value} removeAriaLabel={`Remove ${value}`} className={chipTextClass}>
+                        {value}
+                    </ComboboxChip>
+                ))}
+                <ComboboxChipsInput
+                    id={fieldId}
+                    placeholder={placeholder}
+                    aria-label={inputAriaLabel}
+                    aria-invalid={invalid || undefined}
+                    aria-describedby={describedBy}
+                    aria-required={required || undefined}
+                    className={cn('min-w-[100px] flex-1', inputClassName)}
+                    value={draft}
+                    onChange={event => {
+                        setDraft(event.target.value);
+                        openSuggestions();
+                    }}
+                    onFocus={openSuggestions}
+                    onClick={openSuggestions}
+                    onKeyDown={handleInputKeyDown}
+                    onBlur={event => {
+                        if (addOnBlur) {
+                            commitDraftFromInput(event.currentTarget);
+                        } else {
+                            setDraft('');
+                        }
+                        setPopupOpen(false);
+                    }}
+                />
+            </ComboboxChips>
+            <ComboboxContent anchor={anchorRef} align="start">
+                <ComboboxList
+                    style={{
+                        maxHeight: SUGGESTIONS_LIST_MAX_HEIGHT,
+                        overflowY: 'auto',
+                        overscrollBehavior: 'contain',
+                    }}
+                >
+                    {filteredSuggestions.map(suggestion => (
+                        <ComboboxItem key={suggestion} value={suggestion} className={optionTextClass}>
+                            {suggestion}
+                        </ComboboxItem>
                     ))}
-                </ul>
-            </PopoverContent>
-        </Popover>
+                </ComboboxList>
+            </ComboboxContent>
+        </Combobox>
     );
+}
+
+export function ChipInputField(props: ChipInputFieldProps) {
+    const hasAutocomplete = (props.suggestions?.length ?? 0) > 0;
+    if (!hasAutocomplete) {
+        return <PlainChipInputField {...props} />;
+    }
+    return <AutocompleteChipInputField {...props} />;
 }

@@ -53,3 +53,22 @@ export function parseIso8601DurationSeconds(value: string): number | null {
 export function isValidIso8601Duration(value: string): boolean {
     return parseIso8601DurationSeconds(value) !== null;
 }
+
+/** Calendar periods Classic accepts via moment but java.time.Duration does not (P1Y, P1M, P1W). */
+const CLASSIC_MOMENT_CALENDAR_PERIOD = /^P(\d+)(Y|M|W)$/;
+
+/**
+ * Seconds for temporal default-vs-limit compare. Returns null for calendar periods Classic accepts but this
+ * grammar rejects, so compare is skipped and only the format error is shown. Other unparseable values coerce
+ * to 0 (e.g. PT1SS) so format and compare errors can appear together like Classic on malformed input.
+ */
+export function parseIso8601DurationSecondsForCompare(value: string): number | null {
+    const trimmed = value.trim();
+    if (!trimmed) {
+        return null;
+    }
+    if (CLASSIC_MOMENT_CALENDAR_PERIOD.test(trimmed)) {
+        return null;
+    }
+    return parseIso8601DurationSeconds(trimmed) ?? 0;
+}

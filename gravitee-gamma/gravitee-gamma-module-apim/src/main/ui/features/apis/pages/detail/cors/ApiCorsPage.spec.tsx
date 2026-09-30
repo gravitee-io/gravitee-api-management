@@ -121,11 +121,12 @@ it('renders existing origins, methods and headers as chips', () => {
     expect(screen.getByText('https://app.company.com')).not.toBeNull();
     expect(screen.getByText('GET')).not.toBeNull();
     expect(screen.getByText('POST')).not.toBeNull();
-    expect(screen.getByText('Content-Type')).not.toBeNull();
-    expect(screen.getByText('Authorization')).not.toBeNull();
+    expect(screen.getAllByText('Content-Type').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Authorization').length).toBeGreaterThanOrEqual(1);
 });
 
 it('renders allow-headers autocomplete in a portal outside clipped cards', () => {
+    mockUseHasPermission.mockReturnValue(true);
     mockUseApiDetail.mockReturnValue({
         data: {
             id: 'api-1',
@@ -221,6 +222,7 @@ it('disables chip inputs when CORS is disabled (enabled: false)', () => {
 
     expect(screen.getByRole('textbox', { name: /access-control-allow-origin/i })).toBeDisabled();
     expect(screen.getByRole('combobox', { name: /access-control-allow-methods/i })).toBeDisabled();
+    expect(screen.getByRole('combobox', { name: /access-control-allow-headers/i })).toBeDisabled();
 });
 
 // ─── 9. Save / Discard bar (isDirty) ─────────────────────────────────────────

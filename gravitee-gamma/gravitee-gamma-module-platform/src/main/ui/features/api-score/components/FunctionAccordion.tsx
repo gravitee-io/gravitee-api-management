@@ -16,6 +16,7 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Button } from '@gravitee/graphene-core';
 
 import { RulesetPayloadPreview } from './RulesetPayloadPreview';
+import { SCORING_ACCORDION_ITEM_CLASSNAME, scoringAccordionItemStyle } from './scoringAccordionItemClassName';
 import type { ScoringFunction } from '../types/rulesets';
 
 export function FunctionAccordion({
@@ -24,8 +25,13 @@ export function FunctionAccordion({
 }: Readonly<{ functions: ScoringFunction[]; onDelete: (fn: ScoringFunction) => void }>) {
     return (
         <Accordion type="multiple" className="space-y-2" data-testid="function-accordion">
-            {functions.map(fn => (
-                <AccordionItem key={fn.name} value={fn.name} className="rounded-lg border px-4">
+            {functions.map((fn, index) => (
+                <AccordionItem
+                    key={fn.name}
+                    value={fn.name}
+                    className={SCORING_ACCORDION_ITEM_CLASSNAME}
+                    style={scoringAccordionItemStyle(index === functions.length - 1)}
+                >
                     <AccordionTrigger>
                         <span className="font-medium">{fn.name}</span>
                     </AccordionTrigger>

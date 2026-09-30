@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-/** Classic `CorsUtil.httpMethods`. */
 export const CORS_HTTP_METHODS = ['*', 'GET', 'DELETE', 'PATCH', 'POST', 'PUT', 'OPTIONS', 'TRACE', 'HEAD'] as const;
 
-/** Classic `CorsUtil.defaultHttpHeaders`, used as CORS header autocomplete options. */
 export const CORS_DEFAULT_HTTP_HEADERS = [
     '*',
     'Accept',

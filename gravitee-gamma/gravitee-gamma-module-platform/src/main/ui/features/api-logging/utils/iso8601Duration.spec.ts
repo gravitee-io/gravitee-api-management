@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { isValidIso8601Duration, parseIso8601DurationSeconds } from './iso8601Duration';
+import { isValidIso8601Duration, parseIso8601DurationSeconds, parseIso8601DurationSecondsForCompare } from './iso8601Duration';
 
 describe('iso8601Duration', () => {
     it('parses second-based durations', () => {
@@ -45,5 +45,11 @@ describe('iso8601Duration', () => {
         expect(isValidIso8601Duration('P1Y')).toBe(false);
         expect(isValidIso8601Duration('P1M')).toBe(false);
         expect(isValidIso8601Duration('P1W')).toBe(false);
+    });
+
+    it('skips compare seconds for Classic calendar periods but coerces malformed durations', () => {
+        expect(parseIso8601DurationSecondsForCompare('P1Y')).toBeNull();
+        expect(parseIso8601DurationSecondsForCompare('PT1SS')).toBe(0);
+        expect(parseIso8601DurationSecondsForCompare('PT5S')).toBe(5);
     });
 });
