@@ -238,12 +238,16 @@ public class IngestFederatedApisUseCase {
                     if (existingPage == null) {
                         return createApiDocumentationDomainService.createPage(page, bulk.auditInfo());
                     } else {
-                        var pageWithProperCreatedAt = page
+                        // The provider owns the content; visibility, publication, placement and viewer settings belong to the publisher
+                        var updatedPage = existingPage
                             .toBuilder()
-                            .createdAt(existingPage.getCreatedAt())
-                            .id(existingPage.getId())
+                            .name(page.getName())
+                            .type(page.getType())
+                            .content(page.getContent())
+                            .updatedAt(page.getUpdatedAt())
+                            .ingested(true)
                             .build();
-                        return updateApiDocumentationDomainService.updatePage(pageWithProperCreatedAt, existingPage, bulk.auditInfo());
+                        return updateApiDocumentationDomainService.updatePage(updatedPage, existingPage, bulk.auditInfo());
                     }
                 })
                 .toList();
