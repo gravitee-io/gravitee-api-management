@@ -21,11 +21,12 @@ import { parse } from '../utils';
 import { CircleCIEnvironment } from '../pipelines';
 
 /**
- * Opens the pull request that advances the distribution's pin onto the core just published.
+ * Advances the distribution's pin onto the core just published.
  *
- * The pin never moves on its own: merging this is the moment someone decides a core is ready to
- * ship. Leaving it unmerged costs nothing — the branch stays releasable on the core it already
- * pins.
+ * Releasing the core is what decides it ships, so the pin lands as a commit on the support branch
+ * rather than as a pull request someone has to merge. The commit carries `[skip ci]`: it moves one
+ * property, and what builds against the new pin is the branch's own work — its nightly, its pull
+ * requests, and the distribution release that ships it.
  *
  * There is no dry run here. This lane is reachable only from a pushed tag, and a tag forces
  * `isDryRun` off — a tag is never a rehearsal. `prepare_core_release --dry-run` therefore rehearses
@@ -36,26 +37,16 @@ export class PinCoreJob {
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(orbs.keeper);
-    dynamicConfig.importOrb(orbs.github);
 
     const version = environment.graviteeioVersion;
     const parsed = parse(version);
     // The lane runs on a tag, where CIRCLE_BRANCH is empty, so the branch is derived from the
     // version the way every release command already derives it: 4.13.0-alpha.1 comes from 4.13.x.
     const branch = `${parsed.version.major}.${parsed.version.minor}.x`;
-    // Named after the branch it targets, never after the version: it is the same pull request being
-    // brought up to date, the way Renovate keeps one branch per dependency. Two support branches
-    // releasing at once would otherwise fight over one name.
-    const pinBranch = `chore/pin-core-${branch}`;
 
     const steps: Command[] = [
       new commands.Checkout(),
       new commands.AddSSHKeys({ fingerprints: config.ssh.fingerprints }),
-      new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
-        'secret-url': config.secrets.githubApiToken,
-        'var-name': 'GITHUB_TOKEN',
-      }),
-      new reusable.ReusedCommand(orbs.github.commands['setup']),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',
@@ -65,8 +56,6 @@ export class PinCoreJob {
         'var-name': 'GIT_USER_EMAIL',
       }),
       new commands.Run({
-        // The token is for `gh` alone — it opens and updates the pull request below. Git pushes over
-        // the remote `checkout` left in place, which is SSH.
         name: 'Git config',
         command: `git config --global user.name "\${GIT_USER_NAME}"
 git config --global user.email "\${GIT_USER_EMAIL}"`,
@@ -75,10 +64,10 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
         name: `Pin core ${version} on ${branch}`,
         command: `# The lane checked out the tag, and the branch has moved on since — it carries the commit
 # reopening the next development version. The pin has to be advanced there, not on the tag.
-# --no-track: a remote starting point sets an upstream on its own, and this branch is pushed
+# --no-track: a remote starting point sets an upstream on its own, and the branch is pushed
 # explicitly below.
 git fetch origin ${branch}
-git checkout -B ${pinBranch} --no-track origin/${branch}
+git checkout -B ${branch} --no-track origin/${branch}
 
 sed -i "s#<apim.core.version>.*</apim.core.version>#<apim.core.version>${version}</apim.core.version>#" gravitee-apim-distribution/pom.xml
 
@@ -96,25 +85,10 @@ if git diff --quiet; then
 fi
 
 git add --update
-git commit -m "chore(distribution): pin core ${version}"
-# Rebuilt from the base branch every time, so the push replaces whatever was there. A release that
-# lands before the previous pin was merged updates that pull request instead of opening a rival —
-# only the newest core is worth reviewing. Anything pushed onto this branch by hand goes with it.
-git push --force origin ${pinBranch}
-
-TITLE="chore(distribution): pin core ${version}"
-BODY="Core ${version} has been published. Merging this makes the distribution assemble it.
-
-Its integration tests run against the pinned core, so a green build here is the evidence that this core is ready to ship. Until it is merged, ${branch} keeps releasing on the core it already pins.
-
-This branch is rebuilt on every core release: a newer core replaces this one rather than opening a second pull request."
-
-if [ "$(gh pr list --head ${pinBranch} --state open --json number --jq 'length')" = "0" ]; then
-  gh pr create --base ${branch} --head ${pinBranch} --title "$TITLE" --body "$BODY"
-else
-  echo "A pin pull request is already open on ${pinBranch}, bringing it up to core ${version}."
-  gh pr edit ${pinBranch} --title "$TITLE" --body "$BODY"
-fi`,
+git commit -m 'chore(distribution): pin core ${version} [skip ci]'
+# No --force, unlike the pull request branch this replaced: a commit that landed on ${branch} since
+# the fetch above fails this push instead of being overwritten by the pin.
+git push origin ${branch}`,
       }),
     ];
     return new Job(PinCoreJob.jobName, BaseExecutor.create(), steps);
