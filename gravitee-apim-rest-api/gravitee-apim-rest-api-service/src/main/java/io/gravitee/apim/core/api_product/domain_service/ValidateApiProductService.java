@@ -22,16 +22,19 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +64,28 @@ public class ValidateApiProductService {
         }
     }
 
-    public void validateApiIdsForProduct(String environmentId, @Nonnull List<String> apiIds) {
+    /**
+     * An agent asset — an LLM, MCP or A2A proxy — belongs to the AI Workspace that provisioned it and to no other
+     * product. The workspace attaches its own proxy through this same path, so the rule is stated on the product's
+     * kind rather than on the caller: a workspace may hold one, an ordinary product may not.
+     */
+    private static final Set<ApiType> AGENT_ASSET_TYPES = Set.of(ApiType.LLM_PROXY, ApiType.MCP_PROXY, ApiType.A2A_PROXY);
+
+    public void validateApiIdsForProduct(String environmentId, @Nonnull List<String> apiIds, @Nullable ApiProductKind kind) {
+        validateApiIdsForProduct(environmentId, apiIds, Set.of(), kind);
+    }
+
+    /**
+     * {@code alreadyMembers} are the ids the product held before this write. Membership is judged on what is being
+     * added, not on what is already there: a product that acquired an agent asset before this rule existed stays
+     * editable instead of failing every unrelated edit until someone finds and removes it.
+     */
+    public void validateApiIdsForProduct(
+        String environmentId,
+        @Nonnull List<String> apiIds,
+        @Nonnull Set<String> alreadyMembers,
+        @Nullable ApiProductKind kind
+    ) {
         if (apiIds.isEmpty()) {
             return;
         }
@@ -80,18 +104,28 @@ public class ValidateApiProductService {
         List<String> invalidApiIds = new ArrayList<>();
         List<String> notAllowedApiIds = new ArrayList<>();
 
+        List<String> duplicateAgentAssetIds = new ArrayList<>();
+        Map<ApiType, String> agentAssetByType = new HashMap<>();
+
         for (Api api : foundApis.values()) {
             if (api.getDefinitionVersion() != DefinitionVersion.V4) {
                 invalidApiIds.add(api.getId());
-            } else if (
-                api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api &&
-                !Boolean.TRUE.equals(v4Api.getAllowedInApiProducts())
-            ) {
-                notAllowedApiIds.add(api.getId());
+            } else if (api.getApiDefinitionValue() instanceof io.gravitee.definition.model.v4.Api v4Api) {
+                boolean isAgentAsset = AGENT_ASSET_TYPES.contains(v4Api.getType());
+                boolean refused =
+                    !Boolean.TRUE.equals(v4Api.getAllowedInApiProducts()) || (isAgentAsset && kind != ApiProductKind.AI_WORKSPACE);
+                if (refused && !alreadyMembers.contains(api.getId())) {
+                    notAllowedApiIds.add(api.getId());
+                }
+                // A workspace reads its default proxy by kind, so a second one of the same kind leaves every read
+                // ambiguous and the workspace unusable. Judged on the resulting set, not on the newcomers alone.
+                if (isAgentAsset && kind == ApiProductKind.AI_WORKSPACE && agentAssetByType.put(v4Api.getType(), api.getId()) != null) {
+                    duplicateAgentAssetIds.add(api.getId());
+                }
             }
         }
 
-        if (nonExistentApiIds.isEmpty() && invalidApiIds.isEmpty() && notAllowedApiIds.isEmpty()) {
+        if (nonExistentApiIds.isEmpty() && invalidApiIds.isEmpty() && notAllowedApiIds.isEmpty() && duplicateAgentAssetIds.isEmpty()) {
             return;
         }
 
@@ -101,6 +135,13 @@ public class ValidateApiProductService {
         addError(nonExistentApiIds, "These APIs [%s] do not exist", "nonExistentApiIds", messages, parameters);
         addError(invalidApiIds, "Only V4 API definition is supported. These APIs [%s] are not V4", "invalidApiIds", messages, parameters);
         addError(notAllowedApiIds, "These APIs [%s] are not allowed in API Products", "notAllowedApiIds", messages, parameters);
+        addError(
+            duplicateAgentAssetIds,
+            "This AI Workspace already has an asset of the same kind as [%s]",
+            "duplicateAgentAssetIds",
+            messages,
+            parameters
+        );
 
         throw new ValidationDomainException(String.join(". ", messages), parameters);
     }
