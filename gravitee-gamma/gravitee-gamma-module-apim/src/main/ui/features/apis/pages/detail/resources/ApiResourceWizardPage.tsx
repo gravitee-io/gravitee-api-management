@@ -34,13 +34,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { notify } from '../../../../../shared/notify';
 import { PluginIcon } from '../../../components/PluginIcon';
-import { ReviewRow } from '../../../components/ReviewRow';
 import { WizardStepIndicator, type WizardStep as WizardStepDescriptor } from '../../../components/WizardStepIndicator';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { useResourcePlugins, useResourceSchema, useUpdateApiResources } from '../../../hooks/useApiResources';
 import type { ApiResource, ResourcePlugin } from '../../../types/resource';
 
-type WizardStep = 'select-type' | 'configure' | 'review';
+type WizardStep = 'select-type' | 'configure';
 
 // ─── Footer ─────────────────────────────────────────────────────────────────
 
@@ -52,7 +51,7 @@ function WizardFooter({
 }: {
     onBack: () => void;
     backLabel: string;
-    stepText: string;
+    stepText?: string;
     action: ReactNode;
 }) {
     return (
@@ -62,7 +61,7 @@ function WizardFooter({
                 {backLabel}
             </Button>
             <div className="flex items-center gap-4">
-                <span className="text-xs text-muted-foreground">{stepText}</span>
+                {stepText ? <span className="text-xs text-muted-foreground">{stepText}</span> : null}
                 {action}
             </div>
         </div>
@@ -207,37 +206,31 @@ function SelectTypeStep({
     );
 }
 
-// ─── Steps 2 & 3: configure + review (one mounted form) ──────────────────────
+// ─── Configure step: name + schema-driven form ───────────────────────────────
 
-interface ConfigureReviewResult {
+interface ConfigureResult {
     name: string;
     configuration: Record<string, unknown>;
 }
 
 function ResourceForm({
-    plugin,
     schema,
-    step,
     initial,
     existingNames,
     isSaving,
     backLabel,
-    stepLabel,
+    stepText,
     onBack,
-    onStep,
     onSubmit,
 }: {
-    plugin: ResourcePlugin;
     schema: JsonSchema;
-    step: 'configure' | 'review';
     initial?: ApiResource;
     existingNames: string[];
     isSaving: boolean;
     backLabel: string;
-    stepLabel: (step: WizardStep) => string;
+    stepText?: string;
     onBack: () => void;
-    onStep: (step: WizardStep) => void;
-    onSubmit: (result: ConfigureReviewResult) => void;
+    onSubmit: (result: ConfigureResult) => void;
 }) {
     const nameId = useId();
 
@@ -268,88 +261,42 @@ function ResourceForm({
     const form = useForm<FieldValues>({ resolver, mode: 'onTouched', defaultValues });
     const nameError = form.formState.errors.name?.message as string | undefined;
 
-    const goToReview = async () => {
-        if (await form.trigger()) onStep('review');
-    };
-
     const submit = form.handleSubmit(values =>
         onSubmit({ name: (values.name as string).trim(), configuration: values.configuration as Record<string, unknown> }),
     );
 
-    if (step === 'configure') {
-        return (
-            <Card>
-                <CardContent className="space-y-5 pt-6">
-                    <div className="space-y-2">
-                        <Label htmlFor={nameId}>Resource name</Label>
-                        <Input
-                            id={nameId}
-                            placeholder="e.g. my-cache"
-                            autoComplete="off"
-                            aria-invalid={nameError ? true : undefined}
-                            aria-describedby={nameError ? `${nameId}-hint ${nameId}-error` : `${nameId}-hint`}
-                            {...form.register('name')}
-                        />
-                        <p id={`${nameId}-hint`} className="text-xs text-muted-foreground">
-                            Policies reference this resource by name at runtime — keep it stable once in use.
-                        </p>
-                        {nameError ? (
-                            <p id={`${nameId}-error`} className="text-xs text-destructive">
-                                {nameError}
-                            </p>
-                        ) : null}
-                    </div>
-
-                    <div className="space-y-3">
-                        <span className="text-sm font-medium">Configuration</span>
-                        <JsonSchemaForm schema={schema} control={form.control} name="configuration" />
-                    </div>
-
-                    <WizardFooter
-                        onBack={onBack}
-                        backLabel={backLabel}
-                        stepText={stepLabel('configure')}
-                        action={
-                            <Button size="sm" onClick={goToReview}>
-                                Next
-                            </Button>
-                        }
-                    />
-                </CardContent>
-            </Card>
-        );
-    }
-
-    const values = form.getValues();
     return (
         <Card>
             <CardContent className="space-y-5 pt-6">
-                <div>
-                    <h2 className="text-base font-semibold">{initial ? 'Review & Save' : 'Review & Create'}</h2>
-                    <p className="text-xs text-muted-foreground">
-                        {initial
-                            ? 'Confirm the resource details before saving your changes.'
-                            : 'Confirm the resource details before creating it.'}
-                    </p>
-                </div>
-
-                <div className="rounded-lg border border-border">
-                    <ReviewRow label="Name" value={String(values.name ?? '').trim()} />
-                    <ReviewRow label="Type" value={plugin.name} />
-                    <ReviewRow label="Status" value={initial?.enabled === false ? 'Disabled' : 'Enabled'} />
-                </div>
-
                 <div className="space-y-2">
+                    <Label htmlFor={nameId}>Resource name</Label>
+                    <Input
+                        id={nameId}
+                        placeholder="e.g. my-cache"
+                        autoComplete="off"
+                        aria-invalid={nameError ? true : undefined}
+                        aria-describedby={nameError ? `${nameId}-hint ${nameId}-error` : `${nameId}-hint`}
+                        {...form.register('name')}
+                    />
+                    <p id={`${nameId}-hint`} className="text-xs text-muted-foreground">
+                        Policies reference this resource by name at runtime — keep it stable once in use.
+                    </p>
+                    {nameError ? (
+                        <p id={`${nameId}-error`} className="text-xs text-destructive">
+                            {nameError}
+                        </p>
+                    ) : null}
+                </div>
+
+                <div className="space-y-3">
                     <span className="text-sm font-medium">Configuration</span>
-                    <pre className="max-h-72 overflow-auto rounded-lg bg-muted p-3 text-xs">
-                        {JSON.stringify(values.configuration, null, 2)}
-                    </pre>
+                    <JsonSchemaForm schema={schema} control={form.control} name="configuration" />
                 </div>
 
                 <WizardFooter
-                    onBack={() => onStep('configure')}
-                    backLabel="Back"
-                    stepText={stepLabel('review')}
+                    onBack={onBack}
+                    backLabel={backLabel}
+                    stepText={stepText}
                     action={
                         <Button size="sm" onClick={submit} disabled={isSaving}>
                             {isSaving ? 'Saving…' : initial ? 'Save changes' : 'Create resource'}
@@ -361,18 +308,16 @@ function ResourceForm({
     );
 }
 
-/** Loads the plugin schema, then mounts the form (kept mounted across configure/review). */
-function ConfigureReviewStep(props: {
+/** Loads the plugin schema, then mounts the form. */
+function ConfigureStep(props: {
     plugin: ResourcePlugin;
-    step: 'configure' | 'review';
     initial?: ApiResource;
     existingNames: string[];
     isSaving: boolean;
     backLabel: string;
-    stepLabel: (step: WizardStep) => string;
+    stepText?: string;
     onBack: () => void;
-    onStep: (step: WizardStep) => void;
-    onSubmit: (result: ConfigureReviewResult) => void;
+    onSubmit: (result: ConfigureResult) => void;
 }) {
     const { data: schema, isLoading, isError } = useResourceSchema(props.plugin.id);
 
@@ -382,7 +327,7 @@ function ConfigureReviewStep(props: {
                 <CardContent className="space-y-4 pt-6">
                     <Skeleton className="h-10 w-full rounded" />
                     <Skeleton className="h-32 w-full rounded" />
-                    <WizardFooter onBack={props.onBack} backLabel={props.backLabel} stepText={props.stepLabel('configure')} action={null} />
+                    <WizardFooter onBack={props.onBack} backLabel={props.backLabel} stepText={props.stepText} action={null} />
                 </CardContent>
             </Card>
         );
@@ -393,13 +338,25 @@ function ConfigureReviewStep(props: {
             <Card className="border-destructive/30">
                 <CardContent className="space-y-4 pt-6">
                     <p className="text-sm text-destructive">Failed to load the configuration schema for this resource type.</p>
-                    <WizardFooter onBack={props.onBack} backLabel={props.backLabel} stepText={props.stepLabel('configure')} action={null} />
+                    <WizardFooter onBack={props.onBack} backLabel={props.backLabel} stepText={props.stepText} action={null} />
                 </CardContent>
             </Card>
         );
     }
 
-    return <ResourceForm key={props.plugin.id} schema={schema as JsonSchema} {...props} />;
+    return (
+        <ResourceForm
+            key={props.plugin.id}
+            schema={schema as JsonSchema}
+            initial={props.initial}
+            existingNames={props.existingNames}
+            isSaving={props.isSaving}
+            backLabel={props.backLabel}
+            stepText={props.stepText}
+            onBack={props.onBack}
+            onSubmit={props.onSubmit}
+        />
+    );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -427,21 +384,20 @@ export function ApiResourceWizardPage() {
         }
     }, [editMode, existing, plugins]);
 
+    // Edit mode has exactly one screen, so it carries no step indicator or step count of its own to show.
     const wizardSteps = useMemo<WizardStepDescriptor[]>(
         () =>
             editMode
-                ? [
-                      { id: 'configure', label: 'Configure' },
-                      { id: 'review', label: 'Review & Save' },
-                  ]
+                ? []
                 : [
                       { id: 'select-type', label: 'Select Type' },
                       { id: 'configure', label: 'Configure' },
-                      { id: 'review', label: 'Review & Create' },
                   ],
         [editMode],
     );
-    const stepLabel = (stepId: WizardStep) => `Step ${wizardSteps.findIndex(s => s.id === stepId) + 1} of ${wizardSteps.length}`;
+    const stepLabel = editMode
+        ? undefined
+        : (stepId: WizardStep) => `Step ${wizardSteps.findIndex(s => s.id === stepId) + 1} of ${wizardSteps.length}`;
 
     const existingNames = useMemo(
         () => resources.filter(r => !editMode || r.name !== existing?.name).map(r => r.name),
@@ -450,7 +406,7 @@ export function ApiResourceWizardPage() {
 
     const goToList = () => navigate('..');
 
-    const handleSubmit = (result: ConfigureReviewResult) => {
+    const handleSubmit = (result: ConfigureResult) => {
         if (!selectedPlugin) return;
         const resource: ApiResource = {
             name: result.name,
@@ -505,12 +461,14 @@ export function ApiResourceWizardPage() {
                 </p>
             </div>
 
-            <WizardStepIndicator
-                steps={wizardSteps}
-                currentStepId={step}
-                onStepClick={id => setStep(id as WizardStep)}
-                ariaLabel="Resource creation steps"
-            />
+            {wizardSteps.length > 0 ? (
+                <WizardStepIndicator
+                    steps={wizardSteps}
+                    currentStepId={step}
+                    onStepClick={id => setStep(id as WizardStep)}
+                    ariaLabel="Resource creation steps"
+                />
+            ) : null}
 
             {step === 'select-type' ? (
                 <SelectTypeStep
@@ -520,19 +478,17 @@ export function ApiResourceWizardPage() {
                     onSelect={setSelectedPlugin}
                     onBack={goToList}
                     onNext={() => setStep('configure')}
-                    stepText={stepLabel('select-type')}
+                    stepText={stepLabel?.('select-type') ?? ''}
                 />
             ) : selectedPlugin ? (
-                <ConfigureReviewStep
+                <ConfigureStep
                     plugin={selectedPlugin}
-                    step={step}
                     initial={existing}
                     existingNames={existingNames}
                     isSaving={mutation.isPending}
                     backLabel={editMode ? 'Back to Resources' : 'Back'}
-                    stepLabel={stepLabel}
+                    stepText={stepLabel?.('configure')}
                     onBack={() => (editMode ? goToList() : setStep('select-type'))}
-                    onStep={setStep}
                     onSubmit={handleSubmit}
                 />
             ) : (
