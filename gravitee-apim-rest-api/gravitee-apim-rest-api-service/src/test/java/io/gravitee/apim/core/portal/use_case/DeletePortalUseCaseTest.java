@@ -258,6 +258,40 @@ class DeletePortalUseCaseTest {
     }
 
     @Test
+    void should_reactivate_another_existing_theme_when_deleted_portals_active_theme_was_enabled() {
+        var activeThemeId = "22222222-2222-2222-2222-222222222222";
+        var otherThemeId = "33333333-3333-3333-3333-333333333333";
+        var portal = PortalFixtures.aPortal().withActiveThemeId(activeThemeId);
+        portalCrudService.initWith(List.of(portal));
+        themeCrudService.initWith(
+            List.of(
+                Theme.builder()
+                    .id(activeThemeId)
+                    .type(ThemeType.PORTAL_NEXT)
+                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(true)
+                    .build(),
+                Theme.builder()
+                    .id(otherThemeId)
+                    .type(ThemeType.PORTAL_NEXT)
+                    .referenceType(Theme.ReferenceType.ENVIRONMENT)
+                    .referenceId(AUDIT_INFO.environmentId())
+                    .enabled(false)
+                    .build()
+            )
+        );
+
+        useCase.execute(new DeletePortalUseCase.Input(AUDIT_INFO, portal.getId()));
+
+        assertThat(themeCrudService.storage())
+            .filteredOn(t -> t.getId().equals(otherThemeId))
+            .singleElement()
+            .extracting(Theme::isEnabled)
+            .isEqualTo(true);
+    }
+
+    @Test
     void automation_managed_link_nested_in_deleted_portal_folder_is_not_cascade_deleted() {
         var portal = PortalFixtures.aPortal();
         setupUseCase.execute(
