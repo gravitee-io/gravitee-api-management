@@ -615,6 +615,7 @@ jobs:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-backend-build-and-publish-on-download-website
+      - cmd-install-yarn
       - cmd-azure-artifacts-token
       - run:
           name: Refuse a core pin this release cannot assemble

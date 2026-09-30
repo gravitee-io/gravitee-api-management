@@ -17,6 +17,7 @@ import { Command, Config, Job, commands, reusable } from '../../circleci-config'
 import { OpenJdkNodeExecutor } from '../../executors';
 import {
   AzureArtifactsTokenCommand,
+  InstallYarnCommand,
   PrepareGpgCmd,
   RestoreMavenJobCacheCommand,
   SaveMavenJobCacheCommand,
@@ -35,6 +36,11 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCommand);
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
+    // The engine build runs the gravitee-gamma yarn workspace (`yarn install` in generate-resources).
+    // Without corepack the image's yarn 1 cannot read the berry lockfile.
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
+
     const prepareGpgCommand = PrepareGpgCmd.get(dynamicConfig);
     dynamicConfig.addReusableCommand(prepareGpgCommand);
 
@@ -50,6 +56,7 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
+      new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         // First, before anything is built: placed after the engine build it fired half an hour into
