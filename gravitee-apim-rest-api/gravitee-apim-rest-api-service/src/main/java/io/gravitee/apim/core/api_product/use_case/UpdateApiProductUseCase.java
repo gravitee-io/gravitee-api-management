@@ -95,12 +95,19 @@ public class UpdateApiProductUseCase {
         Set<String> apiIds = updateApiProduct.getApiIds();
         if (apiIds != null) {
             Set<String> newApiIds = apiIds.isEmpty() ? Set.of() : Set.copyOf(apiIds);
+            Set<String> beforeIds = beforeUpdate.getApiIds() != null ? beforeUpdate.getApiIds() : Set.of();
             if (!apiIds.isEmpty()) {
-                validateApiProductService.validateApiIdsForProduct(input.auditInfo().environmentId(), apiIds.stream().toList());
+                // The whole set is passed so a rule about the resulting product can see it; `beforeIds` says which
+                // of them the product already held, so membership is judged on what this write adds.
+                validateApiProductService.validateApiIdsForProduct(
+                    input.auditInfo().environmentId(),
+                    apiIds.stream().toList(),
+                    beforeIds,
+                    existingApiProduct.getKind()
+                );
             }
             updateApiProduct.setApiIds(newApiIds);
 
-            Set<String> beforeIds = beforeUpdate.getApiIds() != null ? beforeUpdate.getApiIds() : Set.of();
             Set<String> removedApiIds = new HashSet<>(beforeIds);
             removedApiIds.removeAll(newApiIds);
             if (!removedApiIds.isEmpty()) {

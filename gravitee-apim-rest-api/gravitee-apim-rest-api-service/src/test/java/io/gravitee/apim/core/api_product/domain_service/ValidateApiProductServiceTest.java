@@ -28,6 +28,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.PlanQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -40,6 +41,8 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class ValidateApiProductServiceTest {
 
@@ -106,7 +109,7 @@ class ValidateApiProductServiceTest {
 
         @Test
         void should_do_nothing_when_apiIds_empty() {
-            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of())).doesNotThrowAnyException();
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of(), null)).doesNotThrowAnyException();
         }
 
         @Test
@@ -114,7 +117,7 @@ class ValidateApiProductServiceTest {
             ApiProduct product = ApiProduct.builder().id("p1").name("P").version("1.0").environmentId(ENV_ID).build();
             apiProductQueryService.initWith(List.of(product));
 
-            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("non-existent")))
+            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("non-existent"), null))
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("do not exist")
                 .hasMessageContaining("non-existent");
@@ -125,7 +128,7 @@ class ValidateApiProductServiceTest {
             Api v2Api = ApiFixtures.aProxyApiV2().toBuilder().id("api-v2").environmentId(ENV_ID).build();
             apiCrudService.initWith(List.of(v2Api));
 
-            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-v2")))
+            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-v2"), null))
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("not V4")
                 .hasMessageContaining("api-v2");
@@ -136,7 +139,7 @@ class ValidateApiProductServiceTest {
             Api api = createV4ProxyApi("api-1", false);
             apiCrudService.initWith(List.of(api));
 
-            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1")))
+            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null))
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("not allowed in API Products")
                 .hasMessageContaining("api-1");
@@ -147,7 +150,68 @@ class ValidateApiProductServiceTest {
             Api api = createV4ProxyApi("api-1", true);
             apiCrudService.initWith(List.of(api));
 
-            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"))).doesNotThrowAnyException();
+            assertThatCode(() ->
+                validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null)
+            ).doesNotThrowAnyException();
+        }
+
+        @ParameterizedTest
+        @MethodSource("agentAssetApis")
+        void should_throw_when_an_agent_asset_joins_an_ordinary_product(String label, Api api) {
+            apiCrudService.initWith(List.of(api));
+
+            assertThatThrownBy(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null))
+                .as(label)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("not allowed in API Products")
+                .hasMessageContaining("api-1");
+        }
+
+        @ParameterizedTest
+        @MethodSource("agentAssetApis")
+        void should_not_throw_when_an_agent_asset_joins_an_ai_workspace(String label, Api api) {
+            apiCrudService.initWith(List.of(api));
+
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), ApiProductKind.AI_WORKSPACE))
+                .as(label)
+                .doesNotThrowAnyException();
+        }
+
+        /**
+         * The rule is about newly referencing an agent asset, not about holding one: a product that already has
+         * one — from before this rule — must stay editable, or every unrelated edit fails until someone finds
+         * and removes the asset.
+         */
+        @ParameterizedTest
+        @MethodSource("agentAssetApis")
+        void should_not_throw_when_an_agent_asset_was_already_a_member(String label, Api api) {
+            apiCrudService.initWith(List.of(api));
+
+            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), Set.of("api-1"), null))
+                .as(label)
+                .doesNotThrowAnyException();
+        }
+
+        /** A workspace reads its default proxy by kind, so a second one of the same kind leaves it unreadable. */
+        @ParameterizedTest
+        @MethodSource("agentAssetApis")
+        void should_throw_when_a_second_agent_asset_of_the_same_kind_joins_a_workspace(String label, Api api) {
+            apiCrudService.initWith(List.of(api, agentAssetApi(api, "api-2")));
+
+            assertThatThrownBy(() ->
+                validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1", "api-2"), Set.of(), ApiProductKind.AI_WORKSPACE)
+            )
+                .as(label)
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessageContaining("already has");
+        }
+
+        static Stream<org.junit.jupiter.params.provider.Arguments> agentAssetApis() {
+            return Stream.of(
+                org.junit.jupiter.params.provider.Arguments.of("llm-proxy", agentAssetApi(ApiFixtures.aLLMProxyApiV4())),
+                org.junit.jupiter.params.provider.Arguments.of("mcp-proxy", agentAssetApi(ApiFixtures.aMCPProxyApiV4())),
+                org.junit.jupiter.params.provider.Arguments.of("a2a-proxy", agentAssetApi(ApiFixtures.anA2AProxyApiV4()))
+            );
         }
 
         @Test
@@ -155,7 +219,9 @@ class ValidateApiProductServiceTest {
             Api api = createV4ProxyApi("api-1", true);
             apiCrudService.initWith(List.of(api, api));
 
-            assertThatCode(() -> validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"))).doesNotThrowAnyException();
+            assertThatCode(() ->
+                validateApiProductService.validateApiIdsForProduct(ENV_ID, List.of("api-1"), null)
+            ).doesNotThrowAnyException();
         }
     }
 
@@ -359,6 +425,25 @@ class ValidateApiProductServiceTest {
 
             assertThat(validateApiProductService.getApisToUndeployOnRemoval(Set.of("api-1", "api-2"), "product-1")).isEmpty();
         }
+    }
+
+    /** An agent asset a user has opted into products, which is the only way it reaches this validation. */
+    private static Api agentAssetApi(Api fixture, String id) {
+        var definition = fixture.getApiDefinitionValue();
+        if (definition instanceof io.gravitee.definition.model.v4.Api v4Api) {
+            var updated = v4Api.toBuilder().id(id).allowedInApiProducts(true).build();
+            return fixture.toBuilder().id(id).environmentId(ENV_ID).apiDefinitionValue(updated).build();
+        }
+        throw new IllegalStateException("Expected V4 API definition");
+    }
+
+    private static Api agentAssetApi(Api fixture) {
+        var definition = fixture.getApiDefinitionValue();
+        if (definition instanceof io.gravitee.definition.model.v4.Api v4Api) {
+            var updated = v4Api.toBuilder().id("api-1").allowedInApiProducts(true).build();
+            return fixture.toBuilder().id("api-1").environmentId(ENV_ID).apiDefinitionValue(updated).build();
+        }
+        throw new IllegalStateException("Expected V4 API definition");
     }
 
     private static Api createV4ProxyApi(String id, boolean allowedInApiProducts) {

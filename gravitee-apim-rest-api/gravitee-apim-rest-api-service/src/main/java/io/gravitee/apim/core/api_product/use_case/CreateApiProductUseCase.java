@@ -82,7 +82,7 @@ public class CreateApiProductUseCase {
 
         List<String> apiIdsList = payload.getApiIds();
         if (apiIdsList != null && !apiIdsList.isEmpty()) {
-            validateApiProductService.validateApiIdsForProduct(auditInfo.environmentId(), apiIdsList);
+            validateApiProductService.validateApiIdsForProduct(auditInfo.environmentId(), apiIdsList, payload.getKind());
         }
 
         Set<String> apiIds = apiIdsList == null || apiIdsList.isEmpty() ? Set.of() : Set.copyOf(apiIdsList);
