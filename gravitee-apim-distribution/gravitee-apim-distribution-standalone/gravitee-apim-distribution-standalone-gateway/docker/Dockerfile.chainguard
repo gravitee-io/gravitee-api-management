@@ -39,17 +39,21 @@ USER root
 # NoSuchFieldError on BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, which kills the sync deployer
 # thread as soon as a subscription carries a client certificate, and the node never becomes ready.
 # Swapping lib/ext over to the FIPS artifacts keeps every BouncyCastle class coming from a single
-# distribution. It is a no-op on the non-FIPS base image, which exports no such variable.
-# The swap is entered on JAVA_FIPS_CLASSPATH, which the FIPS base image exports and which names where
-# it keeps those jars: that is the capability itself, so it still holds when the base is pinned by
-# digest or its tag is renamed. BASE_IMAGE only serves the reverse check — a base that calls itself
-# FIPS while exporting nothing fails the build rather than silently shipping the broken mix again.
+# distribution. It is a no-op on the non-FIPS base image, which ships no such jars.
+# The swap is entered on the presence of the BouncyCastle FIPS jars themselves, which is the
+# capability: it holds whatever the base image calls itself or exports. The java:21 FIPS base
+# exports JAVA_FIPS_CLASSPATH to name that directory; the java:25 one exports nothing and bakes the
+# same directory into the JVM module path instead, so the variable cannot be the trigger. It is
+# still honoured when set, to follow a base that moves the jars. BASE_IMAGE only serves the reverse
+# check: a base that calls itself FIPS while shipping no such jars fails the build rather than
+# silently shipping the broken mix again.
 # The wildcards below sit outside the quotes on purpose. Quoting them along with the variable, as a
 # shell linter will suggest, stops the glob expanding: the ls check would then always fail and the
 # rm would match nothing, leaving the non-FIPS jars in place — the very mix this swap removes.
 ARG BASE_IMAGE
-RUN if [ -n "${JAVA_FIPS_CLASSPATH}" ]; then \
-        BC_FIPS_DIR=$(dirname "${JAVA_FIPS_CLASSPATH}"); \
+RUN BC_FIPS_DIR=/usr/share/java/bouncycastle-fips; \
+    if [ -n "${JAVA_FIPS_CLASSPATH}" ]; then BC_FIPS_DIR=$(dirname "${JAVA_FIPS_CLASSPATH}"); fi; \
+    if [ -f "${BC_FIPS_DIR}/bc-fips.jar" ]; then \
         for jar in bcpkix-fips.jar bcutil-fips.jar; do \
             [ -f "${BC_FIPS_DIR}/${jar}" ] || \
                 { echo "FIPS base image provides no ${BC_FIPS_DIR}/${jar}" >&2; exit 1; }; \
@@ -63,7 +67,7 @@ RUN if [ -n "${JAVA_FIPS_CLASSPATH}" ]; then \
         chmod 644 "${GRAVITEEIO_HOME}/lib/ext/bcpkix-fips.jar" "${GRAVITEEIO_HOME}/lib/ext/bcutil-fips.jar"; \
     else \
         case "${BASE_IMAGE}" in \
-            *fips*) echo "BASE_IMAGE names a FIPS base but it exports no JAVA_FIPS_CLASSPATH" >&2; exit 1 ;; \
+            *fips*) echo "BASE_IMAGE names a FIPS base but ${BC_FIPS_DIR}/bc-fips.jar is missing" >&2; exit 1 ;; \
         esac; \
     fi
 RUN chgrp -R 0 ${GRAVITEEIO_HOME} && \
