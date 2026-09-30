@@ -86,6 +86,7 @@ import io.gravitee.apim.core.documentation.domain_service.ClearIngestedApiDocume
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.model.AccessControl;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.crud_service.EventLatestCrudService;
@@ -1524,6 +1525,102 @@ class IngestFederatedApisUseCaseTest {
 
             // Then
             assertThat(pageCrudService.storage()).contains(expectedPage);
+        }
+
+        @Test
+        void should_keep_publisher_page_settings_when_updating_an_ingested_page() {
+            // Given
+            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                    .toBuilder()
+                    .uniqueId("uid-1")
+                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
+                    .build());
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            var pageEditedByPublisher = Page.builder()
+                .id("generated-id")
+                .name("MyPage.json")
+                .referenceId("environment-idintegration-iduid-1")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.SWAGGER)
+                .visibility(Page.Visibility.PUBLIC)
+                .published(false)
+                .homepage(false)
+                .parentId("folder-id")
+                .order(3)
+                .excludedAccessControls(true)
+                .accessControls(Set.of(new AccessControl("group-id", "GROUP")))
+                .configuration(Map.of("tryIt", "false", "viewer", "Redoc"))
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("someOldSwaggerDoc")
+                .ingested(true)
+                .build();
+            givenExistingPage(pageEditedByPublisher);
+            TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage()).containsExactly(
+                pageEditedByPublisher.toBuilder().content("updatedSwaggerDoc").updatedAt(Date.from(UPDATE_TIME)).build()
+            );
+        }
+
+        @Test
+        void should_keep_homepage_chosen_by_publisher_when_updating_an_ingested_page() {
+            // Given
+            var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                    .toBuilder()
+                    .uniqueId("uid-1")
+                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "updatedSwaggerDoc", "MyPage.json")))
+                    .build());
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            givenExistingPage(
+                Page.builder()
+                    .id("ingested-page")
+                    .name("MyPage.json")
+                    .referenceId("environment-idintegration-iduid-1")
+                    .referenceType(Page.ReferenceType.API)
+                    .type(Page.Type.SWAGGER)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .published(true)
+                    .homepage(false)
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .content("someOldSwaggerDoc")
+                    .ingested(true)
+                    .build(),
+                Page.builder()
+                    .id("publisher-homepage")
+                    .name("Getting started")
+                    .referenceId("environment-idintegration-iduid-1")
+                    .referenceType(Page.ReferenceType.API)
+                    .type(Page.Type.MARKDOWN)
+                    .visibility(Page.Visibility.PUBLIC)
+                    .published(true)
+                    .homepage(true)
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .content("# Getting started")
+                    .build()
+            );
+            TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage())
+                .filteredOn(Page::isHomepage)
+                .extracting(Page::getId)
+                .containsExactly("publisher-homepage");
         }
 
         @Test
