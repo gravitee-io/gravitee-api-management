@@ -80,7 +80,8 @@ public class PortalDocumentationSyncDomainService {
         var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(auditInfo, pageContent);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         var targetArea = existing instanceof PortalNavigationPage page ? page.getArea() : PortalArea.TOP_NAVBAR;
-        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea, null);
+        var storedVisibility = existing != null ? existing.getVisibility() : null;
+        upsertNavigationPage(auditInfo, pageContent, navigationItemId, existing, targetArea, storedVisibility);
     }
 
     public void dematerialize(AuditInfo auditInfo, String portalId, PortalPageContentId pageContentId) {
@@ -126,10 +127,7 @@ public class PortalDocumentationSyncDomainService {
         final var meta = pageContent.getAutomationMetadata();
         final var parent = resolveParent(auditInfo, meta.location().orElse(null), meta.referenceId());
         final var parentId = parent == null ? null : parent.getId();
-        final var fallbackVisibility = Optional.ofNullable(existing)
-            .map(PortalNavigationItem::getVisibility)
-            .or(() -> Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility))
-            .orElse(null);
+        final var fallbackVisibility = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility).orElse(null);
         final var visibility = PortalVisibility.resolve(callerVisibility, fallbackVisibility);
 
         if (isUpdatableInPlace(existing, targetArea)) {
