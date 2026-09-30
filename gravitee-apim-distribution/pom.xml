@@ -289,7 +289,7 @@
     <!-- Authz plugins -->
     <gravitee-service-authz-pdp.version>4.2.0</gravitee-service-authz-pdp.version>
     <gravitee-policy-authz-pep.version>3.0.0</gravitee-policy-authz-pep.version>
-    <gravitee-policy-authz-pdp-authzen.version>3.0.0</gravitee-policy-authz-pdp-authzen.version>
+    <gravitee-policy-authz-pdp-authzen.version>4.0.0</gravitee-policy-authz-pdp-authzen.version>
     </properties>
 
     <dependencyManagement>
