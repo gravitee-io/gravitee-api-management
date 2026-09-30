@@ -50,7 +50,7 @@ public class DeletePortalUseCase {
         if (portal.getActiveThemeId() != null) {
             themeCrudService
                 .findByIdAndEnvironmentId(portal.getActiveThemeId(), input.auditInfo().environmentId())
-                .ifPresent(currentThemeDomainService::deactivate);
+                .ifPresent(currentThemeDomainService::deactivateAndFallback);
         }
         portalCrudService.delete(input.portalId());
     }
