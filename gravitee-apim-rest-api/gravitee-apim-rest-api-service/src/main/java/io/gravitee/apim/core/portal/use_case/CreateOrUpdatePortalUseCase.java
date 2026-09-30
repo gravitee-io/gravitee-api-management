@@ -127,7 +127,9 @@ public class CreateOrUpdatePortalUseCase {
         }
         var environmentId = input.auditInfo().environmentId();
         if (targetThemeId == null) {
-            themeCrudService.findByIdAndEnvironmentId(currentActiveThemeId, environmentId).ifPresent(currentThemeDomainService::deactivate);
+            themeCrudService
+                .findByIdAndEnvironmentId(currentActiveThemeId, environmentId)
+                .ifPresent(currentThemeDomainService::deactivateAndFallback);
             return null;
         }
         var target = themeCrudService

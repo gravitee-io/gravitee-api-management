@@ -23,6 +23,7 @@ import io.gravitee.apim.core.theme.query_service.ThemeQueryService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.time.ZonedDateTime;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 
 @DomainService
@@ -61,5 +62,17 @@ public class CurrentThemeDomainService {
         if (theme.isEnabled()) {
             this.themeCrudService.update(theme.toBuilder().enabled(false).updatedAt(ZonedDateTime.now()).build());
         }
+    }
+
+    public void deactivateAndFallback(Theme theme) {
+        deactivate(theme);
+        findFallback(theme).ifPresent(this::activate);
+    }
+
+    private Optional<Theme> findFallback(Theme deactivated) {
+        return this.themeQueryService.findByThemeTypeAndEnvironmentId(deactivated.getType(), deactivated.getReferenceId())
+            .stream()
+            .filter(theme -> !Objects.equals(theme.getId(), deactivated.getId()))
+            .findFirst();
     }
 }
