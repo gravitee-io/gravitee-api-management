@@ -116,6 +116,7 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.plan.PlanSynchronizationLegacyWrapper;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -135,6 +136,7 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
+import io.gravitee.rest.api.service.sanitizer.HtmlSanitizer;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -159,6 +161,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.springframework.mock.env.MockEnvironment;
 
 class IngestFederatedApisUseCaseTest {
 
@@ -412,7 +415,8 @@ class IngestFederatedApisUseCaseTest {
             apiIndexerDomainService,
             homepageDomainService,
             clearIngestedApiDocumentationDomainService,
-            integrationCrudService
+            integrationCrudService,
+            new HtmlSanitizerImpl(new HtmlSanitizer(new MockEnvironment()))
         );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -1380,12 +1384,95 @@ class IngestFederatedApisUseCaseTest {
         }
 
         @ParameterizedTest
-        @EnumSource(value = IntegrationApi.PageType.class, mode = EnumSource.Mode.EXCLUDE, names = { "SWAGGER", "ASYNCAPI" })
-        void should_not_create_documentation_if_pageType_is_other_than_SWAGGER(IntegrationApi.PageType pageType) {
+        @EnumSource(value = IntegrationApi.PageType.class, names = { "MARKDOWN", "ASCIIDOC" })
+        void should_create_markdown_and_asciidoc_documentation(IntegrationApi.PageType pageType) {
+            // Given
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(List.of(new IntegrationApi.Page(pageType, "someGuide", "guide")))
+                .build();
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage()).containsExactly(
+                Page.builder()
+                    .id("generated-id")
+                    .name("guide")
+                    .referenceId("environment-idintegration-idasset-uid")
+                    .referenceType(Page.ReferenceType.API)
+                    .type(Page.Type.valueOf(pageType.name()))
+                    .visibility(Page.Visibility.PRIVATE)
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .content("someGuide")
+                    .homepage(false)
+                    .published(true)
+                    .ingested(true)
+                    .build()
+            );
+        }
+
+        @Test
+        void should_keep_specification_as_homepage_when_markdown_documentation_is_ingested_too() {
+            // Given
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(
+                    List.of(
+                        new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "spec.json"),
+                        new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "someGuide", "guide")
+                    )
+                )
+                .build();
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage())
+                .hasSize(2)
+                .filteredOn(Page::isHomepage)
+                .extracting(Page::getName)
+                .containsExactly("spec.json");
+        }
+
+        @Test
+        void should_skip_markdown_documentation_with_unsafe_html() {
+            // Given
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(
+                    List.of(
+                        new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc", "spec.json"),
+                        new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "# Guide <script>alert('xss')</script>", "guide")
+                    )
+                )
+                .build();
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage()).extracting(Page::getName).containsExactly("spec.json");
+        }
+
+        @Test
+        void should_not_create_documentation_for_markdown_template() {
             //Given
             var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
                 .toBuilder()
-                .pages(List.of(new IntegrationApi.Page(pageType, "somePageTypeContent", "MyPage.json")))
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN_TEMPLATE, "somePageTypeContent", "MyPage.json")))
                 .build();
 
             // When
@@ -1621,6 +1708,92 @@ class IngestFederatedApisUseCaseTest {
                 .filteredOn(Page::isHomepage)
                 .extracting(Page::getId)
                 .containsExactly("publisher-homepage");
+        }
+
+        @Test
+        void should_update_markdown_doc_page_if_exists() {
+            // Given
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "updatedGuide", "guide")))
+                .build();
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            var ingestedGuide = Page.builder()
+                .id("guide-id")
+                .name("guide")
+                .referenceId("environment-idintegration-iduid-1")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .visibility(Page.Visibility.PRIVATE)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("oldGuide")
+                .homepage(false)
+                .published(true)
+                .ingested(true)
+                .build();
+            givenExistingPage(ingestedGuide);
+            TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage()).containsExactly(
+                ingestedGuide.toBuilder().content("updatedGuide").updatedAt(Date.from(UPDATE_TIME)).build()
+            );
+        }
+
+        @Test
+        void should_remove_markdown_page_not_sent_anymore_and_keep_pages_created_in_gravitee() {
+            // Given
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of())
+                .build();
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            var pageCreatedInGravitee = Page.builder()
+                .id("publisher-page")
+                .name("Getting started")
+                .referenceId("environment-idintegration-iduid-1")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .visibility(Page.Visibility.PUBLIC)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("# Getting started")
+                .published(true)
+                .build();
+            givenExistingPage(
+                Page.builder()
+                    .id("guide-id")
+                    .name("guide")
+                    .referenceId("environment-idintegration-iduid-1")
+                    .referenceType(Page.ReferenceType.API)
+                    .type(Page.Type.MARKDOWN)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
+                    .content("oldGuide")
+                    .published(true)
+                    .ingested(true)
+                    .build(),
+                pageCreatedInGravitee
+            );
+
+            // When
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            assertThat(pageCrudService.storage()).containsExactly(pageCreatedInGravitee);
         }
 
         @Test
