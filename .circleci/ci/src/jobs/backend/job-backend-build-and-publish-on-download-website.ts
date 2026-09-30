@@ -111,6 +111,9 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
           GIT_COMMIT: environment.sha1,
+          // Cap the maven JVM heap: its default is derived from the memory of the underlying CI host,
+          // not from the resource class of the job, and overshoots the 8 GB of a large executor.
+          MAVEN_OPTS: '-Xmx2048m',
         },
       }),
       new commands.Run({
@@ -129,6 +132,9 @@ sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-
           BUILD_ID: environment.buildId,
           BUILD_NUMBER: environment.buildNum,
           GIT_COMMIT: environment.sha1,
+          // Cap the maven JVM heap: its default is derived from the memory of the underlying CI host,
+          // not from the resource class of the job, and overshoots the 8 GB of a large executor.
+          MAVEN_OPTS: '-Xmx2048m',
         },
       }),
       new reusable.ReusedCommand(saveMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
