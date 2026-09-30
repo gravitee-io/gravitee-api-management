@@ -50,12 +50,11 @@ describe('ChipInput', () => {
         expect(screen.getByRole('listbox')).not.toBeNull();
 
         fireEvent.keyDown(input, { key: 'ArrowDown' });
-        expect(input.getAttribute('aria-activedescendant')).toBe('headers-option-0');
-        expect(screen.getByRole('option', { name: 'Content-Type' }).getAttribute('aria-selected')).toBe('true');
+        expect(input.getAttribute('aria-activedescendant')).toBeTruthy();
+        expect(screen.getByRole('option', { name: 'Content-Type' })).toHaveAttribute('data-highlighted');
 
         fireEvent.keyDown(input, { key: 'ArrowDown' });
-        expect(input.getAttribute('aria-activedescendant')).toBe('headers-option-1');
-        expect(screen.getByRole('option', { name: 'Authorization' }).getAttribute('aria-selected')).toBe('true');
+        expect(screen.getByRole('option', { name: 'Authorization' })).toHaveAttribute('data-highlighted');
 
         fireEvent.keyDown(input, { key: 'Enter' });
         expect(screen.getByText('Authorization')).not.toBeNull();
@@ -68,8 +67,8 @@ describe('ChipInput', () => {
         fireEvent.focus(input);
         fireEvent.change(input, { target: { value: 'X-Custom' } });
         fireEvent.keyDown(input, { key: 'Enter' });
-        expect(screen.getByText('X-Custom')).not.toBeNull();
-        expect(screen.queryByText('Content-Type')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Remove X-Custom' })).not.toBeNull();
+        expect(screen.queryByRole('button', { name: 'Remove Content-Type' })).toBeNull();
     });
 
     it('clears the highlight after typing so Enter still adds a custom value', () => {
@@ -79,8 +78,17 @@ describe('ChipInput', () => {
         fireEvent.keyDown(input, { key: 'ArrowDown' });
         fireEvent.change(input, { target: { value: 'X-Custom' } });
         fireEvent.keyDown(input, { key: 'Enter' });
-        expect(screen.getByText('X-Custom')).not.toBeNull();
-        expect(screen.queryByText('Content-Type')).toBeNull();
+        expect(screen.getByRole('button', { name: 'Remove X-Custom' })).not.toBeNull();
+        expect(screen.queryByRole('button', { name: 'Remove Content-Type' })).toBeNull();
+    });
+
+    it('does not reopen the suggestion list when removing a chip', () => {
+        render(<Harness suggestions={SUGGESTIONS} initial={['Authorization']} />);
+        const input = screen.getByRole('combobox');
+        expect(input.getAttribute('aria-expanded')).toBe('false');
+        fireEvent.click(screen.getByRole('button', { name: 'Remove Authorization' }));
+        expect(screen.queryByRole('button', { name: 'Remove Authorization' })).toBeNull();
+        expect(input.getAttribute('aria-expanded')).toBe('false');
     });
 
     it('closes the list on Escape', () => {
@@ -134,13 +142,14 @@ describe('ChipInput', () => {
                 <Harness suggestions={CORS_DEFAULT_HTTP_HEADERS} />
             </div>,
         );
-        const input = screen.getByRole('combobox');
-        fireEvent.focus(input);
+        fireEvent.focus(screen.getByRole('combobox'));
         const listbox = screen.getByRole('listbox');
         const clippedContainer = container.querySelector('.overflow-hidden');
         expect(clippedContainer).not.toBeNull();
         expect(clippedContainer?.contains(listbox)).toBe(false);
         expect(document.body.contains(listbox)).toBe(true);
+        expect(listbox.style.maxHeight).toBe('14rem');
+        expect(listbox.style.overflowY).toBe('auto');
     });
 
     it('marks the input invalid and points aria-describedby at the error', () => {

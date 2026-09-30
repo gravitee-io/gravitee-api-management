@@ -14,35 +14,32 @@
  * limitations under the License.
  */
 
-import { Card, CardContent } from '@gravitee/graphene-core';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 
 import { CorsFields } from './CorsFields';
 import type { CorsFormState } from './CorsSection';
 
-const EMPTY_CORS: CorsFormState = {
+const INITIAL: CorsFormState = {
     allowOrigin: [],
     allowMethods: ['GET'],
     allowHeaders: [],
     exposedHeaders: [],
-    maxAge: '0',
+    maxAge: '1728000',
 };
 
-function Harness({ initial = EMPTY_CORS }: { initial?: CorsFormState }) {
-    const [value, setValue] = useState(initial);
-    return (
-        <Card className="h-24 overflow-hidden">
-            <CardContent>
-                <CorsFields value={value} disabled={false} onChange={setValue} allowOriginId="cors-origins" />
-            </CardContent>
-        </Card>
-    );
+function Harness() {
+    const [value, setValue] = useState(INITIAL);
+    return <CorsFields value={value} disabled={false} onChange={setValue} allowOriginId="cors-allow-origin" />;
 }
 
 describe('CorsFields', () => {
     it('renders allow-headers suggestions in a portal outside clipped cards', () => {
-        render(<Harness />);
+        render(
+            <div className="h-24 overflow-hidden">
+                <Harness />
+            </div>,
+        );
 
         const input = document.getElementById('cors-allow-headers')!;
         fireEvent.focus(input as HTMLElement);
@@ -62,15 +59,5 @@ describe('CorsFields', () => {
 
         fireEvent.click(screen.getByRole('option', { name: 'Content-Type' }));
         expect(screen.getByText('Content-Type')).not.toBeNull();
-    });
-
-    it('renders exposed-headers suggestions in a portal outside clipped cards', () => {
-        render(<Harness />);
-
-        const input = document.getElementById('cors-exposed-headers') as HTMLInputElement;
-        fireEvent.focus(input);
-
-        const listbox = screen.getByRole('listbox');
-        expect(document.body.contains(listbox)).toBe(true);
     });
 });

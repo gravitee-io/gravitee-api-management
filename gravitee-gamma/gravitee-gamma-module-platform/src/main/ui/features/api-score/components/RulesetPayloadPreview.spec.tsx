@@ -16,7 +16,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { RulesetPayloadPreview } from './RulesetPayloadPreview';
+import { RULESET_PAYLOAD_PREVIEW_MAX_HEIGHT_PX, RulesetPayloadPreview } from './RulesetPayloadPreview';
 
 jest.mock('../../../shared/copyToClipboard', () => ({
     copyTextToClipboardWithNotifyHandler: jest.fn(),
@@ -36,7 +36,11 @@ describe('RulesetPayloadPreview', () => {
         const payload = 'rules:\n  - id: one';
         render(<RulesetPayloadPreview payload={payload} />);
 
-        expect(screen.getByTestId('ruleset-payload-preview-scroll')).not.toBeNull();
+        const scroll = screen.getByTestId('ruleset-payload-preview-scroll');
+        expect(scroll).not.toBeNull();
+        expect(scroll.style.maxHeight).toBe(`${RULESET_PAYLOAD_PREVIEW_MAX_HEIGHT_PX}px`);
+        expect(scroll.style.overflowY).toBe('auto');
+
         expect(screen.getByText('1')).not.toBeNull();
         expect(screen.getByText('2')).not.toBeNull();
         expect(screen.getByText('rules:')).not.toBeNull();
@@ -44,5 +48,25 @@ describe('RulesetPayloadPreview', () => {
 
         await user.click(screen.getByRole('button', { name: /copy code to clipboard/i }));
         expect(copyTextToClipboardWithNotifyHandler).toHaveBeenCalledWith(payload, 'Copied to clipboard');
+    });
+
+    it('bounds height for long payloads so content scrolls inside the box', () => {
+        const payload = Array.from({ length: 80 }, (_, i) => `line-${i}`).join('\n');
+        render(<RulesetPayloadPreview payload={payload} />);
+
+        const scroll = screen.getByTestId('ruleset-payload-preview-scroll');
+        expect(scroll.style.maxHeight).toBe(`${RULESET_PAYLOAD_PREVIEW_MAX_HEIGHT_PX}px`);
+        expect(scroll.style.overflowY).toBe('auto');
+        expect(scroll.style.overflowX).toBe('auto');
+        expect(scroll.style.height).toBe('');
+        expect(screen.getByText('line-0')).not.toBeNull();
+        expect(screen.getByText('line-79')).not.toBeNull();
+    });
+
+    it('does not pad short payloads to the max height', () => {
+        render(<RulesetPayloadPreview payload="short" />);
+
+        const scroll = screen.getByTestId('ruleset-payload-preview-scroll');
+        expect(scroll.clientHeight).toBeLessThan(RULESET_PAYLOAD_PREVIEW_MAX_HEIGHT_PX);
     });
 });

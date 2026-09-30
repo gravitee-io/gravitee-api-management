@@ -19,6 +19,16 @@ import { useMemo } from 'react';
 
 import { copyTextToClipboardWithNotifyHandler } from '../../../shared/copyToClipboard';
 
+/** Matches Classic Console file-preview scroll area (~320px visible code box). */
+export const RULESET_PAYLOAD_PREVIEW_MAX_HEIGHT_PX = 320;
+
+const scrollContainerStyle = {
+    maxHeight: `${RULESET_PAYLOAD_PREVIEW_MAX_HEIGHT_PX}px`,
+    overflowY: 'auto' as const,
+    overflowX: 'auto' as const,
+    overscrollBehavior: 'auto' as const,
+};
+
 export function RulesetPayloadPreview({ payload }: Readonly<{ payload: string }>) {
     const lines = useMemo(() => payload.split('\n'), [payload]);
 
@@ -27,25 +37,25 @@ export function RulesetPayloadPreview({ payload }: Readonly<{ payload: string }>
             data-testid="ruleset-payload-preview"
             className="bg-muted/30 overflow-hidden rounded-lg border font-mono text-xs text-foreground"
         >
-            <div className="flex justify-end border-b px-2 py-1.5">
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="size-8"
-                    aria-label="Copy code to clipboard"
-                    data-testid="ruleset-payload-copy"
-                    onClick={() => copyTextToClipboardWithNotifyHandler(payload, 'Copied to clipboard')}
-                >
-                    <CopyIcon className="size-4" aria-hidden />
-                </Button>
-            </div>
-            <div className="max-h-[400px] overflow-auto" data-testid="ruleset-payload-preview-scroll">
-                <div className="divide-y divide-border">
+            <div className="relative">
+                <div className="pointer-events-none absolute top-0 right-0 z-10 flex justify-end p-1.5">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="pointer-events-auto size-8 bg-muted/80 backdrop-blur-sm"
+                        aria-label="Copy code to clipboard"
+                        data-testid="ruleset-payload-copy"
+                        onClick={() => copyTextToClipboardWithNotifyHandler(payload, 'Copied to clipboard')}
+                    >
+                        <CopyIcon className="size-4" aria-hidden />
+                    </Button>
+                </div>
+                <div className="min-w-0 py-2 pr-2 pl-0" data-testid="ruleset-payload-preview-scroll" style={scrollContainerStyle}>
                     {lines.map((line, index) => (
-                        <div key={`${index}-${line.length}`} className="grid grid-cols-[2rem_1fr] gap-3 px-3 py-0.5">
-                            <span className="text-muted-foreground select-none text-right tabular-nums">{index + 1}</span>
-                            <span className="whitespace-pre-wrap break-all">{line.length > 0 ? line : ' '}</span>
+                        <div key={`${index}-${line.length}`} className="grid grid-cols-[2rem_minmax(0,1fr)] gap-3 px-3 py-0.5">
+                            <span className="text-muted-foreground shrink-0 select-none text-right tabular-nums">{index + 1}</span>
+                            <span className="whitespace-pre">{line.length > 0 ? line : ' '}</span>
                         </div>
                     ))}
                 </div>
