@@ -33,8 +33,9 @@ describe('DashboardComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const init = async (
-    params: Partial<{ enablePortalNextAnalytics: boolean }> = {
+    params: Partial<{ enablePortalNextAnalytics: boolean; enableAiWorkspaces: boolean }> = {
       enablePortalNextAnalytics: false,
+      enableAiWorkspaces: false,
     },
   ) => {
     const dashboardRoute = (routes as Routes).find(route => route.path === 'dashboard');
@@ -64,12 +65,13 @@ describe('DashboardComponent', () => {
           provide: ConfigService,
           useFactory: () => {
             const stub = new ConfigServiceStub();
-            if (params.enablePortalNextAnalytics) {
+            if (params.enablePortalNextAnalytics || params.enableAiWorkspaces) {
               stub.configuration = {
                 ...stub.configuration,
                 portalNext: {
                   ...stub.configuration.portalNext,
-                  analytics: { enabled: true },
+                  ...(params.enablePortalNextAnalytics ? { analytics: { enabled: true } } : {}),
+                  ...(params.enableAiWorkspaces ? { aiWorkspaces: { enabled: true } } : {}),
                 },
               };
             }
@@ -126,6 +128,12 @@ describe('DashboardComponent', () => {
     expect(await breadcrumbs?.getText()).toContain('Subscriptions');
   });
 
+  it('should omit My Workspace from menu items when Portal AI Workspace is disabled', async () => {
+    await init();
+
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).not.toContain('ai-workspaces');
+  });
+
   it('should omit Analytics from menu items when portal next analytics is not enabled', async () => {
     await init();
 
@@ -144,6 +152,12 @@ describe('DashboardComponent', () => {
     await init({ enablePortalNextAnalytics: true });
 
     expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['analytics', 'applications', 'subscriptions']);
+  });
+
+  it('should include My Workspace when Portal AI Workspace is enabled', async () => {
+    await init({ enableAiWorkspaces: true });
+
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['applications', 'subscriptions', 'ai-workspaces']);
   });
 
   it('should show Analytics in the sidenav when portal next analytics is enabled', async () => {

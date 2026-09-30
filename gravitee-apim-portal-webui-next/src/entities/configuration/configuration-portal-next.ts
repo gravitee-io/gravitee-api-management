@@ -34,6 +34,9 @@ export class ConfigurationPortalNext {
   analytics?: {
     enabled?: boolean;
   };
+  aiWorkspaces?: {
+    enabled?: boolean;
+  };
   applications?: {
     membership?: {
       enabled?: boolean;

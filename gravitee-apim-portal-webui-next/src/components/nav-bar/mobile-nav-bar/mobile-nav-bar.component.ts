@@ -36,6 +36,7 @@ export class MobileNavBarComponent {
   currentUser: InputSignal<User> = input({});
   topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   analyticsEnabled: InputSignal<boolean> = input(false);
+  aiWorkspacesEnabled: InputSignal<boolean> = input(false);
   hasHomepage = toSignal(
     inject(PortalService)
       .getPortalHomepages()
