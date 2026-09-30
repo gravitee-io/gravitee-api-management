@@ -26,7 +26,7 @@ import {
   BuildDockerChainguardFipsImageJob,
   BuildDockerChainguardImageJob,
   BuildDockerWebUiImageJob,
-  CommunityBuildBackendJob,
+  // CommunityBuildBackendJob, // suspended, see communityBuildJob below
   ConsoleWebuiBuildJob,
   DangerJsJob,
   DeployOnAzureJob,
@@ -686,8 +686,10 @@ export class PullRequestsWorkflow {
   }
 
   private static getMasterAndSupportJobs(dynamicConfig: Config, environment: CircleCIEnvironment): workflow.WorkflowJob[] {
-    const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
-    dynamicConfig.addJob(communityBuildJob);
+    // Suspended: a build without credentials can no longer resolve the private artifacts.
+    // To bring it back, restore the import above and uncomment the two lines here and the job entry below.
+    // const communityBuildJob = CommunityBuildBackendJob.create(dynamicConfig, environment);
+    // dynamicConfig.addJob(communityBuildJob);
 
     const publishSnapshotJob = PublishJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(publishSnapshotJob);
@@ -761,10 +763,11 @@ export class PullRequestsWorkflow {
         'docker-context': '.',
         'docker-image-name': config.components.gamma.image,
       }),
-      new workflow.WorkflowJob(communityBuildJob, {
-        name: 'Check build as Community user',
-        context: config.jobContext,
-      }),
+      // Suspended, see communityBuildJob above.
+      // new workflow.WorkflowJob(communityBuildJob, {
+      //   name: 'Check build as Community user',
+      //   context: config.jobContext,
+      // }),
       // Trigger SaaS Docker images creation
       new workflow.WorkflowJob(runTriggerSaasDockerImagesJob, {
         context: [...config.jobContext, 'keeper-orb-publishing'],
