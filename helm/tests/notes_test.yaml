@@ -1,0 +1,22 @@
+suite: Test NOTES
+templates:
+  - "NOTES.txt"
+tests:
+  - it: Warn when the MongoDB subchart is enabled
+    set:
+      mongodb:
+        enabled: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: The MongoDB and Elasticsearch subcharts .* are deprecated"
+  - it: Warn when the Elasticsearch subchart is enabled
+    set:
+      elasticsearch:
+        enabled: true
+    asserts:
+      - matchRegexRaw:
+          pattern: "WARNING: The MongoDB and Elasticsearch subcharts .* are deprecated"
+  - it: Stay silent when both subcharts are disabled
+    asserts:
+      - notMatchRegexRaw:
+          pattern: "subcharts .* are deprecated"
