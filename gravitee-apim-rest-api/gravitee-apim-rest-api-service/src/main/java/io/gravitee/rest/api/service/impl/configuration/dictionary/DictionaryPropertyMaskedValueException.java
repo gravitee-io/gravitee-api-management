@@ -24,13 +24,11 @@ import java.util.Map;
 /**
  * @author GraviteeSource Team
  */
-public class DictionaryPropertyEncryptedToPlainException extends AbstractValidationException {
+public class DictionaryPropertyMaskedValueException extends AbstractValidationException {
 
-    private final String dictionaryId;
     private final String propertyKey;
 
-    public DictionaryPropertyEncryptedToPlainException(String dictionaryId, String propertyKey) {
-        this.dictionaryId = dictionaryId;
+    public DictionaryPropertyMaskedValueException(String propertyKey) {
         this.propertyKey = propertyKey;
     }
 
@@ -39,21 +37,18 @@ public class DictionaryPropertyEncryptedToPlainException extends AbstractValidat
         return (
             "Dictionary property [" +
             propertyKey +
-            "] on dictionary [" +
-            dictionaryId +
-            "] is already encrypted; it cannot be made plain again. Renew it with a new value instead."
+            "] holds the placeholder that stands in for an encrypted value, but no encrypted value is stored under that key. Send the real value instead."
         );
     }
 
     @Override
     public String getTechnicalCode() {
-        return "dictionary.property.encryptedToPlain";
+        return "dictionary.property.maskedValue";
     }
 
     @Override
     public Map<String, String> getParameters() {
         Map<String, String> parameters = new HashMap<>();
-        parameters.put("dictionary", dictionaryId);
         parameters.put("property", propertyKey);
         return unmodifiableMap(parameters);
     }

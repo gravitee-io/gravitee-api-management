@@ -42,9 +42,6 @@ public class DictionaryPropertyOptions {
      */
     private Boolean encrypted;
 
-    /**
-     * The submitted plaintext value has to be encrypted on save. Not honoured yet: a write that sets
-     * it is rejected, rather than silently storing the value as plaintext.
-     */
+    /** The submitted plaintext value has to be encrypted on save. */
     private Boolean encryptable;
 }
