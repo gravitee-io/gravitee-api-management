@@ -608,7 +608,7 @@ jobs:
   job-backend-build-and-publish-on-download-website:
     docker:
       - image: cimg/openjdk:25.0.3-node
-    resource_class: large
+    resource_class: xlarge
     steps:
       - checkout
       - attach_workspace:
