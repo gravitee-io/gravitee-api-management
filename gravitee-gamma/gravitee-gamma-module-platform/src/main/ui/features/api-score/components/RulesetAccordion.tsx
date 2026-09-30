@@ -17,6 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger, Badge, Bu
 import { Link } from 'react-router-dom';
 
 import { RulesetPayloadPreview } from './RulesetPayloadPreview';
+import { SCORING_ACCORDION_ITEM_CLASSNAME, scoringAccordionItemStyle } from './scoringAccordionItemClassName';
 import type { ScoringRuleset } from '../types/rulesets';
 import { rulesetFormatLabel } from '../utils/rulesetFormat';
 
@@ -26,8 +27,13 @@ export function RulesetAccordion({
 }: Readonly<{ rulesets: ScoringRuleset[]; onDelete: (ruleset: ScoringRuleset) => void }>) {
     return (
         <Accordion type="multiple" className="space-y-2" data-testid="ruleset-accordion">
-            {rulesets.map(ruleset => (
-                <AccordionItem key={ruleset.id} value={ruleset.id} className="rounded-lg border px-4">
+            {rulesets.map((ruleset, index) => (
+                <AccordionItem
+                    key={ruleset.id}
+                    value={ruleset.id}
+                    className={SCORING_ACCORDION_ITEM_CLASSNAME}
+                    style={scoringAccordionItemStyle(index === rulesets.length - 1)}
+                >
                     <AccordionTrigger>
                         <span className="flex flex-wrap items-center gap-2 text-left">
                             <span className="font-medium">{ruleset.name}</span>

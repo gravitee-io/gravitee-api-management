@@ -17,6 +17,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { FunctionAccordion } from './FunctionAccordion';
+import { SCORING_ACCORDION_ITEM_CLASSNAME } from './scoringAccordionItemClassName';
 import type { ScoringFunction } from '../types/rulesets';
 
 const FN: ScoringFunction = {
@@ -37,5 +38,15 @@ describe('FunctionAccordion', () => {
         expect(screen.getByText('module.exports = {}')).not.toBeNull();
         await user.click(screen.getByRole('button', { name: 'Delete' }));
         expect(onDelete).toHaveBeenCalledWith(FN);
+    });
+
+    it('keeps a full border on the last accordion item', () => {
+        const second: ScoringFunction = { ...FN, name: 'other.js' };
+        const { container } = render(<FunctionAccordion functions={[FN, second]} onDelete={jest.fn()} />);
+
+        const items = container.querySelectorAll('[data-slot="accordion-item"]');
+        expect(items).toHaveLength(2);
+        expect(items[1]?.className).toContain(SCORING_ACCORDION_ITEM_CLASSNAME);
+        expect((items[1] as HTMLElement).style.borderBottomWidth).toBe('1px');
     });
 });

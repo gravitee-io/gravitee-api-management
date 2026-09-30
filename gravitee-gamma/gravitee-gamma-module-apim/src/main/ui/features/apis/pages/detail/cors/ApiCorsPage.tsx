@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { CORS_DEFAULT_HTTP_HEADERS, CORS_HTTP_METHODS } from '../../../../../shared/cors';
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Skeleton, Switch, TooltipProvider } from '@gravitee/graphene-core';
 import { GlobeIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -24,6 +23,7 @@ import { useParams } from 'react-router-dom';
 import { Chips } from './Chips';
 import { InfoTooltip } from './InfoTooltip';
 import { ToggleRow } from './ToggleRow';
+import { CORS_DEFAULT_HTTP_HEADERS, CORS_HTTP_METHODS } from '../../../../../shared/cors';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiCors } from '../../../services/apis';
 import type { Cors } from '../../../types';
