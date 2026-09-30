@@ -18,6 +18,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { RulesetAccordion } from './RulesetAccordion';
+import { SCORING_ACCORDION_ITEM_CLASSNAME } from './scoringAccordionItemClassName';
 import type { ScoringRuleset } from '../types/rulesets';
 
 const RULESET: ScoringRuleset = {
@@ -51,5 +52,19 @@ describe('RulesetAccordion', () => {
 
         await user.click(screen.getByRole('button', { name: 'Delete' }));
         expect(onDelete).toHaveBeenCalledWith(RULESET);
+    });
+
+    it('keeps a full border on the last accordion item', () => {
+        const second: ScoringRuleset = { ...RULESET, id: 'rs-2', name: 'Other' };
+        const { container } = render(
+            <MemoryRouter>
+                <RulesetAccordion rulesets={[RULESET, second]} onDelete={jest.fn()} />
+            </MemoryRouter>,
+        );
+
+        const items = container.querySelectorAll('[data-slot="accordion-item"]');
+        expect(items).toHaveLength(2);
+        expect(items[1]?.className).toContain(SCORING_ACCORDION_ITEM_CLASSNAME);
+        expect((items[1] as HTMLElement).style.borderBottomWidth).toBe('1px');
     });
 });

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChipInputField } from '../../../../../shared/chip-input';
 import { Label } from '@gravitee/graphene-core';
 import type { ReactNode } from 'react';
 
 import { InfoTooltip } from './InfoTooltip';
+import { ChipInputField } from '../../../../../shared/chip-input';
 
 export interface ChipsProps {
     label: string;

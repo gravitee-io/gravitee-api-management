@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-import { duration } from 'moment';
-
-import { isValidIso8601Duration } from './iso8601Duration';
+import { isValidIso8601Duration, parseIso8601DurationSecondsForCompare } from './iso8601Duration';
 import { WindowedCount, WindowedCountFormatError } from './windowedCount';
 
 export interface ApiLoggingFormState {
@@ -174,16 +172,13 @@ function compareTemporal(defaultValue: string, limitValue: string): string | und
         return undefined;
     }
 
-    const compareError = 'Default should be greater than Limit';
-
-    try {
-        const defaultDuration = duration(defaultValue.trim());
-        const limitDuration = duration(limitValue.trim());
-        if (defaultDuration < limitDuration) {
-            return compareError;
-        }
-    } catch {
-        return compareError;
+    const defaultSeconds = parseIso8601DurationSecondsForCompare(defaultValue);
+    const limitSeconds = parseIso8601DurationSecondsForCompare(limitValue);
+    if (defaultSeconds === null || limitSeconds === null) {
+        return undefined;
+    }
+    if (defaultSeconds < limitSeconds) {
+        return 'Default should be greater than Limit';
     }
 
     return undefined;
@@ -214,57 +209,26 @@ export function validateApiLoggingForm(state: ApiLoggingFormState): ApiLoggingFi
     const probabilisticDefaultError = validateProbabilisticField(state.probabilisticDefault, 'default');
     const probabilisticLimitError = validateProbabilisticField(state.probabilisticLimit, 'limit');
     const probabilisticCompareError = compareProbabilistic(state.probabilisticDefault, state.probabilisticLimit);
-
-    if (probabilisticDefaultError) {
-        errors.probabilisticDefault = probabilisticDefaultError;
-    } else if (probabilisticCompareError) {
-        errors.probabilisticDefault = probabilisticCompareError;
-    }
-
-    if (probabilisticLimitError) {
-        errors.probabilisticLimit = probabilisticLimitError;
-    } else if (probabilisticCompareError) {
-        errors.probabilisticLimit = probabilisticCompareError;
-    }
+    setFieldErrors(errors, 'probabilisticDefault', probabilisticDefaultError, probabilisticCompareError);
+    setFieldErrors(errors, 'probabilisticLimit', probabilisticLimitError, probabilisticCompareError);
 
     const countDefaultError = validateCountField(state.countDefault, 'default');
     const countLimitError = validateCountField(state.countLimit, 'limit');
     const countCompareError = compareCount(state.countDefault, state.countLimit);
-
-    if (countDefaultError) {
-        errors.countDefault = countDefaultError;
-    } else if (countCompareError) {
-        errors.countDefault = countCompareError;
-    }
-
-    if (countLimitError) {
-        errors.countLimit = countLimitError;
-    } else if (countCompareError) {
-        errors.countLimit = countCompareError;
-    }
+    setFieldErrors(errors, 'countDefault', countDefaultError, countCompareError);
+    setFieldErrors(errors, 'countLimit', countLimitError, countCompareError);
 
     const temporalDefaultError = validateTemporalField(state.temporalDefault, 'default');
     const temporalLimitError = validateTemporalField(state.temporalLimit, 'limit');
     const temporalCompareError = compareTemporal(state.temporalDefault, state.temporalLimit);
-
     setFieldErrors(errors, 'temporalDefault', temporalDefaultError, temporalCompareError);
     setFieldErrors(errors, 'temporalLimit', temporalLimitError, temporalCompareError);
 
     const windowedDefaultError = validateWindowedCountField(state.windowedCountDefault, 'default');
     const windowedLimitError = validateWindowedCountField(state.windowedCountLimit, 'limit');
     const windowedCompareError = compareWindowedCount(state.windowedCountDefault, state.windowedCountLimit);
-
-    if (windowedDefaultError) {
-        errors.windowedCountDefault = windowedDefaultError;
-    } else if (windowedCompareError) {
-        errors.windowedCountDefault = windowedCompareError;
-    }
-
-    if (windowedLimitError) {
-        errors.windowedCountLimit = windowedLimitError;
-    } else if (windowedCompareError) {
-        errors.windowedCountLimit = windowedCompareError;
-    }
+    setFieldErrors(errors, 'windowedCountDefault', windowedDefaultError, windowedCompareError);
+    setFieldErrors(errors, 'windowedCountLimit', windowedLimitError, windowedCompareError);
 
     return errors;
 }

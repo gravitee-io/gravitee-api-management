@@ -121,8 +121,8 @@ it('renders existing origins, methods and headers as chips', () => {
     expect(screen.getByText('https://app.company.com')).not.toBeNull();
     expect(screen.getByText('GET')).not.toBeNull();
     expect(screen.getByText('POST')).not.toBeNull();
-    expect(screen.getByText('Content-Type')).not.toBeNull();
-    expect(screen.getByText('Authorization')).not.toBeNull();
+    expect(screen.getAllByText('Content-Type').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Authorization').length).toBeGreaterThanOrEqual(1);
 });
 
 it('renders allow-headers autocomplete in a portal outside clipped cards', () => {
