@@ -34,6 +34,7 @@ export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});
   topBarNavigationItems: InputSignal<PortalNavigationItem[]> = input<PortalNavigationItem[]>([]);
   analyticsEnabled: InputSignal<boolean> = input(false);
+  aiWorkspacesEnabled: InputSignal<boolean> = input(false);
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });

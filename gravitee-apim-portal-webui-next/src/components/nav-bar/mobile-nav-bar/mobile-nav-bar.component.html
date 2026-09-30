@@ -66,6 +66,16 @@
           >Analytics</a
         >
       }
+      @if (aiWorkspacesEnabled()) {
+        <a
+          class="mobile-menu__link"
+          i18n="@@aiWorkspaceMenu"
+          [routerLink]="['/dashboard', 'ai-workspaces']"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+          >My Workspace</a
+        >
+      }
       <a
         class="mobile-menu__link"
         i18n="@@applications"

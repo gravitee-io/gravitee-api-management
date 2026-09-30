@@ -59,4 +59,30 @@ describe('UserAvatarComponent', () => {
     const labels = Array.from(panel?.querySelectorAll('.mat-mdc-menu-item') ?? []).map(el => el.textContent?.trim());
     expect(labels).toContain('Analytics');
   });
+
+  it('should show My Workspace when AI workspaces are enabled', async () => {
+    fixture.componentRef.setInput('aiWorkspacesEnabled', true);
+    fixture.detectChanges();
+
+    (fixture.nativeElement as HTMLElement).querySelector('.user-avatar')?.dispatchEvent(new MouseEvent('click'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const panel = document.querySelector('.mat-mdc-menu-panel');
+    const labels = Array.from(panel?.querySelectorAll('.mat-mdc-menu-item') ?? []).map(el => el.textContent?.trim());
+    expect(labels).toContain('My Workspace');
+  });
+
+  it('should hide My Workspace when AI workspaces are disabled', async () => {
+    fixture.componentRef.setInput('aiWorkspacesEnabled', false);
+    fixture.detectChanges();
+
+    (fixture.nativeElement as HTMLElement).querySelector('.user-avatar')?.dispatchEvent(new MouseEvent('click'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const panel = document.querySelector('.mat-mdc-menu-panel');
+    const labels = Array.from(panel?.querySelectorAll('.mat-mdc-menu-item') ?? []).map(el => el.textContent?.trim());
+    expect(labels.some(label => label === 'My Workspace')).toBe(false);
+  });
 });

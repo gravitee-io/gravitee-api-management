@@ -40,6 +40,7 @@ export class NavBarComponent {
   logo: InputSignal<string> = input('');
   protected readonly isMobile = inject(ObservabilityBreakpointService).isMobile;
   protected readonly analyticsEnabled = computed(() => this.configService.configuration.portalNext?.analytics?.enabled ?? false);
+  protected readonly aiWorkspacesEnabled = computed(() => this.configService.configuration.portalNext?.aiWorkspaces?.enabled ?? false);
 
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
