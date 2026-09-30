@@ -85,6 +85,22 @@
                   </mat-select>
                 </mat-form-field>
               </div>
+
+              @if (isHttpProxyApi) {
+                <div class="endpoint-card__form__section endpoint-card__form__secondary">
+                  <span class="mat-h3">Secondary endpoint</span>
+                  <mat-checkbox
+                    class="endpoint-card__form__secondary__checkbox"
+                    aria-label="Secondary endpoint checkbox"
+                    formControlName="secondary"
+                  >
+                    <span class="endpoint-card__form__secondary__checkbox__label">
+                      A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all
+                      primary endpoints are marked as "DOWN" by health-check service.
+                    </span>
+                  </mat-checkbox>
+                </div>
+              }
             </div>
           </mat-tab>
           <mat-tab label="Configuration" *ngIf="endpointSchema.sharedConfig">

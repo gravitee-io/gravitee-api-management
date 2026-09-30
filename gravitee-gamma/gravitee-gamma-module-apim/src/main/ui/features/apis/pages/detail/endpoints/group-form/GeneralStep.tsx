@@ -29,9 +29,10 @@ interface GeneralStepProps {
     form: EndpointGroupFormState;
     existingGroupNames: string[];
     onFormChange: (patch: Partial<EndpointGroupFormState>) => void;
+    readOnly?: boolean;
 }
 
-export function GeneralStep({ form, existingGroupNames, onFormChange }: Readonly<GeneralStepProps>) {
+export function GeneralStep({ form, existingGroupNames, onFormChange, readOnly = false }: Readonly<GeneralStepProps>) {
     const nameError = (() => {
         const base = validateGroupName(form.name);
         if (base) return base;
@@ -51,6 +52,7 @@ export function GeneralStep({ form, existingGroupNames, onFormChange }: Readonly
                     value={form.name}
                     onChange={e => onFormChange({ name: e.target.value })}
                     placeholder="default-group"
+                    disabled={readOnly}
                 />
                 {nameError && <p className="text-xs text-destructive">{nameError}</p>}
                 <p className="text-xs text-muted-foreground">
@@ -66,7 +68,11 @@ export function GeneralStep({ form, existingGroupNames, onFormChange }: Readonly
                 <Label htmlFor="lb-type" className="text-sm">
                     Load balancing algorithm <span className="text-destructive">*</span>
                 </Label>
-                <Select value={form.loadBalancerType} onValueChange={v => onFormChange({ loadBalancerType: v as LoadBalancerType })}>
+                <Select
+                    value={form.loadBalancerType}
+                    onValueChange={v => onFormChange({ loadBalancerType: v as LoadBalancerType })}
+                    disabled={readOnly}
+                >
                     <SelectTrigger id="lb-type" className="w-full">
                         <SelectValue />
                     </SelectTrigger>

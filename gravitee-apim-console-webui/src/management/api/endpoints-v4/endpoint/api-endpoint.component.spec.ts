@@ -165,6 +165,7 @@ describe('ApiEndpointComponent', () => {
                   tenants: [TENANT.key],
                   type: 'kafka',
                   weight: 10,
+                  secondary: false,
                 },
               ],
             },
@@ -209,6 +210,195 @@ describe('ApiEndpointComponent', () => {
       });
     });
 
+    describe('secondary endpoint', () => {
+      it('should hide secondary checkbox for non-HTTP-proxy APIs', async () => {
+        const apiV4 = fakeApiV4({ id: API_ID });
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0 });
+
+        expect(await componentHarness.isSecondaryCheckboxVisible()).toBe(false);
+      });
+
+      it('should create an endpoint with secondary enabled', async () => {
+        const apiV4 = fakeProxyApiV4({
+          id: API_ID,
+          endpointGroups: [fakeHTTPProxyEndpointGroupV4()],
+        });
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0 });
+
+        expect(await componentHarness.isSecondaryCheckboxVisible()).toBe(true);
+        expect(await componentHarness.isSecondaryCheckboxChecked()).toBe(false);
+
+        await componentHarness.fillInputName('secondary-endpoint');
+        await componentHarness.fillWeightButton(1);
+        await componentHarness.toggleSecondaryCheckbox();
+        expect(await componentHarness.isSecondaryCheckboxChecked()).toBe(true);
+
+        await componentHarness.clickSaveButton();
+
+        expectApiGetRequest(apiV4);
+
+        const updatedApi: ApiV4 = {
+          ...apiV4,
+          endpointGroups: [
+            {
+              ...apiV4.endpointGroups[0],
+              endpoints: [
+                { ...apiV4.endpointGroups[0].endpoints[0] },
+                {
+                  configuration: {
+                    bootstrapServers: undefined,
+                  },
+                  inheritConfiguration: true,
+                  sharedConfigurationOverride: {},
+                  name: 'secondary-endpoint',
+                  tenants: null,
+                  type: 'http-proxy',
+                  weight: 1,
+                  secondary: true,
+                  services: {
+                    healthCheck: undefined,
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        expectApiPutRequest(updatedApi);
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+
+      it('should keep secondary enabled when editing a secondary endpoint', async () => {
+        const apiV4 = fakeProxyApiV4({
+          id: API_ID,
+          endpointGroups: [
+            fakeHTTPProxyEndpointGroupV4({
+              endpoints: [
+                {
+                  name: 'primary',
+                  type: 'http-proxy',
+                  weight: 1,
+                  inheritConfiguration: true,
+                  secondary: false,
+                  configuration: {
+                    target: 'https://primary.example.com',
+                  },
+                },
+                {
+                  name: 'fallback',
+                  type: 'http-proxy',
+                  weight: 1,
+                  inheritConfiguration: true,
+                  secondary: true,
+                  configuration: {
+                    target: 'https://fallback.example.com',
+                  },
+                },
+              ],
+            }),
+          ],
+        });
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 1 });
+
+        fixture.detectChanges();
+        expect(await componentHarness.getEndpointName()).toStrictEqual('fallback');
+        expect(await componentHarness.isSecondaryCheckboxChecked()).toBe(true);
+
+        await componentHarness.fillInputName('fallback updated');
+        fixture.detectChanges();
+
+        await componentHarness.clickSaveButton();
+
+        expectApiGetRequest(apiV4);
+
+        const updatedApi: ApiV4 = {
+          ...apiV4,
+          endpointGroups: [
+            {
+              ...apiV4.endpointGroups[0],
+              endpoints: [
+                apiV4.endpointGroups[0].endpoints[0],
+                {
+                  ...apiV4.endpointGroups[0].endpoints[1],
+                  name: 'fallback updated',
+                  configuration: {
+                    bootstrapServers: undefined,
+                  },
+                  sharedConfigurationOverride: {},
+                  secondary: true,
+                  tenants: undefined,
+                  services: {
+                    healthCheck: undefined,
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        expectApiPutRequest(updatedApi);
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+
+      it('should clear secondary when disabled on edit', async () => {
+        const apiV4 = fakeProxyApiV4({
+          id: API_ID,
+          endpointGroups: [
+            fakeHTTPProxyEndpointGroupV4({
+              endpoints: [
+                {
+                  name: 'fallback',
+                  type: 'http-proxy',
+                  weight: 1,
+                  inheritConfiguration: true,
+                  secondary: true,
+                  configuration: {
+                    target: 'https://fallback.example.com',
+                  },
+                },
+              ],
+            }),
+          ],
+        });
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+
+        expect(await componentHarness.isSecondaryCheckboxChecked()).toBe(true);
+
+        await componentHarness.toggleSecondaryCheckbox();
+        expect(await componentHarness.isSecondaryCheckboxChecked()).toBe(false);
+
+        await componentHarness.clickSaveButton();
+
+        expectApiGetRequest(apiV4);
+
+        const updatedApi: ApiV4 = {
+          ...apiV4,
+          endpointGroups: [
+            {
+              ...apiV4.endpointGroups[0],
+              endpoints: [
+                {
+                  ...apiV4.endpointGroups[0].endpoints[0],
+                  configuration: {
+                    bootstrapServers: undefined,
+                  },
+                  sharedConfigurationOverride: {},
+                  secondary: false,
+                  tenants: undefined,
+                  services: {
+                    healthCheck: undefined,
+                  },
+                },
+              ],
+            },
+          ],
+        };
+        expectApiPutRequest(updatedApi);
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+    });
+
     describe('should update endpoint', () => {
       it('should disable general components', async () => {
         const apiV4 = fakeApiV4({ id: API_ID });
@@ -220,10 +410,12 @@ describe('ApiEndpointComponent', () => {
         const targetUrl = formGroup.get('configuration');
         const weight = formGroup.get('weight');
         const tenants = formGroup.get('tenants');
+        const secondary = formGroup.get('secondary');
         expect(name?.disabled).toBe(true);
         expect(targetUrl?.disabled).toBe(true);
         expect(weight?.disabled).toBe(true);
         expect(tenants?.disabled).toBe(true);
+        expect(secondary?.disabled).toBe(true);
       });
 
       it('should edit and save an existing endpoint', async () => {
@@ -260,6 +452,7 @@ describe('ApiEndpointComponent', () => {
                   ...apiV4.endpointGroups[0].endpoints[0],
                   name: 'endpoint-name updated',
                   tenants: [TENANT.key],
+                  secondary: false,
                   sharedConfigurationOverride: {
                     test: undefined,
                   },
@@ -358,76 +551,10 @@ describe('ApiEndpointComponent', () => {
                 {
                   ...apiV4.endpointGroups[1].endpoints[0],
                   name: 'dlq-endpoint updated',
-                  sharedConfigurationOverride: {
-                    test: undefined,
-                  },
-                },
-              ],
-            },
-          ],
-        };
-        expectApiPutRequest(updatedApi);
-        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
-      });
-
-      it('should preserve secondary flag when editing a secondary endpoint', async () => {
-        const apiV4 = fakeApiV4({
-          id: API_ID,
-          endpointGroups: [
-            fakeEndpointGroupV4({
-              endpoints: [
-                {
-                  name: 'primary',
-                  type: 'kafka',
-                  weight: 1,
-                  inheritConfiguration: false,
                   secondary: false,
-                  configuration: {
-                    bootstrapServers: 'localhost:9092',
-                  },
-                },
-                {
-                  name: 'fallback',
-                  type: 'kafka',
-                  weight: 1,
-                  inheritConfiguration: false,
-                  secondary: true,
-                  configuration: {
-                    bootstrapServers: 'localhost:9092',
-                  },
-                },
-              ],
-            }),
-          ],
-        });
-
-        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 1 });
-
-        fixture.detectChanges();
-        expect(await componentHarness.getEndpointName()).toStrictEqual('fallback');
-
-        await componentHarness.fillInputName('fallback updated');
-        fixture.detectChanges();
-
-        await componentHarness.clickSaveButton();
-
-        expectApiGetRequest(apiV4);
-
-        const updatedApi: ApiV4 = {
-          ...apiV4,
-          endpointGroups: [
-            {
-              ...apiV4.endpointGroups[0],
-              endpoints: [
-                apiV4.endpointGroups[0].endpoints[0],
-                {
-                  ...apiV4.endpointGroups[0].endpoints[1],
-                  name: 'fallback updated',
                   sharedConfigurationOverride: {
                     test: undefined,
                   },
-                  secondary: true,
-                  tenants: undefined,
                 },
               ],
             },
@@ -488,6 +615,7 @@ describe('ApiEndpointComponent', () => {
                   inheritConfiguration: undefined,
                   weight: undefined,
                   tenants: undefined,
+                  secondary: false,
                 },
               ],
             },

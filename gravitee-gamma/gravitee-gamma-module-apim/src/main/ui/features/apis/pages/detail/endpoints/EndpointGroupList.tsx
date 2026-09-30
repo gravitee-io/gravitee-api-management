@@ -52,11 +52,17 @@ const TYPE_LABELS: Record<string, string> = {
     rabbitmq: 'RabbitMQ',
 };
 
-const GRID_WITH_TARGET = '56px 1fr 2fr 72px 56px';
-
 function formatGroupType(type: string | undefined): string {
     if (!type) return 'Unknown';
     return TYPE_LABELS[type] ?? type;
+}
+
+function isHttpProxyEndpoint(ep: { type?: string }): boolean {
+    return ep.type === 'http-proxy';
+}
+
+function groupHasEndpointOptions(group: EndpointGroupDto): boolean {
+    return (group.endpoints ?? []).some(ep => (ep.secondary && isHttpProxyEndpoint(ep)) || getEndpointHealthCheckBadge(group, ep) !== null);
 }
 
 interface PendingDelete {
@@ -117,6 +123,7 @@ export function EndpointGroupList({
                     const epCount = group.endpoints?.length ?? 0;
                     const canDeleteGroup = !isReadOnly && !isLastGroup;
                     const canDeleteEndpoint = !isReadOnly && epCount > 1;
+                    const showOptions = groupHasEndpointOptions(group);
 
                     return (
                         <Card key={`${group.name}-${gIdx}`}>
@@ -185,121 +192,168 @@ export function EndpointGroupList({
                                 {epCount === 0 ? (
                                     <p className="text-sm text-muted-foreground">No endpoints configured.</p>
                                 ) : (
-                                    <div className="rounded-md border overflow-hidden">
-                                        {/* Column headers */}
-                                        <div
-                                            className="grid items-center border-b bg-muted/40 px-3 py-2"
-                                            style={{ gridTemplateColumns: GRID_WITH_TARGET, gap: '12px' }}
-                                        >
-                                            <span />
-                                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</span>
-                                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                                {group.type === 'tcp-proxy' ? 'Target' : 'Target URL'}
-                                            </span>
-                                            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                                                Weight
-                                            </span>
-                                            <span />
-                                        </div>
-
-                                        {/* Endpoint rows */}
-                                        {(group.endpoints ?? []).map((ep, eIdx) => (
-                                            <div
-                                                key={`${ep.name}-${eIdx}`}
-                                                className="grid items-center px-3 py-3 border-b last:border-0 hover:bg-muted/20 transition-colors"
-                                                style={{ gridTemplateColumns: GRID_WITH_TARGET, gap: '12px' }}
-                                            >
-                                                {/* Order buttons — left column */}
-                                                <div className="flex items-center gap-0.5 shrink-0">
-                                                    {!isReadOnly && (
-                                                        <>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        type="button"
-                                                                        size="sm"
-                                                                        variant="ghost"
-                                                                        className="size-7 p-0"
-                                                                        aria-label={`Move ${ep.name} up`}
-                                                                        disabled={eIdx === 0}
-                                                                        onClick={() => onReorderEndpoints(gIdx, eIdx, eIdx - 1)}
-                                                                    >
-                                                                        <ArrowUpIcon className="size-3.5" aria-hidden />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>Move up</TooltipContent>
-                                                            </Tooltip>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button
-                                                                        type="button"
-                                                                        size="sm"
-                                                                        variant="ghost"
-                                                                        className="size-7 p-0"
-                                                                        aria-label={`Move ${ep.name} down`}
-                                                                        disabled={eIdx === epCount - 1}
-                                                                        onClick={() => onReorderEndpoints(gIdx, eIdx, eIdx + 1)}
-                                                                    >
-                                                                        <ArrowDownIcon className="size-3.5" aria-hidden />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>Move down</TooltipContent>
-                                                            </Tooltip>
-                                                        </>
+                                    <div className="rounded-md border overflow-x-auto">
+                                        <table className="w-full border-collapse text-left">
+                                            <thead>
+                                                <tr className="border-b bg-muted/40">
+                                                    <th scope="col" className="w-0 px-2 py-2" />
+                                                    <th
+                                                        scope="col"
+                                                        className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                                                    >
+                                                        Name
+                                                    </th>
+                                                    <th
+                                                        scope="col"
+                                                        className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                                                    >
+                                                        {group.type === 'tcp-proxy' ? 'Target' : 'Target URL'}
+                                                    </th>
+                                                    {showOptions && (
+                                                        <th
+                                                            scope="col"
+                                                            className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap"
+                                                        >
+                                                            Options
+                                                        </th>
                                                     )}
-                                                </div>
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <span className="text-sm font-medium truncate">{ep.name}</span>
-                                                    {(() => {
-                                                        const hc = getEndpointHealthCheckBadge(group, ep);
-                                                        if (!hc) return null;
-                                                        return (
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Badge variant="secondary" className="shrink-0 text-xs font-normal">
-                                                                        {hc.label}
-                                                                    </Badge>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>{hc.tooltip}</TooltipContent>
-                                                            </Tooltip>
-                                                        );
-                                                    })()}
-                                                </div>
-                                                <span className="text-xs text-muted-foreground truncate font-mono">
-                                                    {formatEndpointTarget(ep.configuration?.target) ?? '—'}
-                                                </span>
-                                                <span className="text-sm text-muted-foreground">{ep.weight ?? 1}</span>
-                                                {/* Edit / delete — right column */}
-                                                <div className="flex items-center justify-end gap-0.5 shrink-0">
-                                                    {!isReadOnly && (
-                                                        <>
-                                                            <Button
-                                                                type="button"
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                className="size-7 p-0"
-                                                                aria-label={`Edit endpoint ${ep.name}`}
-                                                                onClick={() => onEditEndpoint(gIdx, eIdx)}
-                                                            >
-                                                                <PencilIcon className="size-3.5" aria-hidden />
-                                                            </Button>
-                                                            <Button
-                                                                type="button"
-                                                                size="sm"
-                                                                variant="ghost"
-                                                                className="size-7 p-0 text-destructive hover:text-destructive"
-                                                                aria-label={`Delete endpoint ${ep.name}`}
-                                                                disabled={!canDeleteEndpoint}
-                                                                title={!canDeleteEndpoint ? 'Cannot delete the only endpoint' : undefined}
-                                                                onClick={() => requestDeleteEndpoint(gIdx, eIdx)}
-                                                            >
-                                                                <Trash2Icon className="size-3.5" aria-hidden />
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
+                                                    <th
+                                                        scope="col"
+                                                        className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap"
+                                                    >
+                                                        Weight
+                                                    </th>
+                                                    <th scope="col" className="w-0 px-2 py-2" />
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {(group.endpoints ?? []).map((ep, eIdx) => {
+                                                    const healthCheckBadge = getEndpointHealthCheckBadge(group, ep);
+                                                    return (
+                                                        <tr
+                                                            key={`${ep.name}-${eIdx}`}
+                                                            className="border-b last:border-0 hover:bg-muted/20 transition-colors"
+                                                        >
+                                                            <td className="w-0 px-2 py-2 align-middle whitespace-nowrap">
+                                                                {!isReadOnly && (
+                                                                    <div className="flex items-center gap-0.5">
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    size="sm"
+                                                                                    variant="ghost"
+                                                                                    className="size-7 p-0"
+                                                                                    aria-label={`Move ${ep.name} up`}
+                                                                                    disabled={eIdx === 0}
+                                                                                    onClick={() => onReorderEndpoints(gIdx, eIdx, eIdx - 1)}
+                                                                                >
+                                                                                    <ArrowUpIcon className="size-3.5" aria-hidden />
+                                                                                </Button>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent>Move up</TooltipContent>
+                                                                        </Tooltip>
+                                                                        <Tooltip>
+                                                                            <TooltipTrigger asChild>
+                                                                                <Button
+                                                                                    type="button"
+                                                                                    size="sm"
+                                                                                    variant="ghost"
+                                                                                    className="size-7 p-0"
+                                                                                    aria-label={`Move ${ep.name} down`}
+                                                                                    disabled={eIdx === epCount - 1}
+                                                                                    onClick={() => onReorderEndpoints(gIdx, eIdx, eIdx + 1)}
+                                                                                >
+                                                                                    <ArrowDownIcon className="size-3.5" aria-hidden />
+                                                                                </Button>
+                                                                            </TooltipTrigger>
+                                                                            <TooltipContent>Move down</TooltipContent>
+                                                                        </Tooltip>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-3 py-3 align-middle">
+                                                                <span className="text-sm font-medium">{ep.name}</span>
+                                                            </td>
+                                                            <td className="px-3 py-3 align-middle">
+                                                                <span className="text-xs text-muted-foreground font-mono break-all">
+                                                                    {formatEndpointTarget(ep.configuration?.target) ?? '—'}
+                                                                </span>
+                                                            </td>
+                                                            {showOptions && (
+                                                                <td className="px-3 py-3 align-middle">
+                                                                    <div className="flex flex-wrap items-center gap-1.5">
+                                                                        {ep.secondary && isHttpProxyEndpoint(ep) && (
+                                                                            <Tooltip>
+                                                                                <TooltipTrigger asChild>
+                                                                                    <Badge
+                                                                                        variant="outline"
+                                                                                        className="text-xs font-normal"
+                                                                                    >
+                                                                                        Secondary
+                                                                                    </Badge>
+                                                                                </TooltipTrigger>
+                                                                                <TooltipContent>Secondary endpoint</TooltipContent>
+                                                                            </Tooltip>
+                                                                        )}
+                                                                        {healthCheckBadge && (
+                                                                            <Tooltip>
+                                                                                <TooltipTrigger asChild>
+                                                                                    <Badge
+                                                                                        variant="secondary"
+                                                                                        className="text-xs font-normal"
+                                                                                    >
+                                                                                        {healthCheckBadge.label}
+                                                                                    </Badge>
+                                                                                </TooltipTrigger>
+                                                                                <TooltipContent>{healthCheckBadge.tooltip}</TooltipContent>
+                                                                            </Tooltip>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                            )}
+                                                            <td className="px-3 py-3 align-middle whitespace-nowrap">
+                                                                <span className="text-sm text-muted-foreground tabular-nums">
+                                                                    {ep.weight ?? 1}
+                                                                </span>
+                                                            </td>
+                                                            <td className="w-0 px-2 py-2 align-middle whitespace-nowrap">
+                                                                {!isReadOnly && (
+                                                                    <div className="flex items-center justify-end gap-0.5">
+                                                                        <Button
+                                                                            type="button"
+                                                                            size="sm"
+                                                                            variant="ghost"
+                                                                            className="size-7 p-0"
+                                                                            aria-label={`Edit endpoint ${ep.name}`}
+                                                                            onClick={() => onEditEndpoint(gIdx, eIdx)}
+                                                                        >
+                                                                            <PencilIcon className="size-3.5" aria-hidden />
+                                                                        </Button>
+                                                                        <Button
+                                                                            type="button"
+                                                                            size="sm"
+                                                                            variant="ghost"
+                                                                            className="size-7 p-0 text-destructive hover:text-destructive"
+                                                                            aria-label={`Delete endpoint ${ep.name}`}
+                                                                            disabled={!canDeleteEndpoint}
+                                                                            title={
+                                                                                !canDeleteEndpoint
+                                                                                    ? 'Cannot delete the only endpoint'
+                                                                                    : undefined
+                                                                            }
+                                                                            onClick={() => requestDeleteEndpoint(gIdx, eIdx)}
+                                                                        >
+                                                                            <Trash2Icon className="size-3.5" aria-hidden />
+                                                                        </Button>
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
                                     </div>
                                 )}
 
