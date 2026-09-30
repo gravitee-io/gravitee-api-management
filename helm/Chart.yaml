@@ -29,4 +29,9 @@ annotations:
   ###########
   # "changes" must be the last section in this file, because a CI job clean it after each release
   ###########
-  artifacthub.io/changes:
+  artifacthub.io/changes: |
+    - kind: deprecated
+      description: "The `mongodb` and `elasticsearch` subcharts are deprecated and will be removed in 4.15: they run Bitnami images that no longer receive security updates"
+      links:
+        - name: Github PR
+          url: https://github.com/gravitee-io/gravitee-api-management/pull/20497
