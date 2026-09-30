@@ -3786,7 +3786,7 @@ __metadata:
     "@fontsource/dm-sans": "npm:5.3.0"
     "@fontsource/ibm-plex-sans": "npm:5.3.0"
     "@fontsource/montserrat": "npm:5.3.0"
-    "@gravitee/ui-components": "npm:5.0.0"
+    "@gravitee/ui-components": "npm:5.0.1"
     "@highcharts/map-collection": "npm:2.3.3"
     "@messageformat/core": "npm:3.4.0"
     "@ngneat/spectator": "npm:22.1.0"
@@ -3843,9 +3843,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@gravitee/ui-components@npm:5.0.0":
-  version: 5.0.0
-  resolution: "@gravitee/ui-components@npm:5.0.0"
+"@gravitee/ui-components@npm:5.0.1":
+  version: 5.0.1
+  resolution: "@gravitee/ui-components@npm:5.0.1"
   dependencies:
     "@codemirror/autocomplete": "npm:^6.20.3"
     "@codemirror/lang-json": "npm:^6.0.2"
@@ -3883,7 +3883,7 @@ __metadata:
       optional: true
     highlight.js:
       optional: true
-  checksum: 10c0/edc61b0119e5c24c4d32ff0731f06bac2872d3df2ec99dffc74a59e18d10ffaa4ae1a96db739aef2607fac2fd0bd3f7ebc533b8211154c9f89c7811d3567f5d2
+  checksum: 10c0/a493909f737cec67628c787b459211733896f3e08df8cca8d31e95872d6de19b65a4fba9dfbcb0d4685abc4f6ce1b1cd8d1d15143372ea9b768d50d845331035
   languageName: node
   linkType: hard
 
