@@ -46,6 +46,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidat
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -336,15 +337,10 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     }
 
     @Test
-    void should_not_update_content_when_moving_it_to_a_conflicting_homepage() {
+    void should_reject_moving_an_existing_page_to_a_different_area() {
         seedDefaultPortal();
         var realUseCase = useCaseWithRealNavigationValidation();
-        var homepageId = PortalPageContentId.of(
-            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-1").id()
-        );
 
-        realUseCase.execute(homepageInput(homepageId, "Home", "# Hello"));
-        queryService.initWith(crudService.storage());
         realUseCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
 
@@ -365,7 +361,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
             )
         );
 
-        assertThat(throwable).isInstanceOf(HomepageAlreadyExistsException.class);
+        assertThat(throwable).isInstanceOf(InvalidPortalNavigationItemDataException.class);
         var stored = crudService
             .storage()
             .stream()

@@ -55,4 +55,8 @@ public record CreateValidationContext(
     public static CreateValidationContext empty() {
         return new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of());
     }
+
+    public static CreateValidationContext replacing(Set<PortalNavigationItemId> itemIdsBeingReplaced) {
+        return new CreateValidationContext(List.of(), Map.of(), Map.of(), Map.of(), List.of(), Set.of(), itemIdsBeingReplaced);
+    }
 }
