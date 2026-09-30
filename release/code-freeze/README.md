@@ -146,13 +146,13 @@ Both poms are edited with the root pom's values:
 
 Today both poms carry `<revision>4.13.0</revision>` and `<sha1 />`, so both substitutions match.
 They are listed because the whole point of the two reactors is that those numbers stop agreeing, and
-a `sed` that matches nothing exits 0. The pin is the one write that reads itself back; the others
-still do not.
+a `sed` that matches nothing exits 0. The pin and the chart are the two writes that read themselves
+back; the others still do not.
 
 ### Nothing checks the result
 
-Apart from the pin, no step re-reads what it wrote. The closing summary prints what the scripts
-*meant* to do, computed from the same variables they used, not from the repository.
+Apart from the pin and the chart, no step re-reads what it wrote. The closing summary prints what
+the scripts *meant* to do, computed from the same variables they used, not from the repository.
 
 ## Checks after the freeze
 
@@ -164,7 +164,8 @@ Apart from the pin, no step re-reads what it wrote. The closing summary prints w
 - [ ] `.mergify.yml` names the new branch, and **still names the line that has not been retired yet**.
 - [ ] The bridge compatibility matrix names the new line, on the branch and on master.
 - [ ] The `apply-on-<major>-<minor>-x` label exists.
-- [ ] The chart is on the OCI registry under `apim-<revision>-alpha.1.tgz`.
+- [ ] The chart is on the OCI registry under `apim-<revision>-alpha.1.tgz`, and names that version in
+      both `version` and `appVersion`.
 - [ ] The `cloud-apim` pull request is open, and merged once reviewed.
 - [ ] The Google OAuth client carries the four redirect URIs and two origins of the new environment.
 - [ ] The new branch's four schedules exist, at the hours step 08 declares, and none is duplicated.

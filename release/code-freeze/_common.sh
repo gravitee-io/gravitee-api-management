@@ -101,6 +101,30 @@ set_core_pin() {
     echo "Pinned core ${version}"
 }
 
+# The chart names the version twice: `version` is the chart's own, `appVersion` the APIM it deploys,
+# and a freeze moves both. Writing only the first is what the first freeze did, and the branch could
+# not release until it was fixed by hand: `assertChartMatchesVersion` compares the release against
+# both fields before it triggers anything.
+#
+# Anchored on the line start, because both names occur again under the chart's dependencies, and read
+# back afterwards, because a sed that matches nothing exits 0.
+set_chart_version() {
+    local version="$1"
+
+    sed -i.bak -E -e "s|^version: .*|version: ${version}|" -e "s|^appVersion: .*|appVersion: ${version}|" "$HELM_CHART"
+    rm -f "$HELM_CHART.bak"
+
+    local written
+    written=$(grep -cE "^(version|appVersion): ${version}\$" "$HELM_CHART")
+    if [ "$written" != "2" ]; then
+        echo "ERROR: version and appVersion were not both set to ${version} in $HELM_CHART." >&2
+        echo "       They currently read:" >&2
+        grep -nE "^(version|appVersion):" "$HELM_CHART" >&2
+        exit 1
+    fi
+    echo "Chart version and appVersion set to ${version}"
+}
+
 # A line keeps its backports until the first release of the new minor ships — opening 4.13 does not
 # retire 4.9, releasing 4.13.0 does. So the freeze only adds; the removal belongs to the end-of-life
 # runbook, which that release triggers.
