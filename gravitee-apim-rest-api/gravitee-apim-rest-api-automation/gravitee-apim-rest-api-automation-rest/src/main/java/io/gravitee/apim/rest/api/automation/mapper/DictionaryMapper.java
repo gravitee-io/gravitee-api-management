@@ -18,6 +18,7 @@ package io.gravitee.apim.rest.api.automation.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
+import io.gravitee.apim.rest.api.automation.model.DictionaryEncryptionPolicy;
 import io.gravitee.apim.rest.api.automation.model.DictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
@@ -28,6 +29,7 @@ import io.gravitee.apim.rest.api.automation.model.EncryptableValue;
 import io.gravitee.apim.rest.api.automation.model.HttpDictionaryProvider;
 import io.gravitee.apim.rest.api.automation.model.ManualDictionarySpec;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEncryptionPolicyEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
@@ -60,6 +62,7 @@ public interface DictionaryMapper {
     @Mapping(target = "properties", expression = "java(mapManualProperties(spec))")
     @Mapping(source = "dynamic.provider", target = "provider")
     @Mapping(source = "dynamic.trigger", target = "trigger")
+    @Mapping(source = "dynamic.encryption", target = "encryption")
     Dictionary toDictionary(DictionarySpec spec);
 
     /**
@@ -115,6 +118,8 @@ public interface DictionaryMapper {
 
     @Mapping(source = "unit", target = "unit", qualifiedByName = "specTriggerUnitToTimeUnit")
     io.gravitee.apim.core.dictionary.model.DictionaryTrigger toCoreTrigger(DictionaryTrigger trigger);
+
+    io.gravitee.apim.core.dictionary.model.DictionaryEncryptionPolicy toCoreEncryptionPolicy(DictionaryEncryptionPolicy encryption);
 
     default io.gravitee.apim.core.dictionary.model.DictionaryProvider toCoreProvider(DictionaryProvider provider) {
         if (provider == null) return null;
@@ -192,6 +197,7 @@ public interface DictionaryMapper {
             DynamicDictionarySpec dynamic = new DynamicDictionarySpec();
             dynamic.setProvider(toSpecProvider(entity.getProvider()));
             dynamic.setTrigger(toSpecTrigger(entity.getTrigger()));
+            dynamic.setEncryption(toSpecEncryptionPolicy(entity.getEncryption()));
             state.setDynamic(dynamic);
         }
         return state;
@@ -233,6 +239,8 @@ public interface DictionaryMapper {
             throw new IllegalArgumentException("Failed to deserialize provider configuration", e);
         }
     }
+
+    DictionaryEncryptionPolicy toSpecEncryptionPolicy(DictionaryEncryptionPolicyEntity entity);
 
     // ===== @Named conversion helpers =====
 

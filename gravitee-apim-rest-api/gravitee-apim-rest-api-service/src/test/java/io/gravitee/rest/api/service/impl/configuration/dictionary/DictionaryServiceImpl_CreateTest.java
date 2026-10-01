@@ -281,6 +281,26 @@ public class DictionaryServiceImpl_CreateTest {
         );
     }
 
+    @Test
+    public void should_carry_the_encryption_policy_through_create() throws TechnicalException {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setKey("my-key");
+        newDictionary.setName("My Dictionary");
+        newDictionary.setType(DictionaryType.DYNAMIC);
+        io.gravitee.rest.api.model.configuration.dictionary.DictionaryEncryptionPolicyEntity encryption =
+            new io.gravitee.rest.api.model.configuration.dictionary.DictionaryEncryptionPolicyEntity();
+        encryption.setEncryptOnFetch(true);
+        newDictionary.setEncryption(encryption);
+
+        when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());
+        when(dictionaryRepository.findByKeyAndEnvironment("my-key", ENVIRONMENT_ID)).thenReturn(Optional.empty());
+        when(dictionaryRepository.create(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        dictionaryService.create(GraviteeContext.getExecutionContext(), newDictionary);
+
+        verify(dictionaryRepository).create(argThat(dict -> dict.getEncryption() != null && dict.getEncryption().isEncryptOnFetch()));
+    }
+
     static Stream<Arguments> decryptionFailures() {
         return Stream.of(
             Arguments.of("not base64", new IllegalArgumentException("Illegal base64 character 20")),

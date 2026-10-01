@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_01_add_encrypt_on_fetch_to_dictionaries
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}dictionaries
+            columns:
+              - column: {name: encrypt_on_fetch, type: boolean, defaultValueBoolean: false, constraints: { nullable: false } }
