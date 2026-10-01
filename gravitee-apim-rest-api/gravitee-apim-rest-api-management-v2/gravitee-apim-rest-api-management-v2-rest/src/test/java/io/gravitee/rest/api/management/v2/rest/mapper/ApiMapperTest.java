@@ -275,6 +275,39 @@ public class ApiMapperTest {
     }
 
     @Test
+    void map_to_native_v4_preserves_properties_and_services_from_definition() {
+        var uriInfo = Mockito.mock(UriInfo.class);
+        Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
+
+        var dynamicProperty = io.gravitee.definition.model.v4.service.Service.builder()
+            .type("http-dynamic-properties")
+            .enabled(true)
+            .build();
+        var property = io.gravitee.definition.model.v4.property.Property.builder().key("dyn-one").value("value-1").dynamic(true).build();
+
+        var baseApi = fixtures.core.model.ApiFixtures.aNativeApi();
+        var api = baseApi
+            .toBuilder()
+            .apiDefinitionValue(
+                baseApi
+                    .getApiDefinitionNativeV4()
+                    .toBuilder()
+                    .properties(List.of(property))
+                    .services(new io.gravitee.definition.model.v4.nativeapi.NativeApiServices(dynamicProperty))
+                    .build()
+            )
+            .build();
+
+        var apiV4 = apiMapper.mapToNativeV4(api, uriInfo, null);
+
+        Assertions.assertThat(apiV4.getProperties()).isNotNull().hasSize(1);
+        assertThat(apiV4.getProperties().get(0).getKey()).isEqualTo("dyn-one");
+        Assertions.assertThat(apiV4.getServices()).isNotNull();
+        Assertions.assertThat(apiV4.getServices().getDynamicProperty()).isNotNull();
+        assertThat(apiV4.getServices().getDynamicProperty().getType()).isEqualTo("http-dynamic-properties");
+    }
+
+    @Test
     void map_to_http_v4_propagates_null_resources() {
         var uriInfo = Mockito.mock(UriInfo.class);
         Mockito.when(uriInfo.getBaseUriBuilder()).thenReturn(UriBuilder.fromUri("http://localhost/"));
