@@ -59,6 +59,9 @@ public class HttpDynamicPropertiesServiceConfiguration implements ManagementApiS
     @JsonProperty(value = "transformation", required = true)
     private String transformation;
 
+    @JsonProperty("encryption")
+    private DynamicPropertiesEncryptionPolicy encryption;
+
     @JsonProperty("systemProxy")
     @Setter(AccessLevel.NONE)
     private boolean useSystemProxy;

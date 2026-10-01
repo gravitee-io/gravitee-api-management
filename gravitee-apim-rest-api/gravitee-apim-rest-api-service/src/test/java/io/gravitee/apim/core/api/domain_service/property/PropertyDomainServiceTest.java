@@ -218,4 +218,46 @@ public class PropertyDomainServiceTest {
             assertThat(result).containsExactly(storedEncrypted);
         }
     }
+
+    @Nested
+    class EncryptOnFetch {
+
+        @Test
+        void encrypts_a_not_yet_encrypted_property() throws GeneralSecurityException {
+            when(dataEncryptor.encrypt("s3cret")).thenReturn("ciphertext");
+
+            var result = cut.encryptOnFetch("api-id", List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()));
+
+            assertThat(result).containsExactly(Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build());
+        }
+
+        @Test
+        void leaves_an_already_encrypted_property_untouched() {
+            var alreadyEncrypted = Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build();
+
+            var result = cut.encryptOnFetch("api-id", List.of(alreadyEncrypted));
+
+            assertThat(result).containsExactly(alreadyEncrypted);
+            verifyNoInteractions(dataEncryptor);
+        }
+
+        @Test
+        void keeps_a_property_plain_when_its_encryption_fails_while_another_still_encrypts() throws GeneralSecurityException {
+            when(dataEncryptor.encrypt("s3cret")).thenThrow(new GeneralSecurityException());
+            when(dataEncryptor.encrypt("other-value")).thenReturn("other-ciphertext");
+
+            var result = cut.encryptOnFetch(
+                "api-id",
+                List.of(
+                    Property.builder().key("secret").value("s3cret").dynamic(true).build(),
+                    Property.builder().key("other").value("other-value").dynamic(true).build()
+                )
+            );
+
+            assertThat(result).containsExactly(
+                Property.builder().key("secret").value("s3cret").dynamic(true).build(),
+                Property.builder().key("other").value("other-ciphertext").encrypted(true).dynamic(true).build()
+            );
+        }
+    }
 }
