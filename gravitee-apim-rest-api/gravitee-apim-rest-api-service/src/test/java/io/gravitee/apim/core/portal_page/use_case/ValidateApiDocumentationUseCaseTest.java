@@ -16,14 +16,29 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.domain_service.ValidateApiDocumentationDomainService;
+import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.validation.Validator;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -44,11 +59,25 @@ class ValidateApiDocumentationUseCaseTest {
         HRIDToUUID.apiDocumentation().context(AUDIT_INFO).api(API_HRID).hrid(DOC_HRID).id()
     );
 
+    private final PortalNavigationItemsCrudServiceInMemory navCrudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory navQueryService = new PortalNavigationItemsQueryServiceInMemory(
+        navCrudService.storage()
+    );
     private ValidateApiDocumentationUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new ValidateApiDocumentationUseCase(new ValidateApiDocumentationDomainService());
+        var syncDomainService = new ApiDocumentationSyncDomainService(
+            navCrudService,
+            navQueryService,
+            new PortalNavigationItemValidatorService(
+                navQueryService,
+                new PortalPageContentQueryServiceInMemory(),
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            )
+        );
+        useCase = new ValidateApiDocumentationUseCase(new ValidateApiDocumentationDomainService(), syncDomainService);
     }
 
     @Test
@@ -101,6 +130,32 @@ class ValidateApiDocumentationUseCaseTest {
         assertThat(output.errors())
             .extracting(Validator.Error::getMessage)
             .anyMatch(m -> m.contains("content"));
+    }
+
+    @Test
+    void should_reject_a_parent_that_is_not_a_container_without_persisting_anything() {
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+        var conflictingPage = PortalNavigationPage.builder()
+            .id(folderId)
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .reference(new NavigationItemReference.ApiReference(API_ID))
+            .title("Not a folder")
+            .segment("not-a-folder")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        navCrudService.create(conflictingPage);
+        var storageBefore = List.copyOf(navCrudService.storage());
+
+        assertThatThrownBy(() ->
+            useCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Hello", "/guides", 1))
+        ).isInstanceOf(ParentTypeMismatchException.class);
+
+        assertThat(navCrudService.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
 
     private static CreateOrUpdateApiDocumentationUseCase.Input input(

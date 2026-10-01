@@ -89,29 +89,25 @@ public class CreateOrUpdateApiDocumentationUseCase {
         var warnings = validation.warning().orElseGet(List::of);
         var sanitized = validation.value().orElseThrow(() -> new ValidationDomainException("Unable to sanitize api documentation"));
 
-        var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.API,
-            sanitized.apiId(),
-            sanitized.name(),
-            Optional.ofNullable(sanitized.location()),
-            Optional.ofNullable(sanitized.order())
-        );
-
+        var automationMetadata = buildAutomationMetadata(sanitized);
         var existing = portalPageContentQueryService.findById(sanitized.portalPageContentId());
+
+        syncDomainService.validatePlacement(input.auditInfo(), buildContent(sanitized, automationMetadata), input.visibility());
+
         PortalPageContent<?> saved;
         if (existing.isPresent()) {
             var current = existing.get();
             if (current.getType() != sanitized.type()) {
                 portalPageContentCrudService.delete(current.getId());
-                saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
+                saved = portalPageContentCrudService.create(buildContent(sanitized, automationMetadata));
             } else {
                 var updateContent = UpdatePortalPageContent.builder().content(sanitized.content()).build();
                 pageContentValidatorService.validateForUpdate(current, updateContent);
-                current.update(updateContent, meta);
+                current.update(updateContent, automationMetadata);
                 saved = portalPageContentCrudService.update(current);
             }
         } else {
-            saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
+            saved = portalPageContentCrudService.create(buildContent(sanitized, automationMetadata));
         }
 
         syncDomainService.materialize(input.auditInfo(), saved, input.visibility());
@@ -119,14 +115,37 @@ public class CreateOrUpdateApiDocumentationUseCase {
         return new Output(saved.getId(), warnings);
     }
 
-    private PortalPageContent<?> buildNew(ValidateApiDocumentationDomainService.Input sanitized, AutomationMetadata meta) {
+    static AutomationMetadata buildAutomationMetadata(ValidateApiDocumentationDomainService.Input sanitized) {
+        return new AutomationMetadata(
+            AutomationMetadata.ReferenceType.API,
+            sanitized.apiId(),
+            sanitized.name(),
+            Optional.ofNullable(sanitized.location()),
+            Optional.ofNullable(sanitized.order())
+        );
+    }
+
+    static PortalPageContent<?> buildContent(ValidateApiDocumentationDomainService.Input sanitized, AutomationMetadata automationMetadata) {
         var id = sanitized.portalPageContentId();
         var orgId = sanitized.auditInfo().organizationId();
         var envId = sanitized.auditInfo().environmentId();
         return switch (sanitized.type()) {
-            case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(id, orgId, envId, GraviteeMarkdown.of(sanitized.content()), meta);
-            case OPENAPI -> new OpenApiPageContent(id, orgId, envId, OpenApi.of(sanitized.content()), new RedocConfiguration(), meta);
-            case ASYNCAPI -> new AsyncApiPageContent(id, orgId, envId, AsyncApi.of(sanitized.content()), meta);
+            case GRAVITEE_MARKDOWN -> new GraviteeMarkdownPageContent(
+                id,
+                orgId,
+                envId,
+                GraviteeMarkdown.of(sanitized.content()),
+                automationMetadata
+            );
+            case OPENAPI -> new OpenApiPageContent(
+                id,
+                orgId,
+                envId,
+                OpenApi.of(sanitized.content()),
+                new RedocConfiguration(),
+                automationMetadata
+            );
+            case ASYNCAPI -> new AsyncApiPageContent(id, orgId, envId, AsyncApi.of(sanitized.content()), automationMetadata);
         };
     }
 }
