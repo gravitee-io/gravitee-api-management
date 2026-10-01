@@ -108,9 +108,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v14-<< parameters.jobName >>-master
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v15-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -128,7 +128,7 @@ commands:
           command: find ~/.m2 -name '*.lastUpdated' -delete
           when: always
       - save_cache:
-          key: gravitee-api-management-v14-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -287,7 +287,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.m2/repository/io/gravitee/apim
-          key: gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -309,7 +309,7 @@ jobs:
           jobName: job-test-definition
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - cmd-azure-artifacts-token
       - run:
           name: Run definition tests
@@ -352,7 +352,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+            - gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -365,7 +365,7 @@ jobs:
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v14-sonarcloud-analysis-<< parameters.cache_type >>
+          key: gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-test-gateway:
     docker:
@@ -379,7 +379,7 @@ jobs:
           jobName: job-test-gateway
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - cmd-azure-artifacts-token
       - run:
           name: Run gateway tests
@@ -411,7 +411,7 @@ jobs:
           jobName: job-test-rest-api
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - cmd-azure-artifacts-token
       - run:
           name: Run Rest API tests
@@ -445,7 +445,7 @@ jobs:
       - cmd-azure-artifacts-token
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - run:
           name: Run tests
           command: |-
@@ -493,7 +493,7 @@ jobs:
           jobName: job-test-plugin
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - cmd-azure-artifacts-token
       - run:
           name: Run plugin tests
@@ -526,7 +526,7 @@ jobs:
           jobName: job-test-repository
       - restore_cache:
           keys:
-            - gravitee-api-management-v14-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - cmd-azure-artifacts-token
       - run:
           name: Run repository tests
