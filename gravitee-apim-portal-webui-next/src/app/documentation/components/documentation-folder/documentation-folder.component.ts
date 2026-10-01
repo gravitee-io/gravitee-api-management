@@ -19,8 +19,21 @@ import { Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, debounceTime, finalize, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
+import { ActivatedRoute, NavigationEnd, NavigationSkipped, Router } from '@angular/router';
+import {
+  catchError,
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  finalize,
+  map,
+  merge,
+  Observable,
+  switchMap,
+  tap,
+  withLatestFrom,
+} from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -39,17 +52,18 @@ import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { ApiTabToolsComponent } from '../../../api/api-details/api-tab-tools/api-tab-tools.component';
-import { DocumentationActionContext, TreeNode, TreeService } from '../../services/tree.service';
+import { DocumentationActionContext, TreeExpansionRequest, TreeNode, TreeService } from '../../services/tree.service';
 
 interface FolderData {
-  children: PortalNavigationItem[];
   selectedPageContent: PortalPageContent | null;
 }
 
-enum NavParamsChange {
-  NAV_ID,
-  PAGE_ID,
+interface DocumentationNavigation {
+  selectedId: string | undefined;
+  preserveExpansion: boolean;
 }
+
+const PRESERVE_TREE_EXPANSION = 'preserve-documentation-tree-expansion';
 
 @Component({
   selector: 'app-documentation-folder',
@@ -72,18 +86,27 @@ enum NavParamsChange {
 })
 export class DocumentationFolderComponent {
   private readonly apiService = inject(ApiService);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly itemsService = inject(PortalNavigationItemsService);
+  private readonly treeService = inject(TreeService);
+  private loadedFolder?: { navId: string; children: PortalNavigationItem[] };
+
   readonly currentUser = inject(CurrentUserService).isUserAuthenticated;
 
   navItem = input.required<PortalNavigationItem>();
-  navId$ = toObservable(this.navItem).pipe(map(({ id }) => id));
+  navId$ = toObservable(this.navItem).pipe(
+    map(({ id }) => id),
+    distinctUntilChanged(),
+  );
   selectedId$ = this.activatedRoute.queryParams.pipe(map(({ selectedId }) => selectedId));
 
-  folderData = toSignal<FolderData | undefined>(this.loadFolderData());
   folderLoading = signal(false);
   contentLoading = signal(false);
 
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
+  expansionRequest = signal<TreeExpansionRequest | null>(null);
 
   documentationActionContext = signal<DocumentationActionContext>({ apiId: null, subscriptionTarget: null });
   mcpDrawerOpen = signal(false);
@@ -96,12 +119,7 @@ export class DocumentationFolderComponent {
   apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
   hasBreadcrumbActions = computed(() => !!this.subscriptionTarget() || this.apiHasMcp());
 
-  constructor(
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly itemsService: PortalNavigationItemsService,
-    private readonly treeService: TreeService,
-  ) {}
+  folderData = toSignal(this.loadFolderData());
 
   onSelect(selectedPageId: string) {
     this.navigateToPage(selectedPageId);
@@ -120,45 +138,59 @@ export class DocumentationFolderComponent {
     });
   }
 
-  private loadFolderData(): Observable<FolderData | undefined> {
-    return merge(this.navId$.pipe(map(() => NavParamsChange.NAV_ID)), this.selectedId$.pipe(map(() => NavParamsChange.PAGE_ID))).pipe(
-      debounceTime(0), // merge simultaneous change of navId and selectedId
-      withLatestFrom(this.navId$, this.selectedId$),
-      switchMap(([changedData, navId, selectedId]) => {
-        switch (changedData) {
-          case NavParamsChange.NAV_ID:
-            this.folderLoading.set(true);
-            this.contentLoading.set(true);
-            return this.loadChildrenAndContent(navId, selectedId).pipe(
-              finalize(() => {
-                this.contentLoading.set(false);
-                this.folderLoading.set(false);
-              }),
-            );
-          case NavParamsChange.PAGE_ID:
-            this.contentLoading.set(true);
-            return this.loadContentOrRedirect(selectedId).pipe(finalize(() => this.contentLoading.set(false)));
-          default:
-            return of(this.folderData());
-        }
+  private loadFolderData(): Observable<FolderData> {
+    const navigation$ = merge(
+      this.selectedId$,
+      this.router.events.pipe(
+        filter(event => event instanceof NavigationEnd || event instanceof NavigationSkipped),
+        withLatestFrom(this.selectedId$),
+        map(([, selectedId]) => selectedId),
+      ),
+    ).pipe(map(selectedId => this.captureNavigation(selectedId)));
+
+    return combineLatest([this.navId$, navigation$]).pipe(
+      debounceTime(0), // Coalesce route inputs and router events belonging to the same navigation.
+      switchMap(([navId, navigation]) => {
+        this.contentLoading.set(true);
+        const children$ = this.loadedFolder?.navId === navId ? of(this.loadedFolder.children) : this.loadChildren(navId);
+        return children$.pipe(
+          switchMap(children => this.loadContentOrRedirect(navigation, children)),
+          catchError(() => of({ selectedPageContent: null })),
+          finalize(() => this.contentLoading.set(false)),
+        );
       }),
-      catchError(() => of({ children: [], selectedPageContent: null })),
     );
   }
 
-  private loadChildrenAndContent(navId: string, selectedId: string): Observable<FolderData> {
+  private captureNavigation(selectedId: string | undefined): DocumentationNavigation {
+    const navigation = this.router.currentNavigation();
+    return {
+      selectedId,
+      // info is transient: history traversal must reveal the path, even after a tree click.
+      preserveExpansion: navigation?.trigger === 'imperative' && navigation.extras.info === PRESERVE_TREE_EXPANSION,
+    };
+  }
+
+  private loadChildren(navId: string): Observable<PortalNavigationItem[]> {
+    this.folderLoading.set(true);
     return this.itemsService.getNavigationItems('TOP_NAVBAR', true, navId).pipe(
-      tap(children => this.treeService.init(this.navItem(), children)),
-      tap(() => this.tree.set(this.treeService.getTree())),
-      switchMap(children => this.loadContentOrRedirect(selectedId, children)),
+      tap(children => {
+        this.loadedFolder = { navId, children };
+        this.treeService.init(this.navItem(), children);
+        this.tree.set(this.treeService.getTree());
+      }),
+      finalize(() => this.folderLoading.set(false)),
     );
   }
 
-  private loadContentOrRedirect(selectedId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
+  private loadContentOrRedirect(
+    { selectedId, preserveExpansion }: DocumentationNavigation,
+    children: PortalNavigationItem[],
+  ): Observable<FolderData> {
     this.documentationActionContext.set({ apiId: null, subscriptionTarget: null });
 
     if (!selectedId) {
-      return of({ children, selectedPageContent: null }).pipe(
+      return of({ selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
         tap(() => this.navigateToFirstPage()),
       );
@@ -166,25 +198,32 @@ export class DocumentationFolderComponent {
 
     const child = children.find(item => item.id === selectedId);
     if (!child) {
-      return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
+      return of({ selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
     if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
       // APIs, API Products, and folders are not selectable, so navigate to their first page.
       const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
-      return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
+      this.expansionRequest.set({ mode: 'focus-path', pathIds: new Set(this.treeService.getContainerPathIds(firstPageId ?? selectedId)) });
+      return of({ selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
     }
 
+    if (!preserveExpansion) {
+      this.expansionRequest.set({ mode: 'reveal-path', pathIds: new Set(this.treeService.getContainerPathIds(selectedId)) });
+    }
     const documentationActionContext = this.treeService.getDocumentationActionContext(selectedId);
     return this.itemsService.getNavigationItemContent(selectedId).pipe(
       tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
       tap(() => this.documentationActionContext.set(documentationActionContext)),
-      map(selectedPageContent => ({ children, selectedPageContent })),
+      map(selectedPageContent => ({ selectedPageContent })),
     );
   }
 
   private navigateToFirstPage() {
     const firstPageId = this.treeService.findFirstPageId();
+    this.expansionRequest.set(
+      firstPageId ? { mode: 'focus-path', pathIds: new Set(this.treeService.getContainerPathIds(firstPageId)) } : { mode: 'collapse-all' },
+    );
     if (firstPageId) {
       this.navigateToPage(firstPageId);
     }
@@ -194,6 +233,7 @@ export class DocumentationFolderComponent {
     this.router.navigate([], {
       relativeTo: this.activatedRoute,
       queryParams: { selectedId },
+      info: PRESERVE_TREE_EXPANSION,
     });
   }
 
