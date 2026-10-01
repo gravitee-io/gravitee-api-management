@@ -40,6 +40,7 @@ import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Flowable;
+import io.vertx.core.Context;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.HttpServerConnection;
 import io.vertx.rxjava3.core.http.HttpConnection;
@@ -259,7 +260,13 @@ public class VertxHttpServerRequest extends AbstractRequest {
             return;
         }
 
-        final Vertx vertx = Vertx.currentContext().owner();
+        final Context context = Vertx.currentContext();
+        if (context == null) {
+            // No context to bound the discard with a timer: give up on reusing the connection.
+            connection.close();
+            return;
+        }
+        final Vertx vertx = context.owner();
         final AtomicBoolean done = new AtomicBoolean();
         final AtomicLong timerId = new AtomicLong();
         final AtomicLong discardedBytes = new AtomicLong();

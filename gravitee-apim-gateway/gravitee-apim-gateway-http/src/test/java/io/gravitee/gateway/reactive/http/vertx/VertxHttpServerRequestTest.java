@@ -395,6 +395,9 @@ class VertxHttpServerRequestTest {
         @Captor
         ArgumentCaptor<Handler<Long>> timerHandlerCaptor;
 
+        @Captor
+        ArgumentCaptor<Handler<Throwable>> exceptionHandlerCaptor;
+
         private MockedStatic<Vertx> vertxStatic;
 
         @BeforeEach
@@ -428,6 +431,13 @@ class VertxHttpServerRequestTest {
         @Test
         void should_discard_then_close_when_body_length_is_unknown() {
             cut = requestWithHeader(TRANSFER_ENCODING, "chunked");
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.DISCARD_THEN_CLOSE);
+        }
+
+        @Test
+        void should_discard_then_close_when_content_length_is_malformed() {
+            cut = requestWithHeader(CONTENT_LENGTH, "abc");
 
             assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.DISCARD_THEN_CLOSE);
         }
@@ -530,6 +540,31 @@ class VertxHttpServerRequestTest {
             timerHandlerCaptor.getValue().handle(TIMER_ID);
 
             verify(httpServerRequest.connection()).close();
+        }
+
+        @Test
+        void should_close_connection_when_discarding_fails() {
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+
+            cut.discardUnconsumedBody(false);
+
+            verify(httpServerRequest).exceptionHandler(exceptionHandlerCaptor.capture());
+            verify(httpServerRequest.connection(), never()).close();
+            exceptionHandlerCaptor.getValue().handle(new RuntimeException("Connection reset by peer"));
+
+            verify(httpServerRequest.connection()).close();
+            verify(vertx).cancelTimer(TIMER_ID);
+        }
+
+        @Test
+        void should_close_connection_without_discarding_when_off_a_vertx_context() {
+            vertxStatic.when(Vertx::currentContext).thenReturn(null);
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+
+            cut.discardUnconsumedBody(false);
+
+            verify(httpServerRequest.connection()).close();
+            verify(httpServerRequest, never()).resume();
         }
 
         @Test
