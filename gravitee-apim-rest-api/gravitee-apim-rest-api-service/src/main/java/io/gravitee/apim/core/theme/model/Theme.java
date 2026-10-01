@@ -45,6 +45,10 @@ public class Theme {
 
     private ThemeAutomationMetadata automationMetadata;
 
+    public boolean isAutomationManaged() {
+        return automationMetadata != null;
+    }
+
     public enum ReferenceType {
         ENVIRONMENT,
     }

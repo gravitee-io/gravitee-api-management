@@ -31,6 +31,10 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CurrentThemeDomainService {
 
+    private static final Comparator<Theme> FALLBACK_PREFERENCE = Comparator.comparing((Theme theme) ->
+        theme.isAutomationManaged() ? 1 : 0
+    ).thenComparing(Theme::getUpdatedAt, Comparator.reverseOrder());
+
     private final ThemeQueryService themeQueryService;
     private final ThemeCrudService themeCrudService;
 
@@ -77,6 +81,7 @@ public class CurrentThemeDomainService {
         return this.themeQueryService.findByThemeTypeAndEnvironmentId(deactivated.getType(), deactivated.getReferenceId())
             .stream()
             .filter(theme -> !Objects.equals(theme.getId(), deactivated.getId()))
-            .max(Comparator.comparing(Theme::getUpdatedAt));
+            .sorted(FALLBACK_PREFERENCE)
+            .findFirst();
     }
 }
