@@ -223,9 +223,10 @@ public class HttpDynamicPropertiesService implements ManagementApiService {
     private Completable evaluateAndDispatchProperties(Buffer bodyBuffer) {
         return Completable.fromRunnable(() -> {
             final List<Property> properties = joltMapper.map(bodyBuffer.toString());
+            final DynamicPropertiesEncryptionPolicy encryption = configuration.getEncryption();
             eventManager.publishEvent(
                 ManagementApiServiceEvent.DYNAMIC_PROPERTY_UPDATE,
-                new DynamicPropertiesEvent(api.getId(), this.id(), properties)
+                new DynamicPropertiesEvent(api.getId(), this.id(), properties, encryption != null && encryption.isEncryptOnFetch())
             );
         }).subscribeOn(Schedulers.io());
     }

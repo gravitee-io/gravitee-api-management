@@ -48,7 +48,8 @@ public class ManagementApiServiceListener implements EventListener<ManagementApi
                         new UpdateDynamicPropertiesUseCase.Input(
                             dynamicPropertiesEvent.apiId(),
                             dynamicPropertiesEvent.pluginId(),
-                            dynamicPropertiesEvent.dynamicProperties()
+                            dynamicPropertiesEvent.dynamicProperties(),
+                            dynamicPropertiesEvent.encryptOnFetch()
                         )
                     );
                     return;

@@ -78,7 +78,7 @@ public class UpdateDynamicPropertiesUseCase {
         this.propertyDomainService = propertyDomainService;
     }
 
-    public record Input(String apiId, String pluginId, List<Property> dynamicProperties) {}
+    public record Input(String apiId, String pluginId, List<Property> dynamicProperties, boolean encryptOnFetch) {}
 
     public void execute(Input input) {
         final Api api = apiCrudService.get(input.apiId());
@@ -88,11 +88,14 @@ public class UpdateDynamicPropertiesUseCase {
         final boolean isApiSynchronized = apiStateDomainService.isSynchronized(api, auditInfo);
 
         final List<Property> previousProperties = getCurrentProperties(api);
-        final List<Property> dynamicProperties = propertyDomainService.keepStoredEncryption(
+        List<Property> dynamicProperties = propertyDomainService.keepStoredEncryption(
             api.getId(),
             previousProperties,
             input.dynamicProperties()
         );
+        if (input.encryptOnFetch()) {
+            dynamicProperties = propertyDomainService.encryptOnFetch(api.getId(), dynamicProperties);
+        }
         final boolean needToBeUpdated = api.updateDynamicProperties(dynamicProperties);
 
         if (!needToBeUpdated) {

@@ -96,4 +96,28 @@ public class PropertyDomainService {
             return stored;
         }
     }
+
+    public List<Property> encryptOnFetch(String apiId, List<Property> properties) {
+        return properties
+            .stream()
+            .map(property -> encryptIfNotEncrypted(apiId, property))
+            .toList();
+    }
+
+    private Property encryptIfNotEncrypted(String apiId, Property property) {
+        if (property.isEncrypted()) {
+            return property;
+        }
+        try {
+            return Property.builder()
+                .key(property.getKey())
+                .value(dataEncryptor.encrypt(property.getValue()))
+                .encrypted(true)
+                .dynamic(property.isDynamic())
+                .build();
+        } catch (GeneralSecurityException e) {
+            log.error("Unable to encrypt property [{}] of API [{}] on fetch; keeping it plain for now", property.getKey(), apiId, e);
+            return property;
+        }
+    }
 }
