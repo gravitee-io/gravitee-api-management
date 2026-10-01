@@ -18,9 +18,9 @@ import { dataTableHarness } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { IntegrationsPage } from './IntegrationsPage';
 import { listIntegrations } from '../features/integrations/services/integrationList';
@@ -28,13 +28,14 @@ import type { IntegrationsResponse } from '../features/integrations/types/integr
 import { DEFAULT_INTEGRATION_LIST_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from '../features/integrations/utils/paginationConstants';
 import { notify } from '../shared/notify';
 
-jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: jest.fn() }));
+jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: jest.fn(), useHasPermission: jest.fn() }));
 jest.mock('../features/integrations/services/integrationList', () => ({ listIntegrations: jest.fn() }));
 jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
 }));
 
 const mockUseEnvironment = jest.mocked(useEnvironment);
+const mockUseHasPermission = jest.mocked(useHasPermission);
 const mockListIntegrations = jest.mocked(listIntegrations);
 const mockNotifyError = jest.mocked(notify.error);
 
@@ -96,6 +97,7 @@ describe('IntegrationsPage', () => {
 
     beforeEach(() => {
         mockUseEnvironment.mockReturnValue({ id: 'env-1' });
+        mockUseHasPermission.mockReturnValue(false);
         mockListIntegrations.mockResolvedValue(EMPTY_RESPONSE);
     });
 
@@ -252,6 +254,56 @@ describe('IntegrationsPage', () => {
                 'Connect to third-party API gateways and event brokers to create a unified control plane and API portal with Gravitee.',
             ),
         ).not.toBeNull();
+    });
+
+    it.each([
+        ['empty', EMPTY_RESPONSE, 'No integrations yet'],
+        ['populated', SINGLE_PAGE_RESPONSE, 'Acme Gateway'],
+    ])(
+        'shows an enabled create integration action to a user allowed to create integrations when the list is %s',
+        async (_state, response, listContent) => {
+            mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-integration-c') ?? false);
+            mockListIntegrations.mockResolvedValue(response);
+
+            renderIntegrationsPage();
+
+            expect(await screen.findByText(listContent)).not.toBeNull();
+            expect(screen.getByRole('button', { name: 'Create integration' })).toBeEnabled();
+        },
+    );
+
+    it.each([
+        ['empty', EMPTY_RESPONSE, 'No integrations yet'],
+        ['populated', SINGLE_PAGE_RESPONSE, 'Acme Gateway'],
+    ])(
+        'shows no create integration action to a user not allowed to create integrations when the list is %s',
+        async (_state, response, listContent) => {
+            mockUseHasPermission.mockImplementation(({ anyOf }) => !anyOf?.includes('environment-integration-c'));
+            mockListIntegrations.mockResolvedValue(response);
+
+            renderIntegrationsPage();
+
+            expect(await screen.findByText(listContent)).not.toBeNull();
+            expect(screen.queryByRole('button', { name: 'Create integration' })).toBeNull();
+        },
+    );
+
+    it('opens the create-integration route when a user allowed to create integrations clicks the create action', async () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-integration-c') ?? false);
+        render(
+            <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+                <MemoryRouter initialEntries={['/integrations']}>
+                    <Routes>
+                        <Route path="/integrations" element={<IntegrationsPage />} />
+                        <Route path="/integrations/new" element={<div data-testid="create-integration-probe" />} />
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        await userEvent.click(await screen.findByRole('button', { name: 'Create integration' }));
+
+        expect(await screen.findByTestId('create-integration-probe')).not.toBeNull();
     });
 
     it('keeps the empty state off the screen when the integrations request fails', async () => {

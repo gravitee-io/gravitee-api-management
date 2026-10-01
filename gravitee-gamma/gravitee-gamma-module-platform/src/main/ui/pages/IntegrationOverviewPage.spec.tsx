@@ -15,7 +15,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
@@ -24,6 +24,7 @@ import { IntegrationOverviewPage } from './IntegrationOverviewPage';
 import { getIntegration } from '../features/integrations/services/integrationDetail';
 import type { IntegrationAgentStatus } from '../features/integrations/types/integration';
 import { ApimApiError } from '../shared/api/apimClient';
+import { copyTextToClipboardWithNotifyHandler } from '../shared/copyToClipboard';
 import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: jest.fn() }));
@@ -32,7 +33,10 @@ jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
 }));
 
+jest.mock('../shared/copyToClipboard', () => ({ copyTextToClipboardWithNotifyHandler: jest.fn() }));
+
 const mockUseEnvironment = jest.mocked(useEnvironment);
+const mockCopyToClipboard = jest.mocked(copyTextToClipboardWithNotifyHandler);
 const mockGetIntegration = jest.mocked(getIntegration);
 const mockNotifyError = jest.mocked(notify.error);
 // The v2 DTO declares agentStatus nullable, so the wire can send an explicit null that the optional field type cannot express.
@@ -213,6 +217,54 @@ describe('IntegrationOverviewPage', () => {
         expect(within(overview).queryByRole('heading', { name: 'Agent connection' })).toBeNull();
         expect(overview.textContent).not.toMatch(/Connected|Disconnected/);
         expect(overview.textContent).not.toContain('Check your agent status');
+    });
+
+    it.each([
+        ['connected', 'CONNECTED' as const],
+        ['disconnected', 'DISCONNECTED' as const],
+        ['of unknown agent status', undefined],
+    ])('shows the integration id of a %s gateway-style integration', async (_variant, agentStatus) => {
+        mockGetIntegration.mockResolvedValue({
+            id: 'd12619e5-b7e4-4a99-a619-e5b7e45a9999',
+            name: 'Gateway integration',
+            provider: 'aws-api-gateway',
+            agentStatus,
+        });
+
+        renderIntegrationOverviewPage('d12619e5-b7e4-4a99-a619-e5b7e45a9999');
+
+        const section = await screen.findByTestId('integration-id');
+        expect(within(section).getByRole('heading', { name: 'Integration ID' })).toBeInTheDocument();
+        expect(within(section).getByText('d12619e5-b7e4-4a99-a619-e5b7e45a9999')).toBeInTheDocument();
+    });
+
+    it('copies the integration id to the clipboard when its copy button is clicked', async () => {
+        mockGetIntegration.mockResolvedValue({
+            id: 'integration-gw',
+            name: 'Gateway integration',
+            provider: 'aws-api-gateway',
+            agentStatus: 'CONNECTED',
+        });
+
+        renderIntegrationOverviewPage('integration-gw');
+
+        const section = await screen.findByTestId('integration-id');
+        fireEvent.click(within(section).getByRole('button', { name: 'Copy integration ID' }));
+        expect(mockCopyToClipboard).toHaveBeenCalledTimes(1);
+        expect(mockCopyToClipboard).toHaveBeenCalledWith('integration-gw', 'Copied to clipboard');
+    });
+
+    it('shows no integration id for an A2A integration', async () => {
+        mockGetIntegration.mockResolvedValue({ id: 'integration-a2a', name: 'A2A integration', provider: 'A2A' });
+
+        renderIntegrationOverviewPage('integration-a2a');
+
+        expect(await screen.findByRole('heading', { name: 'A2A integration' })).toBeInTheDocument();
+        const overview = screen.getByTestId('integration-overview-page');
+        expect(screen.queryByTestId('integration-id')).toBeNull();
+        expect(within(overview).queryByRole('heading', { name: 'Integration ID' })).toBeNull();
+        expect(overview.textContent).not.toContain('integration-a2a');
+        expect(within(overview).queryByRole('button', { name: 'Copy integration ID' })).toBeNull();
     });
 
     it('shows the ingestion-in-progress indicator when a gateway-style integration has a pending ingestion job', async () => {
