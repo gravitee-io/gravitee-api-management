@@ -27,6 +27,7 @@ import static org.mockito.Mockito.when;
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -41,6 +42,7 @@ import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.user.domain_service.UserContextLoader;
 import io.gravitee.apim.core.user.model.UserContext;
+import io.gravitee.apim.infra.adapter.ConnectionLogAdapter;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
@@ -850,6 +852,80 @@ class ObservabilityLogsDataPortAdapterTest {
             var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
 
             assertThat(detail.apiType()).isNull();
+        }
+    }
+
+    /**
+     * The detail carries the same descriptive fields as the log search rows, read from the same sources,
+     * so a direct link to a detail shows what the row it came from shows.
+     */
+    @Nested
+    class DetailMatchesTheSearchRow {
+
+        private static final String PRODUCT_ID = "product-1";
+
+        @BeforeEach
+        void stubApiLookup() {
+            when(apiCrudService.findById("api-1")).thenReturn(
+                Optional.of(Api.builder().id("api-1").name("Payments MCP").environmentId(ENV).type(ApiType.MCP_PROXY).build())
+            );
+            when(connectionLogsCrudService.searchApiConnectionLog(any(), any(), any())).thenReturn(Optional.empty());
+        }
+
+        private void stubMetrics(io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail metrics) {
+            when(analyticsQueryService.findApiMetricsDetail(any(), eq("api-1"), eq("req-1"))).thenReturn(Optional.of(metrics));
+        }
+
+        private io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.ApiMetricsDetailBuilder metrics() {
+            return io.gravitee.rest.api.model.v4.analytics.ApiMetricsDetail.builder().apiId("api-1").requestId("req-1");
+        }
+
+        @Test
+        void should_carry_the_api_name_the_entrypoint_and_the_mcp_method() {
+            stubMetrics(
+                metrics()
+                    .entrypointId("mcp-proxy")
+                    .additionalMetrics(Map.of(ConnectionLogAdapter.MCP_PROXY_METHOD_KEY, "tools/list"))
+                    .build()
+            );
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiName()).isEqualTo("Payments MCP");
+            assertThat(detail.entrypointId()).isEqualTo("mcp-proxy");
+            assertThat(detail.mcpMethod()).isEqualTo("tools/list");
+        }
+
+        @Test
+        void should_resolve_the_api_product_name_within_the_environment() {
+            when(apiProductQueryService.findByEnvironmentIdAndIdIn(ENV, Set.of(PRODUCT_ID))).thenReturn(
+                Set.of(ApiProduct.builder().id(PRODUCT_ID).environmentId(ENV).name("Payments bundle").build())
+            );
+            stubMetrics(metrics().apiProductId(PRODUCT_ID).build());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiProductId()).isEqualTo(PRODUCT_ID);
+            assertThat(detail.apiProductName()).isEqualTo("Payments bundle");
+        }
+
+        @Test
+        void should_label_a_request_outside_any_api_product_as_standalone() {
+            stubMetrics(metrics().build());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.apiProductName()).isEqualTo("Standalone API");
+            verifyNoInteractions(apiProductQueryService);
+        }
+
+        @Test
+        void should_leave_the_mcp_method_null_outside_an_mcp_request() {
+            stubMetrics(metrics().additionalMetrics(Map.of("keyword_llm-proxy_model", "gpt-4o-mini")).build());
+
+            var detail = adapter.getLogDetail(ORG, ENV, "api-1", "req-1").orElseThrow();
+
+            assertThat(detail.mcpMethod()).isNull();
         }
     }
 

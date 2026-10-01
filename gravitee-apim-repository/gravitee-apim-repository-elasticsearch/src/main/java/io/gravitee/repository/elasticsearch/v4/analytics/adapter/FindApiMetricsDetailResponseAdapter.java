@@ -69,6 +69,8 @@ public class FindApiMetricsDetailResponseAdapter {
             .endpointResponseTime(coalesceLong(json, "endpoint-response-time-ms", "api-response-time"))
             .method(HttpMethod.get(coalesceInt(json, "http-method", "method")))
             .endpoint(asTextOrNull(json.get("endpoint")))
+            .entrypointId(asTextOrNull(json.get("entrypoint-id")))
+            .apiProductId(asTextOrNull(json.get("api-product-id")))
             .message(asTextOrNull(json.get("error-message")))
             .errorKey(asTextOrNull(json.get("error-key")))
             .errorComponentName(asTextOrNull(json.get("error-component-name")))
