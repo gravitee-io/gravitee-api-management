@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.ValidateApiDocumentationDomainService;
 import io.gravitee.apim.core.validation.Validator;
 import java.util.List;
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class ValidateApiDocumentationUseCase {
 
     private final ValidateApiDocumentationDomainService validator;
+    private final ApiDocumentationSyncDomainService syncDomainService;
 
     public CreateOrUpdateApiDocumentationUseCase.Output execute(CreateOrUpdateApiDocumentationUseCase.Input input) {
         var result = validator.validateAndSanitize(
@@ -41,6 +43,14 @@ public class ValidateApiDocumentationUseCase {
             )
         );
         List<Validator.Error> errors = result.errors().orElseGet(List::of);
+
+        if (result.severe().isEmpty()) {
+            var sanitized = result.value().orElseThrow();
+            var automationMetadata = CreateOrUpdateApiDocumentationUseCase.buildAutomationMetadata(sanitized);
+            var content = CreateOrUpdateApiDocumentationUseCase.buildContent(sanitized, automationMetadata);
+            syncDomainService.validatePlacement(input.auditInfo(), content, input.visibility());
+        }
+
         return new CreateOrUpdateApiDocumentationUseCase.Output(input.portalPageContentId(), errors);
     }
 }
