@@ -126,7 +126,7 @@ describe('IntegrationAgentComponent', () => {
 
       const anchorEl = fixture.debugElement.query(By.css('a[mat-raised-button]')).nativeElement;
       expect(anchorEl.getAttribute('href')).toBe(
-        'https://documentation.gravitee.io/apim/4.7/governance/federation/3rd-party-providers/test-provider',
+        'https://documentation.gravitee.io/apim/4.7/govern-apis/federation/3rd-party-providers/test-provider',
       );
     });
 
