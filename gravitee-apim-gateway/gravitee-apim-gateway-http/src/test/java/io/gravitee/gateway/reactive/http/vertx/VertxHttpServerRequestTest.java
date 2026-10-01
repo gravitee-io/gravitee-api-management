@@ -564,6 +564,17 @@ class VertxHttpServerRequestTest {
         }
 
         @Test
+        void should_close_connection_without_discarding_when_off_a_vertx_context() {
+            vertxStatic.when(Vertx::currentContext).thenReturn(null);
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+
+            cut.discardUnconsumedBody(false);
+
+            verify(httpServerRequest.connection()).close();
+            verify(httpServerRequest, never()).resume();
+        }
+
+        @Test
         void should_close_connection_immediately_when_asked_to_and_nothing_left_to_discard() {
             cut.discardUnconsumedBody(true);
 
