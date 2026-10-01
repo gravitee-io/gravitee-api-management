@@ -19,6 +19,7 @@ import { useEffect } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 
 import { IntegrationAgentConnection } from '../features/integrations/components/IntegrationAgentConnection';
+import { IntegrationId } from '../features/integrations/components/IntegrationId';
 import { IntegrationIngestionInProgress } from '../features/integrations/components/IntegrationIngestionInProgress';
 import { IntegrationProviderLabel } from '../features/integrations/components/IntegrationProviderLabel';
 import { useIntegration } from '../features/integrations/hooks/useIntegration';
@@ -66,7 +67,12 @@ export function IntegrationOverviewPage() {
                     <h1 className="text-2xl font-semibold tracking-tight">{integration.name}</h1>
                     <IntegrationProviderLabel provider={integration.provider} />
                 </div>
-                {!isA2aIntegration(integration) && <IntegrationAgentConnection agentStatus={integration.agentStatus} />}
+                {!isA2aIntegration(integration) && (
+                    <>
+                        <IntegrationAgentConnection agentStatus={integration.agentStatus} />
+                        <IntegrationId integrationId={integration.id} />
+                    </>
+                )}
                 {isIngestionInProgress(integration) && <IntegrationIngestionInProgress />}
             </>
         );

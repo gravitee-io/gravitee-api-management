@@ -15,6 +15,7 @@
  */
 import type { License } from '@gravitee/gamma-modules-sdk/types';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { ComponentType } from 'react';
 import { MemoryRouter, useLocation, useNavigationType } from 'react-router-dom';
 
@@ -542,6 +543,28 @@ function spyOnIntegrationOverviewFetch(
     });
 }
 
+function spyOnIntegrationCreateAndListFetch(created: { id: string }) {
+    resetApimClientForTests();
+    let createRequested = false;
+    return jest.spyOn(global, 'fetch').mockImplementation((input, init) => {
+        const url = String(input);
+        if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
+        if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
+        if (init?.method === 'POST' && url.endsWith('/integrations')) {
+            createRequested = true;
+            return jsonResponse(created);
+        }
+        if (url === INTEGRATIONS_REQUEST_URL) {
+            return createRequested
+                ? jsonResponse({ data: [created], pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 } })
+                : okIntegrationsResponse();
+        }
+        if (url.endsWith(`/integrations/${created.id}/permissions`)) return jsonResponse({ DEFINITION: 'R' });
+        if (url.endsWith(`/integrations/${created.id}`)) return jsonResponse(created);
+        return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
+    });
+}
+
 function renderIntegrationOverviewUrl(integrationId: string) {
     renderIntegrationPath(`/integrations/${integrationId}`);
 }
@@ -557,6 +580,12 @@ function renderIntegrationPath(path: string) {
 
 function integrationsRequestUrls(fetchSpy: ReturnType<typeof spyOnApimFetch>): string[] {
     return fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => /integration/i.test(url));
+}
+
+function integrationCreateRequestUrls(fetchSpy: ReturnType<typeof spyOnApimFetch>): string[] {
+    return fetchSpy.mock.calls
+        .filter(([input, init]) => init?.method === 'POST' && /\/integrations(\?|$)/.test(String(input)))
+        .map(([input]) => String(input));
 }
 
 describe('AppRoutes', () => {
@@ -1070,6 +1099,94 @@ describe('AppRoutes', () => {
             fetchSpy.mockRestore();
         },
     );
+
+    it('opens the create-integration page on its provider-selection step instead of reading new as an integration id', async () => {
+        const fetchSpy = spyOnApimFetch();
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath('/integrations/new');
+
+        expect(await screen.findByRole('heading', { name: 'Create a new integration' })).not.toBeNull();
+        expect(within(screen.getByRole('radiogroup', { name: 'Provider' })).getAllByRole('radio')).toHaveLength(8);
+        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/integrations/new');
+        expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
+        fetchSpy.mockRestore();
+    });
+
+    it.each([
+        ['the installed license tier is oss', { federation: { enabled: true } }, OSS_LICENSE],
+        ['the license has expired', { federation: { enabled: true } }, EXPIRED_LICENSE],
+        ['Federation is not enabled for the organization', { federation: { enabled: false } }, ENTITLED_LICENSE],
+    ])('keeps a user allowed to create integrations off the create-integration page when %s', async (_case, consoleSettings, license) => {
+        const fetchSpy = spyOnApimFetch();
+        mockUseConsoleSettings.mockReturnValue(consoleSettings);
+        mockSetLicense(license);
+
+        renderIntegrationPath('/integrations/new');
+        await act(async () => {});
+
+        expect(screen.queryByRole('heading', { name: 'Create a new integration' })).toBeNull();
+        expect(screen.queryByRole('radiogroup', { name: 'Provider' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).not.toBe('/integrations/new');
+        fetchSpy.mockRestore();
+    });
+
+    it('redirects a direct create-integration visit to the Integrations list when the user lacks environment-integration-c', async () => {
+        const fetchSpy = spyOnApimFetch();
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+        denyPermissions('environment-integration-c');
+
+        renderIntegrationPath('/integrations/new');
+        await act(async () => {});
+
+        expect(screen.queryByRole('heading', { name: 'Create a new integration' })).toBeNull();
+        expect(screen.queryByRole('radiogroup', { name: 'Provider' })).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/integrations');
+        fetchSpy.mockRestore();
+    });
+
+    // The list stays mounted while the create runs so only the create's invalidation, not a remount, can refetch it.
+    it('shows the created integration in the Integrations list under the entered name after a successful create', async () => {
+        mockUseRealIntegrationsPage = true;
+        const user = userEvent.setup();
+        const created = { id: 'created-1', name: 'My integration', provider: 'mulesoft', agentStatus: 'CONNECTED' };
+        const fetchSpy = spyOnIntegrationCreateAndListFetch(created);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        const listView = render(
+            <MemoryRouter initialEntries={['/integrations']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+        expect(await within(listView.container).findByText('No integrations yet')).not.toBeNull();
+
+        renderIntegrationPath('/integrations/new');
+        await user.click(await screen.findByRole('radio', { name: 'MuleSoft' }));
+        await user.type(screen.getByRole('textbox', { name: /^Name/ }), created.name);
+        await user.click(screen.getByRole('button', { name: 'Create' }));
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${created.id}`));
+
+        expect(integrationCreateRequestUrls(fetchSpy)).toEqual(['https://apim.test/management/v2/environments/env-1/integrations']);
+        expect(await within(listView.container).findByRole('link', { name: created.name })).not.toBeNull();
+        fetchSpy.mockRestore();
+    });
+
+    it('returns to the Integrations list from the create-integration page Back button', async () => {
+        const user = userEvent.setup();
+        const fetchSpy = spyOnApimFetch();
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath('/integrations/new');
+        await user.click(await screen.findByRole('button', { name: 'Back to Integrations' }));
+
+        expect(screen.getByTestId('location').textContent).toBe('/integrations');
+        fetchSpy.mockRestore();
+    });
 
     // Each row uses its own integration id because AppRoutes shares one QueryClient across tests: a cached
     // grant for the same id from the test above would otherwise let the overview mount before the refetch.
