@@ -22,6 +22,7 @@ import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.http.HttpBaseExecutionContext;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.context.AbstractResponse;
+import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.UnconsumedBody;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.core.buffer.Buffer;
@@ -99,6 +100,11 @@ public class VertxHttpServerResponse extends AbstractResponse {
                 return Completable.error(new IllegalStateException("The response is already ended"));
             }
             prepareHeaders();
+            final UnconsumedBody unconsumedBody = vertxHttpServerRequest.unconsumedBody();
+            if (unconsumedBody == UnconsumedBody.DISCARD_THEN_CLOSE) {
+                // RFC 9112 §9.6: the client must not send another request on a connection about to be closed.
+                headers.set(io.vertx.core.http.HttpHeaders.CONNECTION, HttpHeadersValues.CONNECTION_CLOSE);
+            }
 
             final AtomicReference<Subscription> subscriptionRef = new AtomicReference<>();
 
@@ -127,6 +133,7 @@ public class VertxHttpServerResponse extends AbstractResponse {
                         }
                         return Completable.complete();
                     })
+                    .doOnComplete(() -> discardUnconsumedBody(ctx, unconsumedBody))
                     .doOnDispose(() -> {
                         if (!nativeResponse.ended()) {
                             // If the response is disposed before being ended, we need to cancel the
@@ -136,7 +143,7 @@ public class VertxHttpServerResponse extends AbstractResponse {
                     });
             }
 
-            return nativeResponse.rxEnd();
+            return nativeResponse.rxEnd().doOnComplete(() -> discardUnconsumedBody(ctx, unconsumedBody));
         });
     }
 
@@ -172,6 +179,13 @@ public class VertxHttpServerResponse extends AbstractResponse {
             if (headers.contains(HttpHeaders.CONTENT_LENGTH)) {
                 headers.remove(HttpHeaders.TRANSFER_ENCODING);
             }
+        }
+    }
+
+    private void discardUnconsumedBody(final HttpBaseExecutionContext ctx, final UnconsumedBody unconsumedBody) {
+        if (unconsumedBody != UnconsumedBody.NONE) {
+            ctx.withLogger(log).debug("Response sent before the request body was read, discarding it ({})", unconsumedBody);
+            vertxHttpServerRequest.discardUnconsumedBody(unconsumedBody == UnconsumedBody.DISCARD_THEN_CLOSE);
         }
     }
 
