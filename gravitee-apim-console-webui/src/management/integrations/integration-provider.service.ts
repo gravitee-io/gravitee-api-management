@@ -35,6 +35,7 @@ export class IntegrationProviderService {
       { icon: 'confluent', value: 'confluent-platform', apimDocsName: 'confluent-platform' },
       { icon: 'mulesoft', value: 'mulesoft', apimDocsName: 'mulesoft-anypoint' },
       { icon: 'edge-stack', value: 'edge-stack', apimDocsName: 'edge-stack' },
+      { icon: 'sap-api-management', value: 'sap-api-management', apimDocsName: 'sap-api-management' },
     ],
     comingSoon: [],
   };
