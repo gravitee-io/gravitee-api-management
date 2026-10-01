@@ -99,21 +99,14 @@ public class CreateOrUpdatePortalDocumentationUseCase {
             throw new ValidationDomainException("the portal to attach the documentation to does not exist in this environment");
         }
 
-        var meta = new AutomationMetadata(
-            AutomationMetadata.ReferenceType.PORTAL,
-            sanitized.portalId().toString(),
-            sanitized.name(),
-            Optional.ofNullable(sanitized.location()),
-            Optional.ofNullable(sanitized.order())
-        );
-
-        var area = sanitized.area() != null ? sanitized.area() : PortalArea.TOP_NAVBAR;
+        var meta = buildAutomationMetadata(sanitized);
+        var area = resolveArea(sanitized.area());
         var existing = portalPageContentQueryService.findById(sanitized.portalPageContentId());
         var sameTypeUpdate = existing.filter(current -> current.getType() == sanitized.type());
         var updateContent = UpdatePortalPageContent.builder().content(sanitized.content()).build();
         sameTypeUpdate.ifPresent(current -> pageContentValidatorService.validateForUpdate(current, updateContent));
 
-        syncDomainService.validatePlacement(input.auditInfo(), buildNew(sanitized, meta), area, input.visibility());
+        syncDomainService.validatePlacement(input.auditInfo(), buildContent(sanitized, meta), area, input.visibility());
 
         PortalPageContent<?> saved;
         if (sameTypeUpdate.isPresent()) {
@@ -122,7 +115,7 @@ public class CreateOrUpdatePortalDocumentationUseCase {
             saved = portalPageContentCrudService.update(current);
         } else {
             existing.ifPresent(current -> portalPageContentCrudService.delete(current.getId()));
-            saved = portalPageContentCrudService.create(buildNew(sanitized, meta));
+            saved = portalPageContentCrudService.create(buildContent(sanitized, meta));
         }
 
         syncDomainService.materialize(input.auditInfo(), saved, area, input.visibility());
@@ -130,7 +123,21 @@ public class CreateOrUpdatePortalDocumentationUseCase {
         return new Output(saved.getId(), warnings);
     }
 
-    private PortalPageContent<?> buildNew(ValidatePortalDocumentationDomainService.Input sanitized, AutomationMetadata meta) {
+    static AutomationMetadata buildAutomationMetadata(ValidatePortalDocumentationDomainService.Input sanitized) {
+        return new AutomationMetadata(
+            AutomationMetadata.ReferenceType.PORTAL,
+            sanitized.portalId().toString(),
+            sanitized.name(),
+            Optional.ofNullable(sanitized.location()),
+            Optional.ofNullable(sanitized.order())
+        );
+    }
+
+    static PortalArea resolveArea(PortalArea area) {
+        return area != null ? area : PortalArea.TOP_NAVBAR;
+    }
+
+    static PortalPageContent<?> buildContent(ValidatePortalDocumentationDomainService.Input sanitized, AutomationMetadata meta) {
         var id = sanitized.portalPageContentId();
         var orgId = sanitized.auditInfo().organizationId();
         var envId = sanitized.auditInfo().environmentId();
