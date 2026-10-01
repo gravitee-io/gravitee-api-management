@@ -30,15 +30,19 @@ export class SaveMavenJobCacheCommand {
         new commands.Run({
           name: 'Exclude all APIM artefacts from cache.',
           command: 'rm -rf ~/.m2/repository/io/gravitee/apim',
+          when: 'always',
         }),
         // The cache is saved even when the job fails (`when: always`), so a transient repository
         // outage would otherwise be memorised: Maven records a failed lookup in a `.lastUpdated`
         // marker and refuses to retry it until the update interval elapses. Jobs running with
         // `-nsu` never retry at all, since it forces the update policy to `never` for every
         // repository, releases included. Dropping the markers keeps a failure from outliving it.
+        // Both clean-up steps must run on failure too, like the save itself, or they are skipped
+        // exactly when there is something to clean.
         new commands.Run({
           name: 'Drop failed resolution markers from cache.',
           command: "find ~/.m2 -name '*.lastUpdated' -delete",
+          when: 'always',
         }),
         new commands.cache.Save({
           key: `${config.cache.prefix}-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}`,
