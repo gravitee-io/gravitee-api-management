@@ -26,6 +26,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -577,6 +578,23 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             ApiFieldFilter.allFields()
         );
         assertThat(apis).isNotNull().isNotEmpty().hasSize(1);
+    }
+
+    @Test
+    public void should_return_the_integration_id_of_apis_found_by_search() {
+        List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().integrationId("integration-id").build(),
+            ApiFieldFilter.allFields()
+        );
+
+        assertThat(apis).extracting(Api::getId, Api::getIntegrationId).containsExactly(tuple("federated-api", "integration-id"));
+    }
+
+    @Test
+    public void should_return_no_integration_id_for_a_non_federated_api_found_by_search() {
+        List<Api> apis = apiRepository.search(new ApiCriteria.Builder().ids("api-to-findById").build(), ApiFieldFilter.allFields());
+
+        assertThat(apis).extracting(Api::getId, Api::getIntegrationId).containsExactly(tuple("api-to-findById", null));
     }
 
     @ParameterizedTest(name = "{0}")
