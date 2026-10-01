@@ -198,6 +198,11 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     const property = this.apiProperties.find(p => p._id === _id);
 
     property.encryptable = true;
+
+    const valueControl = this.propertiesFormGroup.get(_id).get('value');
+    valueControl.setValue(ENCRYPTED_VALUE_MASK, { emitEvent: false });
+    valueControl.disable({ emitEvent: false });
+
     this.isDirty = true;
     this.refreshTable();
   }

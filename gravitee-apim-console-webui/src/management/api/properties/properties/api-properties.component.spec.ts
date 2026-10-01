@@ -358,14 +358,14 @@ describe('ApiPropertiesComponent', () => {
     const valueCell = (await firstRow.getCells())[1];
     const valueInput = await valueCell.getHarness(MatInputHarness);
 
-    expect(await valueInput.getValue()).toEqual('ValueToEncrypt');
+    expect(await valueInput.getValue()).toEqual(ENCRYPTED_VALUE_MASK);
 
     const cellContentByIndex = await getCellContentByIndex(table);
     expect(cellContentByIndex).toEqual([
       {
         key: 'key2',
-        value: 'ValueToEncrypt',
-        isValueDisabled: false,
+        value: ENCRYPTED_VALUE_MASK,
+        isValueDisabled: true,
         characteristic: 'Encrypted on save',
       },
     ]);
