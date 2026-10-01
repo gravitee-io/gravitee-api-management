@@ -297,6 +297,37 @@ public class Api {
         }
     }
 
+    /**
+     * Native counterpart of {@link #rollbackTo(io.gravitee.definition.model.v4.Api)}. It restores the subset a
+     * NativeApi actually carries: failover, flowExecution and responseTemplates are HTTP-only notions.
+     */
+    public Api rollbackTo(NativeApi source) {
+        if (apiDefinitionValue instanceof NativeApi currentDefinition) {
+            return toBuilder()
+                .name(source.getName())
+                .version(source.getApiVersion())
+                .apiDefinitionValue(
+                    currentDefinition
+                        .toBuilder()
+                        .tags(source.getTags())
+                        .listeners(source.getListeners())
+                        .endpointGroups(source.getEndpointGroups())
+                        .analytics(source.getAnalytics())
+                        .properties(source.getProperties())
+                        .resources(source.getResources())
+                        .flows(source.getFlows())
+                        .services(source.getServices())
+                        // Ignore plans from definition for API rollback
+                        .plans(null)
+                        .build()
+                )
+                .build()
+                .setTags(source.getTags());
+        } else {
+            return this;
+        }
+    }
+
     public abstract static class ApiBuilder<C extends Api, B extends ApiBuilder<C, B>> {
 
         public B apiDefinitionValue(ApiDefinition apiDefinition) {
