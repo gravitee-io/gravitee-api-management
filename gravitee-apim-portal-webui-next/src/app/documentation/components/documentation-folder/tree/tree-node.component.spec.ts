@@ -163,7 +163,7 @@ describe('TreeNodeComponent', () => {
       expect(toggleNode).toHaveBeenCalled();
 
       const icon = fixture.debugElement.query(By.css('.tree__icon'));
-      expect(icon.nativeElement.classList).not.toContain('expanded');
+      expect(icon.nativeElement.classList).toContain('expanded');
     });
   });
 
@@ -181,13 +181,13 @@ describe('TreeNodeComponent', () => {
       ],
     };
 
-    it('should render as an expanded container', async () => {
+    it('should render as a collapsed container', async () => {
       await init({ node });
 
       expect(await harness.getText()).toBe(node.label);
       expect(await harness.getChildren()).toHaveLength(1);
-      expect(await harness.getAriaExpanded()).toBe('true');
-      expect(await harness.isExpanded()).toBe(true);
+      expect(await harness.getAriaExpanded()).toBe('false');
+      expect(await harness.isExpanded()).toBe(false);
     });
 
     it('should toggle expansion without selecting the node', async () => {
@@ -197,8 +197,8 @@ describe('TreeNodeComponent', () => {
 
       await harness.click();
 
-      expect(await harness.getAriaExpanded()).toBe('false');
-      expect(await harness.isExpanded()).toBe(false);
+      expect(await harness.getAriaExpanded()).toBe('true');
+      expect(await harness.isExpanded()).toBe(true);
       expect(nodeSelected).not.toHaveBeenCalled();
     });
 
@@ -210,6 +210,61 @@ describe('TreeNodeComponent', () => {
 
       await harness.sendKeys(TestKey.RIGHT_ARROW);
       expect(await harness.getAriaExpanded()).toBe('true');
+    });
+  });
+
+  describe('expansion requests', () => {
+    const node: TreeNode = {
+      id: 'product',
+      label: 'Product',
+      type: 'API_PRODUCT',
+      children: [{ id: 'api', label: 'API', type: 'API', children: [{ id: 'page', label: 'Page', type: 'PAGE' }] }],
+    };
+
+    it('should apply a focus path to nested containers and make collapsed children inert', async () => {
+      await init({ node });
+      const children = fixture.nativeElement.querySelector('.tree__children');
+      expect(children.hasAttribute('inert')).toBe(true);
+
+      fixture.componentRef.setInput('expansionRequest', { mode: 'focus-path', pathIds: new Set(['product', 'api']) });
+      fixture.detectChanges();
+      expect(await harness.isExpanded()).toBe(true);
+      expect(children.hasAttribute('inert')).toBe(false);
+      expect(await (await harness.getChildren())[0].isExpanded()).toBe(true);
+
+      fixture.componentRef.setInput('expansionRequest', { mode: 'focus-path', pathIds: new Set(['product']) });
+      expect(await (await harness.getChildren())[0].isExpanded()).toBe(false);
+    });
+
+    it('should preserve manual expansion when selection or node metadata changes', async () => {
+      await init({ node });
+      fixture.componentRef.setInput('expansionRequest', { mode: 'collapse-all' });
+      await harness.click();
+      fixture.componentRef.setInput('selectedId', 'page');
+      fixture.componentRef.setInput('node', { ...node, label: 'Renamed product' });
+      expect(await harness.isExpanded()).toBe(true);
+    });
+
+    it('should reveal a path without closing manually expanded siblings', async () => {
+      await init({ node });
+      await harness.click();
+      fixture.componentRef.setInput('expansionRequest', { mode: 'reveal-path', pathIds: new Set(['other-product']) });
+      expect(await harness.isExpanded()).toBe(true);
+
+      fixture.componentRef.setInput('expansionRequest', { mode: 'collapse-all' });
+      expect(await harness.isExpanded()).toBe(false);
+      fixture.componentRef.setInput('expansionRequest', { mode: 'reveal-path', pathIds: new Set(['product']) });
+      expect(await harness.isExpanded()).toBe(true);
+    });
+
+    it('should retain child expansion when a parent is collapsed and reopened', async () => {
+      await init({ node });
+      await harness.click();
+      const api = (await harness.getChildren())[0];
+      await api.click();
+      await harness.click();
+      await harness.click();
+      expect(await api.isExpanded()).toBe(true);
     });
   });
 
