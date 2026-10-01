@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.infra.adapter;
 
 import io.gravitee.apim.core.analytics.query_service.AnalyticsQueryService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
@@ -97,6 +98,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @CustomLog
 @RequiredArgsConstructor
 public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPort {
+
+    /** Label of a request that went through no API Product, on the search rows and the detail alike. */
+    private static final String STANDALONE_API_PRODUCT_NAME = "Standalone API";
+
+    /**
+     * Additional-metrics key the log search rows read their MCP method from
+     * ({@code ConnectionLogAdapter.MCP_PROXY_METHOD_KEY}), repeated here so the detail agrees with its row.
+     */
+    private static final String MCP_PROXY_METHOD_KEY = "keyword_mcp-proxy_method";
 
     /**
      * Inclusive HTTP status bounds, sourced from the unified catalog ({@link StaticFilters#HTTP_STATUS})
@@ -190,14 +200,13 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         // can reach only to test one id, and the resource already ran checkApiLogReadPermissionOrCollapse
         // on this one. The environment filter is kept because the by-id read has no scope of its own,
         // and toGammaApiType because the wire names differ from the definition enum (PROXY -> HTTP_PROXY).
-        var apiType = apiCrudService
-            .findById(apiId)
-            .filter(api -> api.belongsToEnvironment(environmentId))
-            .map(api -> toGammaApiType(api.getType()))
+        var api = apiCrudService.findById(apiId).filter(candidate -> candidate.belongsToEnvironment(environmentId));
+        var apiType = api
+            .map(found -> toGammaApiType(found.getType()))
             .map(Enum::name)
             .orElse(null);
 
-        var builder = LogDetail.builder().requestId(requestId).apiId(apiId).apiType(apiType);
+        var builder = LogDetail.builder().requestId(requestId).apiId(apiId).apiName(api.map(Api::getName).orElse(null)).apiType(apiType);
 
         metricsOpt.ifPresent(metrics -> {
             builder
@@ -207,7 +216,11 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                 .uri(metrics.getUri())
                 .status(metrics.getStatus())
                 .endpoint(metrics.getEndpoint())
+                .entrypointId(metrics.getEntrypointId())
                 .host(metrics.getHost())
+                .mcpMethod(mcpMethodOf(metrics.getAdditionalMetrics()))
+                .apiProductId(metrics.getApiProductId())
+                .apiProductName(resolveApiProductName(environmentId, metrics.getApiProductId()))
                 .planId(metrics.getPlanId())
                 .subscriptionId(metrics.getSubscriptionId())
                 .applicationId(metrics.getApplicationId())
@@ -275,6 +288,27 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         });
 
         return Optional.of(builder.build());
+    }
+
+    private static String mcpMethodOf(Map<String, Object> additionalMetrics) {
+        return additionalMetrics != null && additionalMetrics.get(MCP_PROXY_METHOD_KEY) instanceof String mcpMethod ? mcpMethod : null;
+    }
+
+    /**
+     * Mirrors {@link #enrichWithNames}: a request outside any API Product is labelled "Standalone API",
+     * and the lookup is scoped to the environment.
+     */
+    private String resolveApiProductName(String environmentId, String apiProductId) {
+        if (apiProductId == null) {
+            return STANDALONE_API_PRODUCT_NAME;
+        }
+        return apiProductQueryService
+            .findByEnvironmentIdAndIdIn(environmentId, Set.of(apiProductId))
+            .stream()
+            .map(ApiProduct::getName)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(null);
     }
 
     private record ResolvedNames(String planName, String applicationName, String gatewayHostname, String gatewayIp) {}
@@ -759,7 +793,9 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
                     .planName(lookup(planNameById, entry.planId()))
                     .applicationName(lookup(appNameById, entry.applicationId()))
                     .gatewayHostname(lookup(gatewayHostnameById, entry.gateway()))
-                    .apiProductName(entry.apiProductId() == null ? "Standalone API" : lookup(apiProductNameById, entry.apiProductId()))
+                    .apiProductName(
+                        entry.apiProductId() == null ? STANDALONE_API_PRODUCT_NAME : lookup(apiProductNameById, entry.apiProductId())
+                    )
                     .build()
             )
             .toList();
