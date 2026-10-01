@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
+import { Button } from '@gravitee/graphene-core';
+import { PlusIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { IntegrationsEmptyState } from '../features/integrations/components/IntegrationsEmptyState';
 import { IntegrationsTable } from '../features/integrations/components/IntegrationsTable';
 import { useIntegrations } from '../features/integrations/hooks/useIntegrations';
+import { ENVIRONMENT_INTEGRATION_CREATE_PERMISSION } from '../features/integrations/utils/integrationPermissions';
 import { DEFAULT_INTEGRATION_LIST_PAGE_SIZE } from '../features/integrations/utils/paginationConstants';
 import { notify } from '../shared/notify';
 
 export function IntegrationsPage() {
+    const navigate = useNavigate();
+    const canCreate = useHasPermission({ anyOf: [ENVIRONMENT_INTEGRATION_CREATE_PERMISSION] });
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(DEFAULT_INTEGRATION_LIST_PAGE_SIZE);
 
@@ -64,11 +72,20 @@ export function IntegrationsPage() {
 
     return (
         <div className="space-y-6" data-testid="integrations-page">
-            <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight">Integrations</h1>
-                <p className="text-sm text-muted-foreground">
-                    Connect to third-party API gateways and event brokers to create a unified control plane and API portal with Gravitee.
-                </p>
+            <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold tracking-tight">Integrations</h1>
+                    <p className="text-sm text-muted-foreground">
+                        Connect to third-party API gateways and event brokers to create a unified control plane and API portal with
+                        Gravitee.
+                    </p>
+                </div>
+                {canCreate ? (
+                    <Button className="shrink-0" size="sm" onClick={() => navigate('new')}>
+                        <PlusIcon className="size-4" aria-hidden />
+                        Create integration
+                    </Button>
+                ) : null}
             </div>
 
             {renderContent()}
