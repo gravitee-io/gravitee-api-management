@@ -131,6 +131,7 @@ import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.InvalidUserException;
 import io.gravitee.rest.api.service.exceptions.PasswordAlreadyResetException;
 import io.gravitee.rest.api.service.exceptions.PasswordFormatInvalidException;
+import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ServiceAccountNotManageableException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -2278,10 +2279,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         }
 
         List<Membership> overrideUserMemberships = new ArrayList<>();
-        // Delete existing memberships
+        // Reference ids are unique across membership types (GROUP, ORGANIZATION, ENVIRONMENT).
+        Map<String, Set<RoleScope>> manuallyAssignedRolesByReference = new HashMap<>();
+        Map<String, Optional<RoleScope>> roleScopeByRoleId = new HashMap<>();
         userMemberships.forEach(membership -> {
             if (hasMapping) {
-                // Consider only membership "created by" the identity provider
                 if (identityProviderId.equals(membership.getSource())) {
                     membershipService.deleteReferenceMemberBySource(
                         executionContext,
@@ -2292,12 +2294,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                         membership.getSource()
                     );
                 } else {
-                    membershipService.deleteReferenceMember(
-                        executionContext,
-                        MembershipReferenceType.valueOf(membership.getReferenceType().name()),
-                        membership.getReferenceId(),
-                        MembershipMemberType.USER,
-                        userId
+                    // Admin-assigned roles (non-IdP source) must survive IdP re-sync.
+                    resolveRoleScope(membership.getRoleId(), roleScopeByRoleId).ifPresent(roleScope ->
+                        manuallyAssignedRolesByReference
+                            .computeIfAbsent(membership.getReferenceId(), ignore -> new HashSet<>())
+                            .add(roleScope)
                     );
                 }
             } else {
@@ -2313,6 +2314,13 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         memberships
             .stream()
             .filter(membership -> !containsMembership(overrideUserMemberships, membership))
+            .filter(membership -> {
+                if (!hasMapping) {
+                    return true;
+                }
+                Set<RoleScope> manualScopes = manuallyAssignedRolesByReference.get(membership.getReference().getId());
+                return manualScopes == null || !manualScopes.contains(membership.getRole().getScope());
+            })
             .forEach(membership ->
                 groupedRoles
                     .computeIfAbsent(membership.getReference(), ignore -> new HashMap<>())
@@ -2335,11 +2343,25 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             .stream()
             .anyMatch(membership1 -> {
                 if (membership1.getReferenceId().equals(membership.getReference().getId())) {
-                    RoleEntity byId = roleService.findById(membership1.getRoleId());
-                    return membership.getRole().getScope().equals(byId.getScope());
+                    try {
+                        return membership.getRole().getScope().equals(roleService.findById(membership1.getRoleId()).getScope());
+                    } catch (RoleNotFoundException e) {
+                        return false;
+                    }
                 }
                 return false;
             });
+    }
+
+    private Optional<RoleScope> resolveRoleScope(String roleId, Map<String, Optional<RoleScope>> roleScopeByRoleId) {
+        return roleScopeByRoleId.computeIfAbsent(roleId, id -> {
+            try {
+                return Optional.of(roleService.findById(id).getScope());
+            } catch (RoleNotFoundException e) {
+                LOGGER.warn("Skip manual membership role {} during IdP sync: role no longer exists", id);
+                return Optional.empty();
+            }
+        });
     }
 
     @Override
