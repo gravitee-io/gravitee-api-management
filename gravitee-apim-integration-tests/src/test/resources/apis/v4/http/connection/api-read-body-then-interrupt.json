@@ -1,0 +1,62 @@
+{
+  "id": "v4-api-read-body-then-interrupt",
+  "name": "v4-api-read-body-then-interrupt",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/read-body-then-interrupt"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH"
+        }
+      ],
+      "request": [
+        {
+          "name": "read-body-then-interrupt",
+          "enabled": true,
+          "policy": "read-body-then-interrupt",
+          "configuration": {}
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
