@@ -16,11 +16,14 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import inmemory.ApiProductQueryServiceInMemory;
+import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
@@ -29,6 +32,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
@@ -41,6 +45,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -77,7 +82,7 @@ class ApiDocumentationSyncDomainServiceTest {
 
     @Test
     void materializes_a_nav_page_when_no_portal_lists_the_api() {
-        var meta = new AutomationMetadata(
+        var automationMetadata = new AutomationMetadata(
             AutomationMetadata.ReferenceType.API,
             API_ID,
             "Getting Started",
@@ -89,7 +94,7 @@ class ApiDocumentationSyncDomainServiceTest {
             AUDIT_INFO.organizationId(),
             AUDIT_INFO.environmentId(),
             GraviteeMarkdown.of("# Hello"),
-            meta
+            automationMetadata
         );
 
         syncService.materialize(AUDIT_INFO, doc);
@@ -148,7 +153,7 @@ class ApiDocumentationSyncDomainServiceTest {
 
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
-        verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()));
+        verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()), any(), any());
     }
 
     @Test
@@ -159,6 +164,79 @@ class ApiDocumentationSyncDomainServiceTest {
         syncService.materialize(AUDIT_INFO, aDocumentation());
 
         verify(validatorService).validateToUpdate(any(), any());
+    }
+
+    @Test
+    void validate_placement_invokes_validator_without_persisting_on_create_path() {
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+
+        syncService.validatePlacement(AUDIT_INFO, aDocumentation(), null);
+
+        verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()), any(), any());
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        assertThat(navItemCrud.storage()).extracting(PortalNavigationItem::getId).doesNotContain(pageId);
+    }
+
+    @Test
+    void validate_placement_invokes_validator_without_persisting_on_update_path() {
+        seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
+        syncService.materialize(AUDIT_INFO, aDocumentation());
+        var storageBefore = List.copyOf(navItemCrud.storage());
+
+        syncService.validatePlacement(AUDIT_INFO, aDocumentation(), null);
+
+        verify(validatorService).validateToUpdate(any(), any());
+        assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
+    }
+
+    @Test
+    void validate_placement_rejects_a_parent_that_is_not_a_container_without_writing_anything() {
+        var syncWithRealValidator = new ApiDocumentationSyncDomainService(
+            navItemCrud,
+            navItemQuery,
+            new PortalNavigationItemValidatorService(
+                navItemQuery,
+                PortalPageContentQueryServiceInMemory.sharing(pageContentQuery.storage()),
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            )
+        );
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");
+        var conflictingPage = PortalNavigationPage.builder()
+            .id(folderId)
+            .organizationId(AUDIT_INFO.organizationId())
+            .environmentId(AUDIT_INFO.environmentId())
+            .reference(new NavigationItemReference.ApiReference(API_ID))
+            .title("Not a folder")
+            .segment("not-a-folder")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .portalPageContentId(PortalPageContentId.random())
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .build();
+        navItemCrud.create(conflictingPage);
+        var storageBefore = List.copyOf(navItemCrud.storage());
+        var automationMetadata = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.API,
+            API_ID,
+            "Getting Started",
+            Optional.of("/guides"),
+            Optional.of(1)
+        );
+        var doc = new GraviteeMarkdownPageContent(
+            DOC_ID,
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId(),
+            GraviteeMarkdown.of("# Hello"),
+            automationMetadata
+        );
+
+        assertThatThrownBy(() -> syncWithRealValidator.validatePlacement(AUDIT_INFO, doc, null)).isInstanceOf(
+            ParentTypeMismatchException.class
+        );
+
+        assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
 
     @Test
@@ -316,13 +394,19 @@ class ApiDocumentationSyncDomainServiceTest {
                 .build()
         );
 
-        var meta = new AutomationMetadata(AutomationMetadata.ReferenceType.API, API_ID, "Guides", Optional.empty(), Optional.of(0));
+        var automationMetadata = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.API,
+            API_ID,
+            "Guides",
+            Optional.empty(),
+            Optional.of(0)
+        );
         var doc = new GraviteeMarkdownPageContent(
             DOC_ID,
             AUDIT_INFO.organizationId(),
             AUDIT_INFO.environmentId(),
             GraviteeMarkdown.of("# Hello"),
-            meta
+            automationMetadata
         );
         syncService.materialize(AUDIT_INFO, doc);
 
@@ -361,7 +445,7 @@ class ApiDocumentationSyncDomainServiceTest {
     }
 
     private static PortalPageContent<?> aDocumentation() {
-        var meta = new AutomationMetadata(
+        var automationMetadata = new AutomationMetadata(
             AutomationMetadata.ReferenceType.API,
             API_ID,
             "Getting Started",
@@ -373,7 +457,7 @@ class ApiDocumentationSyncDomainServiceTest {
             AUDIT_INFO.organizationId(),
             AUDIT_INFO.environmentId(),
             GraviteeMarkdown.of("# Hello"),
-            meta
+            automationMetadata
         );
     }
 }
