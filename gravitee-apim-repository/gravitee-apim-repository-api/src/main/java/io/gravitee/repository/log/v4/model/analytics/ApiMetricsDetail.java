@@ -45,6 +45,10 @@ public class ApiMetricsDetail {
     long endpointResponseTime;
     HttpMethod method;
     String endpoint;
+    /** Entrypoint plugin id that served the request (e.g. {@code http-proxy}, {@code llm-proxy}), from {@code entrypoint-id}. */
+    String entrypointId;
+    /** API Product the request went through, from {@code api-product-id}; absent for a standalone API. */
+    String apiProductId;
     String message;
     String errorKey;
     String errorComponentName;
