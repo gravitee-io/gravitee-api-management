@@ -15,7 +15,13 @@
  */
 package io.gravitee.gateway.reactive.http.vertx;
 
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.MAX_BODY_DISCARD_DELAY_MS;
+import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.MAX_DISCARDED_BODY_BYTES;
 import static io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.NETTY_ATTR_CONNECTION_TIME;
+import static io.vertx.core.http.HttpHeaders.CONTENT_LENGTH;
+import static io.vertx.core.http.HttpHeaders.EXPECT;
+import static io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -23,8 +29,12 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -39,6 +49,7 @@ import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.api.ws.WebSocket;
 import io.gravitee.gateway.reactive.core.MessageFlow;
 import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
+import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.UnconsumedBody;
 import io.netty.channel.Channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
@@ -47,15 +58,21 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subscribers.TestSubscriber;
+import io.vertx.core.Context;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.HttpServerConnection;
 import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpHeaders;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -355,6 +372,177 @@ class VertxHttpServerRequestTest {
         void should_resume_native_request() {
             cut.resume();
             verify(httpServerRequest).resume();
+        }
+    }
+
+    @Nested
+    class UnconsumedBodyTest {
+
+        private static final long TIMER_ID = 42L;
+
+        @Mock
+        Context context;
+
+        @Mock
+        Vertx vertx;
+
+        @Captor
+        ArgumentCaptor<Handler<io.vertx.rxjava3.core.buffer.Buffer>> bodyHandlerCaptor;
+
+        @Captor
+        ArgumentCaptor<Handler<Void>> endHandlerCaptor;
+
+        @Captor
+        ArgumentCaptor<Handler<Long>> timerHandlerCaptor;
+
+        private MockedStatic<Vertx> vertxStatic;
+
+        @BeforeEach
+        void mockVertxContext() {
+            vertxStatic = mockStatic(Vertx.class);
+            vertxStatic.when(Vertx::currentContext).thenReturn(context);
+            lenient().when(context.owner()).thenReturn(vertx);
+            lenient().when(vertx.setTimer(anyLong(), any())).thenReturn(TIMER_ID);
+            lenient().when(httpServerRequest.version()).thenReturn(io.vertx.core.http.HttpVersion.HTTP_1_1);
+        }
+
+        @AfterEach
+        void closeVertxStatic() {
+            vertxStatic.close();
+        }
+
+        @Test
+        void should_discard_body_of_known_length_under_the_limit() {
+            cut = requestWithHeader(CONTENT_LENGTH, String.valueOf(MAX_DISCARDED_BODY_BYTES));
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.DISCARD);
+        }
+
+        @Test
+        void should_discard_then_close_when_body_is_over_the_limit() {
+            cut = requestWithHeader(CONTENT_LENGTH, String.valueOf(MAX_DISCARDED_BODY_BYTES + 1));
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.DISCARD_THEN_CLOSE);
+        }
+
+        @Test
+        void should_discard_then_close_when_body_length_is_unknown() {
+            cut = requestWithHeader(TRANSFER_ENCODING, "chunked");
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.DISCARD_THEN_CLOSE);
+        }
+
+        @Test
+        void should_discard_then_close_when_client_expects_100_continue() {
+            when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers().add(CONTENT_LENGTH, "10").add(EXPECT, "100-continue"));
+            cut = new VertxHttpServerRequest(httpServerRequest, idGenerator);
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.DISCARD_THEN_CLOSE);
+        }
+
+        @Test
+        void should_have_nothing_to_discard_when_no_body_is_announced() {
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.NONE);
+        }
+
+        @Test
+        void should_have_nothing_to_discard_when_body_length_is_zero() {
+            cut = requestWithHeader(CONTENT_LENGTH, "0");
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.NONE);
+        }
+
+        @Test
+        void should_have_nothing_to_discard_when_request_ended() {
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+            when(httpServerRequest.isEnded()).thenReturn(true);
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.NONE);
+        }
+
+        @Test
+        void should_have_nothing_to_discard_when_body_was_subscribed() {
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+            cut.chunks().test();
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.NONE);
+        }
+
+        @Test
+        void should_have_nothing_to_discard_on_http2() {
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+            when(httpServerRequest.version()).thenReturn(io.vertx.core.http.HttpVersion.HTTP_2);
+
+            assertThat(cut.unconsumedBody()).isEqualTo(UnconsumedBody.NONE);
+        }
+
+        @Test
+        void should_keep_connection_once_body_is_discarded() {
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+
+            cut.discardUnconsumedBody(false);
+
+            verify(httpServerRequest).resume();
+            verify(httpServerRequest).endHandler(endHandlerCaptor.capture());
+            endHandlerCaptor.getValue().handle(null);
+
+            verify(httpServerRequest.connection(), never()).close();
+            verify(vertx).cancelTimer(TIMER_ID);
+        }
+
+        @Test
+        void should_close_connection_once_body_is_discarded_when_asked_to() {
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+
+            cut.discardUnconsumedBody(true);
+
+            verify(httpServerRequest.connection(), never()).close();
+            verify(httpServerRequest).endHandler(endHandlerCaptor.capture());
+            endHandlerCaptor.getValue().handle(null);
+
+            verify(httpServerRequest.connection()).close();
+        }
+
+        @Test
+        void should_close_connection_when_discarded_bytes_exceed_limit() {
+            cut = requestWithHeader(TRANSFER_ENCODING, "chunked");
+
+            cut.discardUnconsumedBody(false);
+
+            verify(httpServerRequest).handler(bodyHandlerCaptor.capture());
+            final Handler<io.vertx.rxjava3.core.buffer.Buffer> bodyHandler = bodyHandlerCaptor.getValue();
+            bodyHandler.handle(io.vertx.rxjava3.core.buffer.Buffer.buffer(new byte[(int) MAX_DISCARDED_BODY_BYTES]));
+            verify(httpServerRequest.connection(), never()).close();
+
+            bodyHandler.handle(io.vertx.rxjava3.core.buffer.Buffer.buffer(new byte[1]));
+            bodyHandler.handle(io.vertx.rxjava3.core.buffer.Buffer.buffer(new byte[1]));
+            verify(httpServerRequest.connection(), times(1)).close();
+        }
+
+        @Test
+        void should_close_connection_when_discard_delay_elapses() {
+            cut = requestWithHeader(CONTENT_LENGTH, "10");
+
+            cut.discardUnconsumedBody(false);
+
+            verify(vertx).setTimer(eq(MAX_BODY_DISCARD_DELAY_MS), timerHandlerCaptor.capture());
+            verify(httpServerRequest.connection(), never()).close();
+            timerHandlerCaptor.getValue().handle(TIMER_ID);
+
+            verify(httpServerRequest.connection()).close();
+        }
+
+        @Test
+        void should_close_connection_immediately_when_asked_to_and_nothing_left_to_discard() {
+            cut.discardUnconsumedBody(true);
+
+            verify(httpServerRequest.connection()).close();
+            verify(httpServerRequest, never()).resume();
+        }
+
+        private VertxHttpServerRequest requestWithHeader(CharSequence name, String value) {
+            when(httpServerRequest.headers()).thenReturn(HttpHeaders.headers().add(name, value));
+            return new VertxHttpServerRequest(httpServerRequest, idGenerator);
         }
     }
 
