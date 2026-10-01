@@ -312,6 +312,7 @@ class DictionaryController {
       description: this.dictionary.description,
       provider: this.dictionary.provider,
       trigger: this.dictionary.trigger,
+      encryption: this.dictionary.encryption,
     };
   }
 

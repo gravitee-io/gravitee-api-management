@@ -221,6 +221,23 @@
         </div>
       </div>
     </div>
+    <div
+      class="gv-form"
+      ng-if="$ctrl.dictionary.type === 'DYNAMIC'"
+      permission
+      permission-only="['environment-dictionary-c', 'environment-dictionary-u', 'environment-dictionary-d']"
+    >
+      <h2>Encryption</h2>
+      <div class="gv-form-content" layout="column">
+        <md-checkbox ng-model="$ctrl.dictionary.encryption.encryptOnFetch" aria-label="Encrypt fetched values"
+          >Encrypt fetched values</md-checkbox
+        >
+        <div class="hint" style="position: static; margin: 0 8px 8px">
+          Existing plaintext values are encrypted the next time they are fetched. Already-encrypted values are left untouched, and turning
+          this off does not decrypt anything already stored.
+        </div>
+      </div>
+    </div>
 
     <div class="md-actions gravitee-api-save-button" layout="row">
       <md-button

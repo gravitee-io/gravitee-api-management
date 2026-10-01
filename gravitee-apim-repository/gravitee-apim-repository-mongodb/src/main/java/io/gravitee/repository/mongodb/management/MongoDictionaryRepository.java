@@ -19,9 +19,11 @@ import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryEncryptionPolicy;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.mongodb.management.internal.dictionary.DictionaryMongoRepository;
+import io.gravitee.repository.mongodb.management.internal.model.DictionaryEncryptionPolicyMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryPropertyMongo;
 import io.gravitee.repository.mongodb.management.internal.model.DictionaryProviderMongo;
@@ -133,6 +135,12 @@ public class MongoDictionaryRepository implements DictionaryRepository {
                 dictionaryMongo.setTrigger(null);
             }
 
+            if (dictionary.getEncryption() != null) {
+                dictionaryMongo.setEncryption(convert(dictionary.getEncryption()));
+            } else {
+                dictionaryMongo.setEncryption(null);
+            }
+
             DictionaryMongo dictionaryMongoUpdated = internalDictionaryRepo.save(dictionaryMongo);
 
             final Dictionary res = mapper.map(dictionaryMongoUpdated);
@@ -221,6 +229,12 @@ public class MongoDictionaryRepository implements DictionaryRepository {
         dictionaryTriggerMongo.setRate(dictionaryTrigger.getRate());
         dictionaryTriggerMongo.setUnit(dictionaryTrigger.getUnit());
         return dictionaryTriggerMongo;
+    }
+
+    private DictionaryEncryptionPolicyMongo convert(DictionaryEncryptionPolicy dictionaryEncryptionPolicy) {
+        DictionaryEncryptionPolicyMongo dictionaryEncryptionPolicyMongo = new DictionaryEncryptionPolicyMongo();
+        dictionaryEncryptionPolicyMongo.setEncryptOnFetch(dictionaryEncryptionPolicy.isEncryptOnFetch());
+        return dictionaryEncryptionPolicyMongo;
     }
 
     @Override

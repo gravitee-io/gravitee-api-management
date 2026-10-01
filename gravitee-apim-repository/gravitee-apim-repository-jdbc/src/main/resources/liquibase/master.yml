@@ -437,3 +437,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_13_0/24_add_encrypted_to_dictionary_property.yml
     - include:
         - file: liquibase/changelogs/v4_13_0/25_add_registration_origin_to_users.yml
+    - include:
+        - file: liquibase/changelogs/v4_14_0/01_add_encrypt_on_fetch_to_dictionaries.yml

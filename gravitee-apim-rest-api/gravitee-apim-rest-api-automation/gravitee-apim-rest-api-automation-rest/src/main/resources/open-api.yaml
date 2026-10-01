@@ -1767,6 +1767,8 @@ components:
           $ref: "#/components/schemas/DictionaryProvider"
         trigger:
           $ref: "#/components/schemas/DictionaryTrigger"
+        encryption:
+          $ref: "#/components/schemas/DictionaryEncryptionPolicy"
       required:
         - provider
         - trigger
@@ -1854,6 +1856,14 @@ components:
       required:
         - rate
         - unit
+    DictionaryEncryptionPolicy:
+      type: object
+      description: Encryption policy applied to a 'DYNAMIC' dictionary's fetched values.
+      properties:
+        encryptOnFetch:
+          type: boolean
+          default: false
+          description: Encrypt every fetched value instead of relying on per-key classification.
     DictionaryType:
       type: string
       description: Type of dictionary. MANUAL is to be updated manually, DYNAMIC is updated and deployed automatically.

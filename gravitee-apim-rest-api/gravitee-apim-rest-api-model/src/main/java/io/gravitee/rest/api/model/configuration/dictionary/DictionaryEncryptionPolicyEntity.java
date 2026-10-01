@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.dictionary.model;
+package io.gravitee.rest.api.model.configuration.dictionary;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+/**
+ * @author GraviteeSource Team
+ */
+public class DictionaryEncryptionPolicyEntity {
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Dictionary {
+    private boolean encryptOnFetch;
 
-    private String id;
-    private String hrid;
-    private String name;
-    private String description;
-    private DictionaryType type;
-    private List<DictionaryProperty> properties;
-    private DictionaryProvider provider;
-    private DictionaryTrigger trigger;
-    private DictionaryEncryptionPolicy encryption;
+    public boolean isEncryptOnFetch() {
+        return encryptOnFetch;
+    }
+
+    public void setEncryptOnFetch(boolean encryptOnFetch) {
+        this.encryptOnFetch = encryptOnFetch;
+    }
 }

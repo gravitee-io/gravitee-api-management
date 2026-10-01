@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryEncryptionPolicy;
 import io.gravitee.repository.management.model.DictionaryType;
 import java.util.*;
 import org.junit.jupiter.api.Assertions;
@@ -267,5 +268,40 @@ public class DictionaryRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertTrue(updated.getProperties().get("already-encrypted").encrypted());
         assertEquals("ENC(cipher)", updated.getProperties().get("already-encrypted").value());
+    }
+
+    @Test
+    public void should_round_trip_encryption_policy_through_create_and_update() throws Exception {
+        // No policy at create, mirroring a dynamic dictionary that predates the column.
+        final Dictionary dictionary = new Dictionary();
+        dictionary.setId("dic-encryption-policy");
+        dictionary.setEnvironmentId("DEFAULT");
+        dictionary.setName("My encrypted dic");
+        dictionary.setKey("dic-encryption-policy");
+        dictionary.setType(DictionaryType.DYNAMIC);
+        dictionary.setCreatedAt(new Date(1000000000000L));
+        dictionary.setUpdatedAt(new Date(1000000000000L));
+
+        dictionaryRepository.create(dictionary);
+
+        final Dictionary created = dictionaryRepository.findById("dic-encryption-policy").orElseThrow();
+
+        final DictionaryEncryptionPolicy encryptOn = new DictionaryEncryptionPolicy();
+        encryptOn.setEncryptOnFetch(true);
+        created.setEncryption(encryptOn);
+        dictionaryRepository.update(created);
+
+        final Dictionary turnedOn = dictionaryRepository.findById("dic-encryption-policy").orElseThrow();
+        assertNotNull(turnedOn.getEncryption(), "Invalid updated dictionary encryption policy.");
+        assertTrue(turnedOn.getEncryption().isEncryptOnFetch(), "Invalid updated dictionary encryption policy.");
+
+        final DictionaryEncryptionPolicy encryptOff = new DictionaryEncryptionPolicy();
+        encryptOff.setEncryptOnFetch(false);
+        turnedOn.setEncryption(encryptOff);
+        dictionaryRepository.update(turnedOn);
+
+        final Dictionary turnedOff = dictionaryRepository.findById("dic-encryption-policy").orElseThrow();
+        assertNotNull(turnedOff.getEncryption(), "Invalid updated dictionary encryption policy.");
+        assertFalse(turnedOff.getEncryption().isEncryptOnFetch(), "Invalid updated dictionary encryption policy.");
     }
 }

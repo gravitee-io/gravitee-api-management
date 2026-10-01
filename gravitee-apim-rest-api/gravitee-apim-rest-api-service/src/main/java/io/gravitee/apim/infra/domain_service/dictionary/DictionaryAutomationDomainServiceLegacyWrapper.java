@@ -17,10 +17,12 @@ package io.gravitee.apim.infra.domain_service.dictionary;
 
 import io.gravitee.apim.core.dictionary.domain_service.DictionaryAutomationDomainService;
 import io.gravitee.apim.core.dictionary.model.Dictionary;
+import io.gravitee.apim.core.dictionary.model.DictionaryEncryptionPolicy;
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
 import io.gravitee.apim.core.dictionary.model.DictionaryProvider;
 import io.gravitee.apim.core.dictionary.model.DictionaryTrigger;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEncryptionPolicyEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
@@ -102,6 +104,7 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         entity.setPropertyOptions(toPropertyOptions(dictionary.getProperties()));
         entity.setProvider(toEntity(dictionary.getProvider()));
         entity.setTrigger(toEntity(dictionary.getTrigger()));
+        entity.setEncryption(toEntity(dictionary.getEncryption()));
         return entity;
     }
 
@@ -114,6 +117,7 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         entity.setPropertyOptions(toPropertyOptions(dictionary.getProperties()));
         entity.setProvider(toEntity(dictionary.getProvider()));
         entity.setTrigger(toEntity(dictionary.getTrigger()));
+        entity.setEncryption(toEntity(dictionary.getEncryption()));
         return entity;
     }
 
@@ -170,6 +174,13 @@ public class DictionaryAutomationDomainServiceLegacyWrapper implements Dictionar
         DictionaryTriggerEntity entity = new DictionaryTriggerEntity();
         entity.setRate(trigger.getRate());
         entity.setUnit(trigger.getUnit());
+        return entity;
+    }
+
+    private static DictionaryEncryptionPolicyEntity toEntity(DictionaryEncryptionPolicy encryption) {
+        if (encryption == null) return null;
+        DictionaryEncryptionPolicyEntity entity = new DictionaryEncryptionPolicyEntity();
+        entity.setEncryptOnFetch(encryption.isEncryptOnFetch());
         return entity;
     }
 }

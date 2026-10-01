@@ -19,11 +19,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.gravitee.apim.core.dictionary.model.DictionaryProperty;
+import io.gravitee.apim.rest.api.automation.model.DictionaryEncryptionPolicy;
 import io.gravitee.apim.rest.api.automation.model.DictionarySpec;
 import io.gravitee.apim.rest.api.automation.model.DictionaryState;
 import io.gravitee.apim.rest.api.automation.model.DictionaryType;
 import io.gravitee.apim.rest.api.automation.model.EncryptableValue;
 import io.gravitee.apim.rest.api.automation.model.ManualDictionarySpec;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEncryptionPolicyEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -128,6 +130,25 @@ class DictionaryMapperTest {
         var dictionary = DictionaryMapper.INSTANCE.toDictionary(spec);
 
         assertThat(dictionary.getProperties()).isNull();
+    }
+
+    @Test
+    void should_carry_the_encryption_policy_into_the_core_model() {
+        var encryption = new DictionaryEncryptionPolicy().encryptOnFetch(true);
+
+        var policy = DictionaryMapper.INSTANCE.toCoreEncryptionPolicy(encryption);
+
+        assertThat(policy.isEncryptOnFetch()).isTrue();
+    }
+
+    @Test
+    void should_carry_the_encryption_policy_back_out_to_the_manifest() {
+        var entity = new DictionaryEncryptionPolicyEntity();
+        entity.setEncryptOnFetch(true);
+
+        var policy = DictionaryMapper.INSTANCE.toSpecEncryptionPolicy(entity);
+
+        assertThat(policy.getEncryptOnFetch()).isTrue();
     }
 
     private static DictionarySpec manualSpec(Map<String, String> properties, Map<String, EncryptableValue> encryptedProperties) {
