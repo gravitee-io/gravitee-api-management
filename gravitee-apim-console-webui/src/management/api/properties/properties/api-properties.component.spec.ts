@@ -39,6 +39,7 @@ import { PropertiesImportDialogHarness } from './properties-import-dialog/proper
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Api, fakeApiV2, fakeApiV4, KubernetesContext } from '../../../../entities/management-api-v2/api';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -226,6 +227,37 @@ describe('ApiPropertiesComponent', () => {
 
     expect(copyEvent.defaultPrevented).toEqual(false);
     expect(pasteEvent.defaultPrevented).toEqual(false);
+  });
+
+  it('should render an encrypted dynamic property row masked, badged, deletable, and without an encrypt action', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'cipher', encrypted: true, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        key: 'dynamicKey',
+        value: ENCRYPTED_VALUE_MASK,
+        isValueDisabled: true,
+        characteristic: 'EncryptedDynamic',
+      },
+    ]);
+
+    const encryptButtons = await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    expect(encryptButtons).toEqual([]);
+
+    const removeButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    expect(await removeButton.isDisabled()).toEqual(false);
   });
 
   it('should allow encrypting a dynamic property row', async () => {
@@ -424,6 +456,37 @@ describe('ApiPropertiesComponent', () => {
     expect(postApiReq.request.body.properties).toEqual([]);
   });
 
+  it('should show an error snackbar when the save is rejected by the server', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+      }),
+    );
+    const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+    const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    await removePropertyButton.click();
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+    postApiReq.flush({ message: 'Invalid property value' }, { status: 400, statusText: 'Bad Request' });
+
+    expect(errorSpy).toHaveBeenCalledWith('Invalid property value');
+  });
+
   it('should disable remove with origin KUBERNETES', async () => {
     expectGetApi(
       fakeApiV4({
@@ -436,6 +499,27 @@ describe('ApiPropertiesComponent', () => {
     const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
     const isDisabled = await removePropertyButton.isDisabled();
     expect(isDisabled).toBe(true);
+  });
+
+  it('should disable the encrypt action and remove for a dynamic property with origin KUBERNETES', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'value', dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+        originContext: new KubernetesContext(),
+      }),
+    );
+
+    const encryptButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    expect(await encryptButton.isDisabled()).toEqual(true);
+
+    const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    expect(await removePropertyButton.isDisabled()).toEqual(true);
   });
 
   it('should add property', async () => {
