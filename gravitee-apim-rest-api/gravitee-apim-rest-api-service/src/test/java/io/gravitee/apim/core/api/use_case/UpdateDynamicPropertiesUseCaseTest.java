@@ -651,5 +651,44 @@ class UpdateDynamicPropertiesUseCaseTest {
             assertThat(persisted.isEncrypted()).isFalse();
             assertThat(persisted.getValue()).isEqualTo("s3cret");
         }
+
+        @Test
+        void should_reencrypt_a_changed_property_and_encrypt_a_new_one_in_the_same_batch() throws GeneralSecurityException {
+            var api = givenApi(
+                buildApiWithProperties(
+                    List.of(Property.builder().key("existing").value(DATA_ENCRYPTOR.encrypt("old")).encrypted(true).dynamic(true).build())
+                )
+            );
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(
+                        Property.builder().key("existing").value("new-value").dynamic(true).build(),
+                        Property.builder().key("brand-new").value("s3cret").dynamic(true).build()
+                    ),
+                    true
+                )
+            );
+
+            var properties = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties();
+            assertThat(properties).hasSize(2);
+            properties.forEach(p -> assertThat(p.isEncrypted()).isTrue());
+
+            var existing = properties
+                .stream()
+                .filter(p -> p.getKey().equals("existing"))
+                .findFirst()
+                .orElseThrow();
+            assertThat(DATA_ENCRYPTOR.decrypt(existing.getValue())).isEqualTo("new-value");
+
+            var brandNew = properties
+                .stream()
+                .filter(p -> p.getKey().equals("brand-new"))
+                .findFirst()
+                .orElseThrow();
+            assertThat(DATA_ENCRYPTOR.decrypt(brandNew.getValue())).isEqualTo("s3cret");
+        }
     }
 }
