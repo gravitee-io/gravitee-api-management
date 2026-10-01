@@ -20,7 +20,7 @@ import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, debounceTime, finalize, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
+import { catchError, debounceTime, finalize, forkJoin, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -30,6 +30,7 @@ import { TreeComponent } from './tree/tree.component';
 import { Breadcrumb } from '../../../../components/breadcrumbs/breadcrumbs.component';
 import { DocumentationSkeletonComponent } from '../../../../components/documentation-skeleton/documentation-skeleton.component';
 import { NavigationItemContentViewerComponent } from '../../../../components/navigation-item-content-viewer/navigation-item-content-viewer.component';
+import { SearchBarComponent } from '../../../../components/search-bar/search-bar.component';
 import { SidenavLayoutComponent } from '../../../../components/sidenav-layout/sidenav-layout.component';
 import { SidenavSkeletonComponent } from '../../../../components/sidenav-skeleton/sidenav-skeleton.component';
 import { MobileClassDirective } from '../../../../directives/mobile-class.directive';
@@ -39,7 +40,7 @@ import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { ApiTabToolsComponent } from '../../../api/api-details/api-tab-tools/api-tab-tools.component';
-import { DocumentationActionContext, TreeNode, TreeService } from '../../services/tree.service';
+import { DocumentationActionContext, expandedContainerIds, filterTreeByQuery, TreeNode, TreeService } from '../../services/tree.service';
 
 interface FolderData {
   children: PortalNavigationItem[];
@@ -60,6 +61,7 @@ enum NavParamsChange {
     SidenavSkeletonComponent,
     DocumentationSkeletonComponent,
     TreeComponent,
+    SearchBarComponent,
     GraviteeMarkdownViewerModule,
     NavigationItemContentViewerComponent,
     AsyncPipe,
@@ -83,6 +85,19 @@ export class DocumentationFolderComponent {
   contentLoading = signal(false);
 
   tree = signal<TreeNode[]>([]);
+  /** Open only these containers. Empty when the navbar folder is opened, so every folder starts minimized. */
+  expandedNodeIds = signal<ReadonlySet<string>>(new Set());
+  searchQuery = signal('');
+  /** Page body text, loaded once per folder the first time the user searches. */
+  private pageContents = signal<ReadonlyMap<string, string>>(new Map());
+  contentSearchPending = signal(false);
+  private contentSearchState: 'idle' | 'loading' | 'ready' = 'idle';
+  private contentSearchGeneration = 0;
+
+  displayedTree = computed(() => filterTreeByQuery(this.tree(), this.searchQuery(), this.pageContents()));
+  visibleExpandedIds = computed(() =>
+    this.searchQuery().trim() ? expandedContainerIds(this.displayedTree()) : this.expandedNodeIds(),
+  );
   breadcrumbs = signal<Breadcrumb[]>([]);
 
   documentationActionContext = signal<DocumentationActionContext>({ apiId: null, subscriptionTarget: null });
@@ -107,6 +122,14 @@ export class DocumentationFolderComponent {
     this.navigateToPage(selectedPageId);
   }
 
+  onFolderSearch(term: string) {
+    this.searchQuery.set(term);
+    if (!term.trim() || this.contentSearchState !== 'idle') {
+      return;
+    }
+    this.loadPageContents();
+  }
+
   onSubscribe() {
     const target = this.subscriptionTarget();
     if (!target) {
@@ -127,6 +150,8 @@ export class DocumentationFolderComponent {
       switchMap(([changedData, navId, selectedId]) => {
         switch (changedData) {
           case NavParamsChange.NAV_ID:
+            this.expandedNodeIds.set(new Set());
+            this.resetFolderSearch();
             this.folderLoading.set(true);
             this.contentLoading.set(true);
             return this.loadChildrenAndContent(navId, selectedId).pipe(
@@ -158,6 +183,7 @@ export class DocumentationFolderComponent {
     this.documentationActionContext.set({ apiId: null, subscriptionTarget: null });
 
     if (!selectedId) {
+      this.expandedNodeIds.set(new Set());
       return of({ children, selectedPageContent: null }).pipe(
         tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByDefault())),
         tap(() => this.navigateToFirstPage()),
@@ -170,6 +196,10 @@ export class DocumentationFolderComponent {
     }
 
     if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
+      // A catalog tile opens one API or API Product. Keep every other folder minimized.
+      if (child.type === 'API' || child.type === 'API_PRODUCT') {
+        this.expandedNodeIds.set(this.treeService.ancestorIds(selectedId));
+      }
       // APIs, API Products, and folders are not selectable, so navigate to their first page.
       const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
@@ -181,6 +211,42 @@ export class DocumentationFolderComponent {
       tap(() => this.documentationActionContext.set(documentationActionContext)),
       map(selectedPageContent => ({ children, selectedPageContent })),
     );
+  }
+
+  private resetFolderSearch() {
+    this.contentSearchGeneration++;
+    this.contentSearchState = 'idle';
+    this.contentSearchPending.set(false);
+    this.searchQuery.set('');
+    this.pageContents.set(new Map());
+  }
+
+  private loadPageContents() {
+    const pages = (this.folderData()?.children ?? []).filter(item => item.type === 'PAGE');
+    const generation = ++this.contentSearchGeneration;
+    if (!pages.length) {
+      this.contentSearchState = 'ready';
+      this.contentSearchPending.set(false);
+      return;
+    }
+
+    this.contentSearchState = 'loading';
+    this.contentSearchPending.set(true);
+    forkJoin(
+      pages.map(page =>
+        this.itemsService.getNavigationItemContent(page.id).pipe(
+          map(content => [page.id, content.content ?? ''] as const),
+          catchError(() => of([page.id, ''] as const)),
+        ),
+      ),
+    ).subscribe(entries => {
+      if (generation !== this.contentSearchGeneration) {
+        return;
+      }
+      this.pageContents.set(new Map(entries));
+      this.contentSearchPending.set(false);
+      this.contentSearchState = 'ready';
+    });
   }
 
   private navigateToFirstPage() {

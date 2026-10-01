@@ -96,21 +96,15 @@ describe('documentation service', () => {
         expect(result.breadcrumb).toEqual([{ id: 'folder-1', name: 'Guides', position: 1 }]);
     });
 
-    it('createDocumentationPage posts the payload and mirrors an unpublished Navigation page', async () => {
+    it('createDocumentationPage posts to classic pages only and does not create a Navigation API node', async () => {
         const created = { id: 'page-1', type: 'MARKDOWN', name: 'Intro' };
         const tracker = trackHandler('post', API_PAGES, created);
         respondWith('get', API_PAGES, { pages: [] });
-        respondWith('get', PORTAL_ITEMS, PLACED_NAV_ITEMS);
         const navCreates: unknown[] = [];
         server.use(
             http.post(PORTAL_ITEMS, async ({ request }) => {
-                const body = (await request.json()) as Record<string, unknown>;
-                navCreates.push(body);
-                return HttpResponse.json({
-                    id: 'nav-page-1',
-                    ...body,
-                    portalPageContentId: 'content-1',
-                });
+                navCreates.push(await request.json());
+                return HttpResponse.json({ id: 'should-not-happen' });
             }),
         );
 
@@ -122,83 +116,36 @@ describe('documentation service', () => {
                 name: 'Intro',
                 type: 'MARKDOWN',
                 published: false,
-                portalNavId: 'nav-page-1',
-                portalPageContentId: 'content-1',
             }),
         );
         expect(tracker.lastCall?.body).toEqual({ name: 'Intro', type: 'MARKDOWN', parentId: 'ROOT' });
-        expect(navCreates).toEqual([
-            expect.objectContaining({
-                type: 'PAGE',
-                title: 'Intro',
-                parentId: 'api-nav',
-                published: false,
-                contentType: 'GRAVITEE_MARKDOWN',
-            }),
-        ]);
+        expect(navCreates).toEqual([]);
     });
 
-    it('createDocumentationPage places the API under the default folder when missing, then mirrors the page unpublished', async () => {
+    it('createDocumentationPage creates a folder in the classic store without placing the API in Navigation', async () => {
         respondWith('get', API_PAGES, { pages: [] });
-        respondWith('get', PORTAL_ITEMS, {
-            items: [{ id: 'f1', type: 'FOLDER', title: 'Docs', area: 'TOP_NAVBAR' }],
-        });
-        respondWith('get', `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}/environments/${TEST_CONFIG.environmentId}/settings`, {
-            portalNext: { documentation: { defaultFolderId: 'f1' } },
-        });
-        respondWith('get', `${TEST_V2_BASE}/apis/api-1`, { id: 'api-1', name: 'Orders' });
-        trackHandler('post', API_PAGES, { id: 'page-1', type: 'MARKDOWN', name: 'Intro' });
-
+        trackHandler('post', API_PAGES, { id: 'folder-1', type: 'FOLDER', name: 'Guides' });
         const navCreates: unknown[] = [];
-        let navListCalls = 0;
         server.use(
-            http.get(PORTAL_ITEMS, () => {
-                navListCalls += 1;
-                // After the API is placed, subsequent lists include the API node.
-                if (navCreates.some(item => (item as { type?: string }).type === 'API')) {
-                    return HttpResponse.json({
-                        items: [
-                            { id: 'f1', type: 'FOLDER', title: 'Docs', area: 'TOP_NAVBAR' },
-                            { id: 'api-nav', type: 'API', apiId: 'api-1', parentId: 'f1', title: 'Orders', published: false },
-                        ],
-                    });
-                }
-                return HttpResponse.json({
-                    items: [{ id: 'f1', type: 'FOLDER', title: 'Docs', area: 'TOP_NAVBAR' }],
-                });
-            }),
             http.post(PORTAL_ITEMS, async ({ request }) => {
-                const body = (await request.json()) as Record<string, unknown>;
-                navCreates.push(body);
-                if (body.type === 'API') {
-                    return HttpResponse.json({ id: 'api-nav', ...body });
-                }
-                return HttpResponse.json({ id: 'nav-page-1', ...body, portalPageContentId: 'content-1' });
+                navCreates.push(await request.json());
+                return HttpResponse.json({ id: 'should-not-happen' });
             }),
         );
 
-        await createDocumentationPage('DEFAULT', 'api-1', { name: 'Intro', type: 'MARKDOWN', parentId: 'ROOT' });
-
-        expect(navCreates).toEqual([
-            expect.objectContaining({ type: 'API', apiId: 'api-1', parentId: 'f1', published: false }),
-            expect.objectContaining({ type: 'PAGE', title: 'Intro', parentId: 'api-nav', published: false }),
-        ]);
-        expect(navListCalls).toBeGreaterThan(0);
+        await expect(
+            createDocumentationPage('DEFAULT', 'api-1', { name: 'Guides', type: 'FOLDER', parentId: 'ROOT' }),
+        ).resolves.toEqual(expect.objectContaining({ id: 'folder-1', type: 'FOLDER', name: 'Guides' }));
+        expect(navCreates).toEqual([]);
     });
 
-    it('createDocumentationPage fails when no default Navigation folder is configured', async () => {
+    it('createDocumentationPage still works when no default Navigation folder is configured', async () => {
         respondWith('get', API_PAGES, { pages: [] });
-        respondWith('get', PORTAL_ITEMS, {
-            items: [{ id: 'f1', type: 'FOLDER', title: 'Docs', area: 'TOP_NAVBAR' }],
-        });
-        respondWith('get', `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}/environments/${TEST_CONFIG.environmentId}/settings`, {
-            portalNext: { documentation: {} },
-        });
         trackHandler('post', API_PAGES, { id: 'page-1', type: 'MARKDOWN', name: 'Intro' });
 
         await expect(
             createDocumentationPage('DEFAULT', 'api-1', { name: 'Intro', type: 'MARKDOWN', parentId: 'ROOT' }),
-        ).rejects.toThrow(/default Navigation folder/);
+        ).resolves.toEqual(expect.objectContaining({ id: 'page-1', name: 'Intro' }));
     });
 
     it('update, publish, unpublish, fetch and delete use the page id', async () => {
@@ -572,7 +519,7 @@ describe('documentation service', () => {
             items: [
                 ...PLACED_NAV_ITEMS.items,
                 { id: 'intro-nav', type: 'PAGE', title: 'Intro', parentId: 'api-nav', published: false },
-                { id: 'other-nav', type: 'PAGE', title: 'Other', parentId: 'api-nav', published: false },
+                { id: 'other-nav', type: 'PAGE', title: 'Other', parentId: 'api-nav', published: true },
             ],
         });
         respondWith('get', API_PAGE, {
@@ -599,6 +546,87 @@ describe('documentation service', () => {
         await expect(deleteDocumentationPage('DEFAULT', 'api-1', 'page-1')).resolves.toBeUndefined();
         expect(pageDelete.callCount).toBe(1);
         expect(navDeletes).toEqual(['intro-nav']);
+    });
+
+    it('deleteDocumentationPage recursively deletes classic folder children before the folder', async () => {
+        respondWith('get', PORTAL_ITEMS, {
+            items: [
+                ...PLACED_NAV_ITEMS.items,
+                { id: 'guides-nav', type: 'FOLDER', title: 'Guides', parentId: 'api-nav', published: false },
+                { id: 'nested-nav', type: 'FOLDER', title: 'Nested', parentId: 'guides-nav', published: false },
+                { id: 'page-nav', type: 'PAGE', title: 'Intro', parentId: 'nested-nav', published: false },
+            ],
+        });
+        respondWith('get', API_PAGE, {
+            id: 'folder-1',
+            name: 'Guides',
+            type: 'FOLDER',
+            portalNavId: 'guides-nav',
+        });
+        respondWith('get', API_PAGES, {
+            pages: [
+                { id: 'folder-1', name: 'Guides', type: 'FOLDER' },
+                { id: 'folder-2', name: 'Nested', type: 'FOLDER', parentId: 'folder-1' },
+                { id: 'page-1', name: 'Intro', type: 'MARKDOWN', parentId: 'folder-2' },
+            ],
+        });
+        const classicDeletes: string[] = [];
+        server.use(
+            http.delete(API_PAGE, ({ params }) => {
+                classicDeletes.push(String(params.pageId));
+                return new HttpResponse(null, { status: 204 });
+            }),
+            http.delete(PORTAL_ITEM, () => new HttpResponse(null, { status: 204 })),
+        );
+
+        await deleteDocumentationPage('DEFAULT', 'api-1', 'folder-1');
+        expect(classicDeletes).toEqual(['page-1', 'folder-2', 'folder-1']);
+    });
+
+    it('deleteDocumentationPage unpublishes the API when the last published document is deleted', async () => {
+        respondWith('get', PORTAL_ITEMS, {
+            items: [
+                { id: 'f1', type: 'FOLDER', title: 'Docs', area: 'TOP_NAVBAR', published: true },
+                { id: 'api-nav', type: 'API', apiId: 'api-1', parentId: 'f1', title: 'Orders', published: true },
+                { id: 'intro-nav', type: 'PAGE', title: 'Intro', parentId: 'api-nav', published: true },
+                { id: 'draft-nav', type: 'PAGE', title: 'Draft', parentId: 'api-nav', published: false },
+            ],
+        });
+        respondWith('get', API_PAGE, {
+            id: 'page-1',
+            name: 'Intro',
+            type: 'MARKDOWN',
+            published: true,
+            portalNavId: 'intro-nav',
+        });
+        respondWith('get', API_PAGES, {
+            pages: [
+                { id: 'page-1', name: 'Intro', type: 'MARKDOWN', published: true },
+                { id: 'page-2', name: 'Draft', type: 'MARKDOWN', published: false },
+            ],
+        });
+        const navDeletes: string[] = [];
+        const navUpdates: Array<{ navId: string; body: Record<string, unknown> }> = [];
+        server.use(
+            http.delete(API_PAGE, () => new HttpResponse(null, { status: 204 })),
+            http.delete(PORTAL_ITEM, ({ params }) => {
+                navDeletes.push(String(params.navId));
+                return new HttpResponse(null, { status: 204 });
+            }),
+            http.put(PORTAL_ITEM, async ({ params, request }) => {
+                navUpdates.push({ navId: String(params.navId), body: (await request.json()) as Record<string, unknown> });
+                return HttpResponse.json({});
+            }),
+        );
+
+        await deleteDocumentationPage('DEFAULT', 'api-1', 'page-1');
+        expect(navDeletes).toEqual(['intro-nav']);
+        expect(navUpdates).toEqual([
+            expect.objectContaining({
+                navId: 'api-nav',
+                body: expect.objectContaining({ type: 'API', apiId: 'api-1', published: false }),
+            }),
+        ]);
     });
 
     it('deleteDocumentationPage removes the API Navigation node when it was the last document', async () => {

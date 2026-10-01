@@ -125,6 +125,7 @@ describe('HomePage', () => {
         ).toEqual([
             'Agent Management',
             'API Management',
+            'Developer Portal',
             'Event Stream Management',
             'Authorization Management',
             'Developer Portals',

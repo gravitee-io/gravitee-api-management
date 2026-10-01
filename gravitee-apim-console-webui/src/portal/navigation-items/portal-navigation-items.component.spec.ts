@@ -1193,6 +1193,129 @@ describe('PortalNavigationItemsComponent', () => {
       });
     });
 
+    describe('importing Proxy API documentation under an api', () => {
+      it('offers Import the Proxy API documentation and mirrors missing pages and folders', async () => {
+        component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node });
+        fixture.detectChanges();
+
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getContentSourceValues()).toEqual(
+          expect.arrayContaining(['FILL', 'IMPORT_FILE', 'EXTERNAL', 'IMPORT_API_DOCS']),
+        );
+
+        const guidesFolder = {
+          id: 'folder-guides',
+          name: 'Guides',
+          type: 'FOLDER',
+          order: 0,
+        };
+        const introPage = {
+          id: 'page-intro',
+          name: 'Intro',
+          type: 'MARKDOWN',
+          parentId: 'folder-guides',
+          order: 0,
+          content: '# Intro from proxy',
+        };
+        const createdFolder = fakePortalNavigationFolder({
+          id: 'nav-folder-guides',
+          title: 'Guides',
+          parentId: api.id,
+        });
+        const createdPage = fakePortalNavigationPage({
+          id: 'nav-page-intro',
+          title: 'Intro',
+          parentId: createdFolder.id,
+          portalPageContentId: 'content-intro',
+        });
+
+        await dialog.selectContentSource('IMPORT_API_DOCS');
+        fixture.detectChanges();
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
+
+        expectGetApiProxyPages(api.apiId, [guidesFolder, introPage]);
+        expectCreateNavigationItem(
+          {
+            type: 'FOLDER',
+            title: 'Guides',
+            parentId: api.id,
+            area: 'TOP_NAVBAR',
+            visibility: 'PUBLIC',
+            order: 0,
+          },
+          createdFolder,
+        );
+        expectGetApiProxyPage(api.apiId, 'page-intro', introPage);
+        expectCreateNavigationItem(
+          {
+            type: 'PAGE',
+            title: 'Intro',
+            parentId: createdFolder.id,
+            area: 'TOP_NAVBAR',
+            visibility: 'PUBLIC',
+            contentType: 'GRAVITEE_MARKDOWN',
+            order: 0,
+          },
+          createdPage,
+        );
+
+        const contentReq = httpTestingController.expectOne({
+          method: 'PUT',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-page-contents/content-intro`,
+        });
+        expect(contentReq.request.body).toEqual({ content: '# Intro from proxy', type: 'GRAVITEE_MARKDOWN' });
+        contentReq.flush({ id: 'content-intro', content: '# Intro from proxy', type: 'GRAVITEE_MARKDOWN' });
+
+        await expectGetNavigationItems(fakePortalNavigationItemsResponse({ items: [api, createdFolder, createdPage] }));
+        expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: api.id } }));
+      });
+
+      it('skips Proxy API documentation pages and folders that already exist under the API', async () => {
+        const existingFolder = fakePortalNavigationFolder({
+          id: 'nav-folder-guides',
+          title: 'Guides',
+          parentId: api.id,
+        });
+        const existingPage = fakePortalNavigationPage({
+          id: 'nav-page-intro',
+          title: 'Intro',
+          parentId: existingFolder.id,
+          portalPageContentId: 'content-intro',
+        });
+        const responseWithDocs = fakePortalNavigationItemsResponse({
+          items: [api, existingFolder, existingPage],
+        });
+
+        privateComponent().refreshMenuList.next(1);
+        await expectGetNavigationItems(responseWithDocs);
+        flushPendingLinkedApiSearchRequests();
+        await fixture.whenStable();
+
+        component.onNodeMenuAction({ action: 'create', itemType: 'PAGE', node });
+        fixture.detectChanges();
+
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        await dialog.selectContentSource('IMPORT_API_DOCS');
+        fixture.detectChanges();
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
+
+        expectGetApiProxyPages(api.apiId, [
+          { id: 'folder-guides', name: 'Guides', type: 'FOLDER', order: 0 },
+          { id: 'page-intro', name: 'Intro', type: 'MARKDOWN', parentId: 'folder-guides', order: 0, content: '# Intro' },
+        ]);
+
+        httpTestingController.expectNone({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/portal-navigation-items`,
+        });
+
+        await expectGetNavigationItems(responseWithDocs);
+        expect(routerSpy).toHaveBeenCalledWith(['.'], expect.objectContaining({ queryParams: { navId: api.id } }));
+      });
+    });
+
     describe('creating a folder under an api from tree node "More actions" menu', () => {
       beforeEach(async () => {
         const component = fixture.componentInstance;

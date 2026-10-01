@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TreeService } from './tree.service';
+import { expandedContainerIds, filterTreeByQuery, TreeService } from './tree.service';
 import {
   fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
@@ -55,6 +55,11 @@ describe('DocumentationTreeService', () => {
     const page = service.findFirstPageId();
     expect(page).toBeTruthy();
     expect(page).toEqual('p1');
+  });
+
+  it('should return a node and its ancestors', () => {
+    expect(service.ancestorIds('api1')).toEqual(new Set(['api1', 'f1']));
+    expect(service.ancestorIds('p1')).toEqual(new Set(['p1', 'f2', 'f1']));
   });
 
   describe('test breadcrumbs', () => {
@@ -160,6 +165,31 @@ describe('DocumentationTreeService', () => {
     it('should return an empty context when page has no API or API Product ancestor', () => {
       expect(service.getDocumentationActionContext('p1')).toEqual({ apiId: null, subscriptionTarget: null });
       expect(service.getDocumentationActionContext('p3')).toEqual({ apiId: null, subscriptionTarget: null });
+    });
+  });
+
+  describe('filterTreeByQuery', () => {
+    it('should return the full tree when the query is blank', () => {
+      expect(filterTreeByQuery(service.getTree(), '   ')).toEqual(service.getTree());
+    });
+
+    it('should keep a matching page and the folders that contain it', () => {
+      const filtered = filterTreeByQuery(service.getTree(), 'page 2');
+      expect(filtered.map(node => node.id)).toEqual(['f1']);
+      expect(filtered[0].children?.map(node => node.id)).toEqual(['p2']);
+    });
+
+    it('should keep every child when the folder name matches', () => {
+      const filtered = filterTreeByQuery(service.getTree(), 'folder 2');
+      expect(filtered[0].children?.map(node => node.id)).toEqual(['f2']);
+      expect(filtered[0].children?.[0].children?.map(node => node.id)).toEqual(['p1']);
+    });
+
+    it('should match page contents and expand the path to that page', () => {
+      const filtered = filterTreeByQuery(service.getTree(), 'ledger', new Map([['p1', 'quarterly ledger totals']]));
+      expect(expandedContainerIds(filtered)).toEqual(new Set(['f1', 'f2']));
+      expect(filtered[0].children?.map(node => node.id)).toEqual(['f2']);
+      expect(filtered[0].children?.[0].children?.map(node => node.id)).toEqual(['p1']);
     });
   });
 });

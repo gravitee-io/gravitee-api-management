@@ -19,7 +19,7 @@ import { RefreshCwIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
 import { ApplicationCard, type CardMetrics } from './components/application-card/ApplicationCard';
-import { APPLICATIONS, buildModulePath } from './components/application-card/applications';
+import { APPLICATIONS, buildModulePath, resolveApplicationDestination } from './components/application-card/applications';
 import { GET_STARTED_STEPS } from './components/get-started/get-started';
 import { GetStartedCard } from './components/get-started/GetStartedCard';
 import {
@@ -154,10 +154,12 @@ export function HomePage({ modules, loading, error, onRetry }: HomePageProps) {
                 ) : (
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         {APPLICATIONS.map(app => {
-                            const to = isAvailable(app.moduleId) || !app.upgrade ? buildModulePath(envHrid, app.moduleId) : null;
-                            return (
-                                <ApplicationCard key={app.title} app={app} to={to} metrics={to ? moduleMetrics[app.moduleId] : undefined} />
-                            );
+                            const to = resolveApplicationDestination(app, envHrid, isAvailable);
+                            const metrics =
+                                app.moduleId && app.moduleId !== 'cloud' && to && !app.externalUrl
+                                    ? moduleMetrics[app.moduleId]
+                                    : undefined;
+                            return <ApplicationCard key={app.title} app={app} to={to} metrics={metrics} />;
                         })}
                     </div>
                 )}

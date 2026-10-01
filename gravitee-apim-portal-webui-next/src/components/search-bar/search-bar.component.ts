@@ -35,6 +35,8 @@ import { ObservabilityBreakpointService } from '../../services/observability-bre
 })
 export class SearchBarComponent implements OnInit {
   searchParam = input('');
+  placeholder = input('Search');
+  showShortcut = input(true);
   searchTerm = output<string>();
   searchControl: FormControl<string> = new FormControl<string>(``, { nonNullable: true });
 

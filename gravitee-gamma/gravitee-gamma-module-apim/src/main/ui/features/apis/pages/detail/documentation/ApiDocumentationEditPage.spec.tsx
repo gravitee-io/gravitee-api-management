@@ -116,6 +116,69 @@ describe('ApiDocumentationEditPage', () => {
                 name: 'Getting started',
                 content: '# Hello',
                 parentId: 'ROOT',
+                visibility: 'PUBLIC',
+            }),
+            expect.any(Object),
+        );
+    });
+
+    it('defaults visibility to private and locks the switch when the parent folder is private', async () => {
+        const user = userEvent.setup();
+        const mutate = jest.fn();
+        mockUseCreate.mockReturnValue(mutationMock(mutate));
+        mockUsePage.mockImplementation((_apiId: string | undefined, pageId: string | undefined) => {
+            if (pageId === 'folder-1') {
+                return {
+                    data: { id: 'folder-1', name: 'Private guides', type: 'FOLDER', visibility: 'PRIVATE' },
+                    isLoading: false,
+                    isError: false,
+                };
+            }
+            return { data: undefined, isLoading: false, isError: false };
+        });
+        renderCreate('?pageType=MARKDOWN&parentId=folder-1');
+
+        expect(screen.getByText(/folder requiring authentication/i)).toBeInTheDocument();
+        expect(screen.getByRole('switch', { name: /require authentication/i })).toBeDisabled();
+        expect(screen.getByRole('switch', { name: /require authentication/i })).toBeChecked();
+
+        await user.type(screen.getByRole('textbox', { name: /name/i }), 'Secret guide');
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+        await user.type(screen.getByLabelText('Page content'), '# Secret');
+        await user.click(screen.getByRole('button', { name: /^Save$/ }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                name: 'Secret guide',
+                parentId: 'folder-1',
+                visibility: 'PRIVATE',
+            }),
+            expect.any(Object),
+        );
+    });
+
+    it('lets the user require authentication when creating under a public parent', async () => {
+        const user = userEvent.setup();
+        const mutate = jest.fn();
+        mockUseCreate.mockReturnValue(mutationMock(mutate));
+        renderCreate();
+
+        const authSwitch = screen.getByRole('switch', { name: /require authentication/i });
+        expect(authSwitch).not.toBeChecked();
+        await user.click(authSwitch);
+        expect(authSwitch).toBeChecked();
+
+        await user.type(screen.getByRole('textbox', { name: /name/i }), 'Members only');
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+        await user.click(screen.getByRole('button', { name: 'Next' }));
+        await user.type(screen.getByLabelText('Page content'), '# Hello');
+        await user.click(screen.getByRole('button', { name: /^Save$/ }));
+
+        expect(mutate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                name: 'Members only',
+                visibility: 'PRIVATE',
             }),
             expect.any(Object),
         );

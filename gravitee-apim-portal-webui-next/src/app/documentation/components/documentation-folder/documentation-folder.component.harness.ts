@@ -15,6 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 import { GraviteeMarkdownViewerHarness } from '@gravitee/gravitee-markdown';
 
@@ -40,6 +41,7 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
   private readonly getSidenavEmptyStateHarness = this.locatorForOptional(
     DivHarness.with({ selector: '.documentation-folder__sidenav__empty-state' }),
   );
+  private readonly getSearchInput = this.locatorForOptional(MatInputHarness);
   private readonly getNavigationItemContentViewerHarness = this.locatorForOptional(NavigationItemContentViewerHarness);
   private readonly getGraviteeMarkdownViewer = this.locatorForOptional(GraviteeMarkdownViewerHarness);
   private readonly getSubscribeMatButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[data-testid="subscribe-button"]' }));
@@ -57,6 +59,14 @@ export class DocumentationFolderComponentHarness extends ComponentHarness {
 
   async getTreeHarness(): Promise<TreeComponentHarness | null> {
     return this.getTree();
+  }
+
+  async search(term: string): Promise<void> {
+    const input = await this.getSearchInput();
+    if (!input) {
+      throw new Error('Search input not found');
+    }
+    await input.setValue(term);
   }
 
   async getBreadcrumbs(): Promise<BreadcrumbsComponentHarness | null> {

@@ -163,9 +163,11 @@ describe('ApiDocumentationPagesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('checkbox', { name: 'Select Getting started' }));
-        expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
+        expect(screen.getByText('1 of 2 selected')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Publish 1' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: 'Publish' }));
+        await user.click(screen.getByRole('button', { name: 'Publish 1' }));
         expect(screen.getByText('Publish to Next Gen Portal')).toBeInTheDocument();
 
         const dialog = screen.getByRole('dialog');
@@ -214,7 +216,7 @@ describe('ApiDocumentationPagesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('checkbox', { name: 'Select Getting started' }));
-        await user.click(screen.getByRole('button', { name: 'Publish' }));
+        await user.click(screen.getByRole('button', { name: 'Publish 1' }));
 
         expect(screen.getByText(/already published in “Docs”/)).toBeInTheDocument();
         expect(screen.getByText(/Publish the whole API documentation to another folder/)).toBeInTheDocument();
@@ -263,7 +265,7 @@ describe('ApiDocumentationPagesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('checkbox', { name: 'Select Getting started' }));
-        await user.click(screen.getByRole('button', { name: 'Publish' }));
+        await user.click(screen.getByRole('button', { name: 'Publish 1' }));
 
         const dialog = screen.getByRole('dialog');
         await user.click(within(dialog).getByRole('checkbox', { name: /Publish the whole API documentation/i }));
@@ -308,8 +310,8 @@ describe('ApiDocumentationPagesPage', () => {
         renderPage();
 
         await user.click(screen.getByRole('checkbox', { name: 'Select Getting started' }));
-        expect(screen.getByRole('button', { name: 'Unpublish' })).toBeInTheDocument();
-        await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+        expect(screen.getByRole('button', { name: 'Unpublish 1' })).toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Unpublish 1' }));
 
         const dialog = screen.getByRole('dialog');
         await user.click(within(dialog).getByRole('button', { name: /unpublish/i }));
@@ -443,9 +445,10 @@ describe('ApiDocumentationPagesPage', () => {
         expect(screen.queryByRole('button', { name: 'Publish API' })).not.toBeInTheDocument();
 
         await user.click(screen.getByRole('checkbox', { name: 'Select Getting started' }));
-        expect(screen.getByRole('button', { name: 'Publish' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Publish 1' })).toBeInTheDocument();
+        expect(screen.getByText('1 of 2 selected')).toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: 'Publish' }));
+        await user.click(screen.getByRole('button', { name: 'Publish 1' }));
         expect(screen.getByText('Publish to Next Gen Portal')).toBeInTheDocument();
 
         const dialog = screen.getByRole('dialog');
@@ -501,6 +504,46 @@ describe('ApiDocumentationPagesPage', () => {
             pages: [FOLDER, PAGE, NESTED],
             pageIds: ['page-1'],
         });
+    });
+
+    it('warns that deleting the only published document will unpublish the API', async () => {
+        const user = userEvent.setup();
+        const onlyPublished: DocumentationPage = {
+            id: 'page-1',
+            name: 'Getting started',
+            type: 'MARKDOWN',
+            visibility: 'PUBLIC',
+            published: true,
+            order: 0,
+        };
+        mockUseTree.mockReturnValue({
+            pages: [onlyPublished],
+            isLoading: false,
+            isError: false,
+            refetch: jest.fn(),
+        });
+        mockUsePortalFolders.mockReturnValue({
+            data: {
+                folders: [{ id: 'nav-1', path: 'Docs', area: 'TOP_NAVBAR' }],
+                placement: {
+                    folderId: 'nav-1',
+                    folderPath: 'Docs',
+                    itemId: 'api-nav',
+                    area: 'TOP_NAVBAR',
+                    published: true,
+                },
+            },
+            isFetching: false,
+            refetch: jest.fn(),
+        });
+        renderPage();
+
+        await user.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
+        await user.click(screen.getByRole('menuitem', { name: 'Delete page' }));
+
+        expect(screen.getByRole('dialog')).toHaveTextContent(
+            'This is the only published documentation for this API, so deleting it will unpublish the API from the Next Gen Developer Portal',
+        );
     });
 
     it('hides mutating actions when kubernetes origin', () => {

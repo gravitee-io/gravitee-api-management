@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { LucideIcon } from '@gravitee/graphene-core/icons';
+import { BookOpenIcon, type LucideIcon } from '@gravitee/graphene-core/icons';
 
 import { MODULE_CATALOG, MODULE_ICONS, type ModuleId } from '../../../../features/modules';
 import type { Accent } from '../accents';
@@ -21,7 +21,10 @@ import type { Accent } from '../accents';
 export interface Application {
     readonly title: string;
     readonly description: string;
-    readonly moduleId: ModuleId;
+    /** Present for Gamma product modules; omitted for external destinations (e.g. classic Developer Portal). */
+    readonly moduleId?: ModuleId | 'cloud';
+    /** When set, the card opens this URL in a new tab instead of navigating inside Gamma. */
+    readonly externalUrl?: string;
     readonly Icon: LucideIcon;
     readonly accent: Accent;
     readonly emptyState: {
@@ -36,7 +39,39 @@ export interface Application {
     readonly upgrade?: {
         readonly features: readonly string[];
     };
+    /**
+     * Host-native apps (e.g. Cloud / Cockpit) that are always reachable even when no matching
+     * gamma-module plugin is registered.
+     */
+    readonly alwaysAvailable?: boolean;
 }
+
+/**
+ * Classic (Angular) Developer Portal. Local docker-compose / APIM defaults expose it on :8084.
+ * Kept as an explicit home / app-switcher entry so operators can open the consumer portal
+ * without going through the Developer Portals management module.
+ */
+export const DEVELOPER_PORTAL_URL = 'http://localhost:8084/#!/default/_portal/';
+
+const DEVELOPER_PORTAL_APPLICATION: Application = {
+    title: 'Developer Portal',
+    description: 'Browse published APIs and documentation as an API consumer.',
+    externalUrl: DEVELOPER_PORTAL_URL,
+    Icon: BookOpenIcon,
+    accent: 'primary',
+    emptyState: { cta: 'Open Developer Portal', ctaPath: '' },
+};
+
+/** Host-native Cloud (Gamma Cockpit) — always available without a cloud gamma-module plugin. */
+const CLOUD_APPLICATION: Application = {
+    title: 'Cloud',
+    description: 'Manage your Gravitee Cloud account, organizations, environments, and installations.',
+    moduleId: 'cloud',
+    Icon: MODULE_ICONS.cloud!,
+    accent: 'accent',
+    alwaysAvailable: true,
+    emptyState: { cta: 'Open Cloud', ctaPath: 'dashboard' },
+};
 
 /**
  * Destination of the "Request an enterprise license" CTA in the upgrade dialog.
@@ -115,16 +150,47 @@ const CARD_CONTENT: Record<ModuleId, CardContent> = {
 };
 
 /**
- * One card per catalog product, in catalog order — the same order as the app switcher.
+ * One card per catalog product (plus the classic Developer Portal after API Management), in catalog
+ * order — the same order as the app switcher.
  * A license-gated card whose `moduleId` is absent from `GET /organizations/{orgId}/modules` renders locked.
  */
-export const APPLICATIONS: readonly Application[] = MODULE_CATALOG.map(product => ({
-    title: product.label,
-    moduleId: product.id,
-    Icon: MODULE_ICONS[product.id],
-    ...CARD_CONTENT[product.id],
-}));
+export const APPLICATIONS: readonly Application[] = [
+    CLOUD_APPLICATION,
+    ...MODULE_CATALOG.flatMap(product => {
+        const app: Application = {
+            title: product.label,
+            moduleId: product.id,
+            Icon: MODULE_ICONS[product.id],
+            ...CARD_CONTENT[product.id],
+        };
+        return product.id === 'apim' ? [app, DEVELOPER_PORTAL_APPLICATION] : [app];
+    }),
+];
 
-export function buildModulePath(envHrid: string, moduleId: ModuleId): string {
+export function buildModulePath(envHrid: string, moduleId: ModuleId | 'cloud'): string {
     return `/environments/${envHrid}/${moduleId}`;
+}
+
+export function resolveApplicationDestination(
+    app: Application,
+    envHrid: string,
+    isAvailable: (moduleId: ModuleId) => boolean,
+): string | null {
+    if (app.externalUrl) {
+        return app.externalUrl;
+    }
+    if (!app.moduleId) {
+        return null;
+    }
+    if (app.alwaysAvailable || app.moduleId === 'cloud') {
+        return buildModulePath(envHrid, app.moduleId);
+    }
+    if (isAvailable(app.moduleId) || !app.upgrade) {
+        return buildModulePath(envHrid, app.moduleId);
+    }
+    return null;
+}
+
+export function isExternalDestination(to: string | null): boolean {
+    return !!to && (to.startsWith('http://') || to.startsWith('https://'));
 }

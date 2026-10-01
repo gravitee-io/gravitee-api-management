@@ -124,8 +124,6 @@ export class FlatTreeComponent {
   links = input<PortalNavigationItem[] | null>(null);
   selectedId = input<string | null>(null);
   fetchInProgress = input(false);
-  /** Folder id configured as the default API documentation folder — Delete is disabled for it. */
-  defaultApiDocumentationFolderId = input<string | null>(null);
 
   nodeSelect = output<SectionNode>();
   nodeMenuAction = output<NodeMenuActionEvent>();
@@ -260,15 +258,12 @@ export class FlatTreeComponent {
     return this.getPublishActionState(node).tooltip;
   }
 
-  isDeleteDisabled(node: SectionNode | FlatTreeNode): boolean {
-    const defaultFolderId = this.defaultApiDocumentationFolderId();
-    return node.type === 'FOLDER' && !!defaultFolderId && defaultFolderId === node.id;
+  isDeleteDisabled(_node: SectionNode | FlatTreeNode): boolean {
+    return false;
   }
 
-  getDeleteDisabledTooltip(node: SectionNode | FlatTreeNode): string {
-    return this.isDeleteDisabled(node)
-      ? 'This folder is configured as the default API documentation folder and cannot be deleted. Change or clear it in Portal Settings → Settings first.'
-      : '';
+  getDeleteDisabledTooltip(_node: SectionNode | FlatTreeNode): string {
+    return '';
   }
 
   treeBase = viewChild<MatTree<SectionNode, string>>(MatTree);

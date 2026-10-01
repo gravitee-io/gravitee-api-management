@@ -47,6 +47,16 @@ app-sidenav-layout {
   }
 
   &__sidenav {
+    &__search {
+      display: block;
+      position: sticky;
+      z-index: 1;
+      top: 0;
+      width: 100%;
+      margin-bottom: 8px;
+      background-color: app-theme.$background-color;
+    }
+
     &__tree,
     &__empty-state {
       min-width: 250px;

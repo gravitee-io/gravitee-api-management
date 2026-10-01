@@ -2072,7 +2072,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         }
 
         @Test
-        void should_return_400_if_page_is_a_non_empty_folder() {
+        void should_recursively_delete_non_empty_folder() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
 
             Page folder = Page.builder()
@@ -2080,7 +2080,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .referenceId(API_ID)
                 .type(Page.Type.FOLDER)
                 .id("folder-id")
-                .name("page-1")
+                .name("folder-1")
                 .published(true)
                 .build();
             Page page1 = Page.builder()
@@ -2096,11 +2096,10 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             final Response response = rootTarget().path("folder-id").request().delete();
 
-            MAPIAssertions.assertThat(response)
-                .hasStatus(BAD_REQUEST_400)
-                .asError()
-                .hasHttpStatus(BAD_REQUEST_400)
-                .hasMessage("Folder cannot be deleted as it is not empty.");
+            MAPIAssertions.assertThat(response).hasStatus(NO_CONTENT_204);
+
+            assertThat(pageCrudServiceInMemory.findById("folder-id")).isEmpty();
+            assertThat(pageCrudServiceInMemory.findById(PAGE_ID)).isEmpty();
         }
 
         @Test

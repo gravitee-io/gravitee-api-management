@@ -33,7 +33,6 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
-import io.gravitee.apim.core.documentation.exception.ApiFolderNotEmptyException;
 import io.gravitee.apim.core.documentation.exception.ApiPageInvalidReferenceTypeException;
 import io.gravitee.apim.core.documentation.exception.ApiPageUsedAsGeneralConditionException;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -132,7 +131,7 @@ class DeleteApiDocumentationDomainServiceTest {
         }
 
         @Test
-        void should_throw_if_deleting_non_empty_folder() {
+        void should_throw_if_folder_contains_page_used_as_general_condition() {
             final Page folder = Page.builder()
                 .id(FOLDER_ID)
                 .referenceId(API.getId())
@@ -160,7 +159,7 @@ class DeleteApiDocumentationDomainServiceTest {
                 )
             );
 
-            assertThatThrownBy(() -> cut.delete(API, FOLDER_ID, AUDIT_INFO)).isInstanceOf(ApiFolderNotEmptyException.class);
+            assertThatThrownBy(() -> cut.delete(API, FOLDER_ID, AUDIT_INFO)).isInstanceOf(ApiPageUsedAsGeneralConditionException.class);
         }
     }
 
@@ -233,6 +232,61 @@ class DeleteApiDocumentationDomainServiceTest {
                     .filter(auditEntity -> auditEntity.getEvent().equals(PageAuditEvent.PAGE_DELETED.name()))
                     .toList()
             ).hasSize(4);
+        }
+
+        @Test
+        void should_recursively_delete_folder_and_nested_content() {
+            final Page folder = Page.builder()
+                .id(FOLDER_ID)
+                .referenceId(API.getId())
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.FOLDER)
+                .order(0)
+                .build();
+            final Page nestedFolder = Page.builder()
+                .id("nested-folder")
+                .referenceId(API.getId())
+                .referenceType(Page.ReferenceType.API)
+                .parentId(FOLDER_ID)
+                .type(Page.Type.FOLDER)
+                .order(0)
+                .build();
+            final Page nestedPage = Page.builder()
+                .id("nested-page")
+                .referenceId(API.getId())
+                .referenceType(Page.ReferenceType.API)
+                .parentId("nested-folder")
+                .type(Page.Type.MARKDOWN)
+                .order(0)
+                .updatedAt(new Date())
+                .build();
+            final Page sibling = Page.builder()
+                .id("sibling-page")
+                .referenceId(API.getId())
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .order(1)
+                .updatedAt(new Date())
+                .build();
+
+            final List<Page> storedPages = List.of(folder, nestedFolder, nestedPage, sibling);
+            pageCrudService.initWith(storedPages);
+            pageQueryService.initWith(storedPages);
+
+            cut.delete(API, FOLDER_ID, AUDIT_INFO);
+            syncPageStorage();
+
+            assertThat(pageQueryService.searchByApiId(API.getId()))
+                .hasSize(1)
+                .extracting(Page::getId, Page::getOrder)
+                .containsExactly(tuple("sibling-page", 0));
+            assertThat(
+                auditCrudService
+                    .storage()
+                    .stream()
+                    .filter(auditEntity -> auditEntity.getEvent().equals(PageAuditEvent.PAGE_DELETED.name()))
+                    .toList()
+            ).hasSize(3);
         }
 
         @Test

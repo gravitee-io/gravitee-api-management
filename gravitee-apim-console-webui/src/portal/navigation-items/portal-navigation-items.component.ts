@@ -47,6 +47,7 @@ import {
   SectionEditorDialogData,
   SectionEditorDialogItemType,
   SectionEditorDialogMode,
+  SectionEditorDialogResult,
 } from './section-editor-dialog/section-editor-dialog.component';
 import {
   ApiProductNavigationContext,
@@ -102,7 +103,6 @@ import { PortalPageContentService } from '../../services-ngx/portal-page-content
 import { ApiV2Service } from '../../services-ngx/api-v2.service';
 import { ApiDocumentationV2Service } from '../../services-ngx/api-documentation-v2.service';
 import { ApiProductV2Service } from '../../services-ngx/api-product-v2.service';
-import { PortalSettingsService } from '../../services-ngx/portal-settings.service';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { HasUnsavedChanges } from '../../shared/guards/has-unsaved-changes.guard';
 import { confirmDiscardChanges, normalizeContent } from '../../shared/utils/content.util';
@@ -241,13 +241,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     shareReplay({ bufferSize: 1, refCount: true }),
   );
   readonly menuLinks = toSignal(this.menuLinks$, { initialValue: [] });
-  readonly defaultApiDocumentationFolderId = toSignal(
-    this.portalSettingsService.get().pipe(
-      map(settings => settings.portalNext?.documentation?.defaultFolderId?.trim() || null),
-      catchError(() => of(null)),
-    ),
-    { initialValue: null },
-  );
   readonly selectedNavigationItem: Signal<SectionNode | null> = computed(() => {
     const navId = this.navId();
     const menuLinks = this.menuLinks();
@@ -386,7 +379,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
     private readonly portalPageContentService: PortalPageContentService,
     private readonly apiService: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
-    private readonly portalSettingsService: PortalSettingsService,
   ) {
     this.contentControl.addValidators(this.asyncApiSpecValidator);
     this.setupPageContentSubscription();
@@ -798,6 +790,16 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
   ): Observable<void> {
     const ordered = orderApiProxyPagesForNavigationCreate(pages);
     const docIdToNavId = new Map<string, string>();
+    // Items created in this run are not yet in menuLinks — keep a local index to skip duplicates.
+    const createdByParentKey = new Map<string, string>();
+
+    const findExistingNavId = (parentNavId: string, title: string, type: 'FOLDER' | 'PAGE'): string | undefined => {
+      const createdId = createdByParentKey.get(`${parentNavId}|${type}|${title}`);
+      if (createdId) {
+        return createdId;
+      }
+      return this.menuLinks().find(item => item.parentId === parentNavId && item.type === type && item.title === title)?.id;
+    };
 
     return from(ordered).pipe(
       concatMap(page => {
@@ -809,17 +811,26 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         const parentNavId = (parentDocId && docIdToNavId.get(parentDocId)) || apiNavId;
 
         if (page.type === 'FOLDER') {
+          const title = page.name ?? 'Folder';
+          const existingId = findExistingNavId(parentNavId, title, 'FOLDER');
+          if (existingId) {
+            docIdToNavId.set(page.id, existingId);
+            return of(undefined);
+          }
           return this.portalNavigationItemsService
             .createNavigationItem({
               type: 'FOLDER',
-              title: page.name ?? 'Folder',
+              title,
               parentId: parentNavId,
               area: 'TOP_NAVBAR',
               visibility,
               order: page.order ?? 0,
             })
             .pipe(
-              tap(nav => docIdToNavId.set(page.id!, nav.id)),
+              tap(nav => {
+                docIdToNavId.set(page.id!, nav.id);
+                createdByParentKey.set(`${parentNavId}|FOLDER|${title}`, nav.id);
+              }),
               map(() => undefined),
             );
         }
@@ -829,13 +840,20 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
           return of(undefined);
         }
 
+        const title = page.name ?? 'Page';
+        const existingId = findExistingNavId(parentNavId, title, 'PAGE');
+        if (existingId) {
+          docIdToNavId.set(page.id, existingId);
+          return of(undefined);
+        }
+
         return this.apiDocumentationService.getApiPage(apiId, page.id).pipe(
           catchError(() => of(page)),
           switchMap(fullPage =>
             this.portalNavigationItemsService
               .createNavigationItem({
                 type: 'PAGE',
-                title: page.name ?? 'Page',
+                title,
                 parentId: parentNavId,
                 area: 'TOP_NAVBAR',
                 visibility,
@@ -845,6 +863,7 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
               .pipe(
                 switchMap(nav => {
                   docIdToNavId.set(page.id!, nav.id);
+                  createdByParentKey.set(`${parentNavId}|PAGE|${title}`, nav.id);
                   const content = fullPage.content;
                   if (nav.type !== 'PAGE' || !nav.portalPageContentId || content == null || content === '') {
                     return of(undefined);
@@ -917,14 +936,21 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         ? { mode: 'create', type: type as SectionEditorDialogItemType, parentItem }
         : { mode: 'edit', type, existingItem: existingItem!, parentItem };
     this.matDialog
-      .open<SectionEditorDialogComponent, SectionEditorDialogData>(SectionEditorDialogComponent, {
+      .open<SectionEditorDialogComponent, SectionEditorDialogData, SectionEditorDialogResult>(SectionEditorDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data,
       })
       .afterClosed()
       .pipe(
-        filter(result => !!result),
+        filter((result): result is SectionEditorDialogResult => !!result),
         switchMap(result => {
+          if (mode === 'create' && result.importApiDocumentation) {
+            const apiParent = parentItem?.type === 'API' ? parentItem : existingItem?.type === 'API' ? existingItem : null;
+            if (!apiParent || apiParent.type !== 'API') {
+              return EMPTY;
+            }
+            return this.importProxyApiDocumentation(apiParent);
+          }
           if (mode === 'create') {
             return this.create({
               title: result.title,
@@ -978,6 +1004,30 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  /**
+   * Import all Proxy API documentation pages/folders under the given API navigation item,
+   * skipping any that already exist (matched by title + type under the same parent).
+   */
+  private importProxyApiDocumentation(apiNav: PortalNavigationApi): Observable<{ id: string }> {
+    return this.apiDocumentationService.getApiPages(apiNav.apiId).pipe(
+      map(result => (result.pages ?? []).filter(isMirrorableApiProxyPage)),
+      switchMap(pages => {
+        if (pages.length === 0) {
+          this.snackBarService.success('This API has no Proxy documentation to import.');
+          return of({ id: apiNav.id });
+        }
+        return this.mirrorApiProxyDocumentationToNavigation(apiNav.id, apiNav.apiId, pages, apiNav.visibility ?? 'PUBLIC').pipe(
+          tap(() => this.snackBarService.success('Proxy API documentation imported into Navigation')),
+          map(() => ({ id: apiNav.id })),
+        );
+      }),
+      catchError(() => {
+        this.snackBarService.error('Failed to import Proxy API documentation');
+        return EMPTY;
+      }),
+    );
   }
 
   /** A page created from a file is created empty, then filled: only the content endpoint carries content. */
@@ -1390,16 +1440,6 @@ export class PortalNavigationItemsComponent implements HasUnsavedChanges {
 
   private confirmDeleteAction(event: NodeMenuActionEvent) {
     const node = event.node;
-
-    if (node.type === 'FOLDER') {
-      const defaultFolderId = this.defaultApiDocumentationFolderId();
-      if (defaultFolderId && defaultFolderId === node.id) {
-        this.snackBarService.error(
-          'This folder is configured as the default API documentation folder and cannot be deleted. Change or clear it in Portal Settings → Settings first.',
-        );
-        return;
-      }
-    }
 
     this.openDeleteConfirmDialog(node);
   }

@@ -41,13 +41,23 @@
             <gio-card-content-subtitle>Pull content from GitHub or an HTTP URL with optional auto-refresh</gio-card-content-subtitle>
           </gio-form-selection-inline-card-content>
         </gio-form-selection-inline-card>
+        @if (canImportApiDocumentation()) {
+          <gio-form-selection-inline-card value="IMPORT_API_DOCS">
+            <gio-form-selection-inline-card-content icon="gio:book-open">
+              <gio-card-content-title>Import the Proxy API documentation</gio-card-content-title>
+              <gio-card-content-subtitle
+                >Create all pages and folders from this API's Proxy documentation that are not already in Navigation</gio-card-content-subtitle
+              >
+            </gio-form-selection-inline-card-content>
+          </gio-form-selection-inline-card>
+        }
       </gio-form-selection-inline>
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
       <button mat-button type="button" (click)="onCancel()">Cancel</button>
       <button mat-flat-button color="primary" type="button" data-testid="content-source-continue-button" (click)="continueToDetails()">
-        Continue
+        {{ isImportApiDocumentationSelected() ? 'Import' : 'Continue' }}
       </button>
     </mat-dialog-actions>
   } @else {

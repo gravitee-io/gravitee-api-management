@@ -81,9 +81,11 @@ export interface SectionEditorDialogResult {
   contentType?: PortalPageContentType;
   source?: PortalNavigationItemSource;
   content?: string;
+  /** When true, the dialog closes without creating a single page — the caller should mirror Proxy API docs. */
+  importApiDocumentation?: boolean;
 }
 
-export type SectionContentSource = 'FILL' | 'IMPORT_FILE' | 'EXTERNAL';
+export type SectionContentSource = 'FILL' | 'IMPORT_FILE' | 'EXTERNAL' | 'IMPORT_API_DOCS';
 
 export interface PortalPageTypeOption {
   value: PortalPageContentType;
@@ -180,11 +182,25 @@ export class SectionEditorDialogComponent implements OnInit {
   }
 
   showPageTypeSelection(): boolean {
-    return this.mode === 'create' && this.type === 'PAGE' && this.contentSource() !== 'IMPORT_FILE';
+    return (
+      this.mode === 'create' &&
+      this.type === 'PAGE' &&
+      this.contentSource() !== 'IMPORT_FILE' &&
+      this.contentSource() !== 'IMPORT_API_DOCS'
+    );
   }
 
   isCreatePageFlow(): boolean {
     return this.mode === 'create' && this.type === 'PAGE';
+  }
+
+  /** Only offered when adding a page directly under an API navigation item. */
+  canImportApiDocumentation(): boolean {
+    return this.isCreatePageFlow() && this.data.parentItem?.type === 'API';
+  }
+
+  isImportApiDocumentationSelected(): boolean {
+    return this.contentSource() === 'IMPORT_API_DOCS';
   }
 
   canConfigureSourceOnEdit(): boolean {
@@ -272,6 +288,14 @@ export class SectionEditorDialogComponent implements OnInit {
   }
 
   continueToDetails(): void {
+    if (this.isImportApiDocumentationSelected()) {
+      this.dialogRef.close({
+        title: '',
+        visibility: this.data.parentItem?.visibility ?? 'PUBLIC',
+        importApiDocumentation: true,
+      });
+      return;
+    }
     this.isSourceChoiceStep.set(false);
   }
 

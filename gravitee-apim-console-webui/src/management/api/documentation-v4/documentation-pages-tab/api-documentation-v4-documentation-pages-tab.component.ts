@@ -308,7 +308,9 @@ export class ApiDocumentationV4DocumentationPagesTabComponent implements OnInit,
         data: {
           title: `Delete your ${page?.type === 'FOLDER' ? 'folder' : 'page'}`,
           content: `Are you sure you want to delete this ${
-            page?.type === 'FOLDER' ? 'folder? Only empty folders can be deleted.' : 'page?'
+            page?.type === 'FOLDER'
+              ? 'folder and all of its nested pages and folders?'
+              : 'page?'
           } This action is irreversible.`,
           confirmButton: 'Delete',
         },

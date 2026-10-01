@@ -163,7 +163,7 @@ describe('TreeNodeComponent', () => {
       expect(toggleNode).toHaveBeenCalled();
 
       const icon = fixture.debugElement.query(By.css('.tree__icon'));
-      expect(icon.nativeElement.classList).not.toContain('expanded');
+      expect(icon.nativeElement.classList).toContain('expanded');
     });
   });
 
@@ -181,13 +181,13 @@ describe('TreeNodeComponent', () => {
       ],
     };
 
-    it('should render as an expanded container', async () => {
+    it('should render as a collapsed container', async () => {
       await init({ node });
 
       expect(await harness.getText()).toBe(node.label);
       expect(await harness.getChildren()).toHaveLength(1);
-      expect(await harness.getAriaExpanded()).toBe('true');
-      expect(await harness.isExpanded()).toBe(true);
+      expect(await harness.getAriaExpanded()).toBe('false');
+      expect(await harness.isExpanded()).toBe(false);
     });
 
     it('should toggle expansion without selecting the node', async () => {
@@ -197,8 +197,8 @@ describe('TreeNodeComponent', () => {
 
       await harness.click();
 
-      expect(await harness.getAriaExpanded()).toBe('false');
-      expect(await harness.isExpanded()).toBe(false);
+      expect(await harness.getAriaExpanded()).toBe('true');
+      expect(await harness.isExpanded()).toBe(true);
       expect(nodeSelected).not.toHaveBeenCalled();
     });
 

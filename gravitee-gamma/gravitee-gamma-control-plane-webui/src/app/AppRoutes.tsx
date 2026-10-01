@@ -26,6 +26,19 @@ import {
 } from '../features/auth';
 import { EnvironmentGuard, RootRedirect } from '../features/environment';
 import { type GammaModule, RemoteModuleRoute, useGammaModules } from '../features/modules';
+import {
+    CloudAccountTokensPage,
+    CloudCustomReportersPage,
+    CloudGeneralSettingsPage,
+    CloudInviteMemberPage,
+    CloudLayout,
+    CloudMembersPage,
+    CloudOverviewPage,
+    CloudSettingsLayout,
+    CloudSettingsSectionPage,
+    CloudSsoPage,
+    CloudTokensPage,
+} from '../pages/cloud';
 import { HomePage } from '../pages/home';
 import { MyAccountPage } from '../pages/my-account';
 import { TasksPage } from '../pages/tasks';
@@ -80,6 +93,23 @@ export function AppRoutes() {
                             <Route path="tasks" element={<TasksPage />} />
                             <Route path="my-account" element={<MyAccountPage />} />
                         </Route>
+                        {!modules.some((m: GammaModule) => m.id === 'cloud') && (
+                            <Route path="cloud/*" element={<CloudLayout />}>
+                                <Route path="dashboard" element={<CloudOverviewPage />} />
+                                <Route path="settings/*" element={<CloudSettingsLayout />}>
+                                    <Route path="general" element={<CloudGeneralSettingsPage />} />
+                                    <Route path="custom-reporters" element={<CloudCustomReportersPage />} />
+                                    <Route path="account-tokens" element={<CloudAccountTokensPage />} />
+                                    <Route path="cloud-tokens" element={<CloudTokensPage />} />
+                                    <Route path="sso" element={<CloudSsoPage />} />
+                                    <Route path="private-networks" element={<CloudSettingsSectionPage />} />
+                                    <Route path="members" element={<CloudMembersPage />} />
+                                    <Route path="invite-member" element={<CloudInviteMemberPage />} />
+                                    <Route index element={<Navigate to="general" replace />} />
+                                </Route>
+                                <Route index element={<Navigate to="dashboard" replace />} />
+                            </Route>
+                        )}
                         {modules.map((m: GammaModule) => (
                             <Route key={m.id} path={`${m.id}/*`} element={<RemoteModuleRoute module={m} />} />
                         ))}

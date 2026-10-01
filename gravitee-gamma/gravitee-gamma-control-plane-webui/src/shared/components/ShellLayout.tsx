@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { AppContextBar, AppLayout, AppSidebar, ContentHeader, LayoutSlotsProvider, useLayoutSlots } from '@gravitee/graphene-core';
+import { BookOpenIcon } from '@gravitee/graphene-core/icons';
 import { Globe } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Suspense, useCallback, useMemo } from 'react';
@@ -26,12 +27,15 @@ import { useEnvironmentStore } from '../../features/environment/environment.stor
 import { getPrimaryHrid, useEnvHrid } from '../../features/environment/environment.utils';
 import type { GammaModule } from '../../features/modules';
 import { HOME_ICON, MODULE_ICONS, findModuleProduct, orderByCatalog } from '../../features/modules';
+import { DEVELOPER_PORTAL_URL } from '../../pages/home/components/application-card/applications';
 import { currentUserAvatarUrl } from '../../pages/my-account/myAccount.mapping';
 import { PendingTasksBadge } from '../../pages/tasks';
 import { useBootstrapStore } from '../config/bootstrap.store';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
+const DEVELOPER_PORTAL_APP_KEY = 'developer-portal';
+const CLOUD_APP_KEY = 'cloud';
 
 const hostAppDefinition = {
     key: GAMMA_APP_KEY,
@@ -40,15 +44,31 @@ const hostAppDefinition = {
     pinned: true,
 };
 
+const developerPortalAppDefinition = {
+    key: DEVELOPER_PORTAL_APP_KEY,
+    label: 'Developer Portal',
+    description: 'Browse published APIs and documentation',
+    icon: <BookOpenIcon className="size-5" />,
+};
+
+const cloudAppDefinition = {
+    key: CLOUD_APP_KEY,
+    label: 'Cloud',
+    description: 'Account, organizations, and environments',
+    icon: moduleIcon(CLOUD_APP_KEY),
+};
+
 function moduleIcon(moduleId: string): ReactNode {
     const Icon = MODULE_ICONS[moduleId];
     return Icon ? <Icon className="size-5" /> : <Globe size={20} />;
 }
 
 function buildAppDefinitions(modules: readonly GammaModule[]) {
-    return [
+    const hasCloudModule = modules.some(m => m.id === CLOUD_APP_KEY);
+    const defs = [
         hostAppDefinition,
-        ...orderByCatalog(modules).map(m => {
+        ...(hasCloudModule ? [] : [cloudAppDefinition]),
+        ...orderByCatalog(modules.filter(m => m.id !== CLOUD_APP_KEY)).map(m => {
             const product = findModuleProduct(m.id);
             return {
                 key: m.id,
@@ -58,6 +78,13 @@ function buildAppDefinitions(modules: readonly GammaModule[]) {
             };
         }),
     ];
+    const apimIndex = defs.findIndex(d => d.key === 'apim');
+    if (apimIndex >= 0) {
+        defs.splice(apimIndex + 1, 0, developerPortalAppDefinition);
+    } else {
+        defs.splice(hasCloudModule ? 1 : 2, 0, developerPortalAppDefinition);
+    }
+    return defs;
 }
 
 function resolveActiveAppKey(pathname: string, envHrid: string, modules: readonly GammaModule[]): string {
@@ -67,6 +94,9 @@ function resolveActiveAppKey(pathname: string, envHrid: string, modules: readonl
     }
     if (rest[0] === 'home' || rest[0] === 'about') {
         return GAMMA_APP_KEY;
+    }
+    if (rest[0] === CLOUD_APP_KEY) {
+        return CLOUD_APP_KEY;
     }
     for (const m of modules) {
         if (rest[0] === m.id) {
@@ -100,6 +130,10 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
         (key: string) => {
             if (key === GAMMA_APP_KEY) {
                 navigate(`/environments/${envHrid}/home`);
+                return;
+            }
+            if (key === DEVELOPER_PORTAL_APP_KEY) {
+                window.open(DEVELOPER_PORTAL_URL, '_blank', 'noopener,noreferrer');
                 return;
             }
             navigate(`/environments/${envHrid}/${key}`);

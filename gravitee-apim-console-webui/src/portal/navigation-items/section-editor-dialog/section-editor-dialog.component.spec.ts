@@ -310,6 +310,43 @@ describe('SectionEditorDialogComponent', () => {
       });
     });
 
+    describe('when adding a page under an API', () => {
+      it('offers Import the Proxy API documentation and closes with importApiDocumentation on Import', async () => {
+        fixture.componentRef.setInput('type', 'PAGE');
+        fixture.componentRef.setInput('parentItem', fakePortalNavigationApi({ visibility: 'PUBLIC' }));
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getContentSourceValues()).toEqual(
+          expect.arrayContaining(['FILL', 'IMPORT_FILE', 'EXTERNAL', 'IMPORT_API_DOCS']),
+        );
+
+        await dialog.selectContentSource('IMPORT_API_DOCS');
+        fixture.detectChanges();
+        await dialog.clickContinueButton();
+        fixture.detectChanges();
+
+        expect(component.dialogValue).toEqual({
+          title: '',
+          visibility: 'PUBLIC',
+          importApiDocumentation: true,
+        });
+      });
+
+      it('does not offer Import the Proxy API documentation under a folder', async () => {
+        fixture.componentRef.setInput('type', 'PAGE');
+        fixture.componentRef.setInput('parentItem', fakePortalNavigationFolder({ visibility: 'PUBLIC' }));
+        fixture.detectChanges();
+        component.clicked();
+        fixture.detectChanges();
+
+        const dialog = await rootLoader.getHarness(SectionEditorDialogHarness);
+        expect(await dialog.getContentSourceValues()).toEqual(['FILL', 'IMPORT_FILE', 'EXTERNAL']);
+      });
+    });
+
     describe('when adding a page with PRIVATE parent', () => {
       beforeEach(async () => {
         fixture.componentRef.setInput('type', 'PAGE');

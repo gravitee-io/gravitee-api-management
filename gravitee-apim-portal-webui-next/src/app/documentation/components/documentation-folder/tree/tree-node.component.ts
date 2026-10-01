@@ -15,7 +15,7 @@
  */
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, input, linkedSignal, output, viewChild } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -41,11 +41,13 @@ export class TreeNodeComponent {
   node = input.required<TreeNode>();
   level = input(0);
   selectedId = input<string | null>(null);
+  /** Container ids that should start open. Everything else stays collapsed until the user toggles it. */
+  expandedIds = input<ReadonlySet<string>>(new Set());
 
   nodeSelected = output<string>();
 
   isSelected = computed(() => this.selectedId() === this.node().id);
-  isExpanded = signal<boolean>(true);
+  isExpanded = linkedSignal(() => this.expandedIds().has(this.node().id));
 
   link = viewChild<ElementRef>('link');
 

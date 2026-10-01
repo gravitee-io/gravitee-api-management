@@ -30,10 +30,14 @@ import {
 import { useEffect, useId, useState, type FormEvent } from 'react';
 
 import { NAME_MAX } from './documentation-shared';
+import { DocumentationVisibilityField } from './DocumentationVisibilityField';
+import type { Visibility } from '../../../types/documentation';
 
 export function DocumentationFolderDialog({
     open,
     folderName,
+    visibility: initialVisibility = 'PUBLIC',
+    parentForcesPrivate = false,
     existingNames,
     readOnly,
     isSaving,
@@ -43,23 +47,32 @@ export function DocumentationFolderDialog({
 }: {
     open: boolean;
     folderName?: string;
+    visibility?: Visibility;
+    /** When the parent folder is PRIVATE, this folder must stay PRIVATE. */
+    parentForcesPrivate?: boolean;
     existingNames: string[];
     readOnly: boolean;
     isSaving: boolean;
     description?: string;
     onClose: () => void;
-    onSubmit: (value: { name: string }) => void;
+    onSubmit: (value: { name: string; visibility: Visibility }) => void;
 }) {
     const nameId = useId();
     const isEdit = folderName !== undefined;
     const [name, setName] = useState('');
+    const [visibility, setVisibility] = useState<Visibility>('PUBLIC');
     const [showErrors, setShowErrors] = useState(false);
 
     useEffect(() => {
         if (!open) return;
         setName(folderName ?? '');
+        setVisibility(parentForcesPrivate ? 'PRIVATE' : (initialVisibility ?? 'PUBLIC'));
         setShowErrors(false);
-    }, [folderName, open]);
+    }, [folderName, initialVisibility, open, parentForcesPrivate]);
+
+    useEffect(() => {
+        if (parentForcesPrivate) setVisibility('PRIVATE');
+    }, [parentForcesPrivate]);
 
     const trimmed = name.trim();
     const taken = existingNames.includes(trimmed.toLowerCase());
@@ -73,7 +86,10 @@ export function DocumentationFolderDialog({
             setShowErrors(true);
             return;
         }
-        onSubmit({ name: trimmed });
+        onSubmit({
+            name: trimmed,
+            visibility: parentForcesPrivate ? 'PRIVATE' : visibility,
+        });
     }
 
     return (
@@ -86,28 +102,38 @@ export function DocumentationFolderDialog({
             <DialogContent className="max-w-md">
                 <form onSubmit={handleSubmit}>
                     <DialogHeader>
-                        <DialogTitle>{isEdit ? 'Rename folder' : 'Add a new folder'}</DialogTitle>
+                        <DialogTitle>{isEdit ? 'Edit folder' : 'Add a new folder'}</DialogTitle>
                         <DialogDescription>{description}</DialogDescription>
                     </DialogHeader>
 
-                    <Field className="py-4">
-                        <FieldLabel htmlFor={nameId} required>
-                            Name
-                        </FieldLabel>
-                        <Input
-                            id={nameId}
-                            value={name}
-                            maxLength={NAME_MAX}
-                            autoFocus
+                    <div className="space-y-4 py-4">
+                        <Field>
+                            <FieldLabel htmlFor={nameId} required>
+                                Name
+                            </FieldLabel>
+                            <Input
+                                id={nameId}
+                                value={name}
+                                maxLength={NAME_MAX}
+                                autoFocus
+                                disabled={isSaving || readOnly}
+                                aria-invalid={showErrors && nameError ? true : undefined}
+                                onChange={event => setName(event.target.value)}
+                            />
+                            <FieldDescription>
+                                {name.length}/{NAME_MAX}
+                            </FieldDescription>
+                            {showErrors && nameError ? <FieldError>{nameError}</FieldError> : null}
+                        </Field>
+
+                        <DocumentationVisibilityField
+                            kind="folder"
+                            value={visibility}
+                            parentForcesPrivate={parentForcesPrivate}
                             disabled={isSaving || readOnly}
-                            aria-invalid={showErrors && nameError ? true : undefined}
-                            onChange={event => setName(event.target.value)}
+                            onChange={setVisibility}
                         />
-                        <FieldDescription>
-                            {name.length}/{NAME_MAX}
-                        </FieldDescription>
-                        {showErrors && nameError ? <FieldError>{nameError}</FieldError> : null}
-                    </Field>
+                    </div>
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={onClose} disabled={isSaving}>

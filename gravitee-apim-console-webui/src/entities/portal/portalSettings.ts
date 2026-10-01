@@ -286,9 +286,6 @@ export interface PortalSettingsPortalNext {
     viewMode?: string;
     fuzzySearch?: { enabled?: boolean };
   };
-  documentation?: {
-    defaultFolderId?: string;
-  };
 }
 
 export interface BannerButton {

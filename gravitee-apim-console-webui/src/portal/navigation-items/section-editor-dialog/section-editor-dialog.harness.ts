@@ -152,7 +152,12 @@ export class SectionEditorDialogHarness extends ComponentHarness {
     return (await this.locateContinueButton()) !== null;
   }
 
-  async selectContentSource(value: 'FILL' | 'IMPORT_FILE' | 'EXTERNAL'): Promise<void> {
+  async getContentSourceValues(): Promise<string[]> {
+    const cards = await this.locateContentSourceCards();
+    return Promise.all(cards.map(card => card.getValue()));
+  }
+
+  async selectContentSource(value: 'FILL' | 'IMPORT_FILE' | 'EXTERNAL' | 'IMPORT_API_DOCS'): Promise<void> {
     const cards = await this.locateContentSourceCards();
     const card = await this.findCardByValue(cards, value);
     if (!card) {

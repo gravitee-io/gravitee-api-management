@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import { ApimApiError, apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import { getEnvironmentPortalSettings } from '../../settings/services/portalSettings';
 import type {
     ApiPortalPlacement,
     CreateDocumentationPayload,
@@ -120,10 +119,8 @@ export async function createDocumentationPage(
     apiId: string,
     payload: CreateDocumentationPayload,
 ): Promise<DocumentationPage> {
-    // Place the API under the configured default Navigation folder when missing so the
-    // new page/folder can be mirrored there immediately (unpublished).
-    const placement = await ensureApiPlacement(envId, apiId);
-
+    // Keep API proxy documentation in the classic store until Publish API places the API
+    // under a user-selected Navigation folder and syncs selected docs there.
     let classicPages: DocumentationPage[] = [];
     try {
         classicPages = (await fetchClassicApiPages(envId, apiId)).pages;
@@ -133,14 +130,12 @@ export async function createDocumentationPage(
 
     const parentIsClassic = isClassicParent(payload.parentId, classicPages);
     if (!parentIsClassic) {
+        // Parent is an already-published Navigation folder under this API — create there only.
         return createPortalOnlyPage(envId, apiId, payload);
     }
 
-    const created = await apimFetchJsonV2<DocumentationPage>(envId, pagesPath(apiId), {
-        method: 'POST',
-        body: JSON.stringify(withoutPortalFields(payload)),
-    });
-    return mirrorPageToPortal(envId, apiId, { ...created, published: false }, undefined, placement);
+    const created = await createClassicDocumentationPage(envId, apiId, payload);
+    return { ...created, published: created.published ?? false };
 }
 
 export async function updateDocumentationPage(
@@ -212,6 +207,7 @@ export async function deleteDocumentationPage(envId: string, apiId: string, page
 
     let portalNavId: string | undefined;
     let deleteClassic = true;
+    let classicPages: DocumentationPage[] = [];
 
     try {
         const page = await getApiPage(envId, apiId, pageId);
@@ -225,24 +221,33 @@ export async function deleteDocumentationPage(envId: string, apiId: string, page
         }
     }
 
+    try {
+        classicPages = (await fetchClassicApiPages(envId, apiId)).pages;
+    } catch {
+        classicPages = [];
+    }
+
     if (!portalNavId && apiNav) {
-        try {
-            const classic = await fetchClassicApiPages(envId, apiId);
-            const page = classic.pages.find(item => item.id === pageId);
-            if (page) {
-                const parentNavId = resolveParentNavId(page, classic.pages, navItems, apiNav.id);
-                portalNavId = findNavMirror(page, classic.pages, navItems, apiNav.id, parentNavId)?.id;
-            }
-        } catch {
-            // ignore — classic may already be gone
+        const page = classicPages.find(item => item.id === pageId);
+        if (page) {
+            const parentNavId = resolveParentNavId(page, classicPages, navItems, apiNav.id);
+            portalNavId = findNavMirror(page, classicPages, navItems, apiNav.id, parentNavId)?.id;
         }
     }
 
     if (deleteClassic) {
-        try {
-            await apimFetchJsonV2<void>(envId, pagesPath(apiId, `/${encodeURIComponent(pageId)}`), { method: 'DELETE' });
-        } catch (error) {
-            if (!isNotFound(error)) throw error;
+        // Management API may still reject non-empty folders — delete deepest descendants first.
+        const classicToDelete = classicPages
+            .filter(item => item.id === pageId || (item.id != null && isDescendantOfClassic(classicPages, item, pageId)))
+            .sort((left, right) => classicDepth(classicPages, right) - classicDepth(classicPages, left));
+
+        for (const item of classicToDelete.length > 0 ? classicToDelete : [{ id: pageId } as DocumentationPage]) {
+            if (!item.id) continue;
+            try {
+                await apimFetchJsonV2<void>(envId, pagesPath(apiId, `/${encodeURIComponent(item.id)}`), { method: 'DELETE' });
+            } catch (error) {
+                if (!isNotFound(error)) throw error;
+            }
         }
     }
 
@@ -269,11 +274,52 @@ export async function deleteDocumentationPage(envId: string, apiId: string, page
         } catch (error) {
             if (!isNotFound(error)) throw error;
         }
+        return;
+    }
+
+    // Mirror unpublish: when no published documentation remains under the API, unpublish the API node.
+    const remainingPublished = remaining.filter(item => item.published === true);
+    if (remainingPublished.length === 0 && apiNav.published !== false) {
+        await updatePortalNavigationItem(
+            envId,
+            apiNav.id,
+            navigationUpdatePayload(apiNav, {
+                title: apiNav.title ?? 'API',
+                apiId,
+                published: false,
+                parentId: apiNav.parentId ?? null,
+            }),
+        );
     }
 }
 
 async function deletePortalNavigationItem(envId: string, itemId: string): Promise<void> {
     await apimFetchJsonV2<void>(envId, `/portal-navigation-items/${encodeURIComponent(itemId)}`, { method: 'DELETE' });
+}
+
+function isDescendantOfClassic(pages: DocumentationPage[], page: DocumentationPage, ancestorId: string): boolean {
+    const byId = new Map(pages.filter(entry => entry.id).map(entry => [entry.id!, entry]));
+    let parentId = normalizeParentId(page.parentId);
+    const seen = new Set<string>();
+    while (parentId && !seen.has(parentId)) {
+        if (parentId === ancestorId) return true;
+        seen.add(parentId);
+        parentId = normalizeParentId(byId.get(parentId)?.parentId);
+    }
+    return false;
+}
+
+function classicDepth(pages: DocumentationPage[], page: DocumentationPage): number {
+    const byId = new Map(pages.filter(entry => entry.id).map(entry => [entry.id!, entry]));
+    let depth = 0;
+    let parentId = normalizeParentId(page.parentId);
+    const seen = new Set<string>();
+    while (parentId && byId.has(parentId) && !seen.has(parentId)) {
+        seen.add(parentId);
+        depth += 1;
+        parentId = normalizeParentId(byId.get(parentId)?.parentId);
+    }
+    return depth;
 }
 
 function isDescendantOfNav(items: PortalNavigationItem[], item: PortalNavigationItem, ancestorId: string): boolean {
@@ -409,68 +455,13 @@ export async function placeApiInPortalFolder(
     });
 }
 
-function folderOptionFromItem(
-    items: PortalNavigationItem[],
-    folderId: string,
-    area: string,
-): PortalFolderOption | undefined {
-    const itemsById = new Map(items.filter(item => item.id).map(item => [item.id!, item]));
-    const item = itemsById.get(folderId);
-    if (!item || item.type !== 'FOLDER') return undefined;
-    return {
-        id: item.id,
-        path: folderPath(itemsById, item) || (item.title ?? 'Folder'),
-        area: item.area ?? area,
-    };
-}
-
 /**
- * Returns the API's Navigation placement, placing it under the configured default folder when missing.
- * Throws when the default folder is not configured or no longer available.
+ * Returns the API's existing Navigation placement, or null when the API has not been published
+ * to the Next Gen Portal yet. Does not create a Navigation API node.
  */
-async function ensureApiPlacement(envId: string, apiId: string): Promise<ApiPortalPlacement> {
-    const items = await listPortalNavigationItems(envId);
-    const folders = foldersFromItems(items, PORTAL_AREA);
-    const placement = findApiPlacement(items, apiId, new Map(folders.map(folder => [folder.id, folder])));
-    if (placement) return placement;
-
-    const settings = await getEnvironmentPortalSettings(envId);
-    const defaultFolderId = settings.portalNext?.documentation?.defaultFolderId?.trim();
-    if (!defaultFolderId) {
-        throw new Error(
-            'Configure a default Navigation folder in Portal Settings → Settings before creating API documentation.',
-        );
-    }
-
-    const folder =
-        folders.find(entry => entry.id === defaultFolderId) ?? folderOptionFromItem(items, defaultFolderId, PORTAL_AREA);
-    if (!folder) {
-        throw new Error(
-            'The default Navigation folder configured in Portal Settings is missing or no longer available. Update it under Portal Settings → Settings.',
-        );
-    }
-
-    let title = apiId;
-    try {
-        const api = await apimFetchJsonV2<{ name?: string }>(envId, `/apis/${encodeURIComponent(apiId)}`);
-        if (api.name?.trim()) title = api.name.trim();
-    } catch {
-        // fall back to apiId
-    }
-
-    const folderItem = items.find(item => item.id === folder.id);
-    const visibility = folderItem?.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
-    const created = await placeApiInPortalFolder(envId, apiId, title, folder, visibility);
-    if (!created.id) {
-        throw new Error('Failed to place the API under the default Navigation folder.');
-    }
-    return {
-        folderId: folder.id,
-        folderPath: folder.path,
-        itemId: created.id,
-        area: folder.area,
-        published: Boolean(created.published),
-    };
+async function getExistingApiPlacement(envId: string, apiId: string): Promise<ApiPortalPlacement | null> {
+    const { placement } = await listPortalDocumentationFolders(envId, apiId);
+    return placement;
 }
 
 async function createPortalNavigationItem(envId: string, payload: Record<string, unknown>): Promise<PortalNavigationItem> {
@@ -690,7 +681,10 @@ async function createPortalOnlyPage(
     apiId: string,
     payload: CreateDocumentationPayload,
 ): Promise<DocumentationPage> {
-    const placement = await ensureApiPlacement(envId, apiId);
+    const placement = await getExistingApiPlacement(envId, apiId);
+    if (!placement) {
+        throw new Error('Publish the API to a Navigation folder before creating documentation under a portal folder.');
+    }
     const type = payload.type === 'FOLDER' ? 'FOLDER' : 'PAGE';
     const contentType = toPortalContentType(payload.type);
     if (type === 'PAGE' && !contentType) {
@@ -795,10 +789,12 @@ async function mirrorPageToPortal(
     seen: Set<string> = new Set(),
     knownPlacement?: ApiPortalPlacement | null,
 ): Promise<DocumentationPage> {
-    let placement: ApiPortalPlacement | null =
-        knownPlacement ?? (await listPortalDocumentationFolders(envId, apiId)).placement;
+    // Do not auto-place the API under the default Navigation folder. Mirroring only happens
+    // after Publish API / Publish documentation has created the API Navigation node.
+    const placement: ApiPortalPlacement | null =
+        knownPlacement !== undefined ? knownPlacement : await getExistingApiPlacement(envId, apiId);
     if (!placement) {
-        placement = await ensureApiPlacement(envId, apiId);
+        return page;
     }
     if (!page.id) return page;
     if (seen.has(page.id)) return page;
@@ -944,8 +940,9 @@ export async function syncPublishedPagesToPortalNavigation(
     pages: DocumentationPage[],
     pageIds: string[],
 ): Promise<void> {
-    // Always publish under the folder the user selected. If the API already lives elsewhere
-    // (e.g. the configured default folder from create), move it by updating parentId.
+    // Always publish under the folder the user selected. If the API already lives elsewhere,
+    // move it by updating parentId. The API Navigation node is created here on first publish —
+    // not when documentation pages/folders are authored in the classic store.
     const parentFolderId = folder.id;
 
     // Resolve an existing API Navigation node by placement or apiId before creating one.
@@ -1008,6 +1005,7 @@ export async function syncPublishedPagesToPortalNavigation(
         if (!parentNavId) continue;
 
         if (page.type === 'FOLDER') {
+            const visibility = page.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
             const existing =
                 (page.portalNavId && knownItems.find(item => item.id === page.portalNavId)) ||
                 findExistingNavItem(knownItems, parentNavId, page.name, 'FOLDER');
@@ -1018,7 +1016,7 @@ export async function syncPublishedPagesToPortalNavigation(
                     title: page.name ?? 'Folder',
                     parentId: parentNavId,
                     area: PORTAL_AREA,
-                    visibility: 'PUBLIC',
+                    visibility,
                     order: page.order ?? 0,
                 }));
             if (!existing) knownItems.push({ ...nav, parentId: parentNavId });
@@ -1031,7 +1029,7 @@ export async function syncPublishedPagesToPortalNavigation(
                         title: page.name ?? nav.title ?? 'Folder',
                         order: page.order ?? nav.order ?? 0,
                         published: true,
-                        visibility: 'PUBLIC',
+                        visibility,
                         parentId: parentNavId,
                     },
                 ),
@@ -1043,6 +1041,7 @@ export async function syncPublishedPagesToPortalNavigation(
         const contentType = toPortalContentType(page.type);
         if (!contentType) continue;
 
+        const visibility = page.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC';
         const existing =
             (page.portalNavId && knownItems.find(item => item.id === page.portalNavId)) ||
             findExistingNavItem(knownItems, parentNavId, page.name, 'PAGE');
@@ -1053,7 +1052,7 @@ export async function syncPublishedPagesToPortalNavigation(
                 title: page.name ?? 'Page',
                 parentId: parentNavId,
                 area: PORTAL_AREA,
-                visibility: 'PUBLIC',
+                visibility,
                 contentType,
                 order: page.order ?? 0,
             }));
@@ -1072,7 +1071,7 @@ export async function syncPublishedPagesToPortalNavigation(
                     title: page.name ?? nav.title ?? 'Page',
                     order: page.order ?? nav.order ?? 0,
                     published: true,
-                    visibility: 'PUBLIC',
+                    visibility,
                     parentId: parentNavId,
                 },
             ),

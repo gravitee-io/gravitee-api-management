@@ -97,6 +97,17 @@ export class TreeService {
     return this.findFirstPageIdRecursively(node.children as TreeNode[]);
   }
 
+  /** The node and each ancestor, so a nested API can be shown without opening sibling folders. */
+  ancestorIds(nodeId: string): ReadonlySet<string> {
+    const ids = new Set<string>();
+    let current = this.treeNodesById.get(nodeId);
+    while (current) {
+      ids.add(current.id);
+      current = current.__parentId ? this.treeNodesById.get(current.__parentId) : undefined;
+    }
+    return ids;
+  }
+
   private findFirstPageIdRecursively(nodes: TreeNode[]): string | null {
     for (const node of nodes) {
       if (node.type === 'PAGE') {
@@ -165,4 +176,54 @@ export class TreeService {
       return node;
     });
   }
+}
+
+/** Keep nodes whose name, link, or page text matches, plus the folders that contain them. */
+export function filterTreeByQuery(nodes: TreeNode[], query: string, contentById: ReadonlyMap<string, string> = new Map()): TreeNode[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) {
+    return nodes;
+  }
+
+  return nodes.flatMap(node => {
+    if (nodeMatchesQuery(node, normalizedQuery, contentById)) {
+      return [node];
+    }
+
+    const matchingChildren = filterTreeByQuery(node.children ?? [], query, contentById);
+    if (!matchingChildren.length) {
+      return [];
+    }
+
+    return [{ ...node, children: matchingChildren }];
+  });
+}
+
+/** Containers that should stay open so every search match is visible. */
+export function expandedContainerIds(nodes: TreeNode[]): ReadonlySet<string> {
+  const ids = new Set<string>();
+  const walk = (list: TreeNode[]) => {
+    for (const node of list) {
+      const children = node.children ?? [];
+      if (children.length && node.type !== 'PAGE' && node.type !== 'LINK') {
+        ids.add(node.id);
+        walk(children);
+      }
+    }
+  };
+  walk(nodes);
+  return ids;
+}
+
+function nodeMatchesQuery(node: TreeNode, normalizedQuery: string, contentById: ReadonlyMap<string, string>): boolean {
+  if (node.label.toLowerCase().includes(normalizedQuery)) {
+    return true;
+  }
+  if (node.data?.type === 'LINK' && node.data.url.toLowerCase().includes(normalizedQuery)) {
+    return true;
+  }
+  if (node.type !== 'PAGE') {
+    return false;
+  }
+  return (contentById.get(node.id) ?? '').toLowerCase().includes(normalizedQuery);
 }

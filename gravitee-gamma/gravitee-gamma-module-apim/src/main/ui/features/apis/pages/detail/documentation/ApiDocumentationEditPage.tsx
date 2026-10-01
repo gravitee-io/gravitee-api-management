@@ -39,6 +39,7 @@ import { type FieldValues, useForm } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { DocumentationContentEditor } from './DocumentationContentEditor';
+import { DocumentationVisibilityField } from './DocumentationVisibilityField';
 import { FETCHER_ICONS, NAME_MAX, SOURCE_OPTIONS, TypeIcon, fileAccept, typeLabel } from './documentation-shared';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
@@ -49,7 +50,7 @@ import {
     useDocumentationFetchers,
     useUpdateDocumentationPage,
 } from '../../../hooks/useApiDocumentation';
-import type { FetcherListItem, PageSourceType, SupportedEditPageType } from '../../../types/documentation';
+import type { FetcherListItem, PageSourceType, SupportedEditPageType, Visibility } from '../../../types/documentation';
 import { parseFetcherSchema, toApiParentId } from '../../../utils/documentationFormatters';
 
 function parsePageType(value: string | null): SupportedEditPageType {
@@ -265,6 +266,10 @@ export function ApiDocumentationEditPage() {
 
     const pageQuery = useApiDocumentationPage(apiId, pageId);
     const siblingsQuery = useApiDocumentationPages(apiId, isNew ? parentFromQuery : toApiParentId(pageQuery.data?.parentId));
+    const parentId = isNew ? parentFromQuery : toApiParentId(pageQuery.data?.parentId);
+    const parentFolderId = parentId !== 'ROOT' && parentId ? parentId : undefined;
+    const parentFolderQuery = useApiDocumentationPage(apiId, parentFolderId);
+    const parentForcesPrivate = parentFolderQuery.data?.visibility === 'PRIVATE';
     const fetchersQuery = useDocumentationFetchers();
     const createMutation = useCreateDocumentationPage(apiId ?? '');
     const updateMutation = useUpdateDocumentationPage(apiId ?? '');
@@ -274,6 +279,7 @@ export function ApiDocumentationEditPage() {
     const [stepIndex, setStepIndex] = useState(0);
     const [initialized, setInitialized] = useState(false);
     const [name, setName] = useState('');
+    const [visibility, setVisibility] = useState<Visibility>('PUBLIC');
     const [type, setType] = useState<SupportedEditPageType>(typeFromQuery);
     const [sourceType, setSourceType] = useState<PageSourceType>('FILL');
     const [content, setContent] = useState('');
@@ -284,6 +290,10 @@ export function ApiDocumentationEditPage() {
     const fetcherForm = useForm<FieldValues>({ defaultValues: { configuration: {} } });
     const selectedFetcher = fetchers.find(fetcher => fetcher.id === fetcherType);
     const fetcherSchema: JsonSchema | undefined = selectedFetcher ? parseFetcherSchema(selectedFetcher) : undefined;
+
+    useEffect(() => {
+        if (parentForcesPrivate) setVisibility('PRIVATE');
+    }, [parentForcesPrivate]);
 
     useEffect(() => {
         if (isNew) {
@@ -297,6 +307,7 @@ export function ApiDocumentationEditPage() {
             return;
         }
         setName(page.name ?? '');
+        setVisibility(page.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC');
         if (page.type === 'MARKDOWN' || page.type === 'SWAGGER' || page.type === 'ASYNCAPI') setType(page.type);
         setContent(page.content ?? '');
         if (page.source?.type) {
@@ -308,6 +319,7 @@ export function ApiDocumentationEditPage() {
             JSON.stringify({
                 name: page.name ?? '',
                 content: page.content ?? '',
+                visibility: page.visibility === 'PRIVATE' ? 'PRIVATE' : 'PUBLIC',
                 sourceType: page.source?.type ? 'EXTERNAL' : 'FILL',
                 fetcherType: page.source?.type ?? '',
             }),
@@ -319,7 +331,6 @@ export function ApiDocumentationEditPage() {
         .filter(item => item.id !== pageId)
         .map(item => (item.name ?? '').toLowerCase().trim());
     const breadcrumbs = siblingsQuery.breadcrumbs ?? [];
-    const parentId = isNew ? parentFromQuery : toApiParentId(pageQuery.data?.parentId);
 
     const goBack = () => navigate({ pathname: '..' });
 
@@ -332,7 +343,8 @@ export function ApiDocumentationEditPage() {
               : null;
     const fetcherError = sourceType === 'EXTERNAL' && !fetcherType ? 'Select a page source.' : null;
     const contentError = sourceType !== 'EXTERNAL' && content.trim() === '' ? 'Page content cannot be empty.' : null;
-    const currentSnapshot = JSON.stringify({ name, content, sourceType, fetcherType });
+    const effectiveVisibility: Visibility = parentForcesPrivate ? 'PRIVATE' : visibility;
+    const currentSnapshot = JSON.stringify({ name, content, visibility: effectiveVisibility, sourceType, fetcherType });
     const isDirty = !isNew && savedSnapshot !== '' && currentSnapshot !== savedSnapshot;
     const isSaving = createMutation.isPending || updateMutation.isPending;
 
@@ -350,11 +362,13 @@ export function ApiDocumentationEditPage() {
         const saved = JSON.parse(savedSnapshot) as {
             name: string;
             content: string;
+            visibility: Visibility;
             sourceType: PageSourceType;
             fetcherType: string;
         };
         setName(saved.name);
         setContent(saved.content);
+        setVisibility(parentForcesPrivate ? 'PRIVATE' : saved.visibility);
         setSourceType(saved.sourceType);
         setFetcherType(saved.fetcherType);
         setFileName('');
@@ -397,6 +411,7 @@ export function ApiDocumentationEditPage() {
             name: trimmed,
             parentId,
             content,
+            visibility: effectiveVisibility,
             ...(sourceType === 'EXTERNAL' && fetcherType
                 ? { source: { type: fetcherType, configuration: sourceConfiguration } }
                 : {}),
@@ -417,7 +432,15 @@ export function ApiDocumentationEditPage() {
             {
                 onSuccess: () => {
                     notify.success('Page updated');
-                    setSavedSnapshot(JSON.stringify({ name: trimmed, content, sourceType, fetcherType }));
+                    setSavedSnapshot(
+                        JSON.stringify({
+                            name: trimmed,
+                            content,
+                            visibility: effectiveVisibility,
+                            sourceType,
+                            fetcherType,
+                        }),
+                    );
                     setShowErrors(false);
                 },
                 onError: error => notify.error(error, 'Could not update page.'),
@@ -564,6 +587,13 @@ export function ApiDocumentationEditPage() {
                                     </div>
                                     <FieldDescription>Chosen when you added the page. Type cannot change after create.</FieldDescription>
                                 </Field>
+                                <DocumentationVisibilityField
+                                    kind="page"
+                                    value={effectiveVisibility}
+                                    parentForcesPrivate={parentForcesPrivate}
+                                    disabled={isSaving || readOnly}
+                                    onChange={setVisibility}
+                                />
                             </CardContent>
                         </Card>
                     ) : null}
@@ -652,28 +682,41 @@ export function ApiDocumentationEditPage() {
                     </div>
                 </>
             ) : (
-                <Card>
-                    <CardContent className="pt-6">
-                        {sourceType === 'IMPORT' && !content.trim() ? (
-                            <ImportFileDropzone
-                                type={type}
-                                fileName={fileName}
+                <>
+                    <Card>
+                        <CardContent className="space-y-4 pt-6">
+                            <DocumentationVisibilityField
+                                kind="page"
+                                value={effectiveVisibility}
+                                parentForcesPrivate={parentForcesPrivate}
                                 disabled={isSaving || readOnly}
-                                error={showErrors ? contentError : null}
-                                onFile={file => void handleFile(file)}
+                                onChange={setVisibility}
                             />
-                        ) : (
-                            <DocumentationContentEditor
-                                type={type}
-                                content={content}
-                                readOnly={readOnly}
-                                isExternal={sourceType === 'EXTERNAL'}
-                                error={showErrors ? contentError : null}
-                                onChange={setContent}
-                            />
-                        )}
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="pt-6">
+                            {sourceType === 'IMPORT' && !content.trim() ? (
+                                <ImportFileDropzone
+                                    type={type}
+                                    fileName={fileName}
+                                    disabled={isSaving || readOnly}
+                                    error={showErrors ? contentError : null}
+                                    onFile={file => void handleFile(file)}
+                                />
+                            ) : (
+                                <DocumentationContentEditor
+                                    type={type}
+                                    content={content}
+                                    readOnly={readOnly}
+                                    isExternal={sourceType === 'EXTERNAL'}
+                                    error={showErrors ? contentError : null}
+                                    onChange={setContent}
+                                />
+                            )}
+                        </CardContent>
+                    </Card>
+                </>
             )}
         </div>
     );

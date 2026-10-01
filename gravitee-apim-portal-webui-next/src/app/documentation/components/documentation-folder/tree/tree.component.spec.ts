@@ -112,32 +112,41 @@ describe('TreeComponent', () => {
       expect(selectSpy).toHaveBeenCalledWith('p2');
     });
 
-    it('should collapse folder on click', async () => {
+    it('should expand a collapsed folder on click', async () => {
       const selectSpy = jest.fn();
       component.selectNode.subscribe(selectSpy);
 
       let folder = await harness.getFolderByTitle('Folder 1');
-      expect(folder?.expanded).toEqual(true);
+      expect(folder?.expanded).toEqual(false);
 
       await harness.clickItemByTitle('Folder 1');
       expect(selectSpy).not.toHaveBeenCalledWith('f1');
 
       folder = await harness.getFolderByTitle('Folder 1');
-      expect(folder?.expanded).toEqual(false);
+      expect(folder?.expanded).toEqual(true);
     });
 
-    it('should collapse api on click', async () => {
+    it('should expand a collapsed api on click', async () => {
       const selectSpy = jest.fn();
       component.selectNode.subscribe(selectSpy);
 
       let api = await harness.getApiByTitle('API 1');
-      expect(api?.expanded).toEqual(true);
+      expect(api?.expanded).toEqual(false);
 
       await harness.clickItemByTitle('API 1');
       expect(selectSpy).not.toHaveBeenCalledWith('a1');
 
       api = await harness.getApiByTitle('API 1');
-      expect(api?.expanded).toEqual(false);
+      expect(api?.expanded).toEqual(true);
+    });
+
+    it('should open only the ids it is given', async () => {
+      fixture.componentRef.setInput('expandedIds', new Set(['f2']));
+      fixture.detectChanges();
+
+      expect((await harness.getFolderByTitle('Folder 1'))?.expanded).toEqual(false);
+      expect((await harness.getFolderByTitle('Folder 2'))?.expanded).toEqual(true);
+      expect((await harness.getApiByTitle('API 1'))?.expanded).toEqual(false);
     });
   });
 });

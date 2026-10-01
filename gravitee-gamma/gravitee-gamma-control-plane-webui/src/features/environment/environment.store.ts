@@ -30,6 +30,7 @@ interface EnvironmentState {
     initialized: boolean;
     initialize: (organizationId: string) => Promise<void>;
     setCurrentEnvironment: (env: Environment) => void;
+    addEnvironment: (env: Environment) => void;
     resolveEnvironment: (envHridOrId: string) => Environment | null;
     reset: () => void;
 }
@@ -92,6 +93,27 @@ export const useEnvironmentStore = create<EnvironmentState>()(
 
             setCurrentEnvironment: (env: Environment) => {
                 set({ currentEnvironment: env, environmentId: env.id, organizationId: env.organizationId || get().organizationId });
+            },
+
+            addEnvironment: (env: Environment) => {
+                set(state => {
+                    if (state.environments.some(existing => existing.id === env.id)) {
+                        return state;
+                    }
+
+                    const newHrid = env.hrids?.[0]?.toLowerCase();
+                    if (
+                        newHrid &&
+                        state.environments.some(existing => existing.hrids?.some(hrid => hrid.toLowerCase() === newHrid))
+                    ) {
+                        return state;
+                    }
+
+                    const [defaultEnvironment, ...otherEnvironments] = state.environments;
+                    const environments = defaultEnvironment ? [defaultEnvironment, env, ...otherEnvironments] : [env];
+
+                    return { environments };
+                });
             },
         }),
         { name: 'environment' },

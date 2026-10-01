@@ -28,6 +28,7 @@ import { TreeNode } from '../../../services/tree.service';
 export class TreeComponent implements AfterViewInit {
   tree = input.required<TreeNode[]>();
   selectedId = input<string | null>(null);
+  expandedIds = input<ReadonlySet<string>>(new Set());
   selectNode = output<string>();
 
   ngAfterViewInit() {

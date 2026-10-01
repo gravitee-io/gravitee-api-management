@@ -69,6 +69,7 @@
         [node]="child"
         [level]="level() + 1"
         [selectedId]="selectedId()"
+        [expandedIds]="expandedIds()"
         (nodeSelected)="nodeSelected.emit($event)"
       />
     }

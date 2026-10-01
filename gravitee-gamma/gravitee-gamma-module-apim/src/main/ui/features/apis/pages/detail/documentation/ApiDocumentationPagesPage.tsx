@@ -76,7 +76,7 @@ import {
     useUnpublishDocumentationPage,
     useUpdateDocumentationPage,
 } from '../../../hooks/useApiDocumentation';
-import type { DocumentationPage, PageType } from '../../../types/documentation';
+import type { DocumentationPage, PageType, Visibility } from '../../../types/documentation';
 import { formatUpdatedAt, normalizeParentId, toApiParentId } from '../../../utils/documentationFormatters';
 
 type FolderDialogState = { open: false } | { open: true; folder?: DocumentationPage; parentId: string | null };
@@ -124,12 +124,73 @@ function isPublishable(item: DocumentationPage): boolean {
     return normalizeParentId(item.parentId) === null;
 }
 
+function isUnderSelectedRoot(item: DocumentationPage, selectedIds: Set<string>, pages: DocumentationPage[]): boolean {
+    if (item.id && selectedIds.has(item.id)) return true;
+    let parentId = normalizeParentId(item.parentId);
+    const seen = new Set<string>();
+    while (parentId && !seen.has(parentId)) {
+        seen.add(parentId);
+        if (selectedIds.has(parentId)) return true;
+        parentId = normalizeParentId(pages.find(entry => entry.id === parentId)?.parentId);
+    }
+    return false;
+}
+
 function collectDescendantIds(items: DocumentationPage[], rootId: string): string[] {
     const ids = [rootId];
     siblingsOf(items, rootId).forEach(child => {
         if (child.id) ids.push(...collectDescendantIds(items, child.id));
     });
     return ids;
+}
+
+/** True when deleting these roots removes every published doc and the API is currently on the portal. */
+function wouldUnpublishApiOnDelete(
+    pages: DocumentationPage[],
+    deleting: DocumentationPage[],
+    apiPublishedOnPortal: boolean,
+): boolean {
+    if (!apiPublishedOnPortal) return false;
+    const published = pages.filter(page => page.published && page.id);
+    if (published.length === 0) return false;
+    const removed = new Set<string>();
+    for (const item of deleting) {
+        if (!item.id) continue;
+        for (const id of collectDescendantIds(pages, item.id)) removed.add(id);
+    }
+    return published.every(page => removed.has(page.id!));
+}
+
+function deleteConfirmDescription(
+    item: DocumentationPage | null,
+    pages: DocumentationPage[],
+    apiPublishedOnPortal: boolean,
+): string {
+    if (!item) return '';
+    const unpublishApi = wouldUnpublishApiOnDelete(pages, [item], apiPublishedOnPortal);
+    if (unpublishApi) {
+        return item.type === 'FOLDER'
+            ? `Delete “${item.name}” and all nested pages and folders? This removes the only published documentation for this API, so the API will be unpublished from the Next Gen Developer Portal. This cannot be undone.`
+            : `Delete “${item.name}”? This is the only published documentation for this API, so deleting it will unpublish the API from the Next Gen Developer Portal. This cannot be undone.`;
+    }
+    return item.type === 'FOLDER'
+        ? `Delete “${item.name}” and all nested pages and folders? Matching Navigation items are removed too. This cannot be undone.`
+        : `Delete “${item.name}”? The matching Navigation item is removed too. This cannot be undone.`;
+}
+
+function bulkDeleteConfirmDescription(
+    selected: DocumentationPage[],
+    pages: DocumentationPage[],
+    apiPublishedOnPortal: boolean,
+): string {
+    const unpublishApi = wouldUnpublishApiOnDelete(pages, selected, apiPublishedOnPortal);
+    if (selected.length === 1) {
+        return deleteConfirmDescription(selected[0] ?? null, pages, apiPublishedOnPortal);
+    }
+    if (unpublishApi) {
+        return `Delete ${selected.length} selected items? This removes the only published documentation for this API, so the API will be unpublished from the Next Gen Developer Portal. This cannot be undone.`;
+    }
+    return `Delete ${selected.length} selected items? Folders are removed with all nested pages and folders. Matching Navigation items are removed too. This cannot be undone.`;
 }
 
 function PageTypeMenuItems({ onSelect }: { onSelect: (pageType: (typeof PAGE_TYPES)[number]) => void }) {
@@ -174,9 +235,11 @@ export function ApiDocumentationPagesPage() {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [pendingPublishIds, setPendingPublishIds] = useState<string[] | null>(null);
     const [pendingUnpublishIds, setPendingUnpublishIds] = useState<string[] | null>(null);
+    const [pendingBulkDelete, setPendingBulkDelete] = useState(false);
     const [publishApiOpen, setPublishApiOpen] = useState(false);
     const [unpublishApiOpen, setUnpublishApiOpen] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
+    const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
     const portalQuery = usePortalDocumentationFolders(apiId, canPublish);
     const folders = portalQuery.data?.folders ?? [];
@@ -198,6 +261,7 @@ export function ApiDocumentationPagesPage() {
     const selectedPublished = selectedPublishable.filter(item => item.published);
     const allSelected = publishableItems.length > 0 && selectedPublishable.length === publishableItems.length;
     const someSelected = selectedPublishable.length > 0 && !allSelected;
+    const hasSelection = selectedPublishable.length > 0;
 
     const folderExistingNames = useMemo(() => {
         if (!folderDialog.open) return [];
@@ -206,6 +270,15 @@ export function ApiDocumentationPagesPage() {
         return siblingsOf(pages, parentId)
             .filter(item => item.id !== editingId)
             .map(item => (item.name ?? '').toLowerCase().trim());
+    }, [folderDialog, pages]);
+
+    const folderParentForcesPrivate = useMemo(() => {
+        if (!folderDialog.open) return false;
+        const parentId = folderDialog.folder
+            ? normalizeParentId(folderDialog.folder.parentId)
+            : folderDialog.parentId;
+        if (!parentId) return false;
+        return pages.find(item => item.id === parentId)?.visibility === 'PRIVATE';
     }, [folderDialog, pages]);
 
     function toggleFolder(id: string) {
@@ -249,13 +322,13 @@ export function ApiDocumentationPagesPage() {
     }
 
     const saveFolder = useCallback(
-        ({ name }: { name: string }) => {
+        ({ name, visibility }: { name: string; visibility: Visibility }) => {
             if (!apiId || !folderDialog.open) return;
             const editing = folderDialog.folder;
             const parentId = editing ? toApiParentId(editing.parentId) : toApiParentId(folderDialog.parentId);
             if (editing?.id) {
                 updateMutation.mutate(
-                    { pageId: editing.id, payload: { ...editing, name, type: 'FOLDER' } },
+                    { pageId: editing.id, payload: { ...editing, name, type: 'FOLDER', visibility } },
                     {
                         onSuccess: () => {
                             notify.success('Folder updated');
@@ -267,7 +340,7 @@ export function ApiDocumentationPagesPage() {
                 return;
             }
             createMutation.mutate(
-                { name, type: 'FOLDER', parentId },
+                { name, type: 'FOLDER', parentId, visibility },
                 {
                     onSuccess: created => {
                         if (folderDialog.parentId) {
@@ -461,6 +534,26 @@ export function ApiDocumentationPagesPage() {
         }
     }
 
+    async function confirmBulkDelete() {
+        const ids = selectedPublishable.map(item => item.id!).filter(Boolean);
+        if (!ids.length) return;
+        setIsBulkDeleting(true);
+        try {
+            for (const id of ids) {
+                await deleteMutation.mutateAsync(id);
+            }
+            notify.success(ids.length === 1 ? 'Item deleted' : `${ids.length} items deleted`);
+            setSelectedIds(new Set());
+            setPendingBulkDelete(false);
+            void refetch();
+            void portalQuery.refetch();
+        } catch (error) {
+            notify.error(error, 'Could not delete.');
+        } finally {
+            setIsBulkDeleting(false);
+        }
+    }
+
     const showRootEmpty = !isLoading && !isError && pages.length === 0;
     const isSavingFolder = createMutation.isPending || updateMutation.isPending;
     const apiPublishedOnPortal = Boolean(placement?.published);
@@ -468,46 +561,15 @@ export function ApiDocumentationPagesPage() {
     const headerActions = (
         <div className="flex flex-wrap items-center justify-end gap-2">
             {canPublish && !apiPublishedOnPortal ? (
-                <Button
-                    size="sm"
-                    variant={selectedUnpublished.length > 0 || selectedPublished.length > 0 ? 'outline' : 'default'}
-                    disabled={isPublishing || portalQuery.isFetching}
-                    onClick={openPublishApi}
-                >
+                <Button size="sm" disabled={isPublishing || portalQuery.isFetching} onClick={openPublishApi}>
                     <GlobeIcon className="size-4" />
                     Publish API
                 </Button>
             ) : null}
             {canPublish && apiPublishedOnPortal ? (
-                <Button
-                    size="sm"
-                    variant={selectedUnpublished.length > 0 || selectedPublished.length > 0 ? 'outline' : 'default'}
-                    disabled={isPublishing}
-                    onClick={() => setUnpublishApiOpen(true)}
-                >
+                <Button size="sm" disabled={isPublishing} onClick={() => setUnpublishApiOpen(true)}>
                     <EyeOffIcon className="size-4" />
                     Unpublish API
-                </Button>
-            ) : null}
-            {canPublish && selectedUnpublished.length > 0 ? (
-                <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={isPublishing || portalQuery.isFetching}
-                    onClick={() => openPublish(selectedUnpublished.map(item => item.id!).filter(Boolean))}
-                >
-                    <GlobeIcon className="size-4" />
-                    Publish
-                </Button>
-            ) : null}
-            {canPublish && selectedPublished.length > 0 ? (
-                <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setPendingUnpublishIds(selectedPublished.map(item => item.id!).filter(Boolean))}
-                >
-                    <EyeOffIcon className="size-4" />
-                    Unpublish
                 </Button>
             ) : null}
             {canModify && canCreate ? (
@@ -576,9 +638,71 @@ export function ApiDocumentationPagesPage() {
                 {pages.length > 0 ? (
                     <Card>
                         <CardContent className="p-0">
+                            {canPublish && hasSelection ? (
+                                <div className="flex flex-wrap items-center gap-3 border-b border-primary/15 bg-primary/5 px-3 py-2.5">
+                                    <Checkbox
+                                        checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                                        aria-label={allSelected ? 'Deselect all documentation' : 'Select all documentation'}
+                                        onCheckedChange={() => toggleSelectAll()}
+                                    />
+                                    <span className="text-sm font-medium whitespace-nowrap">
+                                        {selectedPublishable.length} of {publishableItems.length} selected
+                                    </span>
+                                    <div className="flex flex-1 flex-wrap items-center justify-center gap-1.5">
+                                        {selectedUnpublished.length > 0 ? (
+                                            <Button
+                                                size="sm"
+                                                className="gap-1.5"
+                                                disabled={isPublishing || portalQuery.isFetching}
+                                                onClick={() =>
+                                                    openPublish(selectedUnpublished.map(item => item.id!).filter(Boolean))
+                                                }
+                                            >
+                                                <GlobeIcon className="size-4" />
+                                                Publish {selectedUnpublished.length}
+                                            </Button>
+                                        ) : null}
+                                        {selectedPublished.length > 0 ? (
+                                            <Button
+                                                size="sm"
+                                                className="gap-1.5"
+                                                disabled={isPublishing}
+                                                onClick={() =>
+                                                    setPendingUnpublishIds(
+                                                        selectedPublished.map(item => item.id!).filter(Boolean),
+                                                    )
+                                                }
+                                            >
+                                                <EyeOffIcon className="size-4" />
+                                                Unpublish {selectedPublished.length}
+                                            </Button>
+                                        ) : null}
+                                        {canDelete && !isKubernetes ? (
+                                            <Button
+                                                size="sm"
+                                                className="gap-1.5"
+                                                disabled={isBulkDeleting || deleteMutation.isPending}
+                                                onClick={() => setPendingBulkDelete(true)}
+                                            >
+                                                <Trash2Icon className="size-4" />
+                                                Delete
+                                            </Button>
+                                        ) : null}
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="link"
+                                        className="text-primary"
+                                        onClick={() => setSelectedIds(new Set())}
+                                    >
+                                        Clear selection
+                                    </Button>
+                                </div>
+                            ) : null}
                             <Table>
                                 <TableHeader>
-                                    <TableRow>
+                                    <TableRow className={hasSelection ? 'sr-only' : undefined}>
                                         {canPublish ? (
                                             <TableHead className="w-10">
                                                 <Checkbox
@@ -607,6 +731,7 @@ export function ApiDocumentationPagesPage() {
                                         const isFolder = item.type === 'FOLDER';
                                         const isExpanded = Boolean(item.id && expanded.has(item.id));
                                         const publishable = isPublishable(item);
+                                        const rowSelected = isUnderSelectedRoot(item, selectedIds, pages);
                                         const dragParent = dragId
                                             ? normalizeParentId(pages.find(entry => entry.id === dragId)?.parentId)
                                             : undefined;
@@ -614,7 +739,10 @@ export function ApiDocumentationPagesPage() {
                                         return (
                                             <TableRow
                                                 key={item.id ?? item.name}
-                                                className={cn(overId === item.id && dropOk && 'bg-muted/70')}
+                                                className={cn(
+                                                    rowSelected && 'bg-primary/5',
+                                                    overId === item.id && dropOk && 'bg-muted/70',
+                                                )}
                                                 onDragOver={event => {
                                                     if (!canReorder || !dropOk) return;
                                                     event.preventDefault();
@@ -637,7 +765,15 @@ export function ApiDocumentationPagesPage() {
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
                                                                     <span className="inline-flex">
-                                                                        <Checkbox disabled aria-label={`${item.name} publishes with its folder`} />
+                                                                        <Checkbox
+                                                                            checked={rowSelected}
+                                                                            disabled
+                                                                            aria-label={
+                                                                                rowSelected
+                                                                                    ? `${item.name} selected with its folder`
+                                                                                    : `${item.name} publishes with its folder`
+                                                                            }
+                                                                        />
                                                                     </span>
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>Pages inside a folder publish with the folder.</TooltipContent>
@@ -798,6 +934,8 @@ export function ApiDocumentationPagesPage() {
                 <DocumentationFolderDialog
                     open={folderDialog.open}
                     folderName={folderDialog.open ? folderDialog.folder?.name : undefined}
+                    visibility={folderDialog.open ? folderDialog.folder?.visibility ?? 'PUBLIC' : 'PUBLIC'}
+                    parentForcesPrivate={folderParentForcesPrivate}
                     existingNames={folderExistingNames}
                     readOnly={isKubernetes || !canModify}
                     isSaving={isSavingFolder}
@@ -863,11 +1001,7 @@ export function ApiDocumentationPagesPage() {
                         if (!open) setPendingDelete(null);
                     }}
                     title={pendingDelete?.type === 'FOLDER' ? 'Delete folder' : 'Delete page'}
-                    description={
-                        pendingDelete?.type === 'FOLDER'
-                            ? 'Only empty folders can be deleted. The matching Navigation item is removed too. If nothing remains under this API, the API is removed from Navigation. This cannot be undone.'
-                            : `Delete “${pendingDelete?.name}”? The matching Navigation item is removed too. If it is the last documentation under this API, the API is removed from Navigation. This cannot be undone.`
-                    }
+                    description={deleteConfirmDescription(pendingDelete, pages, apiPublishedOnPortal)}
                     confirmLabel="Delete"
                     destructive
                     isPending={deleteMutation.isPending}
@@ -882,10 +1016,24 @@ export function ApiDocumentationPagesPage() {
                                     return next;
                                 });
                                 setPendingDelete(null);
+                                void portalQuery.refetch();
                             },
                             onError: error => notify.error(error, 'Could not delete.'),
                         });
                     }}
+                />
+
+                <ConfirmDialog
+                    open={pendingBulkDelete}
+                    onOpenChange={open => {
+                        if (!open && !isBulkDeleting) setPendingBulkDelete(false);
+                    }}
+                    title={selectedPublishable.length === 1 ? 'Delete documentation' : 'Delete selected documentation'}
+                    description={bulkDeleteConfirmDescription(selectedPublishable, pages, apiPublishedOnPortal)}
+                    confirmLabel="Delete"
+                    destructive
+                    isPending={isBulkDeleting}
+                    onConfirm={() => void confirmBulkDelete()}
                 />
             </div>
         </TooltipProvider>

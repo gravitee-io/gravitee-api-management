@@ -23,7 +23,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
-import io.gravitee.apim.core.documentation.exception.ApiFolderNotEmptyException;
 import io.gravitee.apim.core.documentation.exception.ApiPageInvalidReferenceTypeException;
 import io.gravitee.apim.core.documentation.exception.ApiPageUsedAsGeneralConditionException;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -68,7 +67,13 @@ public class DeleteApiDocumentationDomainService {
 
         throwIfNotApiPage(pageToDelete);
         throwIfPageUsedAsGeneralCondition(api, pageToDelete);
-        throwIfDeletingNonEmptyFolder(api, pageToDelete);
+
+        if (pageToDelete.isFolder()) {
+            // Snapshot children first, then delete deepest content before the folder itself.
+            pageQueryService
+                .searchByApiIdAndParentId(api.getId(), pageToDelete.getId())
+                .forEach(child -> delete(api, child.getId(), auditInfo));
+        }
 
         this.pageCrudService.delete(pageId);
         updatePageOrders(pageToDelete, auditInfo);
@@ -91,18 +96,6 @@ public class DeleteApiDocumentationDomainService {
                 .newValue(null)
                 .build()
         );
-    }
-
-    private void throwIfDeletingNonEmptyFolder(Api api, Page pageToDelete) {
-        if (pageToDelete.isFolder()) {
-            pageQueryService
-                .searchByApiIdAndParentId(api.getId(), pageToDelete.getId())
-                .stream()
-                .findAny()
-                .ifPresent(childPage -> {
-                    throw new ApiFolderNotEmptyException(pageToDelete.getId());
-                });
-        }
     }
 
     private void throwIfPageUsedAsGeneralCondition(Api api, Page pageToDelete) {

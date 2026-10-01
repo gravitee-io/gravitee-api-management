@@ -35,6 +35,16 @@
     </div>
   }
   <div sidenavContent class="documentation-folder__sidenav__content">
+    @if (!folderLoading()) {
+      <app-search-bar
+        class="documentation-folder__sidenav__search"
+        [showShortcut]="false"
+        [searchParam]="searchQuery()"
+        placeholder="Search pages"
+        i18n-placeholder="@@documentationFolderSearchPlaceholder"
+        (searchTerm)="onFolderSearch($event)"
+      />
+    }
     @if (folderLoading()) {
       <app-sidenav-skeleton
         animate.leave="documentation-folder__sidenav__skeleton--leave"
@@ -43,14 +53,19 @@
         i18n-aria-label="@@documentationTreeLoadingAria"
         aria-label="Loading navigation"
       />
-    } @else if (tree() && tree()!.length > 0) {
+    } @else if (displayedTree().length > 0) {
       <app-tree-component
         animate.enter="documentation-folder__sidenav__tree-enter"
         class="documentation-folder__sidenav__tree"
-        [tree]="tree()"
+        [tree]="displayedTree()"
         [selectedId]="selectedId$ | async"
+        [expandedIds]="visibleExpandedIds()"
         (selectNode)="onSelect($event)"
       />
+    } @else if (searchQuery().trim() && contentSearchPending()) {
+      <div class="documentation-folder__sidenav__empty-state" i18n="@@documentationSearchPending">Searching page contents</div>
+    } @else if (searchQuery().trim()) {
+      <div class="documentation-folder__sidenav__empty-state" i18n="@@documentationSearchNoResults">No matching items</div>
     } @else {
       <div class="documentation-folder__sidenav__empty-state" i18n="@@emptyItemsLabel">No items to show</div>
     }

@@ -306,6 +306,24 @@ describe('DocumentationFolderComponent', () => {
         expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Folder 2/Page 1');
       });
 
+      it('should keep every folder minimized when the navbar folder is opened', async () => {
+        await init({ items: MOCK_CHILDREN, queryParams: {}, content: MOCK_CONTENT });
+
+        const treeHarness = await harness.getTreeHarness();
+        expect((await treeHarness!.getFolderByTitle('Folder 1'))?.expanded).toEqual(false);
+        expect((await treeHarness!.getFolderByTitle('Folder 2'))?.expanded).toEqual(false);
+        expect((await treeHarness!.getApiByTitle('API 1'))?.expanded).toEqual(false);
+      });
+
+      it('should expand only the catalog API and the folders that contain it', async () => {
+        await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'api1' }, content: MOCK_CONTENT });
+
+        const treeHarness = await harness.getTreeHarness();
+        expect((await treeHarness!.getApiByTitle('API 1'))?.expanded).toEqual(true);
+        expect((await treeHarness!.getFolderByTitle('Folder 1'))?.expanded).toEqual(true);
+        expect((await treeHarness!.getFolderByTitle('Folder 2'))?.expanded).toEqual(false);
+      });
+
       it('should redirect to first page when selectedId is API', async () => {
         const apiItem = makeItem('api1', 'API', 'API 1', 0, undefined);
         const apiPage = makeItem('p-api1', 'PAGE', 'API 1 Documentation', 0, 'api1');
@@ -347,6 +365,52 @@ describe('DocumentationFolderComponent', () => {
         const emptyState = await harness.getContentEmptyState();
         expect(await emptyState?.getText()).toEqual('No content to show');
       });
+    });
+  });
+
+  describe('search', () => {
+    it('should show a search field for the folder', async () => {
+      await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'p2' }, content: MOCK_CONTENT });
+
+      expect(fixture.nativeElement.querySelector('input[aria-label="Search pages"]')).not.toBeNull();
+    });
+
+    it('should filter the tree by page name', async () => {
+      await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'p2' }, content: MOCK_CONTENT });
+
+      fixture.componentInstance.onFolderSearch('Page 2');
+      fixture.detectChanges();
+
+      const tree = await harness.getTreeHarness();
+      expect(await tree?.getAllItemTitles()).toEqual(['Folder 1', 'Page 2']);
+    });
+
+    it('should filter the tree by page contents and open the folders that contain the match', async () => {
+      await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'p2' }, content: MOCK_CONTENT });
+      navigationServiceSpy.getNavigationItemContent = jest.fn().mockImplementation((id: string) =>
+        of({
+          content: id === 'p1' ? 'quarterly ledger totals' : 'unrelated',
+          type: 'GRAVITEE_MARKDOWN',
+        }),
+      );
+
+      fixture.componentInstance.onFolderSearch('ledger');
+      fixture.detectChanges();
+
+      const tree = await harness.getTreeHarness();
+      expect(await tree?.getAllItemTitles()).toEqual(['Folder 1', 'Folder 2', 'Page 1']);
+      expect(await tree?.getFolderByTitle('Folder 2')).toEqual({ label: 'Folder 2', expanded: true });
+    });
+
+    it('should show an empty state when nothing matches', async () => {
+      await init({ items: MOCK_CHILDREN, queryParams: { selectedId: 'p2' }, content: MOCK_CONTENT });
+      navigationServiceSpy.getNavigationItemContent = jest.fn().mockReturnValue(of({ content: 'unrelated', type: 'GRAVITEE_MARKDOWN' }));
+
+      fixture.componentInstance.onFolderSearch('missing-phrase');
+      fixture.detectChanges();
+
+      expect(await harness.getTreeHarness()).toBeNull();
+      expect(await (await harness.getSidenavEmptyState())?.getText()).toContain('No matching items');
     });
   });
 
