@@ -104,9 +104,9 @@ commands:
     steps:
       - restore_cache:
           keys:
-            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}
-            - gravitee-api-management-v15-<< parameters.jobName >>-master
+            - gravitee-api-management-v16-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v16-<< parameters.jobName >>-{{ .Branch }}
+            - gravitee-api-management-v16-<< parameters.jobName >>-master
     description: Restore Maven cache for a dedicated job
   cmd-save-maven-job-cache:
     parameters:
@@ -124,7 +124,7 @@ commands:
           command: find ~/.m2 -name '*.lastUpdated' -delete
           when: always
       - save_cache:
-          key: gravitee-api-management-v15-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v16-<< parameters.jobName >>-{{ .Branch }}-{{ checksum "pom.xml" }}
           paths:
             - ~/.m2
           when: always
@@ -250,7 +250,7 @@ jobs:
           paths:
             - ~/.m2/repository/io/gravitee/apim
             - ~/.m2/repository/io/gravitee/gamma
-          key: gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - run:
           name: Archive the compiled rest-api classes
@@ -258,7 +258,7 @@ jobs:
       - save_cache:
           paths:
             - /tmp/rest-api-classes.tar
-          key: gravitee-api-management-v15-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+          key: gravitee-api-management-v16-rest-api-classes-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
           when: on_success
       - cmd-save-maven-job-cache:
           jobName: job-build
@@ -278,7 +278,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v15-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+            - gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
       - run:
           name: Install CI project dependencies
           command: npm ci --prefer-offline --no-audit --no-fund
@@ -286,7 +286,7 @@ jobs:
       - save_cache:
           paths:
             - .circleci/ci/node_modules
-          key: gravitee-api-management-v15-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
+          key: gravitee-api-management-v16-check-graphene-versions-{{ checksum ".circleci/ci/package-lock.json" }}
       - run:
           name: Check graphene versions across bundled Gamma modules
           command: npx ts-node src/graphene-versions/check.ts
@@ -303,7 +303,7 @@ jobs:
           jobName: job-test-gateway
       - restore_cache:
           keys:
-            - gravitee-api-management-v15-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
+            - gravitee-api-management-v16-build-apim-{{ .Environment.CIRCLE_WORKFLOW_WORKSPACE_ID }}
       - cmd-azure-artifacts-token
       - run:
           name: Run gateway tests
@@ -346,7 +346,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
+            - gravitee-api-management-v16-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -359,7 +359,7 @@ jobs:
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v15-sonarcloud-analysis-<< parameters.cache_type >>
+          key: gravitee-api-management-v16-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-validate-workflow-status:
     docker:
