@@ -58,7 +58,7 @@ import javax.net.ssl.SSLSession;
 public class VertxHttpServerRequest extends AbstractRequest {
 
     public static final String NETTY_ATTR_CONNECTION_TIME = "connectionTime";
-    static final long MAX_DISCARDED_BODY_BYTES = 1024 * 1024;
+    static final long MAX_DISCARDED_BODY_BYTES = 1024L * 1024;
     static final long MAX_BODY_DISCARD_DELAY_MS = 5_000;
     private static final long UNKNOWN_LENGTH = -1;
     protected final HttpServerRequest nativeRequest;
@@ -230,7 +230,8 @@ public class VertxHttpServerRequest extends AbstractRequest {
      */
     UnconsumedBody unconsumedBody() {
         final HttpVersion version = version();
-        if ((version != HttpVersion.HTTP_1_1 && version != HttpVersion.HTTP_1_0) || !hasUnconsumedBody()) {
+        final boolean http1 = version == HttpVersion.HTTP_1_1 || version == HttpVersion.HTTP_1_0;
+        if (!http1 || !hasUnconsumedBody()) {
             return UnconsumedBody.NONE;
         }
         if (expectsContinue || announcedBodyLength == UNKNOWN_LENGTH || announcedBodyLength > MAX_DISCARDED_BODY_BYTES) {
@@ -263,7 +264,7 @@ public class VertxHttpServerRequest extends AbstractRequest {
         final Consumer<Boolean> finish = closeConnection -> {
             if (done.compareAndSet(false, true)) {
                 vertx.cancelTimer(timerId.get());
-                if (closeConnection) {
+                if (Boolean.TRUE.equals(closeConnection)) {
                     connection.close();
                 }
             }
