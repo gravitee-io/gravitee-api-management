@@ -113,8 +113,10 @@ class ApiResource_RollbackTest extends ApiResourceTest {
     }
 
     @Test
-    void should_return_400_when_rolling_back_a_native_api() {
-        doThrow(new ValidationDomainException("Rolling back a NATIVE API is not supported", "api.rollback.native"))
+    void should_answer_400_when_the_use_case_rejects_the_rollback() {
+        // the use case no longer refuses NATIVE APIs; this pins that any ValidationDomainException it raises
+        // reaches the caller as a 400 carrying its technical code
+        doThrow(new ValidationDomainException("Cannot rollback this API", "api.rollback.unsupported"))
             .when(rollbackApiUseCase)
             .execute(any(RollbackApiUseCase.Input.class));
 
@@ -123,8 +125,8 @@ class ApiResource_RollbackTest extends ApiResourceTest {
 
         var error = response.readEntity(Error.class);
         assertThat(error.getHttpStatus()).isEqualTo(BAD_REQUEST_400);
-        assertThat(error.getMessage()).isEqualTo("Rolling back a NATIVE API is not supported");
-        assertThat(error.getTechnicalCode()).isEqualTo("api.rollback.native");
+        assertThat(error.getMessage()).isEqualTo("Cannot rollback this API");
+        assertThat(error.getTechnicalCode()).isEqualTo("api.rollback.unsupported");
     }
 
     private ApiRollback aRollbackPayload(String eventId) {
