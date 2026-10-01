@@ -16,7 +16,7 @@
 import { afterRenderEffect, Component, ElementRef, ErrorHandler, inject, input, output } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
-import { TreeExpansionRequest, TreeNode } from '../../../services/tree.service';
+import { TreeNode } from '../../../services/tree.service';
 
 @Component({
   selector: 'app-tree-component',
@@ -31,17 +31,21 @@ export class TreeComponent {
 
   tree = input.required<TreeNode[]>();
   selectedId = input<string | null>(null);
-  expansionRequest = input<TreeExpansionRequest | null>(null);
+  expandedContainerIds = input<ReadonlySet<string> | null>(null);
   selectNode = output<string>();
 
   constructor() {
     afterRenderEffect(onCleanup => {
+      // Read as dependencies: both can move the selected row, so both have to re-run the scroll.
       this.selectedId();
-      this.expansionRequest();
+      this.expandedContainerIds();
+
       let canceled = false;
       onCleanup(() => {
         canceled = true;
       });
+
+      // A revealed branch is still animating to its full height, so its row has no final position yet.
       const animations = this.element.nativeElement.getAnimations?.({ subtree: true }) ?? [];
       Promise.allSettled(animations.map(animation => animation.finished))
         .then(() => {
