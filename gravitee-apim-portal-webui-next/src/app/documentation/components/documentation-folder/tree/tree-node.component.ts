@@ -31,7 +31,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { PortalNavigationLink } from '../../../../../entities/portal-navigation/portal-navigation-item';
-import { TreeExpansionRequest, TreeNode } from '../../../services/tree.service';
+import { TreeNode } from '../../../services/tree.service';
 
 @Component({
   selector: 'app-tree-node',
@@ -52,7 +52,8 @@ export class TreeNodeComponent {
   node = input.required<TreeNode>();
   level = input(0);
   selectedId = input<string | null>(null);
-  expansionRequest = input<TreeExpansionRequest | null>(null);
+  /** Containers to have expanded, published once per documentation entry. `null` leaves local state alone. */
+  expandedContainerIds = input<ReadonlySet<string> | null>(null);
 
   nodeSelected = output<string>();
 
@@ -63,18 +64,12 @@ export class TreeNodeComponent {
 
   constructor() {
     effect(() => {
-      const request = this.expansionRequest();
-      if (!request) return;
-
-      // Only a new navigation instruction overrides the node's local expansion state.
-      const nodeId = untracked(this.node).id;
-      if (request.mode === 'collapse-all') {
-        this.isExpanded.set(false);
-      } else if (request.mode === 'focus-path') {
-        this.isExpanded.set(request.pathIds.has(nodeId));
-      } else if (request.pathIds.has(nodeId)) {
-        this.isExpanded.set(true);
+      const expandedContainerIds = this.expandedContainerIds();
+      if (!expandedContainerIds) {
+        return;
       }
+      // Reading the node untracked keeps a relabelled node from overriding a manual toggle.
+      this.isExpanded.set(expandedContainerIds.has(untracked(this.node).id));
     });
   }
 

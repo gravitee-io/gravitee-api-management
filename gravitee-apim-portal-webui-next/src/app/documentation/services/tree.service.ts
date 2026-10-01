@@ -27,8 +27,6 @@ export interface TreeNode {
   breadcrumbs?: Breadcrumb[];
 }
 
-export type TreeExpansionRequest = { mode: 'collapse-all' } | { mode: 'focus-path' | 'reveal-path'; pathIds: ReadonlySet<string> };
-
 export type DocumentationSubscriptionTarget = { type: 'API'; apiId: string } | { type: 'API_PRODUCT'; apiProductId: string };
 
 export interface DocumentationActionContext {

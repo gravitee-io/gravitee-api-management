@@ -17,8 +17,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { ActivatedRoute, Navigation, Router } from '@angular/router';
-import { BehaviorSubject, EMPTY, Subject } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
@@ -39,7 +39,7 @@ describe('DocumentationFolderComponent', () => {
   let routerSpy: jest.Mocked<Router>;
   let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
-  const MOCK_ITEM = { id: 'root', title: 'Test item', type: 'FOLDER' };
+  const MOCK_ITEM = { title: 'Test item' };
   const MOCK_CHILDREN = MOCK_ITEMS;
   const MOCK_CONTENT = 'MOCK_CONTENT';
 
@@ -70,12 +70,8 @@ describe('DocumentationFolderComponent', () => {
     queryParamsSubject = new BehaviorSubject(params.queryParams ?? {});
     routerSpy = {
       url: '/documentation?selectedId=p1',
-      events: EMPTY,
-      currentNavigation: jest.fn().mockReturnValue(null),
       navigate: jest.fn().mockImplementation((_, options) => {
-        routerSpy.currentNavigation.mockReturnValue({ trigger: 'imperative', extras: options } as Navigation);
         if (options?.queryParams) queryParamsSubject.next(options.queryParams);
-        routerSpy.currentNavigation.mockReturnValue(null);
         return Promise.resolve(true);
       }),
     } as unknown as jest.Mocked<Router>;
@@ -118,12 +114,8 @@ describe('DocumentationFolderComponent', () => {
     queryParamsSubject = new BehaviorSubject<{ selectedId?: string }>({ selectedId: 'p1' });
     routerSpy = {
       url: '/documentation?selectedId=p1',
-      events: EMPTY,
-      currentNavigation: jest.fn().mockReturnValue(null),
       navigate: jest.fn().mockImplementation((_, options) => {
-        routerSpy.currentNavigation.mockReturnValue({ trigger: 'imperative', extras: options } as Navigation);
         if (options?.queryParams) queryParamsSubject.next(options.queryParams);
-        routerSpy.currentNavigation.mockReturnValue(null);
         return Promise.resolve(true);
       }),
     } as unknown as jest.Mocked<Router>;
@@ -240,7 +232,6 @@ describe('DocumentationFolderComponent', () => {
         expect(routerSpy.navigate).toHaveBeenCalledWith([], {
           relativeTo: expect.anything(),
           queryParams: { selectedId: 'p1' },
-          info: expect.any(String),
         });
 
         const treeHarness = await harness.getTreeHarness();
@@ -304,7 +295,6 @@ describe('DocumentationFolderComponent', () => {
         expect(routerSpy.navigate).toHaveBeenCalledWith([], {
           relativeTo: expect.anything(),
           queryParams: { selectedId: 'p1' },
-          info: expect.any(String),
         });
 
         const treeHarness = await harness.getTreeHarness();
@@ -324,7 +314,6 @@ describe('DocumentationFolderComponent', () => {
         expect(routerSpy.navigate).toHaveBeenCalledWith([], {
           relativeTo: expect.anything(),
           queryParams: { selectedId: 'p-api1' },
-          info: expect.any(String),
         });
 
         const treeHarness = await harness.getTreeHarness();
@@ -376,7 +365,6 @@ describe('DocumentationFolderComponent', () => {
       expect(routerSpy.navigate).toHaveBeenCalledWith([], {
         relativeTo: expect.anything(),
         queryParams: { selectedId: 'p2' },
-        info: expect.any(String),
       });
 
       const selectedItem = await tree?.getSelectedItem();
@@ -408,7 +396,6 @@ describe('DocumentationFolderComponent', () => {
       expect(routerSpy.navigate).toHaveBeenCalledWith([], {
         relativeTo: expect.anything(),
         queryParams: { selectedId: 'product-overview1' },
-        info: expect.any(String),
       });
       expect(navigationServiceSpy.getNavigationItemContent).not.toHaveBeenCalledWith('product1');
       expect(navigationServiceSpy.getNavigationItemContent).toHaveBeenCalledWith('product-overview1');
@@ -529,7 +516,6 @@ describe('DocumentationFolderComponent', () => {
       navigationServiceSpy.getNavigationItemContent = jest.fn().mockReturnValue(contentSubject.asObservable());
 
       const tree = await harness.getTreeHarness();
-      await tree!.clickItemByTitle('API Product 1');
       await tree!.clickItemByTitle('Product Overview');
       await new Promise<void>(resolve => setTimeout(resolve, 0));
 

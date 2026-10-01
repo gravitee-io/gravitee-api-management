@@ -71,7 +71,7 @@
         [node]="child"
         [level]="level() + 1"
         [selectedId]="selectedId()"
-        [expansionRequest]="expansionRequest()"
+        [expandedContainerIds]="expandedContainerIds()"
         (nodeSelected)="nodeSelected.emit($event)"
       />
     }
