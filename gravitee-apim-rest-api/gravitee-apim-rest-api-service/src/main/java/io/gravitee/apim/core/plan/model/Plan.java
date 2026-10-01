@@ -119,6 +119,21 @@ public class Plan implements GenericPlanEntity {
         this.setReferenceType(ReferenceType.API);
     }
 
+    public Plan(String apiId, io.gravitee.definition.model.v4.nativeapi.NativePlan planDefinitionNativeV4) {
+        this.setPlanDefinitionNativeV4(planDefinitionNativeV4);
+
+        // getPlanDefinitionV4() dispatches on apiType, so it has to be set for the native definition to be returned
+        this.setApiType(ApiType.NATIVE);
+        this.setDefinitionVersion(DefinitionVersion.V4);
+        this.setId(planDefinitionNativeV4.getId());
+        this.setName(planDefinitionNativeV4.getName());
+        this.setPlanMode(planDefinitionNativeV4.getMode());
+        this.setPlanStatus(planDefinitionNativeV4.getStatus());
+        this.setPlanTags(planDefinitionNativeV4.getTags());
+        this.setReferenceId(apiId);
+        this.setReferenceType(ReferenceType.API);
+    }
+
     public AbstractPlan getPlanDefinitionV4() {
         if (ApiType.NATIVE.equals(apiType)) {
             return this.planDefinitionNativeV4;
@@ -361,6 +376,34 @@ public class Plan implements GenericPlanEntity {
         // Special case if plan are closed or deprecated we restore status from API definition
         if (this.getPlanStatus() != planDefinitionV4.getStatus()) {
             existingPlanDefinitionV4.setStatus(planDefinitionV4.getStatus());
+            this.setClosedAt(null);
+            this.setUpdatedAt(TimeProvider.now());
+            this.setNeedRedeployAt(Date.from(this.getUpdatedAt().toInstant()));
+        }
+        return this;
+    }
+
+    /**
+     * Native counterpart of {@link #rollbackTo(io.gravitee.definition.model.v4.plan.Plan)}.
+     */
+    public Plan rollbackTo(io.gravitee.definition.model.v4.nativeapi.NativePlan planDefinitionNativeV4) {
+        var existingPlanDefinitionNativeV4 = this.getPlanDefinitionNativeV4();
+
+        // Update plan properties from API definition
+        existingPlanDefinitionNativeV4.setName(planDefinitionNativeV4.getName());
+        this.setName(planDefinitionNativeV4.getName());
+        existingPlanDefinitionNativeV4.setTags(planDefinitionNativeV4.getTags());
+        existingPlanDefinitionNativeV4.setSecurity(planDefinitionNativeV4.getSecurity());
+        existingPlanDefinitionNativeV4.setFlows(planDefinitionNativeV4.getFlows());
+        existingPlanDefinitionNativeV4.setSelectionRule(planDefinitionNativeV4.getSelectionRule());
+        // port routing is part of the deployed definition, so a rollback has to restore it too
+        existingPlanDefinitionNativeV4.setBootstrapPort(planDefinitionNativeV4.getBootstrapPort());
+        existingPlanDefinitionNativeV4.setBrokerRangeStart(planDefinitionNativeV4.getBrokerRangeStart());
+        existingPlanDefinitionNativeV4.setBrokerRangeEnd(planDefinitionNativeV4.getBrokerRangeEnd());
+
+        // Special case if plan are closed or deprecated we restore status from API definition
+        if (this.getPlanStatus() != planDefinitionNativeV4.getStatus()) {
+            existingPlanDefinitionNativeV4.setStatus(planDefinitionNativeV4.getStatus());
             this.setClosedAt(null);
             this.setUpdatedAt(TimeProvider.now());
             this.setNeedRedeployAt(Date.from(this.getUpdatedAt().toInstant()));
