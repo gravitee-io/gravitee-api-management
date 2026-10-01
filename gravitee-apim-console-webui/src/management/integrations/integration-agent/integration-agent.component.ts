@@ -87,7 +87,7 @@ export class IntegrationAgentComponent implements OnInit {
       return '';
     }
 
-    return `https://documentation.gravitee.io/apim/${majorMinorVersion}/governance/federation/3rd-party-providers/${apimDocs3rdPartyProviderName}`;
+    return `https://documentation.gravitee.io/apim/${majorMinorVersion}/govern-apis/federation/3rd-party-providers/${apimDocs3rdPartyProviderName}`;
   }
 
   private extractMajorMinor(version: string): string {
