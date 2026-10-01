@@ -213,7 +213,7 @@ describe('TreeNodeComponent', () => {
     });
   });
 
-  describe('expansion requests', () => {
+  describe('expanded container ids', () => {
     const node: TreeNode = {
       id: 'product',
       label: 'Product',
@@ -221,49 +221,53 @@ describe('TreeNodeComponent', () => {
       children: [{ id: 'api', label: 'API', type: 'API', children: [{ id: 'page', label: 'Page', type: 'PAGE' }] }],
     };
 
-    it('should apply a focus path to nested containers and make collapsed children inert', async () => {
+    it('should make collapsed children inert', async () => {
       await init({ node });
+
       const children = fixture.nativeElement.querySelector('.tree__children');
       expect(children.hasAttribute('inert')).toBe(true);
 
-      fixture.componentRef.setInput('expansionRequest', { mode: 'focus-path', pathIds: new Set(['product', 'api']) });
+      fixture.componentRef.setInput('expandedContainerIds', new Set(['product']));
       fixture.detectChanges();
-      expect(await harness.isExpanded()).toBe(true);
-      expect(children.hasAttribute('inert')).toBe(false);
-      expect(await (await harness.getChildren())[0].isExpanded()).toBe(true);
 
-      fixture.componentRef.setInput('expansionRequest', { mode: 'focus-path', pathIds: new Set(['product']) });
-      expect(await (await harness.getChildren())[0].isExpanded()).toBe(false);
+      expect(children.hasAttribute('inert')).toBe(false);
     });
 
-    it('should preserve manual expansion when selection or node metadata changes', async () => {
+    it('should expand the listed containers and collapse the others', async () => {
       await init({ node });
-      fixture.componentRef.setInput('expansionRequest', { mode: 'collapse-all' });
+
+      fixture.componentRef.setInput('expandedContainerIds', new Set(['product', 'api']));
+      fixture.detectChanges();
+      expect(await harness.isExpanded()).toBe(true);
+      expect(await (await harness.getChildren())[0].isExpanded()).toBe(true);
+
+      fixture.componentRef.setInput('expandedContainerIds', new Set(['product']));
+      expect(await harness.isExpanded()).toBe(true);
+      expect(await (await harness.getChildren())[0].isExpanded()).toBe(false);
+
+      fixture.componentRef.setInput('expandedContainerIds', new Set<string>());
+      expect(await harness.isExpanded()).toBe(false);
+    });
+
+    it('should keep a manual toggle when no instruction is published', async () => {
+      await init({ node });
+
       await harness.click();
       fixture.componentRef.setInput('selectedId', 'page');
       fixture.componentRef.setInput('node', { ...node, label: 'Renamed product' });
-      expect(await harness.isExpanded()).toBe(true);
-    });
 
-    it('should reveal a path without closing manually expanded siblings', async () => {
-      await init({ node });
-      await harness.click();
-      fixture.componentRef.setInput('expansionRequest', { mode: 'reveal-path', pathIds: new Set(['other-product']) });
-      expect(await harness.isExpanded()).toBe(true);
-
-      fixture.componentRef.setInput('expansionRequest', { mode: 'collapse-all' });
-      expect(await harness.isExpanded()).toBe(false);
-      fixture.componentRef.setInput('expansionRequest', { mode: 'reveal-path', pathIds: new Set(['product']) });
       expect(await harness.isExpanded()).toBe(true);
     });
 
     it('should retain child expansion when a parent is collapsed and reopened', async () => {
       await init({ node });
+
       await harness.click();
       const api = (await harness.getChildren())[0];
       await api.click();
       await harness.click();
       await harness.click();
+
       expect(await api.isExpanded()).toBe(true);
     });
   });

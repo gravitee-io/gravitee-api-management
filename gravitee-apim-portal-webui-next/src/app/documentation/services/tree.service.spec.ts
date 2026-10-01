@@ -59,19 +59,28 @@ describe('DocumentationTreeService', () => {
   });
 
   describe('getContainerPathIds', () => {
-    it('should return ancestors of a page without including the page or root menu item', () => {
+    it('should return the containers to expand to reveal a page, from root to leaf', () => {
       expect(service.getContainerPathIds('p1')).toEqual(['f1', 'f2']);
+      expect(service.getContainerPathIds('p-api1')).toEqual(['f1', 'api1']);
+    });
+
+    it('should return no container for a root page or an unknown node', () => {
       expect(service.getContainerPathIds('p3')).toEqual([]);
       expect(service.getContainerPathIds('unknown')).toEqual([]);
     });
 
-    it('should include an empty container and follow navigation item IDs, not API IDs', () => {
+    it('should include the node itself when it is a container', () => {
+      expect(service.getContainerPathIds('f2')).toEqual(['f1', 'f2']);
+    });
+
+    it('should follow navigation item IDs, not API IDs', () => {
       service.init(parentItem, [
         makeItem('folder', 'FOLDER', 'Folder', 0),
         fakePortalNavigationApiProduct({ id: 'product', parentId: 'folder' }),
         fakePortalNavigationApi({ id: 'nested-api', parentId: 'product', apiId: 'shared-api' }),
         fakePortalNavigationApi({ id: 'standalone-api', parentId: null, apiId: 'shared-api' }),
       ]);
+
       expect(service.getContainerPathIds('nested-api')).toEqual(['folder', 'product', 'nested-api']);
       expect(service.getContainerPathIds('standalone-api')).toEqual(['standalone-api']);
     });
