@@ -15,9 +15,13 @@
  */
 package io.gravitee.gateway.reactive.http.vertx;
 
+import static io.gravitee.common.http.HttpHeadersValues.CONNECTION_CLOSE;
+import static io.vertx.core.http.HttpHeaders.CONNECTION;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -33,6 +37,7 @@ import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.api.message.Message;
 import io.gravitee.gateway.reactive.core.MessageFlow;
 import io.gravitee.gateway.reactive.core.context.OnMessagesInterceptor;
+import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerRequest.UnconsumedBody;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
@@ -105,6 +110,8 @@ class VertxHttpServerResponseTest {
         when(httpServerRequest.response()).thenReturn(httpServerResponse);
         lenient().when(ctx.metrics()).thenReturn(metrics);
         lenient().when(httpServerResponse.rxSend(any(Flowable.class))).thenReturn(Completable.complete());
+        lenient().when(request.unconsumedBody()).thenReturn(UnconsumedBody.NONE);
+        lenient().when(ctx.withLogger(any())).thenReturn(NOPLogger.NOP_LOGGER);
 
         ReflectionTestUtils.setField(request, "nativeRequest", httpServerRequest);
 
@@ -482,6 +489,72 @@ class VertxHttpServerResponseTest {
             verify(metrics).setFailure(any());
             // Mirror pattern: the committed HTTP status is never rewritten by the classification.
             verify(httpServerResponse, never()).setStatusCode(anyInt());
+        }
+    }
+
+    @Nested
+    class UnconsumedBodyTest {
+
+        @Test
+        void should_discard_unconsumed_body_and_keep_connection_after_end() {
+            when(request.unconsumedBody()).thenReturn(UnconsumedBody.DISCARD);
+
+            cut.end(ctx).test().assertComplete();
+
+            assertThat(cut.headers().contains(CONNECTION)).isFalse();
+            verify(request).discardUnconsumedBody(false);
+        }
+
+        @Test
+        void should_announce_connection_close_and_close_after_discarding_unconsumed_body() {
+            when(request.unconsumedBody()).thenReturn(UnconsumedBody.DISCARD_THEN_CLOSE);
+
+            cut.end(ctx).test().assertComplete();
+
+            assertThat(cut.headers().get(CONNECTION)).isEqualTo(CONNECTION_CLOSE);
+            verify(request).discardUnconsumedBody(true);
+        }
+
+        @Test
+        void should_discard_unconsumed_body_after_end_without_response_body() {
+            when(request.unconsumedBody()).thenReturn(UnconsumedBody.DISCARD);
+            when(httpServerResponse.rxEnd()).thenReturn(Completable.complete());
+            mockWithNull();
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(request).discardUnconsumedBody(false);
+        }
+
+        @Test
+        void should_discard_unconsumed_body_when_response_write_fails() {
+            when(request.unconsumedBody()).thenReturn(UnconsumedBody.DISCARD_THEN_CLOSE);
+            when(httpServerResponse.rxSend(any(Flowable.class))).thenReturn(Completable.error(new IOException("Connection reset by peer")));
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(request).discardUnconsumedBody(true);
+        }
+
+        @Test
+        void should_decide_before_writing_the_response() {
+            when(request.unconsumedBody()).thenReturn(UnconsumedBody.DISCARD_THEN_CLOSE, UnconsumedBody.NONE);
+            when(httpServerResponse.rxSend(any(Flowable.class))).thenReturn(
+                Completable.fromRunnable(() -> cut.headers().set(CONNECTION, "keep-alive"))
+            );
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(request).discardUnconsumedBody(true);
+        }
+
+        @Test
+        void should_not_touch_connection_when_body_was_consumed() {
+            cut.headers().set(CONNECTION, CONNECTION_CLOSE);
+
+            cut.end(ctx).test().assertComplete();
+
+            verify(request, never()).discardUnconsumedBody(anyBoolean());
         }
     }
 
