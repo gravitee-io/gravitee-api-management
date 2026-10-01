@@ -429,7 +429,7 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         String projection =
             "ac.*, a.id, a.environment_id, a.cross_id, a.name, a.description, a.version, a.type, a.deployed_at, a.created_at, a.updated_at, " +
-            "a.visibility, a.lifecycle_state, a.api_lifecycle_state, a.definition_version, a.origin, a.sync_from";
+            "a.visibility, a.lifecycle_state, a.api_lifecycle_state, a.definition_version, a.origin, a.sync_from, a.integration_id";
 
         if (apiFieldFilter == null || !apiFieldFilter.isDefinitionExcluded()) {
             projection += ", a.definition";
