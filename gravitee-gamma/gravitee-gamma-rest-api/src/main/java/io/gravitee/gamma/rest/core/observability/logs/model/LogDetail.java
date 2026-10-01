@@ -36,6 +36,8 @@ public record LogDetail(
     // Identifiers
     String requestId,
     String apiId,
+    /** Name of the log's API, read from the same API definition as {@link #apiType}. */
+    String apiName,
     /**
      * Api type of the log's API, read by id from the API definition and scoped to the environment,
      * rather than from the document — the connection indices do not store it.
@@ -55,7 +57,14 @@ public record LogDetail(
     String uri,
     Integer status,
     String endpoint,
+    /** Entrypoint plugin id that served the request, as on the log search rows. */
+    String entrypointId,
     String host,
+    /** MCP method of an MCP request, hoisted from additional-metrics as on the log search rows. */
+    String mcpMethod,
+    String apiProductId,
+    /** Name of the API Product, or "Standalone API" when the request did not go through one, as on the log search rows. */
+    String apiProductName,
     String subscriptionId,
     String planId,
     String planName,

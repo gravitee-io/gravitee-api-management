@@ -67,12 +67,22 @@ class FindApiMetricsDetailResponseAdapterTest extends AbstractAdapterTest {
                         .endpointResponseTime(16L)
                         .method(HttpMethod.GET)
                         .endpoint("https://api.gravitee.io/echo")
+                        .entrypointId("http-proxy")
                         .warnings(List.of())
                         .securityType("JWT")
                         .securityToken("oauth-client-1")
                         .build()
                 )
             );
+        }
+
+        @Test
+        void should_read_the_api_product_of_a_request_that_went_through_one() {
+            final SearchResponse searchResponse = buildSearchHit("api-proxy-v4-metrics-with-api-product.json");
+
+            var result = FindApiMetricsDetailResponseAdapter.adaptFirst(searchResponse).orElseThrow();
+
+            assertThat(result.getApiProductId()).isEqualTo("f5e6a5a0-1234-4b3a-9c1e-aabbccddeeff");
         }
 
         @Test

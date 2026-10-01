@@ -615,6 +615,8 @@ paths:
                                     value:
                                         requestId: "req-abc-123"
                                         apiId: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                        apiName: "Petstore API"
+                                        apiType: "HTTP_PROXY"
                                         transactionId: "txn-xyz-789"
                                         timestamp: "2026-06-10T14:32:01Z"
                                         requestEnded: true
@@ -622,7 +624,9 @@ paths:
                                         uri: "/pets/42"
                                         status: 200
                                         endpoint: "https://backend.example.com/pets/42"
+                                        entrypointId: "http-proxy"
                                         host: "api.example.com"
+                                        apiProductName: "Standalone API"
                                         planId: "plan-001"
                                         planName: "Gold"
                                         applicationId: "app-001"
@@ -2027,6 +2031,10 @@ components:
                     type: string
                     description: Identifier of the API that handled the request.
                     example: "67e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                apiName:
+                    type: string
+                    description: Display name of the API, read from the same API definition as `apiType`.
+                    example: "Petstore API"
                 apiType:
                     type: string
                     description: |
@@ -2066,9 +2074,24 @@ components:
                 endpoint:
                     type: string
                     description: Backend endpoint the request was proxied to.
+                entrypointId:
+                    type: string
+                    description: Entrypoint plugin id that served the request, as on the log search rows.
+                    example: "http-proxy"
                 host:
                     type: string
                     description: Host header value from the client request.
+                mcpMethod:
+                    type: string
+                    description: MCP method name (present only for `MCP` API type requests), as on the log search rows.
+                    example: "tools/list"
+                apiProductId:
+                    type: string
+                    description: Identifier of the API product the request went through (absent for standalone APIs).
+                apiProductName:
+                    type: string
+                    description: Display name of the API product (enriched server-side). Returns `"Standalone API"` when the request did not go through a product.
+                    example: "Standalone API"
                 planId:
                     type: string
                     description: Identifier of the plan the request was matched to.
