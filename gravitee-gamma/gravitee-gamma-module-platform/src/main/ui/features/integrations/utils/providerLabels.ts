@@ -27,6 +27,17 @@ const PROVIDER_LABELS: Record<string, string> = {
 
 export const SUPPORTED_PROVIDER_TOKENS: readonly string[] = Object.keys(PROVIDER_LABELS);
 
+export const GATEWAY_PROVIDER_TOKENS: readonly string[] = [
+    'aws-api-gateway',
+    'solace',
+    'apigee',
+    'azure-api-management',
+    'ibm-api-connect',
+    'confluent-platform',
+    'mulesoft',
+    'edge-stack',
+];
+
 export function hasProviderLabel(provider: string): boolean {
     return Object.prototype.hasOwnProperty.call(PROVIDER_LABELS, provider);
 }

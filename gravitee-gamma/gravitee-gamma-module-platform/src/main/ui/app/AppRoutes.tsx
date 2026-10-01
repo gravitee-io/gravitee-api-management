@@ -65,6 +65,7 @@ import { DCR_REGISTRATION_LICENSE_FEATURE } from '../features/client-registratio
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
 import { RequireIntegrationDefinitionRead } from '../features/integrations/components/RequireIntegrationDefinitionRead';
+import { ENVIRONMENT_INTEGRATION_CREATE_PERMISSION } from '../features/integrations/utils/integrationPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ORGANIZATION_ROLE_UPDATE_PERMISSION } from '../features/roles/utils/rolePermissionConstants';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
@@ -85,6 +86,7 @@ import { ClientRegistrationPage } from '../pages/ClientRegistrationPage';
 import { ClientRegistrationProviderPage } from '../pages/ClientRegistrationProviderPage';
 import { CorsSettingsPage } from '../pages/CorsSettingsPage';
 import { CreateIdentityProviderPage } from '../pages/CreateIdentityProviderPage';
+import { CreateIntegrationPage } from '../pages/CreateIntegrationPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
 import { DictionaryDetailPage } from '../pages/DictionaryDetailPage';
 import { EditIdentityProviderPage } from '../pages/EditIdentityProviderPage';
@@ -887,6 +889,14 @@ export function AppRoutes() {
                                 }
                             >
                                 <Route index element={<IntegrationsPage />} />
+                                <Route
+                                    path="new"
+                                    element={
+                                        <PermissionPageGuard permission={ENVIRONMENT_INTEGRATION_CREATE_PERMISSION} unauthorizedTo="..">
+                                            <CreateIntegrationPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
                                 <Route
                                     path=":integrationId"
                                     element={

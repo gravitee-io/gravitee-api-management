@@ -32,6 +32,8 @@ import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
+import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
@@ -52,6 +54,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -66,6 +69,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
     static final String INTEGRATION_NAME = "test-name";
     static final String INTEGRATION_DESCRIPTION = "integration-description";
     static final String INTEGRATION_PROVIDER = "test-provider";
+    static final String CREATED_INTEGRATION_PROVIDER = "mulesoft";
     static final String INTEGRATION_ID = "integration-id";
 
     @Autowired
@@ -128,7 +132,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
             var createIntegration = new CreateIntegration()
                 .name(INTEGRATION_NAME)
                 .description(INTEGRATION_DESCRIPTION)
-                .provider(INTEGRATION_PROVIDER);
+                .provider(CREATED_INTEGRATION_PROVIDER);
 
             //When
             Response response = target.request().post(Entity.json(createIntegration));
@@ -143,8 +147,26 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                         .id(INTEGRATION_ID)
                         .name(INTEGRATION_NAME)
                         .description(INTEGRATION_DESCRIPTION)
-                        .provider(INTEGRATION_PROVIDER)
+                        .provider(CREATED_INTEGRATION_PROVIDER)
                 );
+        }
+
+        @Test
+        void should_list_the_created_integration_under_the_entered_name() {
+            //Given
+            var createIntegration = new CreateIntegration().name(INTEGRATION_NAME).provider(CREATED_INTEGRATION_PROVIDER);
+            target.request().post(Entity.json(createIntegration)).close();
+
+            //When
+            Response response = target.request().get();
+
+            //Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(IntegrationsResponse.class)
+                .extracting(IntegrationsResponse::getData, InstanceOfAssertFactories.list(Integration.class))
+                .extracting(Integration::getName)
+                .containsExactly(INTEGRATION_NAME);
         }
 
         @Test
@@ -152,13 +174,18 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
             //Given
             CreateIntegration createIntegration = new CreateIntegration()
                 .description(INTEGRATION_DESCRIPTION)
-                .provider(INTEGRATION_PROVIDER);
+                .provider(CREATED_INTEGRATION_PROVIDER);
 
             //When
             Response response = target.request().post(Entity.json(createIntegration));
 
             //Then
-            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response)
+                .hasStatus(HttpStatusCode.BAD_REQUEST_400)
+                .asError()
+                .extracting(Error::getDetails, InstanceOfAssertFactories.list(ErrorDetailsInner.class))
+                .extracting(ErrorDetailsInner::getLocation)
+                .containsExactly("name");
         }
 
         @Test

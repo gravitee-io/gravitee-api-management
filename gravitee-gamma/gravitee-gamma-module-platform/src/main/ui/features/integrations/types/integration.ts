@@ -31,6 +31,12 @@ export interface Integration {
     pendingJob?: IntegrationIngestionJob;
 }
 
+export interface CreateIntegrationRequest {
+    name: string;
+    description?: string;
+    provider: string;
+}
+
 export interface IntegrationsPagination {
     page: number;
     perPage: number;
