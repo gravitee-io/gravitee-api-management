@@ -49,6 +49,7 @@
         class="documentation-folder__sidenav__tree"
         [tree]="tree()"
         [selectedId]="selectedId$ | async"
+        [expansionRequest]="expansionRequest()"
         (selectNode)="onSelect($event)"
       />
     } @else {

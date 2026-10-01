@@ -15,6 +15,7 @@
  */
 import { TreeService } from './tree.service';
 import {
+  fakePortalNavigationApi,
   fakePortalNavigationApiProduct,
   fakePortalNavigationFolder,
 } from '../../../entities/portal-navigation/portal-navigation-item.fixture';
@@ -55,6 +56,25 @@ describe('DocumentationTreeService', () => {
     const page = service.findFirstPageId();
     expect(page).toBeTruthy();
     expect(page).toEqual('p1');
+  });
+
+  describe('getContainerPathIds', () => {
+    it('should return ancestors of a page without including the page or root menu item', () => {
+      expect(service.getContainerPathIds('p1')).toEqual(['f1', 'f2']);
+      expect(service.getContainerPathIds('p3')).toEqual([]);
+      expect(service.getContainerPathIds('unknown')).toEqual([]);
+    });
+
+    it('should include an empty container and follow navigation item IDs, not API IDs', () => {
+      service.init(parentItem, [
+        makeItem('folder', 'FOLDER', 'Folder', 0),
+        fakePortalNavigationApiProduct({ id: 'product', parentId: 'folder' }),
+        fakePortalNavigationApi({ id: 'nested-api', parentId: 'product', apiId: 'shared-api' }),
+        fakePortalNavigationApi({ id: 'standalone-api', parentId: null, apiId: 'shared-api' }),
+      ]);
+      expect(service.getContainerPathIds('nested-api')).toEqual(['folder', 'product', 'nested-api']);
+      expect(service.getContainerPathIds('standalone-api')).toEqual(['standalone-api']);
+    });
   });
 
   describe('test breadcrumbs', () => {

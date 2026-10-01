@@ -15,12 +15,23 @@
  */
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  input,
+  output,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { PortalNavigationLink } from '../../../../../entities/portal-navigation/portal-navigation-item';
-import { TreeNode } from '../../../services/tree.service';
+import { TreeExpansionRequest, TreeNode } from '../../../services/tree.service';
 
 @Component({
   selector: 'app-tree-node',
@@ -41,13 +52,31 @@ export class TreeNodeComponent {
   node = input.required<TreeNode>();
   level = input(0);
   selectedId = input<string | null>(null);
+  expansionRequest = input<TreeExpansionRequest | null>(null);
 
   nodeSelected = output<string>();
 
   isSelected = computed(() => this.selectedId() === this.node().id);
-  isExpanded = signal<boolean>(true);
+  isExpanded = signal(false);
 
   link = viewChild<ElementRef>('link');
+
+  constructor() {
+    effect(() => {
+      const request = this.expansionRequest();
+      if (!request) return;
+
+      // Only a new navigation instruction overrides the node's local expansion state.
+      const nodeId = untracked(this.node).id;
+      if (request.mode === 'collapse-all') {
+        this.isExpanded.set(false);
+      } else if (request.mode === 'focus-path') {
+        this.isExpanded.set(request.pathIds.has(nodeId));
+      } else if (request.pathIds.has(nodeId)) {
+        this.isExpanded.set(true);
+      }
+    });
+  }
 
   get linkUrl() {
     return (this.node().data as PortalNavigationLink)?.url;

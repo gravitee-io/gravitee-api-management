@@ -27,6 +27,8 @@ export interface TreeNode {
   breadcrumbs?: Breadcrumb[];
 }
 
+export type TreeExpansionRequest = { mode: 'collapse-all' } | { mode: 'focus-path' | 'reveal-path'; pathIds: ReadonlySet<string> };
+
 export type DocumentationSubscriptionTarget = { type: 'API'; apiId: string } | { type: 'API_PRODUCT'; apiProductId: string };
 
 export interface DocumentationActionContext {
@@ -55,6 +57,18 @@ export class TreeService {
 
   getTree() {
     return this.treeNodes;
+  }
+
+  getContainerPathIds(nodeId: string): string[] {
+    const path: string[] = [];
+    let node = this.treeNodesById.get(nodeId);
+    while (node) {
+      if (node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT') {
+        path.unshift(node.id);
+      }
+      node = node.__parentId ? this.treeNodesById.get(node.__parentId) : undefined;
+    }
+    return path;
   }
 
   getBreadcrumbsByNodeId(id: string): Breadcrumb[] {
