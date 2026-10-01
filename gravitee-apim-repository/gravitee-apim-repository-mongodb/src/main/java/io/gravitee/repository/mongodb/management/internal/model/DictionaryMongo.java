@@ -50,6 +50,8 @@ public class DictionaryMongo extends DeprecatedAuditable {
 
     private DictionaryTriggerMongo trigger;
 
+    private DictionaryEncryptionPolicyMongo encryption;
+
     private Map<String, DictionaryPropertyMongo> properties;
 
     private Date deployedAt;

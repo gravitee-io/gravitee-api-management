@@ -44,6 +44,8 @@ public class UpdateDictionaryEntity {
 
     private DictionaryTriggerEntity trigger;
 
+    private DictionaryEncryptionPolicyEntity encryption;
+
     public String getName() {
         return name;
     }
@@ -98,6 +100,14 @@ public class UpdateDictionaryEntity {
 
     public void setTrigger(DictionaryTriggerEntity trigger) {
         this.trigger = trigger;
+    }
+
+    public DictionaryEncryptionPolicyEntity getEncryption() {
+        return encryption;
+    }
+
+    public void setEncryption(DictionaryEncryptionPolicyEntity encryption) {
+        this.encryption = encryption;
     }
 
     @Override

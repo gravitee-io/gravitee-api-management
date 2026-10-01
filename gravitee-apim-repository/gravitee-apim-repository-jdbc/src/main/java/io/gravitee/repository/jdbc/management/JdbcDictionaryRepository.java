@@ -25,6 +25,7 @@ import io.gravitee.repository.jdbc.orm.JdbcColumn;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryEncryptionPolicy;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
@@ -117,6 +118,12 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
                 dictionary.setTrigger(trigger);
             }
 
+            if (dictionary.getType() == DictionaryType.DYNAMIC) {
+                DictionaryEncryptionPolicy encryption = new DictionaryEncryptionPolicy();
+                encryption.setEncryptOnFetch(rs.getBoolean("encrypt_on_fetch"));
+                dictionary.setEncryption(encryption);
+            }
+
             return dictionary;
         }
     }
@@ -147,6 +154,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             stmt.setString(idx++, dictionary.getProvider() == null ? null : dictionary.getProvider().getConfiguration());
             stmt.setInt(idx++, dictionary.getTrigger() == null ? 0 : (int) dictionary.getTrigger().getRate());
             stmt.setString(idx++, dictionary.getTrigger() == null ? null : dictionary.getTrigger().getUnit().name());
+            stmt.setBoolean(idx++, dictionary.getEncryption() != null && dictionary.getEncryption().isEncryptOnFetch());
 
             for (Object id : ids) {
                 stmt.setObject(idx++, id);
@@ -169,6 +177,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         builder.append(", provider_configuration");
         builder.append(", trigger_rate");
         builder.append(", trigger_unit");
+        builder.append(", encrypt_on_fetch");
         builder.append(" ) values ( ");
         first = true;
         for (int i = 0; i < getOrm().getColumns().size(); i++) {
@@ -178,6 +187,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
             first = false;
             builder.append("?");
         }
+        builder.append(", ?");
         builder.append(", ?");
         builder.append(", ?");
         builder.append(", ?");
@@ -204,6 +214,7 @@ public class JdbcDictionaryRepository extends JdbcAbstractCrudRepository<Diction
         builder.append(", provider_configuration = ?");
         builder.append(", trigger_rate = ?");
         builder.append(", trigger_unit = ?");
+        builder.append(", encrypt_on_fetch = ?");
 
         builder.append(" where id = ?");
         return builder.toString();

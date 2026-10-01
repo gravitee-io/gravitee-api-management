@@ -65,6 +65,8 @@ public class DictionaryEntity {
 
     private DictionaryTriggerEntity trigger;
 
+    private DictionaryEncryptionPolicyEntity encryption;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

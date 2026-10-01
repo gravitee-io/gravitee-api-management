@@ -219,6 +219,37 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
+    public void should_keep_stored_encryption_policy_when_update_omits_it() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId(ENVIRONMENT_ID);
+        io.gravitee.repository.management.model.DictionaryEncryptionPolicy storedEncryption =
+            new io.gravitee.repository.management.model.DictionaryEncryptionPolicy();
+        storedEncryption.setEncryptOnFetch(true);
+        dictionaryInDb.setEncryption(storedEncryption);
+        when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("UpdatedName");
+        updateDictionaryEntity.setDescription("UpdatedDescription");
+        updateDictionaryEntity.setType(DictionaryType.DYNAMIC);
+        // encryption left unset: an omitted policy must not turn it off
+
+        Dictionary updatedDictionary = new Dictionary();
+        updatedDictionary.setId(DICTIONARY_ID);
+        updatedDictionary.setUpdatedAt(new Date());
+        updatedDictionary.setState(LifecycleState.STARTED);
+        updatedDictionary.setEnvironmentId(ENVIRONMENT_ID);
+        updatedDictionary.setType(io.gravitee.repository.management.model.DictionaryType.DYNAMIC);
+        when(dictionaryRepository.update(any(Dictionary.class))).thenReturn(updatedDictionary);
+
+        dictionaryService.update(GraviteeContext.getExecutionContext(), dictionaryInDb.getId(), updateDictionaryEntity);
+
+        verify(dictionaryRepository).update(argThat(arg -> arg.getEncryption() != null && arg.getEncryption().isEncryptOnFetch()));
+    }
+
+    @Test
     public void should_not_update_because_does_not_belong_to_environment() throws TechnicalException {
         assertThrows(DictionaryNotFoundException.class, () -> {
             Dictionary dictionaryInDb = new Dictionary();

@@ -18,15 +18,22 @@ package io.gravitee.repository.jdbc.management;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryEncryptionPolicy;
+import io.gravitee.repository.management.model.DictionaryType;
 import java.lang.reflect.Field;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.SneakyThrows;
@@ -92,5 +99,67 @@ class JdbcDictionaryRepositoryTest {
 
         assertThat(thrown).isNull();
         verify(jdbcTemplate, never()).batchUpdate(anyString(), any(BatchPreparedStatementSetter.class));
+    }
+
+    @Test
+    @SneakyThrows
+    void should_write_the_encryption_policy_to_its_own_column() {
+        Dictionary dictionary = new Dictionary();
+        dictionary.setId("dictionary-id");
+        dictionary.setType(DictionaryType.DYNAMIC);
+        DictionaryEncryptionPolicy encryption = new DictionaryEncryptionPolicy();
+        encryption.setEncryptOnFetch(true);
+        dictionary.setEncryption(encryption);
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+
+        repository.buildInsertPreparedStatementCreator(dictionary).createPreparedStatement(connection);
+
+        verify(statement).setBoolean(anyInt(), eq(true));
+    }
+
+    @Test
+    @SneakyThrows
+    void should_write_false_when_a_dictionary_has_no_encryption_policy() {
+        Dictionary dictionary = new Dictionary();
+        dictionary.setId("dictionary-id");
+        dictionary.setType(DictionaryType.MANUAL);
+
+        Connection connection = mock(Connection.class);
+        PreparedStatement statement = mock(PreparedStatement.class);
+        when(connection.prepareStatement(anyString())).thenReturn(statement);
+
+        Throwable thrown = catchThrowable(() ->
+            repository.buildInsertPreparedStatementCreator(dictionary).createPreparedStatement(connection)
+        );
+
+        assertThat(thrown).isNull();
+        verify(statement).setBoolean(anyInt(), eq(false));
+    }
+
+    @Test
+    @SneakyThrows
+    void should_read_the_encryption_policy_back_from_its_column() {
+        ResultSet resultSet = mock(ResultSet.class);
+        when(resultSet.getObject("type")).thenReturn("DYNAMIC");
+        when(resultSet.getBoolean("encrypt_on_fetch")).thenReturn(true);
+
+        Dictionary dictionary = repository.getRowMapper().mapRow(resultSet, 0);
+
+        assertThat(dictionary.getEncryption().isEncryptOnFetch()).isTrue();
+    }
+
+    @Test
+    @SneakyThrows
+    void should_not_read_an_encryption_policy_for_a_manual_dictionary() {
+        ResultSet resultSet = mock(ResultSet.class);
+        when(resultSet.getObject("type")).thenReturn("MANUAL");
+        when(resultSet.getBoolean("encrypt_on_fetch")).thenReturn(false);
+
+        Dictionary dictionary = repository.getRowMapper().mapRow(resultSet, 0);
+
+        assertThat(dictionary.getEncryption()).isNull();
     }
 }

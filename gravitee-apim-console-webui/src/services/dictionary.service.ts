@@ -40,6 +40,7 @@ class DictionaryService {
       propertyOptions: this.toWirePropertyOptions(dictionary),
       provider: dictionary.provider,
       trigger: dictionary.trigger,
+      encryption: dictionary.encryption,
     });
   }
 

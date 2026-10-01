@@ -98,6 +98,11 @@ public class Dictionary {
      */
     private DictionaryTrigger trigger;
 
+    /**
+     * For {@code DictionaryType.DYNAMIC} dictionary;
+     */
+    private DictionaryEncryptionPolicy encryption;
+
     public String getEnvironmentId() {
         return environmentId;
     }
@@ -176,6 +181,14 @@ public class Dictionary {
 
     public void setTrigger(DictionaryTrigger trigger) {
         this.trigger = trigger;
+    }
+
+    public DictionaryEncryptionPolicy getEncryption() {
+        return encryption;
+    }
+
+    public void setEncryption(DictionaryEncryptionPolicy encryption) {
+        this.encryption = encryption;
     }
 
     public Map<String, DictionaryProperty> getProperties() {
