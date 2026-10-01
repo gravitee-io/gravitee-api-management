@@ -44,6 +44,8 @@ public class NewDictionaryEntity {
 
     private DictionaryTriggerEntity trigger;
 
+    private DictionaryEncryptionPolicyEntity encryption;
+
     private Map<String, String> properties;
 
     /**

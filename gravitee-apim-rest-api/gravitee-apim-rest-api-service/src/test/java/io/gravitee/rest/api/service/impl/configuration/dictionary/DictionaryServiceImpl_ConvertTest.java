@@ -67,4 +67,21 @@ class DictionaryServiceImpl_ConvertTest {
         assertThat(entity.getProperties()).containsEntry("plain", "plain-value");
         assertThat(entity.getProperties()).containsEntry("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
     }
+
+    @Test
+    void should_report_an_unset_encryption_policy_as_off_for_a_dynamic_dictionary() throws TechnicalException {
+        Dictionary dictionary = new Dictionary();
+        dictionary.setId("dic-2");
+        dictionary.setEnvironmentId("DEFAULT");
+        dictionary.setType(DictionaryType.DYNAMIC);
+        dictionary.setState(LifecycleState.STOPPED);
+        dictionary.setCreatedAt(new Date());
+        dictionary.setUpdatedAt(new Date());
+        when(dictionaryRepository.findById("dic-2")).thenReturn(Optional.of(dictionary));
+
+        DictionaryEntity entity = dictionaryService.findById(new ExecutionContext("org", "DEFAULT"), "dic-2");
+
+        assertThat(entity.getEncryption()).isNotNull();
+        assertThat(entity.getEncryption().isEncryptOnFetch()).isFalse();
+    }
 }

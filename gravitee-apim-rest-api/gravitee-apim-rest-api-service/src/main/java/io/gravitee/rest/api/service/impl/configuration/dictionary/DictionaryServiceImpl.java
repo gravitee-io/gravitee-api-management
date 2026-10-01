@@ -26,12 +26,14 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dictionary;
+import io.gravitee.repository.management.model.DictionaryEncryptionPolicy;
 import io.gravitee.repository.management.model.DictionaryProvider;
 import io.gravitee.repository.management.model.DictionaryTrigger;
 import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEncryptionPolicyEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryPropertyOptions;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
@@ -354,7 +356,13 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 log.warn("Update dictionary {} properties not applied: dictionary is {}", id, dictionary.getState());
                 return convert(dictionary);
             }
-            Map<String, DictionaryProperty> refreshed = toFetchedProperties(id, properties, dictionary.getProperties());
+            DictionaryEncryptionPolicy encryption = dictionary.getEncryption();
+            Map<String, DictionaryProperty> refreshed = toFetchedProperties(
+                id,
+                properties,
+                dictionary.getProperties(),
+                encryption != null && encryption.isEncryptOnFetch()
+            );
             if (Objects.equals(refreshed, dictionary.getProperties())) {
                 return convert(dictionary);
             }
@@ -412,6 +420,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         copy.setProperties(dictionary.getProperties());
         copy.setProvider(dictionary.getProvider());
         copy.setTrigger(dictionary.getTrigger());
+        copy.setEncryption(dictionary.getEncryption());
         return copy;
     }
 
@@ -504,7 +513,12 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .state(Lifecycle.State.valueOf(dictionary.getState().name()));
 
         if (dictionary.getType() == DictionaryType.DYNAMIC) {
-            dictionaryEntityBuilder.provider(convert(dictionary.getProvider())).trigger(convert(dictionary.getTrigger()));
+            dictionaryEntityBuilder
+                .provider(convert(dictionary.getProvider()))
+                .trigger(convert(dictionary.getTrigger()))
+                .encryption(
+                    dictionary.getEncryption() != null ? convert(dictionary.getEncryption()) : new DictionaryEncryptionPolicyEntity()
+                );
         }
 
         return dictionaryEntityBuilder.build();
@@ -679,41 +693,75 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     /**
      * Re-applies each key's stored classification to the value the provider just fetched. The fetch
-     * carries plaintext only, so it can neither declare nor change a classification. A fetch that
-     * yields a property without a value fails the refresh, for the same reason the write path rejects
-     * one.
+     * carries plaintext only, so it can neither declare nor change a classification, except that an
+     * unclassified value is encrypted here when the dictionary's fetch-time policy asks for it. A
+     * fetch that yields a property without a value fails the refresh, for the same reason the write
+     * path rejects one.
+     *
+     * <p>A key that fails to encrypt falls back to its stored value, or is dropped if it has none.
      */
     private Map<String, DictionaryProperty> toFetchedProperties(
         String dictionaryId,
         Map<String, String> fetched,
-        Map<String, DictionaryProperty> existing
+        Map<String, DictionaryProperty> existing,
+        boolean encryptFetchedProperties
     ) {
         if (fetched == null) {
             return null;
         }
         rejectValuelessProperties(fetched);
-        return fetched
-            .entrySet()
-            .stream()
-            .collect(
-                Collectors.toMap(Map.Entry::getKey, entry ->
-                    toFetchedProperty(dictionaryId, entry, existing == null ? null : existing.get(entry.getKey()))
-                )
+        Map<String, DictionaryProperty> properties = new LinkedHashMap<>();
+        for (Map.Entry<String, String> entry : fetched.entrySet()) {
+            DictionaryProperty property = toFetchedProperty(
+                dictionaryId,
+                entry,
+                existing == null ? null : existing.get(entry.getKey()),
+                encryptFetchedProperties
             );
-    }
-
-    /** An encrypted key keeps that classification across a refresh, which is what makes it sticky. */
-    private DictionaryProperty toFetchedProperty(String dictionaryId, Map.Entry<String, String> fetched, DictionaryProperty stored) {
-        if (stored == null || !stored.encrypted()) {
-            return new DictionaryProperty(fetched.getValue(), false);
+            if (property != null) {
+                properties.put(entry.getKey(), property);
+            }
         }
-        return encryptUnlessStoredDecryptsTo(dictionaryId, fetched.getKey(), fetched.getValue(), stored);
+        return properties;
     }
 
     /**
-     * Reuses the stored ciphertext when it still decrypts to {@code plaintext}, so resubmitting or
-     * re-fetching an unchanged secret is a no-op whatever the cipher mode. Ciphertext that no longer
-     * decrypts, from a rotated secret or a corrupt value, counts as changed.
+     * An encrypted key keeps that classification across a refresh, which is what makes it sticky. An
+     * unclassified value is encrypted here instead when the dictionary's fetch-time policy asks for
+     * it; a key that fails to encrypt falls back to its stored value, or is dropped if it has none.
+     */
+    private DictionaryProperty toFetchedProperty(
+        String dictionaryId,
+        Map.Entry<String, String> fetched,
+        DictionaryProperty stored,
+        boolean encryptFetchedProperties
+    ) {
+        if (stored == null || !stored.encrypted()) {
+            if (encryptFetchedProperties) {
+                return encryptFetchedProperty(dictionaryId, fetched.getKey(), fetched.getValue()).orElse(stored);
+            }
+            return new DictionaryProperty(fetched.getValue(), false);
+        }
+        if (Objects.equals(decryptStoredValue(dictionaryId, fetched.getKey(), stored.value()), fetched.getValue())) {
+            return stored;
+        }
+        return encryptFetchedProperty(dictionaryId, fetched.getKey(), fetched.getValue()).orElse(stored);
+    }
+
+    /** Reports failure instead of throwing, so one bad value doesn't abort the rest of the update. */
+    private Optional<DictionaryProperty> encryptFetchedProperty(String dictionaryId, String key, String value) {
+        try {
+            return Optional.of(new DictionaryProperty(dataEncryptor.encrypt(value), true));
+        } catch (GeneralSecurityException e) {
+            log.error("Error encrypting dictionary property value for key {} on dictionary {}", key, dictionaryId, e);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Reuses the stored ciphertext when it still decrypts to {@code plaintext}, so resubmitting an
+     * unchanged secret is a no-op whatever the cipher mode. Ciphertext that no longer decrypts, from
+     * a rotated secret or a corrupt value, counts as changed.
      */
     private DictionaryProperty encryptUnlessStoredDecryptsTo(String dictionaryId, String key, String plaintext, DictionaryProperty stored) {
         if (stored != null && stored.encrypted() && Objects.equals(decryptStoredValue(dictionaryId, key, stored.value()), plaintext)) {
@@ -803,6 +851,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         if (type == io.gravitee.rest.api.model.configuration.dictionary.DictionaryType.DYNAMIC) {
             dictionary.setProvider(convert(updateDictionaryEntity.getProvider()));
             dictionary.setTrigger(convert(updateDictionaryEntity.getTrigger()));
+            // An omitted policy keeps the stored one; only an explicit encryptOnFetch:false turns it off.
+            dictionary.setEncryption(
+                updateDictionaryEntity.getEncryption() != null ? convert(updateDictionaryEntity.getEncryption()) : existing.getEncryption()
+            );
         }
 
         return dictionary;
@@ -829,6 +881,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         } else {
             dictionary.setProvider(convert(newDictionaryEntity.getProvider()));
             dictionary.setTrigger(convert(newDictionaryEntity.getTrigger()));
+            dictionary.setEncryption(convert(newDictionaryEntity.getEncryption()));
         }
 
         return dictionary;
@@ -855,6 +908,26 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             } catch (IOException e) {
                 log.error(e.getMessage(), e);
             }
+        }
+
+        return entity;
+    }
+
+    private DictionaryEncryptionPolicy convert(DictionaryEncryptionPolicyEntity encryptionEntity) {
+        DictionaryEncryptionPolicy encryption = null;
+        if (encryptionEntity != null) {
+            encryption = new DictionaryEncryptionPolicy();
+            encryption.setEncryptOnFetch(encryptionEntity.isEncryptOnFetch());
+        }
+        return encryption;
+    }
+
+    private DictionaryEncryptionPolicyEntity convert(DictionaryEncryptionPolicy encryption) {
+        DictionaryEncryptionPolicyEntity entity = null;
+
+        if (encryption != null) {
+            entity = new DictionaryEncryptionPolicyEntity();
+            entity.setEncryptOnFetch(encryption.isEncryptOnFetch());
         }
 
         return entity;

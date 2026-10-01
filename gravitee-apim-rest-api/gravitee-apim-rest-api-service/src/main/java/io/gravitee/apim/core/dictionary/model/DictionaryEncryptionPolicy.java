@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.core.dictionary.model;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,15 +24,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Dictionary {
+public class DictionaryEncryptionPolicy {
 
-    private String id;
-    private String hrid;
-    private String name;
-    private String description;
-    private DictionaryType type;
-    private List<DictionaryProperty> properties;
-    private DictionaryProvider provider;
-    private DictionaryTrigger trigger;
-    private DictionaryEncryptionPolicy encryption;
+    private boolean encryptOnFetch;
 }

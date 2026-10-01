@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.dictionary.model;
+package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class Dictionary {
+/**
+ * @author GraviteeSource Team
+ */
+@Setter
+@Getter
+public class DictionaryEncryptionPolicyMongo {
 
-    private String id;
-    private String hrid;
-    private String name;
-    private String description;
-    private DictionaryType type;
-    private List<DictionaryProperty> properties;
-    private DictionaryProvider provider;
-    private DictionaryTrigger trigger;
-    private DictionaryEncryptionPolicy encryption;
+    private boolean encryptOnFetch;
 }
