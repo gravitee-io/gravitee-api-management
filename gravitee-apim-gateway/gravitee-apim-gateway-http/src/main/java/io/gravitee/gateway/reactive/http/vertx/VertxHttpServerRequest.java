@@ -15,6 +15,12 @@
  */
 package io.gravitee.gateway.reactive.http.vertx;
 
+import static io.netty.handler.codec.http.HttpHeaderValues.CHUNKED;
+import static io.netty.handler.codec.http.HttpHeaderValues.CONTINUE;
+import static io.vertx.core.http.HttpHeaders.CONTENT_LENGTH;
+import static io.vertx.core.http.HttpHeaders.EXPECT;
+import static io.vertx.core.http.HttpHeaders.TRANSFER_ENCODING;
+
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.common.http.HttpVersion;
 import io.gravitee.common.http.IdGenerator;
@@ -22,6 +28,7 @@ import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.http.utils.RequestUtils;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
 import io.gravitee.gateway.reactive.api.context.TlsSession;
@@ -33,9 +40,16 @@ import io.gravitee.gateway.reactive.core.context.AbstractRequest;
 import io.gravitee.gateway.reactive.http.vertx.ws.VertxWebSocket;
 import io.netty.util.AttributeKey;
 import io.reactivex.rxjava3.core.Flowable;
+import io.vertx.core.Context;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.impl.HttpServerConnection;
+import io.vertx.rxjava3.core.http.HttpConnection;
 import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.net.SocketAddress;
+import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import javax.net.ssl.SSLSession;
 
 /**
@@ -45,10 +59,16 @@ import javax.net.ssl.SSLSession;
 public class VertxHttpServerRequest extends AbstractRequest {
 
     public static final String NETTY_ATTR_CONNECTION_TIME = "connectionTime";
+    static final long MAX_DISCARDED_BODY_BYTES = 1024L * 1024;
+    static final long MAX_BODY_DISCARD_DELAY_MS = 5_000;
+    private static final long UNKNOWN_LENGTH = -1;
     protected final HttpServerRequest nativeRequest;
     private Boolean isWebSocket = null;
     private Boolean isStreaming = null;
     private final VertxHttpServerRequestOptions options;
+    private final long announcedBodyLength;
+    private final boolean expectsContinue;
+    private volatile boolean bodySubscribed;
 
     public VertxHttpServerRequest(final HttpServerRequest nativeRequest, IdGenerator idGenerator) {
         this(nativeRequest, idGenerator, new VertxHttpServerRequestOptions());
@@ -60,7 +80,16 @@ public class VertxHttpServerRequest extends AbstractRequest {
         this.timestamp = System.currentTimeMillis();
         this.id = idGenerator.randomString();
         this.headers = new VertxHttpHeaders(nativeRequest.headers().getDelegate());
-        this.bufferFlow = new BufferFlow(nativeRequest.toFlowable().map(Buffer::buffer), this::isStreaming);
+        // Captured on arrival: policies may rewrite these headers for the backend.
+        this.announcedBodyLength = announcedBodyLength(headers);
+        this.expectsContinue = CONTINUE.contentEqualsIgnoreCase(headers.get(EXPECT));
+        this.bufferFlow = new BufferFlow(
+            nativeRequest
+                .toFlowable()
+                .doOnSubscribe(subscription -> bodySubscribed = true)
+                .map(Buffer::buffer),
+            this::isStreaming
+        );
         this.messageFlow = null;
         this.options = options;
         this.connectionTimestamp = (Long) ((HttpServerConnection) nativeRequest.connection().getDelegate()).channel()
@@ -190,6 +219,104 @@ public class VertxHttpServerRequest extends AbstractRequest {
     @Override
     public boolean ended() {
         return nativeRequest.isEnded();
+    }
+
+    /**
+     * What must be done, once the response has been sent, with a request body nobody has consumed.
+     * <p>
+     * On HTTP/1.x, Vert.x only handles the next request of a connection once the current one has been fully read,
+     * which never happens to a body left paused: it must be discarded. When it cannot be discarded within
+     * {@link #MAX_DISCARDED_BODY_BYTES} — length unknown or too large — or when the client waits for a
+     * {@code 100 Continue} it will never get, the connection cannot be reused and must be closed.
+     */
+    UnconsumedBody unconsumedBody() {
+        final HttpVersion version = version();
+        final boolean http1 = version == HttpVersion.HTTP_1_1 || version == HttpVersion.HTTP_1_0;
+        if (!http1 || !hasUnconsumedBody()) {
+            return UnconsumedBody.NONE;
+        }
+        if (expectsContinue || announcedBodyLength == UNKNOWN_LENGTH || announcedBodyLength > MAX_DISCARDED_BODY_BYTES) {
+            return UnconsumedBody.DISCARD_THEN_CLOSE;
+        }
+        return UnconsumedBody.DISCARD;
+    }
+
+    /**
+     * Reads and throws away the request body nobody consumed, then closes the connection if asked to.
+     * <p>
+     * The connection is closed anyway, without waiting for the end of the body, after
+     * {@link #MAX_DISCARDED_BODY_BYTES} or {@link #MAX_BODY_DISCARD_DELAY_MS}. Discarding before closing matters:
+     * closing a socket whose receive buffer holds data makes the kernel answer with a TCP reset, which can destroy the
+     * response before the client reads it.
+     */
+    void discardUnconsumedBody(boolean closeConnectionWhenDone) {
+        final HttpConnection connection = nativeRequest.connection();
+        if (!hasUnconsumedBody()) {
+            if (closeConnectionWhenDone) {
+                connection.close();
+            }
+            return;
+        }
+
+        final Context context = Vertx.currentContext();
+        if (context == null) {
+            // No context to bound the discard with a timer: give up on reusing the connection.
+            connection.close();
+            return;
+        }
+        final Vertx vertx = context.owner();
+        final AtomicBoolean done = new AtomicBoolean();
+        final AtomicLong timerId = new AtomicLong();
+        final AtomicLong discardedBytes = new AtomicLong();
+        final Consumer<Boolean> finish = closeConnection -> {
+            if (done.compareAndSet(false, true)) {
+                vertx.cancelTimer(timerId.get());
+                if (Boolean.TRUE.equals(closeConnection)) {
+                    connection.close();
+                }
+            }
+        };
+        timerId.set(vertx.setTimer(MAX_BODY_DISCARD_DELAY_MS, id -> finish.accept(true)));
+
+        nativeRequest.exceptionHandler(throwable -> finish.accept(true));
+        nativeRequest.handler(buffer -> {
+            if (discardedBytes.addAndGet(buffer.length()) > MAX_DISCARDED_BODY_BYTES) {
+                finish.accept(true);
+            }
+        });
+        nativeRequest.endHandler(v -> finish.accept(closeConnectionWhenDone));
+        nativeRequest.resume();
+    }
+
+    /**
+     * Once subscribed, the body belongs to its consumer, which reads it to the end or releases it to Vert.x.
+     * A paused request is not flagged as ended although there may be nothing left to read: the announced length
+     * tells whether there is a body at all.
+     */
+    private boolean hasUnconsumedBody() {
+        return announcedBodyLength != 0 && !bodySubscribed && !nativeRequest.isEnded();
+    }
+
+    private static long announcedBodyLength(HttpHeaders headers) {
+        final String contentLength = headers.get(CONTENT_LENGTH);
+        if (contentLength != null) {
+            try {
+                return Long.parseLong(contentLength.trim());
+            } catch (NumberFormatException e) {
+                return UNKNOWN_LENGTH;
+            }
+        }
+        final boolean chunked = headers
+            .getAll(TRANSFER_ENCODING)
+            .stream()
+            .anyMatch(value -> value.toLowerCase(Locale.ROOT).contains(CHUNKED));
+        return chunked ? UNKNOWN_LENGTH : 0;
+    }
+
+    enum UnconsumedBody {
+        NONE,
+        DISCARD,
+        DISCARD_THEN_CLOSE,
     }
 
     @Override

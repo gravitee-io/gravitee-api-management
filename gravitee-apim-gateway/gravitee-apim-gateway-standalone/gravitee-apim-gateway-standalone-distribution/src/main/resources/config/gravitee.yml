@@ -73,7 +73,7 @@ secrets:
 #http:
 #  port: 8082
 #  host: 0.0.0.0
-#  idleTimeout: 0
+#  idleTimeout: 0 # in seconds, 0 to disable
 #  tcpKeepAlive: true
 #  compressionSupported: false
 #  maxHeaderSize: 8192
