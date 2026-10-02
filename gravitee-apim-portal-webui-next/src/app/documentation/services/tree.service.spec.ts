@@ -117,6 +117,43 @@ describe('DocumentationTreeService', () => {
       service.init(parentItem, items);
       expect(service.findFirstPageIdWithinNode('api1')).toEqual('p-api1');
     });
+
+    it('should return null for an API node without navigation pages', () => {
+      const items = [makeItem('f1', 'FOLDER', 'Folder 1', 0), makeItem('api1', 'API', 'API 1', 0, 'f1')];
+      service.init(parentItem, items);
+      expect(service.findFirstPageIdWithinNode('api1')).toBeNull();
+    });
+  });
+
+  describe('API without navigation pages', () => {
+    const items = [
+      makeItem('f1', 'FOLDER', 'Folder 1', 0),
+      makeItem('api1', 'API', 'API 1', 0, 'f1'),
+      makeItem('api2', 'API', 'API 2', 1, 'f1'),
+      makeItem('p-api2', 'PAGE', 'API 2 Documentation', 0, 'api2'),
+    ];
+
+    beforeEach(() => service.init(parentItem, items));
+
+    it('should select the API itself as the first page so its own documentation is shown', () => {
+      expect(service.findFirstPageId()).toEqual('api1');
+      expect(service.findFirstPageIdWithinNode('f1')).toEqual('api1');
+    });
+
+    it('should return breadcrumbs ending with the API', () => {
+      expect(service.getBreadcrumbsByNodeId('api1')).toEqual([
+        { id: 'nav-folder-1', label: 'Folder' },
+        { id: 'f1', label: 'Folder 1' },
+        { id: 'api1', label: 'API 1' },
+      ]);
+    });
+
+    it('should return the API as subscription target', () => {
+      expect(service.getDocumentationActionContext('api1')).toEqual({
+        apiId: 'api-api1',
+        subscriptionTarget: { type: 'API', apiId: 'api-api1' },
+      });
+    });
   });
 
   describe('getDocumentationActionContext', () => {

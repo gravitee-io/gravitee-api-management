@@ -45,6 +45,11 @@ export class TreeNodeComponent {
   nodeSelected = output<string>();
 
   isSelected = computed(() => this.selectedId() === this.node().id);
+  // An API without navigation children is a leaf showing its own API pages, so it is selected rather than toggled.
+  isContainerNode = computed(() => {
+    const { type, children } = this.node();
+    return type === 'FOLDER' || type === 'API_PRODUCT' || (type === 'API' && !!children?.length);
+  });
   isExpanded = signal<boolean>(true);
 
   link = viewChild<ElementRef>('link');
@@ -66,19 +71,12 @@ export class TreeNodeComponent {
   }
 
   onClick(): void {
-    switch (this.node().type) {
-      case 'FOLDER':
-      case 'API':
-      case 'API_PRODUCT':
-        this.toggleNode();
-        break;
-      case 'PAGE':
-        this.selectNode();
-        break;
-      case 'LINK': {
-        this.redirectToLink();
-        break;
-      }
+    if (this.node().type === 'LINK') {
+      this.redirectToLink();
+    } else if (this.isContainerNode()) {
+      this.toggleNode();
+    } else {
+      this.selectNode();
     }
   }
 }

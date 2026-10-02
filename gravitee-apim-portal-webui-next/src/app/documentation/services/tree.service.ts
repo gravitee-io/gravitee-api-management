@@ -101,10 +101,11 @@ export class TreeService {
     for (const node of nodes) {
       if (node.type === 'PAGE') {
         return node.id;
-      } else {
-        const id = this.findFirstPageIdRecursively(node.children ?? []);
-        if (id) return id;
       }
+      const id = this.findFirstPageIdRecursively(node.children ?? []);
+      if (id) return id;
+      // An API without navigation pages is selectable itself: its own published API pages are shown instead.
+      if (node.type === 'API') return node.id;
     }
     return null;
   }
@@ -159,7 +160,8 @@ export class TreeService {
       const newBreadcrumbs = [...breadcrumbs, { id: node.id, label: node.label }];
       if (children.length > 0) {
         node.children = this.attachBreadcrumbs(children, newBreadcrumbs);
-      } else if (node.type === 'PAGE') {
+      }
+      if (node.type === 'PAGE' || node.type === 'API') {
         node.breadcrumbs = newBreadcrumbs;
       }
       return node;

@@ -23,11 +23,14 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { DocumentationFolderComponent } from './documentation-folder.component';
 import { DocumentationFolderComponentHarness } from './documentation-folder.component.harness';
+import { Page } from '../../../../entities/page/page';
+import { fakePage, fakePagesResponse } from '../../../../entities/page/page.fixtures';
 import { PortalNavigationItem } from '../../../../entities/portal-navigation/portal-navigation-item';
 import { fakePortalNavigationApiProduct } from '../../../../entities/portal-navigation/portal-navigation-item.fixture';
 import { makeItem, MOCK_ITEMS } from '../../../../mocks/portal-navigation-item.mocks';
 import { ApiService } from '../../../../services/api.service';
 import { CurrentUserService } from '../../../../services/current-user.service';
+import { PageService } from '../../../../services/page.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { AppTestingModule } from '../../../../testing/app-testing.module';
 
@@ -36,6 +39,7 @@ describe('DocumentationFolderComponent', () => {
   let harness: DocumentationFolderComponentHarness;
   let navigationServiceSpy: PortalNavigationItemsService;
   let apiServiceSpy: { details: jest.Mock };
+  let pageServiceSpy: Pick<PageService, 'mapToPageTreeNode'> & { listByApiId: jest.Mock; getByApiIdAndId: jest.Mock };
   let routerSpy: jest.Mocked<Router>;
   let queryParamsSubject: BehaviorSubject<{ selectedId?: string }>;
 
@@ -60,6 +64,7 @@ describe('DocumentationFolderComponent', () => {
       content: string;
       isAuthenticated: boolean;
       apiHasMcp: boolean;
+      apiPages: Page[];
     }> = {
       queryParams: { selectedId: 'p1' },
       items: MOCK_CHILDREN,
@@ -67,6 +72,13 @@ describe('DocumentationFolderComponent', () => {
       isAuthenticated: true,
     },
   ) => {
+    const apiPages = params.apiPages ?? [];
+    pageServiceSpy = {
+      listByApiId: jest.fn().mockReturnValue(of(fakePagesResponse({ data: apiPages }))),
+      getByApiIdAndId: jest.fn().mockImplementation((_: string, pageId: string) => of(apiPages.find(page => page.id === pageId))),
+      mapToPageTreeNode: PageService.prototype.mapToPageTreeNode,
+    };
+
     queryParamsSubject = new BehaviorSubject(params.queryParams ?? {});
     routerSpy = {
       url: '/documentation?selectedId=p1',
@@ -100,6 +112,7 @@ describe('DocumentationFolderComponent', () => {
         { provide: Router, useValue: routerSpy },
         { provide: PortalNavigationItemsService, useValue: navigationServiceSpy },
         { provide: ApiService, useValue: apiServiceSpy },
+        { provide: PageService, useValue: pageServiceSpy },
         { provide: CurrentUserService, useValue: { isUserAuthenticated: signal(params?.isAuthenticated ?? true) } },
       ],
     }).compileComponents();
@@ -527,6 +540,63 @@ describe('DocumentationFolderComponent', () => {
       await fixture.whenStable();
 
       expect(await harness.getSubscribeButton()).not.toBeNull();
+    });
+  });
+
+  describe('api without navigation pages', () => {
+    const folder = makeItem('f1', 'FOLDER', 'Folder 1', 0);
+    const apiItem = makeItem('api1', 'API', 'Gravitee Orders', 0, 'f1', 'f1');
+    const specification = fakePage({ id: 'oas', name: 'Specification', type: 'MARKDOWN', content: 'spec' });
+
+    it('should show the published pages of the API when the API is selected from the catalog', async () => {
+      await init({ items: [folder, apiItem], queryParams: { selectedId: 'api1' }, apiPages: [specification] });
+
+      const apiDocumentationPages = await harness.getApiDocumentationPages();
+      expect(await apiDocumentationPages?.getDisplayedPageType()).toEqual('MARKDOWN');
+      expect(await harness.getContentEmptyState()).toBeNull();
+
+      expect(pageServiceSpy.listByApiId).toHaveBeenCalledWith('api-api1');
+      expect(pageServiceSpy.getByApiIdAndId).toHaveBeenCalledWith('api-api1', 'oas', true);
+      expect(navigationServiceSpy.getNavigationItemContent).not.toHaveBeenCalled();
+      expect(routerSpy.navigate).not.toHaveBeenCalled();
+
+      const breadcrumbs = await harness.getBreadcrumbs();
+      expect(await breadcrumbs?.getText()).toEqual('Test item/Folder 1/Gravitee Orders');
+
+      const selectedItem = await (await harness.getTreeHarness())?.getSelectedItem();
+      expect(await selectedItem?.getText()).toEqual('Gravitee Orders');
+    });
+
+    it('should show the subscribe action of the API', async () => {
+      await init({ items: [folder, apiItem], queryParams: { selectedId: 'api1' }, apiPages: [specification] });
+
+      const subscribeButton = await harness.getSubscribeButton();
+      expect(subscribeButton).not.toBeNull();
+      await subscribeButton!.click();
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith(['api', 'api-api1', 'subscribe'], {
+        relativeTo: expect.anything(),
+        queryParamsHandling: 'preserve',
+      });
+    });
+
+    it('should select the API when the folder only contains APIs without navigation pages', async () => {
+      await init({ items: [folder, apiItem], queryParams: {}, apiPages: [specification] });
+
+      expect(routerSpy.navigate).toHaveBeenCalledWith([], {
+        relativeTo: expect.anything(),
+        queryParams: { selectedId: 'api1' },
+      });
+      expect(await harness.getApiDocumentationPages()).not.toBeNull();
+    });
+
+    it('should keep showing navigation pages instead of the API pages when the API has some', async () => {
+      const apiPage = makeItem('p-api1', 'PAGE', 'Overview', 0, 'api1', 'f1');
+      await init({ items: [folder, apiItem, apiPage], queryParams: { selectedId: 'p-api1' }, content: MOCK_CONTENT });
+
+      expect(pageServiceSpy.listByApiId).not.toHaveBeenCalled();
+      expect(await harness.getApiDocumentationPages()).toBeNull();
+      expect(await (await harness.getGmdViewer())!.getRenderedHtml()).toEqual(gmdViewerContent(MOCK_CONTENT));
     });
   });
 

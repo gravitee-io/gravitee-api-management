@@ -213,6 +213,38 @@ describe('TreeNodeComponent', () => {
     });
   });
 
+  describe('test API node', () => {
+    it('should toggle expansion without selecting an API that has navigation children', async () => {
+      const node: TreeNode = {
+        id: 'api1',
+        label: 'API 1',
+        type: 'API',
+        children: [{ id: 'p-api1', label: 'API 1 Documentation', type: 'PAGE' }],
+      };
+      await init({ node });
+      const nodeSelected = jest.fn();
+      component.nodeSelected.subscribe(nodeSelected);
+
+      await harness.click();
+
+      expect(await harness.getAriaExpanded()).toBe('false');
+      expect(nodeSelected).not.toHaveBeenCalled();
+    });
+
+    it('should select an API that has no navigation children so its own documentation can be shown', async () => {
+      const node: TreeNode = { id: 'api1', label: 'API 1', type: 'API' };
+      await init({ node });
+      const nodeSelected = jest.fn();
+      component.nodeSelected.subscribe(nodeSelected);
+
+      await harness.click();
+
+      expect(nodeSelected).toHaveBeenCalledWith('api1');
+      expect(await harness.getAriaExpanded()).toBeNull();
+      expect(fixture.debugElement.query(By.css('.tree__icon'))).toBeNull();
+    });
+  });
+
   it('should compute selected state from selectedId input', async () => {
     const node: TreeNode = {
       id: 'n1',

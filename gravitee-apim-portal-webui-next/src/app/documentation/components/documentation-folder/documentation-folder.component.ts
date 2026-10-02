@@ -40,10 +40,13 @@ import { CurrentUserService } from '../../../../services/current-user.service';
 import { PortalNavigationItemsService } from '../../../../services/portal-navigation-items.service';
 import { ApiTabToolsComponent } from '../../../api/api-details/api-tab-tools/api-tab-tools.component';
 import { DocumentationActionContext, TreeNode, TreeService } from '../../services/tree.service';
+import { ApiDocumentationPagesComponent } from '../api-documentation-pages/api-documentation-pages.component';
 
 interface FolderData {
   children: PortalNavigationItem[];
   selectedPageContent: PortalPageContent | null;
+  /** Set when the selected item is an API without navigation pages, whose own API pages are shown instead. */
+  selectedApiId?: string;
 }
 
 enum NavParamsChange {
@@ -66,6 +69,7 @@ enum NavParamsChange {
     MatButtonModule,
     MatIconModule,
     ApiTabToolsComponent,
+    ApiDocumentationPagesComponent,
   ],
   templateUrl: './documentation-folder.component.html',
   styleUrl: './documentation-folder.component.scss',
@@ -169,8 +173,17 @@ export class DocumentationFolderComponent {
       return of({ children, selectedPageContent: null }).pipe(tap(() => this.navigateToNotFound()));
     }
 
+    if (child.type === 'API' && !this.treeService.findFirstPageIdWithinNode(selectedId)) {
+      // An API without navigation pages is selectable: its own published API pages are shown.
+      const apiActionContext = this.treeService.getDocumentationActionContext(selectedId);
+      return of({ children, selectedPageContent: null, selectedApiId: child.apiId }).pipe(
+        tap(() => this.breadcrumbs.set(this.treeService.getBreadcrumbsByNodeId(selectedId))),
+        tap(() => this.documentationActionContext.set(apiActionContext)),
+      );
+    }
+
     if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
-      // APIs, API Products, and folders are not selectable, so navigate to their first page.
+      // APIs with navigation pages, API Products, and folders are not selectable, so navigate to their first page.
       const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
     }

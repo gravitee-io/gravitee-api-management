@@ -1,0 +1,60 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (pages.isLoading()) {
+  <app-documentation-skeleton
+    aria-busy="true"
+    i18n-aria-label="@@apiDocumentationPagesLoadingAria"
+    aria-label="Loading API documentation"
+  />
+} @else if (pages.error()) {
+  <div class="api-documentation-pages__state" role="alert" data-testid="api-documentation-pages-error" i18n="@@apiDocumentationPagesError">
+    An error occurred while loading the documentation of this API.
+  </div>
+} @else if (pageTree().length === 0) {
+  <div class="api-documentation-pages__state" data-testid="api-documentation-pages-empty" i18n="@@apiDocumentationPagesEmpty">
+    Documentation for this API is missing.
+  </div>
+} @else {
+  <div class="api-documentation-pages">
+    @if (hasSeveralPages()) {
+      <nav
+        class="api-documentation-pages__tree"
+        i18n-aria-label="@@apiDocumentationPagesNavigationAria"
+        aria-label="API documentation pages"
+      >
+        <app-page-tree [pages]="pageTree()" [activePage]="selectedPageId()" (openFile)="selectedPageId.set($event)" />
+      </nav>
+    }
+    <div class="api-documentation-pages__content">
+      @if (selectedPage.isLoading()) {
+        <app-documentation-skeleton aria-busy="true" i18n-aria-label="@@apiDocumentationPageLoadingAria" aria-label="Loading content" />
+      } @else if (selectedPage.error()) {
+        <div
+          class="api-documentation-pages__state"
+          role="alert"
+          data-testid="api-documentation-page-error"
+          i18n="@@apiDocumentationPageError"
+        >
+          An error occurred while loading this page.
+        </div>
+      } @else if (selectedPage.value(); as page) {
+        <app-page [page]="page" [pages]="pages.value()" [apiId]="apiId()" />
+      }
+    </div>
+  </div>
+}
