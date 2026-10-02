@@ -197,6 +197,32 @@ public class FlowChain implements Hookable<ChainHook> {
      *
      * @return a {@link Completable} that completes when the flow policy chain completes.
      */
+    /**
+     * Executes the response actions the policies of this chain registered while the request phase ran, without
+     * the response phase itself.
+     *
+     * <p>A policy that reserves something — budget, a quota — registers an action to reconcile it once the
+     * response is known. That action runs at the start of the response phase, which the gateway skips when a
+     * request is interrupted: it goes straight to the error processors. The reservation was then never
+     * reconciled, and a request that failed before it reached a backend kept consuming what it had reserved for
+     * the rest of its window.
+     *
+     * <p>Only the flows this chain already executed are considered, in the order they ran, and their condition
+     * is not evaluated again — the request phase settled which flows apply. An action is taken rather than read,
+     * so a response phase that did run has already consumed it and this changes nothing.
+     */
+    public Completable executeActionsOnResponse(final HttpExecutionContext ctx) {
+        return Completable.defer(() -> {
+            final List<Flow> executedFlows = ctx.getInternalAttribute(resolvedFlowAttribute);
+            if (executedFlows == null || executedFlows.isEmpty()) {
+                return Completable.complete();
+            }
+            return Flowable.fromIterable(executedFlows).concatMapCompletable(flow ->
+                policyChainFactory.create(id, flow, ExecutionPhase.REQUEST).executeActionsOnResponse(ctx)
+            );
+        });
+    }
+
     private Completable executeFlow(final HttpExecutionContext ctx, final Flow flow, final ExecutionPhase phase) {
         ctx.withLogger(log).debug("Executing flow {} ({} level, {} phase)", flow.getName(), id, phase.name());
         ctx.putInternalAttribute(ATTR_INTERNAL_FLOW_STAGE, id);

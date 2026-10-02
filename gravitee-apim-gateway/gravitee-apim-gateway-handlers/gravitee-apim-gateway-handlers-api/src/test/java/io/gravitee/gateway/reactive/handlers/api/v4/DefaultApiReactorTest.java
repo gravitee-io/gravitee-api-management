@@ -367,6 +367,9 @@ class DefaultApiReactorTest {
         lenient().when(v4FlowChainFactory.createApiFlow(api, tracingContext)).thenReturn(apiFlowChain);
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyRequestApiFlowChain);
         lenient().when(apiFlowChain.execute(ctx, ExecutionPhase.RESPONSE)).thenReturn(spyResponseApiFlowChain);
+        // Run for every request, however it ended, so the reservation a policy took is always reconciled.
+        lenient().when(apiPlanFlowChain.executeActionsOnResponse(ctx)).thenReturn(Completable.complete());
+        lenient().when(apiFlowChain.executeActionsOnResponse(ctx)).thenReturn(Completable.complete());
 
         lenient().when(beforeHandleProcessors.execute(ctx, ExecutionPhase.REQUEST)).thenReturn(spyBeforeHandleProcessors);
         lenient().when(afterHandleProcessors.execute(ctx, RESPONSE)).thenReturn(spyAfterHandleProcessors);
@@ -629,6 +632,32 @@ class DefaultApiReactorTest {
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
+    }
+
+    /**
+     * A policy that reserves something — budget, a quota — registers an action to reconcile it once the response
+     * is known, and that action runs at the start of the response phase. An interruption skips that phase, so the
+     * reservation was never reconciled and a request that failed before reaching a backend went on consuming what
+     * it had reserved for the rest of its window (AIAM-1054). The actions therefore run whatever happened, in the
+     * segment that always executes, even though the response phases themselves are rightly skipped.
+     */
+    @Test
+    void shouldExecuteResponseActionsEvenWhenInvocationIsInterrupted() {
+        spyInvokerChain = spy(Completable.error(new InterruptionFailureException(new ExecutionFailure(400))));
+        when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
+
+        cut.handle(ctx).test().assertComplete();
+
+        InOrder inOrder = getInOrder();
+        inOrder.verify(spyInvokerChain).subscribe(any(CompletableObserver.class));
+        // The response phases are skipped, as they should be — the chain is built eagerly, so what matters is
+        // that it is never subscribed.
+        inOrder.verify(spyResponsePlanFlowChain, never()).subscribe(any(CompletableObserver.class));
+        inOrder.verify(spyResponseApiFlowChain, never()).subscribe(any(CompletableObserver.class));
+        // ...but what they would have reconciled still runs. These calls are made inside a defer, so reaching
+        // them at all proves the step was subscribed.
+        verify(apiPlanFlowChain).executeActionsOnResponse(ctx);
+        verify(apiFlowChain).executeActionsOnResponse(ctx);
     }
 
     @Test

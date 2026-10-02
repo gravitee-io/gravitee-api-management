@@ -104,7 +104,9 @@ public class HttpPolicyChain extends AbstractPolicyChain<HttpPolicy> implements 
         }
 
         return reversedPolicies().concatMapCompletable(policy -> {
-            var onResponseAction = internalCtx.getOnResponseAction(policy);
+            // Taken, not read: a request that never reaches the response phase has these executed from the
+            // segment that always runs, and an action must not run twice when both get a turn.
+            var onResponseAction = internalCtx.removeOnResponseAction(policy);
 
             if (onResponseAction != null) {
                 ComponentScope.push(ctx, ComponentType.POLICY, policy.id());

@@ -392,6 +392,11 @@ public class DefaultApiReactor extends AbstractApiReactor {
             .chainWith(executeProcessorChain(ctx, afterApiExecutionProcessors, RESPONSE))
             .chainWithOnError(error -> processThrowable(ctx, error))
             .chainWith(upstream -> timeout(upstream, ctx))
+            // Response actions must always be executed (whatever timeout or error), for the same reason the
+            // platform post flows below are: a policy that reserved something registers one to reconcile it, and
+            // an interruption skips the response phase that would have run it. Already-executed actions are gone
+            // by now, so the happy path reaches this with nothing left to do.
+            .chainWith(new CompletableReactorChain(executeActionsOnResponse(ctx)).chainWith(upstream -> timeout(upstream, ctx)))
             // Platform post flows must always be executed (whatever timeout or error).
             .chainWith(
                 new CompletableReactorChain(organizationFlowChain.execute(ctx, RESPONSE)).chainWith(upstream -> timeout(upstream, ctx))
@@ -789,6 +794,20 @@ public class DefaultApiReactor extends AbstractApiReactor {
         } else {
             this.apiProductPlanFlowChain = null;
         }
+    }
+
+    /**
+     * The response actions of every chain whose request phase ran, in the order their response phases would have
+     * run them. A chain that never resolved a flow has none, and one whose response phase already ran has had
+     * them consumed there.
+     */
+    private Completable executeActionsOnResponse(final MutableExecutionContext ctx) {
+        final FlowChain productPlanChain = apiProductPlanFlowChain;
+        return Completable.defer(() ->
+            (productPlanChain == null ? Completable.complete() : productPlanChain.executeActionsOnResponse(ctx)).andThen(
+                apiPlanFlowChain.executeActionsOnResponse(ctx)
+            ).andThen(apiFlowChain.executeActionsOnResponse(ctx))
+        );
     }
 
     private Completable executeProductPlanFlowChain(final MutableExecutionContext ctx, final ExecutionPhase phase) {

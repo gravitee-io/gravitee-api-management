@@ -69,10 +69,13 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
     Map<BasePolicy, Function<HttpExecutionContext, Completable>> getOnResponseActions();
 
     /**
-     * Get the list of actions to be executed at the response phase.
-     * @return a list of actions to be executed at the response phase.
+     * Takes the action registered for a source, so that it can be executed at most once however many times the
+     * response actions are executed. They are executed both from the response phase and, for a request that
+     * never reaches it, from the segment that always runs; whichever gets there first is the only one to run it.
+     *
+     * @return the action, or <code>null</code> when the source registered none or it has already been taken.
      */
-    Function<HttpExecutionContext, Completable> getOnResponseAction(BasePolicy source);
+    Function<HttpExecutionContext, Completable> removeOnResponseAction(BasePolicy source);
 
     /**
      * Sets the log entries for the current execution context.

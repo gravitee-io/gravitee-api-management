@@ -300,11 +300,11 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
         onResponseActions.put(source, function);
     }
 
-    public Function<HttpExecutionContext, Completable> getOnResponseAction(BasePolicy source) {
+    public Function<HttpExecutionContext, Completable> removeOnResponseAction(BasePolicy source) {
         if (onResponseActions == null) {
             return null;
         }
-        return onResponseActions.get(source);
+        return onResponseActions.remove(source);
     }
 
     private void prepareTemplateEngine(final TemplateEngine templateEngine) {

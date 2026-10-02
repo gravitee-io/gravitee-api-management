@@ -295,6 +295,62 @@ class FlowChainTest {
         assertThat((Boolean) ctx.getInternalAttribute(INTERNAL_CONTEXT_ATTRIBUTES_FLOWS_MATCHED)).isNull();
     }
 
+    /**
+     * A request the gateway interrupts never reaches the response phase, so a policy that registered an action
+     * to reconcile something it reserved never got to. Running the actions on their own is what the segment that
+     * always executes does with them (AIAM-1054).
+     */
+    @Test
+    void should_execute_on_response_actions_without_the_response_phase() {
+        final Flow flow = mock(Flow.class);
+
+        buildPolicyChain("pc-flow1", flow, REQUEST, policy1, policy2, policy3);
+
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flow));
+
+        final TestObserver<Void> obs = cut.execute(ctx, REQUEST).andThen(cut.executeActionsOnResponse(ctx)).test();
+
+        obs.assertResult();
+
+        assertThat(executionOrder).containsExactly(
+            "policy1-onRequest",
+            "policy2-onRequest",
+            "policy3-onRequest",
+            "policy3-actionActionOnResponse",
+            "policy2-actionActionOnResponse",
+            "policy1-actionActionOnResponse"
+        );
+    }
+
+    /** Whichever gets there first runs them: an action taken by the response phase must not run a second time. */
+    @Test
+    void should_execute_an_on_response_action_once_when_both_the_response_phase_and_the_actions_run() {
+        final Flow flow = mock(Flow.class);
+
+        buildPolicyChain("pc-flow1", flow, REQUEST, policy1);
+        buildPolicyChain("pc-flow2", flow, RESPONSE);
+
+        when(flowResolver.resolve(ctx)).thenReturn(Flowable.just(flow));
+
+        final TestObserver<Void> obs = cut
+            .execute(ctx, REQUEST)
+            .andThen(cut.execute(ctx, ExecutionPhase.RESPONSE))
+            .andThen(cut.executeActionsOnResponse(ctx))
+            .test();
+
+        obs.assertResult();
+
+        assertThat(executionOrder).containsExactly("policy1-onRequest", "policy1-actionActionOnResponse");
+    }
+
+    /** Nothing resolved, nothing registered: the actions-only pass must be a no-op rather than a failure. */
+    @Test
+    void should_do_nothing_when_no_flow_was_executed() {
+        cut.executeActionsOnResponse(ctx).test().assertResult();
+
+        assertThat(executionOrder).isEmpty();
+    }
+
     @Test
     void should_execute_on_response_actions_in_reversed_order_before_response_policies() {
         final Flow flow = mock(Flow.class);
