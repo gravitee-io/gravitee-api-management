@@ -46,8 +46,8 @@ export class BuildBackendJob {
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
     // A change that can only affect the distribution is assembled against the core it pins, not the
-    // one this branch is developing: the pull request that advances the pin would otherwise exercise
-    // something other than what merging it ships. The `Build engine` step above is then wasted work,
+    // one this branch is developing: the commit that advances the pin would otherwise exercise
+    // something other than what merging it ships. The `Build core` step above is then wasted work,
     // which is worth removing on its own once this has settled.
     const coreVersion = assemblesPinnedCore(environment.changedFiles) ? '' : ` -Dapim.core.version=${computeApimVersion(environment)}`;
 
@@ -58,7 +58,7 @@ export class BuildBackendJob {
       new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
-        name: 'Build engine',
+        name: 'Build core',
         command: `mvn -s ${config.maven.settingsFile} clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false ${mavenParallelism('large')} -P all-modules -DwithJavadoc`,
         environment: {
           BUILD_ID: environment.buildId,
