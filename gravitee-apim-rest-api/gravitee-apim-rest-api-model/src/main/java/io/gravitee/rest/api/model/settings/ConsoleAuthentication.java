@@ -35,6 +35,12 @@ public class ConsoleAuthentication extends CommonAuthentication {
     @ParameterKey(Key.EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED)
     private Enabled externalAuthAccountDeletion;
 
+    @ParameterKey(Key.CONSOLE_AUTHENTICATION_EXPOSE_ACCESS_TOKEN)
+    private Enabled exposeAccessToken;
+
+    @ParameterKey(Key.CONSOLE_AUTHENTICATION_EXPOSE_ID_TOKEN)
+    private Enabled exposeIdToken;
+
     public Enabled getLocalLogin() {
         return localLogin;
     }
@@ -57,5 +63,21 @@ public class ConsoleAuthentication extends CommonAuthentication {
 
     public void setExternalAuthAccountDeletion(Enabled externalAuthAccountDeletion) {
         this.externalAuthAccountDeletion = externalAuthAccountDeletion;
+    }
+
+    public Enabled getExposeAccessToken() {
+        return exposeAccessToken;
+    }
+
+    public void setExposeAccessToken(Enabled exposeAccessToken) {
+        this.exposeAccessToken = exposeAccessToken;
+    }
+
+    public Enabled getExposeIdToken() {
+        return exposeIdToken;
+    }
+
+    public void setExposeIdToken(Enabled exposeIdToken) {
+        this.exposeIdToken = exposeIdToken;
     }
 }

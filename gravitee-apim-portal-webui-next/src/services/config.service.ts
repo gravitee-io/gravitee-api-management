@@ -45,6 +45,10 @@ export class ConfigService {
     return this._configuration ?? {};
   }
 
+  public stripIdpAccessTokenFromStorage(): boolean {
+    return this.configuration.authentication?.exposeAccessToken?.enabled === false;
+  }
+
   private set baseURL(baseURL: string) {
     this._baseURL = baseURL;
   }

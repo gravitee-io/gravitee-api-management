@@ -10,9 +10,9 @@
  */
 import { Enabled } from './enabled';
 
-
-export interface ConfigurationAuthentication { 
-    forceLogin?: Enabled;
-    localLogin?: Enabled;
+export interface ConfigurationAuthentication {
+  forceLogin?: Enabled;
+  localLogin?: Enabled;
+  exposeAccessToken?: Enabled;
+  exposeIdToken?: Enabled;
 }
-

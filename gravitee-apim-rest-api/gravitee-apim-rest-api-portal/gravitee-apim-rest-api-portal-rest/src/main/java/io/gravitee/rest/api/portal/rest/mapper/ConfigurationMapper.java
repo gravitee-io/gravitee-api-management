@@ -274,6 +274,8 @@ public class ConfigurationMapper {
         ConfigurationAuthentication configuration = new ConfigurationAuthentication();
         configuration.setForceLogin(convert(authentication.getForceLogin()));
         configuration.setLocalLogin(convert(authentication.getLocalLogin()));
+        configuration.setExposeAccessToken(convertExposeFlag(authentication.getExposeAccessToken()));
+        configuration.setExposeIdToken(convertExposeFlag(authentication.getExposeIdToken()));
         return configuration;
     }
 
@@ -331,5 +333,9 @@ public class ConfigurationMapper {
 
     private Enabled convert(io.gravitee.rest.api.model.settings.Enabled enabledEntity) {
         return new Enabled().enabled(enabledEntity.isEnabled());
+    }
+
+    private Enabled convertExposeFlag(io.gravitee.rest.api.model.settings.Enabled enabledEntity) {
+        return new Enabled().enabled(enabledEntity == null || enabledEntity.isEnabled());
     }
 }
