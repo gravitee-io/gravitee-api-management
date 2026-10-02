@@ -36,7 +36,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVali
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
-import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
@@ -164,7 +163,37 @@ class ValidatePortalDocumentationUseCaseTest {
     }
 
     @Test
-    void should_reject_moving_an_existing_page_to_a_different_area_without_persisting_anything() {
+    void should_allow_moving_an_existing_page_to_a_different_area_without_persisting_anything() {
+        syncDomainService.materialize(
+            AUDIT_INFO,
+            pageContent(DOC_ID, "Getting Started", "/projects/alpha", 1),
+            PortalArea.TOP_NAVBAR,
+            null
+        );
+        var storageBefore = List.copyOf(navCrudService.storage());
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalDocumentationUseCase.Input(
+                AUDIT_INFO,
+                DOC_ID,
+                PORTAL_ID,
+                "Getting Started",
+                PortalPageContentType.GRAVITEE_MARKDOWN,
+                "# New content",
+                null,
+                0,
+                PortalArea.HOMEPAGE,
+                null
+            )
+        );
+
+        assertThat(output.errors()).isEmpty();
+        assertThat(navCrudService.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
+    }
+
+    @Test
+    void should_reject_moving_an_existing_page_to_a_conflicting_homepage_without_persisting_anything() {
+        syncDomainService.materialize(AUDIT_INFO, homepageContent("home-1", "Home"), PortalArea.HOMEPAGE, null);
         syncDomainService.materialize(
             AUDIT_INFO,
             pageContent(DOC_ID, "Getting Started", "/projects/alpha", 1),
@@ -182,13 +211,13 @@ class ValidatePortalDocumentationUseCaseTest {
                     "Getting Started",
                     PortalPageContentType.GRAVITEE_MARKDOWN,
                     "# New content",
-                    "/projects/alpha",
-                    1,
+                    null,
+                    0,
                     PortalArea.HOMEPAGE,
                     null
                 )
             )
-        ).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
 
         assertThat(navCrudService.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
