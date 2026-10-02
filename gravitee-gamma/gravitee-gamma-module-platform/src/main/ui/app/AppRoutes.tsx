@@ -34,7 +34,6 @@ import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react
 
 import { permissionService, useEnvironment, useHasFeature, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
-import { PlatformToaster } from './PlatformToaster';
 import { APPLICATION_NAV_GROUPS, flattenApplicationDetailNavItems } from '../config/applicationDetailNavigation';
 import { applicationDetailTabElement } from '../config/applicationDetailPages';
 import {
@@ -515,7 +514,6 @@ export function AppRoutes() {
     return (
         <QueryClientProvider client={queryClient}>
             <ConsoleSettingsProvider>
-                <PlatformToaster />
                 <Routes>
                     <Route element={<ModuleLayout />}>
                         <Route element={<PlatformSectionLayout />}>
