@@ -30,16 +30,18 @@ import { parse } from '../../utils';
 export class BackendBuildAndPublishOnDownloadWebsiteJob {
   private static jobName = 'job-backend-build-and-publish-on-download-website';
 
-  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, publishOnDownloadWebsite: boolean): Job {
+  public static create(dynamicConfig: Config, environment: CircleCIEnvironment, publishOnDownloadWebsite: boolean, buildCore = true): Job {
     const restoreMavenJobCacheCommand = RestoreMavenJobCacheCommand.get(environment);
     const azureArtifactsTokenCmd = AzureArtifactsTokenCommand.get(dynamicConfig);
     dynamicConfig.addReusableCommand(restoreMavenJobCacheCommand);
     dynamicConfig.addReusableCommand(azureArtifactsTokenCmd);
 
-    // The engine build runs the gravitee-gamma yarn workspace (`yarn install` in generate-resources).
+    // The core build runs the gravitee-gamma yarn workspace (`yarn install` in generate-resources).
     // Without corepack the image's yarn 1 cannot read the berry lockfile.
     const installYarnCmd = InstallYarnCommand.get();
-    dynamicConfig.addReusableCommand(installYarnCmd);
+    if (buildCore) {
+      dynamicConfig.addReusableCommand(installYarnCmd);
+    }
 
     const prepareGpgCommand = PrepareGpgCmd.get(dynamicConfig);
     dynamicConfig.addReusableCommand(prepareGpgCommand);
@@ -56,10 +58,10 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new reusable.ReusedCommand(restoreMavenJobCacheCommand, { jobName: BackendBuildAndPublishOnDownloadWebsiteJob.jobName }),
-      new reusable.ReusedCommand(installYarnCmd),
+      ...(buildCore ? [new reusable.ReusedCommand(installYarnCmd)] : []),
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
-        // First, before anything is built: placed after the engine build it fired half an hour into
+        // First, before anything is built: placed after the core build it fired half an hour into
         // the release. Reading the pin needs no reactor and no installed artifact — the pom parents
         // to the organisation pom with <relativePath/> — and the `versions:set -DremoveSnapshot`
         // below only touches the project version, never this property.
@@ -94,28 +96,49 @@ fi`,
       }),
       new commands.Run({
         // The distribution carries its own version properties now, so it needs the same treatment.
+        // The root pom is only de-SNAPSHOTted where the core is built below; a release assembles a
+        // published core and never reads it.
         // Both calls resolve versions-maven-plugin, so they take the shared settings like every
         // other Maven invocation — without it they reach Maven Central directly.
         name: 'Remove `-SNAPSHOT` from versions',
-        command: `mvn -B -s ${config.maven.settingsFile} versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
-sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
-mvn -B -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
-sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml`,
+        command: [
+          ...(buildCore
+            ? [
+                `mvn -B -s ${config.maven.settingsFile} versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false`,
+                `sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
+              ]
+            : []),
+          `mvn -B -s ${config.maven.settingsFile} -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false`,
+          `sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml`,
+        ].join('\n'),
       }),
       new reusable.ReusedCommand(prepareGpgCommand),
-      new commands.Run({
-        // install, not verify: the distribution resolves the engine from the local repository.
-        name: 'Maven build APIM engine',
-        command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release clean install -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
-        environment: {
-          BUILD_ID: environment.buildId,
-          BUILD_NUMBER: environment.buildNum,
-          GIT_COMMIT: environment.sha1,
-          // Cap the maven JVM heap: its default is derived from the memory of the underlying CI host,
-          // not from the resource class of the job, and overshoots the 8 GB of a large executor.
-          MAVEN_OPTS: '-Xmx2048m',
-        },
-      }),
+      // The on-demand chainguard lanes need this. Run from master, they assemble a pin that is a
+      // SNAPSHOT, and the `-nsu` below then serves the copy this step installs. Without it Maven
+      // resolves the last SNAPSHOT a merge published instead, and the images carry another commit.
+      //
+      // A release is never in that case — the guard above refuses a SNAPSHOT pin — so it assembles a
+      // published core and this step feeds nothing. Measured on the 4.13.0-alpha.2 release: the
+      // assembly resolved the pinned 4.13.0-alpha.4 while this installed 4.13.0-alpha.5, which
+      // appears nowhere in its log. 9 of the job's 16 minutes.
+      ...(buildCore
+        ? [
+            new commands.Run({
+              // install, not verify: the distribution resolves the core from the local repository.
+              name: 'Maven build APIM core',
+              command: `mvn --settings ${config.maven.settingsFile} -B -U -P all-modules,gio-release clean install -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress`,
+              environment: {
+                BUILD_ID: environment.buildId,
+                BUILD_NUMBER: environment.buildNum,
+                GIT_COMMIT: environment.sha1,
+                // Cap the maven JVM heap: its default is derived from the memory of the underlying CI
+                // host, not from the resource class of the job, and overshoots the 8 GB of a large
+                // executor.
+                MAVEN_OPTS: '-Xmx2048m',
+              },
+            }),
+          ]
+        : []),
       new commands.Run({
         // -Dbundle, not -P bundle-default: the profile that adds the Cloud initializer and the MCP
         // libraries to lib/ is declared by the gateway container, which is now an external
@@ -206,6 +229,8 @@ done`,
         ],
       }),
     );
-    return new Job(BackendBuildAndPublishOnDownloadWebsiteJob.jobName, OpenJdkNodeExecutor.create('xlarge'), steps);
+    // xlarge is for the core reactor and its gamma UI modules; the assembly alone ran on large
+    // before they were part of it.
+    return new Job(BackendBuildAndPublishOnDownloadWebsiteJob.jobName, OpenJdkNodeExecutor.create(buildCore ? 'xlarge' : 'large'), steps);
   }
 }
