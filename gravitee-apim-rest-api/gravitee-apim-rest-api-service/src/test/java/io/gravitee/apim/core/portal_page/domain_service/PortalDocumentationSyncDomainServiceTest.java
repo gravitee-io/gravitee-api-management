@@ -36,7 +36,6 @@ import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
-import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -308,25 +307,49 @@ class PortalDocumentationSyncDomainServiceTest {
     }
 
     @Test
-    void materialize_rejects_moving_an_existing_page_to_a_different_area() {
+    void materialize_moves_an_existing_page_to_a_different_area_via_delete_and_recreate() {
+        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+
+        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", null, 0), PortalArea.HOMEPAGE, null);
+
+        assertThat(navItemCrud.storage()).hasSize(1);
+        var page = (PortalNavigationPage) navItemCrud.storage().get(0);
+        assertThat(page.getId()).isEqualTo(expectedNavItemId());
+        assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE);
+    }
+
+    @Test
+    void validate_placement_allows_moving_an_existing_page_to_a_different_area_without_writing_anything() {
         syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
         var storageBefore = List.copyOf(navItemCrud.storage());
 
-        assertThatThrownBy(() ->
-            syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1), PortalArea.HOMEPAGE, null)
-        ).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+        syncService.validatePlacement(AUDIT_INFO, markdownDoc("Getting Started", null, 0), PortalArea.HOMEPAGE, null);
 
         assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }
 
     @Test
-    void validate_placement_rejects_moving_an_existing_page_to_a_different_area_without_writing_anything() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+    void materialize_rejects_moving_an_existing_page_to_a_conflicting_homepage_without_losing_it() {
+        var syncWithRealValidator = new PortalDocumentationSyncDomainService(
+            navItemCrud,
+            navItemQuery,
+            new HomepageReconciler(navItemQuery, navItemCrud, pageContentCrud),
+            new PortalNavigationItemValidatorService(
+                navItemQuery,
+                new PortalPageContentQueryServiceInMemory(pageContentCrud.storage()),
+                new ApiProductQueryServiceInMemory(),
+                new PortalNavigationItemSourceDomainServiceInMemory()
+            )
+        );
+        var existingHomepage = automationOwnedHomepagePage();
+        navItemCrud.create(existingHomepage);
+        pageContentCrud.create(staleContent(existingHomepage));
+        syncWithRealValidator.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
         var storageBefore = List.copyOf(navItemCrud.storage());
 
         assertThatThrownBy(() ->
-            syncService.validatePlacement(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1), PortalArea.HOMEPAGE, null)
-        ).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+            syncWithRealValidator.materialize(AUDIT_INFO, markdownDoc("Getting Started", null, 0), PortalArea.HOMEPAGE, null)
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
 
         assertThat(navItemCrud.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
     }

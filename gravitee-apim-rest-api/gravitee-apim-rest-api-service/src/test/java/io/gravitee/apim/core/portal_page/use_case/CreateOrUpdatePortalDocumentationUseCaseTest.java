@@ -46,7 +46,6 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalPageContentValidat
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
 import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
-import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -337,9 +336,56 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
     }
 
     @Test
-    void should_reject_moving_an_existing_page_to_a_different_area() {
+    void should_move_an_existing_page_to_a_different_area_via_delete_and_recreate() {
         seedDefaultPortal();
         var realUseCase = useCaseWithRealNavigationValidation();
+
+        realUseCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
+        queryService.initWith(crudService.storage());
+
+        realUseCase.execute(
+            new CreateOrUpdatePortalDocumentationUseCase.Input(
+                AUDIT_INFO,
+                DOC_ID,
+                PORTAL_ID,
+                "Getting Started",
+                PortalPageContentType.GRAVITEE_MARKDOWN,
+                "# New content",
+                null,
+                0,
+                PortalArea.HOMEPAGE,
+                null
+            )
+        );
+
+        var stored = crudService
+            .storage()
+            .stream()
+            .filter(c -> c.getId().equals(DOC_ID))
+            .findFirst()
+            .orElseThrow();
+        assertThat(((GraviteeMarkdownPageContent) stored).getContent().value()).isEqualTo("# New content");
+        var navPages = navCrudService
+            .storage()
+            .stream()
+            .filter(PortalNavigationPage.class::isInstance)
+            .map(PortalNavigationPage.class::cast)
+            .filter(page -> DOC_ID.equals(page.getPortalPageContentId()))
+            .toList();
+        assertThat(navPages)
+            .singleElement()
+            .satisfies(page -> assertThat(page.getArea()).isEqualTo(PortalArea.HOMEPAGE));
+    }
+
+    @Test
+    void should_reject_moving_an_existing_page_to_a_conflicting_homepage_without_losing_it() {
+        seedDefaultPortal();
+        var realUseCase = useCaseWithRealNavigationValidation();
+        var otherHomepageId = PortalPageContentId.of(
+            HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid("home-1").id()
+        );
+        realUseCase.execute(homepageInput(otherHomepageId, "Home", "# Hello"));
+        queryService.initWith(crudService.storage());
 
         realUseCase.execute(input("Getting Started", PortalPageContentType.GRAVITEE_MARKDOWN, "# Original", "/projects/alpha", 1));
         queryService.initWith(crudService.storage());
@@ -361,7 +407,7 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
             )
         );
 
-        assertThat(throwable).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+        assertThat(throwable).isInstanceOf(HomepageAlreadyExistsException.class);
         var stored = crudService
             .storage()
             .stream()

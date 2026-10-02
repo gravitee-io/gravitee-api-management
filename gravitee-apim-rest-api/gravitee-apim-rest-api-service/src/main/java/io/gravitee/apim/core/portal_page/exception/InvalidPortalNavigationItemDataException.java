@@ -152,8 +152,4 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
             "Parent item with id %s must be PUBLIC to create a public child item.".formatted(parentId)
         );
     }
-
-    public static InvalidPortalNavigationItemDataException areaCannotChange(String itemId) {
-        return new InvalidPortalNavigationItemDataException("Navigation item %s cannot change area after creation.".formatted(itemId));
-    }
 }
