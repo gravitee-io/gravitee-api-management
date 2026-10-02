@@ -610,14 +610,13 @@ jobs:
   job-backend-build-and-publish-on-download-website:
     docker:
       - image: cimg/openjdk:25.0.3-node
-    resource_class: xlarge
+    resource_class: large
     steps:
       - checkout
       - attach_workspace:
           at: .
       - cmd-restore-maven-job-cache:
           jobName: job-backend-build-and-publish-on-download-website
-      - cmd-install-yarn
       - cmd-azure-artifacts-token
       - run:
           name: Refuse a core pin this release cannot assemble
@@ -647,19 +646,9 @@ jobs:
       - run:
           name: Remove `-SNAPSHOT` from versions
           command: |-
-            mvn -B -s .gravitee.settings.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
-            sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml
             mvn -B -s .gravitee.settings.xml -f gravitee-apim-distribution/pom.xml versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
             sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" gravitee-apim-distribution/pom.xml
       - cmd-prepare-gpg
-      - run:
-          name: Maven build APIM engine
-          command: mvn --settings .gravitee.settings.xml -B -U -P all-modules,gio-release clean install -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
-          environment:
-            BUILD_ID: "1234"
-            BUILD_NUMBER: "1234"
-            GIT_COMMIT: 784ff35ca
-            MAVEN_OPTS: -Xmx2048m
       - run:
           name: Maven build APIM distribution
           command: mvn --settings .gravitee.settings.xml -B -nsu -f gravitee-apim-distribution/pom.xml -P gio-release -Dbundle clean verify -DskipTests=true -Dskip.validation -Dgravitee.archrules.skip=true -T 4 --no-transfer-progress
