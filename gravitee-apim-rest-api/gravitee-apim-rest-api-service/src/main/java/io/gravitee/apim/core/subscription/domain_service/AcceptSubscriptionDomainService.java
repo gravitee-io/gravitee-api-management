@@ -67,6 +67,9 @@ public class AcceptSubscriptionDomainService {
     public static final String REJECT_BY_TECHNICAL_ERROR_MESSAGE =
         "A technical error prevented your subscription from being created. Please contact the API administrator for more information.";
 
+    /** Size of the subscription reason column in the JDBC repository. */
+    public static final int REJECT_REASON_MAX_LENGTH = 1024;
+
     private final SubscriptionCrudService subscriptionCrudService;
     private final AuditDomainService auditDomainService;
     private final ApiCrudService apiCrudService;
@@ -228,9 +231,12 @@ public class AcceptSubscriptionDomainService {
 
     /**
      * Reject a subscription once the integration fails to do its job.
+     * The reason sent by the agent is kept as the rejection reason, or a generic one when the agent gives none.
      *
+     * @param integrationId  The integration that failed to process the subscription.
      * @param subscriptionId The subscription to reject.
      * @param auditInfo      Audit information about whom accepting the subscription.
+     * @param errorMessage   The reason sent by the agent.
      */
     private SubscriptionEntity rejectByIntegration(String integrationId, String subscriptionId, AuditInfo auditInfo, String errorMessage) {
         log.warn(
@@ -242,7 +248,7 @@ public class AcceptSubscriptionDomainService {
 
         var subscription = subscriptionCrudService.get(subscriptionId);
 
-        var rejected = subscription.rejectBy("system", REJECT_BY_TECHNICAL_ERROR_MESSAGE);
+        var rejected = subscription.rejectBy("system", integrationRejectionReason(errorMessage));
 
         subscriptionCrudService.update(rejected);
 
@@ -251,6 +257,14 @@ public class AcceptSubscriptionDomainService {
         triggerNotifications(auditInfo.organizationId(), auditInfo.environmentId(), rejected);
 
         return rejected;
+    }
+
+    private static String integrationRejectionReason(String errorMessage) {
+        if (errorMessage == null || errorMessage.isBlank()) {
+            return REJECT_BY_TECHNICAL_ERROR_MESSAGE;
+        }
+        var reason = errorMessage.strip();
+        return reason.length() > REJECT_REASON_MAX_LENGTH ? reason.substring(0, REJECT_REASON_MAX_LENGTH) : reason;
     }
 
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity acceptedSubscriptionEntity, AuditInfo auditInfo) {
