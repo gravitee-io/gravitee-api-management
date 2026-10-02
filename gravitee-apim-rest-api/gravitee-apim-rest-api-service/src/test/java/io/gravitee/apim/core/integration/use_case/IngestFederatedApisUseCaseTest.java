@@ -1797,6 +1797,124 @@ class IngestFederatedApisUseCaseTest {
         }
 
         @Test
+        void should_not_take_over_a_page_created_in_gravitee_with_the_name_of_a_provider_page() {
+            // Given
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            var pageCreatedInGravitee = aPageCreatedInGravitee("guide");
+            givenExistingPage(pageCreatedInGravitee);
+
+            // When
+            ingest(new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "provider guide", "guide"));
+
+            // Then
+            assertThat(pageCrudService.storage()).containsExactly(pageCreatedInGravitee);
+        }
+
+        @Test
+        void should_keep_a_page_created_in_gravitee_once_the_provider_stops_sending_a_page_of_the_same_name() {
+            // Given
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            var pageCreatedInGravitee = aPageCreatedInGravitee("guide");
+            givenExistingPage(pageCreatedInGravitee);
+            ingest(new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "provider guide", "guide"));
+
+            // When
+            ingest();
+
+            // Then
+            assertThat(pageCrudService.storage()).containsExactly(pageCreatedInGravitee);
+        }
+
+        @Test
+        void should_update_ingested_pages_when_pages_created_in_gravitee_share_a_name_in_different_folders() {
+            // Given
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            var ingestedSpec = Page.builder()
+                .id("spec-id")
+                .name("spec.json")
+                .referenceId("environment-idintegration-iduid-1")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.SWAGGER)
+                .visibility(Page.Visibility.PRIVATE)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("oldSpec")
+                .homepage(true)
+                .published(true)
+                .ingested(true)
+                .build();
+            givenExistingPage(
+                ingestedSpec,
+                aPageCreatedInGravitee("notes").toBuilder().id("notes-a").parentId("folder-a").build(),
+                aPageCreatedInGravitee("notes").toBuilder().id("notes-b").parentId("folder-b").build()
+            );
+            TimeProvider.overrideClock(Clock.fixed(UPDATE_TIME, ZoneId.systemDefault()));
+
+            // When
+            ingest(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "newSpec", "spec.json"));
+
+            // Then
+            assertThat(pageCrudService.storage())
+                .filteredOn(page -> "spec-id".equals(page.getId()))
+                .extracting(Page::getContent)
+                .containsExactly("newSpec");
+        }
+
+        @Test
+        void should_keep_the_previous_version_of_an_ingested_markdown_page_whose_new_content_is_unsafe() {
+            // Given
+            givenExistingApi(ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "uid-1").build());
+            var ingestedGuide = Page.builder()
+                .id("guide-id")
+                .name("guide")
+                .referenceId("environment-idintegration-iduid-1")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .visibility(Page.Visibility.PRIVATE)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("# Safe guide")
+                .homepage(false)
+                .published(true)
+                .ingested(true)
+                .build();
+            givenExistingPage(ingestedGuide);
+
+            // When
+            ingest(new IntegrationApi.Page(IntegrationApi.PageType.MARKDOWN, "# Guide <script>alert('xss')</script>", "guide"));
+
+            // Then
+            assertThat(pageCrudService.storage()).containsExactly(ingestedGuide);
+        }
+
+        private void ingest(IntegrationApi.Page... pages) {
+            var apiToIngest = IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .uniqueId("uid-1")
+                .pages(List.of(pages))
+                .build();
+            useCase
+                .execute(new IngestFederatedApisUseCase.Input(ORGANIZATION_ID, INGEST_JOB_ID, List.of(apiToIngest), false))
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+        }
+
+        private static Page aPageCreatedInGravitee(String name) {
+            return Page.builder()
+                .id("publisher-" + name)
+                .name(name)
+                .referenceId("environment-idintegration-iduid-1")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.MARKDOWN)
+                .visibility(Page.Visibility.PUBLIC)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("# Written in Gravitee")
+                .published(true)
+                .build();
+        }
+
+        @Test
         void should_remove_page_not_exists_anymore() {
             //Given
             var apiToIngest = (IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID)
