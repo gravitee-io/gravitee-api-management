@@ -57,13 +57,15 @@ class GetPortalNavigationItemUseCaseTest {
     void setUp() {
         queryService = new PortalNavigationItemsQueryServiceInMemory();
         membershipQueryService = new MembershipQueryServiceInMemory();
+        var apiQueryService = new ApiQueryServiceInMemory();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
             queryService,
             new ApiPortalMembershipDomainService(
                 membershipQueryService,
                 new SubscriptionQueryServiceInMemory(),
                 new ApiQueryServiceInMemory()
-            )
+            ),
+            apiQueryService
         );
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
             queryService,
@@ -76,6 +78,7 @@ class GetPortalNavigationItemUseCaseTest {
         );
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+        apiQueryService.initWith(PortalNavigationItemFixtures.publishedApisOf(PortalNavigationItemFixtures.sampleNavigationItems()));
     }
 
     @Test

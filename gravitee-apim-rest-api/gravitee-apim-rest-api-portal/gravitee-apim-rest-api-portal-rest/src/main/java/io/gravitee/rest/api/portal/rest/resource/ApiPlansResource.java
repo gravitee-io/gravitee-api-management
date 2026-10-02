@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PlanMapper;
@@ -65,6 +66,11 @@ public class ApiPlansResource extends AbstractResource {
         final String username = getAuthenticatedUserOrNull();
 
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId, false, false, false);
+
+        // As for the API itself (see AccessControlService#canAccessApiFromPortal), the portal never exposes an unpublished API
+        if (!ApiLifecycleState.PUBLISHED.equals(genericApiEntity.getLifecycleState())) {
+            throw new ApiNotFoundException(apiId);
+        }
 
         // Public API can be accessed without permission
         if (!hasPermission(executionContext, API_PLAN, apiId, READ) && !Visibility.PUBLIC.equals(genericApiEntity.getVisibility())) {

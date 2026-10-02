@@ -79,7 +79,8 @@ class GetPortalApiProductUseCaseTest {
         );
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
             navigationItemsQueryService,
-            apiMembershipDomainService
+            apiMembershipDomainService,
+            apiQueryService
         );
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
             navigationItemsQueryService,
@@ -237,7 +238,13 @@ class GetPortalApiProductUseCaseTest {
     }
 
     private static Api api(String id, String name, String version) {
-        return Api.builder().id(id).environmentId(ENVIRONMENT_ID).name(name).version(version).build();
+        return Api.builder()
+            .id(id)
+            .environmentId(ENVIRONMENT_ID)
+            .name(name)
+            .version(version)
+            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+            .build();
     }
 
     private static PortalNavigationApi publicApiNavigationItem(Api api) {

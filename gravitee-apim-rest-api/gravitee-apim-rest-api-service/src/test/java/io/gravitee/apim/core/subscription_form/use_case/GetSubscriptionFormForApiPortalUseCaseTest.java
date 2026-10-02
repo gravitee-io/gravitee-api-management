@@ -26,6 +26,7 @@ import inmemory.SubscriptionFormElResolverInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomainService;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -68,7 +69,9 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
         navQueryService.reset();
         membershipQueryService.reset();
         subscriptionQueryService.reset();
-        apiQueryService.reset();
+        apiQueryService.initWith(
+            List.of(Api.builder().id(API_ID).environmentId(ENV_ID).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build())
+        );
         queryService.reset();
         elResolver.reset();
 
@@ -77,7 +80,7 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
             subscriptionQueryService,
             apiQueryService
         );
-        var visibility = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
+        var visibility = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService, apiQueryService);
         useCase = new GetSubscriptionFormForApiPortalUseCase(
             visibility,
             new SubscriptionFormResolutionDomainService(queryService),
@@ -91,6 +94,19 @@ class GetSubscriptionFormForApiPortalUseCaseTest {
         navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PRIVATE)));
 
         var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).userId(USER_ID).build();
+
+        assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(ApiNotFoundException.class);
+    }
+
+    @Test
+    void should_throw_api_not_found_when_api_is_unpublished() {
+        apiQueryService.initWith(
+            List.of(Api.builder().id(API_ID).environmentId(ENV_ID).apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build())
+        );
+        navQueryService.initWith(List.of(publishedApiNavItem(API_ID, PortalVisibility.PUBLIC)));
+        queryService.initWith(List.of(enabledFormWithDynamicSelect()));
+
+        var input = GetSubscriptionFormForApiPortalUseCase.Input.builder().environmentId(ENV_ID).apiId(API_ID).build();
 
         assertThatThrownBy(() -> useCase.execute(input)).isInstanceOf(ApiNotFoundException.class);
     }

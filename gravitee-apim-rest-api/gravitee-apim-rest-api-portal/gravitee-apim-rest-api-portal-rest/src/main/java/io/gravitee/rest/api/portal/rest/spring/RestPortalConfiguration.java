@@ -115,9 +115,14 @@ public class RestPortalConfiguration {
     @Bean
     public PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService(
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
-        ApiPortalMembershipDomainService apiPortalMembershipDomainService
+        ApiPortalMembershipDomainService apiPortalMembershipDomainService,
+        ApiQueryService apiQueryService
     ) {
-        return new PortalNavigationApiVisibilityDomainService(portalNavigationItemsQueryService, apiPortalMembershipDomainService);
+        return new PortalNavigationApiVisibilityDomainService(
+            portalNavigationItemsQueryService,
+            apiPortalMembershipDomainService,
+            apiQueryService
+        );
     }
 
     @Bean

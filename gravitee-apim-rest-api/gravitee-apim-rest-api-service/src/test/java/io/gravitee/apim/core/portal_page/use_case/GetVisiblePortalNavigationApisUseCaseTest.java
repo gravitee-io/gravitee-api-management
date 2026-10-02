@@ -17,6 +17,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -57,6 +58,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory navQueryService;
     private MembershipQueryServiceInMemory membershipQueryService;
     private ApiPortalSearchQueryServiceInMemory apiSearchQueryService;
+    private ApiQueryServiceInMemory apiQueryService;
 
     @BeforeEach
     void setUp() {
@@ -64,13 +66,17 @@ class GetVisiblePortalNavigationApisUseCaseTest {
         membershipQueryService = new MembershipQueryServiceInMemory();
         apiSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
-        var apiQueryService = new ApiQueryServiceInMemory();
+        apiQueryService = new ApiQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
             membershipQueryService,
             subscriptionQueryService,
             apiQueryService
         );
-        var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
+        var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(
+            navQueryService,
+            apiMembershipDomainService,
+            apiQueryService
+        );
         useCase = new GetVisiblePortalNavigationApisUseCase(
             visibilityDomainService,
             apiSearchQueryService,
@@ -80,7 +86,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
 
     @Test
     void returns_only_visible_items() {
-        navQueryService.initWith(
+        givenNavigation(
             List.of(
                 publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC),
                 publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)
@@ -105,7 +111,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
 
     @Test
     void returns_visible_items_for_member_user() {
-        navQueryService.initWith(
+        givenNavigation(
             List.of(
                 publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC),
                 publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)
@@ -133,7 +139,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
 
     @Test
     void paginates_correctly_page_1() {
-        navQueryService.initWith(
+        givenNavigation(
             List.of(
                 publishedApiNavItem("api-a", PortalVisibility.PUBLIC),
                 publishedApiNavItem("api-b", PortalVisibility.PUBLIC),
@@ -159,7 +165,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
 
     @Test
     void paginates_correctly_page_2() {
-        navQueryService.initWith(
+        givenNavigation(
             List.of(
                 publishedApiNavItem("api-a", PortalVisibility.PUBLIC),
                 publishedApiNavItem("api-b", PortalVisibility.PUBLIC),
@@ -185,7 +191,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
 
     @Test
     void returns_all_items_when_pagination_is_disabled() {
-        navQueryService.initWith(
+        givenNavigation(
             List.of(
                 publishedApiNavItem("api-a", PortalVisibility.PUBLIC),
                 publishedApiNavItem("api-b", PortalVisibility.PUBLIC),
@@ -211,7 +217,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
 
     @Test
     void returns_correct_total_count() {
-        navQueryService.initWith(
+        givenNavigation(
             List.of(
                 publishedApiNavItem("api-a", PortalVisibility.PUBLIC),
                 publishedApiNavItem("api-b", PortalVisibility.PUBLIC),
@@ -237,7 +243,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
 
     @Test
     void filters_by_query_using_api_search() {
-        navQueryService.initWith(
+        givenNavigation(
             List.of(publishedApiNavItem("api-auth", PortalVisibility.PUBLIC), publishedApiNavItem("api-other", PortalVisibility.PUBLIC))
         );
         apiSearchQueryService.initWith(List.of(anApi("api-auth", "Auth Service", ENV_ID), anApi("api-other", "Other Service", ENV_ID)));
@@ -262,7 +268,7 @@ class GetVisiblePortalNavigationApisUseCaseTest {
         List<PortalNavigationItem> navItems = IntStream.rangeClosed(1, 12)
             .mapToObj(i -> (PortalNavigationItem) publishedApiNavItem("api-" + i, PortalVisibility.PUBLIC))
             .toList();
-        navQueryService.initWith(navItems);
+        givenNavigation(navItems);
 
         List<Api> apis = IntStream.rangeClosed(1, 12)
             .mapToObj(i -> anApi("api-" + i, "Catalog Service " + i, ENV_ID))
@@ -286,6 +292,11 @@ class GetVisiblePortalNavigationApisUseCaseTest {
     }
 
     // --- helpers ---
+
+    private void givenNavigation(List<? extends PortalNavigationItem> items) {
+        navQueryService.initWith(List.copyOf(items));
+        apiQueryService.initWith(PortalNavigationItemFixtures.publishedApisOf(items));
+    }
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()

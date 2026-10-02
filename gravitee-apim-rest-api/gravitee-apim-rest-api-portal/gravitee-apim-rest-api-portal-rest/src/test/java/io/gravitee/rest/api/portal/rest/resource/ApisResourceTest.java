@@ -776,6 +776,11 @@ public class ApisResourceTest extends AbstractResourceTest {
             )
         );
         apiPortalSearchQueryServiceInMemory.initWith(List.of(Api.builder().id("ng-api").name("ng-api").environmentId(envId).build()));
+        apiQueryServiceInMemory.initWith(
+            List.of(
+                Api.builder().id("ng-api").name("ng-api").environmentId(envId).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build()
+            )
+        );
 
         ApiEntity ngApiEntity = new ApiEntity();
         ngApiEntity.setId("ng-api");

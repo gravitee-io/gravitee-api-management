@@ -115,7 +115,8 @@ class GetPortalPageContentByNavigationIdUseCaseTest {
                 new MembershipQueryServiceInMemory(),
                 new SubscriptionQueryServiceInMemory(),
                 new ApiQueryServiceInMemory()
-            )
+            ),
+            new ApiQueryServiceInMemory(apiCrudService)
         );
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
             navigationItemsQueryService,

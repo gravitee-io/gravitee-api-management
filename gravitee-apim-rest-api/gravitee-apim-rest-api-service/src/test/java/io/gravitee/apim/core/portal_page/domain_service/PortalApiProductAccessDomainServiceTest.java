@@ -61,7 +61,8 @@ class PortalApiProductAccessDomainServiceTest {
         var apiQueryService = new ApiQueryServiceInMemory();
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
             navigationItemsQueryService,
-            new ApiPortalMembershipDomainService(membershipQueryService, new SubscriptionQueryServiceInMemory(), apiQueryService)
+            new ApiPortalMembershipDomainService(membershipQueryService, new SubscriptionQueryServiceInMemory(), apiQueryService),
+            apiQueryService
         );
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
             navigationItemsQueryService,

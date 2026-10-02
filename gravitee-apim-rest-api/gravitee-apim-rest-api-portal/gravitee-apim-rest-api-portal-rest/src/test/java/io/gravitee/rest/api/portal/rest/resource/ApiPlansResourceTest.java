@@ -25,6 +25,8 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.portal.rest.model.Error;
@@ -61,6 +63,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId(API);
         apiEntity.setVisibility(Visibility.PUBLIC);
+        apiEntity.setLifecycleState(ApiLifecycleState.PUBLISHED);
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(apiEntity);
 
         plan1 = new PlanEntity();
@@ -166,12 +169,47 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void should_have_NotFound_with_unpublished_public_API_for_anonymous_user() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+
+        ApiEntity unpublishedApi = new ApiEntity();
+        unpublishedApi.setId(API);
+        unpublishedApi.setVisibility(Visibility.PUBLIC);
+        unpublishedApi.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(unpublishedApi);
+
+        final Response response = target(API).path("plans").request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+        Error error = response.readEntity(ErrorResponse.class).getErrors().get(0);
+        assertEquals("errors.api.notFound", error.getCode());
+    }
+
+    @Test
+    public void should_have_NotFound_with_unpublished_federated_API_even_with_READ_permission() {
+        doReturn(true).when(groupService).isUserAuthorizedToAccessApiData(any(), any(), any());
+        doReturn(true).when(permissionService).hasPermission(any(), any(), any(), any());
+
+        FederatedApiEntity unpublishedApi = FederatedApiEntity.builder()
+            .id(API)
+            .visibility(Visibility.PUBLIC)
+            .lifecycleState(ApiLifecycleState.UNPUBLISHED)
+            .build();
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(unpublishedApi);
+
+        final Response response = target(API).path("plans").request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
     public void should_have_NotFound_with_private_API_and_no_READ_permission() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(false);
 
         ApiEntity mockApi = new ApiEntity();
         mockApi.setId(API);
         mockApi.setVisibility(Visibility.PRIVATE);
+        mockApi.setLifecycleState(ApiLifecycleState.PUBLISHED);
         when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API, false, false, false)).thenReturn(mockApi);
 
         final Response response = target(API).path("plans").request().get();

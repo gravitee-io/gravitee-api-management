@@ -98,7 +98,11 @@ class PortalNavigationItemVisibilityEvaluatorTest {
             new SubscriptionQueryServiceInMemory(),
             new ApiQueryServiceInMemory()
         );
-        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
+        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
+            queryService,
+            apiMembershipDomainService,
+            new ApiQueryServiceInMemory()
+        );
 
         var splicedRoot = PortalNavigationPage.builder()
             .id(PortalNavigationItemId.random())

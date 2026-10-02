@@ -78,7 +78,11 @@ class ListPortalNavigationItemsUseCaseTest {
             subscriptionQueryService,
             apiQueryService
         );
-        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
+        var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
+            queryService,
+            apiMembershipDomainService,
+            apiQueryService
+        );
         apiProductAccessibleIdsDomainService = spy(
             new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
         );
@@ -94,6 +98,7 @@ class ListPortalNavigationItemsUseCaseTest {
         );
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+        apiQueryService.initWith(PortalNavigationItemFixtures.publishedApisOf(PortalNavigationItemFixtures.sampleNavigationItems()));
     }
 
     @Test
@@ -485,6 +490,7 @@ class ListPortalNavigationItemsUseCaseTest {
         apiNavItem.setPublished(true);
 
         queryService.initWith(List.of(apiNavItem));
+        apiQueryService.initWith(PortalNavigationItemFixtures.publishedApisOf(List.of(apiNavItem)));
         membershipQueryService.initWith(
             List.of(
                 io.gravitee.apim.core.membership.model.Membership.builder()
@@ -512,6 +518,82 @@ class ListPortalNavigationItemsUseCaseTest {
 
         // Then
         assertThat(result.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Restricted API");
+    }
+
+    @Test
+    void should_hide_api_nav_item_and_its_children_when_the_api_is_unpublished() {
+        var publishedApiNavItem = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Published API",
+            null,
+            "published-api-id"
+        );
+        var unpublishedApiNavItem = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Unpublished API",
+            null,
+            "unpublished-api-id"
+        );
+        var unpublishedApiDocs = PortalNavigationItemFixtures.aPage(
+            PortalNavigationItemId.random().toString(),
+            "Unpublished API docs",
+            unpublishedApiNavItem.getId()
+        );
+        queryService.initWith(List.of(publishedApiNavItem, unpublishedApiNavItem, unpublishedApiDocs));
+        apiQueryService.initWith(
+            List.of(
+                io.gravitee.apim.core.api.model.Api.builder()
+                    .id("published-api-id")
+                    .environmentId(ENV_ID)
+                    .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
+                    .build(),
+                io.gravitee.apim.core.api.model.Api.builder()
+                    .id("unpublished-api-id")
+                    .environmentId(ENV_ID)
+                    .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.UNPUBLISHED)
+                    .build()
+            )
+        );
+
+        var portalResult = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forPortal((String) null),
+                false
+            )
+        );
+        var childrenResult = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.of(unpublishedApiNavItem.getId()),
+                true,
+                PortalNavigationItemViewerContext.forPortal((String) null),
+                false
+            )
+        );
+        var consoleResult = useCase.execute(
+            new ListPortalNavigationItemsUseCase.Input(
+                ENV_ID,
+                ORG_ID,
+                PortalArea.TOP_NAVBAR,
+                Optional.empty(),
+                true,
+                PortalNavigationItemViewerContext.forConsole(),
+                false
+            )
+        );
+
+        assertThat(portalResult.items()).extracting(PortalNavigationItem::getTitle).containsExactly("Published API");
+        assertThat(childrenResult.items()).isEmpty();
+        assertThat(consoleResult.items())
+            .extracting(PortalNavigationItem::getTitle)
+            .contains("Published API", "Unpublished API", "Unpublished API docs");
     }
 
     @Test

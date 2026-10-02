@@ -15,6 +15,7 @@
  */
 package fixtures.core.model;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
@@ -31,7 +32,10 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PortalNavigationItemFixtures {
 
@@ -78,6 +82,30 @@ public class PortalNavigationItemFixtures {
         PAGE12_ID,
         LINK1_ID
     );
+
+    /**
+     * The portal only shows API navigation items whose API is published: returns one published {@link Api} per API
+     * referenced by the given navigation items, to seed an {@code ApiQueryServiceInMemory}.
+     */
+    public static List<Api> publishedApisOf(Collection<? extends PortalNavigationItem> items) {
+        Map<String, Api> apisById = new LinkedHashMap<>();
+        items
+            .stream()
+            .filter(PortalNavigationApi.class::isInstance)
+            .map(PortalNavigationApi.class::cast)
+            .forEach(item ->
+                apisById.putIfAbsent(
+                    item.getApiId(),
+                    Api.builder()
+                        .id(item.getApiId())
+                        .environmentId(item.getEnvironmentId())
+                        .name(item.getApiId())
+                        .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+                        .build()
+                )
+            );
+        return List.copyOf(apisById.values());
+    }
 
     public static PortalNavigationFolder aFolder(String id, String title) {
         return aFolder(id, title, null);

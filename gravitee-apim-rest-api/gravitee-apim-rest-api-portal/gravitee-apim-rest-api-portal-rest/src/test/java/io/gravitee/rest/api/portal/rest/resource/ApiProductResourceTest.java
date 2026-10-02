@@ -78,7 +78,13 @@ class ApiProductResourceTest extends AbstractResourceTest {
 
     @Test
     void should_return_api_product_details_and_accessible_apis() {
-        var api = Api.builder().id("api-id").environmentId(ENVIRONMENT_ID).name("Payments API").version("2.0.0").build();
+        var api = Api.builder()
+            .id("api-id")
+            .environmentId(ENVIRONMENT_ID)
+            .name("Payments API")
+            .version("2.0.0")
+            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+            .build();
         apiProductQueryService.initWith(List.of(apiProduct(Set.of(api.getId()))));
         apiQueryService.initWith(List.of(api));
         navigationItemsQueryService.initWith(List.of(apiProductNavigationItem(), apiNavigationItem(api)));

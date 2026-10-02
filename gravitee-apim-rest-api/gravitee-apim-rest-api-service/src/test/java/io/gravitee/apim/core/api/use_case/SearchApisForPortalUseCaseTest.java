@@ -54,6 +54,7 @@ class SearchApisForPortalUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory navQueryService;
     private MembershipQueryServiceInMemory membershipQueryService;
     private ApiPortalSearchQueryServiceInMemory apiSearchQueryService;
+    private ApiQueryServiceInMemory apiQueryService;
 
     @BeforeEach
     void setUp() {
@@ -61,13 +62,17 @@ class SearchApisForPortalUseCaseTest {
         membershipQueryService = new MembershipQueryServiceInMemory();
         var subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         apiSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
-        var apiQueryService = new ApiQueryServiceInMemory();
+        apiQueryService = new ApiQueryServiceInMemory();
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
             membershipQueryService,
             subscriptionQueryService,
             apiQueryService
         );
-        var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
+        var visibilityDomainService = new PortalNavigationApiVisibilityDomainService(
+            navQueryService,
+            apiMembershipDomainService,
+            apiQueryService
+        );
         useCase = new SearchApisForPortalUseCase(
             visibilityDomainService,
             apiSearchQueryService,
@@ -83,7 +88,7 @@ class SearchApisForPortalUseCaseTest {
                 publishedApiNavItem(PRIVATE_API_ID, PortalVisibility.PRIVATE)
             )
         );
-        apiSearchQueryService.initWith(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
+        initApis(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
 
         var result = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 10), null));
 
@@ -100,7 +105,7 @@ class SearchApisForPortalUseCaseTest {
             )
         );
         membershipQueryService.initWith(List.of(apiMembership(USER_ID, PRIVATE_API_ID)));
-        apiSearchQueryService.initWith(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
+        initApis(List.of(anApi(PUBLIC_API_ID), anApi(PRIVATE_API_ID)));
 
         var result = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, USER_ID, null, new PageableImpl(1, 10), null));
 
@@ -117,7 +122,7 @@ class SearchApisForPortalUseCaseTest {
                 publishedApiNavItem("api-c", PortalVisibility.PUBLIC)
             )
         );
-        apiSearchQueryService.initWith(List.of(anApi("api-a"), anApi("api-b"), anApi("api-c")));
+        initApis(List.of(anApi("api-a"), anApi("api-b"), anApi("api-c")));
 
         var page1 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(1, 2), null));
         var page2 = useCase.execute(new SearchApisForPortalUseCase.Input(ENV_ID, ORG_ID, null, null, new PageableImpl(2, 2), null));
@@ -145,8 +150,13 @@ class SearchApisForPortalUseCaseTest {
             .build();
     }
 
+    private void initApis(List<Api> apis) {
+        apiSearchQueryService.initWith(apis);
+        apiQueryService.initWith(apis);
+    }
+
     private Api anApi(String id) {
-        return Api.builder().id(id).name(id).environmentId(ENV_ID).build();
+        return Api.builder().id(id).name(id).environmentId(ENV_ID).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build();
     }
 
     private Membership apiMembership(String userId, String apiId) {

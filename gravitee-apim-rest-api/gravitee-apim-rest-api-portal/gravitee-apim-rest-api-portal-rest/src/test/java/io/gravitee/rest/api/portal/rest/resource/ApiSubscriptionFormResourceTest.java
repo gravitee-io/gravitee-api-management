@@ -17,7 +17,9 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.SubscriptionFormFixtures;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionFormElResolverInMemory;
 import inmemory.SubscriptionFormQueryServiceInMemory;
@@ -54,6 +56,9 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
     @Autowired
     private PortalNavigationItemsQueryServiceInMemory portalNavigationItemsQueryService;
 
+    @Autowired
+    private ApiQueryServiceInMemory apiQueryService;
+
     @Override
     protected String contextPath() {
         return "apis/";
@@ -78,11 +83,13 @@ class ApiSubscriptionFormResourceTest extends AbstractResourceTest {
                     .build()
             )
         );
+        apiQueryService.initWith(PortalNavigationItemFixtures.publishedApisOf(portalNavigationItemsQueryService.storage()));
     }
 
     @AfterEach
     void cleanUp() {
         GraviteeContext.cleanContext();
+        apiQueryService.reset();
         subscriptionFormQueryService.reset();
         subscriptionFormElResolver.reset();
         portalNavigationItemsQueryService.reset();

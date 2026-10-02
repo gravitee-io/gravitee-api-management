@@ -22,6 +22,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
+import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -70,6 +72,9 @@ public class ApiResourceTest extends AbstractResourceTest {
     @Autowired
     private MembershipQueryServiceInMemory membershipQueryService;
 
+    @Autowired
+    private ApiQueryServiceInMemory apiQueryService;
+
     @Override
     protected String contextPath() {
         return "apis/";
@@ -79,6 +84,12 @@ public class ApiResourceTest extends AbstractResourceTest {
     public void tearDown() {
         portalNavigationItemsQueryService.reset();
         membershipQueryService.reset();
+        apiQueryService.reset();
+    }
+
+    private void givenNavigationItems(List<? extends PortalNavigationItem> items) {
+        portalNavigationItemsQueryService.initWith(List.copyOf(items));
+        apiQueryService.initWith(PortalNavigationItemFixtures.publishedApisOf(items));
     }
 
     @BeforeEach
@@ -352,7 +363,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_get_api_with_documentation_view() {
-        portalNavigationItemsQueryService.initWith(
+        givenNavigationItems(
             List.of(
                 PortalNavigationApi.builder()
                     .id(PortalNavigationItemId.random())
@@ -381,7 +392,7 @@ public class ApiResourceTest extends AbstractResourceTest {
 
     @Test
     public void should_return_not_found_with_documentation_view_when_not_visible() {
-        portalNavigationItemsQueryService.initWith(
+        givenNavigationItems(
             List.of(
                 PortalNavigationApi.builder()
                     .id(PortalNavigationItemId.random())
@@ -412,8 +423,44 @@ public class ApiResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_get_api_with_documentation_view_when_private_and_member() {
+    public void should_return_not_found_with_documentation_view_when_api_is_unpublished() {
         portalNavigationItemsQueryService.initWith(
+            List.of(
+                PortalNavigationApi.builder()
+                    .id(PortalNavigationItemId.random())
+                    .organizationId("DEFAULT")
+                    .environmentId(ENV_ID)
+                    .title("Nav for " + API)
+                    .area(PortalArea.TOP_NAVBAR)
+                    .order(0)
+                    .apiId(API)
+                    .published(true)
+                    .visibility(PortalVisibility.PUBLIC)
+                    .segment(PortalNavigationItem.slugify("Nav for " + API).value())
+                    .build()
+            )
+        );
+        apiQueryService.initWith(
+            List.of(
+                io.gravitee.apim.core.api.model.Api.builder()
+                    .id(API)
+                    .environmentId(ENV_ID)
+                    .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.UNPUBLISHED)
+                    .build()
+            )
+        );
+
+        final Response response = target(API)
+            .queryParam(PortalApiViewParam.QUERY_PARAM_NAME, PortalApiViewParam.DOCUMENTATION)
+            .request()
+            .get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void should_get_api_with_documentation_view_when_private_and_member() {
+        givenNavigationItems(
             List.of(
                 PortalNavigationApi.builder()
                     .id(PortalNavigationItemId.random())

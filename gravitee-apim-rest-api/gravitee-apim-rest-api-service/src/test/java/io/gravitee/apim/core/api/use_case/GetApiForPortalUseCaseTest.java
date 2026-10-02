@@ -59,7 +59,20 @@ class GetApiForPortalUseCaseTest {
             subscriptionQueryService,
             apiQueryService
         );
-        useCase = new GetApiForPortalUseCase(new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService));
+        useCase = new GetApiForPortalUseCase(
+            new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService, apiQueryService)
+        );
+        apiQueryService.initWith(List.of(publishedApi(PUBLIC_API_ID).build(), publishedApi(PRIVATE_API_ID).build()));
+    }
+
+    @Test
+    void should_return_not_visible_when_api_is_unpublished() {
+        apiQueryService.initWith(List.of(publishedApi(PUBLIC_API_ID).apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build()));
+        navQueryService.initWith(List.of(publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC)));
+
+        var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, PUBLIC_API_ID, null));
+
+        assertThat(output.visible()).isFalse();
     }
 
     @Test
@@ -115,9 +128,7 @@ class GetApiForPortalUseCaseTest {
                     .build()
             )
         );
-        apiQueryService.initWith(
-            List.of(Api.builder().id(PRIVATE_API_ID).environmentId(ENV_ID).name(PRIVATE_API_ID).groups(Set.of(groupId)).build())
-        );
+        apiQueryService.initWith(List.of(publishedApi(PRIVATE_API_ID).groups(Set.of(groupId)).build()));
 
         var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, PRIVATE_API_ID, USER_ID));
 
@@ -131,6 +142,10 @@ class GetApiForPortalUseCaseTest {
         var output = useCase.execute(new GetApiForPortalUseCase.Input(ENV_ID, "non-existent-api", USER_ID));
 
         assertThat(output.visible()).isFalse();
+    }
+
+    private Api.ApiBuilder<?, ?> publishedApi(String apiId) {
+        return Api.builder().id(apiId).environmentId(ENV_ID).name(apiId).apiLifecycleState(Api.ApiLifecycleState.PUBLISHED);
     }
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {

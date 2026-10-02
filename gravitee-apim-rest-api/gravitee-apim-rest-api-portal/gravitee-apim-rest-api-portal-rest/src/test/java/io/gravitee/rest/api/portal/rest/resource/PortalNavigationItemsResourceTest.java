@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.ApiPortalSearchQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
@@ -97,7 +98,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
         items.forEach(item -> item.setEnvironmentId(ENV_ID));
-        portalNavigationItemsQueryService.initWith(items);
+        givenNavigationItems(items);
 
         // When
         Response response = target()
@@ -120,7 +121,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         var apiProductId = UUID.randomUUID();
         var apiProduct = PortalNavigationFixtures.apiProduct(itemId, "API Product", PortalArea.TOP_NAVBAR, apiProductId);
         apiProduct.setEnvironmentId(ENV_ID);
-        portalNavigationItemsQueryService.initWith(List.of(apiProduct));
+        givenNavigationItems(List.of(apiProduct));
 
         Response response = target()
             .queryParam("area", io.gravitee.rest.api.portal.rest.model.PortalArea.TOP_NAVBAR)
@@ -145,7 +146,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
         items.forEach(item -> item.setEnvironmentId(ENV_ID));
-        portalNavigationItemsQueryService.initWith(items);
+        givenNavigationItems(items);
 
         // When - using a parentId that doesn't exist in the fixtures
         String parentId = PortalNavigationFixtures.randomNavigationId().toString();
@@ -186,7 +187,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         unpublishedItem.setPublished(false);
 
         List<PortalNavigationItem> items = List.of(publishedItem, unpublishedItem);
-        portalNavigationItemsQueryService.initWith(items);
+        givenNavigationItems(items);
 
         // When
         Response response = target()
@@ -210,7 +211,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
     void should_not_show_children_of_unpublished_parent() {
         // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.unpublishedParentHierarchy(PortalArea.TOP_NAVBAR, ENV_ID);
-        portalNavigationItemsQueryService.initWith(items);
+        givenNavigationItems(items);
 
         // When
         Response response = target().queryParam("area", PortalArea.TOP_NAVBAR).queryParam("loadChildren", true).request().get();
@@ -237,7 +238,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         // Given
         List<PortalNavigationItem> items = PortalNavigationFixtures.sampleList(PortalArea.HOMEPAGE);
         items.forEach(item -> item.setEnvironmentId(ENV_ID));
-        portalNavigationItemsQueryService.initWith(items);
+        givenNavigationItems(items);
 
         // When
         Response response = target()
@@ -299,8 +300,8 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .visibility(PortalVisibility.PUBLIC)
             .segment(PortalNavigationItem.slugify("Auth API").value())
             .build();
-        portalNavigationItemsQueryService.initWith(List.of(apiItem));
-        apiPortalSearchQueryService.initWith(List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build()));
+        givenNavigationItems(List.of(apiItem));
+        apiPortalSearchQueryService.initWith(List.of(publishedApi().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build()));
 
         // When
         Response response = target("/_search")
@@ -343,7 +344,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .visibility(PortalVisibility.PUBLIC)
             .segment(PortalNavigationItem.slugify("Auth API").value())
             .build();
-        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+        givenNavigationItems(List.of(apiItem));
 
         // When - query that doesn't match
         Response response = target("/_search").queryParam("query", "xyz-no-match").queryParam("type", "api").request().get();
@@ -372,7 +373,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .segment(PortalNavigationItem.slugify("Auth API").value())
             .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
             .build();
-        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+        givenNavigationItems(List.of(apiItem));
 
         // When
         Response response = target("/_search").queryParam("type", "api").request().get();
@@ -413,7 +414,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .visibility(PortalVisibility.PUBLIC)
             .segment(PortalNavigationItem.slugify("Other API").value())
             .build();
-        portalNavigationItemsQueryService.initWith(List.of(itemInCategory, itemOutsideCategory));
+        givenNavigationItems(List.of(itemInCategory, itemOutsideCategory));
 
         // When
         Response response = target("/_search").queryParam("type", "api").queryParam("categoryId", CATEGORY_ID_1).request().get();
@@ -443,7 +444,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .segment(PortalNavigationItem.slugify("Auth API").value())
             .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
             .build();
-        portalNavigationItemsQueryService.initWith(List.of(apiItem));
+        givenNavigationItems(List.of(apiItem));
 
         // When
         Response response = target("/_search").queryParam("type", "api").queryParam("categoryId", UNKNOWN_CATEGORY_ID).request().get();
@@ -472,8 +473,8 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .visibility(PortalVisibility.PUBLIC)
             .segment(PortalNavigationItem.slugify("Auth API").value())
             .build();
-        portalNavigationItemsQueryService.initWith(List.of(apiItem));
-        apiPortalSearchQueryService.initWith(List.of(Api.builder().id(apiId).name("Auth API").environmentId(ENV_ID).build()));
+        givenNavigationItems(List.of(apiItem));
+        apiPortalSearchQueryService.initWith(List.of(publishedApi().id(apiId).name("Auth API").environmentId(ENV_ID).build()));
 
         var mockApiEntity = Mockito.mock(GenericApiEntity.class);
         when(apiSearchService.findGenericByEnvironmentAndIdIn(any(), any())).thenReturn(Set.of(mockApiEntity));
@@ -506,7 +507,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         var navigationItemId = PortalNavigationItemId.of("00000000-0000-0000-0000-000000000102");
         var apiProductItem = PortalNavigationFixtures.apiProduct(navigationItemId, "Payments Product", PortalArea.TOP_NAVBAR, apiProductId);
         apiProductItem.setEnvironmentId(ENV_ID);
-        portalNavigationItemsQueryService.initWith(List.of(apiProductItem));
+        givenNavigationItems(List.of(apiProductItem));
         apiProductQueryService.initWith(
             List.of(
                 ApiProduct.builder()
@@ -566,10 +567,10 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .visibility(PortalVisibility.PUBLIC)
             .segment(PortalNavigationItem.slugify("Other API").value())
             .build();
-        portalNavigationItemsQueryService.initWith(List.of(itemInCategory, itemOutsideCategory));
+        givenNavigationItems(List.of(itemInCategory, itemOutsideCategory));
         var apis = List.of(
-            Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build(),
-            Api.builder().id("api-uuid-2").name("Other API").environmentId(ENV_ID).build()
+            publishedApi().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build(),
+            publishedApi().id("api-uuid-2").name("Other API").environmentId(ENV_ID).build()
         );
         apiPortalSearchQueryService.initWith(apis);
         apiQueryService.initWith(apis);
@@ -610,8 +611,8 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
             .categoryIds(List.of(PortalCategoryId.of(CATEGORY_ID_1)))
             .build();
         apiProductItem.setEnvironmentId(ENV_ID);
-        portalNavigationItemsQueryService.initWith(List.of(apiItem, apiProductItem));
-        var apis = List.of(Api.builder().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build());
+        givenNavigationItems(List.of(apiItem, apiProductItem));
+        var apis = List.of(publishedApi().id("api-uuid-1").name("Auth API").environmentId(ENV_ID).build());
         apiPortalSearchQueryService.initWith(apis);
         apiQueryService.initWith(apis);
         apiProductQueryService.initWith(
@@ -667,7 +668,7 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         );
         firstNavigationItem.setEnvironmentId(ENV_ID);
         secondNavigationItem.setEnvironmentId(ENV_ID);
-        portalNavigationItemsQueryService.initWith(List.of(firstNavigationItem, secondNavigationItem));
+        givenNavigationItems(List.of(firstNavigationItem, secondNavigationItem));
         apiProductQueryService.initWith(
             List.of(
                 ApiProduct.builder()
@@ -708,6 +709,65 @@ public class PortalNavigationItemsResourceTest extends AbstractResourceTest {
         @SuppressWarnings("unchecked")
         var links = (Map<String, Object>) result.get("links");
         assertThat(links).containsKey("self");
+    }
+
+    @Test
+    void should_hide_an_unpublished_api_from_the_catalog() {
+        var publishedApiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Published API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(1)
+            .apiId("published-api")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Published API").value())
+            .build();
+        var unpublishedApiItem = PortalNavigationApi.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId("org")
+            .environmentId(ENV_ID)
+            .title("Unpublished API")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(2)
+            .apiId("unpublished-api")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .segment(PortalNavigationItem.slugify("Unpublished API").value())
+            .build();
+        portalNavigationItemsQueryService.initWith(List.of(publishedApiItem, unpublishedApiItem));
+        var apis = List.of(
+            publishedApi().id("published-api").name("Published API").environmentId(ENV_ID).build(),
+            Api.builder()
+                .id("unpublished-api")
+                .name("Unpublished API")
+                .environmentId(ENV_ID)
+                .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                .build()
+        );
+        apiPortalSearchQueryService.initWith(apis);
+        apiQueryService.initWith(apis);
+
+        Response response = target("/_search").queryParam("type", "catalog").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        var result = response.readEntity(new jakarta.ws.rs.core.GenericType<Map<String, Object>>() {});
+        @SuppressWarnings("unchecked")
+        var data = (List<Map<String, Object>>) result.get("data");
+        assertThat(data)
+            .extracting(item -> item.get("id"))
+            .containsExactly(publishedApiItem.getId().toString());
+    }
+
+    private void givenNavigationItems(List<? extends PortalNavigationItem> items) {
+        portalNavigationItemsQueryService.initWith(List.copyOf(items));
+        apiQueryService.initWith(PortalNavigationItemFixtures.publishedApisOf(items));
+    }
+
+    private static Api.ApiBuilder<?, ?> publishedApi() {
+        return Api.builder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED);
     }
 
     private String getIdFromItem(io.gravitee.rest.api.portal.rest.model.PortalNavigationItem item) {

@@ -31,6 +31,7 @@ import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemViewerContext;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import java.util.List;
 import java.util.Set;
@@ -49,6 +50,8 @@ class PortalNavigationApiVisibilityDomainServiceTest {
 
     private static final String PUBLIC_API_ID = "public-api-1";
     private static final String PRIVATE_API_ID = "private-api-1";
+    private static final String OTHER_PUBLIC_API_ID = "other-public-api";
+    private static final String UNPUBLISHED_API_ID = "unpublished-api-1";
 
     private static final String CATEGORY_ID_1 = "11111111-1111-1111-1111-111111111111";
     private static final String CATEGORY_ID_2 = "22222222-2222-2222-2222-222222222222";
@@ -71,7 +74,8 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             subscriptionQueryService,
             apiQueryService
         );
-        domainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService);
+        domainService = new PortalNavigationApiVisibilityDomainService(navQueryService, apiMembershipDomainService, apiQueryService);
+        apiQueryService.initWith(List.of(publishedApi(PUBLIC_API_ID), publishedApi(PRIVATE_API_ID), publishedApi(OTHER_PUBLIC_API_ID)));
     }
 
     // --- resolveVisibleItems ---
@@ -138,7 +142,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             )
         );
         membershipQueryService.initWith(List.of(userGroupMembership(USER_ID, groupId)));
-        apiQueryService.initWith(List.of(apiWithGroups(PRIVATE_API_ID, Set.of(groupId))));
+        apiQueryService.initWith(List.of(publishedApi(PUBLIC_API_ID), apiWithGroups(PRIVATE_API_ID, Set.of(groupId))));
 
         var result = domainService.resolveVisibleItems(ENV_ID, USER_ID);
 
@@ -155,7 +159,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
             )
         );
         membershipQueryService.initWith(List.of(userGroupMembership(USER_ID, groupId)));
-        apiQueryService.initWith(List.of(apiWithGroups(PRIVATE_API_ID, Set.of("other-group"))));
+        apiQueryService.initWith(List.of(publishedApi(PUBLIC_API_ID), apiWithGroups(PRIVATE_API_ID, Set.of("other-group"))));
 
         var result = domainService.resolveVisibleItems(ENV_ID, USER_ID);
 
@@ -355,7 +359,113 @@ class PortalNavigationApiVisibilityDomainServiceTest {
         }
     }
 
+    @Nested
+    class UnpublishedApi {
+
+        @BeforeEach
+        void setUp() {
+            apiQueryService.initWith(
+                List.of(publishedApi(PUBLIC_API_ID), apiInLifecycleState(UNPUBLISHED_API_ID, Api.ApiLifecycleState.UNPUBLISHED))
+            );
+        }
+
+        @Test
+        void is_hidden_from_anonymous_user_even_when_its_navigation_item_is_public() {
+            navQueryService.initWith(
+                List.of(
+                    publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC),
+                    publishedApiNavItem(UNPUBLISHED_API_ID, PortalVisibility.PUBLIC)
+                )
+            );
+
+            assertThat(domainService.resolveVisiblePublicItems(ENV_ID, null))
+                .extracting(PortalNavigationApi::getApiId)
+                .containsExactly(PUBLIC_API_ID);
+            assertThat(domainService.resolveVisibleItems(ENV_ID)).extracting(PortalNavigationApi::getApiId).containsExactly(PUBLIC_API_ID);
+        }
+
+        @Test
+        void is_hidden_from_a_member_of_the_api() {
+            navQueryService.initWith(
+                List.of(
+                    publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC),
+                    publishedApiNavItem(UNPUBLISHED_API_ID, PortalVisibility.PRIVATE)
+                )
+            );
+            membershipQueryService.initWith(List.of(apiMembership(USER_ID, UNPUBLISHED_API_ID)));
+
+            assertThat(domainService.resolveVisibleItems(ENV_ID, USER_ID))
+                .extracting(PortalNavigationApi::getApiId)
+                .containsExactly(PUBLIC_API_ID);
+        }
+
+        @Test
+        void never_published_api_is_hidden() {
+            apiQueryService.initWith(List.of(apiInLifecycleState(UNPUBLISHED_API_ID, Api.ApiLifecycleState.CREATED)));
+            navQueryService.initWith(List.of(publishedApiNavItem(UNPUBLISHED_API_ID, PortalVisibility.PUBLIC)));
+
+            assertThat(domainService.resolveVisiblePublicItems(ENV_ID, null)).isEmpty();
+        }
+
+        @Test
+        void is_not_visible_by_id() {
+            navQueryService.initWith(List.of(publishedApiNavItem(UNPUBLISHED_API_ID, PortalVisibility.PUBLIC)));
+            membershipQueryService.initWith(List.of(apiMembership(USER_ID, UNPUBLISHED_API_ID)));
+
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, UNPUBLISHED_API_ID, null)).isFalse();
+            assertThat(domainService.isApiVisibleToUser(ENV_ID, UNPUBLISHED_API_ID, USER_ID)).isFalse();
+        }
+
+        @Test
+        void navigation_item_is_hidden_in_the_portal() {
+            var publishedItem = publishedApiNavItem(PUBLIC_API_ID, PortalVisibility.PUBLIC);
+            var unpublishedItem = publishedApiNavItem(UNPUBLISHED_API_ID, PortalVisibility.PUBLIC);
+            navQueryService.initWith(List.of(publishedItem, unpublishedItem));
+
+            var anonymous = domainService.prepareVisibilityPredicate(ENV_ID, PortalNavigationItemViewerContext.forPortal((String) null));
+            var member = domainService.prepareVisibilityPredicate(ENV_ID, PortalNavigationItemViewerContext.forPortal(USER_ID));
+
+            assertThat(anonymous.test(publishedItem)).isTrue();
+            assertThat(anonymous.test(unpublishedItem)).isFalse();
+            assertThat(member.test(unpublishedItem)).isFalse();
+        }
+
+        @Test
+        void navigation_item_stays_visible_in_the_console() {
+            var unpublishedItem = publishedApiNavItem(UNPUBLISHED_API_ID, PortalVisibility.PUBLIC);
+            navQueryService.initWith(List.of(unpublishedItem));
+
+            var console = domainService.prepareVisibilityPredicate(ENV_ID, PortalNavigationItemViewerContext.forConsole());
+
+            assertThat(console.test(unpublishedItem)).isTrue();
+        }
+
+        @Test
+        void hides_the_items_nested_under_its_navigation_item() {
+            var unpublishedItem = publishedApiNavItem(UNPUBLISHED_API_ID, PortalVisibility.PUBLIC);
+            var nestedFolder = PortalNavigationItemFixtures.aFolder(
+                PortalNavigationItemId.random().json(),
+                "Docs",
+                unpublishedItem.getId()
+            );
+            navQueryService.initWith(List.of(unpublishedItem, nestedFolder));
+
+            assertThat(
+                domainService.hasHiddenApiAncestor(ENV_ID, nestedFolder, PortalNavigationItemViewerContext.forPortal((String) null))
+            ).isTrue();
+            assertThat(domainService.hasHiddenApiAncestor(ENV_ID, nestedFolder, PortalNavigationItemViewerContext.forConsole())).isFalse();
+        }
+    }
+
     // --- helpers ---
+
+    private Api publishedApi(String apiId) {
+        return apiInLifecycleState(apiId, Api.ApiLifecycleState.PUBLISHED);
+    }
+
+    private Api apiInLifecycleState(String apiId, Api.ApiLifecycleState lifecycleState) {
+        return Api.builder().id(apiId).environmentId(ENV_ID).name(apiId).apiLifecycleState(lifecycleState).build();
+    }
 
     private PortalNavigationApi publishedApiNavItem(String apiId, PortalVisibility visibility) {
         return PortalNavigationApi.builder()
@@ -393,7 +503,7 @@ class PortalNavigationApiVisibilityDomainServiceTest {
     }
 
     private Api apiWithGroups(String apiId, Set<String> groups) {
-        return Api.builder().id(apiId).environmentId(ENV_ID).name(apiId).groups(groups).build();
+        return publishedApi(apiId).toBuilder().groups(groups).build();
     }
 
     private Membership applicationMembership(String userId, String appId) {

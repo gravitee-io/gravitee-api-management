@@ -90,7 +90,8 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
         );
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(
             navigationItemsQueryService,
-            apiMembershipDomainService
+            apiMembershipDomainService,
+            apiQueryService
         );
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
             navigationItemsQueryService,
@@ -109,6 +110,50 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
             apiProductQueryService,
             new CheckTypoToleranceDomainService(parametersQueryService)
         );
+    }
+
+    @Test
+    void should_hide_an_unpublished_api_from_the_catalog() {
+        var folder = folder("folder-id", "Catalog", null);
+        var publishedApiItem = apiItem("published-api-item-id", "published-api-id", folder.getId(), PortalVisibility.PUBLIC);
+        var unpublishedApiItem = apiItem("unpublished-api-item-id", "unpublished-api-id", folder.getId(), PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(folder, publishedApiItem, unpublishedApiItem));
+        initApis(
+            List.of(
+                api("published-api-id", "Published API", "1.0.0"),
+                api("unpublished-api-id", "Unpublished API", "1.0.0")
+                    .toBuilder()
+                    .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(input(Optional.empty(), Set.of(PortalNavigationSearchInclude.API), 1, 10));
+
+        assertThat(output.items().getTotalElements()).isEqualTo(1);
+        assertThat(output.items().getContent()).containsExactly(publishedApiItem);
+        assertThat(output.includedApis()).extracting(Api::getId).containsExactly("published-api-id");
+    }
+
+    @Test
+    void should_hide_an_unpublished_api_from_the_catalog_search() {
+        var publishedApiItem = apiItem("published-api-item-id", "published-api-id", null, PortalVisibility.PUBLIC);
+        var unpublishedApiItem = apiItem("unpublished-api-item-id", "unpublished-api-id", null, PortalVisibility.PUBLIC);
+        navigationItemsQueryService.initWith(List.of(publishedApiItem, unpublishedApiItem));
+        initApis(
+            List.of(
+                api("published-api-id", "Payments API", "1.0.0"),
+                api("unpublished-api-id", "Payments API v2", "2.0.0")
+                    .toBuilder()
+                    .apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED)
+                    .build()
+            )
+        );
+
+        var output = useCase.execute(input(Optional.of("payments"), Set.of(PortalNavigationSearchInclude.API), 1, 10));
+
+        assertThat(output.items().getContent()).containsExactly(publishedApiItem);
+        assertThat(output.includedApis()).extracting(Api::getId).containsExactly("published-api-id");
     }
 
     @Test
@@ -544,7 +589,13 @@ class GetVisiblePortalCatalogItemsUseCaseTest {
     }
 
     private Api api(String id, String name, String version) {
-        return Api.builder().id(id).environmentId(ENV_ID).name(name).version(version).build();
+        return Api.builder()
+            .id(id)
+            .environmentId(ENV_ID)
+            .name(name)
+            .version(version)
+            .apiLifecycleState(Api.ApiLifecycleState.PUBLISHED)
+            .build();
     }
 
     private ApiProduct apiProduct(String id, String name, Set<String> apiIds) {
