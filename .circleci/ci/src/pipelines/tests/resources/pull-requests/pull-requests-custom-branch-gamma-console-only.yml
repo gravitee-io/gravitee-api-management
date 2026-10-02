@@ -248,7 +248,7 @@ jobs:
       - cmd-install-yarn
       - cmd-azure-artifacts-token
       - run:
-          name: Build engine
+          name: Build core
           command: mvn -s .gravitee.settings.xml clean install --no-transfer-progress --update-snapshots -DskipTests -Dskip.validation=true -Dgravitee.archrules.skip=false -T 8 -P all-modules -DwithJavadoc
           environment:
             BUILD_ID: "1234"
