@@ -33,6 +33,7 @@ import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionFromUrlUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.MigrateApiUseCase;
 import io.gravitee.apim.core.api.use_case.OAIToUpdateApiUseCase;
 import io.gravitee.apim.core.api.use_case.PatchApiUseCase;
@@ -131,6 +132,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.ApiDuplicateException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
@@ -212,6 +214,17 @@ public class ApiResource extends AbstractResource {
         Excludable.METADATA
     );
 
+    private static final Map<DuplicateApiOptions.FilteredFieldsEnum, Excludable> MAPPING_EXCLUDE_DUPLICATE_PARAMS = Map.of(
+        DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
+        Excludable.GROUPS,
+        DuplicateApiOptions.FilteredFieldsEnum.PLANS,
+        Excludable.PLANS,
+        DuplicateApiOptions.FilteredFieldsEnum.MEMBERS,
+        Excludable.MEMBERS,
+        DuplicateApiOptions.FilteredFieldsEnum.PAGES,
+        Excludable.PAGES_MEDIA
+    );
+
     @Context
     private ResourceContext resourceContext;
 
@@ -226,6 +239,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private ExportApiUseCase exportApiUseCase;
+
+    @Inject
+    private ImportApiDefinitionUseCase importApiDefinitionUseCase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -791,16 +807,10 @@ public class ApiResource extends AbstractResource {
                 )
                 .build();
             case V4 -> {
-                // NATIVE APIs are V4 too, but ApiDuplicateService only handles HTTP ones
-                if (currentEntity instanceof NativeApiEntity) {
-                    yield Response.status(Response.Status.BAD_REQUEST)
-                        .entity(
-                            new Error()
-                                .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
-                                .message("Duplicating NATIVE API is not supported")
-                                .technicalCode("api.duplicate.native")
-                        )
-                        .build();
+                // NATIVE APIs are V4 too, but ApiDuplicateService is typed on ApiEntity end to end
+                if (currentEntity instanceof NativeApiEntity nativeApiEntity) {
+                    var duplicatedId = duplicateNativeApi(nativeApiEntity, duplicateOptions);
+                    yield apiResponse(getGenericApiEntityById(duplicatedId, false));
                 }
                 duplicate = duplicateApiService.duplicate(
                     GraviteeContext.getExecutionContext(),
@@ -1064,6 +1074,62 @@ public class ApiResource extends AbstractResource {
         );
 
         return applyCacheHeaders(Response.noContent(), updatedApi.getUpdatedAt()).build();
+    }
+
+    /**
+     * Duplicates a NATIVE API by replaying its own definition export through the import pipeline, which already
+     * handles NATIVE end to end - plans, pages, members and metadata included. {@link ApiDuplicateService} cannot be
+     * reused: it is typed on {@code ApiEntity}, and the legacy {@code createWithImport} it delegates to has no native
+     * path at all.
+     */
+    private String duplicateNativeApi(NativeApiEntity sourceApi, DuplicateApiOptions duplicateOptions) {
+        if (duplicateOptions.getHost() == null || duplicateOptions.getHost().isBlank()) {
+            // the host is part of the gateway's unique Kafka hostname, so the copy cannot share the source's
+            throw new ApiDuplicateException("Cannot find a host for the Kafka Listener");
+        }
+
+        var auditInfo = getAuditInfo();
+        var excluded = stream(duplicateOptions.getFilteredFields())
+            .map(MAPPING_EXCLUDE_DUPLICATE_PARAMS::get)
+            .filter(Objects::nonNull)
+            .toList();
+
+        var exported = exportApiUseCase.execute(ExportApiUseCase.Input.of(sourceApi.getId(), auditInfo, excluded));
+        var toImport = ImportExportApiMapper.INSTANCE.map(exported.definition());
+
+        var api = toImport.getApi();
+        // a duplicate is a new API: let the platform generate its identifiers, and let the caller own it rather
+        // than inheriting the source's primary owner - the HTTP path nulls it for the same reason
+        api.setId(null);
+        api.setCrossId(null);
+        api.setPrimaryOwner(null);
+        if (duplicateOptions.getName() != null && !duplicateOptions.getName().isBlank()) {
+            api.setName(duplicateOptions.getName());
+        }
+        if (duplicateOptions.getVersion() != null) {
+            api.setApiVersion(duplicateOptions.getVersion());
+        }
+        api.setListeners(rehostKafkaListeners(api.getListeners(), duplicateOptions.getHost()));
+
+        var output = importApiDefinitionUseCase.execute(
+            new ImportApiDefinitionUseCase.Input(ImportExportApiMapper.INSTANCE.toImportDefinition(toImport), auditInfo)
+        );
+        return output.apiWithFlows().getId();
+    }
+
+    private static List<io.gravitee.rest.api.management.v2.rest.model.Listener> rehostKafkaListeners(
+        List<io.gravitee.rest.api.management.v2.rest.model.Listener> listeners,
+        String host
+    ) {
+        return stream(listeners)
+            .map(listener -> {
+                var kafkaListener = listener.getKafkaListener();
+                if (kafkaListener != null) {
+                    return new io.gravitee.rest.api.management.v2.rest.model.Listener(kafkaListener.host(host));
+                }
+                return listener;
+            })
+            .toList();
     }
 
     @POST
