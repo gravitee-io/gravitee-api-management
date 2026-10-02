@@ -29,6 +29,7 @@ import lombok.With;
 @With
 public class DuplicateOptions {
 
+    private String name;
     private String contextPath;
     private String host;
     private String version;
