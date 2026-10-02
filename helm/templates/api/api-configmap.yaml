@@ -272,6 +272,10 @@ data:
       analytics:
         {{ toYaml .Values.ui.analytics | indent 8 | trim -}}
       {{- end }}
+      authentication:
+        expose:
+          accessToken: {{ dig "console" "exposeAccessToken" true .Values.api.authentication }}
+          idToken: {{ dig "console" "exposeIdToken" true .Values.api.authentication }}
     services:
       core:
         http:
@@ -643,6 +647,12 @@ data:
     {{- end }}
     {{- end }}
     {{- end }}
+
+    portal:
+      authentication:
+        expose:
+          accessToken: {{ dig "portal" "exposeAccessToken" true .Values.api.authentication }}
+          idToken: {{ dig "portal" "exposeIdToken" true .Values.api.authentication }}
 
     # The portal URL used in emails
     {{- if .Values.api.portalURL }}

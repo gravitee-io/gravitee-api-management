@@ -21,7 +21,7 @@ import { MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MemoryStorage, OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
+import { OAuthStorage, provideOAuthClient } from 'angular-oauth2-oidc';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
@@ -29,11 +29,11 @@ import { of } from 'rxjs/internal/observable/of';
 import { routes } from './app.routes';
 import { csrfInterceptor } from '../interceptors/csrf.interceptor';
 import { httpRequestInterceptor } from '../interceptors/http-request.interceptor';
-import { AccessTokenFilteringOAuthStorage } from '../services/access-token-filtering-oauth-storage';
 import { AuthService } from '../services/auth.service';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalNavigationItemsService } from '../services/portal-navigation-items.service';
+import { createPortalOAuthStorage } from '../services/portal-oauth-storage.factory';
 import { ThemeService } from '../services/theme.service';
 
 function initApp(
@@ -67,10 +67,10 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([httpRequestInterceptor, csrfInterceptor])),
     provideAnimations(),
     provideOAuthClient(),
-    // APIM-14822: prevent the IdP access_token from ever reaching Web Storage.
     {
       provide: OAuthStorage,
-      useFactory: () => new AccessTokenFilteringOAuthStorage(typeof sessionStorage !== 'undefined' ? sessionStorage : new MemoryStorage()),
+      useFactory: createPortalOAuthStorage,
+      deps: [ConfigService],
     },
     importProvidersFrom(GioIconsModule),
     provideAppInitializer(() => {
