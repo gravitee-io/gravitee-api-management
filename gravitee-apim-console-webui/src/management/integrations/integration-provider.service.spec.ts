@@ -41,7 +41,7 @@ describe('IntegrationProviderService', () => {
       expect(providers).toEqual(expect.arrayContaining([expect.objectContaining({ value: 'aws-api-gateway' })]));
     });
 
-    it('should offer SAP API Management with its documentation page', () => {
+    it('should offer SAP Business Technology Platform with its documentation page', () => {
       expect(service.getActiveProviders()).toContainEqual({
         icon: 'sap-api-management',
         value: 'sap-api-management',
