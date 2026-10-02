@@ -18,6 +18,7 @@ package io.gravitee.apim.integration.tests.http.connection;
 import static org.awaitility.Awaitility.await;
 
 import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetSocket;
 import io.vertx.rxjava3.core.Vertx;
 import java.nio.charset.StandardCharsets;
@@ -92,10 +93,13 @@ class RawHttp1Connection {
     private static final int CHUNK_SIZE = 64 * 1024;
 
     private final Buffer received = Buffer.buffer();
+    // Held for the whole connection: Vert.x 5 shuts a NetClient down, connections included, once the GC collects it.
+    private final NetClient client;
     private final NetSocket socket;
     private volatile boolean closed;
 
-    private RawHttp1Connection(NetSocket socket) {
+    private RawHttp1Connection(NetClient client, NetSocket socket) {
+        this.client = client;
         this.socket = socket;
         socket.handler(buffer -> {
             synchronized (received) {
@@ -107,8 +111,9 @@ class RawHttp1Connection {
     }
 
     static RawHttp1Connection open(Vertx vertx, int port) throws Exception {
-        NetSocket socket = vertx.getDelegate().createNetClient().connect(port, "localhost").await(10, TimeUnit.SECONDS);
-        return new RawHttp1Connection(socket);
+        NetClient client = vertx.getDelegate().createNetClient();
+        NetSocket socket = client.connect(port, "localhost").await(10, TimeUnit.SECONDS);
+        return new RawHttp1Connection(client, socket);
     }
 
     /**
@@ -184,6 +189,7 @@ class RawHttp1Connection {
         if (!closed) {
             socket.close();
         }
+        client.close();
     }
 
     /**
