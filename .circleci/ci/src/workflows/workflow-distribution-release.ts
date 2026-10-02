@@ -79,7 +79,13 @@ export class DistributionReleaseWorkflow {
     const buildDockerChainguardFipsImageJob = BuildDockerChainguardFipsImageJob.create(dynamicConfig, environment, true);
     dynamicConfig.addJob(buildDockerChainguardFipsImageJob);
 
-    const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(dynamicConfig, environment, true);
+    // Publishes on the download website, and builds no core: a release assembles the one it pins.
+    const backendBuildAndPublishOnDownloadWebsiteJob = BackendBuildAndPublishOnDownloadWebsiteJob.create(
+      dynamicConfig,
+      environment,
+      true,
+      false,
+    );
     dynamicConfig.addJob(backendBuildAndPublishOnDownloadWebsiteJob);
 
     const packageBundleJob = PackageBundleJob.create(dynamicConfig, environment.graviteeioVersion, environment.isDryRun);

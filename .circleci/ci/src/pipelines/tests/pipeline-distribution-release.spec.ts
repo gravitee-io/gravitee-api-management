@@ -42,11 +42,25 @@ describe('Distribution release tests', () => {
   });
 
   it('should check the pin before anything is built', () => {
-    // Behind the engine build it fired roughly half an hour into the release, and a mispinned
+    // Behind the core build it fired roughly half an hour into the release, and a mispinned
     // release is the expected first outcome after a code freeze.
     const generated = guardOf('4.12.16');
 
-    expect(generated.indexOf('Refuse a core pin this release cannot assemble')).toBeLessThan(generated.indexOf('Maven build APIM engine'));
+    expect(generated.indexOf('Refuse a core pin this release cannot assemble')).toBeLessThan(
+      generated.indexOf('Maven build APIM distribution'),
+    );
+  });
+
+  it('should assemble the pinned core instead of building one', () => {
+    const generated = guardOf('4.12.16');
+
+    expect(generated).not.toContain('-P all-modules,gio-release clean install');
+    expect(generated).toContain('Maven build APIM distribution');
+  });
+
+  it('should take the `-SNAPSHOT` off the distribution pom alone', () => {
+    // The root pom was de-SNAPSHOTted for the core build, which this lane no longer runs.
+    expect(guardOf('4.12.16').match(/versions:set/g)).toHaveLength(1);
   });
 
   it('should take the line from a qualified version too', () => {
