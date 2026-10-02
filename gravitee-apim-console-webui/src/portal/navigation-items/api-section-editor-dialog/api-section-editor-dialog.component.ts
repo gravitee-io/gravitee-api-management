@@ -60,6 +60,9 @@ export interface ApiSectionEditorDialogResult {
 type ApiRow = {
   id: string;
   name: string;
+  version: string;
+  /** Name and version, so that the selected APIs sharing a name can be told apart. */
+  label: string;
   path: string;
   labels?: string;
   isDisabled: boolean;
@@ -116,7 +119,7 @@ export class ApiSectionEditorDialogComponent implements OnInit {
     ? 'Pick the APIs included in this API Product that you want to add to its navigation.'
     : 'Pick the unpublished APIs you want to add to your navigation menu.';
 
-  displayedColumns = ['select', 'name', 'path', 'labels'];
+  displayedColumns = ['select', 'name', 'version', 'path', 'labels'];
 
   filters: GioTableWrapperFilters = {
     pagination: { index: 1, size: 10 },
@@ -198,6 +201,8 @@ export class ApiSectionEditorDialogComponent implements OnInit {
           return {
             id: api.id,
             name: api.name,
+            version: api.apiVersion,
+            label: api.apiVersion ? `${api.name} (${api.apiVersion})` : api.name,
             path: access?.[0] ?? '',
             labels: isV2OrV4 ? (api.labels ?? []).join(', ') : '',
             isDisabled: disabledSet.has(api.id),

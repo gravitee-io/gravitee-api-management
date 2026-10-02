@@ -20,6 +20,8 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatChipHarness } from '@angular/material/chips/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 import {
@@ -281,6 +283,43 @@ describe('ApiSectionEditorDialogComponent', () => {
 
     const dialog = await rootLoader.getHarness(ApiSectionEditorDialogHarness);
     expect(await dialog.getDescription()).toBe('Pick the unpublished APIs you want to add to your navigation menu.');
+  }));
+
+  it('should display the version of each API so APIs sharing a name can be told apart', fakeAsync(async () => {
+    component.clicked();
+    fixture.detectChanges();
+
+    tick(350);
+    httpTestingController
+      .expectOne(req => req.method === 'POST' && req.url === `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search`)
+      .flush({
+        data: [
+          fakeApiFederated({ id: 'orders-v1', name: 'Gravitee Orders', apiVersion: 'v1' }),
+          fakeApiFederated({ id: 'orders-v2', name: 'Gravitee Orders', apiVersion: 'v2' }),
+        ],
+        pagination: { totalCount: 2 },
+      });
+    fixture.detectChanges();
+    tick();
+
+    const table = await rootLoader.getHarness(MatTableHarness.with({ selector: '[aria-label="APIs picker table"]' }));
+    const rows = await table.getRows();
+    const namesAndVersions = await Promise.all(
+      rows.map(async row => {
+        const cells = await row.getCellTextByColumnName();
+        return [cells['name'], cells['version']];
+      }),
+    );
+    expect(namesAndVersions).toEqual([
+      ['Gravitee Orders', 'v1'],
+      ['Gravitee Orders', 'v2'],
+    ]);
+
+    const checkboxes = await rootLoader.getAllHarnesses(MatCheckboxHarness.with({ selector: '[data-testid^="api-picker-checkbox-"]' }));
+    await checkboxes[0].check();
+    await checkboxes[1].check();
+    const chips = await rootLoader.getAllHarnesses(MatChipHarness);
+    expect(await Promise.all(chips.map(chip => chip.getText()))).toEqual(['Gravitee Orders (v1)', 'Gravitee Orders (v2)']);
   }));
 
   it('should hide checkbox, show "Already added" label and grey out row for already-added API', fakeAsync(async () => {
