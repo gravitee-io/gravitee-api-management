@@ -73,6 +73,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class AcceptSubscriptionUseCaseTest {
 
@@ -329,8 +331,59 @@ class AcceptSubscriptionUseCaseTest {
                 tuple(
                     subscription.getId(),
                     SubscriptionEntity.Status.REJECTED,
-                    REJECT_BY_TECHNICAL_ERROR_MESSAGE,
+                    "fail to subscribe",
                     INSTANT_NOW.atZone(ZoneId.systemDefault())
+                )
+            );
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = { " ", "\t\n" })
+    void should_reject_subscription_with_generic_reason_when_integration_fails_without_message(String agentMessage) {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi().setId(API_ID));
+        var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED));
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
+
+        doReturn(Single.error(new IntegrationSubscriptionException(agentMessage)))
+            .when(integrationAgent)
+            .subscribe(any(), any(), any(), any(), any(), any());
+
+        // When
+        accept(subscription.getId());
+
+        // Then
+        assertThat(subscriptionCrudService.storage())
+            .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus, SubscriptionEntity::getReasonMessage)
+            .contains(tuple(subscription.getId(), SubscriptionEntity.Status.REJECTED, REJECT_BY_TECHNICAL_ERROR_MESSAGE));
+    }
+
+    @Test
+    void should_reject_subscription_with_truncated_agent_reason_when_it_exceeds_the_reason_max_length() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi().setId(API_ID));
+        var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED));
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
+        var agentMessage = "x".repeat(AcceptSubscriptionDomainService.REJECT_REASON_MAX_LENGTH + 10);
+
+        doReturn(Single.error(new IntegrationSubscriptionException(agentMessage)))
+            .when(integrationAgent)
+            .subscribe(any(), any(), any(), any(), any(), any());
+
+        // When
+        accept(subscription.getId());
+
+        // Then
+        assertThat(subscriptionCrudService.storage())
+            .extracting(SubscriptionEntity::getId, SubscriptionEntity::getStatus, SubscriptionEntity::getReasonMessage)
+            .contains(
+                tuple(
+                    subscription.getId(),
+                    SubscriptionEntity.Status.REJECTED,
+                    agentMessage.substring(0, AcceptSubscriptionDomainService.REJECT_REASON_MAX_LENGTH)
                 )
             );
     }
