@@ -53,6 +53,35 @@ nx build markdown --watch
 
 This command will compile the project, and the build artifacts will be placed in the `dist/@gravitee/gravitee-markdown/` directory.
 
+### Building the viewer as a custom element
+
+The viewer is also built as a self-contained custom element, so hosts that are not Angular
+applications — the Gamma Console, which is React — can render Gravitee Markdown without a second
+renderer and a second sanitisation allowlist.
+
+```bash
+# From the repository root
+yarn markdown:build-element
+```
+
+This produces a single `main.js` in `dist/@gravitee/gravitee-markdown-element/`, bundling Angular,
+the viewer and every GMD component. It is built with no polyfills and runs zoneless, so it does not
+patch globals in its host.
+
+The bundle is not published to a registry: a consumer points a module path at the built file and
+imports it lazily, so it lands in its own chunk rather than the host's main bundle.
+
+```ts
+const { registerGmdViewerElement } = await import(/* the path to the built bundle */);
+await registerGmdViewerElement();
+
+// Then set the markdown as a PROPERTY, not an attribute — it is too large for one:
+// element.content = markdown;
+```
+
+`registerGmdViewerElement()` is safe to call more than once, including from two separate copies of
+the bundle, which a module-federated host can load.
+
 ## Testing
 
 **Note**: Tests are currently executed by the parent project. The library itself does not have its own test runner configured at this time.

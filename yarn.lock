@@ -835,6 +835,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@angular/elements@npm:20.3.16":
+  version: 20.3.16
+  resolution: "@angular/elements@npm:20.3.16"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/core": 20.3.16
+    rxjs: ^6.5.3 || ^7.4.0
+  checksum: 10c0/d1d4dd3e0fa1b6f238067bfa0937491f8dcff2edfbe03b9df0f387e6f385c219eaccf5ba6de7321810cebe6e9791a7a350f30012a26609050a8738a3bd0cc787
+  languageName: node
+  linkType: hard
+
 "@angular/forms@npm:20.3.16":
   version: 20.3.16
   resolution: "@angular/forms@npm:20.3.16"
@@ -21436,6 +21448,7 @@ __metadata:
     "@angular/compiler": "npm:20.3.16"
     "@angular/compiler-cli": "npm:20.3.16"
     "@angular/core": "npm:20.3.16"
+    "@angular/elements": "npm:20.3.16"
     "@angular/forms": "npm:20.3.16"
     "@angular/localize": "npm:20.3.16"
     "@angular/material": "npm:20.2.14"
