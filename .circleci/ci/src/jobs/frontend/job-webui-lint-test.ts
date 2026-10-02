@@ -170,6 +170,10 @@ export class WebuiLintTestJob {
         command:
           'NODE_OPTIONS=--max-old-space-size=4096 yarn nx affected -t test --exclude=console,portal-next --coverage --maxWorkers=2 --parallel=1',
       }),
+      new commands.Run({
+        name: 'Build APIM Libs element bundles (affected)',
+        command: 'yarn nx affected -t build-element',
+      }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
       // Ensure coverage files exist so persist/store steps don't fail when libs are not affected
       new commands.Run({
