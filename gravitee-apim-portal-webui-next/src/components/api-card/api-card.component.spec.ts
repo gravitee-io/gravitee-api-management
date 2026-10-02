@@ -61,6 +61,10 @@ describe('CardComponent', () => {
     expect(await harness.isMcpServer()).toBe(false);
   });
 
+  it('should display the API version so APIs sharing a name can be told apart', async () => {
+    expect(await harness.getVersion()).toEqual('v.1');
+  });
+
   it('should emit the API id when selected', async () => {
     const selected = jest.fn();
     component.cardSelect.subscribe(selected);

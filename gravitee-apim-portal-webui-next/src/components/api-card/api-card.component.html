@@ -30,6 +30,9 @@
         <div class="api-card__title next-gen-h5" data-testid="api-card-title" [matTooltip]="title" appMatTooltipOnEllipsis>
           {{ title }}
         </div>
+        @if (version) {
+          <div class="api-card__version next-gen-caption" data-testid="api-card-version">{{ version }}</div>
+        }
       </div>
       <div class="api-card__badges">
         @if (typeLabel()) {

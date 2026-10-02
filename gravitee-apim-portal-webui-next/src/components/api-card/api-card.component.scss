@@ -55,6 +55,13 @@
     text-overflow: ellipsis;
   }
 
+  &__version {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: theme.$paragraph-color;
+  }
+
   &__badges {
     display: flex;
     flex: 0 0 auto;

@@ -22,6 +22,7 @@ export class ApiCardHarness extends ContentContainerComponentHarness {
   protected locateDescription = this.locatorFor('.api-card__description');
   protected locateTypeBadge = this.locatorForOptional('[data-testid="api-type-badge"]');
   protected locateMcpBadge = this.locatorForOptional('[data-testid="api-mcp-badge"]');
+  protected locateVersion = this.locatorForOptional('[data-testid="api-card-version"]');
 
   public static with(options: BaseHarnessFilters): HarnessPredicate<ApiCardHarness> {
     return new HarnessPredicate(ApiCardHarness, options);
@@ -41,6 +42,11 @@ export class ApiCardHarness extends ContentContainerComponentHarness {
 
   public async isMcpServer(): Promise<boolean> {
     return (await this.locateMcpBadge()) !== null;
+  }
+
+  public async getVersion(): Promise<string | null> {
+    const version = await this.locateVersion();
+    return version?.text() ?? null;
   }
 
   public async getType(): Promise<string | null> {
