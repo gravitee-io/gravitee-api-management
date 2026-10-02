@@ -16,7 +16,7 @@
 import { Inject, Injectable } from '@angular/core';
 import angular from 'angular';
 import { HttpClient } from '@angular/common/http';
-import { UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
+import { SignoutRedirectArgs, User, UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
 import { Router } from '@angular/router';
 import { from, Observable, of } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
@@ -35,7 +35,7 @@ const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
  * A StateStore that delegates to the given store, but strips the IdP `access_token` before it is ever
  * persisted to Web Storage.
  *
- * Rationale (APIM-14822): the `access_token` is a live bearer credential at the IdP and must not be
+ * The `access_token` is a live bearer credential at the IdP and must not be
  * readable from `localStorage`/`sessionStorage` by an XSS running after login. `id_token` and `expires_at`
  * are kept: they are needed for single logout (`signoutRedirect({ id_token_hint })`) and for the
  * `user.expired` check in `checkAuth()`.
@@ -85,6 +85,11 @@ export class AuthService {
       Log.setLevel(Log.DEBUG);
     }
 
+    const stripIdpAccessTokenFromStorage = this.constants.org?.settings?.authentication?.exposeAccessToken?.enabled === false;
+    const oidcUserStore = stripIdpAccessTokenFromStorage
+      ? new AccessTokenFilteringStateStore({ store: window.localStorage })
+      : new WebStorageStateStore({ store: window.localStorage });
+
     // Initialize manager for each identity provider
     constants.org.identityProviders?.forEach(idp => {
       this.oidcManagers[idp.id] = new UserManager({
@@ -94,7 +99,7 @@ export class AuthService {
         scope: idp.scopes?.join(idp.scopeDelimiter ?? ' '),
         response_type: 'code',
         post_logout_redirect_uri: `${(window.location.origin + window.location.pathname).replace(/\/$/, '') + this.locationStrategy.prepareExternalUrl('/_login')}`,
-        userStore: new AccessTokenFilteringStateStore({ store: window.localStorage }),
+        userStore: oidcUserStore,
         loadUserInfo: false,
         extraHeaders: {
           // Needed for Gravitee APIM POST method
@@ -213,7 +218,7 @@ export class AuthService {
           switchMap(user =>
             from([
               oidcManager.removeUser(),
-              oidcManager.signoutRedirect(user ? { id_token_hint: user.id_token } : {}).catch(() => null),
+              oidcManager.signoutRedirect(this.signoutRedirectArgs(user)).catch(() => null),
               oidcManager.clearStaleState(),
             ]),
           ),
@@ -232,6 +237,15 @@ export class AuthService {
         }
       }),
     );
+  }
+
+  private signoutRedirectArgs(user: User | null): SignoutRedirectArgs {
+    const idTokenExposed = this.constants.org?.settings?.authentication?.exposeIdToken?.enabled !== false;
+    if (idTokenExposed && user?.id_token) {
+      return { id_token_hint: user.id_token };
+    }
+    // oidc-client-ts adds client_id from settings when id_token_hint is omitted (Keycloak 18+ RP-initiated logout).
+    return {};
   }
 
   signUpCustomUserFields(): Observable<CustomUserFields> {
