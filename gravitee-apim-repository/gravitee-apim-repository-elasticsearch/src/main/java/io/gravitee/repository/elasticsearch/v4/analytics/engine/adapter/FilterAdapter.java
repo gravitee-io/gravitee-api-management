@@ -291,6 +291,10 @@ public class FilterAdapter {
         if (value instanceof Number code) {
             return code.intValue();
         }
+        // Facet keys were the codes before they became names, so a drill-down or a saved filter may still hold "3".
+        if (value instanceof String code && !code.isEmpty() && code.chars().allMatch(Character::isDigit)) {
+            return Integer.parseInt(code);
+        }
         try {
             return HttpMethod.valueOf(String.valueOf(value).toUpperCase(Locale.ROOT)).code();
         } catch (IllegalArgumentException e) {

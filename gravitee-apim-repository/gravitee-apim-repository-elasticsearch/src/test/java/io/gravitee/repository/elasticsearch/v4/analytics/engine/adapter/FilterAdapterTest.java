@@ -366,6 +366,20 @@ class FilterAdapterTest {
         }
 
         @Test
+        void should_accept_a_method_code_sent_as_a_numeric_string() throws JsonProcessingException {
+            var filters = List.of(new Filter(Filter.Name.HTTP_METHOD, Filter.Operator.IN, List.of("3", "POST")));
+            var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
+            var query = new MeasuresQuery(buildTimeRange(), filters, metrics);
+
+            var jsonQuery = JSON.readTree(measuresAdapter.adapt(query));
+
+            var terms = jsonQuery.at("/query/bool/filter/1/terms/http-method");
+            assertThat(terms.get(0).isIntegralNumber()).isTrue();
+            assertThat(terms.get(0).asInt()).isEqualTo(3);
+            assertThat(terms.get(1).asInt()).isEqualTo(7);
+        }
+
+        @Test
         void should_throw_for_an_unknown_http_method() {
             var filters = List.of(new Filter(Filter.Name.HTTP_METHOD, Filter.Operator.EQ, "FETCH"));
             var metrics = List.of(new MetricMeasuresQuery(Metric.HTTP_REQUESTS, Set.of(Measure.COUNT)));
