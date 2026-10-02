@@ -1334,6 +1334,20 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <!-- Lists the plugins the component can embed, whatever the bundle profile, for custom images -->
+                    <groupId>io.gravitee.apim.maven.plugin</groupId>
+                    <artifactId>gravitee-apim-release-manifest-maven-plugin</artifactId>
+                    <version>${gravitee-apim-release-manifest-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>release-manifest</id>
+                            <goals>
+                                <goal>release-manifest-writer</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <executions>
                         <execution>

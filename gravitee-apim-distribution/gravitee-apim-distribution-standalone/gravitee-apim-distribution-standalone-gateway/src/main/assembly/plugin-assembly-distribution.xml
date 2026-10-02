@@ -135,6 +135,22 @@
             <fileMode>644</fileMode>
             <filtered>true</filtered>
         </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>.</outputDirectory>
+            <includes>
+                <include>release-manifest.json</include>
+            </includes>
+            <fileMode>644</fileMode>
+        </fileSet>
+        <fileSet>
+            <directory>${project.build.directory}</directory>
+            <outputDirectory>bin</outputDirectory>
+            <includes>
+                <include>install-plugins.sh</include>
+            </includes>
+            <fileMode>755</fileMode>
+        </fileSet>
     </fileSets>
 
     <dependencySets>
