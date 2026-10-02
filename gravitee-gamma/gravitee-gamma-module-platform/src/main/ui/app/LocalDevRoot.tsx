@@ -18,6 +18,7 @@ import { BrowserRouter } from 'react-router-dom';
 
 import { AppRoutes } from './AppRoutes';
 import { LocalDevShell } from './LocalDevShell';
+import { PlatformToaster } from './PlatformToaster';
 
 /** Standalone entry only: not used when this package is loaded as a federated remote. */
 export default function LocalDevRoot() {
@@ -25,6 +26,7 @@ export default function LocalDevRoot() {
         <BrowserRouter>
             <LayoutSlotsProvider>
                 <LocalDevShell>
+                    <PlatformToaster />
                     <AppRoutes />
                 </LocalDevShell>
             </LayoutSlotsProvider>

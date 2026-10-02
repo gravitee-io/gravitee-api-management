@@ -31,10 +31,6 @@ import { useEnvironmentPermissionsReady } from '../shared/hooks/useEnvironmentPe
 import { markNavItemDenied, resetDeniedNavItemsForEnvironment } from '../shared/nav/deniedNavItems';
 import { notify } from '../shared/notify/notify';
 
-jest.mock('./PlatformToaster', () => ({
-    PlatformToaster: () => <div data-testid="platform-toaster" />,
-}));
-
 const mockUseModuleRouting = jest.fn(() => ({
     activeNavKey: 'applications',
     navigateToKey: jest.fn(),
@@ -627,10 +623,9 @@ describe('AppRoutes', () => {
         mockUseApiScoreEnabled.mockReturnValue({ enabled: false, isFetched: true });
     });
 
-    it('mounts PlatformToaster for module-wide toast feedback', () => {
+    it('routes to the Applications page under the platform module', () => {
         renderPlatform();
 
-        expect(screen.getByTestId('platform-toaster')).not.toBeNull();
         expect(screen.getByTestId('applications-page')).not.toBeNull();
     });
 
