@@ -34,7 +34,7 @@ export class MapProviderNamePipe implements PipeTransform {
     mulesoft: 'Mulesoft',
     'dell-boomi': 'Boomi',
     'edge-stack': 'Edge Stack',
-    'sap-api-management': 'SAP API Management',
+    'sap-api-management': 'SAP Business Technology Platform',
   };
 
   transform(value: string): string {
