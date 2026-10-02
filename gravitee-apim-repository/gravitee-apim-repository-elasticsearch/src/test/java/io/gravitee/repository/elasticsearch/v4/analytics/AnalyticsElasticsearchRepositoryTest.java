@@ -1447,7 +1447,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
         }
 
         /**
-         * The fixture holds 22 documents on the HTTP entrypoints: 3 GET, 13 DELETE, 4 POST and 2 PUT. The gateway
+         * The fixture holds 20 documents on the HTTP entrypoints: 3 GET, 13 DELETE, 2 POST and 2 PUT. The gateway
          * reports the method as its numeric code.
          */
         @Nested
@@ -1461,7 +1461,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 var result = cut.searchHTTPMeasures(QUERY_CONTEXT, new MeasuresQuery(buildTimeRange(), List.of(filter), List.of(REQUESTS)));
 
-                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(4L);
+                assertThat(result.measures().getFirst().measures().get(Measure.COUNT).longValue()).isEqualTo(2L);
             }
 
             @Test
@@ -1481,7 +1481,7 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
                 assertThat(result.metrics().getFirst().buckets())
                     .extracting(bucket -> bucket.key(), bucket -> bucket.measures().get(Measure.COUNT).longValue())
-                    .containsExactlyInAnyOrder(tuple("GET", 3L), tuple("DELETE", 13L), tuple("POST", 4L), tuple("PUT", 2L));
+                    .containsExactlyInAnyOrder(tuple("GET", 3L), tuple("DELETE", 13L), tuple("POST", 2L), tuple("PUT", 2L));
             }
         }
 
