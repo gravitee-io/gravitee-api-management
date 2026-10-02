@@ -21,7 +21,6 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
-import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
@@ -171,9 +170,6 @@ public class PortalDocumentationSyncDomainService {
         PortalNavigationItemId navigationItemId,
         PortalNavigationItem existing
     ) {
-        if (existing instanceof PortalNavigationPage page && page.getArea() != targetArea) {
-            throw InvalidPortalNavigationItemDataException.areaCannotChange(navigationItemId.toString());
-        }
         switch (plan) {
             case UpdateInPlace(var page, var update, var ignoredParent) -> validatorService.validateToUpdate(update, page);
             case CreateNew(var create, var ignoredParent) -> {
