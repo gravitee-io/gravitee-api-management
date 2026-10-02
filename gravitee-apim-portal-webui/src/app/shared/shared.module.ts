@@ -37,6 +37,7 @@ import { MarkdownDescriptionPipe } from '../pipes/markdown-description.pipe';
 import { ApiStatesPipe } from '../pipes/api-states.pipe';
 import { SafePipe } from '../pipes/safe.pipe';
 import { ApiLabelsPipe } from '../pipes/api-labels.pipe';
+import { ConfigurationService } from '../services/configuration.service';
 
 import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth-storage';
 
@@ -96,7 +97,14 @@ import { AccessTokenFilteringOAuthStorage } from './access-token-filtering-oauth
     { provide: TRANSLATE_HTTP_LOADER_CONFIG, useValue: { resources: [{ prefix: './assets/i18n/', suffix: '.json' }], failOnError: true } },
     {
       provide: OAuthStorage,
-      useFactory: () => new AccessTokenFilteringOAuthStorage(typeof sessionStorage !== 'undefined' ? sessionStorage : new MemoryStorage()),
+      useFactory: (configurationService: ConfigurationService) => {
+        const delegate: OAuthStorage = typeof sessionStorage !== 'undefined' ? sessionStorage : new MemoryStorage();
+        if (configurationService.get('authentication.exposeAccessToken.enabled', true) === false) {
+          return new AccessTokenFilteringOAuthStorage(delegate);
+        }
+        return delegate;
+      },
+      deps: [ConfigurationService],
     },
   ],
 })

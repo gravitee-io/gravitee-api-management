@@ -32,6 +32,12 @@ public class PortalAuthentication extends CommonAuthentication {
     @ParameterKey(Key.PORTAL_AUTHENTICATION_LOCALLOGIN_ENABLED)
     private Enabled localLogin;
 
+    @ParameterKey(Key.PORTAL_AUTHENTICATION_EXPOSE_ACCESS_TOKEN)
+    private Enabled exposeAccessToken;
+
+    @ParameterKey(Key.PORTAL_AUTHENTICATION_EXPOSE_ID_TOKEN)
+    private Enabled exposeIdToken;
+
     public Enabled getForceLogin() {
         return forceLogin;
     }
@@ -46,5 +52,21 @@ public class PortalAuthentication extends CommonAuthentication {
 
     public void setLocalLogin(Enabled localLogin) {
         this.localLogin = localLogin;
+    }
+
+    public Enabled getExposeAccessToken() {
+        return exposeAccessToken;
+    }
+
+    public void setExposeAccessToken(Enabled exposeAccessToken) {
+        this.exposeAccessToken = exposeAccessToken;
+    }
+
+    public Enabled getExposeIdToken() {
+        return exposeIdToken;
+    }
+
+    public void setExposeIdToken(Enabled exposeIdToken) {
+        this.exposeIdToken = exposeIdToken;
     }
 }
