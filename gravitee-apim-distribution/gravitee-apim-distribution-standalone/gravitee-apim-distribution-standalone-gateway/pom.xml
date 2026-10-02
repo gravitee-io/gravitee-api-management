@@ -224,6 +224,13 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>io.gravitee.apim.maven.plugin</groupId>
+                <artifactId>gravitee-apim-release-manifest-maven-plugin</artifactId>
+                <configuration>
+                    <component>gateway</component>
+                </configuration>
+            </plugin>
+            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
             </plugin>
         </plugins>
