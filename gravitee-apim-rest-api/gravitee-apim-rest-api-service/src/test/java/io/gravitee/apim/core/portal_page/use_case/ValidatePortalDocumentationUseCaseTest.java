@@ -23,6 +23,13 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.portal.domain_service.PortalAutomationScopeDomainService;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ValidatePortalDocumentationDomainService;
+<<<<<<< HEAD
+=======
+import io.gravitee.apim.core.portal_page.domain_service.reconciliation.HomepageReconciler;
+import io.gravitee.apim.core.portal_page.exception.HomepageAlreadyExistsException;
+import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
+import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+>>>>>>> f26930f (fix(portal-next): update dry-run area-change test to match delete-and-recreate behavior (EXT-174))
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import io.gravitee.apim.core.validation.Validator;
@@ -110,6 +117,117 @@ class ValidatePortalDocumentationUseCaseTest {
             .anyMatch(m -> m.contains("content"));
     }
 
+<<<<<<< HEAD
+=======
+    @Test
+    void should_reject_a_second_homepage_without_persisting_anything() {
+        syncDomainService.materialize(AUDIT_INFO, homepageContent("home-1", "Home"), PortalArea.HOMEPAGE, null);
+        var storageBefore = List.copyOf(navCrudService.storage());
+
+        assertThatThrownBy(() -> useCase.execute(homepageInput("home-2", "Home 2"))).isInstanceOf(HomepageAlreadyExistsException.class);
+
+        assertThat(navCrudService.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
+    }
+
+    @Test
+    void should_allow_moving_an_existing_page_to_a_different_area_without_persisting_anything() {
+        syncDomainService.materialize(
+            AUDIT_INFO,
+            pageContent(DOC_ID, "Getting Started", "/projects/alpha", 1),
+            PortalArea.TOP_NAVBAR,
+            null
+        );
+        var storageBefore = List.copyOf(navCrudService.storage());
+
+        var output = useCase.execute(
+            new CreateOrUpdatePortalDocumentationUseCase.Input(
+                AUDIT_INFO,
+                DOC_ID,
+                PORTAL_ID,
+                "Getting Started",
+                PortalPageContentType.GRAVITEE_MARKDOWN,
+                "# New content",
+                null,
+                0,
+                PortalArea.HOMEPAGE,
+                null
+            )
+        );
+
+        assertThat(output.errors()).isEmpty();
+        assertThat(navCrudService.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
+    }
+
+    @Test
+    void should_reject_moving_an_existing_page_to_a_conflicting_homepage_without_persisting_anything() {
+        syncDomainService.materialize(AUDIT_INFO, homepageContent("home-1", "Home"), PortalArea.HOMEPAGE, null);
+        syncDomainService.materialize(
+            AUDIT_INFO,
+            pageContent(DOC_ID, "Getting Started", "/projects/alpha", 1),
+            PortalArea.TOP_NAVBAR,
+            null
+        );
+        var storageBefore = List.copyOf(navCrudService.storage());
+
+        assertThatThrownBy(() ->
+            useCase.execute(
+                new CreateOrUpdatePortalDocumentationUseCase.Input(
+                    AUDIT_INFO,
+                    DOC_ID,
+                    PORTAL_ID,
+                    "Getting Started",
+                    PortalPageContentType.GRAVITEE_MARKDOWN,
+                    "# New content",
+                    null,
+                    0,
+                    PortalArea.HOMEPAGE,
+                    null
+                )
+            )
+        ).isInstanceOf(HomepageAlreadyExistsException.class);
+
+        assertThat(navCrudService.storage()).containsExactlyInAnyOrderElementsOf(storageBefore);
+    }
+
+    private static CreateOrUpdatePortalDocumentationUseCase.Input homepageInput(String hrid, String name) {
+        var id = PortalPageContentId.of(HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid(hrid).id());
+        return new CreateOrUpdatePortalDocumentationUseCase.Input(
+            AUDIT_INFO,
+            id,
+            PORTAL_ID,
+            name,
+            PortalPageContentType.GRAVITEE_MARKDOWN,
+            "# Hello",
+            null,
+            0,
+            PortalArea.HOMEPAGE,
+            null
+        );
+    }
+
+    private static GraviteeMarkdownPageContent homepageContent(String hrid, String name) {
+        var id = PortalPageContentId.of(HRIDToUUID.portalDocumentation().context(AUDIT_INFO).portal(PORTAL_HRID).hrid(hrid).id());
+        return pageContent(id, name, null, 0);
+    }
+
+    private static GraviteeMarkdownPageContent pageContent(PortalPageContentId id, String name, String location, Integer order) {
+        var meta = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.PORTAL,
+            PORTAL_ID.toString(),
+            name,
+            Optional.ofNullable(location),
+            Optional.ofNullable(order)
+        );
+        return new GraviteeMarkdownPageContent(
+            id,
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId(),
+            GraviteeMarkdown.of("# Hello"),
+            meta
+        );
+    }
+
+>>>>>>> f26930f (fix(portal-next): update dry-run area-change test to match delete-and-recreate behavior (EXT-174))
     private static CreateOrUpdatePortalDocumentationUseCase.Input input(
         String name,
         PortalPageContentType type,
