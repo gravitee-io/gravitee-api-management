@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
+import angular from 'angular';
 import { HttpClient } from '@angular/common/http';
 import { UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
 import { Router } from '@angular/router';
@@ -29,6 +30,30 @@ import { CustomUserFields } from '../entities/customUserFields';
 import { environment } from '../environments/environment';
 
 const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
+
+/**
+ * A StateStore that delegates to the given store, but strips the IdP `access_token` before it is ever
+ * persisted to Web Storage.
+ *
+ * The `access_token` is a live bearer credential at the IdP and must not be
+ * readable from `localStorage`/`sessionStorage` by an XSS running after login. `id_token` and `expires_at`
+ * are kept: they are needed for single logout (`signoutRedirect({ id_token_hint })`) and for the
+ * `user.expired` check in `checkAuth()`.
+ */
+export class AccessTokenFilteringStateStore extends WebStorageStateStore {
+  override set(key: string, value: string): Promise<void> {
+    try {
+      const parsed = JSON.parse(value);
+      if (angular.isObject(parsed) && 'access_token' in parsed) {
+        parsed.access_token = '';
+        value = JSON.stringify(parsed);
+      }
+    } catch {
+      // Not a JSON-serialised User object (e.g. OIDC state entries) - store as-is.
+    }
+    return super.set(key, value);
+  }
+}
 
 @Injectable({
   providedIn: 'root',
@@ -60,6 +85,11 @@ export class AuthService {
       Log.setLevel(Log.DEBUG);
     }
 
+    const stripIdpAccessTokenFromStorage = constants.org.settings?.authentication?.exposeAccessToken?.enabled === false;
+    const oidcUserStore = stripIdpAccessTokenFromStorage
+      ? new AccessTokenFilteringStateStore({ store: window.localStorage })
+      : new WebStorageStateStore({ store: window.localStorage });
+
     // Initialize manager for each identity provider
     constants.org.identityProviders?.forEach(idp => {
       this.oidcManagers[idp.id] = new UserManager({
@@ -69,7 +99,7 @@ export class AuthService {
         scope: idp.scopes?.join(idp.scopeDelimiter ?? ' '),
         response_type: 'code',
         post_logout_redirect_uri: `${(window.location.origin + window.location.pathname).replace(/\/$/, '') + this.locationStrategy.prepareExternalUrl('/_login')}`,
-        userStore: new WebStorageStateStore({ store: window.localStorage }),
+        userStore: oidcUserStore,
         loadUserInfo: false,
         extraHeaders: {
           // Needed for Gravitee APIM POST method

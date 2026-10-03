@@ -28,11 +28,16 @@ import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.model.Token;
 import io.gravitee.rest.api.portal.rest.model.Token.TokenTypeEnum;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.auth.IdpOAuthTokenResponseSupport;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import jakarta.servlet.http.Cookie;
@@ -67,6 +72,9 @@ abstract class AbstractAuthenticationResource {
 
     @Autowired
     protected CookieGenerator cookieGenerator;
+
+    @Autowired
+    protected ParameterService parameterService;
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -162,14 +170,27 @@ abstract class AbstractAuthenticationResource {
         final Token tokenEntity = new Token();
         tokenEntity.setTokenType(TokenTypeEnum.BEARER);
         tokenEntity.setToken(sign);
-        if (idToken != null) {
-            tokenEntity.setAccessToken(accessToken);
-            tokenEntity.setIdToken(idToken);
-        }
+        applyIdpTokensIfExposed(tokenEntity, accessToken, idToken);
 
         if (state != null && !state.isEmpty()) {
             tokenEntity.setState(state);
         }
         return tokenEntity;
+    }
+
+    private void applyIdpTokensIfExposed(final Token tokenEntity, final String accessToken, final String idToken) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        boolean exposeAccessToken = parameterService.findAsBoolean(
+            executionContext,
+            Key.PORTAL_AUTHENTICATION_EXPOSE_ACCESS_TOKEN,
+            ParameterReferenceType.SYSTEM
+        );
+        boolean exposeIdToken = parameterService.findAsBoolean(
+            executionContext,
+            Key.PORTAL_AUTHENTICATION_EXPOSE_ID_TOKEN,
+            ParameterReferenceType.SYSTEM
+        );
+        IdpOAuthTokenResponseSupport.accessTokenField(accessToken, idToken, exposeAccessToken).ifPresent(tokenEntity::setAccessToken);
+        IdpOAuthTokenResponseSupport.idTokenField(idToken, exposeIdToken).ifPresent(tokenEntity::setIdToken);
     }
 }

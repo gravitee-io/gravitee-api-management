@@ -80,6 +80,12 @@
     },
     "localLogin" : {
       "enabled" : true
+    },
+    "exposeAccessToken" : {
+      "enabled" : true
+    },
+    "exposeIdToken" : {
+      "enabled" : true
     }
   },
   "scheduler" : {

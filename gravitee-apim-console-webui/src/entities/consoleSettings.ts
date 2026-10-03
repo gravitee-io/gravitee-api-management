@@ -72,6 +72,8 @@ export interface ConsoleSettingsAuthentication {
   localLogin?: DisableableFeature;
   externalAuth?: DisableableFeature;
   externalAuthAccountDeletion?: DisableableFeature;
+  exposeAccessToken?: DisableableFeature;
+  exposeIdToken?: DisableableFeature;
 }
 
 export interface ConsoleSettingsCors {
