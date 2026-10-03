@@ -19,10 +19,12 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
+import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -43,7 +45,11 @@ public class SyncHandler implements Handler<RoutingContext> {
             .put("nextSyncTime", repositorySyncManager.nextSyncTime())
             .put("lastOnError", repositorySyncManager.lastSyncOnError())
             .put("lastErrorMessage", repositorySyncManager.lastSyncErrorMessage())
-            .put("totalOnErrors", repositorySyncManager.totalSyncOnError());
+            .put("totalOnErrors", repositorySyncManager.totalSyncOnError())
+            .put("lastSuccessfulSyncAt", repositorySyncManager.lastSuccessfulSyncAt());
+        if (repositorySyncManager.distributedSyncEnabled()) {
+            object.put("distributed", distributedStatus());
+        }
 
         response.setStatusCode(repositorySyncManager.syncDone() ? HttpStatusCode.OK_200 : HttpStatusCode.SERVICE_UNAVAILABLE_503);
         response.putHeader(HttpHeaderNames.CONTENT_TYPE, MediaType.APPLICATION_JSON);
@@ -51,5 +57,28 @@ public class SyncHandler implements Handler<RoutingContext> {
 
         response.write(object.encodePrettily());
         response.end();
+    }
+
+    private JsonObject distributedStatus() {
+        JsonObject distributed = new JsonObject().put("role", repositorySyncManager.actingPrimary() ? "primary" : "secondary");
+        repositorySyncManager
+            .distributedSyncMetrics()
+            .ifPresent(metrics ->
+                distributed
+                    .put("deadLetters", metrics.deadLetters())
+                    .put("deadLettersByType", byType(metrics.deadLettersByType()))
+                    .put("decodeFailures", metrics.decodeFailures())
+                    .put("decodeFailuresByType", byType(metrics.decodeFailuresByType()))
+                    .put("distributionFailures", metrics.distributionFailures())
+                    .put("replayedCycles", metrics.replayedCycles())
+                    .put("heldWindows", metrics.heldWindows())
+            );
+        return distributed;
+    }
+
+    private static JsonObject byType(Map<DistributedEventType, Long> counters) {
+        JsonObject json = new JsonObject();
+        counters.forEach((type, count) -> json.put(type.name(), count));
+        return json;
     }
 }

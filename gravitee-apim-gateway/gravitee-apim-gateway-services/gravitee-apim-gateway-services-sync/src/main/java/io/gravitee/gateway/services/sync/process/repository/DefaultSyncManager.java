@@ -35,6 +35,7 @@ import io.vertx.ext.web.Router;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -71,6 +72,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     /** Set after any successful sync; used only by {@link #syncDone()} for the sync-process health probe. */
     private final AtomicBoolean syncReadyForProbe = new AtomicBoolean(false);
     private final AtomicLong totalSyncOnErrorCounter = new AtomicLong(0);
+    private final AtomicLong lastSuccessfulSyncAt = new AtomicLong(-1);
     private final AtomicBoolean lastSyncOnError = new AtomicBoolean(false);
 
     private final AtomicReference<String> lastSyncErrorMessage = new AtomicReference<>();
@@ -209,6 +211,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                         lastSyncOnError.set(false);
                         lastSyncErrorMessage.set(null);
                         syncReadyForProbe.set(true);
+                        lastSuccessfulSyncAt.set(System.currentTimeMillis());
                         if (distributedSyncService.isEnabled() && !cyclePrimary.get() && consumeHoldRequests()) {
                             log.debug("Distributed sync window is held, the same events will be fetched again");
                             distributedSyncService.metrics().ifPresent(DistributedSyncMetrics::recordHeldWindow);
@@ -292,6 +295,22 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
 
     public long nextSyncTime() {
         return nextFromTime;
+    }
+
+    public long lastSuccessfulSyncAt() {
+        return lastSuccessfulSyncAt.get();
+    }
+
+    public boolean distributedSyncEnabled() {
+        return distributedSyncService.isEnabled();
+    }
+
+    public boolean actingPrimary() {
+        return actingPrimary.get();
+    }
+
+    public Optional<DistributedSyncMetrics> distributedSyncMetrics() {
+        return distributedSyncService.metrics();
     }
 
     public long syncCounter() {
