@@ -146,10 +146,19 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
 
     @Override
     public Completable createOrUpdate(final DistributedEvent distributedEvent) {
+        return createOrUpdate(distributedEvent, false);
+    }
+
+    @Override
+    public Completable createOrUpdateAtWriteTime(final DistributedEvent distributedEvent) {
+        return createOrUpdate(distributedEvent, true);
+    }
+
+    private Completable createOrUpdate(final DistributedEvent distributedEvent, final boolean stampAtWriteTime) {
         if (distributedEvent.getClusterId() == null || distributedEvent.getClusterId().isBlank()) {
             return Completable.error(new IllegalArgumentException(CLUSTER_ID_REQUIRED_MESSAGE));
         }
-        return createOrUpdateKey(buildEventKey(distributedEvent), distributedEvent);
+        return createOrUpdateKey(buildEventKey(distributedEvent), distributedEvent, stampAtWriteTime);
     }
 
     @Override
@@ -160,10 +169,35 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         final DistributedSyncAction syncAction,
         final Date updatedAt
     ) {
+        return updateAll(clusterId, refType, refId, syncAction, updatedAt, false);
+    }
+
+    @Override
+    public Completable updateAllAtWriteTime(
+        final String clusterId,
+        final DistributedEventType refType,
+        final String refId,
+        final DistributedSyncAction syncAction
+    ) {
+        return updateAll(clusterId, refType, refId, syncAction, new Date(), true);
+    }
+
+    private Completable updateAll(
+        final String clusterId,
+        final DistributedEventType refType,
+        final String refId,
+        final DistributedSyncAction syncAction,
+        final Date updatedAt,
+        final boolean stampAtWriteTime
+    ) {
         if (clusterId == null || clusterId.isBlank()) {
             return Completable.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
         }
-        String matchingKey = REDIS_KEY_PREFIX + clusterId + REDIS_KEY_SEPARATOR + refType.name() + REDIS_KEY_SEPARATOR + refId + "*";
+        // The reference's own event and its children (`<base>:<type>:<id>`) are updated, but not the events of
+        // another reference whose id merely starts with the same characters: SCAN MATCH is a glob, so the ids are
+        // escaped and the matched keys are filtered exactly.
+        String baseKey = REDIS_KEY_PREFIX + clusterId + REDIS_KEY_SEPARATOR + refType.name() + REDIS_KEY_SEPARATOR + refId;
+        String matchingKey = escapeGlob(baseKey) + "*";
         return Completable.defer(() -> {
             // SCAN cursors are unsigned 64-bit values
             AtomicLong cursor = new AtomicLong(0);
@@ -176,21 +210,40 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                 })
                 .map(Response::toString)
                 .repeatUntil(() -> cursor.get() == 0)
+                .filter(key -> key.equals(baseKey) || key.startsWith(baseKey + REDIS_KEY_SEPARATOR))
                 .flatMapCompletable(
-                    key -> createOrUpdateKey(key, DistributedEvent.builder().syncAction(syncAction).updatedAt(updatedAt).build()),
+                    key ->
+                        createOrUpdateKey(
+                            key,
+                            DistributedEvent.builder().syncAction(syncAction).updatedAt(updatedAt).build(),
+                            stampAtWriteTime
+                        ),
                     false,
                     UPDATE_MAX_CONCURRENCY
                 );
         });
     }
 
-    private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent) {
+    static String escapeGlob(final String value) {
+        StringBuilder escaped = new StringBuilder(value.length());
+        for (char c : value.toCharArray()) {
+            if (c == '*' || c == '?' || c == '[' || c == ']' || c == '\\') {
+                escaped.append('\\');
+            }
+            escaped.append(c);
+        }
+        return escaped.toString();
+    }
+
+    private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent, final boolean stampAtWriteTime) {
         // Gate every write on a shared permit so the aggregate in-flight writes stay bounded (whatever the
         // caller — createOrUpdate or updateAll — or the deployer parallelism), back-pressuring instead of
         // overflowing the Redis waiting queue. The retry runs inside the permit, and the per-attempt timeout
         // guarantees a permit is never held indefinitely.
+        // The command is built when the attempt is sent (after the permit is granted, and again on each retry), so a
+        // write-time stamp reflects when the event actually becomes visible.
         return writeGate.runGated(
-            send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent)))
+            send(redisAPI -> redisAPI.hset(buildUpdateArgs(key, distributedEvent, stampAtWriteTime ? System.currentTimeMillis() : null)))
                 .ignoreElement()
                 // Bound each attempt: a half-open connection can leave a command unresolved forever, which —
                 // since the permit is shared and process-wide — would pin a permit and eventually stall ALL
@@ -365,7 +418,7 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         return query.isEmpty() ? "*" : query.toString();
     }
 
-    private List<String> buildUpdateArgs(String key, DistributedEvent distributedEvent) {
+    private List<String> buildUpdateArgs(String key, DistributedEvent distributedEvent, Long updatedAtOverride) {
         var args = new ArrayList<String>();
         args.add(key);
         if (distributedEvent.getClusterId() != null) {
@@ -388,7 +441,10 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             args.add(DistributedEvent.Fields.syncAction);
             args.add(distributedEvent.getSyncAction().name());
         }
-        if (distributedEvent.getUpdatedAt() != null) {
+        if (updatedAtOverride != null) {
+            args.add(DistributedEvent.Fields.updatedAt);
+            args.add(String.valueOf(updatedAtOverride));
+        } else if (distributedEvent.getUpdatedAt() != null) {
             args.add(DistributedEvent.Fields.updatedAt);
             args.add(String.valueOf(distributedEvent.getUpdatedAt().getTime()));
         }

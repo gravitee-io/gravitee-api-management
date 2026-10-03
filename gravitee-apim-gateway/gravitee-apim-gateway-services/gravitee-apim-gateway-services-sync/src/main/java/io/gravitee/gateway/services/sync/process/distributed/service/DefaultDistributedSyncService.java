@@ -57,7 +57,6 @@ import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
-import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.CustomLog;
@@ -239,12 +238,11 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                     distribute(apiMapper.to(deployable)).andThen(
                         Completable.defer(() -> {
                             if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                                return distributedEventRepository.updateAll(
+                                return distributedEventRepository.updateAllAtWriteTime(
                                     clusterManager.clusterId(),
                                     DistributedEventType.API,
                                     deployable.apiId(),
-                                    DistributedSyncAction.UNDEPLOY,
-                                    new Date()
+                                    DistributedSyncAction.UNDEPLOY
                                 );
                             }
                             return Completable.complete();
@@ -261,7 +259,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
 
     private Completable createOrUpdateEvent(final DistributedEvent event) {
         event.setClusterId(clusterManager.clusterId());
-        return distributedEventRepository.createOrUpdate(event);
+        return distributedEventRepository.createOrUpdateAtWriteTime(event);
     }
 
     @Override
