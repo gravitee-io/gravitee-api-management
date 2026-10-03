@@ -31,7 +31,10 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -48,14 +51,24 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
         DistributedSyncAction.DEPLOY,
         DistributedSyncAction.UNDEPLOY
     );
+    /**
+     * How many consecutive incremental synchronizations may hold the sync window because some entities hit a
+     * transient failure. Holding keeps the window from moving, so the same events are fetched (and those entities
+     * retried) on the next cycle; past this bound the window moves on and the entities stay skipped.
+     */
+    public static final int MAX_HELD_ATTEMPTS = 12;
+
     private final DistributedEventFetcher distributedEventFetcher;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
+    private final AtomicInteger consecutiveHeldAttempts = new AtomicInteger();
+    private final AtomicBoolean holdRequested = new AtomicBoolean();
 
     @Override
     public Completable synchronize(final Long from, final Long to) {
         boolean initialSync = from == null || from == -1;
         AtomicLong launchTime = new AtomicLong();
+        AtomicReference<Throwable> transientItemFailure = new AtomicReference<>();
         return distributedEventFetcher
             .fetchLatest(from, to, distributedEventType(), syncActions(initialSync))
             .subscribeOn(Schedulers.from(syncFetcherExecutor))
@@ -68,9 +81,13 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
                     .runOn(Schedulers.from(syncDeployerExecutor))
                     .flatMap(deployable -> {
                         if (deployable.syncAction() == SyncAction.DEPLOY) {
-                            return deploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
+                            return deploy(deployer, deployable).onErrorResumeNext(throwable ->
+                                resumeOnError(initialSync, throwable, transientItemFailure)
+                            );
                         } else if (deployable.syncAction() == SyncAction.UNDEPLOY) {
-                            return undeploy(deployer, deployable).onErrorResumeNext(throwable -> resumeOnError(initialSync, throwable));
+                            return undeploy(deployer, deployable).onErrorResumeNext(throwable ->
+                                resumeOnError(initialSync, throwable, transientItemFailure)
+                            );
                         } else {
                             return Flowable.empty();
                         }
@@ -92,7 +109,38 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
                     log.debug(logMsg);
                 }
             })
-            .ignoreElement();
+            .ignoreElement()
+            .doOnComplete(() -> requestHoldIfNeeded(transientItemFailure.get()));
+    }
+
+    @Override
+    public boolean consumeHoldRequest() {
+        return holdRequested.getAndSet(false);
+    }
+
+    private void requestHoldIfNeeded(final Throwable transientItemFailure) {
+        if (transientItemFailure == null) {
+            consecutiveHeldAttempts.set(0);
+            return;
+        }
+        int attempts = consecutiveHeldAttempts.incrementAndGet();
+        if (attempts <= MAX_HELD_ATTEMPTS) {
+            log.warn(
+                "Some {}(s) hit a transient failure, the sync window is held so they are retried (attempt {}/{})",
+                distributedEventType().name().toLowerCase(),
+                attempts,
+                MAX_HELD_ATTEMPTS
+            );
+            holdRequested.set(true);
+            return;
+        }
+        consecutiveHeldAttempts.set(0);
+        log.error(
+            "Some {}(s) kept failing after {} attempts, the sync window moves on and they stay skipped until they change again",
+            distributedEventType().name().toLowerCase(),
+            MAX_HELD_ATTEMPTS,
+            transientItemFailure
+        );
     }
 
     protected Set<DistributedSyncAction> syncActions(final boolean initialSync) {
@@ -116,13 +164,23 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
     /**
      * Mirrors the repository sync error handling (see {@code AbstractApiSynchronizer}) for the distributed
      * path: a transient failure (a repository {@code TechnicalException} in the cause chain) on the initial
-     * sync fails the sync so the secondary node stays not-ready and retries, while a permanent failure (or any
-     * failure on an incremental sync) isolates the offending entity so a single poison event cannot block the
-     * whole distributed synchronization.
+     * sync fails the sync so the secondary node stays not-ready and retries, while a permanent failure isolates
+     * the offending entity so a single poison event cannot block the whole distributed synchronization. On an
+     * incremental sync a transient failure isolates the entity too, but is recorded so the window is held and
+     * the entity retried (see {@link #requestHoldIfNeeded}).
      */
-    private Flowable<T> resumeOnError(final boolean initialSync, final Throwable throwable) {
-        if (initialSync && SyncErrors.isTransient(throwable)) {
-            return Flowable.error(throwable);
+    private Flowable<T> resumeOnError(
+        final boolean initialSync,
+        final Throwable throwable,
+        final AtomicReference<Throwable> transientFailure
+    ) {
+        if (SyncErrors.isTransient(throwable)) {
+            if (initialSync) {
+                return Flowable.error(throwable);
+            }
+            transientFailure.compareAndSet(null, throwable);
+            log.warn("A transient error occurred while (un)deploying a distributed event, it will be retried", throwable);
+            return Flowable.empty();
         }
         log.error("An error occurred while (un)deploying a distributed event during synchronization", throwable);
         return Flowable.empty();

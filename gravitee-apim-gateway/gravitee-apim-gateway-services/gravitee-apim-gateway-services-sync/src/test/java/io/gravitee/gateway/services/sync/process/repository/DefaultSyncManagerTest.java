@@ -69,7 +69,7 @@ class DefaultSyncManagerTest {
 
     @BeforeEach
     public void beforeEach() {
-        when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, Set.of("env")));
+        lenient().when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, Set.of("env")));
         when(router.get(any())).thenReturn(route);
         when(route.produces(any())).thenReturn(route);
         cut = new DefaultSyncManager(router, node, synchronizers, null, new NoopDistributedSyncService(), 5, TimeUnit.SECONDS, 1);
@@ -322,6 +322,50 @@ class DefaultSyncManagerTest {
             // The first promoted cycle could not store its state: the next cycle is still a promotion.
             verify(distributedSyncService, times(2)).state();
             verify(distributedSyncService, times(2)).requestReplay();
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_fetch_the_same_window_again_when_a_secondary_synchronizer_holds_it() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+            when(distributedSynchronizer.consumeHoldRequest()).thenReturn(false, true, false);
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+            long afterInitialSync = cut.nextSyncTime();
+
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+            // The incremental cycle asked to hold the window: the cursor did not move.
+            assertThat(cut.nextSyncTime()).isEqualTo(afterInitialSync);
+
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+            assertThat(cut.nextSyncTime()).isGreaterThanOrEqualTo(afterInitialSync);
+            verify(distributedSynchronizer, times(2)).synchronize(eq(afterInitialSync), any());
         } finally {
             RxJavaPlugins.reset();
         }

@@ -31,4 +31,12 @@ public interface DistributedSynchronizer {
     Completable synchronize(final Long from, final Long to);
 
     int order();
+
+    /**
+     * Whether the last synchronization asked to keep the sync window where it is (some entities hit a transient
+     * failure and must be fetched again). Reading the request clears it.
+     */
+    default boolean consumeHoldRequest() {
+        return false;
+    }
 }
