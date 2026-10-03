@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,6 +61,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private static final String CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE = "clusterId is required";
     private static final long NO_CURSOR = -1;
     private static final String SCAN_BATCH_SIZE = "1000";
+    private static final int DELETE_BATCH_SIZE = 500;
+    private static final String KEY_FIELD = "__key";
     // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
     private static final int UPDATE_MAX_CONCURRENCY = 32;
 
@@ -222,6 +225,166 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                     UPDATE_MAX_CONCURRENCY
                 );
         });
+    }
+
+    /**
+     * The index is created once at startup; if it is missing afterwards (store restarted without persistence,
+     * flushed, or created while the store was unreachable) every search fails until it is recreated.
+     */
+    @Override
+    public Completable ensureSearchable() {
+        return send(redisAPI -> redisAPI.ftInfo(List.of(REDIS_INDEX_NAME)))
+            .ignoreElement()
+            .onErrorResumeNext(throwable -> {
+                if (isUnknownIndex(throwable)) {
+                    log.warn("Distributed event search index [{}] is missing, recreating it", REDIS_INDEX_NAME);
+                    return send(redisAPI -> redisAPI.ftCreate(buildSearchIndex()))
+                        .ignoreElement()
+                        .onErrorResumeNext(createError ->
+                            "Index already exists".equals(createError.getMessage())
+                                ? Completable.complete()
+                                : Completable.error(createError)
+                        );
+                }
+                return Completable.error(throwable);
+            });
+    }
+
+    @Override
+    public Single<Boolean> fullyIndexed() {
+        return send(redisAPI -> redisAPI.ftInfo(List.of(REDIS_INDEX_NAME))).map(info -> {
+            Optional<String> indexing = infoField(info, "indexing");
+            Optional<String> percentIndexed = infoField(info, "percent_indexed");
+            // Numbers come back as "0", "0.0" or "1" depending on the protocol and module version.
+            boolean stillIndexing = indexing.map(value -> Double.parseDouble(value) != 0).orElse(false);
+            boolean partiallyIndexed = percentIndexed.map(value -> Double.parseDouble(value) < 1.0).orElse(false);
+            return !stillIndexing && !partiallyIndexed;
+        });
+    }
+
+    @Override
+    public Single<Long> undeployNotUpdatedSince(final String clusterId, final Set<DistributedEventType> types, final Date before) {
+        if (clusterId == null || clusterId.isBlank()) {
+            return Single.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
+        }
+        String query =
+            clusterQuery(clusterId) +
+            "@" +
+            DistributedEvent.Fields.syncAction +
+            ":{" +
+            DistributedSyncAction.DEPLOY.name() +
+            "}" +
+            "@" +
+            DistributedEvent.Fields.type +
+            ":{" +
+            types.stream().map(Enum::name).collect(Collectors.joining("|")) +
+            "}" +
+            "@" +
+            DistributedEvent.Fields.updatedAt +
+            ":[-inf (" +
+            before.getTime() +
+            "]";
+        // Matching keys are collected before being rewritten: updating a document changes what the cursor matches.
+        return searchKeys(query)
+            .toList()
+            .flatMap(keys ->
+                Flowable.fromIterable(keys)
+                    .flatMapCompletable(
+                        key -> createOrUpdateKey(key, DistributedEvent.builder().syncAction(DistributedSyncAction.UNDEPLOY).build(), true),
+                        false,
+                        UPDATE_MAX_CONCURRENCY
+                    )
+                    .toSingleDefault((long) keys.size())
+            );
+    }
+
+    @Override
+    public Single<Long> deleteUndeployedBefore(final String clusterId, final Date before) {
+        if (clusterId == null || clusterId.isBlank()) {
+            return Single.error(new IllegalArgumentException(CLUSTER_ID_PARAMETER_REQUIRED_MESSAGE));
+        }
+        String query =
+            clusterQuery(clusterId) +
+            "@" +
+            DistributedEvent.Fields.syncAction +
+            ":{" +
+            DistributedSyncAction.UNDEPLOY.name() +
+            "}" +
+            "@" +
+            DistributedEvent.Fields.updatedAt +
+            ":[-inf (" +
+            before.getTime() +
+            "]";
+        return searchKeys(query)
+            .toList()
+            .flatMap(keys ->
+                Flowable.fromIterable(keys)
+                    .buffer(DELETE_BATCH_SIZE)
+                    .concatMapCompletable(batch -> writeGate.runGated(send(redisAPI -> redisAPI.unlink(batch)).ignoreElement()))
+                    .toSingleDefault((long) keys.size())
+            );
+    }
+
+    private Flowable<String> searchKeys(final String query) {
+        return Flowable.defer(() -> {
+            AtomicLong cursorId = new AtomicLong(NO_CURSOR);
+            return send(redisAPI ->
+                cursorId.get() == NO_CURSOR
+                    ? redisAPI.ftAggregate(
+                        List.of(REDIS_INDEX_NAME, query, "LOAD", "1", "@" + KEY_FIELD, "WITHCURSOR", "COUNT", SCAN_BATCH_SIZE)
+                    )
+                    : redisAPI.ftCursor(List.of("READ", REDIS_INDEX_NAME, String.valueOf(cursorId.get())))
+            )
+                .flattenStreamAsFlowable(response -> {
+                    cursorId.set(response.get(1).toLong());
+                    return getSearchResults(response.get(0))
+                        .stream()
+                        .filter(item -> item.type() == ResponseType.MULTI)
+                        .map(item -> getResultAttributes(item).get(KEY_FIELD))
+                        .filter(java.util.Objects::nonNull)
+                        .map(Response::toString);
+                })
+                .repeatUntil(() -> cursorId.get() == 0)
+                .doFinally(() -> closeCursor(cursorId.get()));
+        });
+    }
+
+    private static String clusterQuery(final String clusterId) {
+        return "@" + DistributedEvent.Fields.clusterId + ":{" + RediSearchTagValues.escapeTagValue(clusterId) + "}";
+    }
+
+    private static boolean isUnknownIndex(final Throwable throwable) {
+        for (Throwable current = throwable; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message != null) {
+                String normalized = message.toLowerCase(Locale.ROOT);
+                if (normalized.contains("unknown index") || normalized.contains("no such index")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * FT.INFO is a map in RESP3 and a flat key/value array in RESP2.
+     */
+    static Optional<String> infoField(final Response info, final String field) {
+        if (info == null) {
+            return Optional.empty();
+        }
+        if (info.isMap()) {
+            Response value = info.get(field);
+            return value == null ? Optional.empty() : Optional.of(value.toString());
+        }
+        for (int i = 0; i + 1 < info.size(); i += 2) {
+            Response key = info.get(i);
+            if (key != null && field.equals(key.toString())) {
+                Response value = info.get(i + 1);
+                return value == null ? Optional.empty() : Optional.of(value.toString());
+            }
+        }
+        return Optional.empty();
     }
 
     static String escapeGlob(final String value) {
