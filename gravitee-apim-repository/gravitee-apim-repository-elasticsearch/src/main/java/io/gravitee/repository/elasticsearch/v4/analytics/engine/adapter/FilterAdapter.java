@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
@@ -445,6 +446,9 @@ public class FilterAdapter {
         if (filter.name() == Filter.Name.HTTP_STATUS_CODE_GROUP) {
             return statusCodeGroupFilter(filter);
         }
+        if (filter.name() == Filter.Name.HTTP_METHOD) {
+            return httpMethodFilter(filter);
+        }
         if (
             filter.name() == Filter.Name.ENTRYPOINT && (filter.operator() == Filter.Operator.EQ || filter.operator() == Filter.Operator.IN)
         ) {
@@ -503,6 +507,38 @@ public class FilterAdapter {
             case IN -> StatusCodeGroups.shouldForGroups(field, (Collection<String>) filter.value());
             default -> throw new IllegalArgumentException("Unsupported operator for HTTP_STATUS_CODE_GROUP filter: " + filter.operator());
         };
+    }
+
+    /** The catalog offers method names, the gateway reports the method as its {@link HttpMethod#code()}. */
+    private JsonObject httpMethodFilter(Filter filter) {
+        var field = fieldResolver.fromFilter(filter);
+        return switch (filter.operator()) {
+            case EQ -> JsonObject.of("term", JsonObject.of(field, httpMethodCode(filter.value())));
+            case IN -> JsonObject.of(
+                "terms",
+                JsonObject.of(field, new JsonArray(values(filter.value()).map(FilterAdapter::httpMethodCode).toList()))
+            );
+            default -> throw new IllegalArgumentException("Unsupported operator for HTTP_METHOD filter: " + filter.operator());
+        };
+    }
+
+    private static int httpMethodCode(Object value) {
+        if (value instanceof Number code) {
+            return code.intValue();
+        }
+        // Facet keys were the codes before they became names, so a drill-down or a saved filter may still hold "3".
+        if (value instanceof String code && !code.isEmpty() && code.chars().allMatch(Character::isDigit)) {
+            return Integer.parseInt(code);
+        }
+        try {
+            return HttpMethod.valueOf(String.valueOf(value).toUpperCase(Locale.ROOT)).code();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Unknown HTTP method: " + value, e);
+        }
+    }
+
+    private static Stream<?> values(Object value) {
+        return Objects.requireNonNull(value) instanceof Collection<?> collection ? collection.stream() : Stream.of(value);
     }
 
     private String filterName(Filter filter) {
