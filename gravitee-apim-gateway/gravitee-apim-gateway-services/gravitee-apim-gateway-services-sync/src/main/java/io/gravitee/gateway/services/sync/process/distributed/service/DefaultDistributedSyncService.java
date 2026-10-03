@@ -54,11 +54,16 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
+import java.util.Date;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
 
@@ -90,6 +95,27 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private volatile Boolean pinnedPrimary;
     private volatile boolean replayCycle;
 
+    /**
+     * Entity types whose full synchronization re-distributes every live entity, so whatever was not rewritten by a
+     * catalog rebuild is stale. Other types keep their previous entries.
+     */
+    static final Set<DistributedEventType> SWEPT_EVENT_TYPES = Set.of(
+        DistributedEventType.API,
+        DistributedEventType.SUBSCRIPTION,
+        DistributedEventType.API_KEY,
+        DistributedEventType.DICTIONARY
+    );
+
+    private final AtomicBoolean resyncPending = new AtomicBoolean();
+    private final AtomicBoolean localFailureDuringResync = new AtomicBoolean();
+    private final AtomicLong knownResyncId = new AtomicLong();
+    private volatile boolean resyncCycle;
+    private volatile long resyncStartedAt;
+    private volatile long deadLettersAtResyncStart;
+    private volatile boolean stateStoredByThisNode;
+    private volatile long lastTombstonePurgeAt;
+    private volatile Long lastTombstoneHorizon;
+
     private final Node node;
     private final ClusterManager clusterManager;
     private final String distributedSyncRepoType;
@@ -109,6 +135,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final ApiProductMapper apiProductMapper;
     private final CredentialMapper credentialMapper;
     private final DistributedSyncMetrics metrics;
+    private final DistributedSyncSettings settings;
 
     @Override
     public void validate() {
@@ -172,6 +199,9 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         replayRequired.set(false);
         distributionFailed.set(false);
         replayCycle = false;
+        resyncPending.set(false);
+        resyncCycle = false;
+        stateStoredByThisNode = false;
     }
 
     @Override
@@ -183,7 +213,10 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public Completable ready() {
         return distributedSyncStateRepository
             .ready()
-            .onErrorResumeNext(throwable -> Completable.error(new DistributedSyncException("Distributed Sync repository is not ready.")));
+            .andThen(distributedEventRepository.ensureSearchable())
+            .onErrorResumeNext(throwable ->
+                Completable.error(new DistributedSyncException("Distributed Sync repository is not ready.", throwable))
+            );
     }
 
     @Override
@@ -193,6 +226,87 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 return distributedSyncStateRepository.findByClusterId(clusterManager.clusterId());
             }
             return Maybe.empty();
+        });
+    }
+
+    @Override
+    public Maybe<DistributedSyncState> sharedState() {
+        return Maybe.defer(() -> distributedSyncStateRepository.findByClusterId(clusterManager.clusterId()));
+    }
+
+    @Override
+    public Single<Boolean> catalogFullyIndexed() {
+        return distributedEventRepository.fullyIndexed();
+    }
+
+    @Override
+    public void requestResync(final String reason) {
+        if (!resyncPending.getAndSet(true)) {
+            log.info("A rebuild of the distributed sync catalog is required: {}", reason);
+        }
+    }
+
+    @Override
+    public boolean resyncInProgress() {
+        return resyncPending.get();
+    }
+
+    @Override
+    public void recordLocalDeployFailure() {
+        if (resyncCycle) {
+            localFailureDuringResync.set(true);
+        }
+    }
+
+    /**
+     * Detects that the catalog must be rebuilt (state lost, or left paused by a primary that died while rebuilding
+     * it) and starts the pending rebuild: the state is marked {@link DistributedSyncStatus#PAUSED} so that nodes
+     * that never synchronized wait instead of starting from a stale or partial catalog, and the cycle runs as a full
+     * synchronization re-distributing every entity. Stale entries are removed when the cycle stores its state.
+     */
+    @Override
+    public Single<Boolean> preparePrimaryCycle() {
+        return Single.defer(() -> {
+            if (!isPrimaryNode()) {
+                return Single.just(false);
+            }
+            return distributedSyncStateRepository
+                .findByClusterId(clusterManager.clusterId())
+                .map(Optional::of)
+                .defaultIfEmpty(Optional.empty())
+                .flatMap(storedState -> {
+                    storedState.map(DistributedSyncState::getResyncId).ifPresent(id -> knownResyncId.accumulateAndGet(id, Math::max));
+                    if (!resyncPending.get()) {
+                        if (storedState.isEmpty() && stateStoredByThisNode) {
+                            requestResync("the distributed sync state disappeared from the distributed repository");
+                        } else if (storedState.isPresent() && !storedState.get().active()) {
+                            requestResync("the catalog was left paused by node [" + storedState.get().getNodeId() + "]");
+                        }
+                    }
+                    if (!resyncPending.get()) {
+                        return Single.just(false);
+                    }
+                    return startResync().toSingleDefault(true);
+                });
+        });
+    }
+
+    private Completable startResync() {
+        return Completable.defer(() -> {
+            long resyncId = knownResyncId.get() + 1;
+            long startedAt = System.currentTimeMillis();
+            return distributedSyncStateRepository
+                .createOrUpdate(buildState(-1, startedAt, DistributedSyncStatus.PAUSED, resyncId, lastTombstoneHorizon))
+                .doOnComplete(() -> {
+                    knownResyncId.set(resyncId);
+                    resyncStartedAt = startedAt;
+                    resyncCycle = true;
+                    deadLettersAtResyncStart = metrics.deadLetters();
+                    localFailureDuringResync.set(false);
+                    stateStoredByThisNode = true;
+                    requestReplay();
+                    log.info("Rebuilding the distributed sync catalog (resync #{})", resyncId);
+                });
         });
     }
 
@@ -209,24 +323,113 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                     );
                 }
                 boolean storedByReplayCycle = replayCycle;
-                return distributedSyncStateRepository
-                    .createOrUpdate(
-                        DistributedSyncState.builder()
-                            .clusterId(clusterManager.clusterId())
-                            .nodeId(node.id())
-                            .nodeVersion(Version.RUNTIME_VERSION.toString())
-                            .from(fromTime)
-                            .to(toTime)
-                            .build()
+                boolean storedByResyncCycle = resyncCycle;
+                // The window endpoint (toTime) is the Redis server clock when fencing is on, otherwise the local
+                // clock: the tombstone horizon must use the same clock the secondaries compare their cursors
+                // against, or a skewed primary clock would make every secondary appear to lag behind the horizon.
+                long now = toTime >= 0 ? toTime : System.currentTimeMillis();
+                Long tombstoneHorizon = tombstonePurgeDue(now) ? now - settings.tombstoneRetentionMs() : null;
+                Long horizonToStore = tombstoneHorizon != null ? tombstoneHorizon : lastTombstoneHorizon;
+                Completable removeStaleEntries = storedByResyncCycle ? removeStaleEntries() : Completable.complete();
+                return removeStaleEntries
+                    .andThen(
+                        distributedSyncStateRepository.createOrUpdate(
+                            buildState(fromTime, toTime, DistributedSyncStatus.ACTIVE, knownResyncId.get(), horizonToStore)
+                        )
                     )
                     .doOnComplete(() -> {
+                        stateStoredByThisNode = true;
                         if (storedByReplayCycle && !distributionFailed.get()) {
                             replayRequired.set(false);
                         }
-                    });
+                        if (storedByResyncCycle) {
+                            resyncPending.set(false);
+                            resyncCycle = false;
+                            log.info("The distributed sync catalog has been rebuilt (resync #{})", knownResyncId.get());
+                        }
+                    })
+                    .andThen(tombstoneHorizon != null ? purgeTombstones(tombstoneHorizon) : Completable.complete());
             }
             return Completable.complete();
         });
+    }
+
+    /**
+     * After a full republish every entity still in the catalog has been rewritten, so a DEPLOY event older than the
+     * rebuild belongs to an entity that no longer exists (stopped API, revoked API key, closed subscription...). It
+     * is turned into an UNDEPLOY event: secondaries already serving remove it through their incremental sync, and
+     * nodes starting from scratch never deploy it.
+     * <p>
+     * Skipped when the rebuild could not re-distribute everything (an entity failed to deploy or to be mapped):
+     * its previous event is then the best information the other gateways have.
+     */
+    private Completable removeStaleEntries() {
+        return Completable.defer(() -> {
+            if (localFailureDuringResync.get() || metrics.deadLetters() != deadLettersAtResyncStart) {
+                log.warn("Some entities could not be re-distributed while rebuilding the distributed sync catalog, stale entries are kept");
+                metrics.recordSkippedStaleEntriesRemoval();
+                return Completable.complete();
+            }
+            return distributedEventRepository
+                .undeployNotUpdatedSince(clusterManager.clusterId(), SWEPT_EVENT_TYPES, new Date(resyncStartedAt))
+                .doOnSuccess(count -> {
+                    metrics.recordStaleEntriesRemoved(count);
+                    log.info("{} stale distributed sync entries have been marked as undeployed", count);
+                })
+                .ignoreElement()
+                .onErrorResumeNext(throwable -> {
+                    if (throwable instanceof UnsupportedOperationException) {
+                        log.warn("The distributed sync repository cannot remove stale entries, they are kept: {}", throwable.getMessage());
+                        return Completable.complete();
+                    }
+                    return Completable.error(
+                        new DistributedSyncTransientException("Unable to remove stale distributed sync entries", throwable)
+                    );
+                });
+        });
+    }
+
+    private boolean tombstonePurgeDue(final long now) {
+        return settings.tombstoneRetentionMs() > 0 && now - lastTombstonePurgeAt >= settings.tombstonePurgeIntervalMs();
+    }
+
+    /**
+     * The horizon is stored before the events are deleted, so a secondary that lagged behind it knows it may have
+     * missed removals and performs a full synchronization.
+     */
+    private Completable purgeTombstones(final long horizon) {
+        return distributedEventRepository
+            .deleteUndeployedBefore(clusterManager.clusterId(), new Date(horizon))
+            .doOnSuccess(count -> {
+                lastTombstonePurgeAt = System.currentTimeMillis();
+                lastTombstoneHorizon = horizon;
+                log.debug("{} distributed sync removal events older than the retention have been purged", count);
+            })
+            .ignoreElement()
+            .onErrorResumeNext(throwable -> {
+                log.warn("Unable to purge old distributed sync removal events, it will be retried", throwable);
+                return Completable.complete();
+            });
+    }
+
+    private DistributedSyncState buildState(
+        final long fromTime,
+        final long toTime,
+        final DistributedSyncStatus status,
+        final long resyncId,
+        final Long tombstoneHorizon
+    ) {
+        return DistributedSyncState.builder()
+            .clusterId(clusterManager.clusterId())
+            .nodeId(node.id())
+            .nodeVersion(Version.RUNTIME_VERSION.toString())
+            .from(fromTime)
+            .to(toTime)
+            .status(status)
+            .resyncId(resyncId > 0 ? resyncId : null)
+            .heartbeatAt(System.currentTimeMillis())
+            .tombstoneHorizon(tombstoneHorizon)
+            .build();
     }
 
     @Override

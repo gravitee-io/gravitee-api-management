@@ -31,6 +31,7 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscri
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import java.util.Optional;
 
 /**
@@ -86,6 +87,46 @@ public interface DistributedSyncService {
     default Optional<DistributedSyncMetrics> metrics() {
         return Optional.empty();
     }
+
+    /**
+     * The state published by the primary, read whatever the role of this node.
+     */
+    default Maybe<DistributedSyncState> sharedState() {
+        return Maybe.empty();
+    }
+
+    /**
+     * Whether every distributed event is visible to searches: a node synchronizing from scratch must not trust a
+     * search structure still being rebuilt.
+     */
+    default Single<Boolean> catalogFullyIndexed() {
+        return Single.just(true);
+    }
+
+    /**
+     * Requests a rebuild of the whole distributed catalog by the primary: full republish, then removal of the
+     * entries that are no longer live.
+     */
+    default void requestResync(final String reason) {}
+
+    default boolean resyncInProgress() {
+        return false;
+    }
+
+    /**
+     * Called at the beginning of a primary cycle.
+     *
+     * @return whether this cycle rebuilds the catalog, i.e. must run as a full synchronization
+     */
+    default Single<Boolean> preparePrimaryCycle() {
+        return Single.just(false);
+    }
+
+    /**
+     * An entity could not be deployed locally by the primary: a catalog rebuild running in the same cycle must not
+     * remove its previous entry.
+     */
+    default void recordLocalDeployFailure() {}
 
     Completable distributeIfNeeded(final ApiReactorDeployable deployable);
 

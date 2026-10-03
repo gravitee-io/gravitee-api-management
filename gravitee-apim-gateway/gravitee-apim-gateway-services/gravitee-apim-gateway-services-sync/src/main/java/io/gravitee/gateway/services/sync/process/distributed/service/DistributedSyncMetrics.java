@@ -43,6 +43,8 @@ public class DistributedSyncMetrics {
     private final AtomicLong distributionFailures = new AtomicLong();
     private final AtomicLong replayedCycles = new AtomicLong();
     private final AtomicLong heldWindows = new AtomicLong();
+    private final AtomicLong staleEntriesRemoved = new AtomicLong();
+    private final AtomicLong skippedStaleEntriesRemovals = new AtomicLong();
     private final Map<DistributedEventType, AtomicLong> deadLettersByType = Collections.synchronizedMap(
         new EnumMap<>(DistributedEventType.class)
     );
@@ -87,6 +89,22 @@ public class DistributedSyncMetrics {
 
     public void recordHeldWindow() {
         heldWindows.incrementAndGet();
+    }
+
+    public void recordStaleEntriesRemoved(final long count) {
+        staleEntriesRemoved.addAndGet(count);
+    }
+
+    public void recordSkippedStaleEntriesRemoval() {
+        skippedStaleEntriesRemovals.incrementAndGet();
+    }
+
+    public long staleEntriesRemoved() {
+        return staleEntriesRemoved.get();
+    }
+
+    public long skippedStaleEntriesRemovals() {
+        return skippedStaleEntriesRemovals.get();
     }
 
     public long deadLetters() {

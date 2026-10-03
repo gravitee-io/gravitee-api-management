@@ -25,8 +25,10 @@ import io.gravitee.gateway.services.sync.process.distributed.service.NoopDistrib
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
 import io.gravitee.node.api.Node;
 import io.gravitee.repository.distributedsync.model.DistributedSyncState;
+import io.gravitee.repository.distributedsync.model.DistributedSyncStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.plugins.RxJavaPlugins;
 import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.vertx.ext.web.Route;
@@ -70,8 +72,9 @@ class DefaultSyncManagerTest {
     @BeforeEach
     public void beforeEach() {
         lenient().when(node.metadata()).thenReturn(Map.of(Node.META_ENVIRONMENTS, Set.of("env")));
-        when(router.get(any())).thenReturn(route);
-        when(route.produces(any())).thenReturn(route);
+        lenient().when(router.get(any())).thenReturn(route);
+        lenient().when(route.produces(any())).thenReturn(route);
+        lenient().when(router.post(any())).thenReturn(route);
         cut = new DefaultSyncManager(router, node, synchronizers, null, new NoopDistributedSyncService(), 5, TimeUnit.SECONDS, 1);
     }
 
@@ -91,7 +94,7 @@ class DefaultSyncManagerTest {
 
     @Test
     void should_perform_full_initial_sync_on_primary_cold_start_even_with_existing_distributed_state() throws Exception {
-        DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+        DistributedSyncService distributedSyncService = distributedSyncService();
         when(distributedSyncService.isEnabled()).thenReturn(true);
         when(distributedSyncService.isPrimaryNode()).thenReturn(true);
         when(distributedSyncService.beginCycle()).thenReturn(true);
@@ -121,7 +124,7 @@ class DefaultSyncManagerTest {
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
             RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
 
-            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            DistributedSyncService distributedSyncService = distributedSyncService();
             when(distributedSyncService.isEnabled()).thenReturn(true);
             // Node starts as secondary (doStart + first cycle), then gets promoted to primary.
             when(distributedSyncService.isPrimaryNode()).thenReturn(false);
@@ -165,7 +168,7 @@ class DefaultSyncManagerTest {
 
     @Test
     void should_perform_full_initial_sync_when_secondary_is_promoted_before_completing_any_sync() throws Exception {
-        DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+        DistributedSyncService distributedSyncService = distributedSyncService();
         when(distributedSyncService.isEnabled()).thenReturn(true);
         // Node starts as secondary but the primary dies before the first sync cycle runs.
         when(distributedSyncService.isPrimaryNode()).thenReturn(false);
@@ -196,7 +199,7 @@ class DefaultSyncManagerTest {
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
             RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
 
-            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            DistributedSyncService distributedSyncService = distributedSyncService();
             when(distributedSyncService.isEnabled()).thenReturn(true);
             when(distributedSyncService.isPrimaryNode()).thenReturn(false);
             when(distributedSyncService.beginCycle()).thenReturn(false, true);
@@ -241,7 +244,7 @@ class DefaultSyncManagerTest {
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
             RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
 
-            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            DistributedSyncService distributedSyncService = distributedSyncService();
             when(distributedSyncService.isEnabled()).thenReturn(true);
             when(distributedSyncService.isPrimaryNode()).thenReturn(false);
             when(distributedSyncService.beginCycle()).thenReturn(false, true, false, true);
@@ -285,7 +288,7 @@ class DefaultSyncManagerTest {
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
             RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
 
-            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            DistributedSyncService distributedSyncService = distributedSyncService();
             when(distributedSyncService.isEnabled()).thenReturn(true);
             when(distributedSyncService.isPrimaryNode()).thenReturn(false);
             when(distributedSyncService.beginCycle()).thenReturn(false, true);
@@ -334,7 +337,7 @@ class DefaultSyncManagerTest {
             RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
             RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
 
-            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            DistributedSyncService distributedSyncService = distributedSyncService();
             when(distributedSyncService.isEnabled()).thenReturn(true);
             when(distributedSyncService.isPrimaryNode()).thenReturn(false);
             when(distributedSyncService.beginCycle()).thenReturn(false);
@@ -369,6 +372,247 @@ class DefaultSyncManagerTest {
         } finally {
             RxJavaPlugins.reset();
         }
+    }
+
+    @Test
+    void should_stay_not_ready_while_no_primary_published_a_catalog() throws Exception {
+        DistributedSyncService distributedSyncService = distributedSyncService();
+        when(distributedSyncService.isEnabled()).thenReturn(true);
+        when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+        when(distributedSyncService.beginCycle()).thenReturn(false);
+        when(distributedSyncService.ready()).thenReturn(Completable.complete());
+        doReturn(Maybe.empty()).when(distributedSyncService).sharedState();
+        DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+
+        cut = new DefaultSyncManager(
+            router,
+            node,
+            synchronizers,
+            new ArrayList<>(List.of(distributedSynchronizer)),
+            distributedSyncService,
+            5,
+            TimeUnit.SECONDS,
+            1
+        );
+        cut.start();
+
+        assertThat(cut.syncDone()).isFalse();
+        verify(distributedSynchronizer, never()).synchronize(any(), any());
+    }
+
+    @Test
+    void should_wait_while_the_primary_rebuilds_the_catalog_then_synchronize() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = distributedSyncService();
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+            doReturn(
+                Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.PAUSED).build()),
+                Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.ACTIVE).build())
+            )
+                .when(distributedSyncService)
+                .sharedState();
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+            assertThat(cut.syncDone()).isFalse();
+            verify(distributedSynchronizer, never()).synchronize(any(), any());
+
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            verify(distributedSynchronizer).synchronize(eq(-1L), any());
+            assertThat(cut.syncDone()).isTrue();
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_keep_applying_changes_while_paused_once_already_synchronized() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = distributedSyncService();
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+            doReturn(
+                Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.ACTIVE).build()),
+                Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.PAUSED).build())
+            )
+                .when(distributedSyncService)
+                .sharedState();
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            verify(distributedSynchronizer, times(2)).synchronize(any(), any());
+            assertThat(cut.syncDone()).isTrue();
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_wait_for_the_index_to_be_complete_before_a_full_synchronization() throws Exception {
+        DistributedSyncService distributedSyncService = distributedSyncService();
+        when(distributedSyncService.isEnabled()).thenReturn(true);
+        when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+        when(distributedSyncService.beginCycle()).thenReturn(false);
+        when(distributedSyncService.ready()).thenReturn(Completable.complete());
+        doReturn(Single.just(false)).when(distributedSyncService).catalogFullyIndexed();
+        DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+
+        cut = new DefaultSyncManager(
+            router,
+            node,
+            synchronizers,
+            new ArrayList<>(List.of(distributedSynchronizer)),
+            distributedSyncService,
+            5,
+            TimeUnit.SECONDS,
+            1
+        );
+        cut.start();
+
+        assertThat(cut.syncDone()).isFalse();
+        verify(distributedSynchronizer, never()).synchronize(any(), any());
+    }
+
+    @Test
+    void should_perform_a_full_synchronization_when_lagging_behind_the_removal_events_retention() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = distributedSyncService();
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+            doReturn(
+                Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.ACTIVE).build()),
+                Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.ACTIVE).tombstoneHorizon(Long.MAX_VALUE).build())
+            )
+                .when(distributedSyncService)
+                .sharedState();
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            verify(distributedSynchronizer, times(2)).synchronize(eq(-1L), any());
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_request_a_catalog_rebuild_when_a_primary_starts_with_nothing_deployed() throws Exception {
+        DistributedSyncService distributedSyncService = distributedSyncService();
+        when(distributedSyncService.isEnabled()).thenReturn(true);
+        when(distributedSyncService.isPrimaryNode()).thenReturn(true);
+        when(distributedSyncService.beginCycle()).thenReturn(true);
+        when(distributedSyncService.ready()).thenReturn(Completable.complete());
+        when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+        RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+        synchronizers.add(synchronizer);
+
+        cut = new DefaultSyncManager(router, node, synchronizers, null, distributedSyncService, 5, TimeUnit.SECONDS, 1);
+        cut.start();
+
+        verify(distributedSyncService).requestResync(any());
+        verify(distributedSyncService).preparePrimaryCycle();
+    }
+
+    @Test
+    void should_run_a_full_synchronization_when_the_primary_starts_a_catalog_rebuild() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = distributedSyncService();
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(true);
+            when(distributedSyncService.beginCycle()).thenReturn(true);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+            doReturn(Single.just(false), Single.just(true)).when(distributedSyncService).preparePrimaryCycle();
+            RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+            synchronizers.add(synchronizer);
+
+            cut = new DefaultSyncManager(router, node, synchronizers, null, distributedSyncService, 5, TimeUnit.SECONDS, 1);
+            cut.start();
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            verify(synchronizer, times(2)).synchronize(eq(-1L), any(), anySet());
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_only_accept_a_catalog_rebuild_request_on_the_primary() throws Exception {
+        DistributedSyncService distributedSyncService = distributedSyncService();
+        when(distributedSyncService.isEnabled()).thenReturn(true);
+        when(distributedSyncService.isPrimaryNode()).thenReturn(false, true);
+        cut = new DefaultSyncManager(router, node, synchronizers, null, distributedSyncService, 5, TimeUnit.SECONDS, 1);
+
+        assertThat(cut.requestDistributedResync()).isFalse();
+        assertThat(cut.requestDistributedResync()).isTrue();
+        verify(distributedSyncService).requestResync(any());
     }
 
     @Test
@@ -516,5 +760,17 @@ class DefaultSyncManagerTest {
         } finally {
             RxJavaPlugins.reset();
         }
+    }
+
+    private static DistributedSyncService distributedSyncService() {
+        DistributedSyncService distributedSyncService = mock(
+            DistributedSyncService.class,
+            withSettings().defaultAnswer(CALLS_REAL_METHODS)
+        );
+        lenient()
+            .doReturn(Maybe.just(DistributedSyncState.builder().status(DistributedSyncStatus.ACTIVE).build()))
+            .when(distributedSyncService)
+            .sharedState();
+        return distributedSyncService;
     }
 }
