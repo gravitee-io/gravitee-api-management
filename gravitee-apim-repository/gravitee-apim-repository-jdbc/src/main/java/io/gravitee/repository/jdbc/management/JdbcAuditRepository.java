@@ -233,8 +233,7 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
         addStringsWhereClause(filter.getEvents(), "event", argsList, builder, started);
 
         String whereClause = builder.toString();
-        String countSql =
-            "SELECT COUNT(*) FROM " + this.tableName + " a LEFT JOIN " + AUDIT_PROPERTIES + " ap ON a.id = ap.audit_id " + whereClause;
+        String countSql = "SELECT COUNT(*) FROM " + this.tableName + " a " + whereClause;
         log.debug("Count SQL: {}", countSql);
         Long total = jdbcTemplate.queryForObject(countSql, argsList.toArray(), Long.class);
         log.debug("Total records found: {}", total);
@@ -294,14 +293,17 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
 
     private boolean addPropertiesWhereClause(AuditCriteria filter, List<Object> argsList, StringBuilder builder, boolean started) {
         if ((filter.getProperties() != null) && !filter.getProperties().isEmpty()) {
-            builder.append(" left join " + AUDIT_PROPERTIES + " prop on prop.audit_id = a.id ");
-            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE);
-            builder.append("(");
-            boolean first = true;
+            StringJoiner propertyConditions = new StringJoiner(
+                " or ",
+                "a.id in ( select prop.audit_id from " + AUDIT_PROPERTIES + " prop where ",
+                " )"
+            );
             for (Entry<String, String> property : filter.getProperties().entrySet()) {
-                first = addCondition(first, builder, property.getKey(), property.getValue(), argsList);
+                propertyConditions.add("( prop." + escapeReservedWord("key") + " = ? and prop.value = ? )");
+                argsList.add(property.getKey());
+                argsList.add(property.getValue());
             }
-            builder.append(")");
+            builder.append(started ? AND_CLAUSE : WHERE_CLAUSE).append(propertyConditions);
             started = true;
         }
         return started;
