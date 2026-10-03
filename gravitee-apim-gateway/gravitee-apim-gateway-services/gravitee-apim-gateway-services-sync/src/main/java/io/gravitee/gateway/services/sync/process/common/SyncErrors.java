@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.common;
 
+import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncTransientException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -28,14 +29,18 @@ public final class SyncErrors {
     private SyncErrors() {}
 
     /**
-     * A failure is transient (retryable) when a repository {@link TechnicalException} appears anywhere in its
-     * cause chain: the backing store was momentarily unreachable and a later attempt can succeed. Every other
+     * A failure is transient (retryable) when a repository {@link TechnicalException} or a
+     * {@link DistributedSyncTransientException} appears anywhere in its cause chain: the backing store (or the
+     * distributed sync repository) was momentarily unreachable and a later attempt can succeed. Every other
      * failure is deterministic and would fail identically on retry, so it is treated as permanent.
      * <p>
      * The whole chain is scanned (not only the most-specific cause): a {@link TechnicalException} usually
      * wraps the underlying driver exception (Mongo/JDBC/...), so the innermost cause is not the one we test.
      */
     public static boolean isTransient(final Throwable throwable) {
-        return ExceptionUtils.throwableOfType(throwable, TechnicalException.class) != null;
+        return (
+            ExceptionUtils.throwableOfType(throwable, TechnicalException.class) != null ||
+            ExceptionUtils.throwableOfType(throwable, DistributedSyncTransientException.class) != null
+        );
     }
 }

@@ -34,6 +34,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.Organization
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
@@ -66,6 +67,11 @@ import org.springframework.context.annotation.Lazy;
 @Configuration
 @Conditional(DistributedSyncEnabledCondition.class)
 public class DistributedSyncConfiguration {
+
+    @Bean
+    public DistributedSyncMetrics distributedSyncMetrics() {
+        return new DistributedSyncMetrics();
+    }
 
     @Bean
     public ApiMapper distributedApiMapper(ObjectMapper objectMapper, SubscriptionMapper subscriptionMapper, ApiKeyMapper apiKeyMapper) {
@@ -381,7 +387,8 @@ public class DistributedSyncConfiguration {
         final AuthzEntityMapper authzEntityMapper,
         final AuthzPolicyMapper authzPolicyMapper,
         final ApiProductMapper apiProductMapper,
-        final CredentialMapper credentialMapper
+        final CredentialMapper credentialMapper,
+        final DistributedSyncMetrics distributedSyncMetrics
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -401,7 +408,8 @@ public class DistributedSyncConfiguration {
             authzEntityMapper,
             authzPolicyMapper,
             apiProductMapper,
-            credentialMapper
+            credentialMapper,
+            distributedSyncMetrics
         );
     }
 }

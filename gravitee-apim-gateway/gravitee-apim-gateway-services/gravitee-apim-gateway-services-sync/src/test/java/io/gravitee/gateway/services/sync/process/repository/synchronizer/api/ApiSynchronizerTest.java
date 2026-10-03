@@ -34,12 +34,14 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
@@ -274,6 +276,63 @@ class ApiSynchronizerTest {
             verify(subscriptionDeployer).doAfterDeployment(any());
             verify(apiKeyDeployer).deploy(any());
             verify(apiKeyDeployer).doAfterDeployment(any());
+        }
+
+        @Test
+        void should_republish_an_up_to_date_api_without_redeploying_it_when_a_replay_is_required()
+            throws InterruptedException, JsonProcessingException {
+            Event event = new Event();
+            event.setId("api");
+            event.setPayload(objectMapper.writeValueAsString(repoApi));
+            event.setType(PUBLISH_API);
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.republishRequired()).thenReturn(true);
+            when(deployerFactory.distributedSyncService()).thenReturn(distributedSyncService);
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.NONE);
+            when(apiManager.get("api")).thenReturn(mock(ReactableApi.class));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(apiDeployer).doAfterDeployment(argThat(ApiReactorDeployable::republishOnly));
+            verify(apiDeployer, never()).deploy(any());
+            verify(subscriptionDeployer, never()).deploy(any());
+            verify(apiKeyDeployer, never()).deploy(any());
+        }
+
+        @Test
+        void should_ignore_an_up_to_date_api_when_no_replay_is_required() throws InterruptedException, JsonProcessingException {
+            Event event = new Event();
+            event.setId("api");
+            event.setPayload(objectMapper.writeValueAsString(repoApi));
+            event.setType(PUBLISH_API);
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.republishRequired()).thenReturn(false);
+            when(deployerFactory.distributedSyncService()).thenReturn(distributedSyncService);
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.NONE);
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verifyNoInteractions(apiDeployer);
+        }
+
+        @Test
+        void should_not_republish_an_api_that_is_not_deployed_locally() throws InterruptedException, JsonProcessingException {
+            Event event = new Event();
+            event.setId("api");
+            event.setPayload(objectMapper.writeValueAsString(repoApi));
+            event.setType(PUBLISH_API);
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.republishRequired()).thenReturn(true);
+            when(deployerFactory.distributedSyncService()).thenReturn(distributedSyncService);
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            when(apiManager.requiredActionFor(argThat(argument -> argument.getId().equals("api")))).thenReturn(ActionOnApi.NONE);
+            when(apiManager.get("api")).thenReturn(null);
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verifyNoInteractions(apiDeployer);
         }
 
         @Test

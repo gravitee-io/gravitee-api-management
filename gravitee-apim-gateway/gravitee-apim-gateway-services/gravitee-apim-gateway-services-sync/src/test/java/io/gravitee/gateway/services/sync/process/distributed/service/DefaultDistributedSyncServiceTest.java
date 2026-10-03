@@ -30,6 +30,7 @@ import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
+import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
@@ -43,6 +44,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.Organization
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
+import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncTransientException;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
@@ -132,7 +134,8 @@ class DefaultDistributedSyncServiceTest {
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzEntityMapper(objectMapper),
             new io.gravitee.gateway.services.sync.process.distributed.mapper.AuthzPolicyMapper(objectMapper),
             new ApiProductMapper(objectMapper),
-            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper)
+            new io.gravitee.gateway.services.sync.process.distributed.mapper.CredentialMapper(objectMapper),
+            new DistributedSyncMetrics()
         );
     }
 
@@ -171,7 +174,8 @@ class DefaultDistributedSyncServiceTest {
                 null,
                 null,
                 null,
-                null
+                null,
+                new DistributedSyncMetrics()
             );
             assertThrows(SyncException.class, () -> cut.validate());
         }
@@ -457,6 +461,124 @@ class DefaultDistributedSyncServiceTest {
             // The failure flag is reset: the next cycle can store its state again
             when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
             cut.storeState(1L, 2L).test().assertComplete();
+        }
+
+        @Test
+        void should_raise_a_transient_error_when_a_distribution_fails() {
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(Completable.error(new RuntimeException("connection reset")));
+
+            cut
+                .distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build())
+                .test()
+                .assertError(throwable -> throwable instanceof DistributedSyncTransientException && SyncErrors.isTransient(throwable));
+        }
+
+        @Test
+        void should_replay_the_next_cycle_after_a_distribution_failure() {
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(Completable.error(new RuntimeException("connection reset")));
+
+            assertThat(cut.beginCycle()).isTrue();
+            assertThat(cut.republishRequired()).isFalse();
+            cut.distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build()).test();
+            cut.storeState(1L, 2L).test().assertError(DistributedSyncException.class);
+            cut.endCycle();
+
+            assertThat(cut.beginCycle()).isTrue();
+            assertThat(cut.republishRequired()).isTrue();
+        }
+
+        @Test
+        void should_stop_replaying_once_a_replay_cycle_stored_its_state() {
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(
+                Completable.error(new RuntimeException("connection reset")),
+                Completable.complete()
+            );
+            when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
+
+            cut.beginCycle();
+            cut.distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build()).test();
+            cut.storeState(1L, 2L).test().assertError(DistributedSyncException.class);
+            cut.endCycle();
+
+            cut.beginCycle();
+            cut.distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build()).test().assertComplete();
+            cut.storeState(1L, 3L).test().assertComplete();
+            cut.endCycle();
+
+            cut.beginCycle();
+            assertThat(cut.republishRequired()).isFalse();
+        }
+
+        @Test
+        void should_keep_replaying_when_the_replay_cycle_fails_again() {
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(Completable.error(new RuntimeException("connection reset")));
+
+            cut.beginCycle();
+            cut.distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build()).test();
+            cut.storeState(1L, 2L).test().assertError(DistributedSyncException.class);
+            cut.endCycle();
+
+            cut.beginCycle();
+            cut.distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build()).test();
+            cut.storeState(1L, 3L).test().assertError(DistributedSyncException.class);
+            cut.endCycle();
+
+            cut.beginCycle();
+            assertThat(cut.republishRequired()).isTrue();
+        }
+
+        @Test
+        void should_replay_immediately_when_requested_during_a_primary_cycle() {
+            cut.beginCycle();
+            cut.requestReplay();
+
+            assertThat(cut.republishRequired()).isTrue();
+        }
+
+        @Test
+        void should_forget_a_pending_replay_on_demotion() {
+            cut.requestReplay();
+            cut.onDemotion();
+
+            cut.beginCycle();
+            assertThat(cut.republishRequired()).isFalse();
+        }
+
+        @Test
+        void should_never_replay_on_a_secondary_cycle() {
+            cut.requestReplay();
+            when(member.primary()).thenReturn(false);
+
+            assertThat(cut.beginCycle()).isFalse();
+            assertThat(cut.republishRequired()).isFalse();
+        }
+
+        @Test
+        void should_keep_the_role_sampled_at_cycle_start_until_the_cycle_ends() {
+            when(member.primary()).thenReturn(true, false);
+            when(distributedSyncStateRepository.createOrUpdate(any())).thenReturn(Completable.complete());
+
+            assertThat(cut.beginCycle()).isTrue();
+            assertThat(cut.isPrimaryNode()).isTrue();
+            cut.storeState(1L, 2L).test().assertComplete();
+            verify(distributedSyncStateRepository).createOrUpdate(any());
+
+            cut.endCycle();
+            assertThat(cut.isPrimaryNode()).isFalse();
+        }
+
+        @Test
+        void should_count_distribution_failures_and_replayed_cycles() {
+            when(distributedEventRepository.createOrUpdate(any())).thenReturn(Completable.error(new RuntimeException("connection reset")));
+
+            cut.beginCycle();
+            cut.distributeIfNeeded(SingleSubscriptionDeployable.builder().subscription(new Subscription()).build()).test();
+            cut.endCycle();
+            cut.beginCycle();
+
+            DistributedSyncMetrics metrics = cut.metrics().orElseThrow();
+            assertThat(metrics.distributionFailures()).isEqualTo(1);
+            assertThat(metrics.replayedCycles()).isEqualTo(1);
         }
     }
 }

@@ -94,6 +94,7 @@ class DefaultSyncManagerTest {
         DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
         when(distributedSyncService.isEnabled()).thenReturn(true);
         when(distributedSyncService.isPrimaryNode()).thenReturn(true);
+        when(distributedSyncService.beginCycle()).thenReturn(true);
         when(distributedSyncService.ready()).thenReturn(Completable.complete());
         lenient()
             .when(distributedSyncService.state())
@@ -123,7 +124,8 @@ class DefaultSyncManagerTest {
             DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
             when(distributedSyncService.isEnabled()).thenReturn(true);
             // Node starts as secondary (doStart + first cycle), then gets promoted to primary.
-            when(distributedSyncService.isPrimaryNode()).thenReturn(false, false, false, true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false, true);
             when(distributedSyncService.ready()).thenReturn(Completable.complete());
             when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
             when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
@@ -149,11 +151,12 @@ class DefaultSyncManagerTest {
             verify(distributedSynchronizer).synchronize(eq(-1L), any());
 
             // Promotion happens on the next cycle: the node is already warm, so it resumes the
-            // repository sync from the window stored by the previous primary.
+            // repository sync from the window stored by the previous primary, in replay mode.
             testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
             testScheduler.triggerActions();
 
             verify(distributedSyncService).state();
+            verify(distributedSyncService).requestReplay();
             verify(synchronizer).synchronize(eq(1_000L), any(), anySet());
         } finally {
             RxJavaPlugins.reset();
@@ -165,7 +168,8 @@ class DefaultSyncManagerTest {
         DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
         when(distributedSyncService.isEnabled()).thenReturn(true);
         // Node starts as secondary but the primary dies before the first sync cycle runs.
-        when(distributedSyncService.isPrimaryNode()).thenReturn(false, true);
+        when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+        when(distributedSyncService.beginCycle()).thenReturn(true);
         when(distributedSyncService.ready()).thenReturn(Completable.complete());
         lenient()
             .when(distributedSyncService.state())
@@ -181,7 +185,146 @@ class DefaultSyncManagerTest {
         // Nothing is deployed yet, so the promotion must not resume from the stored state.
         verify(synchronizer).synchronize(eq(-1L), any(), anySet());
         verify(distributedSyncService, never()).state();
+        verify(distributedSyncService).requestReplay();
         assertThat(cut.syncDone()).isTrue();
+    }
+
+    @Test
+    void should_perform_full_synchronization_when_promoted_without_any_stored_state() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false, true);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.state()).thenReturn(Maybe.empty());
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+
+            RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+            synchronizers.add(synchronizer);
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+            verify(distributedSynchronizer).synchronize(eq(-1L), any());
+
+            testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+            testScheduler.triggerActions();
+
+            // No state (empty or lost distributed repository): the incremental window of a secondary would only
+            // publish recent changes, so the promoted node republishes the whole catalog.
+            verify(synchronizer).synchronize(eq(-1L), any(), anySet());
+            verify(distributedSyncService).requestReplay();
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_read_the_stored_state_again_when_promoted_after_a_demotion() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false, true, false, true);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(Completable.complete());
+
+            RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+            synchronizers.add(synchronizer);
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+            for (int i = 0; i < 3; i++) {
+                testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+                testScheduler.triggerActions();
+            }
+
+            verify(distributedSyncService).onDemotion();
+            verify(distributedSyncService, times(2)).state();
+            verify(synchronizer, times(2)).synchronize(eq(1_000L), any(), anySet());
+        } finally {
+            RxJavaPlugins.reset();
+        }
+    }
+
+    @Test
+    void should_keep_the_promotion_pending_when_the_promoted_cycle_fails() throws Exception {
+        try {
+            final TestScheduler testScheduler = new TestScheduler();
+            RxJavaPlugins.setComputationSchedulerHandler(s -> testScheduler);
+            RxJavaPlugins.setIoSchedulerHandler(s -> testScheduler);
+
+            DistributedSyncService distributedSyncService = mock(DistributedSyncService.class);
+            when(distributedSyncService.isEnabled()).thenReturn(true);
+            when(distributedSyncService.isPrimaryNode()).thenReturn(false);
+            when(distributedSyncService.beginCycle()).thenReturn(false, true);
+            when(distributedSyncService.ready()).thenReturn(Completable.complete());
+            when(distributedSyncService.state()).thenReturn(Maybe.just(DistributedSyncState.builder().from(1_000L).to(2_000L).build()));
+            // First call is the secondary cycle, second one the promoted cycle.
+            when(distributedSyncService.storeState(anyLong(), anyLong())).thenReturn(
+                Completable.complete(),
+                Completable.error(new RuntimeException("redis down")),
+                Completable.complete()
+            );
+
+            RepositorySynchronizer synchronizer = spy(new FakeSynchronizer(Completable.complete(), 1));
+            synchronizers.add(synchronizer);
+            DistributedSynchronizer distributedSynchronizer = mock(DistributedSynchronizer.class);
+            when(distributedSynchronizer.synchronize(any(), any())).thenReturn(Completable.complete());
+
+            cut = new DefaultSyncManager(
+                router,
+                node,
+                synchronizers,
+                new ArrayList<>(List.of(distributedSynchronizer)),
+                distributedSyncService,
+                5,
+                TimeUnit.SECONDS,
+                1
+            );
+            cut.start();
+            for (int i = 0; i < 2; i++) {
+                testScheduler.advanceTimeBy(5, TimeUnit.SECONDS);
+                testScheduler.triggerActions();
+            }
+
+            // The first promoted cycle could not store its state: the next cycle is still a promotion.
+            verify(distributedSyncService, times(2)).state();
+            verify(distributedSyncService, times(2)).requestReplay();
+        } finally {
+            RxJavaPlugins.reset();
+        }
     }
 
     @Test

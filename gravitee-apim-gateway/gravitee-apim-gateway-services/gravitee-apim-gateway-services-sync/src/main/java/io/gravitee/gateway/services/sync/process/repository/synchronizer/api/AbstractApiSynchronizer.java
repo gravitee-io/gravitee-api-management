@@ -17,12 +17,14 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.handlers.api.manager.ApiManager;
+import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
@@ -108,15 +110,17 @@ public abstract class AbstractApiSynchronizer {
     ) {
         return eventsByType
             .flatMapMaybe(apiMapper::to)
-            .groupBy(apiManager::requiredActionFor)
+            .groupBy(this::requiredDecisionFor)
             .flatMap(reactableByAction -> {
-                if (reactableByAction.getKey() == ActionOnApi.DEPLOY) {
+                if (reactableByAction.getKey() == Decision.DEPLOY || reactableByAction.getKey() == Decision.REPUBLISH) {
+                    boolean republishOnly = reactableByAction.getKey() == Decision.REPUBLISH;
                     return reactableByAction
                         .map(reactableApi ->
                             ApiReactorDeployable.builder()
                                 .apiId(reactableApi.getId())
                                 .syncAction(SyncAction.DEPLOY)
                                 .reactableApi(reactableApi)
+                                .republishOnly(republishOnly)
                                 .build()
                         )
                         .buffer(bulkEvents())
@@ -136,7 +140,7 @@ public abstract class AbstractApiSynchronizer {
                             appenderParallelism
                         )
                         .flatMapIterable(d -> d);
-                } else if (reactableByAction.getKey() == ActionOnApi.UNDEPLOY) {
+                } else if (reactableByAction.getKey() == Decision.UNDEPLOY) {
                     return reactableByAction.map(reactableApi ->
                         ApiReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).apiId(reactableApi.getId()).build()
                     );
@@ -144,6 +148,34 @@ public abstract class AbstractApiSynchronizer {
                     return Flowable.empty();
                 }
             });
+    }
+
+    /**
+     * An API that is already deployed and up-to-date locally needs no local action, but when the distributed sync
+     * asks for a republish (replayed window after a failed distribution, or a freshly promoted primary) its
+     * distribution must still be performed: the previous attempt may never have reached the distributed
+     * repository.
+     */
+    private Decision requiredDecisionFor(final ReactableApi<?> reactableApi) {
+        ActionOnApi action = apiManager.requiredActionFor(reactableApi);
+        if (action == ActionOnApi.DEPLOY) {
+            return Decision.DEPLOY;
+        }
+        if (action == ActionOnApi.UNDEPLOY) {
+            return Decision.UNDEPLOY;
+        }
+        DistributedSyncService distributedSyncService = deployerFactory.distributedSyncService();
+        if (distributedSyncService != null && distributedSyncService.republishRequired() && apiManager.get(reactableApi.getId()) != null) {
+            return Decision.REPUBLISH;
+        }
+        return Decision.NONE;
+    }
+
+    private enum Decision {
+        DEPLOY,
+        REPUBLISH,
+        UNDEPLOY,
+        NONE,
     }
 
     private Flowable<ApiReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
@@ -159,6 +191,12 @@ public abstract class AbstractApiSynchronizer {
         final ApiDeployer apiDeployer,
         final ApiReactorDeployable deployable
     ) {
+        if (deployable.republishOnly()) {
+            return apiDeployer
+                .doAfterDeployment(deployable)
+                .andThen(Flowable.just(deployable))
+                .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
+        }
         return subscriptionDeployer
             .deploy(deployable)
             .andThen(apiKeyDeployer.deploy(deployable))
