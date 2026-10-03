@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.reactor.accesspoint.ReactableAccessPoint;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -30,6 +31,11 @@ import lombok.RequiredArgsConstructor;
 public class AccessPointMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public AccessPointMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<AccessPointDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -40,8 +46,7 @@ public class AccessPointMapper {
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
             } catch (Exception e) {
-                log.warn("Error while determining access point into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -57,8 +62,7 @@ public class AccessPointMapper {
                     .updatedAt(new Date())
                     .build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from access point", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.ACCESS_POINT, deployable.id(), e);
             }
         });
     }

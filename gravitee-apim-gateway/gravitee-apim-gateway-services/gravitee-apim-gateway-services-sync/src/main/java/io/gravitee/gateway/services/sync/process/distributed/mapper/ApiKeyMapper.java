@@ -18,7 +18,7 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.services.sync.process.common.model.ApiKeyDeployable;
-import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -33,6 +33,11 @@ import lombok.RequiredArgsConstructor;
 public class ApiKeyMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public ApiKeyMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<SingleApiKeyDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -40,8 +45,7 @@ public class ApiKeyMapper {
                 final ApiKey apiKey = objectMapper.readValue(event.getPayload(), ApiKey.class);
                 return SingleApiKeyDeployable.builder().apiKey(apiKey).syncAction(SyncActionMapper.to(event.getSyncAction())).build();
             } catch (Exception e) {
-                log.warn("Error while determining apikey into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -57,13 +61,10 @@ public class ApiKeyMapper {
                         .updatedAt(new Date())
                         .refType(DistributedEventType.API)
                         .refId(deployable.apiId());
-                    if (deployable.syncAction() == SyncAction.DEPLOY) {
-                        builder.payload(objectMapper.writeValueAsString(apiKey));
-                    }
+                    builder.payload(objectMapper.writeValueAsString(apiKey));
                     return builder.build();
                 } catch (Exception e) {
-                    log.warn("Error while building distributed event from apikey", e);
-                    return null;
+                    return MappingFailures.deadLetter(metrics, DistributedEventType.API_KEY, apiKey.getId(), e);
                 }
             })
         );
