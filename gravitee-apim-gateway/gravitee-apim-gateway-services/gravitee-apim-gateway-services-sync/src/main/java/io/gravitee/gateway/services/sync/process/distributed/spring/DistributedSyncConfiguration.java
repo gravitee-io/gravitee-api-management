@@ -35,6 +35,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicy
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
@@ -53,8 +54,10 @@ import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -71,6 +74,26 @@ public class DistributedSyncConfiguration {
     @Bean
     public DistributedSyncMetrics distributedSyncMetrics() {
         return new DistributedSyncMetrics();
+    }
+
+    /**
+     * Connects every distributed synchronizer to the counters exposed on {@code /sync}. Static so this
+     * post-processor is registered early enough to see the synchronizer beans created below.
+     */
+    @Bean
+    public static BeanPostProcessor distributedSynchronizerMetricsBinder(final ObjectProvider<DistributedSyncMetrics> metrics) {
+        return new BeanPostProcessor() {
+            @Override
+            public Object postProcessBeforeInitialization(final Object bean, final String beanName) {
+                if (bean instanceof AbstractDistributedSynchronizer<?, ?> synchronizer) {
+                    DistributedSyncMetrics resolved = metrics.getIfAvailable();
+                    if (resolved != null) {
+                        synchronizer.bindMetrics(resolved);
+                    }
+                }
+                return bean;
+            }
+        };
     }
 
     @Bean

@@ -32,6 +32,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *   <li><b>decode failures</b>: distributed events a secondary could not turn back into an entity;</li>
  *   <li><b>distribution failures</b>: writes to the distributed sync repository that failed after retries
  *   (the sync window is replayed).</li>
+ *   <li><b>skipped after retries</b>: incremental cycles that stopped retrying a transient failure. One
+ *   increment is one event type on one cycle, not one entity.</li>
  * </ul>
  */
 public class DistributedSyncMetrics {
@@ -47,6 +49,9 @@ public class DistributedSyncMetrics {
         new EnumMap<>(DistributedEventType.class)
     );
     private final Map<DistributedEventType, AtomicLong> decodeFailuresByType = Collections.synchronizedMap(
+        new EnumMap<>(DistributedEventType.class)
+    );
+    private final Map<DistributedEventType, AtomicLong> skippedAfterRetriesByType = Collections.synchronizedMap(
         new EnumMap<>(DistributedEventType.class)
     );
     private final Map<String, Boolean> reportedFailures = Collections.synchronizedMap(
@@ -115,6 +120,22 @@ public class DistributedSyncMetrics {
 
     public Map<DistributedEventType, Long> decodeFailuresByType() {
         return snapshot(decodeFailuresByType);
+    }
+
+    /**
+     * A secondary gave up retrying a transient failure for this event type and let the sync window move on.
+     * The entities stay skipped until they change again.
+     */
+    public void recordSkippedAfterRetries(final DistributedEventType type) {
+        increment(skippedAfterRetriesByType, type);
+    }
+
+    public long skippedAfterRetries() {
+        return snapshot(skippedAfterRetriesByType).values().stream().mapToLong(Long::longValue).sum();
+    }
+
+    public Map<DistributedEventType, Long> skippedAfterRetriesByType() {
+        return snapshot(skippedAfterRetriesByType);
     }
 
     private boolean firstReport(final String key) {

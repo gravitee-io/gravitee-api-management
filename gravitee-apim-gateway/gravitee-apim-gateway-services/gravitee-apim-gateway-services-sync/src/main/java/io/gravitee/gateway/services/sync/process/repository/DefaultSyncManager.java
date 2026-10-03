@@ -22,6 +22,7 @@ import io.gravitee.common.service.AbstractService;
 import io.gravitee.common.utils.RxHelper;
 import io.gravitee.gateway.services.sync.SyncManager;
 import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.handler.SyncHandler;
 import io.gravitee.node.api.Node;
@@ -167,10 +168,12 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                     boolean primary = distributedSyncService.beginCycle();
                     cyclePrimary.set(primary);
                     if (primary && !actingPrimary.get()) {
+                        onDistributedRoleChanged();
                         return onPromotion();
                     }
                     if (!primary && actingPrimary.get()) {
                         log.info("Node is no longer the distributed sync primary, it now synchronizes from the distributed repository");
+                        onDistributedRoleChanged();
                         distributedSyncService.onDemotion();
                     }
                     return Single.just(System.currentTimeMillis());
@@ -208,7 +211,12 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                         lastSyncOnError.set(false);
                         lastSyncErrorMessage.set(null);
                         syncReadyForProbe.set(true);
-                        nextFromTime = nextToTime;
+                        if (distributedSyncService.isEnabled() && !cyclePrimary.get() && consumeHoldRequests()) {
+                            log.debug("Distributed sync window is held, the same events will be fetched again");
+                            distributedSyncService.metrics().ifPresent(DistributedSyncMetrics::recordHeldWindow);
+                        } else {
+                            nextFromTime = nextToTime;
+                        }
                         if (distributedSyncService.isEnabled()) {
                             actingPrimary.set(cyclePrimary.get());
                         }
@@ -269,6 +277,26 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                 })
             )
             .doOnSuccess(ignored -> distributedSyncService.requestReplay());
+    }
+
+    private void onDistributedRoleChanged() {
+        if (distributedSynchronizers == null) {
+            return;
+        }
+        for (DistributedSynchronizer synchronizer : distributedSynchronizers) {
+            synchronizer.onRoleChanged();
+        }
+    }
+
+    private boolean consumeHoldRequests() {
+        if (distributedSynchronizers == null) {
+            return false;
+        }
+        boolean hold = false;
+        for (DistributedSynchronizer synchronizer : distributedSynchronizers) {
+            hold |= synchronizer.consumeHoldRequest();
+        }
+        return hold;
     }
 
     private Completable retrySynchronizer(final Completable upstream, final String synchronizerClazz) {
