@@ -16,6 +16,7 @@
 package io.gravitee.gateway.dictionary;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.entry;
 
 import io.gravitee.common.util.DataEncryptor;
@@ -23,9 +24,17 @@ import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.dictionary.model.Dictionary;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -227,6 +236,93 @@ class MultiEnvironmentDictionaryManagerTest {
 
             assertThat(property(ENV, "idp-server-details")).isEqualTo("first-value");
             assertThat(cut.getDictionaries(ENV)).doesNotContainKey("tf_idp-server-details");
+        }
+    }
+
+    @Nested
+    class ConcurrencyTest {
+
+        @Test
+        void should_expose_an_immutable_view_to_readers() {
+            cut.deploy(dictionary("idp-server-details", null, ENV, "first-value", 1L));
+
+            Map<String, Map<String, String>> dictionaries = cut.getDictionaries(ENV);
+
+            assertThatThrownBy(() -> dictionaries.put("other", Map.of())).isInstanceOf(UnsupportedOperationException.class);
+            assertThatThrownBy(() -> dictionaries.get("idp-server-details").put("MY_PROP", "tampered")).isInstanceOf(
+                UnsupportedOperationException.class
+            );
+        }
+
+        @Test
+        void should_not_change_a_view_already_handed_to_a_reader() {
+            cut.deploy(dictionary("idp-server-details", null, ENV, "first-value", 1L));
+            Map<String, Map<String, String>> beforeRedeploy = cut.getDictionaries(ENV);
+
+            cut.deploy(dictionary("idp-server-details", null, ENV, "updated-value", 2L));
+            cut.deploy(dictionary("other", null, ENV, "other-value", 3L));
+
+            assertThat(beforeRedeploy).containsOnlyKeys("idp-server-details");
+            assertThat(beforeRedeploy.get("idp-server-details")).containsEntry("MY_PROP", "first-value");
+            assertThat(property(ENV, "idp-server-details")).isEqualTo("updated-value");
+        }
+
+        @Test
+        void should_deploy_when_a_deployment_date_is_missing() {
+            Dictionary first = dictionary("idp-server-details", null, ENV, "first-value", 1L);
+            first.setDeployedAt(null);
+            cut.deploy(first);
+            cut.deploy(dictionary("idp-server-details", null, ENV, "second-value", 2L));
+
+            Dictionary undated = dictionary("idp-server-details", null, ENV, "third-value", 3L);
+            undated.setDeployedAt(null);
+            cut.deploy(undated);
+
+            assertThat(property(ENV, "idp-server-details")).isEqualTo("third-value");
+        }
+
+        @Test
+        void should_keep_every_dictionary_deployed_concurrently_into_a_new_environment() throws Exception {
+            int dictionaryCount = 200;
+            ExecutorService executor = Executors.newFixedThreadPool(16);
+            CountDownLatch start = new CountDownLatch(1);
+            AtomicBoolean readFailed = new AtomicBoolean();
+            try {
+                List<Future<?>> futures = new ArrayList<>();
+                for (int i = 0; i < dictionaryCount; i++) {
+                    Dictionary dictionary = dictionary("dict-" + i, null, "NEW_ENV", "value-" + i, i + 1L);
+                    futures.add(
+                        executor.submit(() -> {
+                            start.await();
+                            cut.deploy(dictionary);
+                            return null;
+                        })
+                    );
+                    futures.add(
+                        executor.submit(() -> {
+                            start.await();
+                            try {
+                                Map<String, Map<String, String>> view = cut.getDictionaries("NEW_ENV");
+                                if (view != null) {
+                                    view.forEach((key, properties) -> properties.size());
+                                }
+                            } catch (RuntimeException e) {
+                                readFailed.set(true);
+                            }
+                            return null;
+                        })
+                    );
+                }
+                start.countDown();
+                for (Future<?> future : futures) {
+                    future.get(30, TimeUnit.SECONDS);
+                }
+            } finally {
+                executor.shutdownNow();
+            }
+
+            assertThat(readFailed).isFalse();
+            assertThat(cut.getDictionaries("NEW_ENV")).hasSize(dictionaryCount);
         }
     }
 
