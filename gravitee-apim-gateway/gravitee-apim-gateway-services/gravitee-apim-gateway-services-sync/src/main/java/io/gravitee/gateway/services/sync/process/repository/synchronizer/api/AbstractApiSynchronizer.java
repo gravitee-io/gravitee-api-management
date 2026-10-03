@@ -22,6 +22,7 @@ import io.gravitee.gateway.services.sync.process.common.SyncErrors;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
@@ -215,13 +216,16 @@ public abstract class AbstractApiSynchronizer {
         final ApiDeployer apiDeployer,
         final ApiReactorDeployable deployable
     ) {
-        return apiDeployer
-            .undeploy(deployable)
-            .andThen(subscriptionDeployer.undeploy(deployable))
-            .andThen(apiKeyDeployer.undeploy(deployable))
-            .andThen(subscriptionDeployer.doAfterUndeployment(deployable))
-            .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
-            .andThen(apiDeployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(
+            apiDeployer
+                .undeploy(deployable)
+                .andThen(subscriptionDeployer.undeploy(deployable))
+                .andThen(apiKeyDeployer.undeploy(deployable)),
+            subscriptionDeployer
+                .doAfterUndeployment(deployable)
+                .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
+                .andThen(apiDeployer.doAfterUndeployment(deployable))
+        )
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
     }

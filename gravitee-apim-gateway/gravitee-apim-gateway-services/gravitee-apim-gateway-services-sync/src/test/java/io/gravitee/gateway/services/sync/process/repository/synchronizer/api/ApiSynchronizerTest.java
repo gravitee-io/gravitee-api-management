@@ -349,6 +349,22 @@ class ApiSynchronizerTest {
             verify(subscriptionDeployer).undeploy(any());
             verify(apiKeyDeployer).undeploy(any());
         }
+
+        @Test
+        void should_distribute_the_undeployment_even_when_the_local_undeployment_fails() throws InterruptedException {
+            Event event = new Event();
+            event.setId("api");
+            event.setProperties(Map.of(API_ID.getValue(), "api"));
+            event.setType(STOP_API);
+            when(apiDeployer.undeploy(any())).thenReturn(Completable.error(new RuntimeException("unregister failed")));
+
+            when(eventsFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(subscriptionDeployer).doAfterUndeployment(any());
+            verify(apiKeyDeployer).doAfterUndeployment(any());
+            verify(apiDeployer).doAfterUndeployment(any());
+        }
     }
 
     @Nested

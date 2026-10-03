@@ -17,6 +17,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.access
 
 import io.gravitee.gateway.services.sync.process.common.deployer.AccessPointDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
@@ -128,9 +129,10 @@ public class AccessPointSynchronizer implements RepositorySynchronizer {
         final AccessPointDeployer accessPointDeployer,
         final AccessPointDeployable deployable
     ) {
-        return accessPointDeployer
-            .undeploy(deployable)
-            .andThen(accessPointDeployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(
+            accessPointDeployer.undeploy(deployable),
+            accessPointDeployer.doAfterUndeployment(deployable)
+        )
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);
