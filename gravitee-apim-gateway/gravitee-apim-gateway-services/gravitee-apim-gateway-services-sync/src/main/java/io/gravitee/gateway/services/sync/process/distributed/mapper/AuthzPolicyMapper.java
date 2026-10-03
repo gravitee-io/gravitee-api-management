@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gamma.definition.authz.AuthzPolicy;
 import io.gravitee.gamma.definition.authz.AuthzPolicyKind;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.authz.AuthzPolicyReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -36,6 +37,11 @@ import lombok.RequiredArgsConstructor;
 public class AuthzPolicyMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public AuthzPolicyMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<AuthzPolicyReactorDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -66,14 +72,13 @@ public class AuthzPolicyMapper {
                     .syncAction(SyncActionMapper.to(event.getSyncAction()))
                     .build();
             } catch (Exception e) {
-                log.warn("Error while reading authz policy from distributed event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
 
     public Flowable<DistributedEvent> to(final AuthzPolicyReactorDeployable deployable) {
-        return Flowable.fromCallable(() -> {
+        return Maybe.fromCallable(() -> {
             try {
                 AuthzPolicy wire = AuthzPolicy.builder()
                     .id(deployable.docId())
@@ -92,9 +97,8 @@ public class AuthzPolicyMapper {
                 }
                 return builder.build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from authz policy deployable", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.AUTHZ_POLICY, deployable.docId(), e);
             }
-        }).filter(java.util.Objects::nonNull);
+        }).toFlowable();
     }
 }

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.handlers.api.ReactableApiProduct;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apiproduct.ApiProductReactorDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
@@ -34,6 +35,11 @@ import lombok.RequiredArgsConstructor;
 public class ApiProductMapper {
 
     private final ObjectMapper objectMapper;
+    private final DistributedSyncMetrics metrics;
+
+    public ApiProductMapper(final ObjectMapper objectMapper) {
+        this(objectMapper, new DistributedSyncMetrics());
+    }
 
     public Maybe<ApiProductReactorDeployable> to(final DistributedEvent event) {
         return Maybe.fromCallable(() -> {
@@ -58,8 +64,7 @@ public class ApiProductMapper {
 
                 return builder.build();
             } catch (Exception e) {
-                log.warn("Error while determining api product into event payload", e);
-                return null;
+                return MappingFailures.decodeFailure(metrics, event, e);
             }
         });
     }
@@ -77,8 +82,7 @@ public class ApiProductMapper {
                 }
                 return builder.build();
             } catch (Exception e) {
-                log.warn("Error while building distributed event from api product reactor", e);
-                return null;
+                return MappingFailures.deadLetter(metrics, DistributedEventType.API_PRODUCT, deployable.apiProductId(), e);
             }
         });
     }
