@@ -52,6 +52,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
@@ -117,6 +118,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -1059,6 +1061,37 @@ public class ApiServiceImplTest {
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void should_not_update_when_an_encrypted_property_is_made_plain() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "encrypted-value", true, false)));
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", false, false)));
+
+        assertThrows(ApiPropertyEncryptedToPlainException.class, () ->
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME)
+        );
+        verify(apiRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_update_when_an_encrypted_dynamic_property_is_echoed_back() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "encrypted-value", true, true)));
+        when(propertiesService.encryptProperties(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "encrypted-value", false, true, true)));
+
+        assertDoesNotThrow(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));
+    }
+
+    private void givenStoredProperties(List<Property> properties) throws JsonProcessingException {
+        io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+        apiDefinition.setId(API_ID);
+        apiDefinition.setName(API_NAME);
+        apiDefinition.setListeners(singletonList(HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build()));
+        apiDefinition.setProperties(properties);
+        api.setDefinition(objectMapper.writeValueAsString(apiDefinition));
     }
 
     @Test

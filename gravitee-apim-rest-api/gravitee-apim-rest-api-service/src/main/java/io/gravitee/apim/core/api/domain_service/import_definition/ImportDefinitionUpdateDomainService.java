@@ -30,6 +30,8 @@ import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
+import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
@@ -40,6 +42,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashSet;
 import java.util.List;
@@ -108,6 +111,11 @@ public class ImportDefinitionUpdateDomainService {
         ) {
             apiExport.setProperties(existingDefinition.getProperties());
         }
+
+        PropertyClassificationValidator.rejectEncryptedToPlain(
+            existingPromotedApi.getApiDefinitionValue(),
+            toEncryptableProperties(apiExport.getProperties())
+        );
 
         // Defer group resolution for NATIVE APIs: groups are resolved/created only after validation passes.
         // For PROXY/MESSAGE, validation is coupled in ApiService.update, so groups are resolved before update
@@ -256,5 +264,12 @@ public class ImportDefinitionUpdateDomainService {
                         : null
                 )
                 .build();
+    }
+
+    private static List<EncryptableProperty> toEncryptableProperties(List<Property> properties) {
+        if (properties == null) {
+            return null;
+        }
+        return properties.stream().filter(Objects::nonNull).map(EncryptableProperty::fromProperty).toList();
     }
 }
