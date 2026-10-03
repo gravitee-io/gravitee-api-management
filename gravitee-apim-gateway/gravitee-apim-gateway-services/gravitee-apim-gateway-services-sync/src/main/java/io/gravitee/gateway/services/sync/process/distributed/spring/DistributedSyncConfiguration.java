@@ -35,6 +35,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicy
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncMetrics;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncSettings;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.accesspoint.DistributedAccessPointSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
@@ -419,7 +420,13 @@ public class DistributedSyncConfiguration {
         final AuthzPolicyMapper authzPolicyMapper,
         final ApiProductMapper apiProductMapper,
         final CredentialMapper credentialMapper,
-        final DistributedSyncMetrics distributedSyncMetrics
+        final DistributedSyncMetrics distributedSyncMetrics,
+        @Value(
+            "${services.sync.distributed.tombstones.retention:" + DistributedSyncSettings.DEFAULT_TOMBSTONE_RETENTION_MS + "}"
+        ) final long tombstoneRetentionMs,
+        @Value(
+            "${services.sync.distributed.tombstones.purgeInterval:" + DistributedSyncSettings.DEFAULT_TOMBSTONE_PURGE_INTERVAL_MS + "}"
+        ) final long tombstonePurgeIntervalMs
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -440,7 +447,8 @@ public class DistributedSyncConfiguration {
             authzPolicyMapper,
             apiProductMapper,
             credentialMapper,
-            distributedSyncMetrics
+            distributedSyncMetrics,
+            new DistributedSyncSettings(tombstoneRetentionMs, tombstonePurgeIntervalMs)
         );
     }
 }
