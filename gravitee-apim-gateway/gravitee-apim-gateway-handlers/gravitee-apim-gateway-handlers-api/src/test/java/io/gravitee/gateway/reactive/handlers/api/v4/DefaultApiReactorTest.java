@@ -72,6 +72,7 @@ import io.gravitee.gateway.reactive.api.connector.entrypoint.BaseEntrypointConne
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.context.http.HttpExecutionContext;
+import io.gravitee.gateway.reactive.api.policy.base.BasePolicy;
 import io.gravitee.gateway.reactive.core.context.DefaultDeploymentContext;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
@@ -113,9 +114,12 @@ import io.reactivex.rxjava3.schedulers.TestScheduler;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeAll;
@@ -629,6 +633,60 @@ class DefaultApiReactorTest {
         inOrder.verify(spyEntrypointResponse).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyAfterHandleProcessors).subscribe(any(CompletableObserver.class));
         inOrder.verify(spyResponseEnd).subscribe(any(CompletableObserver.class));
+    }
+
+    /**
+     * A policy that reserves something registers for the end of the request, because the response phase it would
+     * otherwise use is skipped when a request is interrupted — leaving a reservation charged for a call that
+     * reached no backend (AIAM-1054).
+     */
+    @Test
+    void shouldExecuteActionsOnTerminateWhenInvocationIsInterrupted() {
+        AtomicBoolean ran = new AtomicBoolean(false);
+        Function<HttpExecutionContext, Completable> action = c -> Completable.fromRunnable(() -> ran.set(true));
+        when(ctx.drainOnTerminateActions()).thenReturn(Map.of(mock(BasePolicy.class), action));
+        spyInvokerChain = spy(Completable.error(new InterruptionFailureException(new ExecutionFailure(400))));
+        when(defaultInvoker.invoke(any(HttpExecutionContext.class))).thenReturn(spyInvokerChain);
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(ran.get()).isTrue();
+    }
+
+    /**
+     * It has to run after the response, not before it. A response still being written has reported no usage yet,
+     * so a policy reconciling against that would settle for nothing and leave the real figure unclaimed — for a
+     * streamed response that would mean never charging it at all.
+     */
+    @Test
+    void shouldExecuteActionsOnTerminateOnlyOnceTheResponseHasBeenWritten() {
+        AtomicBoolean responseWritten = new AtomicBoolean(false);
+        AtomicBoolean ranBeforeResponse = new AtomicBoolean(false);
+        spyResponseEnd = spy(Completable.fromRunnable(() -> responseWritten.set(true)));
+        when(response.end(any())).thenReturn(spyResponseEnd);
+        Function<HttpExecutionContext, Completable> action = c ->
+            Completable.fromRunnable(() -> {
+                if (!responseWritten.get()) {
+                    ranBeforeResponse.set(true);
+                }
+            });
+        when(ctx.drainOnTerminateActions()).thenReturn(Map.of(mock(BasePolicy.class), action));
+
+        cut.handle(ctx).test().assertComplete();
+
+        assertThat(ranBeforeResponse.get()).isFalse();
+        assertThat(responseWritten.get()).isTrue();
+    }
+
+    /** A reconciliation going wrong must not become the answer the client is given. */
+    @Test
+    void shouldStillCompleteWhenAnActionOnTerminateFails() {
+        BasePolicy policy = mock(BasePolicy.class);
+        when(policy.id()).thenReturn("a-policy");
+        Function<HttpExecutionContext, Completable> failing = c -> Completable.error(new RuntimeException("cleanup failed"));
+        when(ctx.drainOnTerminateActions()).thenReturn(Map.of(policy, failing));
+
+        cut.handle(ctx).test().assertComplete();
     }
 
     @Test
