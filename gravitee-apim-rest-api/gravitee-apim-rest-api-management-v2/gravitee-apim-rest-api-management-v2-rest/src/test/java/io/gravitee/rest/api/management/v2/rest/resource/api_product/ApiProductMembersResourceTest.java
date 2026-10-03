@@ -34,6 +34,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.TransferApiProductOwnershipUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.api_product.use_case.members.AddApiProductMemberUseCase;
@@ -66,8 +68,10 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -80,6 +84,9 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
     private static final String ENV_ID = "my-env";
     private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
+
+    @Inject
+    private GetApiProductsUseCase getApiProductByIdUseCase;
 
     @Inject
     private VerifyApiProductExistsUseCase verifyApiProductExistsUseCase;
@@ -136,6 +143,12 @@ class ApiProductMembersResourceTest extends AbstractResourceTest {
 
     private void givenApiProductExists() {
         doNothing().when(verifyApiProductExistsUseCase).execute(any());
+        // The fenced locators look the product up, so the classic kind under the id is what these tests act on.
+        when(getApiProductByIdUseCase.execute(any())).thenReturn(
+            GetApiProductsUseCase.Output.single(
+                Optional.of(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).apiIds(new HashSet<>()).build())
+            )
+        );
     }
 
     private void givenApiProductMissing() {

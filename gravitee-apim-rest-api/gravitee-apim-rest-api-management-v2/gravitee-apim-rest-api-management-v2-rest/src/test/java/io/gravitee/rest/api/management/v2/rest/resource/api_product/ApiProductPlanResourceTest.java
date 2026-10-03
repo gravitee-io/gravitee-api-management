@@ -29,6 +29,8 @@ import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.PlanFixtures;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.GetPlansUseCase;
 import io.gravitee.apim.core.plan.use_case.PlanOperationsUseCase;
@@ -48,6 +50,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
@@ -62,6 +65,9 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
     private static final String ENV_ID = "my-env";
     private static final String API_PRODUCT_ID = "c45b8e66-4d2a-47ad-9b8e-664d2a97ad88";
     private static final String PLAN_ID = "plan-id";
+
+    @Inject
+    private GetApiProductsUseCase getApiProductByIdUseCase;
 
     @Inject
     private GetPlansUseCase getPlansUseCase;
@@ -90,6 +96,12 @@ class ApiProductPlanResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        // The fenced locators look the product up, so the classic kind under the id is what these tests act on.
+        when(getApiProductByIdUseCase.execute(any())).thenReturn(
+            GetApiProductsUseCase.Output.single(
+                Optional.of(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).apiIds(new HashSet<>()).build())
+            )
+        );
     }
 
     @AfterEach
