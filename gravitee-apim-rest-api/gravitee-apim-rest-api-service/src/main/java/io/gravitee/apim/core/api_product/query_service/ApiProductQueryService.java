@@ -30,6 +30,14 @@ public interface ApiProductQueryService {
     Optional<ApiProduct> findById(String apiProductId);
     ApiProduct findById(ExecutionContext executionContext, String apiProductId);
     Set<ApiProduct> findByApiId(String apiId);
+    /**
+     * The products claiming each of these APIs, <strong>across every environment</strong>, unlike its neighbours
+     * here: neither this method nor the repository query behind it carries an environment.
+     *
+     * <p>That is deliberate — {@code ValidateApiProductService} needs the products of every environment to work
+     * out which of them cover an API with a plan. A caller that only means its own environment has to filter the
+     * answer itself; counting a product from another environment makes an API look shared when it is not.
+     */
     Map<String, Set<ApiProduct>> findProductsByApiIds(Set<String> apiIds);
     Page<ApiProduct> searchByIds(Set<String> ids, String environmentId, Pageable pageable);
     Set<String> findIdsByEnvironmentIdAndGroups(String environmentId, Set<String> groupIds);

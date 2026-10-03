@@ -446,6 +446,29 @@ public class ApiSearchServiceImplTest {
     }
 
     @Test
+    public void shouldStillReturnTheApisThatHaveAPrimaryOwnerWhenOneDoesNot() {
+        final Api owned = new Api();
+        owned.setId("owned");
+        final Api orphan = new Api();
+        orphan.setId("orphan");
+        when(apiRepository.search(any(ApiCriteria.class), eq(ApiFieldFilter.allFields()))).thenReturn(List.of(owned, orphan));
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        when(primaryOwnerService.getPrimaryOwners(any(), any())).thenReturn(Map.of("owned", new PrimaryOwnerEntity(admin)));
+
+        final Set<GenericApiEntity> found = apiSearchService.findGenericByEnvironmentAndIdIn(
+            GraviteeContext.getExecutionContext(),
+            Set.of("owned", "orphan")
+        );
+
+        // Only the API with no identified primary owner is dropped. Filtering on every requested id instead
+        // emptied the whole answer, and callers that read absence as "the API is gone" then saw all of them go.
+        assertEquals(1, found.size());
+        assertEquals("owned", found.iterator().next().getId());
+    }
+
+    @Test
     public void shouldFindByEnvironmentAndEmptyIdIn() {
         final Set<GenericApiEntity> apiEntities = apiSearchService.findGenericByEnvironmentAndIdIn(
             GraviteeContext.getExecutionContext(),
