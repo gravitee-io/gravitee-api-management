@@ -40,6 +40,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +69,8 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
 
     @Getter
     private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onResponseActions = null;
+
+    private Map<BasePolicy, Function<HttpExecutionContext, Completable>> onTerminateActions = null;
 
     public AbstractExecutionContext(final RQ request, final RS response) {
         this.request = request;
@@ -305,6 +308,33 @@ public abstract class AbstractExecutionContext<RQ extends MutableRequest, RS ext
             return null;
         }
         return onResponseActions.get(source);
+    }
+
+    @Override
+    public void addActionOnTerminate(BasePolicy source, Function<HttpExecutionContext, Completable> function) {
+        if (onTerminateActions == null) {
+            onTerminateActions = new LinkedHashMap<>();
+        }
+
+        onTerminateActions.put(source, function);
+    }
+
+    /**
+     * Hands over the actions registered for the end of the request and forgets them, in reverse order of
+     * registration as the response actions are executed. Taken rather than read, so an action runs at most once
+     * however many times they are drained.
+     */
+    public Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnTerminateActions() {
+        if (onTerminateActions == null || onTerminateActions.isEmpty()) {
+            return Map.of();
+        }
+        var entries = new ArrayList<>(onTerminateActions.entrySet());
+        onTerminateActions = null;
+        var reversed = new LinkedHashMap<BasePolicy, Function<HttpExecutionContext, Completable>>();
+        for (int i = entries.size() - 1; i >= 0; i--) {
+            reversed.put(entries.get(i).getKey(), entries.get(i).getValue());
+        }
+        return reversed;
     }
 
     private void prepareTemplateEngine(final TemplateEngine templateEngine) {
