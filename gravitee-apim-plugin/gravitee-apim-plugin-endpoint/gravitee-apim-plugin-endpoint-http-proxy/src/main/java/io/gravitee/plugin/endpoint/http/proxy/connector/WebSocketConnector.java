@@ -87,6 +87,10 @@ public class WebSocketConnector extends HttpConnector {
             // never offered itself and rejects. The caller's own headers are left untouched for the caller-side handshake.
             webSocketConnectOptions.removeHeader(HttpHeaderNames.SEC_WEBSOCKET_EXTENSIONS);
 
+            // Building from a RequestOptions JSON skips the WebSocketConnectOptions default, leaving allowOriginHeader
+            // false, which makes Vert.x strip the Origin header. Restore the default so it is forwarded.
+            webSocketConnectOptions.setAllowOriginHeader(true);
+
             // Add subprotocols: handle comma-separated values, trim whitespace, filter empty strings
             if (request.headers().contains(HttpHeaderNames.SEC_WEBSOCKET_PROTOCOL)) {
                 webSocketConnectOptions.setSubProtocols(parseSubProtocols(request));
