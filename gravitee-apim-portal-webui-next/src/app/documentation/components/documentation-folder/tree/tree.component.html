@@ -16,12 +16,13 @@
 
 -->
 <div class="tree" role="tree">
-  @for (node of tree(); track node) {
+  @for (node of tree(); track node.id) {
     <app-tree-node
       [attr.id]="'node-' + node.id"
       [node]="node"
       [level]="0"
       [selectedId]="selectedId()"
+      [expandedContainerIds]="expandedContainerIds()"
       (nodeSelected)="onNodeSelected($event)"
     />
   }

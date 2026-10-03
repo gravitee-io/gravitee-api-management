@@ -19,6 +19,7 @@
   <a
     class="tree__row nav-button tree__link next-gen-small"
     role="treeitem"
+    [attr.data-testid]="'documentation-tree-item-' + node().id"
     mat-stroked-button
     [class.child]="level() > 0"
     [style.--level]="level()"
@@ -38,6 +39,7 @@
   <button
     class="tree__row nav-button next-gen-small"
     role="treeitem"
+    [attr.data-testid]="'documentation-tree-item-' + node().id"
     mat-stroked-button
     [class.folder]="node().type === 'FOLDER'"
     [class.api]="node().type === 'API'"
@@ -62,13 +64,14 @@
 }
 
 @if (node().children?.length) {
-  <div class="tree__children" [@expandAnimation]="isExpanded()">
-    @for (child of node().children; track child) {
+  <div class="tree__children" [@expandAnimation]="isExpanded()" [attr.inert]="isExpanded() ? null : ''">
+    @for (child of node().children; track child.id) {
       <app-tree-node
         [attr.id]="'node-' + child.id"
         [node]="child"
         [level]="level() + 1"
         [selectedId]="selectedId()"
+        [expandedContainerIds]="expandedContainerIds()"
         (nodeSelected)="nodeSelected.emit($event)"
       />
     }

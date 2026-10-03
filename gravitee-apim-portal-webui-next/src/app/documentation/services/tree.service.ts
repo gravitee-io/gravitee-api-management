@@ -57,6 +57,18 @@ export class TreeService {
     return this.treeNodes;
   }
 
+  getContainerPathIds(nodeId: string): string[] {
+    const path: string[] = [];
+    let node = this.treeNodesById.get(nodeId);
+    while (node) {
+      if (node.type === 'FOLDER' || node.type === 'API' || node.type === 'API_PRODUCT') {
+        path.unshift(node.id);
+      }
+      node = node.__parentId ? this.treeNodesById.get(node.__parentId) : undefined;
+    }
+    return path;
+  }
+
   getBreadcrumbsByNodeId(id: string): Breadcrumb[] {
     const breadcrumbsById = this.treeNodesById.get(id)?.breadcrumbs ?? [];
     return [...this.getBreadcrumbsByDefault(), ...breadcrumbsById];

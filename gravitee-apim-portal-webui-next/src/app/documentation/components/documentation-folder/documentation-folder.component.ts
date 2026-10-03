@@ -20,7 +20,7 @@ import { rxResource, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, debounceTime, finalize, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, finalize, map, merge, Observable, switchMap, tap, withLatestFrom } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { GraviteeMarkdownViewerModule } from '@gravitee/gravitee-markdown';
@@ -72,21 +72,30 @@ enum NavParamsChange {
 })
 export class DocumentationFolderComponent {
   private readonly apiService = inject(ApiService);
+  private readonly router = inject(Router);
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly itemsService = inject(PortalNavigationItemsService);
+  private readonly treeService = inject(TreeService);
   readonly currentUser = inject(CurrentUserService).isUserAuthenticated;
 
   navItem = input.required<PortalNavigationItem>();
-  navId$ = toObservable(this.navItem).pipe(map(({ id }) => id));
-  selectedId$ = this.activatedRoute.queryParams.pipe(map(({ selectedId }) => selectedId));
 
-  folderData = toSignal<FolderData | undefined>(this.loadFolderData());
   folderLoading = signal(false);
   contentLoading = signal(false);
 
   tree = signal<TreeNode[]>([]);
   breadcrumbs = signal<Breadcrumb[]>([]);
+  expandedContainerIds = signal<ReadonlySet<string> | null>(null);
+  private keepTreeExpansion = false;
 
   documentationActionContext = signal<DocumentationActionContext>({ apiId: null, subscriptionTarget: null });
   mcpDrawerOpen = signal(false);
+
+  navId$ = toObservable(this.navItem).pipe(
+    map(({ id }) => id),
+    distinctUntilChanged(),
+  );
+  selectedId$ = this.activatedRoute.queryParams.pipe(map(({ selectedId }) => selectedId));
   subscriptionTarget = computed(() => this.documentationActionContext().subscriptionTarget);
   apiId = computed(() => this.documentationActionContext().apiId);
   api = rxResource<Api | null, string | null>({
@@ -95,15 +104,12 @@ export class DocumentationFolderComponent {
   });
   apiHasMcp = computed(() => !this.api.error() && !!this.api.value()?.mcp);
   hasBreadcrumbActions = computed(() => !!this.subscriptionTarget() || this.apiHasMcp());
-
-  constructor(
-    private readonly router: Router,
-    private readonly activatedRoute: ActivatedRoute,
-    private readonly itemsService: PortalNavigationItemsService,
-    private readonly treeService: TreeService,
-  ) {}
+  // Declared last: subscribing reads navId$ and selectedId$, so they must be initialised first.
+  folderData = toSignal<FolderData | undefined>(this.loadFolderData());
 
   onSelect(selectedPageId: string) {
+    // Browsing within the tree must not undo the branches the user opened by hand.
+    this.keepTreeExpansion = true;
     this.navigateToPage(selectedPageId);
   }
 
@@ -155,6 +161,8 @@ export class DocumentationFolderComponent {
   }
 
   private loadContentOrRedirect(selectedId: string, children = this.folderData()?.children ?? []): Observable<FolderData> {
+    const keepExpansion = this.keepTreeExpansion;
+    this.keepTreeExpansion = false;
     this.documentationActionContext.set({ apiId: null, subscriptionTarget: null });
 
     if (!selectedId) {
@@ -172,7 +180,12 @@ export class DocumentationFolderComponent {
     if (child.type === 'API' || child.type === 'API_PRODUCT' || child.type === 'FOLDER') {
       // APIs, API Products, and folders are not selectable, so navigate to their first page.
       const firstPageId = this.treeService.findFirstPageIdWithinNode(selectedId);
+      this.expandContainersFor(firstPageId ?? selectedId);
       return of({ children, selectedPageContent: null }).pipe(tap(() => firstPageId && this.navigateToPage(firstPageId)));
+    }
+
+    if (!keepExpansion) {
+      this.expandContainersFor(selectedId);
     }
 
     const documentationActionContext = this.treeService.getDocumentationActionContext(selectedId);
@@ -185,9 +198,16 @@ export class DocumentationFolderComponent {
 
   private navigateToFirstPage() {
     const firstPageId = this.treeService.findFirstPageId();
+    this.expandContainersFor(firstPageId);
     if (firstPageId) {
       this.navigateToPage(firstPageId);
     }
+  }
+
+  // Published before redirecting, because the path has to be derived from the page we are about to
+  // select rather than from the selectedId still in the URL.
+  private expandContainersFor(nodeId: string | null) {
+    this.expandedContainerIds.set(new Set(nodeId ? this.treeService.getContainerPathIds(nodeId) : []));
   }
 
   private navigateToPage(selectedId: string) {

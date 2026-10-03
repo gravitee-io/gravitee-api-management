@@ -15,7 +15,18 @@
  */
 import { animate, state, style, transition, trigger } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, ElementRef, input, output, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  input,
+  output,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
@@ -41,13 +52,26 @@ export class TreeNodeComponent {
   node = input.required<TreeNode>();
   level = input(0);
   selectedId = input<string | null>(null);
+  /** Containers to have expanded, published once per documentation entry. `null` leaves local state alone. */
+  expandedContainerIds = input<ReadonlySet<string> | null>(null);
 
   nodeSelected = output<string>();
 
   isSelected = computed(() => this.selectedId() === this.node().id);
-  isExpanded = signal<boolean>(true);
+  isExpanded = signal(false);
 
   link = viewChild<ElementRef>('link');
+
+  constructor() {
+    effect(() => {
+      const expandedContainerIds = this.expandedContainerIds();
+      if (!expandedContainerIds) {
+        return;
+      }
+      // Reading the node untracked keeps a relabelled node from overriding a manual toggle.
+      this.isExpanded.set(expandedContainerIds.has(untracked(this.node).id));
+    });
+  }
 
   get linkUrl() {
     return (this.node().data as PortalNavigationLink)?.url;

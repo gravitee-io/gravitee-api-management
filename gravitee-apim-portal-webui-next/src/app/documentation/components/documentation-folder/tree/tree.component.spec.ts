@@ -15,6 +15,7 @@
  */
 
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { ErrorHandler } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 
@@ -89,10 +90,101 @@ describe('TreeComponent', () => {
     expect(nestedLabels).toEqual(['Page 2', 'Folder 3', 'open_in_new External Link 2']);
   });
 
-  it('should scroll into view on page load', () => {
-    const scrollIntoViewSpy = jest.spyOn(HTMLElement.prototype, 'scrollIntoView').mockReturnValue();
-    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
-    scrollIntoViewSpy.mockRestore();
+  describe('scroll into view', () => {
+    // The fixture selects 'p2', which sits inside Folder 2.
+    const revealFolder2 = () => {
+      fixture.componentRef.setInput('expandedContainerIds', new Set(['f2']));
+      fixture.detectChanges();
+    };
+    const stubAnimation = () => {
+      let settle!: (reason?: unknown) => void;
+      const finished = new Promise<void>((resolve, reject) => {
+        settle = reason => (reason ? reject(reason) : resolve());
+      });
+      fixture.nativeElement.getAnimations = () => [{ finished }];
+      return { finished, settle };
+    };
+
+    let scrollIntoViewSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      scrollIntoViewSpy = jest.spyOn(HTMLElement.prototype, 'scrollIntoView').mockReturnValue();
+      scrollIntoViewSpy.mockClear();
+    });
+
+    afterEach(() => scrollIntoViewSpy.mockRestore());
+
+    it('should scroll to the selected page once its path is revealed', async () => {
+      revealFolder2();
+      await fixture.whenStable();
+
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
+    });
+
+    it('should not scroll to a selected page left inside a collapsed branch', async () => {
+      fixture.componentRef.setInput('expandedContainerIds', new Set<string>());
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    });
+
+    it('should wait for the reveal animation before scrolling', async () => {
+      const animation = stubAnimation();
+
+      revealFolder2();
+      await fixture.whenStable();
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+
+      animation.settle();
+      await Promise.allSettled([animation.finished]);
+      await fixture.whenStable();
+
+      expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
+    });
+
+    it('should scroll even when the animation is canceled', async () => {
+      const animation = stubAnimation();
+      const errorHandlerSpy = jest.spyOn(TestBed.inject(ErrorHandler), 'handleError').mockReturnValue();
+
+      revealFolder2();
+      await fixture.whenStable();
+
+      animation.settle(new DOMException('Animation canceled', 'AbortError'));
+      await Promise.allSettled([animation.finished]);
+      await fixture.whenStable();
+
+      expect(scrollIntoViewSpy).toHaveBeenCalledTimes(1);
+      expect(errorHandlerSpy).not.toHaveBeenCalled();
+      errorHandlerSpy.mockRestore();
+    });
+
+    it('should abandon a pending scroll when the user collapses the branch first', async () => {
+      const animation = stubAnimation();
+
+      revealFolder2();
+      await harness.clickItemByTitle('Folder 2');
+
+      animation.settle();
+      await Promise.allSettled([animation.finished]);
+      await fixture.whenStable();
+
+      expect(scrollIntoViewSpy).not.toHaveBeenCalled();
+    });
+
+    it('should report a scrolling failure to the ErrorHandler', async () => {
+      const error = new Error('Unable to scroll to the selected page');
+      const errorHandlerSpy = jest.spyOn(TestBed.inject(ErrorHandler), 'handleError').mockReturnValue();
+      scrollIntoViewSpy.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      revealFolder2();
+      await fixture.whenStable();
+
+      expect(errorHandlerSpy).toHaveBeenCalledWith(error);
+      errorHandlerSpy.mockRestore();
+    });
   });
 
   describe('item click', () => {
@@ -108,36 +200,37 @@ describe('TreeComponent', () => {
       const selectSpy = jest.fn();
       component.selectNode.subscribe(selectSpy);
 
+      await harness.clickItemByTitle('Folder 1');
       await harness.clickItemByTitle('Page 2');
       expect(selectSpy).toHaveBeenCalledWith('p2');
     });
 
-    it('should collapse folder on click', async () => {
+    it('should expand folder on click', async () => {
       const selectSpy = jest.fn();
       component.selectNode.subscribe(selectSpy);
 
       let folder = await harness.getFolderByTitle('Folder 1');
-      expect(folder?.expanded).toEqual(true);
+      expect(folder?.expanded).toEqual(false);
 
       await harness.clickItemByTitle('Folder 1');
       expect(selectSpy).not.toHaveBeenCalledWith('f1');
 
       folder = await harness.getFolderByTitle('Folder 1');
-      expect(folder?.expanded).toEqual(false);
+      expect(folder?.expanded).toEqual(true);
     });
 
-    it('should collapse api on click', async () => {
+    it('should expand api on click', async () => {
       const selectSpy = jest.fn();
       component.selectNode.subscribe(selectSpy);
 
       let api = await harness.getApiByTitle('API 1');
-      expect(api?.expanded).toEqual(true);
+      expect(api?.expanded).toEqual(false);
 
       await harness.clickItemByTitle('API 1');
       expect(selectSpy).not.toHaveBeenCalledWith('a1');
 
       api = await harness.getApiByTitle('API 1');
-      expect(api?.expanded).toEqual(false);
+      expect(api?.expanded).toEqual(true);
     });
   });
 });

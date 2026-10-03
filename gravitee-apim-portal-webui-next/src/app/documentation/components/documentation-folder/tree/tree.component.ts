@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, input, output } from '@angular/core';
+import { afterRenderEffect, Component, ElementRef, ErrorHandler, inject, input, output } from '@angular/core';
 
 import { TreeNodeComponent } from './tree-node.component';
 import { TreeNode } from '../../../services/tree.service';
@@ -25,13 +25,36 @@ import { TreeNode } from '../../../services/tree.service';
   templateUrl: './tree.component.html',
   styleUrls: ['./tree.component.scss'],
 })
-export class TreeComponent implements AfterViewInit {
+export class TreeComponent {
+  private readonly element = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly errorHandler = inject(ErrorHandler);
+
   tree = input.required<TreeNode[]>();
   selectedId = input<string | null>(null);
+  expandedContainerIds = input<ReadonlySet<string> | null>(null);
   selectNode = output<string>();
 
-  ngAfterViewInit() {
-    this.scrollIntoView();
+  constructor() {
+    afterRenderEffect(onCleanup => {
+      // Read as dependencies: both can move the selected row, so both have to re-run the scroll.
+      this.selectedId();
+      this.expandedContainerIds();
+
+      let canceled = false;
+      onCleanup(() => {
+        canceled = true;
+      });
+
+      // A revealed branch is still animating to its full height, so its row has no final position yet.
+      const animations = this.element.nativeElement.getAnimations?.({ subtree: true }) ?? [];
+      Promise.allSettled(animations.map(animation => animation.finished))
+        .then(() => {
+          if (!canceled) {
+            this.scrollIntoView();
+          }
+        })
+        .catch((error: unknown) => this.errorHandler.handleError(error));
+    });
   }
 
   onNodeSelected(id: string) {
@@ -39,9 +62,9 @@ export class TreeComponent implements AfterViewInit {
   }
 
   private scrollIntoView() {
-    const selectedId = this.selectedId();
-    if (selectedId) {
-      document.querySelector('#node-' + selectedId)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const selectedItem = this.element.nativeElement.querySelector<HTMLElement>('[role="treeitem"][aria-selected="true"]');
+    if (selectedItem && !selectedItem.closest('[inert]')) {
+      selectedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 }
