@@ -32,6 +32,7 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.Organization
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SharedPolicyGroupMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncException;
+import io.gravitee.gateway.services.sync.process.distributed.model.DistributedSyncTransientException;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.accesspoint.AccessPointDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
@@ -57,6 +58,7 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +79,17 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
      */
     static final int WRITE_MAX_CONCURRENCY = 32;
 
+    /** A distribution failed since the last stored state: the next {@link #storeState} must fail. */
     private final AtomicBoolean distributionFailed = new AtomicBoolean();
+    /** Already-deployed entities must be re-distributed until a cycle in replay mode stores its state. */
+    private final AtomicBoolean replayRequired = new AtomicBoolean();
+    /**
+     * Role pinned at {@link #beginCycle()} for the whole cycle. Written by the sync scheduler thread, read by the
+     * deployer threads through {@link #isPrimaryNode()}; {@code volatile} provides the happens-before, and the
+     * field is nulled only in {@link #endCycle()} which runs after all distributions completed.
+     */
+    private volatile Boolean pinnedPrimary;
+    private volatile boolean replayCycle;
 
     private final Node node;
     private final ClusterManager clusterManager;
@@ -97,6 +109,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final AuthzPolicyMapper authzPolicyMapper;
     private final ApiProductMapper apiProductMapper;
     private final CredentialMapper credentialMapper;
+    private final DistributedSyncMetrics metrics;
 
     @Override
     public void validate() {
@@ -120,7 +133,51 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
 
     @Override
     public boolean isPrimaryNode() {
-        return clusterManager.self().primary();
+        Boolean pinned = pinnedPrimary;
+        return pinned != null ? pinned : clusterManager.self().primary();
+    }
+
+    @Override
+    public boolean beginCycle() {
+        boolean primary = clusterManager.self().primary();
+        pinnedPrimary = primary;
+        replayCycle = primary && replayRequired.get();
+        if (replayCycle) {
+            metrics.recordReplayedCycle();
+        }
+        return primary;
+    }
+
+    @Override
+    public void endCycle() {
+        pinnedPrimary = null;
+        replayCycle = false;
+    }
+
+    @Override
+    public boolean republishRequired() {
+        return replayCycle;
+    }
+
+    @Override
+    public void requestReplay() {
+        replayRequired.set(true);
+        if (Boolean.TRUE.equals(pinnedPrimary) && !replayCycle) {
+            replayCycle = true;
+            metrics.recordReplayedCycle();
+        }
+    }
+
+    @Override
+    public void onDemotion() {
+        replayRequired.set(false);
+        distributionFailed.set(false);
+        replayCycle = false;
+    }
+
+    @Override
+    public Optional<DistributedSyncMetrics> metrics() {
+        return Optional.of(metrics);
     }
 
     @Override
@@ -152,15 +209,22 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                         )
                     );
                 }
-                return distributedSyncStateRepository.createOrUpdate(
-                    DistributedSyncState.builder()
-                        .clusterId(clusterManager.clusterId())
-                        .nodeId(node.id())
-                        .nodeVersion(Version.RUNTIME_VERSION.toString())
-                        .from(fromTime)
-                        .to(toTime)
-                        .build()
-                );
+                boolean storedByReplayCycle = replayCycle;
+                return distributedSyncStateRepository
+                    .createOrUpdate(
+                        DistributedSyncState.builder()
+                            .clusterId(clusterManager.clusterId())
+                            .nodeId(node.id())
+                            .nodeVersion(Version.RUNTIME_VERSION.toString())
+                            .from(fromTime)
+                            .to(toTime)
+                            .build()
+                    )
+                    .doOnComplete(() -> {
+                        if (storedByReplayCycle && !distributionFailed.get()) {
+                            replayRequired.set(false);
+                        }
+                    });
             }
             return Completable.complete();
         });
@@ -357,13 +421,20 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
      * A failed distribution must not be silently dropped: the repository synchronizers isolate
      * (un)deployment errors per item, so without this flag the sync window would advance and the
      * missing events would never reach the secondary gateways. {@link #storeState(long, long)}
-     * checks the flag and fails the cycle so the same window is replayed.
+     * checks the flag and fails the cycle so the same window is replayed, and the replay re-distributes
+     * entities that are already deployed locally (see {@link #republishRequired()}): without that, the replayed
+     * entities are "already up-to-date" for the local managers and never reach the distributed repository.
+     * <p>
+     * The failure is raised as a {@link DistributedSyncTransientException} so the synchronizers treat it as
+     * retryable: a cold primary keeps its initial sync failing (and retrying) instead of isolating the entity.
      */
     private Completable trackFailure(final Completable distribution, final String eventType, final String id) {
         return distribution.onErrorResumeNext(throwable -> {
             distributionFailed.set(true);
+            replayRequired.set(true);
+            metrics.recordDistributionFailure();
             return Completable.error(
-                new DistributedSyncException(
+                new DistributedSyncTransientException(
                     "Unable to distribute %s event for [%s], the sync time window will be replayed".formatted(eventType, id),
                     throwable
                 )

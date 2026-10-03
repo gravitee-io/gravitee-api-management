@@ -74,8 +74,9 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
 
     private final AtomicReference<String> lastSyncErrorMessage = new AtomicReference<>();
 
-    private final AtomicBoolean isClusterPrimaryNode = new AtomicBoolean(true);
-    private long nextFromTime = -1;
+    /** Role of the last successful cycle, to detect promotions and demotions. */
+    private final AtomicBoolean actingPrimary = new AtomicBoolean(true);
+    private volatile long nextFromTime = -1;
     private Disposable refreshDisposable;
     private Route routeHandler;
 
@@ -114,7 +115,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
             if (distributedSynchronizers != null) {
                 distributedSynchronizers.sort(Comparator.comparingInt(DistributedSynchronizer::order));
             }
-            isClusterPrimaryNode.set(distributedSyncService.isPrimaryNode());
+            actingPrimary.set(distributedSyncService.isPrimaryNode());
         }
 
         // force synchronization and then schedule next ones
@@ -153,33 +154,24 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     }
 
     private Completable synchronize() {
+        AtomicBoolean cyclePrimary = new AtomicBoolean(true);
         return Completable.defer(() -> {
             log.debug("Running synchronization process...");
             return distributedSyncService.ready();
         })
             .andThen(
                 Single.defer(() -> {
-                    // Only a secondary promoted to primary after completing at least one sync can
-                    // resume from the stored distributed sync state: its memory is already warm
-                    // from the distributed sync. A node with nothing deployed yet (cold-started
-                    // primary, or secondary promoted before its first sync) must ignore the state
-                    // and perform a full initial sync (nextFromTime stays at -1). The CAS runs
-                    // before the nextFromTime check so an early promotion consumes it and never
-                    // resumes from the state on a later cycle.
-                    if (
-                        distributedSyncService.isEnabled() &&
-                        distributedSyncService.isPrimaryNode() &&
-                        isClusterPrimaryNode.compareAndSet(false, true) &&
-                        nextFromTime != -1
-                    ) {
-                        return distributedSyncService
-                            .state()
-                            .map(distributedSyncState -> {
-                                log.debug("Retrieving distributed sync state");
-                                nextFromTime = distributedSyncState.getFrom();
-                                return distributedSyncState.getTo();
-                            })
-                            .switchIfEmpty(Single.just(System.currentTimeMillis()));
+                    if (!distributedSyncService.isEnabled()) {
+                        return Single.just(System.currentTimeMillis());
+                    }
+                    boolean primary = distributedSyncService.beginCycle();
+                    cyclePrimary.set(primary);
+                    if (primary && !actingPrimary.get()) {
+                        return onPromotion();
+                    }
+                    if (!primary && actingPrimary.get()) {
+                        log.info("Node is no longer the distributed sync primary, it now synchronizes from the distributed repository");
+                        distributedSyncService.onDemotion();
                     }
                     return Single.just(System.currentTimeMillis());
                 })
@@ -192,7 +184,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                     Instant.ofEpochMilli(nextToTime + TIMEFRAME_DELAY)
                 );
                 Completable synchronizationCompletable;
-                if (distributedSyncService.isEnabled() && !distributedSyncService.isPrimaryNode()) {
+                if (distributedSyncService.isEnabled() && !cyclePrimary.get()) {
                     log.debug("Distributed synchronizers will be used as distributed sync is enabled, and current node is secondary.");
                     if (distributedSynchronizers != null) {
                         synchronizationCompletable = Flowable.fromIterable(distributedSynchronizers).concatMapCompletable(synchronizer ->
@@ -217,6 +209,9 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                         lastSyncErrorMessage.set(null);
                         syncReadyForProbe.set(true);
                         nextFromTime = nextToTime;
+                        if (distributedSyncService.isEnabled()) {
+                            actingPrimary.set(cyclePrimary.get());
+                        }
 
                         log.debug(
                             "Synchronization #{} ended at {} (took {}ms}",
@@ -235,7 +230,40 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
                 }
                 lastSyncOnError.set(true);
                 lastSyncErrorMessage.set(throwable.getMessage());
-            });
+            })
+            .doFinally(distributedSyncService::endCycle);
+    }
+
+    /**
+     * A secondary promoted to primary must cover what the previous primary may have left half-done: it
+     * replays the DB window starting at the last state the previous primary stored, up to now, re-distributing
+     * entities it already holds (they came from the distributed repository, so a previous partial
+     * distribution would otherwise never be completed). A node that never completed a sync, or that finds no
+     * stored state (empty or lost distributed repository), performs a full initial sync and re-distributes
+     * everything.
+     */
+    private Single<Long> onPromotion() {
+        log.info("Node has been promoted to distributed sync primary");
+        if (nextFromTime == -1) {
+            distributedSyncService.requestReplay();
+            return Single.just(System.currentTimeMillis());
+        }
+        return distributedSyncService
+            .state()
+            .map(distributedSyncState -> {
+                Long storedFrom = distributedSyncState.getFrom();
+                nextFromTime = storedFrom == null ? -1 : storedFrom;
+                log.info("Resuming from the distributed sync state stored by node [{}]", distributedSyncState.getNodeId());
+                return System.currentTimeMillis();
+            })
+            .switchIfEmpty(
+                Single.fromCallable(() -> {
+                    log.warn("No distributed sync state found on promotion, performing a full synchronization");
+                    nextFromTime = -1;
+                    return System.currentTimeMillis();
+                })
+            )
+            .doOnSuccess(ignored -> distributedSyncService.requestReplay());
     }
 
     private Completable retrySynchronizer(final Completable upstream, final String synchronizerClazz) {
