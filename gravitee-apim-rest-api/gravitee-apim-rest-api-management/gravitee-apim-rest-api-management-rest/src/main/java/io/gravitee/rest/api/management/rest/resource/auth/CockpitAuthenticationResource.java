@@ -38,6 +38,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.annotation.PostConstruct;
@@ -59,6 +60,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.inject.Singleton;
@@ -166,7 +168,10 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, authorities));
 
             // Cockpit user is authenticated, connect user (ie: generate cookie).
-            super.connectUser(user, httpResponse);
+            // Propagate the Gravitee Cloud API Token (gcat) if present in the Cockpit JWT.
+            final String gcat = jwtClaimsSet.getStringClaim(JWTHelper.Claims.GCAT);
+            Map<String, String> additionalClaims = gcat != null ? Map.of(JWTHelper.Claims.GCAT, gcat) : null;
+            super.connectUser(user, httpResponse, additionalClaims);
 
             final String application = jwtClaimsSet.getStringClaim(APPLICATION_CLAIM);
             if (APPLICATION_PORTAL.equalsIgnoreCase(application)) {
