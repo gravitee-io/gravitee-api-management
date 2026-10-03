@@ -199,4 +199,42 @@ public class FlowValidationServiceImplTest {
         assertThat(validatedFlows).isEmpty();
         assertThat(validatedFlows).isEqualTo(emptyFlows);
     }
+
+    @Test
+    public void shouldRejectXmlValidationRegistrySourceOnMessageApi() {
+        Flow flow = new Flow();
+        ChannelSelector channelSelector = new ChannelSelector();
+        flow.setSelectors(List.of(channelSelector));
+        Step step = new Step();
+        step.setName("XML Validation");
+        step.setPolicy("xml-validation");
+        step.setConfiguration(
+            "{\"schemaSource\":\"registry\",\"registryResource\":\"sr\",\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"1\"}"
+        );
+        flow.setRequest(List.of(step));
+
+        assertThatExceptionOfType(InvalidDataException.class)
+            .isThrownBy(() -> flowValidationService.validateAndSanitize(ApiType.MESSAGE, List.of(flow)))
+            .withMessageContaining("only supported on HTTP proxy APIs");
+    }
+
+    @Test
+    public void shouldAcceptXmlValidationRegistrySourceOnProxyApi() {
+        Flow flow = new Flow();
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/");
+        httpSelector.setPathOperator(Operator.STARTS_WITH);
+        flow.setSelectors(List.of(httpSelector));
+        Step step = new Step();
+        step.setName("XML Validation");
+        step.setPolicy("xml-validation");
+        step.setConfiguration(
+            "{\"schemaSource\":\"registry\",\"registryResource\":\"sr\",\"groupId\":\"g\",\"artifactId\":\"a\",\"version\":\"1\"}"
+        );
+        flow.setRequest(List.of(step));
+        when(policyService.validatePolicyConfiguration(eq("xml-validation"), any())).thenAnswer(invocation -> invocation.getArgument(1));
+
+        List<Flow> validated = flowValidationService.validateAndSanitize(ApiType.PROXY, List.of(flow));
+        assertThat(validated).hasSize(1);
+    }
 }
