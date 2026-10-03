@@ -57,7 +57,11 @@
     <logback-ecs-encoder.version>1.8.0</logback-ecs-encoder.version>
     <gravitee-common.version>5.2.0</gravitee-common.version>
     <gravitee-common-elasticsearch.version>7.2.0</gravitee-common-elasticsearch.version>
+<<<<<<< HEAD
     <gravitee-common-mcp.version>2.0.0</gravitee-common-mcp.version>
+=======
+    <gravitee-common-mcp.version>2.2.1</gravitee-common-mcp.version>
+>>>>>>> f133299 (chore(deps): bump gravitee-common-mcp to 2.2.1)
     <gravitee-connector-api.version>2.0.0</gravitee-connector-api.version>
     <gravitee-exchange.version>3.0.0</gravitee-exchange.version>
     <gravitee-expression-language.version>4.6.0</gravitee-expression-language.version>
