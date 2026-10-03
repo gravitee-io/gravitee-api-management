@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.sharedpolicygroup;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.deployer.SharedPolicyGroupDeployer;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
@@ -200,9 +201,10 @@ public class SharedPolicyGroupSynchronizer implements RepositorySynchronizer {
         final SharedPolicyGroupDeployer sharedPolicyGroupDeployer,
         final SharedPolicyGroupReactorDeployable deployable
     ) {
-        return sharedPolicyGroupDeployer
-            .undeploy(deployable)
-            .andThen(sharedPolicyGroupDeployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(
+            sharedPolicyGroupDeployer.undeploy(deployable),
+            sharedPolicyGroupDeployer.doAfterUndeployment(deployable)
+        )
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);

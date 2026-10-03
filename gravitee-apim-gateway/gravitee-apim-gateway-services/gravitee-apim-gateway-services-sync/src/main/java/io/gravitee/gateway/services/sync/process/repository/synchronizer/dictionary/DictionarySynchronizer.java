@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.DICT
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.common.deployer.DictionaryDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
@@ -142,9 +143,10 @@ public class DictionarySynchronizer implements RepositorySynchronizer {
         final DictionaryDeployer dictionaryDeployer,
         final DictionaryDeployable deployable
     ) {
-        return dictionaryDeployer
-            .undeploy(deployable)
-            .andThen(dictionaryDeployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(
+            dictionaryDeployer.undeploy(deployable),
+            dictionaryDeployer.doAfterUndeployment(deployable)
+        )
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);

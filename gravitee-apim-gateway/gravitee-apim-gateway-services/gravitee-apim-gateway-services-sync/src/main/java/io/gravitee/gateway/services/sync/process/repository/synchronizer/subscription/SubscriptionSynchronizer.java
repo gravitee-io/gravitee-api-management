@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription;
 
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.deployer.SubscriptionDeployer;
 import io.gravitee.gateway.services.sync.process.common.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
@@ -122,9 +123,10 @@ public class SubscriptionSynchronizer implements RepositorySynchronizer {
         final SubscriptionDeployer subscriptionDeployer,
         final SingleSubscriptionDeployable deployable
     ) {
-        return subscriptionDeployer
-            .undeploy(deployable)
-            .andThen(subscriptionDeployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(
+            subscriptionDeployer.undeploy(deployable),
+            subscriptionDeployer.doAfterUndeployment(deployable)
+        )
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);

@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey
 import io.gravitee.gateway.handlers.api.services.SubscriptionCacheService;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
@@ -104,10 +105,10 @@ public class ApiKeySynchronizer implements RepositorySynchronizer {
     }
 
     private Flowable<SingleApiKeyDeployable> undeploy(final ApiKeyDeployer apiKeyDeployer, final SingleApiKeyDeployable deployable) {
-        return apiKeyDeployer
-            .undeploy(deployable)
-            .andThen(apiKeyDeployer.doAfterUndeployment(deployable))
-            .andThen(Flowable.just(deployable));
+        return FailClosedUndeploy.undeployThenDistribute(
+            apiKeyDeployer.undeploy(deployable),
+            apiKeyDeployer.doAfterUndeployment(deployable)
+        ).andThen(Flowable.just(deployable));
     }
 
     @Override

@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.apipro
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiProductDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
+import io.gravitee.gateway.services.sync.process.common.deployer.FailClosedUndeploy;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.common.synchronizer.Order;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
@@ -182,9 +183,10 @@ public class ApiProductSynchronizer implements RepositorySynchronizer {
         final ApiProductDeployer apiProductDeployer,
         final ApiProductReactorDeployable deployable
     ) {
-        return apiProductDeployer
-            .undeploy(deployable)
-            .andThen(apiProductDeployer.doAfterUndeployment(deployable))
+        return FailClosedUndeploy.undeployThenDistribute(
+            apiProductDeployer.undeploy(deployable),
+            apiProductDeployer.doAfterUndeployment(deployable)
+        )
             .andThen(Flowable.just(deployable))
             .onErrorResumeNext(throwable -> {
                 log.error(throwable.getMessage(), throwable);
