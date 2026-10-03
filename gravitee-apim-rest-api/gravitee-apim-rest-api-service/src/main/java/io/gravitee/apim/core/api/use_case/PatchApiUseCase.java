@@ -462,7 +462,7 @@ public class PatchApiUseCase {
             PatchableProperty.class,
             PatchableProperty.fromList(httpV4.getProperties())
         );
-        var properties = encryptProperties(patchableProperties);
+        var properties = encryptProperties(httpV4.getProperties(), patchableProperties);
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
 
         var apiV4Fields = resolveApiV4Fields(patchType, rawPatchNode, patchedNode, httpV4);
@@ -858,11 +858,14 @@ public class PatchApiUseCase {
         return "/" + field;
     }
 
-    private List<Property> encryptProperties(List<PatchableProperty> patchableProperties) {
+    private List<Property> encryptProperties(List<Property> existing, List<PatchableProperty> patchableProperties) {
         if (patchableProperties == null) {
             return null;
         }
-        return propertyDomainService.encryptProperties(patchableProperties.stream().map(PatchableProperty::toEncryptable).toList());
+        return propertyDomainService.encryptProperties(
+            existing,
+            patchableProperties.stream().map(PatchableProperty::toEncryptable).toList()
+        );
     }
 
     record PatchableProperty(String key, String value, boolean encrypted, boolean dynamic, boolean encryptable) {

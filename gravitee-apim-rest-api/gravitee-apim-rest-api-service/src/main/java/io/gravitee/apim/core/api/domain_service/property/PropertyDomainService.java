@@ -17,12 +17,16 @@ package io.gravitee.apim.core.api.domain_service.property;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.property.Property;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
 
@@ -33,16 +37,35 @@ public class PropertyDomainService {
 
     private final DataEncryptor dataEncryptor;
 
-    public List<Property> encryptProperties(List<EncryptableProperty> apiProperties) {
+    /**
+     * @param existing the properties currently stored, used only to reject an encrypted key being
+     *                 reclassified to plain; {@code null} or empty when there is nothing stored yet.
+     */
+    public List<Property> encryptProperties(List<Property> existing, List<EncryptableProperty> apiProperties) {
         if (apiProperties == null) {
             return new ArrayList<>();
         }
-        return apiProperties.stream().map(this::encryptProperty).filter(Objects::nonNull).toList();
+        Map<String, Property> existingByKey = existing == null
+            ? Map.of()
+            : existing.stream().filter(Objects::nonNull).collect(Collectors.toMap(Property::getKey, Function.identity(), (a, b) -> a));
+        return apiProperties
+            .stream()
+            .map(property -> encryptProperty(existingByKey, property))
+            .filter(Objects::nonNull)
+            .toList();
     }
 
-    private Property encryptProperty(EncryptableProperty property) {
+    private Property encryptProperty(Map<String, Property> existingByKey, EncryptableProperty property) {
         if (property == null) {
             return null;
+        }
+        Property stored = existingByKey.get(property.getKey());
+        if (stored != null && stored.isEncrypted() && !property.isEncrypted() && !property.isEncryptable()) {
+            throw new ValidationDomainException(
+                "Property '" + property.getKey() + "' is encrypted and cannot be reclassified to plain.",
+                Map.of("key", property.getKey()),
+                "property.encrypted.immutable"
+            );
         }
         var asPropertyBuilder = property.toPropertyBuilder();
         if (property.isEncryptable() && !property.isEncrypted()) {

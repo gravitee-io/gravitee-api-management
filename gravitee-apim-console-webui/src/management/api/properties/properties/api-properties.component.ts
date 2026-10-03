@@ -50,6 +50,9 @@ type TableDataSource = {
   dynamic: boolean;
 };
 
+// Matches the dictionary Console's mask, so the same classification reads the same way everywhere.
+export const ENCRYPTED_VALUE_MASK = '•'.repeat(12);
+
 @Component({
   selector: 'api-properties',
   templateUrl: './api-properties.component.html',
@@ -195,6 +198,11 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     const property = this.apiProperties.find(p => p._id === _id);
 
     property.encryptable = true;
+
+    const valueControl = this.propertiesFormGroup.get(_id).get('value');
+    valueControl.setValue(ENCRYPTED_VALUE_MASK, { emitEvent: false });
+    valueControl.disable({ emitEvent: false });
+
     this.isDirty = true;
     this.refreshTable();
   }
@@ -207,10 +215,16 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
 
     const valueControl = this.propertiesFormGroup.get(_id).get('value');
     valueControl.setValue('');
-    valueControl.enable();
+    if (!this.isReadOnly && !property.dynamic) {
+      valueControl.enable();
+    }
 
     this.isDirty = true;
     this.refreshTable();
+  }
+
+  blockClipboardEvent(event: ClipboardEvent) {
+    event.preventDefault();
   }
 
   removeProperty(_id: string) {
@@ -279,7 +293,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
         keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => this.editKeyProperty(currentValue._id, value));
 
         const valueControl = new UntypedFormControl({
-          value: currentValue.encrypted ? '*************' : currentValue.value,
+          value: currentValue.encrypted ? ENCRYPTED_VALUE_MASK : currentValue.value,
           disabled: this.isReadOnly || currentValue.encrypted || currentValue.dynamic,
         });
         valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(value => this.editValueProperty(currentValue._id, value));
