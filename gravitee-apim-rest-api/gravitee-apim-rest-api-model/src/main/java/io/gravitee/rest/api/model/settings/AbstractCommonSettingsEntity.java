@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.util.LinkedMultiValueMap;
 import io.gravitee.common.util.MultiValueMap;
-import jakarta.validation.Valid;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -30,7 +29,9 @@ public abstract class AbstractCommonSettingsEntity {
 
     public static final String METADATA_READONLY = "readonly";
 
-    @Valid
+    // Not @Valid on purpose: settings pages send the whole object back, including sender values locked by the system
+    // configuration or stored before a check got stricter. The settings service validates only the sender values a
+    // save changes.
     private Email email;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
