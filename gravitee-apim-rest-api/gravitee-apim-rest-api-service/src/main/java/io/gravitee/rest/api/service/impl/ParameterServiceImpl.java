@@ -452,20 +452,11 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
             parameter.setValue(value);
 
             // A system-overridden value must not be persisted to org/env storage: return the effective value
-            // without writing. This mirrors getSystemParameter() — branded_senders is resolved through the reader
-            // (both the native yaml list, for which containsProperty is false, and the flat form), every other key
-            // through containsProperty — so a console save cannot leave a stale org/env value behind a locked field.
-            if (key.isOverridable()) {
-                if (key == Key.EMAIL_BRANDED_SENDERS) {
-                    Optional<String> systemValue = brandedSendersEnvironmentReader.read();
-                    if (systemValue.isPresent()) {
-                        parameter.setValue(systemValue.get());
-                        return parameter;
-                    }
-                } else if (environment.containsProperty(key.key())) {
-                    parameter.setValue(toSemicolonSeparatedString(key, environment.getProperty(key.key())));
-                    return parameter;
-                }
+            // without writing, so a console save cannot leave a stale org/env value behind a locked field.
+            Optional<Parameter> systemParameter = getSystemParameter(key);
+            if (systemParameter.isPresent()) {
+                parameter.setValue(systemParameter.get().getValue());
+                return parameter;
             }
 
             if (updateMode) {
@@ -690,6 +681,11 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
 
     private String computeCacheKey(String key, String referenceId, ParameterReferenceType referenceType) {
         return key + referenceId + referenceType;
+    }
+
+    @Override
+    public boolean isSystemConfigured(Key key) {
+        return getSystemParameter(key).isPresent();
     }
 
     private Optional<Parameter> getSystemParameter(Key key) {
