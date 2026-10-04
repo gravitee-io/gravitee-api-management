@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
@@ -23,11 +24,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.rest.api.model.settings.BrandedSenderConfig;
+import io.gravitee.rest.api.model.settings.Email;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validation;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -78,5 +85,40 @@ public class PortalSettingsResourceTest extends AbstractResourceTest {
 
         assertEquals(FORBIDDEN_403, response.getStatus(), response.readEntity(String.class));
         verify(configService, never()).resetPortalBrandedSenders(any(ExecutionContext.class));
+    }
+
+    @Test
+    public void shouldLetTheServiceDecideOnSenderValuesWhenSaving() {
+        // The console sends the whole settings object back, including sender values locked by gravitee.yml or stored
+        // before the sender checks got stricter. The request-level validation must not reject them, or no setting on
+        // the page can be saved; the service validates only the sender values that are actually changed.
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setFrom("\"user@my.domain\"");
+        settings
+            .getEmail()
+            .setBrandedSenders(
+                List.of(BrandedSenderConfig.builder().domains(List.of("example.com")).from("Example, Inc <noreply@example.com>").build())
+            );
+
+        final Response response = envTarget().request().post(Entity.json(settings));
+
+        assertEquals(OK_200, response.getStatus(), response.readEntity(String.class));
+        verify(configService).save(any(ExecutionContext.class), any(PortalSettingsEntity.class));
+    }
+
+    @Test
+    public void shouldReturn400WhenTheServiceRejectsAnEditedSender() {
+        var violations = Validation.buildDefaultValidatorFactory().getValidator().validateValue(Email.class, "from", "not-an-email");
+        doThrow(new ConstraintViolationException(violations))
+            .when(configService)
+            .save(any(ExecutionContext.class), any(PortalSettingsEntity.class));
+
+        final Response response = envTarget().request().post(Entity.json(new PortalSettingsEntity()));
+
+        assertEquals(BAD_REQUEST_400, response.getStatus());
+        assertEquals(
+            "must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")",
+            response.readEntity(JsonNode.class).get("message").asText()
+        );
     }
 }

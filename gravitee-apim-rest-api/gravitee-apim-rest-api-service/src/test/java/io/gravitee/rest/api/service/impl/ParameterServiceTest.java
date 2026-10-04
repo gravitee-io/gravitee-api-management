@@ -25,6 +25,7 @@ import static java.util.Collections.singletonMap;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -107,6 +108,35 @@ public class ParameterServiceTest {
     public void init() {
         GraviteeContext.getCurrentParameters().clear();
         when(node.id()).thenReturn("test-node-id");
+    }
+
+    @Test
+    public void should_report_a_key_set_in_the_system_configuration_as_system_configured() {
+        when(environment.containsProperty(Key.EMAIL_FROM.key())).thenReturn(true);
+
+        assertTrue(parameterService.isSystemConfigured(Key.EMAIL_FROM));
+    }
+
+    @Test
+    public void should_not_report_a_key_absent_from_the_system_configuration_as_system_configured() {
+        when(environment.containsProperty(Key.EMAIL_FROM.key())).thenReturn(false);
+
+        assertFalse(parameterService.isSystemConfigured(Key.EMAIL_FROM));
+    }
+
+    @Test
+    public void should_report_branded_senders_as_system_configured_only_when_the_reader_has_a_valid_value() {
+        // The reader covers the native yaml list (containsProperty is false for it) and ignores an invalid value.
+        when(brandedSendersEnvironmentReader.read()).thenReturn(of("[]"), empty());
+
+        assertTrue(parameterService.isSystemConfigured(EMAIL_BRANDED_SENDERS));
+        assertFalse(parameterService.isSystemConfigured(EMAIL_BRANDED_SENDERS));
+    }
+
+    @Test
+    public void should_not_report_a_non_overridable_key_as_system_configured() {
+        assertFalse(parameterService.isSystemConfigured(Key.PORTAL_TOP_APIS));
+        verifyNoInteractions(environment);
     }
 
     @Test
