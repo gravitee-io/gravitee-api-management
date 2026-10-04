@@ -7,6 +7,7 @@ name: Jira key
 
 on:
     pull_request:
+        types: [opened, edited, synchronize, reopened]
 
 permissions:
     contents: read
