@@ -85,6 +85,7 @@ import { BroadcastsPage } from '../pages/BroadcastsPage';
 import { ClientRegistrationPage } from '../pages/ClientRegistrationPage';
 import { ClientRegistrationProviderPage } from '../pages/ClientRegistrationProviderPage';
 import { CorsSettingsPage } from '../pages/CorsSettingsPage';
+import { CreateA2aIntegrationPage } from '../pages/CreateA2aIntegrationPage';
 import { CreateIdentityProviderPage } from '../pages/CreateIdentityProviderPage';
 import { CreateIntegrationPage } from '../pages/CreateIntegrationPage';
 import { DictionariesPage } from '../pages/DictionariesPage';
@@ -890,10 +891,18 @@ export function AppRoutes() {
                             >
                                 <Route index element={<IntegrationsPage />} />
                                 <Route
-                                    path="new"
+                                    path="new/provider"
                                     element={
                                         <PermissionPageGuard permission={ENVIRONMENT_INTEGRATION_CREATE_PERMISSION} unauthorizedTo="..">
                                             <CreateIntegrationPage />
+                                        </PermissionPageGuard>
+                                    }
+                                />
+                                <Route
+                                    path="new/a2a"
+                                    element={
+                                        <PermissionPageGuard permission={ENVIRONMENT_INTEGRATION_CREATE_PERMISSION} unauthorizedTo="..">
+                                            <CreateA2aIntegrationPage />
                                         </PermissionPageGuard>
                                     }
                                 />

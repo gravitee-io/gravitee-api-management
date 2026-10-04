@@ -1100,18 +1100,36 @@ describe('AppRoutes', () => {
         },
     );
 
-    it('opens the create-integration page on its provider-selection step instead of reading new as an integration id', async () => {
+    it('opens the create-integration page on its provider-selection step at its provider create route', async () => {
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
 
-        renderIntegrationPath('/integrations/new');
+        renderIntegrationPath('/integrations/new/provider');
 
         expect(await screen.findByRole('heading', { name: 'Create a new integration' })).not.toBeNull();
         expect(within(screen.getByRole('radiogroup', { name: 'Provider' })).getAllByRole('radio')).toHaveLength(8);
         expect(screen.queryByTestId('integration-overview-page')).toBeNull();
-        expect(screen.getByTestId('location').textContent).toBe('/integrations/new');
+        expect(screen.getByTestId('location').textContent).toBe('/integrations/new/provider');
         expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
+        fetchSpy.mockRestore();
+    });
+
+    it('opens the A2A create form with no well-known URL entry on its own create route', async () => {
+        const fetchSpy = spyOnApimFetch();
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath('/integrations/new/a2a');
+
+        expect(await screen.findByRole('heading', { name: 'Create an A2A integration' })).not.toBeNull();
+        expect(screen.getByRole('button', { name: 'Add another URL' })).not.toBeNull();
+        expect(screen.getAllByRole('textbox')).toEqual([
+            screen.getByRole('textbox', { name: /^Name/ }),
+            screen.getByRole('textbox', { name: /^Description/ }),
+        ]);
+        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe('/integrations/new/a2a');
         fetchSpy.mockRestore();
     });
 
@@ -1124,26 +1142,28 @@ describe('AppRoutes', () => {
         mockUseConsoleSettings.mockReturnValue(consoleSettings);
         mockSetLicense(license);
 
-        renderIntegrationPath('/integrations/new');
+        renderIntegrationPath('/integrations/new/provider');
         await act(async () => {});
 
         expect(screen.queryByRole('heading', { name: 'Create a new integration' })).toBeNull();
         expect(screen.queryByRole('radiogroup', { name: 'Provider' })).toBeNull();
-        expect(screen.getByTestId('location').textContent).not.toBe('/integrations/new');
+        expect(screen.getByTestId('location').textContent).not.toBe('/integrations/new/provider');
         fetchSpy.mockRestore();
     });
 
-    it('redirects a direct create-integration visit to the Integrations list when the user lacks environment-integration-c', async () => {
+    it.each([
+        ['/integrations/new/provider', 'Create a new integration'],
+        ['/integrations/new/a2a', 'Create an A2A integration'],
+    ])('redirects a direct %s visit to the Integrations list when the user lacks environment-integration-c', async (path, heading) => {
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
         denyPermissions('environment-integration-c');
 
-        renderIntegrationPath('/integrations/new');
+        renderIntegrationPath(path);
         await act(async () => {});
 
-        expect(screen.queryByRole('heading', { name: 'Create a new integration' })).toBeNull();
-        expect(screen.queryByRole('radiogroup', { name: 'Provider' })).toBeNull();
+        expect(screen.queryByRole('heading', { name: heading })).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/integrations');
         fetchSpy.mockRestore();
     });
@@ -1164,7 +1184,7 @@ describe('AppRoutes', () => {
         );
         expect(await within(listView.container).findByText('No integrations yet')).not.toBeNull();
 
-        renderIntegrationPath('/integrations/new');
+        renderIntegrationPath('/integrations/new/provider');
         await user.click(await screen.findByRole('radio', { name: 'MuleSoft' }));
         await user.type(screen.getByRole('textbox', { name: /^Name/ }), created.name);
         await user.click(screen.getByRole('button', { name: 'Create' }));
@@ -1175,18 +1195,21 @@ describe('AppRoutes', () => {
         fetchSpy.mockRestore();
     });
 
-    it('returns to the Integrations list from the create-integration page Back button', async () => {
-        const user = userEvent.setup();
-        const fetchSpy = spyOnApimFetch();
-        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
-        mockSetLicense(ENTITLED_LICENSE);
+    it.each(['/integrations/new/provider', '/integrations/new/a2a'])(
+        'returns to the Integrations list from the %s Back button',
+        async path => {
+            const user = userEvent.setup();
+            const fetchSpy = spyOnApimFetch();
+            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+            mockSetLicense(ENTITLED_LICENSE);
 
-        renderIntegrationPath('/integrations/new');
-        await user.click(await screen.findByRole('button', { name: 'Back to Integrations' }));
+            renderIntegrationPath(path);
+            await user.click(await screen.findByRole('button', { name: 'Back to Integrations' }));
 
-        expect(screen.getByTestId('location').textContent).toBe('/integrations');
-        fetchSpy.mockRestore();
-    });
+            expect(screen.getByTestId('location').textContent).toBe('/integrations');
+            fetchSpy.mockRestore();
+        },
+    );
 
     // Each row uses its own integration id because AppRoutes shares one QueryClient across tests: a cached
     // grant for the same id from the test above would otherwise let the overview mount before the refetch.

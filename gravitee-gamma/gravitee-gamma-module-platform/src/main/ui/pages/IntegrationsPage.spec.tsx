@@ -288,14 +288,14 @@ describe('IntegrationsPage', () => {
         },
     );
 
-    it('opens the create-integration route when a user allowed to create integrations clicks the create action', async () => {
+    it('opens the provider create route when a user allowed to create integrations clicks the create action', async () => {
         mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-integration-c') ?? false);
         render(
             <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
                 <MemoryRouter initialEntries={['/integrations']}>
                     <Routes>
                         <Route path="/integrations" element={<IntegrationsPage />} />
-                        <Route path="/integrations/new" element={<div data-testid="create-integration-probe" />} />
+                        <Route path="/integrations/new/provider" element={<div data-testid="create-integration-probe" />} />
                     </Routes>
                 </MemoryRouter>
             </QueryClientProvider>,

@@ -81,7 +81,7 @@ export function IntegrationsPage() {
                     </p>
                 </div>
                 {canCreate ? (
-                    <Button className="shrink-0" size="sm" onClick={() => navigate('new')}>
+                    <Button className="shrink-0" size="sm" onClick={() => navigate('new/provider')}>
                         <PlusIcon className="size-4" aria-hidden />
                         Create integration
                     </Button>
