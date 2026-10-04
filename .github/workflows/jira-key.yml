@@ -1,0 +1,43 @@
+# Fails the pull request unless a Jira key (for example AM-9001) appears in the
+# title, the head branch, or the body. The same key may be reused across a
+# train. This job does not call Jira and does not choose a team.
+# APIM-XXX in the pull request template does not match: the numeric part is
+# required.
+name: Jira key
+
+on:
+    pull_request:
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Require a Jira key in the title, branch, or body
+              env:
+                  PR_TITLE: ${{ github.event.pull_request.title }}
+                  PR_BRANCH: ${{ github.head_ref }}
+                  PR_BODY: ${{ github.event.pull_request.body }}
+              run: |
+                  python3 - <<'PY'
+                  import os
+                  import re
+                  import sys
+
+                  pattern = re.compile(r"\b[A-Z][A-Z0-9]+-[0-9]+\b")
+                  fields = (
+                      ("title", os.environ.get("PR_TITLE") or ""),
+                      ("branch", os.environ.get("PR_BRANCH") or ""),
+                      ("body", os.environ.get("PR_BODY") or ""),
+                  )
+                  for name, value in fields:
+                      match = pattern.search(value)
+                      if match:
+                          print(f"PASS: Jira key {match.group(0)} found in {name}")
+                          sys.exit(0)
+                  print("FAIL: no Jira key in the title, head branch, or body")
+                  print("Add a key such as AM-9001 to the title or the head branch.")
+                  sys.exit(1)
+                  PY
