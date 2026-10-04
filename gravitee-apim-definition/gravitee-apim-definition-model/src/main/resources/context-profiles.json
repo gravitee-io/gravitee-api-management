@@ -1,0 +1,48 @@
+{
+  "ECONOMY": {
+    "title": "Economy",
+    "compactThreshold": 240000,
+    "requestControls": {
+      "contextReduction": {
+        "enabled": false
+      }
+    },
+    "providerRequestControls": {
+      "ANTHROPIC": {
+        "anthropicCache": {
+          "toolsEnd": "1h",
+          "systemEnd": "1h",
+          "conversationEnd": "5m"
+        }
+      }
+    }
+  },
+  "FLOW": {
+    "title": "Flow",
+    "compactThreshold": null,
+    "requestControls": {
+      "contextReduction": {
+        "enabled": true,
+        "targetInputTokens": 170000,
+        "reclaimTargetInputTokens": 60000,
+        "frozenHeadMessages": 10,
+        "retainedTailMessages": 30,
+        "retainedTailTokens": 0,
+        "cleanAfterMessages": 4,
+        "cleanAfterToolSteps": 15,
+        "condenseKeepTokens": 64,
+        "oversizeMinTokens": 4000,
+        "oversizeKeepTokens": 256
+      }
+    },
+    "providerRequestControls": {
+      "ANTHROPIC": {
+        "anthropicCache": {
+          "toolsEnd": "1h",
+          "systemEnd": "1h",
+          "conversationEnd": "5m"
+        }
+      }
+    }
+  }
+}

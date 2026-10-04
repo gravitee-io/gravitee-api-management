@@ -42,6 +42,7 @@ public class UpgraderOrder {
     public static final int API_LOGGING_CONDITION_UPGRADER = 550;
     public static final int PLANS_FLOWS_DEFINITION_UPGRADER = 550;
     public static final int EVENTS_LATEST_UPGRADER = 600;
+    public static final int ORGANIZATION_EVENT_BOOTSTRAP_UPGRADER = 601;
     public static final int EXECUTION_MODE_UPGRADER = 610;
     public static final int QUALITY_RULES_SCOPING_UPGRADER = 700;
     public static final int API_V4_CATEGORIES_UPGRADER = 701;

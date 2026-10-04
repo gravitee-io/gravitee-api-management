@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -46,6 +47,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.CustomLog;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -76,6 +78,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
 
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private OrganizationContextPolicyService organizationContextPolicyService;
 
     @Autowired
     private ObjectMapper mapper;
@@ -188,6 +193,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
     }
 
     private void createPublishOrganizationEvent(OrganizationEntity organizationEntity) {
+        OrganizationEntity organizationSnapshot = new OrganizationEntity();
+        BeanUtils.copyProperties(organizationEntity, organizationSnapshot);
+        organizationSnapshot.setContextManagement(organizationContextPolicyService.find(organizationEntity.getId()));
         Set<String> environmentIds = environmentService
             .findByOrganization(organizationEntity.getId())
             .stream()
@@ -199,8 +207,13 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             environmentIds,
             organizationEntity.getId(),
             EventType.PUBLISH_ORGANIZATION,
-            organizationEntity
+            organizationSnapshot
         );
+    }
+
+    @Override
+    public void publishOrganization(final String organizationId) {
+        createPublishOrganizationEvent(findById(organizationId));
     }
 
     @Override
@@ -258,7 +271,9 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         defaultOrganization.setDescription("Default organization");
         try {
             organizationRepository.create(defaultOrganization);
-            return convert(defaultOrganization);
+            OrganizationEntity initializedOrganization = convert(defaultOrganization);
+            createPublishOrganizationEvent(initializedOrganization);
+            return initializedOrganization;
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to create default organization", ex);
         }

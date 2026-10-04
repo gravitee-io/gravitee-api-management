@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
+import io.gravitee.definition.model.llm.ContextManagementPolicy;
 import io.gravitee.repository.management.model.Event;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,5 +70,40 @@ class ReactableOrganizationMapperTest {
         Event event = new Event();
         event.setPayload(objectMapper.writeValueAsString("wrong"));
         cut.to(event).test().assertNoValues().assertComplete();
+    }
+
+    @Test
+    void should_preserve_context_management_policy() throws JsonProcessingException {
+        Organization organization = new Organization();
+        organization.setId("id");
+        organization.setContextManagement(new ContextManagementPolicy(ContextManagementPolicy.Mode.ENFORCE, 2048, null));
+        Event event = new Event();
+        event.setPayload(objectMapper.writeValueAsString(organization));
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableOrganization ->
+                reactableOrganization
+                    .getDefinition()
+                    .getContextManagement()
+                    .equals(new ContextManagementPolicy(ContextManagementPolicy.Mode.ENFORCE, 2048, null))
+            )
+            .assertComplete();
+    }
+
+    @Test
+    void should_clear_context_management_policy() throws JsonProcessingException {
+        Organization organization = new Organization();
+        organization.setId("id");
+        organization.setContextManagement(null);
+        Event event = new Event();
+        event.setPayload(objectMapper.writeValueAsString(organization));
+
+        cut
+            .to(event)
+            .test()
+            .assertValue(reactableOrganization -> reactableOrganization.getDefinition().getContextManagement() == null)
+            .assertComplete();
     }
 }

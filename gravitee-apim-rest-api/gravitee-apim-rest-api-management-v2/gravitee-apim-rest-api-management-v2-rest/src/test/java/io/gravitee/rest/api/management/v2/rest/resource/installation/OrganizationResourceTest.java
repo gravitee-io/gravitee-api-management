@@ -16,22 +16,29 @@
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.FlowMode;
+import io.gravitee.definition.model.llm.ContextManagementPolicy;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.model.ContextManagementPolicy.ModeEnum;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.Date;
@@ -50,6 +57,9 @@ public class OrganizationResourceTest extends AbstractResourceTest {
     @Inject
     private LicenseManager licenseManager;
 
+    @Inject
+    private OrganizationContextPolicyService organizationContextPolicyService;
+
     @Override
     protected String contextPath() {
         return "/organizations";
@@ -57,6 +67,7 @@ public class OrganizationResourceTest extends AbstractResourceTest {
 
     @BeforeEach
     public void init() {
+        reset(organizationService, organizationContextPolicyService, licenseManager);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
         GraviteeContext.setCurrentEnvironment(null);
     }
@@ -119,6 +130,90 @@ public class OrganizationResourceTest extends AbstractResourceTest {
 
             var response = rootTarget(ORGANIZATION).path("license").request().get();
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+    }
+
+    @Nested
+    class ContextPolicy {
+
+        @Test
+        void shouldReturnConfiguredPolicy() {
+            mockExistingOrganization(ORGANIZATION);
+            when(organizationContextPolicyService.find(ORGANIZATION)).thenReturn(
+                new ContextManagementPolicy(ContextManagementPolicy.Mode.ENFORCE, 2048, null)
+            );
+
+            Response response = rootTarget(ORGANIZATION).path("context-policy").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var policy = response.readEntity(io.gravitee.rest.api.management.v2.rest.model.ContextManagementPolicy.class);
+            assertThat(policy.getMode()).isEqualTo(ModeEnum.ENFORCE);
+            assertThat(policy.getCompactThreshold()).isEqualTo(2048);
+        }
+
+        @Test
+        void shouldReturnNoContentWhenPolicyIsAbsent() {
+            mockExistingOrganization(ORGANIZATION);
+            when(organizationContextPolicyService.find(ORGANIZATION)).thenReturn(null);
+
+            Response response = rootTarget(ORGANIZATION).path("context-policy").request().get();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+        }
+
+        @Test
+        void shouldSaveAndPublishPolicy() {
+            mockExistingOrganization(ORGANIZATION);
+            var policy = new io.gravitee.rest.api.management.v2.rest.model.ContextManagementPolicy()
+                .mode(ModeEnum.DEFAULT)
+                .compactThreshold(1024);
+            when(organizationContextPolicyService.save(any(), eq(ORGANIZATION), any())).thenReturn(
+                new ContextManagementPolicy(ContextManagementPolicy.Mode.DEFAULT, 1024, null)
+            );
+
+            Response response = rootTarget(ORGANIZATION)
+                .path("context-policy")
+                .request()
+                .put(Entity.entity(policy, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            verify(organizationContextPolicyService).save(
+                eq(new io.gravitee.rest.api.service.common.ExecutionContext(ORGANIZATION)),
+                eq(ORGANIZATION),
+                eq(new ContextManagementPolicy(ContextManagementPolicy.Mode.DEFAULT, 1024, null))
+            );
+            verify(organizationService).publishOrganization(ORGANIZATION);
+        }
+
+        @Test
+        void shouldRejectInvalidPolicy() {
+            mockExistingOrganization(ORGANIZATION);
+            var policy = new io.gravitee.rest.api.management.v2.rest.model.ContextManagementPolicy()
+                .mode(ModeEnum.PASSTHROUGH)
+                .compactThreshold(1024);
+
+            Response response = rootTarget(ORGANIZATION)
+                .path("context-policy")
+                .request()
+                .put(Entity.entity(policy, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            verifyNoInteractions(organizationContextPolicyService);
+            verify(organizationService, never()).publishOrganization(anyString());
+        }
+
+        @Test
+        void shouldClearAndPublishPolicy() {
+            mockExistingOrganization(ORGANIZATION);
+
+            Response response = rootTarget(ORGANIZATION).path("context-policy").request().delete();
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NO_CONTENT_204);
+            verify(organizationContextPolicyService).clear(
+                eq(new io.gravitee.rest.api.service.common.ExecutionContext(ORGANIZATION)),
+                eq(ORGANIZATION)
+            );
+            verify(organizationService).publishOrganization(ORGANIZATION);
         }
     }
 

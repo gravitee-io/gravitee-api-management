@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,6 +29,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.llm.ContextManagementPolicy;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
@@ -38,6 +40,7 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -50,6 +53,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -88,6 +92,9 @@ public class OrganizationService_CreateTest {
 
     @Mock
     private ObjectMapper mapper;
+
+    @Mock
+    private OrganizationContextPolicyService organizationContextPolicyService;
 
     @BeforeEach
     public void setup() {
@@ -208,5 +215,50 @@ public class OrganizationService_CreateTest {
         assertNotNull(organization);
         assertEquals(List.of(existingFlow), organization.getFlows());
         verify(mockFlowService, never()).save(any(), any(), any());
+    }
+
+    @Test
+    public void ordinary_metadata_updates_should_publish_a_policy_snapshot_without_mutating_returned_entities() throws Exception {
+        Organization existingOrganization = new Organization();
+        existingOrganization.setId("org_id");
+        when(mockOrganizationRepository.findById("org_id")).thenReturn(Optional.of(existingOrganization));
+        when(mockFlowService.findByReference(FlowReferenceType.ORGANIZATION, "org_id")).thenReturn(new ArrayList<>());
+        when(environmentService.findByOrganization("org_id")).thenReturn(List.of());
+
+        Organization updatedOrganization = new Organization();
+        updatedOrganization.setId("org_id");
+        when(mockOrganizationRepository.update(any())).thenReturn(updatedOrganization);
+
+        ContextManagementPolicy policy = new ContextManagementPolicy(ContextManagementPolicy.Mode.ENFORCE, 2048, null);
+        when(organizationContextPolicyService.find("org_id")).thenReturn(policy, policy, null);
+
+        UpdateOrganizationEntity metadata = new UpdateOrganizationEntity();
+        metadata.setName("updated-name");
+        metadata.setDescription("updated-description");
+
+        OrganizationEntity firstResult = organizationService.updateOrganization("org_id", metadata);
+        OrganizationEntity secondResult = organizationService.updateOrganization("org_id", metadata);
+        OrganizationEntity clearedResult = organizationService.updateOrganization("org_id", metadata);
+
+        assertNull(firstResult.getContextManagement());
+        assertNull(secondResult.getContextManagement());
+        assertNull(clearedResult.getContextManagement());
+
+        ArgumentCaptor<OrganizationEntity> snapshots = ArgumentCaptor.forClass(OrganizationEntity.class);
+        verify(eventService, times(3)).createOrganizationEvent(
+            any(),
+            any(),
+            eq("org_id"),
+            eq(EventType.PUBLISH_ORGANIZATION),
+            snapshots.capture()
+        );
+        assertEquals(policy, snapshots.getAllValues().get(0).getContextManagement());
+        assertEquals(policy, snapshots.getAllValues().get(1).getContextManagement());
+        assertNull(snapshots.getAllValues().get(2).getContextManagement());
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String payload = objectMapper.writeValueAsString(snapshots.getAllValues().get(0));
+        assertEquals("ENFORCE", objectMapper.readTree(payload).path("contextManagement").path("mode").asText());
+        assertEquals(2048, objectMapper.readTree(payload).path("contextManagement").path("compactThreshold").asInt());
     }
 }

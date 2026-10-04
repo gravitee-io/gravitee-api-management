@@ -33,6 +33,7 @@ import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import java.util.Collections;
@@ -74,6 +75,9 @@ public class OrganizationService_UpdateOrganizationAndFlowsTest {
 
     @Mock
     private AuditService mockAuditService;
+
+    @Mock
+    private OrganizationContextPolicyService organizationContextPolicyService;
 
     @BeforeEach
     public void setup() {

@@ -16,6 +16,7 @@
 package io.gravitee.definition.model;
 
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.llm.ContextManagementPolicy;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,6 +33,7 @@ public class Organization implements Serializable {
     private FlowMode flowMode;
     private List<Flow> flows = new ArrayList<>();
     private Date updatedAt;
+    private ContextManagementPolicy contextManagement;
 
     public String getId() {
         return id;
@@ -95,6 +97,14 @@ public class Organization implements Serializable {
 
     public void setUpdatedAt(Date updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public ContextManagementPolicy getContextManagement() {
+        return contextManagement;
+    }
+
+    public void setContextManagement(ContextManagementPolicy contextManagement) {
+        this.contextManagement = contextManagement;
     }
 
     @Override

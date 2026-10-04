@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -24,12 +25,16 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -53,6 +58,20 @@ public class OrganizationService_GetDefaultOrInitializeTest {
 
     @Mock
     private FlowService mockFlowService;
+
+    @Mock
+    private EventService eventService;
+
+    @Mock
+    private EnvironmentService environmentService;
+
+    @Mock
+    private OrganizationContextPolicyService organizationContextPolicyService;
+
+    @BeforeEach
+    public void setup() throws TechnicalException {
+        when(environmentService.findByOrganization(any())).thenReturn(Collections.emptyList());
+    }
 
     @AfterEach
     public void tearDown() {

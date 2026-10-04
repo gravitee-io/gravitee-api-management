@@ -48,6 +48,8 @@ public interface OrganizationService {
 
     OrganizationEntity getDefaultOrInitialize();
 
+    void publishOrganization(String organizationId);
+
     OrganizationEntity findByCockpitId(String cockpitId);
 
     Set<OrganizationEntity> findByHrids(Set<String> hrids);

@@ -18,8 +18,10 @@ package io.gravitee.rest.api.management.v2.rest.resource.installation;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.mapper.ContextManagementPolicyMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.GraviteeLicenseMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OrganizationMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ContextManagementPolicy;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -31,12 +33,20 @@ import io.gravitee.rest.api.management.v2.rest.resource.plugin.ResourcesResource
 import io.gravitee.rest.api.management.v2.rest.resource.promotions.PromotionsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.ui.ManagementUIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.user.UserResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -50,6 +60,9 @@ public class OrganizationResource extends AbstractResource {
 
     @Inject
     private OrganizationService organizationService;
+
+    @Inject
+    private OrganizationContextPolicyService organizationContextPolicyService;
 
     @Inject
     private LicenseManager licenseManager;
@@ -81,6 +94,43 @@ public class OrganizationResource extends AbstractResource {
                 .scope(license.getReferenceType())
                 .build()
         );
+    }
+
+    @GET
+    @Path("/context-policy")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = RolePermissionAction.READ) })
+    public Response getOrganizationContextPolicy(@PathParam("orgId") String orgId) {
+        var policy = organizationContextPolicyService.find(orgId);
+        return policy == null ? Response.noContent().build() : Response.ok(ContextManagementPolicyMapper.toApi(policy)).build();
+    }
+
+    @PUT
+    @Path("/context-policy")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = RolePermissionAction.UPDATE) })
+    public Response updateOrganizationContextPolicy(@PathParam("orgId") String orgId, @Valid ContextManagementPolicy policy) {
+        try {
+            var savedPolicy = organizationContextPolicyService.save(
+                new ExecutionContext(orgId),
+                orgId,
+                ContextManagementPolicyMapper.toDomain(policy)
+            );
+            organizationService.publishOrganization(orgId);
+            return Response.ok(ContextManagementPolicyMapper.toApi(savedPolicy)).build();
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException("Invalid context management policy", ex);
+        }
+    }
+
+    @DELETE
+    @Path("/context-policy")
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_SETTINGS, acls = RolePermissionAction.DELETE) })
+    public Response deleteOrganizationContextPolicy(@PathParam("orgId") String orgId) {
+        organizationContextPolicyService.clear(new ExecutionContext(orgId), orgId);
+        organizationService.publishOrganization(orgId);
+        return Response.noContent().build();
     }
 
     @Path("/environments")

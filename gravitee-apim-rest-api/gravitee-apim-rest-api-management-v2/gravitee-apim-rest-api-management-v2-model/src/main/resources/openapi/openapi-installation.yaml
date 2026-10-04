@@ -118,6 +118,72 @@ paths:
                                 $ref: "#/components/schemas/GraviteeLicense"
                 default:
                     $ref: "#/components/responses/Error"
+    /organizations/{orgId}/context-policy:
+        servers:
+            - url: /management/v2
+              description: Gravitee.io APIM - Management API - v2
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            tags:
+                - Installation
+            summary: Get the organization's LLM context management policy.
+            description: |-
+                Returns the organization's native LLM context management policy.
+                A response with no content means that no organization policy is configured.
+
+                User must be authenticated and have the ORGANIZATION_SETTINGS read permission.
+            operationId: getOrganizationContextPolicy
+            responses:
+                "200":
+                    description: The organization's LLM context management policy.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ContextManagementPolicy"
+                "204":
+                    description: No organization policy is configured.
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - Installation
+            summary: Set the organization's LLM context management policy.
+            description: |-
+                Replaces the organization's native LLM context management policy.
+
+                User must be authenticated and have the ORGANIZATION_SETTINGS update permission.
+            operationId: updateOrganizationContextPolicy
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ContextManagementPolicy"
+            responses:
+                "200":
+                    description: The saved organization policy.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ContextManagementPolicy"
+                default:
+                    $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - Installation
+            summary: Clear the organization's LLM context management policy.
+            description: |-
+                Removes the organization's native LLM context management policy.
+                Clearing an already empty policy is idempotent.
+
+                User must be authenticated and have the ORGANIZATION_SETTINGS delete permission.
+            operationId: deleteOrganizationContextPolicy
+            responses:
+                "204":
+                    description: The organization policy was cleared.
+                default:
+                    $ref: "#/components/responses/Error"
     /organizations/{orgId}/promotions/{promotionId}/_process:
         servers:
           - url: /management/v2
@@ -283,6 +349,24 @@ components:
                     description: Organization's description. A short description of your Organization.
                     example: I can use many characters to describe this Organization.
                     minLength: 1
+        ContextManagementPolicy:
+            type: object
+            additionalProperties: false
+            required:
+                - mode
+            properties:
+                mode:
+                    type: string
+                    description: The native context management policy mode.
+                    enum:
+                        - DEFAULT
+                        - ENFORCE
+                        - PASSTHROUGH
+                compactThreshold:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    description: The provider token threshold that triggers compaction.
         Promotion:
           type: object
           properties:

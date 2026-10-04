@@ -312,6 +312,7 @@ import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.InstanceService;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
@@ -512,6 +513,11 @@ public class ResourceContextConfiguration {
     @Bean
     public OrganizationService organizationService() {
         return mock(OrganizationService.class);
+    }
+
+    @Bean
+    public OrganizationContextPolicyService organizationContextPolicyService() {
+        return mock(OrganizationContextPolicyService.class);
     }
 
     @Bean

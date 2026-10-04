@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model;
 
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
+import io.gravitee.definition.model.llm.ContextManagementPolicy;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
@@ -50,4 +51,6 @@ public class OrganizationEntity {
     private FlowMode flowMode;
 
     private List<Flow> flows;
+
+    private ContextManagementPolicy contextManagement;
 }

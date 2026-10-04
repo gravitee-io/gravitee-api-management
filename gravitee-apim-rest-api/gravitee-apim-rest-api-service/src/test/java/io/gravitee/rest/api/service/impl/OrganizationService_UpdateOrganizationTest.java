@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.OrganizationContextPolicyService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
@@ -82,6 +83,9 @@ public class OrganizationService_UpdateOrganizationTest {
 
     @Mock
     private EnvironmentService environmentService;
+
+    @Mock
+    private OrganizationContextPolicyService organizationContextPolicyService;
 
     @BeforeEach
     public void setup() {

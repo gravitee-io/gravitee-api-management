@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
+import io.gravitee.definition.model.llm.ContextManagementPolicy;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
@@ -93,5 +94,36 @@ class OrganizationMapperTest {
                 assertThat(distributedEvent.getSyncAction()).isEqualTo(this.distributedEvent.getSyncAction());
                 return true;
             });
+    }
+
+    @Test
+    void should_round_trip_context_management_policy_from_repository_event() throws JsonProcessingException {
+        ContextManagementPolicy policy = new ContextManagementPolicy(ContextManagementPolicy.Mode.ENFORCE, 2048, null);
+
+        assertThat(roundTripRepositoryEvent(policy)).isEqualTo(policy);
+    }
+
+    @Test
+    void should_round_trip_a_cleared_context_management_policy_without_stale_value() throws JsonProcessingException {
+        assertThat(roundTripRepositoryEvent(null)).isNull();
+    }
+
+    private ContextManagementPolicy roundTripRepositoryEvent(ContextManagementPolicy policy) throws JsonProcessingException {
+        Organization organization = new Organization();
+        organization.setId("id");
+        organization.setContextManagement(policy);
+
+        io.gravitee.repository.management.model.Event repositoryEvent = new io.gravitee.repository.management.model.Event();
+        repositoryEvent.setPayload(objectMapper.writeValueAsString(organization));
+        repositoryEvent.setCreatedAt(new Date());
+
+        io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper repositoryMapper =
+            new io.gravitee.gateway.services.sync.process.repository.mapper.OrganizationMapper(objectMapper);
+        ReactableOrganization mappedFromRepository = repositoryMapper.to(repositoryEvent).blockingGet();
+        OrganizationDeployable deployable = OrganizationDeployable.builder().reactableOrganization(mappedFromRepository).build();
+
+        DistributedEvent distributedEvent = cut.to(deployable).blockingGet();
+        OrganizationDeployable mappedFromDistributed = cut.to(distributedEvent).blockingGet();
+        return mappedFromDistributed.reactableOrganization().getDefinition().getContextManagement();
     }
 }
