@@ -54,7 +54,9 @@ import static io.gravitee.rest.api.model.parameters.Key.PORTAL_URL;
 import static io.gravitee.rest.api.model.parameters.Key.USER_GROUP_REQUIRED_ENABLED;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -68,6 +70,8 @@ import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.model.settings.BrandedSenderConfig;
+import io.gravitee.rest.api.model.settings.BrandedSenders;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
 import io.gravitee.rest.api.model.settings.Email;
@@ -82,6 +86,9 @@ import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.validator.SenderSettingsValidator;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -97,6 +104,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.ConfigurableEnvironment;
 
@@ -119,8 +127,8 @@ class ConfigServiceTest {
     @Mock
     private ConfigurableEnvironment environment;
 
-    @Mock
-    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
+    @Spy
+    private SenderSettingsValidator senderSettingsValidator = new SenderSettingsValidator();
 
     @Mock
     private NewsletterService newsletterService;
@@ -233,11 +241,11 @@ class ConfigServiceTest {
             )
         ).thenReturn(params);
 
-        lenient().when(environment.containsProperty(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key())).thenReturn(true);
-        lenient().when(environment.containsProperty(Key.API_LABELS_DICTIONARY.key())).thenReturn(true);
-        lenient().when(environment.containsProperty(Key.PORTAL_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
-        lenient().when(environment.containsProperty(Key.PORTAL_ANALYTICS_ENABLED.key())).thenReturn(true);
-        lenient().when(environment.containsProperty(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key())).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED)).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.API_LABELS_DICTIONARY)).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.PORTAL_SCHEDULER_NOTIFICATIONS)).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.PORTAL_ANALYTICS_ENABLED)).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED)).thenReturn(true);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
@@ -277,8 +285,7 @@ class ConfigServiceTest {
 
     @Test
     void shouldMarkBrandedSendersReadonlyWhenConfiguredAsNativeYamlList() {
-        // A native yaml list is flattened into indexed properties, so environment.containsProperty is false for it;
-        // the reader's presence check must still lock the field, matching how a flat / env-var value already does.
+        // Whether a value is system-configured (native yaml list or flat form) is ParameterService's call.
         when(
             mockParameterService.findAll(
                 eq(GraviteeContext.getExecutionContext()),
@@ -288,7 +295,7 @@ class ConfigServiceTest {
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         ).thenReturn(new HashMap<>());
-        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(true);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
@@ -297,8 +304,8 @@ class ConfigServiceTest {
 
     @Test
     void shouldNotMarkBrandedSendersReadonlyWhenNotConfigured() {
-        // A present-but-invalid config yields isConfigured() == false; the field must stay editable rather than
-        // being locked on a value that is not actually in effect.
+        // A present-but-invalid config is not system-configured; the field must stay editable rather than being
+        // locked on a value that is not actually in effect.
         when(
             mockParameterService.findAll(
                 eq(GraviteeContext.getExecutionContext()),
@@ -308,7 +315,7 @@ class ConfigServiceTest {
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         ).thenReturn(new HashMap<>());
-        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(false);
+        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(false);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
@@ -339,7 +346,7 @@ class ConfigServiceTest {
                 eq(ParameterReferenceType.ENVIRONMENT)
             )
         ).thenReturn(new HashMap<>());
-        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(systemConfigured);
+        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(systemConfigured);
         when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
             envOverride
         );
@@ -379,7 +386,7 @@ class ConfigServiceTest {
             )
         ).thenReturn(new HashMap<>());
         // After the delete there is no environment override and no valid system value in effect.
-        when(brandedSendersEnvironmentReader.isConfigured()).thenReturn(false);
+        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(false);
         when(mockParameterService.existsOnScope(Key.EMAIL_BRANDED_SENDERS, "DEFAULT", ParameterReferenceType.ENVIRONMENT)).thenReturn(
             false
         );
@@ -612,8 +619,8 @@ class ConfigServiceTest {
             )
         ).thenReturn(params);
 
-        lenient().when(environment.containsProperty(eq(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key()))).thenReturn(true);
-        lenient().when(environment.containsProperty(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED)).thenReturn(true);
+        lenient().when(mockParameterService.isSystemConfigured(Key.CONSOLE_SCHEDULER_NOTIFICATIONS)).thenReturn(true);
 
         ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
@@ -742,7 +749,7 @@ class ConfigServiceTest {
         emailSettings.setEnabled(true);
         emailSettings.setHost("test-host");
         emailSettings.setPort(5551);
-        emailSettings.setFrom("from");
+        emailSettings.setFrom("noreply@example.com");
         emailSettings.setUsername("username");
         emailSettings.setPassword("password");
         emailSettings.setProtocol("protocol");
@@ -834,5 +841,207 @@ class ConfigServiceTest {
             any(),
             any()
         );
+    }
+
+    @Test
+    void shouldSaveWhenTheFromLockedBySystemConfigurationIsInvalid() {
+        lenient().when(mockParameterService.isSystemConfigured(EMAIL_FROM)).thenReturn(true);
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setFrom("\"user@my.domain\"");
+        settings.getPortal().setUrl("ACME");
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_URL,
+            "ACME",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void shouldSaveWhenTheStoredFromIsInvalidAndLeftUnchanged() {
+        stubStoredSenderSettings(Map.of(EMAIL_FROM.key(), singletonList("Example, Inc <noreply@example.com>")));
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setFrom("Example, Inc <noreply@example.com>");
+        settings.getPortal().setUrl("ACME");
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_URL,
+            "ACME",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void shouldRejectAnEditedInvalidFromWithoutSavingAnything() {
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setFrom("not-an-email");
+
+        assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings))
+            .isInstanceOf(ConstraintViolationException.class)
+            .satisfies(e ->
+                assertThat(((ConstraintViolationException) e).getConstraintViolations())
+                    .extracting(ConstraintViolation::getMessage)
+                    .containsExactly("must be a valid email address, optionally with a display name (e.g. \"Name <user@example.com>\")")
+            );
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), any(Key.class), anyString(), any(), any());
+    }
+
+    @Test
+    void shouldSaveAnEditedValidFrom() {
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setFrom("Example <noreply@example.com>");
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            EMAIL_FROM,
+            "Example <noreply@example.com>",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void shouldSaveWhenTheBrandedSendersLockedBySystemConfigurationAreInvalid() {
+        lenient().when(mockParameterService.isSystemConfigured(Key.EMAIL_BRANDED_SENDERS)).thenReturn(true);
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setBrandedSenders(List.of(brandedSender("Example, Inc <noreply@example.com>")));
+        settings.getPortal().setUrl("ACME");
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_URL,
+            "ACME",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void shouldSaveWhenAStoredBrandedSenderIsInvalidAndLeftUnchanged() {
+        BrandedSenderConfig stored = brandedSender("Example, Inc <noreply@example.com>");
+        stubStoredSenderSettings(Map.of(Key.EMAIL_BRANDED_SENDERS.key(), singletonList(BrandedSenders.write(List.of(stored)))));
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setBrandedSenders(List.of(stored, brandedSender("noreply@example.org")));
+        settings.getPortal().setUrl("ACME");
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            PORTAL_URL,
+            "ACME",
+            "DEFAULT",
+            ParameterReferenceType.ENVIRONMENT
+        );
+    }
+
+    @Test
+    void shouldRejectANewInvalidBrandedSender() {
+        PortalSettingsEntity settings = new PortalSettingsEntity();
+        settings.getEmail().setBrandedSenders(List.of(brandedSender("Example, Inc <noreply@example.com>")));
+
+        assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings)).isInstanceOf(
+            ConstraintViolationException.class
+        );
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), any(Key.class), anyString(), any(), any());
+    }
+
+    @Test
+    void shouldRejectAnEditedInvalidFromInConsoleSettings() {
+        ConsoleSettingsEntity settings = new ConsoleSettingsEntity();
+        settings.getEmail().setFrom("not-an-email");
+
+        assertThatThrownBy(() -> configService.save(GraviteeContext.getExecutionContext(), settings)).isInstanceOf(
+            ConstraintViolationException.class
+        );
+    }
+
+    @Test
+    void shouldSaveConsoleSettingsWhenTheFromLockedBySystemConfigurationIsInvalid() {
+        lenient().when(mockParameterService.isSystemConfigured(EMAIL_FROM)).thenReturn(true);
+        ConsoleSettingsEntity settings = new ConsoleSettingsEntity();
+        settings.getEmail().setFrom("\"user@my.domain\"");
+        settings.getAlert().setEnabled(true);
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            ALERT_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+    }
+
+    @Test
+    void shouldSaveConsoleSettingsWhenStoredSenderSettingsAreInvalidAndLeftUnchanged() {
+        BrandedSenderConfig storedBrandedSender = brandedSender("Legacy, Inc <noreply@example.com>");
+        stubStoredSenderSettings(
+            Map.of(
+                EMAIL_FROM.key(),
+                singletonList("Example, Inc <noreply@example.com>"),
+                Key.EMAIL_BRANDED_SENDERS.key(),
+                singletonList(BrandedSenders.write(List.of(storedBrandedSender)))
+            ),
+            ParameterReferenceType.ORGANIZATION
+        );
+        ConsoleSettingsEntity settings = new ConsoleSettingsEntity();
+        settings.getEmail().setFrom("Example, Inc <noreply@example.com>");
+        settings.getEmail().setBrandedSenders(List.of(storedBrandedSender));
+        settings.getAlert().setEnabled(true);
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService).save(
+            GraviteeContext.getExecutionContext(),
+            ALERT_ENABLED,
+            "true",
+            "DEFAULT",
+            ParameterReferenceType.ORGANIZATION
+        );
+    }
+
+    @Test
+    void shouldNotCheckSenderSettingsOfATrialInstanceSinceTheyAreNotSaved() {
+        ConsoleSettingsEntity settings = new ConsoleSettingsEntity();
+        settings.getEmail().setFrom("not-an-email");
+        settings.getTrialInstance().setEnabled(true);
+
+        configService.save(GraviteeContext.getExecutionContext(), settings);
+
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_FROM), anyString(), any(), any());
+    }
+
+    private void stubStoredSenderSettings(Map<String, List<String>> storedValues) {
+        stubStoredSenderSettings(storedValues, ParameterReferenceType.ENVIRONMENT);
+    }
+
+    private void stubStoredSenderSettings(Map<String, List<String>> storedValues, ParameterReferenceType referenceType) {
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(referenceType)
+            )
+        ).thenReturn(storedValues);
+    }
+
+    private static BrandedSenderConfig brandedSender(String from) {
+        return BrandedSenderConfig.builder().domains(List.of("example.com")).from(from).build();
     }
 }

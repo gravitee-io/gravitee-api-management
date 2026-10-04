@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.validator.SenderSettingsValidator;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,7 +77,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     private ConfigurableEnvironment environment;
 
     @Autowired
-    private BrandedSendersEnvironmentReader brandedSendersEnvironmentReader;
+    private SenderSettingsValidator senderSettingsValidator;
 
     @Autowired
     private NewsletterService newsletterService;
@@ -233,13 +234,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
                     f.setAccessible(true);
                     try {
                         List<String> values = parameterMap.get(parameterKey.value().key());
-                        // branded_senders needs its own presence check: containsProperty is false for a native yaml
-                        // list (flattened into indexed properties), and true for a flat value even when that value is
-                        // invalid and never applied. isConfigured() covers both forms and is true only when a valid
-                        // value is actually seeded, so the field locks exactly when its value is in effect.
-                        boolean systemConfigured = parameterKey.value() == Key.EMAIL_BRANDED_SENDERS
-                            ? brandedSendersEnvironmentReader.isConfigured()
-                            : environment.containsProperty(parameterKey.value().key());
+                        boolean systemConfigured = parameterService.isSystemConfigured(parameterKey.value());
                         if (systemConfigured) {
                             configEntity.getMetadata().add(PortalSettingsEntity.METADATA_READONLY, parameterKey.value().key());
                         }
@@ -388,19 +383,57 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
 
     @Override
     public void save(ExecutionContext executionContext, PortalSettingsEntity portalSettingsEntity) {
+        Email storedEmail = loadStoredEmail(
+            executionContext,
+            new PortalSettingsEntity(),
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
+        validateSenderSettings(portalSettingsEntity.getEmail(), storedEmail, false);
         Object[] objects = getObjectArray(portalSettingsEntity);
         saveConfigByReference(executionContext, objects, executionContext.getEnvironmentId(), ParameterReferenceType.ENVIRONMENT);
     }
 
     @Override
     public void save(ExecutionContext executionContext, ConsoleSettingsEntity consoleSettingsEntity) {
+        boolean trialInstance = isTrialInstance(consoleSettingsEntity);
+        Email storedEmail = loadStoredEmail(
+            executionContext,
+            new ConsoleSettingsEntity(),
+            executionContext.getOrganizationId(),
+            ParameterReferenceType.ORGANIZATION
+        );
+        validateSenderSettings(consoleSettingsEntity.getEmail(), storedEmail, trialInstance);
         Object[] objects = getObjectArray(consoleSettingsEntity);
         saveConfigByReference(
             executionContext,
             objects,
             executionContext.getOrganizationId(),
             ParameterReferenceType.ORGANIZATION,
-            isTrialInstance(consoleSettingsEntity)
+            trialInstance
+        );
+    }
+
+    /**
+     * The email settings currently in effect for the scope, read through the same path as the settings read, so the
+     * comparison with the submitted values matches what the settings page was given.
+     */
+    private Email loadStoredEmail(
+        ExecutionContext executionContext,
+        AbstractCommonSettingsEntity freshSettings,
+        String referenceId,
+        ParameterReferenceType referenceType
+    ) {
+        loadConfigByReference(executionContext, new Object[] { freshSettings.getEmail() }, freshSettings, referenceId, referenceType);
+        return freshSettings.getEmail();
+    }
+
+    /** Skips the keys this save does not persist, exactly as {@link #saveConfigByReference} does. */
+    private void validateSenderSettings(Email submitted, Email stored, boolean trialInstance) {
+        senderSettingsValidator.validateChanges(
+            submitted,
+            stored,
+            key -> parameterService.isSystemConfigured(key) || (trialInstance && key.isHiddenForTrial())
         );
     }
 

@@ -100,13 +100,15 @@ class EmailFromValidationTest {
         assertThat(emailWithFrom("  noreply@gravitee.io  ").getFrom()).isEqualTo("noreply@gravitee.io");
     }
 
-    // --- @Valid cascade through the real save graph (settings entity -> email -> from) ---
+    // --- Request validation of the settings entity must not reach the email block ---
+    // The settings service validates the sender values a save changes; cascading here would reject values locked by
+    // the system configuration or stored before a check got stricter, on every save of the page.
 
     @Test
-    void should_cascade_from_settings_entity_into_from() {
+    void should_not_validate_from_when_validating_the_settings_entity() {
         var settings = new ConsoleSettingsEntity();
         settings.getEmail().setFrom("not-an-email");
 
-        assertThat(validator.validate(settings)).anyMatch(v -> v.getPropertyPath().toString().equals("email.from"));
+        assertThat(validator.validate(settings)).noneMatch(v -> v.getPropertyPath().toString().startsWith("email."));
     }
 }

@@ -213,6 +213,13 @@ public interface ParameterService {
     boolean existsOnScope(Key key, String referenceId, ParameterReferenceType referenceType);
 
     /**
+     * Returns whether the system configuration ({@code gravitee.yml} or environment variables) sets this key. A
+     * system value wins over any organization or environment value: it is what reads return, saving the key never
+     * persists anything, and the console shows the field as read-only.
+     */
+    boolean isSystemConfigured(Key key);
+
+    /**
      * Deletes the parameter set at the exact given scope, so the value falls back to a broader scope
      * of the cascade. No-op when no parameter is set at that scope. Invalidates the parameter cache.
      * <p>

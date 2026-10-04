@@ -117,14 +117,14 @@ class BrandedSenderValidationTest {
         assertThat(validator.validate(validConfig().subject("x".repeat(256)).build())).isNotEmpty();
     }
 
-    // --- @Valid cascade through the real save graph (settings entity -> email -> branded senders) ---
+    // --- Request validation of the settings entity must not reach the email block (see EmailFromValidationTest) ---
 
     @Test
-    void should_cascade_from_settings_entity_into_branded_senders() {
+    void should_not_validate_branded_senders_when_validating_the_settings_entity() {
         var settings = new PortalSettingsEntity();
         settings.getEmail().setBrandedSenders(List.of(validConfig().from("not-an-email").build()));
 
-        assertThat(validator.validate(settings)).anyMatch(v -> v.getPropertyPath().toString().equals("email.brandedSenders[0].from"));
+        assertThat(validator.validate(settings)).noneMatch(v -> v.getPropertyPath().toString().startsWith("email."));
     }
 
     @Test
