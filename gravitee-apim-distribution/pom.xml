@@ -146,7 +146,7 @@
     <gravitee-policy-jwt.version>8.1.0</gravitee-policy-jwt.version>
     <gravitee-policy-keyless.version>5.0.0</gravitee-policy-keyless.version>
     <gravitee-policy-latency.version>3.0.0</gravitee-policy-latency.version>
-    <gravitee-policy-metrics-reporter.version>3.0.1</gravitee-policy-metrics-reporter.version>
+    <gravitee-policy-metrics-reporter.version>4.0.0</gravitee-policy-metrics-reporter.version>
     <gravitee-policy-message-filtering.version>2.0.0</gravitee-policy-message-filtering.version>
     <gravitee-policy-mock.version>2.0.0</gravitee-policy-mock.version>
     <gravitee-policy-mtls.version>3.0.0</gravitee-policy-mtls.version>
