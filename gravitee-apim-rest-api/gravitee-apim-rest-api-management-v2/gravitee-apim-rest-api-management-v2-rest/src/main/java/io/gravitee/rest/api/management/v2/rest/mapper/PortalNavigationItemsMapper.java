@@ -21,12 +21,15 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImpo
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublication;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -179,6 +182,21 @@ public interface PortalNavigationItemsMapper {
     FetchPortalNavigationItemResponse map(FetchPortalNavigationItemUseCase.Output output);
 
     PortalNavigationItemFetchResult map(PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult result);
+
+    default ApiPortalNavigationItemsResponse map(ListApiDocumentationUseCase.Output output) {
+        return new ApiPortalNavigationItemsResponse().items(map(output.items())).publication(mapPublication(output.publication()));
+    }
+
+    default ApiPortalPublication mapPublication(ListApiDocumentationUseCase.Publication publication) {
+        if (publication == null) {
+            return null;
+        }
+        return new ApiPortalPublication()
+            .navigationItemId(publication.listing().getId().id())
+            .sectionId(publication.section().getId().id())
+            .sectionName(publication.section().getTitle())
+            .published(publication.listing().getPublished());
+    }
 
     default ImportPortalNavigationResponse map(ImportPortalNavigationUseCase.Output output) {
         var results = output.result().files().stream().map(this::map).toList();
