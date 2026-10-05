@@ -317,6 +317,10 @@ public interface ApiMapper {
     @Mapping(target = "state", source = "source.lifecycleState")
     @Mapping(target = "analytics", source = "source.apiDefinitionNativeV4.analytics")
     @Mapping(target = "resources", source = "source.apiDefinitionNativeV4.resources")
+    // the core model holds neither at its root, so MapStruct maps nothing without these: properties lives on
+    // AbstractApi and services on NativeApi
+    @Mapping(target = "properties", source = "source.apiDefinitionNativeV4.properties")
+    @Mapping(target = "services", source = "source.apiDefinitionNativeV4.services")
     ApiV4 mapToNativeV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
     @Mapping(target = "definitionContext", source = "source.originContext")

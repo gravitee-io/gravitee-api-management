@@ -28,10 +28,6 @@ export function initApp(
 ) {
   return () =>
     configurationService.load().then(() => {
-      if (configurationService.hasBootstrapFailed()) {
-        // The bootstrap error is displayed and there is no API to call
-        return translationService.load();
-      }
       return authService
         .load()
         .then(() => currentUserService.load().then(() => translationService.load().then(() => reCaptchaService.load())));

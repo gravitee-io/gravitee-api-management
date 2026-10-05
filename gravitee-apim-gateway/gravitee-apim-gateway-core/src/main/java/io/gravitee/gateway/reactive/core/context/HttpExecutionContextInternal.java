@@ -75,6 +75,12 @@ public interface HttpExecutionContextInternal extends HttpExecutionContext {
     Function<HttpExecutionContext, Completable> getOnResponseAction(BasePolicy source);
 
     /**
+     * The actions registered for the end of the request, in reverse order of registration, forgotten as they are
+     * handed over so that an action runs at most once.
+     */
+    Map<BasePolicy, Function<HttpExecutionContext, Completable>> drainOnTerminateActions();
+
+    /**
      * Sets the log entries for the current execution context.
      *
      * @param logEntries a set of log entries to be applied to the current execution context. Each log entry must be an instance

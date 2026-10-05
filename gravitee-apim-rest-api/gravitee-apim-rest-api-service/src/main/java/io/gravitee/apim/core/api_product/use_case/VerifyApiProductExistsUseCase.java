@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api_product.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -30,10 +31,24 @@ public class VerifyApiProductExistsUseCase {
 
     public void execute(Input input) {
         Optional<ApiProduct> product = apiProductQueryService.findById(input.apiProductId());
-        if (product.isEmpty() || !input.environmentId().equals(product.get().getEnvironmentId())) {
+        if (
+            product.isEmpty() ||
+            !input.environmentId().equals(product.get().getEnvironmentId()) ||
+            !input.kindFilter().matches(product.get())
+        ) {
             throw new ApiProductNotFoundException(input.apiProductId());
         }
     }
 
-    public record Input(String environmentId, String apiProductId) {}
+    /**
+     * {@code kindFilter} is what the asking surface manages. A product of another kind is reported as absent
+     * rather than forbidden, like one of another environment: a surface that cannot manage a product should not
+     * confirm that it exists either.
+     */
+    public record Input(String environmentId, String apiProductId, ApiProductKindFilter kindFilter) {
+        /** Any kind, for a caller that manages all of them. */
+        public Input(String environmentId, String apiProductId) {
+            this(environmentId, apiProductId, ApiProductKindFilter.any());
+        }
+    }
 }

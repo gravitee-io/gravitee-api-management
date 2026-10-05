@@ -93,6 +93,11 @@ public class ApiDuplicateServiceImpl extends AbstractService implements ApiDupli
             .id(null)
             .crossId(null)
             .primaryOwner(null)
+            .name(
+                duplicateOptions.getName() == null || duplicateOptions.getName().isBlank()
+                    ? sourceApi.getName()
+                    : duplicateOptions.getName()
+            )
             .apiVersion(duplicateOptions.getVersion() == null ? sourceApi.getApiVersion() : duplicateOptions.getVersion())
             .listeners(duplicatedListeners)
             .groups(duplicateOptions.isGroupsFiltered() ? null : sourceApi.getGroups())
