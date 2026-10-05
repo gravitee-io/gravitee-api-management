@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
 import io.gravitee.common.http.MediaType;
@@ -24,6 +26,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMappe
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -56,6 +59,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
 
     @Inject
     private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
+
+    @Inject
+    private ImportPortalNavigationUseCase importPortalNavigationUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -107,6 +113,28 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         );
 
         return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+    }
+
+    @Path("_import")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    public Response importApiPortalNavigation(
+        @PathParam("apiId") String apiId,
+        @Valid @NotNull final ImportPortalNavigationRequest importPortalNavigationRequest
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var input = mapper.map(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), importPortalNavigationRequest);
+        if (input.parentId() != null) {
+            apiOwnedNavigationDomainService.requireOwnedItem(executionContext.getEnvironmentId(), apiId, input.parentId());
+        }
+
+        var output = importPortalNavigationUseCase.execute(
+            input.toBuilder().reference(new NavigationItemReference.ApiReference(apiId)).build()
+        );
+
+        return Response.ok(mapper.map(output)).build();
     }
 
     @Path("{navId}")

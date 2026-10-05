@@ -40,6 +40,7 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSo
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AsyncApiPageContent;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -604,7 +605,111 @@ class ImportPortalNavigationUseCaseTest {
     }
 
     @Nested
+    class OwnedByAnApi {
+
+        private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
+
+        private ImportPortalNavigationUseCase.Output importForApi(PortalNavigationItemId parentId) {
+            return useCase.execute(
+                ImportPortalNavigationUseCase.Input.builder()
+                    .organizationId(ORG_ID)
+                    .environmentId(ENV_ID)
+                    .title("Imported Docs")
+                    .parentId(parentId)
+                    .visibility(PortalVisibility.PRIVATE)
+                    .source(aSource())
+                    .reference(API_REFERENCE)
+                    .build()
+            );
+        }
+
+        @Test
+        void should_store_the_imported_root_folder_and_every_descendant_as_owned_by_the_api() {
+            sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+            sourceDomainService.givenRemoteFile("/docs/advanced/tuning.md", "# Tuning");
+
+            var root = importForApi(null).rootFolder();
+
+            assertThat(root.getReference()).isEqualTo(API_REFERENCE);
+            assertThat(root.getParentId()).isNull();
+            // root, docs, advanced, getting-started, tuning
+            assertThat(crudService.storage())
+                .hasSize(5)
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+        }
+
+        @Test
+        void should_import_under_a_folder_the_api_owns() {
+            var apiFolder = PortalNavigationFolder.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Guides")
+                .segment("guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(false)
+                .visibility(PortalVisibility.PRIVATE)
+                .reference(API_REFERENCE)
+                .build();
+            crudService.create(apiFolder);
+            sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+
+            var root = importForApi(apiFolder.getId()).rootFolder();
+
+            assertThat(root.getParentId()).isEqualTo(apiFolder.getId());
+            assertThat(crudService.storage()).allSatisfy(item -> assertThat(item.getReference()).isEqualTo(API_REFERENCE));
+        }
+
+        @Test
+        void should_import_everything_unpublished() {
+            sourceDomainService.givenRemoteFile("/docs/getting-started.md", "# Getting started");
+
+            importForApi(null);
+
+            assertThat(crudService.storage())
+                .isNotEmpty()
+                .allSatisfy(item -> assertThat(item.getPublished()).isFalse());
+        }
+
+        @Test
+        void should_keep_a_portal_import_owned_by_the_portal() {
+            sourceDomainService.givenRemoteFile("/docs/advanced/tuning.md", "# Tuning");
+
+            execute("Imported Docs");
+
+            assertThat(crudService.storage())
+                .isNotEmpty()
+                .allSatisfy(item -> assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference()));
+        }
+    }
+
+    @Nested
     class Reimport {
+
+        @Test
+        void should_keep_pages_added_by_a_re_import_owned_by_the_api() {
+            var apiReference = new NavigationItemReference.ApiReference("api-id");
+            sourceDomainService.givenRemoteFile("/docs/kept.md", "# Kept");
+            var root = useCase
+                .execute(
+                    ImportPortalNavigationUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .title("Imported Docs")
+                        .visibility(PortalVisibility.PRIVATE)
+                        .source(aSource())
+                        .reference(apiReference)
+                        .build()
+                )
+                .rootFolder();
+            sourceDomainService.givenRemoteFile("/docs/added.md", "# Added");
+
+            reimportSubtree(root.getId());
+
+            var added = childPage(childFolder(root.getId(), "docs").getId(), "added");
+            assertThat(added.getReference()).isEqualTo(apiReference);
+        }
 
         @Test
         void should_update_create_and_delete_pages_to_mirror_the_remote_listing() {
