@@ -252,6 +252,23 @@ public class PropertyDomainServiceTest {
         }
 
         @Test
+        void re_encrypts_the_fetched_value_when_the_stored_value_is_null() throws GeneralSecurityException {
+            var storedWithoutValue = Property.builder().key("secret").value(null).encrypted(true).dynamic(true).build();
+            when(dataEncryptor.decrypt(null)).thenThrow(new NullPointerException());
+            when(dataEncryptor.encrypt("n3w")).thenReturn("new-ciphertext");
+
+            var result = cut.keepStoredEncryption(
+                "api-id",
+                List.of(storedWithoutValue),
+                List.of(Property.builder().key("secret").value("n3w").dynamic(true).build())
+            );
+
+            assertThat(result).containsExactly(
+                Property.builder().key("secret").value("new-ciphertext").encrypted(true).dynamic(true).build()
+            );
+        }
+
+        @Test
         void keeps_stored_property_when_encrypting_a_changed_value_fails() throws GeneralSecurityException {
             when(dataEncryptor.decrypt("ciphertext")).thenReturn("s3cret");
             when(dataEncryptor.encrypt("n3w")).thenThrow(new GeneralSecurityException("bad key"));

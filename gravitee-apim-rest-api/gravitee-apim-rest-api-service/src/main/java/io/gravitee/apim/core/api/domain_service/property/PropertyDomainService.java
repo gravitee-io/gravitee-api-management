@@ -167,6 +167,9 @@ public class PropertyDomainService {
     }
 
     private String decryptOrNull(String apiId, Property stored) {
+        if (stored.getValue() == null) {
+            return null;
+        }
         try {
             return dataEncryptor.decrypt(stored.getValue());
         } catch (GeneralSecurityException | IllegalArgumentException e) {
