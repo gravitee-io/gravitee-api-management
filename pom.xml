@@ -178,9 +178,8 @@
 
     <!-- Versions of the plugins for the full distribution -->
     <!-- Management API & Gateway -->
-<<<<<<< HEAD
     <gravitee-alert-engine-connectors-ws.version>3.0.0</gravitee-alert-engine-connectors-ws.version>
-    <gravitee-connector-http.version>6.0.2</gravitee-connector-http.version>
+    <gravitee-connector-http.version>6.0.3</gravitee-connector-http.version>
     <gravitee-policy-apikey.version>6.0.3</gravitee-policy-apikey.version>
     <gravitee-policy-assign-attributes.version>3.2.0</gravitee-policy-assign-attributes.version>
     <gravitee-policy-assign-content.version>3.1.1</gravitee-policy-assign-content.version>
@@ -357,12 +356,6 @@
     <gravitee-service-authz-pdp.version>1.1.0</gravitee-service-authz-pdp.version>
     <gravitee-policy-authz-pep.version>1.1.0</gravitee-policy-authz-pep.version>
     <gravitee-policy-authz-pdp-authzen.version>1.0.0</gravitee-policy-authz-pdp-authzen.version>
-=======
-        <!-- gravitee-connector-http is shared with the engine (gateway tests-sdk & standalone-container),
-             so it stays here. The full bundled-plugin version catalog moved to
-             gravitee-apim-distribution/pom.xml (the distribution owns which plugin versions it ships). -->
-    <gravitee-connector-http.version>6.0.3</gravitee-connector-http.version>
->>>>>>> 3ac6206 (chore(deps): bump gravitee-connector-http to 6.0.3)
   </properties>
 
   <scm>
