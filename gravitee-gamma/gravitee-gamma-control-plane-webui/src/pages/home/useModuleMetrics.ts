@@ -101,7 +101,7 @@ function useFirstFederationDecision(): boolean | undefined {
  *
  * Scoped to the proxy API types the APIM module's list shows rather than every API type in the
  * environment. Waits for the federation gate to resolve and uses the federation decision from that
- * moment, so a license reported after the wait does not change the number.
+ * moment, so a license reported afterwards does not change the number.
  */
 export function useApiCount({ enabled = true }: CountHookOptions = {}): CountResult {
     const includeFederated = useFirstFederationDecision();

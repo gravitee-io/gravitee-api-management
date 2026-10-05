@@ -26,7 +26,7 @@ import { ENTERPRISE_LICENSE, OSS_LICENSE, TEST_CONFIG, TEST_V2_BASE } from '../.
 import { captureTimeoutSignals, respondWith, trackHandler } from '../../../testing/helpers';
 import { server } from '../../../testing/server';
 import type { OrgConsoleSettings } from '../../settings/services/orgConsoleSettings';
-import { apiListKeys, orgConsoleKeys } from '../utils/queryKeys';
+import { orgConsoleKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -66,7 +66,6 @@ const SEARCH_RESPONSE = {
 
 const AGENT_NAME = 'Fraud Detection Agent';
 const FEDERATED_NAME = 'Federated Orders';
-const FIRST_PROXY_LANDING_HEADING = 'Why add an API proxy?';
 
 // Both APIs really live in the seeded environment; only the search body decides which come back.
 const ENVIRONMENT_APIS = [
@@ -137,14 +136,6 @@ function renderedApiNames() {
 
 function newQueryClient() {
     return new QueryClient({ defaultOptions: { queries: { retry: false } } });
-}
-
-/** A query that has started a fetch is 'fetching' and one that finished has left 'pending', so pending-and-idle means no list search was ever started. */
-function listSearchQueryStates(queryClient: QueryClient) {
-    return queryClient
-        .getQueryCache()
-        .findAll({ queryKey: [...apiListKeys.all, 'search'] })
-        .map(({ state }) => ({ status: state.status, fetchStatus: state.fetchStatus }));
 }
 
 function renderPage(queryClient = newQueryClient()) {
@@ -268,19 +259,15 @@ describe('ApisPage federated agent exclusion', () => {
         expect(tableRowsContaining(AGENT_NAME)).toHaveLength(0);
     });
 
-    it('does not show the first-proxy landing while the host license is still unreported in an environment holding only federated APIs', async () => {
+    it('searches for native proxies at once when the host license is unreported and adds federated APIs once it is reported', async () => {
         mockLicenseSnapshot.mockReturnValue(null);
         const searchBodies = respondWithEnvironmentApisMatchingRequestedTypes();
-        // Settings already in the cache leave the host license as the only thing the gate can be waiting on
-        // from the first render, so an idle search below is decided by the license and not by response timing.
         const queryClient = newQueryClient();
         queryClient.setQueryData(orgConsoleKeys.settings(), { federation: { enabled: true } } satisfies OrgConsoleSettings);
 
         renderPage(queryClient);
 
-        expect(listSearchQueryStates(queryClient)).toEqual([{ status: 'pending', fetchStatus: 'idle' }]);
-        expect(searchBodies).toEqual([]);
-        expect(screen.queryByText(FIRST_PROXY_LANDING_HEADING)).toBeNull();
+        await waitFor(() => expect(searchBodies).toEqual([{ apiTypes: PROXY_TYPES }]));
 
         mockLicenseSnapshot.mockReturnValue(ENTERPRISE_LICENSE);
         const notifyLicenseChanged = mockLicenseSubscribe.mock.calls.at(-1)![0];
