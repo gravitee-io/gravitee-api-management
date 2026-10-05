@@ -123,7 +123,7 @@ class ApiOwnedNavigationDomainServiceTest {
                 }
             };
 
-            var ownedItems = new ApiOwnedNavigationDomainService(loopingQueryService).findOwnedItems(ENV_ID, API_ID);
+            var ownedItems = new ApiOwnedNavigationDomainService(loopingQueryService, crudService).findOwnedItems(ENV_ID, API_ID);
 
             assertThat(ownedItems).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(folder.getId(), page.getId());
         }
@@ -148,7 +148,9 @@ class ApiOwnedNavigationDomainServiceTest {
                 }
             };
 
-            assertThat(new ApiOwnedNavigationDomainService(indexedQueryService).findOwnedItems(ENV_ID, API_ID)).hasSize(20_000);
+            assertThat(new ApiOwnedNavigationDomainService(indexedQueryService, crudService).findOwnedItems(ENV_ID, API_ID)).hasSize(
+                20_000
+            );
         }
     }
 
