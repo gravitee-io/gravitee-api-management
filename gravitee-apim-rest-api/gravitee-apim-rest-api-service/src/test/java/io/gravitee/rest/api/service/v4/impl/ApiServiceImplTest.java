@@ -1104,6 +1104,7 @@ public class ApiServiceImplTest {
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "encrypted-value", false, true, true)));
 
         assertDoesNotThrow(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));
+        verify(dataEncryptor, never()).decrypt(anyString());
     }
 
     private void givenStoredProperties(List<Property> properties) throws JsonProcessingException {

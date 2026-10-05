@@ -1571,6 +1571,18 @@ class PatchApiUseCaseTest {
         }
 
         @Test
+        void rejects_a_changed_plaintext_flagged_encrypted_on_dry_run() throws GeneralSecurityException {
+            givenExistingApi(apiWithProperties(List.of(Property.builder().key("secret-key").value("ciphertext").encrypted(true).build())));
+            when(dataEncryptor.decrypt("n3w-plaintext")).thenThrow(new GeneralSecurityException("bad padding"));
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "n3w-plaintext", "encrypted", true)));
+
+            var throwable = catchThrowable(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, true));
+
+            assertThat(throwable).isInstanceOf(ApiPropertyNotCiphertextException.class);
+            verify(updateApiDomainService, never()).validateV4(any(), any());
+        }
+
+        @Test
         void allows_renewing_an_encrypted_property() {
             givenExistingApi(apiWithProperties(List.of(Property.builder().key("secret-key").value("ciphertext").encrypted(true).build())));
             var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "new-plaintext", "encryptable", true)));
