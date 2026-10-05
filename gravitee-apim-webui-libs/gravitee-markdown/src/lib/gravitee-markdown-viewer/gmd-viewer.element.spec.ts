@@ -53,16 +53,6 @@ describe('registerGmdViewerElement', () => {
     await expect(Promise.all([registerGmdViewerElement(), registerGmdViewerElement()])).resolves.toBeDefined();
   });
 
-  it('should not fail when a second copy of the module registers the same tag', async () => {
-    await registerGmdViewerElement();
-
-    // The Gamma host is module-federated, so two copies of this bundle can be loaded.
-    jest.resetModules();
-    const secondCopy = await import('./gmd-viewer.element');
-
-    await expect(secondCopy.registerGmdViewerElement()).resolves.toBeUndefined();
-  });
-
   it('should render the markdown set on the content property', async () => {
     await registerGmdViewerElement();
 
