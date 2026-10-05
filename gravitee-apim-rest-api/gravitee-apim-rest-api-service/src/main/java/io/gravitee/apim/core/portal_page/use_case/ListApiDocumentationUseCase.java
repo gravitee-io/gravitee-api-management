@@ -16,12 +16,13 @@
 package io.gravitee.apim.core.portal_page.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
-import jakarta.annotation.Nullable;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -38,24 +39,29 @@ public class ListApiDocumentationUseCase {
         var items = apiOwnedNavigationDomainService.findOwnedItems(input.environmentId(), input.apiId());
         items.stream().map(PortalNavigationItem::getSource).filter(Objects::nonNull).forEach(sourceDomainService::removeSensitiveData);
 
-        var publication = apiOwnedNavigationDomainService
-            .findStandaloneListing(input.environmentId(), input.apiId())
+        var publications = apiOwnedNavigationDomainService
+            .findStandaloneListings(input.environmentId(), input.apiId())
+            .stream()
             .map(listing -> new Publication(listing, queryService.findByIdAndEnvironmentId(input.environmentId(), listing.getParentId())))
-            .orElse(null);
+            .toList();
 
-        return new Output(items, publication);
+        return new Output(items, publications);
     }
 
     public record Input(String environmentId, String apiId) {}
 
     /**
-     * @param publication where the API is listed in the portal, or null when it is not listed
+     * @param publications where the API is listed, one per navigation entry; empty when it is not listed
      */
-    public record Output(List<PortalNavigationItem> items, @Nullable Publication publication) {}
+    public record Output(List<PortalNavigationItem> items, List<Publication> publications) {}
 
     /**
      * @param listing the API's navigation entry; listed does not imply visible, the entry may be unpublished
      * @param section the item holding the entry
      */
-    public record Publication(PortalNavigationApi listing, PortalNavigationItem section) {}
+    public record Publication(PortalNavigationApi listing, PortalNavigationItem section) {
+        public PortalId portalId() {
+            return ((NavigationItemReference.PortalReference) listing.getReference()).portalId();
+        }
+    }
 }

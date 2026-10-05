@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -101,15 +102,21 @@ class ApiDocumentationNavigationResource_ListTest extends AbstractResourceTest {
                         ((io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem) item.getActualInstance()).getId()
                     )
                     .containsExactlyInAnyOrder(folder.getId().id(), page.getId().id());
-                assertThat(entity.getPublication().getNavigationItemId()).isEqualTo(listing.getId().id());
-                assertThat(entity.getPublication().getSectionId()).isEqualTo(section.getId().id());
-                assertThat(entity.getPublication().getSectionName()).isEqualTo("APIs");
-                assertThat(entity.getPublication().getPublished()).isTrue();
+                assertThat(entity.getPublications())
+                    .singleElement()
+                    .satisfies(publication -> {
+                        assertThat(publication.getPortalId()).isEqualTo(PortalId.ZERO.toString());
+                        assertThat(publication.getSectionName()).isEqualTo("APIs");
+                        assertThat(publication.getPortalNavigationItem().getId()).isEqualTo(listing.getId().id());
+                        assertThat(publication.getPortalNavigationItem().getParentId()).isEqualTo(section.getId().id());
+                        assertThat(publication.getPortalNavigationItem().getApiId()).isEqualTo(API_ID);
+                        assertThat(publication.getPortalNavigationItem().getPublished()).isTrue();
+                    });
             });
     }
 
     @Test
-    void should_return_an_empty_list_and_no_publication_for_an_api_with_no_documentation() {
+    void should_return_no_items_and_no_publications_for_an_api_with_no_documentation() {
         var foreign = inEnvironment(
             PortalNavigationItemFixtures.aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build()
         );
@@ -122,7 +129,7 @@ class ApiDocumentationNavigationResource_ListTest extends AbstractResourceTest {
             .asEntity(ApiPortalNavigationItemsResponse.class)
             .satisfies(entity -> {
                 assertThat(entity.getItems()).isEmpty();
-                assertThat(entity.getPublication()).isNull();
+                assertThat(entity.getPublications()).isEmpty();
             });
     }
 

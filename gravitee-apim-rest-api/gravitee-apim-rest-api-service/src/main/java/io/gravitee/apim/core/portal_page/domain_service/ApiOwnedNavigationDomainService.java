@@ -21,12 +21,14 @@ import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -41,21 +43,34 @@ public class ApiOwnedNavigationDomainService {
     private final PortalNavigationItemsQueryService queryService;
 
     public List<PortalNavigationItem> findOwnedItems(String environmentId, String apiId) {
-        var roots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
-            environmentId,
-            PortalArea.TOP_NAVBAR,
-            new NavigationItemReference.ApiReference(apiId)
-        );
+        var owner = new NavigationItemReference.ApiReference(apiId);
+        var roots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(environmentId, PortalArea.TOP_NAVBAR, owner);
+
         var ownedItems = new ArrayList<PortalNavigationItem>();
-        roots.forEach(root -> collectWithDescendants(environmentId, root, ownedItems));
+        var visitedIds = new HashSet<PortalNavigationItemId>();
+        var toVisit = new ArrayDeque<>(roots);
+        while (!toVisit.isEmpty()) {
+            var item = toVisit.pop();
+            if (!visitedIds.add(item.getId())) {
+                continue;
+            }
+            ownedItems.add(item);
+            // Nothing stops an item of the portal, or of another API, from being stored under a folder this API
+            // owns: such a child, and whatever sits below it, is not this API's documentation
+            queryService
+                .findByParentIdAndEnvironmentId(environmentId, item.getId())
+                .stream()
+                .filter(child -> owner.equals(child.getReference()))
+                .forEach(toVisit::push);
+        }
         return ownedItems;
     }
 
     /**
-     * An entry under an API product lists the API as a member of that product and is not the API's own
-     * listing.
+     * One entry per portal that lists the API. An entry under an API product lists the API as a member of
+     * that product and is not the API's own listing.
      */
-    public Optional<PortalNavigationApi> findStandaloneListing(String environmentId, String apiId) {
+    public List<PortalNavigationApi> findStandaloneListings(String environmentId, String apiId) {
         var criteria = PortalNavigationItemQueryCriteria.builder()
             .environmentId(environmentId)
             .type(PortalNavigationItemType.API)
@@ -66,14 +81,7 @@ public class ApiOwnedNavigationDomainService {
             .stream()
             .map(PortalNavigationApi.class::cast)
             .filter(listing -> !hasApiProductAncestor(environmentId, listing))
-            .findFirst();
-    }
-
-    private void collectWithDescendants(String environmentId, PortalNavigationItem item, List<PortalNavigationItem> collected) {
-        collected.add(item);
-        queryService
-            .findByParentIdAndEnvironmentId(environmentId, item.getId())
-            .forEach(child -> collectWithDescendants(environmentId, child, collected));
+            .toList();
     }
 
     private boolean hasApiProductAncestor(String environmentId, PortalNavigationItem item) {

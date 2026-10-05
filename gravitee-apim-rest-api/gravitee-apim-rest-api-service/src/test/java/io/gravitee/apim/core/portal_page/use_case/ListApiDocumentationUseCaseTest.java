@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -59,7 +60,7 @@ class ListApiDocumentationUseCaseTest {
         var output = execute();
 
         assertThat(output.items()).isEmpty();
-        assertThat(output.publication()).isNull();
+        assertThat(output.publications()).isEmpty();
     }
 
     @Test
@@ -153,21 +154,23 @@ class ListApiDocumentationUseCaseTest {
         var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
         queryService.initWith(List.of(page));
 
-        assertThat(execute().publication()).isNull();
+        assertThat(execute().publications()).isEmpty();
     }
 
     @Test
-    void should_report_the_section_and_published_flag_of_the_listing_row() {
+    void should_report_the_listing_row_its_section_and_its_portal() {
         var section = aFolder("APIs");
         var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
         queryService.initWith(List.of(section, listing));
 
-        var publication = execute().publication();
-
-        assertThat(publication).isNotNull();
-        assertThat(publication.listing()).isEqualTo(listing);
-        assertThat(publication.listing().getPublished()).isTrue();
-        assertThat(publication.section()).isEqualTo(section);
+        assertThat(execute().publications())
+            .singleElement()
+            .satisfies(publication -> {
+                assertThat(publication.listing()).isEqualTo(listing);
+                assertThat(publication.listing().getPublished()).isTrue();
+                assertThat(publication.section()).isEqualTo(section);
+                assertThat(publication.portalId()).isEqualTo(PortalId.ZERO);
+            });
     }
 
     @Test
@@ -177,10 +180,22 @@ class ListApiDocumentationUseCaseTest {
         listing.setPublished(false);
         queryService.initWith(List.of(section, listing));
 
-        var publication = execute().publication();
+        assertThat(execute().publications())
+            .singleElement()
+            .satisfies(publication -> assertThat(publication.listing().getPublished()).isFalse());
+    }
 
-        assertThat(publication).isNotNull();
-        assertThat(publication.listing().getPublished()).isFalse();
+    @Test
+    void should_report_one_publication_per_listing_row() {
+        var section = aFolder("APIs");
+        var otherSection = aFolder("Partners");
+        var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
+        var otherListing = anApi(PortalNavigationItemId.random().json(), "Api A", otherSection.getId(), API_ID);
+        queryService.initWith(List.of(section, otherSection, listing, otherListing));
+
+        assertThat(execute().publications())
+            .extracting(publication -> publication.section().getTitle())
+            .containsExactlyInAnyOrder("APIs", "Partners");
     }
 
     @Test
@@ -189,7 +204,7 @@ class ListApiDocumentationUseCaseTest {
         var listing = anApi(PortalNavigationItemId.random().json(), "Api A", product.getId(), API_ID);
         queryService.initWith(List.of(product, listing));
 
-        assertThat(execute().publication()).isNull();
+        assertThat(execute().publications()).isEmpty();
     }
 
     private ListApiDocumentationUseCase.Output execute() {

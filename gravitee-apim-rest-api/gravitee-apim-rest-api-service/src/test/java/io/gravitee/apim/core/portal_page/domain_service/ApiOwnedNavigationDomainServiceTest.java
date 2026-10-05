@@ -26,11 +26,14 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiOwnedNavigationDomainServiceTest {
@@ -77,13 +80,72 @@ class ApiOwnedNavigationDomainServiceTest {
     }
 
     @Nested
-    class FindStandaloneListing {
+    class FindOwnedItemsInAnInconsistentTree {
+
+        @Test
+        void should_not_return_a_child_owned_by_someone_else_stored_under_an_owned_folder() {
+            var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
+            var ownedPage = aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+            var portalPage = aPage("Portal page", folder.getId());
+            var foreignFolder = aFolder("Foreign", folder.getId()).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            var pageUnderForeignFolder = aPage("Nested", foreignFolder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+            queryService.initWith(List.of(folder, ownedPage, portalPage, foreignFolder, pageUnderForeignFolder));
+
+            assertThat(service.findOwnedItems(ENV_ID, API_ID))
+                .extracting(PortalNavigationItem::getId)
+                .containsExactlyInAnyOrder(folder.getId(), ownedPage.getId());
+        }
+
+        @Test
+        @Timeout(5)
+        void should_return_each_item_once_when_the_hierarchy_loops() {
+            var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
+            var page = aPage("Setup", folder.getId()).toBuilder().reference(ownedBy(API_ID)).build();
+            // A corrupted hierarchy in which the folder is also reported as a child of its own page
+            var loopingQueryService = new PortalNavigationItemsQueryServiceInMemory(List.of(folder, page)) {
+                @Override
+                public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
+                    return page.getId().equals(parentId) ? List.of(folder) : super.findByParentIdAndEnvironmentId(environmentId, parentId);
+                }
+            };
+
+            var ownedItems = new ApiOwnedNavigationDomainService(loopingQueryService).findOwnedItems(ENV_ID, API_ID);
+
+            assertThat(ownedItems).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(folder.getId(), page.getId());
+        }
+
+        @Test
+        void should_walk_a_hierarchy_deeper_than_the_call_stack_allows() {
+            var items = new ArrayList<PortalNavigationItem>();
+            PortalNavigationItemId parentId = null;
+            for (int depth = 0; depth < 20_000; depth++) {
+                var folder = aFolder("Level " + depth, parentId).toBuilder().reference(ownedBy(API_ID)).build();
+                items.add(folder);
+                parentId = folder.getId();
+            }
+            var childrenByParentId = items
+                .stream()
+                .filter(PortalNavigationItem::hasParent)
+                .collect(Collectors.toMap(PortalNavigationItem::getParentId, List::of));
+            var indexedQueryService = new PortalNavigationItemsQueryServiceInMemory(items) {
+                @Override
+                public List<PortalNavigationItem> findByParentIdAndEnvironmentId(String environmentId, PortalNavigationItemId parentId) {
+                    return childrenByParentId.getOrDefault(parentId, List.of());
+                }
+            };
+
+            assertThat(new ApiOwnedNavigationDomainService(indexedQueryService).findOwnedItems(ENV_ID, API_ID)).hasSize(20_000);
+        }
+    }
+
+    @Nested
+    class FindStandaloneListings {
 
         @Test
         void should_find_no_listing_row_for_an_unlisted_api() {
             queryService.initWith(List.of(aFolder("APIs")));
 
-            assertThat(service.findStandaloneListing(ENV_ID, API_ID)).isEmpty();
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID)).isEmpty();
         }
 
         @Test
@@ -92,7 +154,7 @@ class ApiOwnedNavigationDomainServiceTest {
             var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
             queryService.initWith(List.of(section, listing));
 
-            assertThat(service.findStandaloneListing(ENV_ID, API_ID)).contains(listing);
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID)).containsExactly(listing);
         }
 
         @Test
@@ -101,7 +163,7 @@ class ApiOwnedNavigationDomainServiceTest {
             var listing = anApi(PortalNavigationItemId.random().json(), "Api B", section.getId(), OTHER_API_ID);
             queryService.initWith(List.of(section, listing));
 
-            assertThat(service.findStandaloneListing(ENV_ID, API_ID)).isEmpty();
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID)).isEmpty();
         }
 
         @Test
@@ -111,7 +173,18 @@ class ApiOwnedNavigationDomainServiceTest {
             var listing = anApi(PortalNavigationItemId.random().json(), "Api A", folderInProduct.getId(), API_ID);
             queryService.initWith(List.of(product, folderInProduct, listing));
 
-            assertThat(service.findStandaloneListing(ENV_ID, API_ID)).isEmpty();
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID)).isEmpty();
+        }
+
+        @Test
+        void should_find_every_standalone_row_of_the_api() {
+            var section = aFolder("APIs");
+            var otherSection = aFolder("Partners");
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
+            var otherListing = anApi(PortalNavigationItemId.random().json(), "Api A", otherSection.getId(), API_ID);
+            queryService.initWith(List.of(section, otherSection, listing, otherListing));
+
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID)).containsExactlyInAnyOrder(listing, otherListing);
         }
 
         @Test
@@ -122,7 +195,7 @@ class ApiOwnedNavigationDomainServiceTest {
             var standaloneListing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
             queryService.initWith(List.of(product, productListing, section, standaloneListing));
 
-            assertThat(service.findStandaloneListing(ENV_ID, API_ID)).contains(standaloneListing);
+            assertThat(service.findStandaloneListings(ENV_ID, API_ID)).containsExactly(standaloneListing);
         }
     }
 

@@ -184,18 +184,16 @@ public interface PortalNavigationItemsMapper {
     PortalNavigationItemFetchResult map(PortalNavigationBulkImportDomainService.BulkImportResult.FileImportResult result);
 
     default ApiPortalNavigationItemsResponse map(ListApiDocumentationUseCase.Output output) {
-        return new ApiPortalNavigationItemsResponse().items(map(output.items())).publication(mapPublication(output.publication()));
+        return new ApiPortalNavigationItemsResponse()
+            .items(map(output.items()))
+            .publications(output.publications().stream().map(this::mapPublication).toList());
     }
 
     default ApiPortalPublication mapPublication(ListApiDocumentationUseCase.Publication publication) {
-        if (publication == null) {
-            return null;
-        }
         return new ApiPortalPublication()
-            .navigationItemId(publication.listing().getId().id())
-            .sectionId(publication.section().getId().id())
-            .sectionName(publication.section().getTitle())
-            .published(publication.listing().getPublished());
+            .portalId(publication.portalId().toString())
+            .portalNavigationItem(map(publication.listing()))
+            .sectionName(publication.section().getTitle());
     }
 
     default ImportPortalNavigationResponse map(ImportPortalNavigationUseCase.Output output) {
