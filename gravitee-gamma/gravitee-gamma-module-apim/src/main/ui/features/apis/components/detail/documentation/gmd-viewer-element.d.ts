@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-declare module '@gravitee/graphene-core/styles';
-declare module '@gravitee/gamma-lib-observability/styles';
+import type { DetailedHTMLProps, HTMLAttributes } from 'react';
 
-declare module '@gravitee/gravitee-markdown-element' {
-    export function registerGmdViewerElement(): Promise<void>;
+/** The `<gmd-viewer>` custom element registered by `registerGmdViewerElement()`. */
+export type GmdViewerElement = HTMLElement & { content: string };
+
+declare module 'react' {
+    namespace JSX {
+        interface IntrinsicElements {
+            'gmd-viewer': DetailedHTMLProps<HTMLAttributes<GmdViewerElement>, GmdViewerElement>;
+        }
+    }
 }
-
-interface ImportMeta {
-    readonly env: {
-        readonly DEV: boolean;
-        readonly PROD: boolean;
-        readonly MODE: string;
-    };
-}
-
-declare const process: { readonly env: { readonly NODE_ENV?: 'development' | 'production' | 'test' } };

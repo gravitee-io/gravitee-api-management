@@ -14,19 +14,8 @@
  * limitations under the License.
  */
 
-declare module '@gravitee/graphene-core/styles';
-declare module '@gravitee/gamma-lib-observability/styles';
-
-declare module '@gravitee/gravitee-markdown-element' {
-    export function registerGmdViewerElement(): Promise<void>;
+// Jest stand-in for the bundle built by `nx build-element markdown`. Jest cannot load that
+// 400 kB ES module, and specs only need to know the registration was requested.
+export function registerGmdViewerElement(): Promise<void> {
+    return Promise.resolve();
 }
-
-interface ImportMeta {
-    readonly env: {
-        readonly DEV: boolean;
-        readonly PROD: boolean;
-        readonly MODE: string;
-    };
-}
-
-declare const process: { readonly env: { readonly NODE_ENV?: 'development' | 'production' | 'test' } };
