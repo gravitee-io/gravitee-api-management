@@ -209,6 +209,7 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(firstPage.getContent()).extracting(Audit::getId).containsExactly("pagedNewest", "pagedMiddle");
         assertThat(secondPage.getContent()).extracting(Audit::getId).containsExactly("pagedOldest");
         assertThat(firstPage.getContent()).allSatisfy(audit -> assertThat(audit.getProperties()).hasSize(2));
+        assertThat(secondPage.getContent()).allSatisfy(audit -> assertThat(audit.getProperties()).hasSize(2));
     }
 
     private void createEncryptedDictionaryAudit(String id, long createdAt) throws TechnicalException {
