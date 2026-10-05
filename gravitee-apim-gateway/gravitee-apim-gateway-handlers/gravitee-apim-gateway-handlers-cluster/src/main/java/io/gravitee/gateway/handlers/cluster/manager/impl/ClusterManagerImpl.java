@@ -98,6 +98,19 @@ public class ClusterManagerImpl implements ClusterManager {
     }
 
     @Override
+    public ReactableCluster get(String crossId, String environmentId) {
+        if (crossId == null || environmentId == null) {
+            return null;
+        }
+        return clusters
+            .values()
+            .stream()
+            .filter(cluster -> crossId.equals(cluster.getCrossId()) && environmentId.equals(cluster.getEnvironmentId()))
+            .findFirst()
+            .orElse(null);
+    }
+
+    @Override
     public Collection<ReactableCluster> clusters() {
         return clusters.values();
     }

@@ -15,10 +15,16 @@
  */
 package io.gravitee.gateway.handlers.cluster.manager;
 
+import io.gravitee.definition.model.cluster.ClusterRegistry;
 import io.gravitee.definition.model.cluster.ReactableCluster;
 import java.util.Collection;
 
-public interface ClusterManager {
+/**
+ * Holds the clusters deployed on this gateway. It is also the gateway's {@link ClusterRegistry}, so
+ * every reactor and endpoint connector resolves a cluster reference from the same state, and a
+ * cluster is resolvable before its deploy/update event is published.
+ */
+public interface ClusterManager extends ClusterRegistry {
     boolean register(ReactableCluster cluster);
     void unregister(String clusterId);
     ReactableCluster get(String clusterId);
