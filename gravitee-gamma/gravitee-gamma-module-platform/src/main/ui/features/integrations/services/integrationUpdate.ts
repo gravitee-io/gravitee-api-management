@@ -13,11 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import type { Integration, UpdateIntegrationRequest } from '../types/integration';
 
-export const integrationKeys = {
-    all: ['environment-integrations'] as const,
-    list: (envId: string, page: number, perPage: number) => [...integrationKeys.all, 'list', envId, page, perPage] as const,
-    detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
-    permissions: (envId: string, integrationId: string) => [...integrationKeys.all, 'permissions', envId, integrationId] as const,
-    federatedApis: (envId: string, integrationId: string) => [...integrationKeys.all, 'federated-apis', envId, integrationId] as const,
-} as const;
+export async function updateIntegration(
+    environmentId: string,
+    integrationId: string,
+    request: UpdateIntegrationRequest,
+): Promise<Integration> {
+    return apimFetchJsonV2<Integration>(environmentId, `/integrations/${encodeURIComponent(integrationId)}`, {
+        method: 'PUT',
+        body: JSON.stringify(request),
+    });
+}

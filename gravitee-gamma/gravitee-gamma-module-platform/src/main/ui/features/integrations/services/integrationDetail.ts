@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { Integration } from '../types/integration';
+import type { Integration, IntegrationDeletedFederatedApisResponse, IntegrationFederatedApisResponse } from '../types/integration';
 import { isA2aIntegration } from '../utils/integrationKind';
 
 export async function getIntegration(environmentId: string, integrationId: string): Promise<Integration> {
@@ -22,4 +22,26 @@ export async function getIntegration(environmentId: string, integrationId: strin
     if (!isA2aIntegration(integration)) return integration;
     const { agentStatus: _agentStatus, pendingJob: _pendingJob, ...a2aIntegration } = integration;
     return a2aIntegration;
+}
+
+export async function deleteIntegration(environmentId: string, integrationId: string): Promise<void> {
+    await apimFetchJsonV2<void>(environmentId, `/integrations/${encodeURIComponent(integrationId)}`, { method: 'DELETE' });
+}
+
+export async function hasFederatedApis(environmentId: string, integrationId: string): Promise<boolean> {
+    const response = await apimFetchJsonV2<IntegrationFederatedApisResponse>(
+        environmentId,
+        `/integrations/${encodeURIComponent(integrationId)}/apis?page=1&perPage=1`,
+    );
+    return response.data.length > 0;
+}
+
+export async function deleteFederatedApis(environmentId: string, integrationId: string): Promise<IntegrationDeletedFederatedApisResponse> {
+    return apimFetchJsonV2<IntegrationDeletedFederatedApisResponse>(
+        environmentId,
+        `/integrations/${encodeURIComponent(integrationId)}/apis`,
+        {
+            method: 'DELETE',
+        },
+    );
 }

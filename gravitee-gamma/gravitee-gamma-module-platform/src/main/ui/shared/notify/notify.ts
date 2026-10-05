@@ -27,7 +27,7 @@ const ERROR_DURATION_MS = 10_000;
  */
 export const notify = {
     success(message: string) {
-        toast.success(message, { duration: SUCCESS_DURATION_MS });
+        toast.success(message, { duration: SUCCESS_DURATION_MS, style: { whiteSpace: 'pre-line' } });
     },
 
     error(error: unknown, fallback?: string) {

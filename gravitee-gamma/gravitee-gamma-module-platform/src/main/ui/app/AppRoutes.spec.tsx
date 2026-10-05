@@ -1523,6 +1523,47 @@ describe('AppRoutes', () => {
         },
     );
 
+    it('opens the Configuration page from the Configuration entry on the detail page of an integration the user can update', async () => {
+        const user = userEvent.setup();
+        const integration = { ...GATEWAY_INTEGRATION, id: 'integration-1' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'RU' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationOverviewUrl(integration.id);
+        await user.click(await screen.findByRole('link', { name: 'Configuration' }));
+
+        expect(screen.getByTestId('location').textContent).toBe('/integrations/integration-1/configuration');
+        fetchSpy.mockRestore();
+    });
+
+    it('lists a General tab on the Configuration page of an integration the user can update', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'gateway-definition-update' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'RU' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath(`/integrations/${integration.id}/configuration`);
+
+        expect(await screen.findByRole('tab', { name: 'General' })).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}/configuration`);
+        fetchSpy.mockRestore();
+    });
+
+    it('redirects a direct Configuration visit to the Integrations list when the user can neither update nor delete the integration', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'gateway-definition-read-only' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath(`/integrations/${integration.id}/configuration`);
+
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
+        expect(screen.getByTestId('integrations-page')).not.toBeNull();
+        expect(screen.queryByRole('tab', { name: 'General' })).toBeNull();
+        fetchSpy.mockRestore();
+    });
+
     it('adds the Integrations nav item when the license lands after the first render', () => {
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         renderPlatform();
