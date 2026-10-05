@@ -49,6 +49,10 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         return new InvalidPortalNavigationItemDataException("The navigation item %s is not a page and has no content.".formatted(itemId));
     }
 
+    public static InvalidPortalNavigationItemDataException apiIsNotListed(String apiId) {
+        return new InvalidPortalNavigationItemDataException("The API %s is not published to the portal.".formatted(apiId));
+    }
+
     public static InvalidPortalNavigationItemDataException apiMustBeInTopNavbar() {
         return new InvalidPortalNavigationItemDataException("API items can only be added to TOP_NAVBAR area.");
     }

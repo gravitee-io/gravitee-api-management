@@ -3510,6 +3510,34 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_unpublish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Unpublish an API from the portal
+            description: |-
+                Deletes the navigation item listing the API in the portal and unpublishes every page, folder and
+                link the API owns. The documentation itself is kept and can be published again.
+
+                A listing under an API product is left untouched.
+
+                User must have the API_DOCUMENTATION[DELETE] permission.
+            operationId: unpublishApiFromPortal
+            responses:
+                "204":
+                    description: The API is no longer listed in the portal
+                "400":
+                    description: The API is not published to the portal
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-locations:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
