@@ -239,6 +239,26 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
 
         @Test
+        void should_persist_and_audit_a_sync_that_only_removes_a_dynamic_property() {
+            var api = givenApi(
+                buildApiWithProperties(
+                    List.of(
+                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
+                        Property.builder().key("gone").value("value").dynamic(true).build()
+                    )
+                )
+            );
+
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of()));
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
+                Property.builder().key("user-prop").value("value").dynamic(false).build()
+            );
+            assertAuditHasBeenCreated();
+            assertThat(auditPatch()).contains("{\"op\":\"remove\",\"path\":\"/apiDefinitionValue/properties/");
+        }
+
+        @Test
         void should_ignore_dynamic_properties_having_same_key_than_static_properties_added_by_user() {
             var api = givenApi(buildApiWithProperties(List.of(Property.builder().key("user-prop").value("value").dynamic(false).build())));
 
@@ -437,6 +457,27 @@ class UpdateDynamicPropertiesUseCaseTest {
             );
             assertAuditHasBeenCreated();
             assertThat(auditPatch()).contains("/apiDefinitionValue/properties").contains("\"value\":\"key\"");
+        }
+
+        @Test
+        void should_persist_and_audit_a_native_sync_that_only_removes_a_dynamic_property() {
+            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(false);
+            var api = givenApi(
+                buildNativeApiWithProperties(
+                    List.of(
+                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
+                        Property.builder().key("gone").value("value").dynamic(true).build()
+                    )
+                )
+            );
+
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of()));
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
+                Property.builder().key("user-prop").value("value").dynamic(false).build()
+            );
+            assertAuditHasBeenCreated();
+            assertThat(auditPatch()).contains("{\"op\":\"remove\",\"path\":\"/apiDefinitionValue/properties/");
         }
 
         @Test
