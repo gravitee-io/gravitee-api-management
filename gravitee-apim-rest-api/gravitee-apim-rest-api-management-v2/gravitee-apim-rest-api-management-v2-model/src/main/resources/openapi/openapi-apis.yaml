@@ -3377,6 +3377,46 @@ paths:
                                 $ref: "#/components/schemas/ApiPortalNavigationItemsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - API Documentation
+            summary: Create a portal documentation item owned by an API
+            description: |-
+                Create a page, a folder or a link owned by the API.
+
+                The item is always created unpublished, in the top navigation area, and owned by the API of the
+                path, whatever the request body says. Without a parent, it becomes top-level documentation of the API.
+                A parent must itself be owned by the API.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: createApiPortalNavigationItem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/CreatePortalNavigationItem"
+                required: true
+            responses:
+                "201":
+                    description: Portal documentation item created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                "400":
+                    description: Invalid payload, or an item type other than PAGE, FOLDER or LINK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The parent does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
