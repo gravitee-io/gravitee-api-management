@@ -179,8 +179,41 @@ public class PropertyDomainServiceTest {
         }
 
         @Test
-        void keeps_stored_property_when_decryption_fails() throws GeneralSecurityException {
+        void re_encrypts_the_fetched_value_when_the_stored_value_cannot_be_decrypted() throws GeneralSecurityException {
             when(dataEncryptor.decrypt("ciphertext")).thenThrow(new GeneralSecurityException("bad padding"));
+            when(dataEncryptor.encrypt("n3w")).thenReturn("new-ciphertext");
+
+            var result = cut.keepStoredEncryption(
+                "api-id",
+                List.of(storedEncrypted),
+                List.of(Property.builder().key("secret").value("n3w").dynamic(true).build())
+            );
+
+            assertThat(result).containsExactly(
+                Property.builder().key("secret").value("new-ciphertext").encrypted(true).dynamic(true).build()
+            );
+        }
+
+        @Test
+        void re_encrypts_the_fetched_value_when_the_stored_value_is_malformed() throws GeneralSecurityException {
+            when(dataEncryptor.decrypt("ciphertext")).thenThrow(new IllegalArgumentException("Illegal base64 character"));
+            when(dataEncryptor.encrypt("n3w")).thenReturn("new-ciphertext");
+
+            var result = cut.keepStoredEncryption(
+                "api-id",
+                List.of(storedEncrypted),
+                List.of(Property.builder().key("secret").value("n3w").dynamic(true).build())
+            );
+
+            assertThat(result).containsExactly(
+                Property.builder().key("secret").value("new-ciphertext").encrypted(true).dynamic(true).build()
+            );
+        }
+
+        @Test
+        void keeps_stored_property_when_the_stored_value_cannot_be_decrypted_and_encryption_fails() throws GeneralSecurityException {
+            when(dataEncryptor.decrypt("ciphertext")).thenThrow(new GeneralSecurityException("bad padding"));
+            when(dataEncryptor.encrypt("n3w")).thenThrow(new GeneralSecurityException("bad key"));
 
             var result = cut.keepStoredEncryption(
                 "api-id",
@@ -192,8 +225,9 @@ public class PropertyDomainServiceTest {
         }
 
         @Test
-        void keeps_stored_property_when_the_stored_value_is_malformed() throws GeneralSecurityException {
-            when(dataEncryptor.decrypt("ciphertext")).thenThrow(new IllegalArgumentException("Illegal base64 character"));
+        void keeps_stored_property_when_encrypting_a_changed_value_fails() throws GeneralSecurityException {
+            when(dataEncryptor.decrypt("ciphertext")).thenReturn("s3cret");
+            when(dataEncryptor.encrypt("n3w")).thenThrow(new GeneralSecurityException("bad key"));
 
             var result = cut.keepStoredEncryption(
                 "api-id",

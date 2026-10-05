@@ -76,10 +76,10 @@ public class PropertyDomainService {
     }
 
     private Property reEncrypt(String apiId, Property stored, Property fetched) {
+        if (Objects.equals(decryptOrNull(apiId, stored), fetched.getValue())) {
+            return stored;
+        }
         try {
-            if (dataEncryptor.decrypt(stored.getValue()).equals(fetched.getValue())) {
-                return stored;
-            }
             return Property.builder()
                 .key(fetched.getKey())
                 .value(dataEncryptor.encrypt(fetched.getValue()))
@@ -87,13 +87,21 @@ public class PropertyDomainService {
                 .dynamic(fetched.isDynamic())
                 .build();
         } catch (GeneralSecurityException | RuntimeException e) {
-            log.error(
-                "Unable to refresh encrypted dynamic property [{}] of API [{}]; keeping the stored value",
-                fetched.getKey(),
-                apiId,
-                e
-            );
+            log.error("Unable to encrypt dynamic property [{}] of API [{}]; keeping the stored value", fetched.getKey(), apiId, e);
             return stored;
+        }
+    }
+
+    private String decryptOrNull(String apiId, Property stored) {
+        try {
+            return dataEncryptor.decrypt(stored.getValue());
+        } catch (GeneralSecurityException | IllegalArgumentException e) {
+            log.warn(
+                "Stored value of encrypted dynamic property [{}] of API [{}] could not be decrypted; it will be encrypted again",
+                stored.getKey(),
+                apiId
+            );
+            return null;
         }
     }
 }

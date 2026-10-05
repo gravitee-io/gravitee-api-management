@@ -548,22 +548,32 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
 
         @Test
-        void should_keep_stored_property_when_its_value_cannot_be_decrypted() {
+        void should_re_encrypt_a_stored_property_whose_value_cannot_be_decrypted() throws GeneralSecurityException {
             var corrupted = Property.builder().key("secret").value("not-a-ciphertext!").encrypted(true).dynamic(true).build();
             var api = givenApi(buildApiWithProperties(List.of(corrupted, fetched("other", "v1"))));
-
-            cut.execute(
-                new UpdateDynamicPropertiesUseCase.Input(
-                    api.getId(),
-                    HTTP_DYNAMIC_PROPERTIES,
-                    List.of(fetched("secret", "n3w"), fetched("other", "v2"))
-                )
+            var input = new UpdateDynamicPropertiesUseCase.Input(
+                api.getId(),
+                HTTP_DYNAMIC_PROPERTIES,
+                List.of(fetched("secret", "n3w"), fetched("other", "v2"))
             );
 
-            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
-                fetched("other", "v2"),
-                corrupted
-            );
+            cut.execute(input);
+
+            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties();
+            var secret = persisted
+                .stream()
+                .filter(property -> property.getKey().equals("secret"))
+                .findFirst()
+                .orElseThrow();
+            assertThat(secret.isEncrypted()).isTrue();
+            assertThat(secret.isDynamic()).isTrue();
+            assertThat(DATA_ENCRYPTOR.decrypt(secret.getValue())).isEqualTo("n3w");
+            assertThat(persisted).contains(fetched("other", "v2"));
+
+            auditCrudServiceInMemory.reset();
+            cut.execute(input);
+
+            assertThat(auditCrudServiceInMemory.storage()).isEmpty();
         }
 
         private static Property encryptedDynamic(String key, String plaintext) throws GeneralSecurityException {
