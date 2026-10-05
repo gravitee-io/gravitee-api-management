@@ -1305,6 +1305,7 @@
             <groupId>io.gravitee.inference.service</groupId>
             <artifactId>gravitee-inference-service</artifactId>
             <version>${gravitee-inference-service.version}</version>
+            <classifier>${gravitee-inference-service.classifier}</classifier>
             <type>zip</type>
             <scope>runtime</scope>
             <exclusions>
