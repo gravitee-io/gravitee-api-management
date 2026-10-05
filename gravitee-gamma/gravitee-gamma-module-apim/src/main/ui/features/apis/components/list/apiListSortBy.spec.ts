@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { toApiListSortBy } from './ApiListTable';
+import { sortingFromApiListOrder, toApiListSortBy } from './ApiListTable';
 
 describe('toApiListSortBy', () => {
     it('returns undefined when no sort is active', () => {
@@ -40,5 +40,19 @@ describe('toApiListSortBy', () => {
         expect(toApiListSortBy([{ id: 'Sync Status', desc: false }])).toBeUndefined();
         // `/apis/_search` has no sortBy field for the origin provider.
         expect(toApiListSortBy([{ id: 'Origin', desc: false }])).toBeUndefined();
+    });
+});
+
+describe('sortingFromApiListOrder', () => {
+    it('round-trips server sort values used by the classic Console order param', () => {
+        expect(sortingFromApiListOrder('name')).toEqual([{ id: 'API Name', desc: false }]);
+        expect(sortingFromApiListOrder('-status')).toEqual([{ id: 'Runtime Status', desc: true }]);
+        expect(sortingFromApiListOrder('tags_asc')).toEqual([{ id: 'Sharding Tags', desc: false }]);
+        expect(toApiListSortBy(sortingFromApiListOrder('-tags_desc'))).toBe('-tags_desc');
+    });
+
+    it('returns an empty sort for an unknown order value', () => {
+        expect(sortingFromApiListOrder(undefined)).toEqual([]);
+        expect(sortingFromApiListOrder('not-a-field')).toEqual([]);
     });
 });

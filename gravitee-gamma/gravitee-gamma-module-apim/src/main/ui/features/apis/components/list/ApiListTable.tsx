@@ -66,6 +66,20 @@ export function toApiListSortBy(sorting: DataTableProps<ApiListItem>['sorting'])
     return sort.desc ? `-${field}` : field;
 }
 
+type ApiListSortingState = NonNullable<DataTableProps<ApiListItem>['sorting']>;
+
+/** Inverse of {@link toApiListSortBy} for the classic Console `order` query param. */
+export function sortingFromApiListOrder(order: string | null | undefined): ApiListSortingState {
+    if (!order) return [];
+    const desc = order.startsWith('-');
+    const field = desc ? order.slice(1) : order;
+    if (field === 'tags_asc') return [{ id: 'Sharding Tags', desc: false }];
+    if (field === 'tags_desc') return [{ id: 'Sharding Tags', desc: true }];
+    const columnId = Object.entries(SORT_FIELD_BY_COLUMN).find(([, backendField]) => backendField === field)?.[0];
+    if (!columnId) return [];
+    return [{ id: columnId, desc }];
+}
+
 // ─── Status helpers ───────────────────────────────────────────────────────────
 
 function RuntimeStatusBadge({ state }: { state: ApiState | undefined }) {
@@ -254,7 +268,12 @@ function apiListEmptyMessage(loadFailed: boolean, forbidden: boolean): React.Rea
     }
     if (loadFailed) return null;
     return (
-        <DataTableEmptyState variant="no-results" icon={<SearchIcon />} title="No APIs found" description="Try adjusting your search." />
+        <DataTableEmptyState
+            variant="no-results"
+            icon={<SearchIcon />}
+            title="No APIs found"
+            description="Try adjusting your search or filters."
+        />
     );
 }
 

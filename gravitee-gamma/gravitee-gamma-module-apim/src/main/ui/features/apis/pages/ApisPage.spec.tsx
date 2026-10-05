@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { ApimApiError } from '@gravitee/gamma-ui-shared/api';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { ApisPage } from './ApisPage';
 import { useApiList } from '../hooks/useApiList';
@@ -29,6 +29,15 @@ jest.mock('@gravitee/gamma-lib-observability', () => ({
 
 jest.mock('../hooks/useApiList');
 jest.mock('../hooks/useApiStats');
+jest.mock('../hooks/useOrgTags', () => ({
+    useOrgTags: () => ({ data: [{ id: 'tag-1', key: 'eu-west', name: 'EU West' }] }),
+}));
+jest.mock('../hooks/useEnvCategories', () => ({
+    useEnvCategories: () => ({ data: [{ id: 'cat-1', key: 'partners', name: 'Partners' }] }),
+}));
+jest.mock('../../license/useFederationEnabled', () => ({
+    useFederationEnabled: () => ({ enabled: true, isResolved: true }),
+}));
 
 const mockUseApiList = useApiList as jest.Mock;
 const mockUseApiStats = useApiStats as jest.Mock;
@@ -312,7 +321,17 @@ describe('ApisPage', () => {
 
         fireEvent.change(screen.getByPlaceholderText('Search APIs...'), { target: { value: 'payments' } });
 
-        await waitFor(() => expect(lastRequest()).toEqual({ query: 'payments', page: 1, perPage: 10, sortBy: undefined }));
+        await waitFor(() =>
+            expect(lastRequest()).toMatchObject({
+                query: 'payments',
+                page: 1,
+                perPage: 10,
+                sortBy: undefined,
+                filters: { apiTypes: [], statuses: [], tags: [], categories: [] },
+                includeFederated: true,
+                isFederationResolved: true,
+            }),
+        );
     });
 
     it('drops the alert and shows the rows once a later search succeeds', () => {
@@ -385,6 +404,43 @@ describe('ApisPage', () => {
         expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull();
         expect(screen.queryByPlaceholderText('Search APIs...')).toBeNull();
         expect(screen.queryByText('Why add an API proxy?')).toBeNull();
+    });
+
+    it('restores list filters from the URL after browser back navigation', async () => {
+        mockUseApiList.mockReturnValue({
+            data: {
+                data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
+                pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+            },
+            isLoading: false,
+            isFetching: false,
+            isPlaceholderData: false,
+            isError: false,
+        });
+
+        const router = createMemoryRouter([{ path: '/', element: <ApisPage /> }], {
+            initialEntries: ['/?statuses=STOPPED'],
+        });
+        render(<RouterProvider router={router} />);
+
+        await waitFor(() => expect(lastRequest().filters.statuses).toEqual(['STOPPED']));
+
+        await act(async () => {
+            router.navigate('/?apiTypes=V4_TCP_PROXY&statuses=STARTED');
+        });
+        await waitFor(() => {
+            expect(lastRequest().filters.apiTypes).toEqual(['V4_TCP_PROXY']);
+            expect(lastRequest().filters.statuses).toEqual(['STARTED']);
+        });
+
+        await act(async () => {
+            router.navigate(-1);
+        });
+
+        await waitFor(() => {
+            expect(lastRequest().filters.statuses).toEqual(['STOPPED']);
+            expect(lastRequest().filters.apiTypes).toEqual([]);
+        });
     });
 
     it('resets page to 1 when the search term changes', async () => {
@@ -513,7 +569,100 @@ describe('ApisPage', () => {
 
         clickColumnHeader('Runtime Status');
 
-        expect(lastRequest()).toEqual({ query: 'payments', page: 1, perPage: 10, sortBy: 'status' });
+        await waitFor(() =>
+            expect(lastRequest()).toMatchObject({
+                query: 'payments',
+                page: 1,
+                perPage: 10,
+                sortBy: 'status',
+                filters: { apiTypes: [], statuses: [], tags: [], categories: [] },
+                includeFederated: true,
+                isFederationResolved: true,
+            }),
+        );
         expectBothRowsRendered();
+    });
+
+    it('keeps the list, not the empty landing, when filters match nothing', async () => {
+        mockUseApiList.mockImplementation(({ filters }) =>
+            filters?.apiTypes?.includes('V4_TCP_PROXY')
+                ? {
+                      data: { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 } },
+                      isLoading: false,
+                      isFetching: false,
+                      isPlaceholderData: false,
+                      isError: false,
+                  }
+                : {
+                      data: {
+                          data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
+                          pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+                      },
+                      isLoading: false,
+                      isFetching: false,
+                      isPlaceholderData: false,
+                      isError: false,
+                  },
+        );
+        renderPage();
+
+        await userEvent.click(screen.getByRole('button', { name: 'Filter by API type' }));
+        await userEvent.click(screen.getByRole('checkbox', { name: 'TCP Proxy' }));
+
+        expect(screen.queryByText('No APIs found')).not.toBeNull();
+        expect(screen.queryByText('Why add an API proxy?')).toBeNull();
+    });
+
+    it('applies API type and search together and returns to page 1', async () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 3, totalCount: 25 } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        await userEvent.click(screen.getByRole('button', { name: /next page/i }));
+        expect(lastRequest().page).toBe(2);
+
+        await userEvent.click(screen.getByRole('button', { name: 'Filter by API type' }));
+        await userEvent.click(screen.getByRole('checkbox', { name: 'TCP Proxy' }));
+        await waitFor(() => expect(lastRequest().page).toBe(1));
+        expect(lastRequest().filters).toEqual({ apiTypes: ['V4_TCP_PROXY'], statuses: [], tags: [], categories: [] });
+
+        fireEvent.change(screen.getByPlaceholderText('Search APIs...'), { target: { value: 'orders' } });
+
+        await waitFor(() => expect(lastRequest().query).toBe('orders'));
+        expect(lastRequest()).toMatchObject({
+            page: 1,
+            filters: { apiTypes: ['V4_TCP_PROXY'], statuses: [], tags: [], categories: [] },
+        });
+    });
+
+    it('sends status, tag, and category with the selected API type in one list query', async () => {
+        mockUseApiList.mockReturnValue({
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            isLoading: false,
+            isFetching: false,
+        });
+        renderPage();
+
+        await userEvent.click(screen.getByRole('button', { name: 'Filter by API type' }));
+        await userEvent.click(screen.getByRole('checkbox', { name: 'TCP Proxy' }));
+        await userEvent.click(screen.getByRole('button', { name: 'Filter by API status' }));
+        await userEvent.click(screen.getByRole('checkbox', { name: 'Started' }));
+        await userEvent.click(screen.getByRole('button', { name: 'Filter by sharding tags' }));
+        await userEvent.click(screen.getByRole('checkbox', { name: 'EU West' }));
+        await userEvent.click(screen.getByRole('button', { name: 'Filter by categories' }));
+        await userEvent.click(screen.getByRole('checkbox', { name: 'Partners' }));
+
+        await waitFor(() =>
+            expect(lastRequest().filters).toEqual({
+                apiTypes: ['V4_TCP_PROXY'],
+                statuses: ['STARTED'],
+                tags: ['eu-west'],
+                categories: ['partners'],
+            }),
+        );
+        expect(mockUseApiStats).toHaveBeenLastCalledWith(undefined);
     });
 });

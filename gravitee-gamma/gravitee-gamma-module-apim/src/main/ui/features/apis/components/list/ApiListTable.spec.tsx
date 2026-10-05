@@ -109,7 +109,7 @@ describe('ApiListTable', () => {
 
         expect(screen.queryByText("You don't have permission to view API proxies")).not.toBeNull();
         expect(screen.queryByText('No APIs found')).toBeNull();
-        expect(screen.queryByText('Try adjusting your search.')).toBeNull();
+        expect(screen.queryByText('Try adjusting your search or filters.')).toBeNull();
     });
 
     it('renders a row for each API with the name', () => {

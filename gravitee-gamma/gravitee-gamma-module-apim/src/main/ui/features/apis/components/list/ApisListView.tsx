@@ -17,6 +17,8 @@ import { Button, Input, type DataTableProps } from '@gravitee/graphene-core';
 import { PlusIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useId } from 'react';
 
+import { ApiListFilterBar } from './ApiListFilterBar';
+import { type ApiListFilterSelection } from './apiListFilters';
 import { ApiListTable } from './ApiListTable';
 import { ApiStatsCards } from './ApiStatsCards';
 import type { ApiListItem } from '../../types';
@@ -38,6 +40,9 @@ interface ApisListViewProps {
     readonly canCreate: boolean;
     readonly loadFailed?: boolean;
     readonly forbidden?: boolean;
+    readonly filters: ApiListFilterSelection;
+    readonly onFiltersChange: (filters: ApiListFilterSelection) => void;
+    readonly includeFederated?: boolean;
 }
 
 export function ApisListView({
@@ -57,23 +62,32 @@ export function ApisListView({
     canCreate,
     loadFailed = false,
     forbidden = false,
+    filters,
+    onFiltersChange,
+    includeFederated = false,
 }: ApisListViewProps) {
     const searchInputId = useId();
 
     const toolbar = (
-        <div className="relative max-w-sm flex-1">
-            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" aria-hidden />
-            <label htmlFor={searchInputId} className="sr-only">
-                Search APIs
-            </label>
-            <Input
-                id={searchInputId}
-                placeholder="Search APIs..."
-                value={search}
-                onChange={e => onSearchChange(e.target.value)}
-                disabled={forbidden}
-                className="pl-9"
-            />
+        <div className="flex w-full flex-wrap items-end gap-3">
+            <div className="relative min-w-[200px] max-w-sm flex-1">
+                <SearchIcon
+                    className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none"
+                    aria-hidden
+                />
+                <label htmlFor={searchInputId} className="sr-only">
+                    Search APIs
+                </label>
+                <Input
+                    id={searchInputId}
+                    placeholder="Search APIs..."
+                    value={search}
+                    onChange={e => onSearchChange(e.target.value)}
+                    disabled={forbidden}
+                    className="pl-9"
+                />
+            </div>
+            <ApiListFilterBar filters={filters} onChange={onFiltersChange} includeFederated={includeFederated} disabled={forbidden} />
         </div>
     );
 

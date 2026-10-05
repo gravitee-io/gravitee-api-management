@@ -224,6 +224,8 @@ export interface ApiSearchQuery {
     query?: string;
     ids?: string[];
     statuses?: string[];
+    tags?: string[];
+    categories?: string[];
     published?: string[];
     visibilities?: string[];
     apiTypes?: string[];

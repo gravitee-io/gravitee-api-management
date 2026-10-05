@@ -21,8 +21,17 @@ export interface MultiSelectFilterOption {
     label: string;
 }
 
+function formatSelection(options: MultiSelectFilterOption[], selectedValues: string[], placeholder: string): string {
+    const optionValues = new Set(options.map(option => option.value));
+    const labels = options.filter(option => selectedValues.includes(option.value)).map(option => option.label);
+    const orphanValues = selectedValues.filter(value => !optionValues.has(value));
+    const parts = [...labels, ...orphanValues];
+    return parts.length === 0 ? placeholder : parts.join(', ');
+}
+
 /** Popover + checkbox list allowing multiple values to be selected for a single filter. */
 export function MultiSelectFilter({
+    id,
     placeholder,
     options,
     selectedValues,
@@ -30,7 +39,9 @@ export function MultiSelectFilter({
     emptyMessage,
     ariaLabel,
     className,
+    disabled = false,
 }: Readonly<{
+    id?: string;
     placeholder: string;
     options: MultiSelectFilterOption[];
     selectedValues: string[];
@@ -38,9 +49,9 @@ export function MultiSelectFilter({
     emptyMessage?: string;
     ariaLabel: string;
     className?: string;
+    disabled?: boolean;
 }>) {
-    const selectedLabels = options.filter(o => selectedValues.includes(o.value)).map(o => o.label);
-    const display = selectedLabels.length === 0 ? placeholder : selectedLabels.join(', ');
+    const display = formatSelection(options, selectedValues, placeholder);
 
     const toggle = (value: string) => {
         onSelectedValuesChange(selectedValues.includes(value) ? selectedValues.filter(v => v !== value) : [...selectedValues, value]);
@@ -50,9 +61,11 @@ export function MultiSelectFilter({
         <Popover>
             <PopoverTrigger asChild>
                 <Button
+                    id={id}
                     type="button"
                     variant="outline"
                     aria-label={ariaLabel}
+                    disabled={disabled}
                     className={cn('h-9 w-full justify-start gap-2 px-3 font-normal', className)}
                 >
                     <span className={cn('min-w-0 flex-1 truncate text-left', selectedValues.length === 0 && 'text-muted-foreground')}>

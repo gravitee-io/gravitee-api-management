@@ -16,6 +16,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
+import { EMPTY_API_LIST_FILTERS } from './apiListFilters';
 import { ApisListView } from './ApisListView';
 import { useApiStats } from '../../hooks/useApiStats';
 
@@ -25,6 +26,8 @@ jest.mock('@gravitee/gamma-lib-observability', () => ({
 }));
 
 jest.mock('../../hooks/useApiStats');
+jest.mock('../../hooks/useOrgTags', () => ({ useOrgTags: () => ({ data: [] }) }));
+jest.mock('../../hooks/useEnvCategories', () => ({ useEnvCategories: () => ({ data: [] }) }));
 
 const mockUseApiStats = useApiStats as jest.Mock;
 
@@ -55,6 +58,8 @@ const DEFAULT_PROPS = {
     onCreateProxy: jest.fn(),
     canCreate: true,
     forbidden: false,
+    filters: EMPTY_API_LIST_FILTERS,
+    onFiltersChange: jest.fn(),
 };
 
 function renderView(overrides: Partial<typeof DEFAULT_PROPS> = {}) {
@@ -101,6 +106,15 @@ describe('ApisListView', () => {
         renderView({ canCreate: true, onCreateProxy });
         fireEvent.click(screen.getByRole('button', { name: /Create New Proxy/i }));
         expect(onCreateProxy).toHaveBeenCalled();
+    });
+
+    it('asks the stat cards for the search text only, even when list filters are set', () => {
+        renderView({
+            search: 'orders',
+            debouncedSearch: 'orders',
+            filters: { apiTypes: ['V4_TCP_PROXY'], statuses: ['STARTED'], tags: [], categories: [] },
+        });
+        expect(mockUseApiStats).toHaveBeenCalledWith('orders');
     });
 
     it.each([
