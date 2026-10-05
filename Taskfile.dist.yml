@@ -39,6 +39,30 @@ tasks:
 
   build-distribution:
     desc: "Assemble the distribution against the engine currently installed locally"
+    cmds:
+      - task: assemble-distribution
+        vars:
+          INFERENCE_CLASSIFIER: ""
+
+  build-distribution-macos:
+    desc: "Assemble the distribution with the macOS ONNX natives, to run the inference plugin natively on a Mac"
+    cmds:
+      # Same as build-distribution, swapping the Linux zip of gravitee-inference-service for the macOS
+      # one: the default zip only ships the Linux natives, so the plugin does not start natively on a
+      # Mac without it.
+      #
+      # Never use this for an image. Nothing else depends on it: docker-backend rebuilds through
+      # build-distribution, which keeps the Linux zip. Do not set the classifier in ~/.m2/settings.xml
+      # or the environment either, it would reach every build, images included. If you build an image
+      # by hand (buildx, several architectures), assemble the distribution without this task.
+      - task: assemble-distribution
+        vars:
+          INFERENCE_CLASSIFIER: macos
+
+  # The single Maven invocation behind both tasks above, so that the flags below cannot drift apart.
+  # The classifier is always passed explicitly by the caller, never read from the environment.
+  assemble-distribution:
+    internal: true
     vars:
       # The root reactor's version, which is what `build-engine` has just installed. Read from Maven
       # rather than parsed out of the pom: the version is a triplet of properties, and Maven is the
@@ -48,7 +72,7 @@ tasks:
     cmds:
       # -nsu: do not go looking for a newer snapshot upstream. You have just built the engine; a
       # published snapshot must not silently take its place.
-      - mvn -f gravitee-apim-distribution/pom.xml clean install -Dapim.core.version={{.CORE_VERSION}} -nsu -DskipTests -Dskip.validation -Dbundle=dev -T 1C
+      - mvn -f gravitee-apim-distribution/pom.xml clean install -Dapim.core.version={{.CORE_VERSION}} {{if .INFERENCE_CLASSIFIER}}-Dgravitee-inference-service.classifier={{.INFERENCE_CLASSIFIER}} {{end}}-nsu -DskipTests -Dskip.validation -Dbundle=dev -T 1C
       - task: which-engine
 
   which-engine:
