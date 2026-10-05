@@ -57,7 +57,7 @@ This command will compile the project, and the build artifacts will be placed in
 
 The viewer is also built as a self-contained custom element, so hosts that are not Angular
 applications — the Gamma Console, which is React — can render Gravitee Markdown without a second
-renderer and a second sanitisation allowlist.
+renderer and a second sanitization allowlist.
 
 ```bash
 # From the repository root
@@ -65,8 +65,17 @@ yarn markdown:build-element
 ```
 
 This produces a single `main.js` in `dist/@gravitee/gravitee-markdown-element/`, bundling Angular,
-the viewer and every GMD component. It is built with no polyfills and runs zoneless, so it does not
+the viewer and the GMD components. It is built with no polyfills and runs zoneless, so it does not
 patch globals in its host.
+
+Form field components (`gmd-input`, `gmd-textarea`, `gmd-select`, `gmd-checkbox`,
+`gmd-checkbox-group`, `gmd-radio`) are not supported in the element: they need a form state store
+that the element does not provide, and render nothing.
+
+Component styles and the default theme are compiled into the bundle, so the host needs no
+stylesheet. To theme the viewer, set the `--gmd-sys-*` custom properties (for example
+`--gmd-sys-primary-color`) on the element or an ancestor; custom properties inherit into its shadow
+root. These are the properties the `theme-overrides` mixin sets for Angular hosts.
 
 The bundle is not published to a registry: a consumer points a module path at the built file and
 imports it lazily, so it lands in its own chunk rather than the host's main bundle.
