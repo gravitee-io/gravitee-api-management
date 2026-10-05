@@ -16,10 +16,15 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { useFederationEnabled } from '../../license/useFederationEnabled';
-import { searchApis } from '../services/apiList';
-import type { ApiListResponse } from '../types';
+import type { ApiListFilterSelection } from '../components/list/apiListFilters';
+import { definedSearchList, resolveSearchApiTypes, searchApis } from '../services/apiList';
+import type { ApiListResponse, ApiSearchQuery } from '../types';
 import { apiListKeys } from '../utils/queryKeys';
+
+const EMPTY_LIST_RESPONSE: ApiListResponse = {
+    data: [],
+    pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 },
+};
 
 // `T extends unknown` distributes over the result union, so each member keeps the narrowing that ties
 // its `isSuccess`/`isPending` to a defined `data`; a plain Omit would collapse the union and lose it.
@@ -27,24 +32,56 @@ type WidenIsLoading<T> = T extends unknown ? Omit<T, 'isLoading'> & { isLoading:
 
 export type ApiListQueryResult = WidenIsLoading<ReturnType<typeof useQuery<ApiListResponse>>>;
 
+/** One search body. Text, type, status, tags, and categories apply together. Empty lists are left off. */
+export function toApiListSearchQuery(query: string, filters?: ApiListFilterSelection): ApiSearchQuery {
+    const body: ApiSearchQuery = { query: query || undefined };
+    const apiTypes = definedSearchList(filters?.apiTypes);
+    const statuses = definedSearchList(filters?.statuses);
+    const tags = definedSearchList(filters?.tags);
+    const categories = definedSearchList(filters?.categories);
+    if (apiTypes) body.apiTypes = apiTypes;
+    if (statuses) body.statuses = statuses;
+    if (tags) body.tags = tags;
+    if (categories) body.categories = categories;
+    return body;
+}
+
 export function useApiList({
     query,
     page,
     perPage,
     sortBy,
+    filters,
+    includeFederated,
+    isFederationResolved,
 }: {
     query: string;
     page: number;
     perPage: number;
     sortBy?: string;
+    filters?: ApiListFilterSelection;
+    includeFederated: boolean;
+    isFederationResolved: boolean;
 }): ApiListQueryResult {
     const env = useEnvironment();
-    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
     // Default ordering (no explicit user sort): by name when browsing, relevance when searching.
     const effectiveSortBy = sortBy ?? (query ? undefined : 'name');
+    const searchQuery = toApiListSearchQuery(query, filters);
+    const typeSelection = definedSearchList(filters?.apiTypes);
+    const impossibleTypeFilter = Boolean(typeSelection?.length) && resolveSearchApiTypes(typeSelection, includeFederated).length === 0;
     const listQuery = useQuery<ApiListResponse>({
-        queryKey: [...apiListKeys.search(env?.id ?? '', query, page, perPage, includeFederated), effectiveSortBy ?? null],
-        queryFn: () => searchApis(env!.id, { query: query || undefined }, page, perPage, effectiveSortBy, includeFederated),
+        queryKey: [
+            ...apiListKeys.search(env?.id ?? '', query, page, perPage, includeFederated),
+            effectiveSortBy ?? null,
+            searchQuery.apiTypes ?? null,
+            searchQuery.statuses ?? null,
+            searchQuery.tags ?? null,
+            searchQuery.categories ?? null,
+        ],
+        queryFn: () =>
+            impossibleTypeFilter
+                ? Promise.resolve({ ...EMPTY_LIST_RESPONSE, pagination: { ...EMPTY_LIST_RESPONSE.pagination, page, perPage } })
+                : searchApis(env!.id, searchQuery, page, perPage, effectiveSortBy, includeFederated),
         // Waiting for the gate keeps the list from showing federation-free rows it would replace milliseconds later.
         enabled: Boolean(env) && isFederationResolved,
         placeholderData: keepPreviousData,

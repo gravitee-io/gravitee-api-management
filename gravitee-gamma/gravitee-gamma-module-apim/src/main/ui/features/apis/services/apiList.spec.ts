@@ -33,19 +33,71 @@ describe('searchApis', () => {
     it.each<[string, ApiSearchQuery, boolean, object]>([
         ['a plain query, gate off', { query: 'my-api' }, false, { query: 'my-api', apiTypes: PROXY_TYPES }],
         ['a plain query, gate on', { query: 'my-api' }, true, { query: 'my-api', apiTypes: PROXY_AND_FEDERATED }],
-        ['caller-supplied types, gate off', { apiTypes: ['V4_KAFKA', 'V2'] }, false, { apiTypes: PROXY_TYPES }],
-        ['caller-supplied types, gate on', { apiTypes: ['V4_KAFKA', 'V2'] }, true, { apiTypes: PROXY_AND_FEDERATED }],
-        ['an agent type alone, gate off', { apiTypes: ['FEDERATED_AGENT'] }, false, { apiTypes: PROXY_TYPES }],
-        ['an agent type alone, gate on', { apiTypes: ['FEDERATED_AGENT'] }, true, { apiTypes: PROXY_AND_FEDERATED }],
-        ['agent and proxy types, gate off', { apiTypes: ['FEDERATED_AGENT', 'V4_HTTP_PROXY'] }, false, { apiTypes: PROXY_TYPES }],
-        ['agent and proxy types, gate on', { apiTypes: ['FEDERATED_AGENT', 'V4_HTTP_PROXY'] }, true, { apiTypes: PROXY_AND_FEDERATED }],
-    ])('sends the module filter alone, never a caller-supplied type — %s', async (_scenario, query, includeFederated, expectedBody) => {
+        ['only types this page does not list, gate off', { apiTypes: ['V4_KAFKA', 'V2'] }, false, { apiTypes: [] }],
+        ['only types this page does not list, gate on', { apiTypes: ['V4_KAFKA', 'V2'] }, true, { apiTypes: [] }],
+        ['an agent type alone, gate off', { apiTypes: ['FEDERATED_AGENT'] }, false, { apiTypes: [] }],
+        ['an agent type alone, gate on', { apiTypes: ['FEDERATED_AGENT'] }, true, { apiTypes: [] }],
+        ['federated alone while the gate is off', { apiTypes: ['FEDERATED'] }, false, { apiTypes: [] }],
+    ])(
+        'returns no matching types when the selection is outside the module set — %s',
+        async (_scenario, query, includeFederated, expectedBody) => {
+            const tracker = trackHandler('post', SEARCH_PATH, EMPTY_RESPONSE);
+
+            await searchApis('DEFAULT', query, 1, 10, undefined, includeFederated);
+
+            expect(tracker.callCount).toBe(1);
+            expect(tracker.lastCall?.body).toEqual(expectedBody);
+        },
+    );
+
+    it.each<[string, ApiSearchQuery, boolean, object]>([
+        ['tcp only', { apiTypes: ['V4_TCP_PROXY'] }, false, { apiTypes: ['V4_TCP_PROXY'] }],
+        [
+            'tcp together with a search term',
+            { query: 'orders', apiTypes: ['V4_TCP_PROXY'] },
+            false,
+            { query: 'orders', apiTypes: ['V4_TCP_PROXY'] },
+        ],
+        [
+            'an allowed type kept and a disallowed type dropped',
+            { apiTypes: ['V4_HTTP_PROXY', 'V4_KAFKA'] },
+            false,
+            { apiTypes: ['V4_HTTP_PROXY'] },
+        ],
+        ['federated alone while the gate is on', { apiTypes: ['FEDERATED'] }, true, { apiTypes: ['FEDERATED'] }],
+        [
+            'status, tags, and categories with the type and the search term',
+            {
+                query: 'orders',
+                apiTypes: ['V4_TCP_PROXY'],
+                statuses: ['STARTED'],
+                tags: ['eu-west'],
+                categories: ['partners'],
+            },
+            false,
+            {
+                query: 'orders',
+                apiTypes: ['V4_TCP_PROXY'],
+                statuses: ['STARTED'],
+                tags: ['eu-west'],
+                categories: ['partners'],
+            },
+        ],
+    ])('narrows one search to the selected filters — %s', async (_scenario, query, includeFederated, expectedBody) => {
         const tracker = trackHandler('post', SEARCH_PATH, EMPTY_RESPONSE);
 
         await searchApis('DEFAULT', query, 1, 10, undefined, includeFederated);
 
         expect(tracker.callCount).toBe(1);
         expect(tracker.lastCall?.body).toEqual(expectedBody);
+    });
+
+    it('omits empty filter lists so an untouched filter is not sent as a match-nothing constraint', async () => {
+        const tracker = trackHandler('post', SEARCH_PATH, EMPTY_RESPONSE);
+
+        await searchApis('DEFAULT', { query: 'orders', statuses: [], tags: [], categories: [], apiTypes: [] }, 1, 10);
+
+        expect(tracker.lastCall?.body).toEqual({ query: 'orders', apiTypes: PROXY_TYPES });
     });
 
     it('sends the proxy-only filter when the caller omits the federation gate argument', async () => {

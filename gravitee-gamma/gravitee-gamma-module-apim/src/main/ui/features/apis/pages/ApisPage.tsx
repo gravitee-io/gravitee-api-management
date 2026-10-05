@@ -15,38 +15,135 @@
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, type DataTableProps } from '@gravitee/graphene-core';
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
+import { useFederationEnabled } from '../../license/useFederationEnabled';
 import { ApisEmptyLanding } from '../components';
 import { ApisPageSkeleton } from '../components/ApisPageSkeleton';
 import { ApisListView } from '../components/list';
-import { toApiListSortBy } from '../components/list/ApiListTable';
+import { apiListFilterSelectionsEqual, hasActiveApiListFilters, type ApiListFilterSelection } from '../components/list/apiListFilters';
+import { sortingFromApiListOrder, toApiListSortBy } from '../components/list/ApiListTable';
 import { useApiList } from '../hooks/useApiList';
+import {
+    API_LIST_DEFAULT_PAGE,
+    buildApiListSearchParams,
+    parseApiListSearchParams,
+    urlSearchParamsEqual,
+    type ApiListUrlState,
+} from '../utils/apiListSearchParams';
 import { isForbiddenError } from '../utils/apiRequestError';
 
 type SortingState = NonNullable<DataTableProps<unknown>['sorting']>;
 
-const DEFAULT_PAGE = 1;
-const DEFAULT_PER_PAGE = 10;
+function applyUrlStateToListControls(
+    fromUrl: ApiListUrlState,
+    setters: {
+        setSearch: (value: string) => void;
+        setDebouncedSearch: (value: string) => void;
+        setPage: (page: number) => void;
+        setPerPage: (perPage: number) => void;
+        setSorting: (sorting: SortingState) => void;
+        setFilters: (filters: ApiListFilterSelection) => void;
+    },
+) {
+    setters.setSearch(fromUrl.query);
+    setters.setDebouncedSearch(fromUrl.query);
+    setters.setPage(fromUrl.page);
+    setters.setPerPage(fromUrl.perPage);
+    setters.setSorting(sortingFromApiListOrder(fromUrl.order));
+    setters.setFilters({ ...fromUrl.filters });
+}
 
 export function ApisPage() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const canCreate = useHasPermission({ anyOf: ['environment-api-c'] });
+    const { enabled: includeFederated, isResolved: isFederationResolved } = useFederationEnabled();
 
-    const [search, setSearch] = useState('');
-    const [debouncedSearch, setDebouncedSearch] = useState('');
-    const [page, setPage] = useState(DEFAULT_PAGE);
-    const [perPage, setPerPage] = useState(DEFAULT_PER_PAGE);
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const initialUrl = parseApiListSearchParams(searchParams, { sanitizeApiTypes: false });
+    const [search, setSearch] = useState(initialUrl.query);
+    const [debouncedSearch, setDebouncedSearch] = useState(initialUrl.query);
+    const [page, setPage] = useState(initialUrl.page);
+    const [perPage, setPerPage] = useState(initialUrl.perPage);
+    const [sorting, setSorting] = useState<SortingState>(() => sortingFromApiListOrder(initialUrl.order));
+    const [filters, setFilters] = useState<ApiListFilterSelection>(initialUrl.filters);
+
+    const navigatingFromUrlRef = useRef(false);
+    const lastSerializedUrlRef = useRef(searchParams.toString());
 
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(search), 200);
         return () => clearTimeout(timer);
     }, [search]);
 
-    const sortBy = toApiListSortBy(sorting);
-    const { data, isLoading, isPlaceholderData, isError, error } = useApiList({ query: debouncedSearch, page, perPage, sortBy });
+    const explicitSortBy = toApiListSortBy(sorting);
+    const sortBy = explicitSortBy ?? (debouncedSearch ? undefined : 'name');
+
+    const listUrlState = useMemo(
+        (): ApiListUrlState => ({
+            query: debouncedSearch,
+            page,
+            perPage,
+            order: sortBy,
+            filters,
+        }),
+        [debouncedSearch, filters, page, perPage, sortBy],
+    );
+
+    // Pull URL → state only when the location changes (back/forward, shared link). Writes pre-update
+    // `lastSerializedUrlRef` so this effect skips our own `setSearchParams` updates.
+    useEffect(() => {
+        const serialized = searchParams.toString();
+        if (serialized === lastSerializedUrlRef.current) {
+            return;
+        }
+
+        const fromUrl = parseApiListSearchParams(searchParams, { includeFederated });
+        navigatingFromUrlRef.current = true;
+        lastSerializedUrlRef.current = serialized;
+        applyUrlStateToListControls(fromUrl, {
+            setSearch,
+            setDebouncedSearch,
+            setPage,
+            setPerPage,
+            setSorting,
+            setFilters,
+        });
+    }, [includeFederated, searchParams]);
+
+    useEffect(() => {
+        if (!isFederationResolved) {
+            return;
+        }
+        const fromUrl = parseApiListSearchParams(searchParams, { includeFederated });
+        setFilters(prev => (apiListFilterSelectionsEqual(prev, fromUrl.filters) ? prev : fromUrl.filters));
+    }, [includeFederated, isFederationResolved, searchParams]);
+
+    useEffect(() => {
+        if (navigatingFromUrlRef.current) {
+            navigatingFromUrlRef.current = false;
+            return;
+        }
+        const built = buildApiListSearchParams(listUrlState);
+        const builtSerialized = built.toString();
+        if (urlSearchParamsEqual(searchParams, built, { includeFederated })) {
+            lastSerializedUrlRef.current = builtSerialized;
+            return;
+        }
+        lastSerializedUrlRef.current = builtSerialized;
+        setSearchParams(built, { replace: true });
+    }, [includeFederated, listUrlState, searchParams, setSearchParams]);
+
+    const { data, isLoading, isPlaceholderData, isError, error } = useApiList({
+        query: debouncedSearch,
+        page,
+        perPage,
+        sortBy: explicitSortBy,
+        filters,
+        includeFederated,
+        isFederationResolved,
+    });
     const isForbidden = isError && isForbiddenError(error);
 
     useEffect(() => {
@@ -65,17 +162,22 @@ export function ApisPage() {
 
     const handleSearchChange = (value: string) => {
         setSearch(value);
-        setPage(DEFAULT_PAGE);
+        setPage(API_LIST_DEFAULT_PAGE);
     };
 
     const handlePerPageChange = (nextPerPage: number) => {
         setPerPage(nextPerPage);
-        setPage(DEFAULT_PAGE);
+        setPage(API_LIST_DEFAULT_PAGE);
+    };
+
+    const handleFiltersChange = (next: ApiListFilterSelection) => {
+        setFilters(next);
+        setPage(API_LIST_DEFAULT_PAGE);
     };
 
     const handleSortingChange = (updater: SortingState | ((prev: SortingState) => SortingState)) => {
         setSorting(prev => (typeof updater === 'function' ? updater(prev) : updater));
-        setPage(DEFAULT_PAGE);
+        setPage(API_LIST_DEFAULT_PAGE);
     };
 
     const handleCreateProxy = () => navigate('new');
@@ -84,7 +186,8 @@ export function ApisPage() {
         return <ApisPageSkeleton />;
     }
 
-    const hasNoApis = !isError && !isPlaceholderData && !search && !debouncedSearch && totalCount === 0;
+    const hasNoApis =
+        !isError && !isPlaceholderData && !search && !debouncedSearch && !hasActiveApiListFilters(filters) && totalCount === 0;
     if (hasNoApis) {
         return <ApisEmptyLanding onCreateProxy={handleCreateProxy} canCreate={canCreate} />;
     }
@@ -113,6 +216,9 @@ export function ApisPage() {
                 canCreate={canCreate}
                 loadFailed={hasLoadFailure}
                 forbidden={isForbidden}
+                filters={filters}
+                onFiltersChange={handleFiltersChange}
+                includeFederated={includeFederated}
             />
         </div>
     );

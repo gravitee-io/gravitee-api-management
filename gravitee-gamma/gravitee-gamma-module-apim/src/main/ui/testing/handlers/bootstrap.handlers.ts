@@ -17,6 +17,8 @@ import { http, HttpResponse } from 'msw';
 
 import { TEST_CONFIG } from '../factories';
 
+const ORG_BASE = `${TEST_CONFIG.managementBaseURL}/organizations/${TEST_CONFIG.organizationId}`;
+
 export const bootstrapHandlers = [
     http.get('/constants.json', () => HttpResponse.json({ gammaBaseURL: TEST_CONFIG.gammaBaseURL })),
     http.get(`${TEST_CONFIG.gammaBaseURL}/ui/bootstrap`, () =>
@@ -26,4 +28,7 @@ export const bootstrapHandlers = [
             organizationId: TEST_CONFIG.organizationId,
         }),
     ),
+    // The API list filter loads these once. An empty default keeps that fetch off the unhandled-request path.
+    http.get(`${ORG_BASE}/configuration/tags`, () => HttpResponse.json([])),
+    http.get(`${ORG_BASE}/environments/${TEST_CONFIG.environmentId}/configuration/categories`, () => HttpResponse.json([])),
 ];
