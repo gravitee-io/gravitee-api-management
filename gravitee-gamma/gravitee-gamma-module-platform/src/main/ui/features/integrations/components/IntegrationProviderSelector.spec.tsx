@@ -19,7 +19,8 @@ import { fireEvent, screen } from '@testing-library/react';
 
 import { IntegrationProviderSelector } from './IntegrationProviderSelector';
 
-const GATEWAY_PROVIDER_LABELS_IN_DISPLAY_ORDER = [
+const PROVIDER_LABELS_IN_DISPLAY_ORDER = [
+    'A2A Protocol',
     'AWS API Gateway',
     'Solace',
     'Apigee',
@@ -47,22 +48,25 @@ beforeAll(() => {
 });
 
 describe('IntegrationProviderSelector', () => {
-    it('offers one radio per gateway-style provider in display order', () => {
+    it('offers A2A first, then one radio per gateway-style provider, in display order', () => {
         renderWithGraphene(<IntegrationProviderSelector value={undefined} onChange={jest.fn()} />);
 
         const radios = screen.getAllByRole('radio');
 
-        expect(radios).toHaveLength(GATEWAY_PROVIDER_LABELS_IN_DISPLAY_ORDER.length);
-        radios.forEach((radio, index) => expect(radio).toHaveAccessibleName(GATEWAY_PROVIDER_LABELS_IN_DISPLAY_ORDER[index]));
+        expect(radios).toHaveLength(PROVIDER_LABELS_IN_DISPLAY_ORDER.length);
+        radios.forEach((radio, index) => expect(radio).toHaveAccessibleName(PROVIDER_LABELS_IN_DISPLAY_ORDER[index]));
     });
 
-    it('reports the stored provider value when the seventh option is clicked', () => {
+    it.each([
+        { position: 'first', index: 0, provider: 'A2A' },
+        { position: 'eighth', index: 7, provider: 'mulesoft' },
+    ])('reports the stored provider value when the $position option is clicked', ({ index, provider }) => {
         const onChange = jest.fn();
         renderWithGraphene(<IntegrationProviderSelector value={undefined} onChange={onChange} />);
 
-        fireEvent.click(screen.getAllByRole('radio')[6]);
+        fireEvent.click(screen.getAllByRole('radio')[index]);
 
-        expect(onChange).toHaveBeenCalledWith('mulesoft');
+        expect(onChange).toHaveBeenCalledWith(provider);
     });
 
     it('marks only the selected provider as checked', () => {
@@ -70,6 +74,6 @@ describe('IntegrationProviderSelector', () => {
 
         const checkedStates = screen.getAllByRole('radio').map(radio => radio.getAttribute('aria-checked'));
 
-        expect(checkedStates).toEqual(['false', 'false', 'false', 'false', 'false', 'false', 'true', 'false']);
+        expect(checkedStates).toEqual(['false', 'false', 'false', 'false', 'false', 'false', 'false', 'true', 'false']);
     });
 });

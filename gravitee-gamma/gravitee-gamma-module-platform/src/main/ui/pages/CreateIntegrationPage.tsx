@@ -19,15 +19,18 @@ import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { CreateA2aIntegration } from '../features/integrations/components/CreateA2aIntegration';
 import { IntegrationProviderSelector } from '../features/integrations/components/IntegrationProviderSelector';
 import { useCreateIntegration } from '../features/integrations/hooks/useCreateIntegration';
 import { validateIntegrationForm } from '../features/integrations/utils/integrationForm';
+import { A2A_PROVIDER } from '../features/integrations/utils/integrationKind';
 import { notify } from '../shared/notify';
 
 export function CreateIntegrationPage() {
     const navigate = useNavigate();
     const createIntegration = useCreateIntegration();
     const [provider, setProvider] = useState<string | undefined>(undefined);
+    const [a2aSubmitting, setA2aSubmitting] = useState(false);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [nameTouched, setNameTouched] = useState(false);
@@ -59,8 +62,9 @@ export function CreateIntegrationPage() {
                     </Button>
                     <h1 className="text-2xl font-semibold tracking-tight">Create a new integration</h1>
                 </div>
-                <IntegrationProviderSelector value={provider} onChange={setProvider} />
-                {provider ? (
+                <IntegrationProviderSelector value={provider} onChange={setProvider} disabled={a2aSubmitting} />
+                {provider === A2A_PROVIDER ? <CreateA2aIntegration onSubmittingChange={setA2aSubmitting} /> : null}
+                {provider && provider !== A2A_PROVIDER ? (
                     <form className="space-y-4" onSubmit={event => void handleSubmit(event)}>
                         <Field orientation="vertical" className="gap-1.5">
                             <FieldLabel htmlFor="integration-name" required>

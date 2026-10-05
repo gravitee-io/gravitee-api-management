@@ -16,10 +16,20 @@
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type { CreateIntegrationRequest, Integration } from '../types/integration';
 
+interface CreateIntegrationBody {
+    name: string;
+    description?: string;
+    provider: string;
+    wellKnownUrls?: { url: string }[];
+}
+
 export async function createIntegration(environmentId: string, request: CreateIntegrationRequest): Promise<Integration> {
-    const body: CreateIntegrationRequest = { name: request.name, provider: request.provider };
+    const body: CreateIntegrationBody = { name: request.name, provider: request.provider };
     if (request.description) {
         body.description = request.description;
+    }
+    if (request.wellKnownUrls) {
+        body.wellKnownUrls = request.wellKnownUrls.map(url => ({ url }));
     }
     return apimFetchJsonV2<Integration>(environmentId, '/integrations', {
         method: 'POST',
