@@ -15,6 +15,7 @@
  */
 import { useEffect, useRef, useState } from 'react';
 
+import { useFederationGate } from './useFederationGate';
 import { useEnvironmentStore } from '../../features/environment/environment.store';
 import { gammaApi, managementApi, managementV2EnvironmentApi } from '../../shared/api/api-client';
 
@@ -77,11 +78,19 @@ function useCount(enabled: boolean, fetcher: (environmentId: string) => Promise<
 }
 
 /**
- * The gamma APIM module only manages V4 HTTP proxy APIs, so the card count must match what the
- * module's own API list shows. Mirrors the module's server-side `apiTypes` filter
- * (`gravitee-gamma-module-apim` → `features/apis/services/apiList.ts`).
+ * The card count must match what the APIM module's API Proxies list shows: V4 HTTP and TCP proxy
+ * APIs, plus federated APIs when federation is enabled and licensed. Mirrors the module's
+ * server-side `apiTypes` filter (`gravitee-gamma-module-apim` → `features/apis/services/apiList.ts`).
  */
-const V4_HTTP_PROXY_API_TYPES = ['V4_HTTP_PROXY'];
+const V4_PROXY_API_TYPES = ['V4_HTTP_PROXY', 'V4_TCP_PROXY'];
+const FEDERATED_API_TYPE = 'FEDERATED';
+
+function useFirstFederationDecision(): boolean | undefined {
+    const gate = useFederationGate();
+    const [decision, setDecision] = useState<boolean | undefined>(undefined);
+    if (decision === undefined && gate.isResolved) setDecision(gate.enabled);
+    return decision ?? (gate.isResolved ? gate.enabled : undefined);
+}
 
 /**
  * Live count for the API Management card.
@@ -90,17 +99,20 @@ const V4_HTTP_PROXY_API_TYPES = ['V4_HTTP_PROXY'];
  * `pagination.totalCount`. Routed through `managementV2EnvironmentApi` whose base URL is
  * `${managementBaseURL}/v2/environments`, so we only pass the envId-scoped suffix.
  *
- * Scoped to V4 HTTP proxy APIs so the count matches the APIM module's list rather than every
- * API type in the environment.
+ * Scoped to the proxy API types the APIM module's list shows rather than every API type in the
+ * environment. Waits for the federation gate to resolve and uses the federation decision from that
+ * moment, so a license reported after the wait does not change the number.
  */
 export function useApiCount({ enabled = true }: CountHookOptions = {}): CountResult {
-    return useCount(enabled, environmentId =>
+    const includeFederated = useFirstFederationDecision();
+    const result = useCount(enabled && includeFederated !== undefined, environmentId =>
         managementV2EnvironmentApi
             .post<{ pagination?: { totalCount?: number } }>(`/${encodeURIComponent(environmentId)}/apis/_search?page=1&perPage=1`, {
-                apiTypes: [...V4_HTTP_PROXY_API_TYPES],
+                apiTypes: includeFederated ? [...V4_PROXY_API_TYPES, FEDERATED_API_TYPE] : [...V4_PROXY_API_TYPES],
             })
             .then(res => res?.pagination?.totalCount ?? null),
     );
+    return enabled && includeFederated === undefined ? { value: null, loading: true } : result;
 }
 
 /**
