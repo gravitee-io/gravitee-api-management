@@ -15,10 +15,13 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -27,14 +30,26 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 
 public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
     @Inject
     private GetApiPortalNavigationItemUseCase getApiPortalNavigationItemUseCase;
+
+    @Inject
+    private UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase;
+
+    @Inject
+    private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
 
     private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
@@ -50,5 +65,34 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
             )
         );
         return mapper.map(output.item());
+    }
+
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public PortalNavigationItem updateApiPortalNavigationItem(
+        @PathParam("apiId") String apiId,
+        @PathParam("navId") String navigationItemId,
+        @QueryParam("propagatePublishToChildren") @DefaultValue("false") boolean propagatePublishToChildren,
+        @Valid @NotNull final BaseUpdatePortalNavigationItem updatePortalNavigationItem
+    ) {
+        var environmentId = GraviteeContext.getCurrentEnvironment();
+        var toUpdate = mapper.map(updatePortalNavigationItem);
+        apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+        if (toUpdate.getParentId() != null) {
+            apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, toUpdate.getParentId());
+        }
+
+        var output = updatePortalNavigationItemUseCase.execute(
+            new UpdatePortalNavigationItemUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                environmentId,
+                navigationItemId,
+                toUpdate,
+                propagatePublishToChildren
+            )
+        );
+        return mapper.map(output.updatedItem());
     }
 }

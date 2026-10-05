@@ -52,6 +52,7 @@ import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -60,12 +61,15 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -120,6 +124,90 @@ class UpdatePortalNavigationItemUseCaseTest {
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService, sourceDomainService);
 
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+    }
+
+    /**
+     * The API-scoped endpoint returns stored parents, so its callers send them back as they are, unlike
+     * the portal editor, which sends the parent the item is displayed under.
+     */
+    @Nested
+    class ApiOwnedDocumentationSentWithItsStoredParent {
+
+        private static final NavigationItemReference API_REFERENCE = new NavigationItemReference.ApiReference("api-id");
+
+        private PortalNavigationPage anOwnedPage(String title, int order) {
+            var page = PortalNavigationItemFixtures.aPage(title, null).toBuilder().reference(API_REFERENCE).order(order).build();
+            page.markAsRoot();
+            crudService.create(page);
+            return page;
+        }
+
+        private PortalNavigationItem update(PortalNavigationItem existing, UpdatePortalNavigationItem toUpdate) {
+            return useCase
+                .execute(
+                    UpdatePortalNavigationItemUseCase.Input.builder()
+                        .organizationId(ORG_ID)
+                        .environmentId(ENV_ID)
+                        .navigationItemId(existing.getId().json())
+                        .updatePortalNavigationItem(toUpdate)
+                        .build()
+                )
+                .updatedItem();
+        }
+
+        private UpdatePortalNavigationItem.UpdatePortalNavigationItemBuilder anUpdateOf(PortalNavigationItem existing) {
+            return UpdatePortalNavigationItem.builder()
+                .type(existing.getType())
+                .title(existing.getTitle())
+                .order(existing.getOrder())
+                .parentId(existing.getParentId())
+                .published(existing.getPublished())
+                .visibility(existing.getVisibility());
+        }
+
+        @Test
+        void should_keep_the_owner_and_empty_stored_parent_of_a_top_level_api_owned_item_on_rename() {
+            var page = anOwnedPage("Overview", 0);
+
+            update(page, anUpdateOf(page).title("Introduction").build());
+
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, page.getId());
+            assertThat(stored.getTitle()).isEqualTo("Introduction");
+            assertThat(stored.getReference()).isEqualTo(API_REFERENCE);
+            assertThat(stored.getParentId()).isNull();
+        }
+
+        @Test
+        void should_flip_only_the_published_flag_of_the_updated_item() {
+            var page = anOwnedPage("Overview", 0);
+            var sibling = anOwnedPage("Guide", 1);
+
+            update(page, anUpdateOf(page).published(false).build());
+
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, page.getId()).getPublished()).isFalse();
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, sibling.getId()).getPublished()).isTrue();
+        }
+
+        @Test
+        void should_reorder_among_the_api_owned_siblings_only() {
+            var first = anOwnedPage("Overview", 0);
+            var second = anOwnedPage("Guide", 1);
+            var portalRootOrders = topLevelPortalOrders();
+
+            update(second, anUpdateOf(second).order(0).build());
+
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, second.getId()).getOrder()).isZero();
+            assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, first.getId()).getOrder()).isEqualTo(1);
+            assertThat(topLevelPortalOrders()).isEqualTo(portalRootOrders);
+        }
+
+        private Map<PortalNavigationItemId, Integer> topLevelPortalOrders() {
+            return queryService
+                .findTopLevelItemsByEnvironmentIdAndPortalArea(ENV_ID, PortalArea.TOP_NAVBAR)
+                .stream()
+                .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+                .collect(Collectors.toMap(PortalNavigationItem::getId, PortalNavigationItem::getOrder));
+        }
     }
 
     @Test

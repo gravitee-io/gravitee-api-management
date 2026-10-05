@@ -3563,6 +3563,54 @@ paths:
                                 $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
+        put:
+            parameters:
+                - name: propagatePublishToChildren
+                  in: query
+                  required: false
+                  description: When publishing a folder, also publish everything below it. Unpublishing always applies to everything below.
+                  schema:
+                      type: boolean
+                      default: false
+            tags:
+                - API Documentation
+            summary: Update a portal documentation item owned by an API
+            description: |-
+                Edit, rename, reorder, move, show or hide a page, a folder or a link owned by the API.
+                The request replaces the item: fields left out are cleared, including an external source.
+
+                A new parent must itself be owned by the API. The navigation item listing the API in the portal
+                cannot be updated here.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: updateApiPortalNavigationItem
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdatePortalNavigationItem"
+                required: true
+            responses:
+                "200":
+                    description: The updated portal documentation item
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                "400":
+                    description: Invalid payload
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The item or its new parent does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
