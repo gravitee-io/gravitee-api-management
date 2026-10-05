@@ -700,6 +700,10 @@ class ImportDefinitionUpdateDomainServiceTest {
         assertThat(apiImagesService.apiPictures.get(PROMOTED_API_ID)).isEqualTo(picture);
         assertThat(apiImagesService.apiBackgrounds.get(PROMOTED_API_ID)).isEqualTo(background);
         assertNativeApiMatchExport(updated, apiExport);
+        assertThat(importDefinitionUpdateInitializer.auditCrudServiceInMemory.storage())
+            .filteredOn(audit -> audit.getEvent().equals("API_UPDATED"))
+            .singleElement()
+            .satisfies(audit -> assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true"));
     }
 
     @Nested

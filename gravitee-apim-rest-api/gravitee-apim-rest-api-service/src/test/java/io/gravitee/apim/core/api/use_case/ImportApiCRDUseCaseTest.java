@@ -639,6 +639,14 @@ class ImportApiCRDUseCaseTest {
             assertThat(apiCrudService.storage().getFirst().getApiDefinitionHttpV4().getProperties()).containsExactly(
                 Property.builder().key("prop-key").value("ciphertext").encrypted(true).build()
             );
+            var created = auditCrudService
+                .storage()
+                .stream()
+                .filter(audit -> audit.getEvent().equals("API_CREATED"))
+                .findFirst()
+                .orElseThrow();
+            assertThat(created.getPatch()).contains("ciphertext").doesNotContain("prop-value");
+            assertThat(created.getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test
