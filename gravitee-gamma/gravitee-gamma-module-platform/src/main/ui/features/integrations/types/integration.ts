@@ -23,12 +23,26 @@ export interface IntegrationIngestionJob {
     status: IngestionJobStatus;
 }
 
+export interface IntegrationWellKnownUrl {
+    url?: string;
+}
+
 export interface Integration {
     id: string;
     name: string;
+    description?: string;
     provider: string;
+    groups?: string[];
+    wellKnownUrls?: IntegrationWellKnownUrl[];
     agentStatus?: IntegrationAgentStatus;
     pendingJob?: IntegrationIngestionJob;
+}
+
+export interface UpdateIntegrationRequest {
+    name: string;
+    description: string;
+    groups: string[];
+    wellKnownUrls?: IntegrationWellKnownUrl[];
 }
 
 export interface CreateIntegrationRequest {
@@ -44,6 +58,17 @@ export interface IntegrationsPagination {
     pageCount: number;
     pageItemsCount: number;
     totalCount: number;
+}
+
+export interface IntegrationFederatedApisResponse {
+    data: Array<{ id: string }>;
+    pagination: IntegrationsPagination;
+}
+
+export interface IntegrationDeletedFederatedApisResponse {
+    deleted: number;
+    skipped: number;
+    errors: number;
 }
 
 export interface IntegrationsResponse {

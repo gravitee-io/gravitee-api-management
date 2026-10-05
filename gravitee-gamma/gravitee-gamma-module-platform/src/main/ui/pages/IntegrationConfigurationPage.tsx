@@ -14,26 +14,31 @@
  * limitations under the License.
  */
 
-import { Skeleton } from '@gravitee/graphene-core';
+import { Skeleton, Tabs, TabsContent, TabsList, TabsTrigger } from '@gravitee/graphene-core';
 import { Navigate, useParams } from 'react-router-dom';
 
-import { IntegrationAgentConnection } from '../features/integrations/components/IntegrationAgentConnection';
-import { IntegrationId } from '../features/integrations/components/IntegrationId';
-import { IntegrationIngestionInProgress } from '../features/integrations/components/IntegrationIngestionInProgress';
-import { IntegrationProviderLabel } from '../features/integrations/components/IntegrationProviderLabel';
+import { IntegrationDangerZone } from '../features/integrations/components/IntegrationDangerZone';
+import { IntegrationGeneralInformationForm } from '../features/integrations/components/IntegrationGeneralInformationForm';
 import { useIntegration } from '../features/integrations/hooks/useIntegration';
 import { INTEGRATION_LOAD_ERROR_MESSAGE, useIntegrationLoadFailure } from '../features/integrations/hooks/useIntegrationLoadFailure';
-import { isIngestionInProgress } from '../features/integrations/utils/ingestion';
+import { useIntegrationPermissions } from '../features/integrations/hooks/useIntegrationPermissions';
 import { isA2aIntegration } from '../features/integrations/utils/integrationKind';
+import {
+    INTEGRATION_DEFINITION_DELETE_PERMISSION,
+    INTEGRATION_DEFINITION_UPDATE_PERMISSION,
+} from '../features/integrations/utils/integrationPermissions';
 import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../features/shared/hooks/useDetailBasePath';
 
-export function IntegrationOverviewPage() {
+export function IntegrationConfigurationPage() {
     const { integrationId = '' } = useParams<{ integrationId: string }>();
     const integrationsListHref = resolveListHrefFromDetailBasePath(useDetailBasePath('integrations', integrationId));
     const { data: integration, isError, error } = useIntegration(integrationId);
     const isForbidden = useIntegrationLoadFailure(integrationId, isError, error);
+    const { data: permissions } = useIntegrationPermissions(integrationId);
+    const canUpdate = Boolean(permissions?.includes(INTEGRATION_DEFINITION_UPDATE_PERMISSION));
+    const canDelete = Boolean(permissions?.includes(INTEGRATION_DEFINITION_DELETE_PERMISSION));
 
-    function renderContent() {
+    function renderGeneralContent() {
         if (isError) {
             return (
                 <div className="flex items-center justify-center p-8">
@@ -48,17 +53,8 @@ export function IntegrationOverviewPage() {
 
         return (
             <>
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">{integration.name}</h1>
-                    <IntegrationProviderLabel provider={integration.provider} />
-                </div>
-                {!isA2aIntegration(integration) && (
-                    <>
-                        <IntegrationAgentConnection agentStatus={integration.agentStatus} />
-                        <IntegrationId integrationId={integration.id} />
-                    </>
-                )}
-                {isIngestionInProgress(integration) && <IntegrationIngestionInProgress />}
+                {canUpdate ? <IntegrationGeneralInformationForm key={integration.id} integration={integration} /> : null}
+                {canDelete && !isA2aIntegration(integration) ? <IntegrationDangerZone integrationId={integrationId} /> : null}
             </>
         );
     }
@@ -66,8 +62,13 @@ export function IntegrationOverviewPage() {
     if (isForbidden) return <Navigate to={integrationsListHref} replace />;
 
     return (
-        <div className="space-y-6" data-testid="integration-overview-page">
-            {renderContent()}
-        </div>
+        <Tabs defaultValue="general" data-testid="integration-configuration-page">
+            <TabsList variant="line">
+                <TabsTrigger value="general">General</TabsTrigger>
+            </TabsList>
+            <TabsContent value="general">
+                <div className="space-y-6">{renderGeneralContent()}</div>
+            </TabsContent>
+        </Tabs>
     );
 }
