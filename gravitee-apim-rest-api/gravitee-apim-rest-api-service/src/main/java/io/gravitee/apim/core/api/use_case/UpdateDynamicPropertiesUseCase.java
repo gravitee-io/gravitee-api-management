@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
@@ -88,6 +89,7 @@ public class UpdateDynamicPropertiesUseCase {
         final boolean isApiSynchronized = apiStateDomainService.isSynchronized(api, auditInfo);
 
         final List<Property> previousProperties = getCurrentProperties(api);
+        final Api apiBeforeSync = snapshotOf(api);
         List<Property> dynamicProperties = propertyDomainService.keepStoredEncryption(
             api.getId(),
             previousProperties,
@@ -113,10 +115,16 @@ public class UpdateDynamicPropertiesUseCase {
                 .organizationId(auditInfo.organizationId())
                 .event(ApiAuditEvent.API_UPDATED)
                 .actor(auditInfo.actor())
-                .oldValue(api)
+                .oldValue(apiBeforeSync)
                 .newValue(updated)
                 .createdAt(ZonedDateTime.ofInstant(api.getUpdatedAt().toInstant(), ZoneId.systemDefault()))
-                .properties(Map.of(AuditProperties.API, api.getId()))
+                .properties(
+                    EncryptedPropertyAuditMarker.mark(
+                        Map.of(AuditProperties.API, api.getId()),
+                        apiBeforeSync.getApiDefinitionValue(),
+                        updated.getApiDefinitionValue()
+                    )
+                )
                 .build()
         );
 
@@ -167,6 +175,15 @@ public class UpdateDynamicPropertiesUseCase {
             .orElse(Collections.emptyList())
             .stream()
             .toList();
+    }
+
+    private static Api snapshotOf(Api api) {
+        var definitionCopy = switch (api.getApiDefinitionValue()) {
+            case io.gravitee.definition.model.v4.Api httpV4 -> httpV4.toBuilder().build();
+            case NativeApi nativeV4 -> nativeV4.toBuilder().build();
+            case null, default -> api.getApiDefinitionValue();
+        };
+        return api.toBuilder().apiDefinitionValue(definitionCopy).build();
     }
 
     /**
