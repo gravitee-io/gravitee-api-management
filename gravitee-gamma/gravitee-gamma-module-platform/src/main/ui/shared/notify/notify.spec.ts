@@ -34,10 +34,13 @@ describe('notify', () => {
         jest.clearAllMocks();
     });
 
-    it('shows success toasts with a transient duration', () => {
-        notify.success('Application saved');
+    it('shows success toasts with a transient duration, rendering each line of the message on its own line', () => {
+        notify.success('Federated APIs have been deleted.\n• Deleted: 2');
 
-        expect(mockToast.success).toHaveBeenCalledWith('Application saved', { duration: 3000 });
+        expect(mockToast.success).toHaveBeenCalledWith('Federated APIs have been deleted.\n• Deleted: 2', {
+            duration: 3000,
+            style: { whiteSpace: 'pre-line' },
+        });
     });
 
     it('shows info toasts with a transient duration', () => {

@@ -16,12 +16,12 @@
 import { type ReactElement, useEffect } from 'react';
 import { Navigate, useParams } from 'react-router-dom';
 
+import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../../shared/hooks/useDetailBasePath';
 import { useIntegrationPermissions } from '../hooks/useIntegrationPermissions';
 
-const INTEGRATION_DEFINITION_READ_PERMISSION = 'integration-definition-r';
-
-export function RequireIntegrationDefinitionRead({ children }: Readonly<{ children: ReactElement }>) {
+export function RequireIntegrationPermission({ anyOf, children }: Readonly<{ anyOf: readonly string[]; children: ReactElement }>) {
     const { integrationId = '' } = useParams<{ integrationId: string }>();
+    const integrationsListHref = resolveListHrefFromDetailBasePath(useDetailBasePath('integrations', integrationId));
     const { data: permissions, isError, error } = useIntegrationPermissions(integrationId);
 
     useEffect(() => {
@@ -30,8 +30,8 @@ export function RequireIntegrationDefinitionRead({ children }: Readonly<{ childr
         }
     }, [isError, error, integrationId]);
 
-    if (isError) return <Navigate to=".." replace />;
+    if (isError) return <Navigate to={integrationsListHref} replace />;
     if (!permissions) return null;
-    if (!permissions.includes(INTEGRATION_DEFINITION_READ_PERMISSION)) return <Navigate to=".." replace />;
+    if (!anyOf.some(permission => permissions.includes(permission))) return <Navigate to={integrationsListHref} replace />;
     return children;
 }

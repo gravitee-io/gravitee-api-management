@@ -443,7 +443,11 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
 
             Response response = target.request().delete();
-            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response)
+                .hasStatus(HttpStatusCode.BAD_REQUEST_400)
+                .asError()
+                .hasHttpStatus(HttpStatusCode.BAD_REQUEST_400)
+                .hasMessage("Associated APIs found for federation with id: " + INTEGRATION_ID);
         }
 
         @Test

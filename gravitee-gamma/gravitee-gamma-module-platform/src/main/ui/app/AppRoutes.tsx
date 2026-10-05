@@ -63,8 +63,13 @@ import { APIM_AUDIT_TRAIL_FEATURE } from '../features/audit-logs/license/auditTr
 import { DCR_REGISTRATION_LICENSE_FEATURE } from '../features/client-registration/license/dcrRegistrationLicense';
 import { useEnvironmentDictionaries } from '../features/dictionaries/hooks/useEnvironmentDictionaries';
 import { GatewayInstanceDetailLayout } from '../features/gateway-instances/components/GatewayInstanceDetailLayout';
-import { RequireIntegrationDefinitionRead } from '../features/integrations/components/RequireIntegrationDefinitionRead';
-import { ENVIRONMENT_INTEGRATION_CREATE_PERMISSION } from '../features/integrations/utils/integrationPermissions';
+import { IntegrationDetailLayout } from '../features/integrations/components/IntegrationDetailLayout';
+import { RequireIntegrationPermission } from '../features/integrations/components/RequireIntegrationPermission';
+import {
+    ENVIRONMENT_INTEGRATION_CREATE_PERMISSION,
+    INTEGRATION_CONFIGURATION_PERMISSIONS,
+    INTEGRATION_DEFINITION_READ_PERMISSION,
+} from '../features/integrations/utils/integrationPermissions';
 import { useEnvironmentMetadata } from '../features/metadata/hooks/useEnvironmentMetadata';
 import { ORGANIZATION_ROLE_UPDATE_PERMISSION } from '../features/roles/utils/rolePermissionConstants';
 import { SecurityPlanTypesPage } from '../features/security-plan-types/SecurityPlanTypesPage';
@@ -99,6 +104,7 @@ import { GatewayInstanceMonitoringPage } from '../pages/GatewayInstanceMonitorin
 import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
+import { IntegrationConfigurationPage } from '../pages/IntegrationConfigurationPage';
 import { IntegrationOverviewPage } from '../pages/IntegrationOverviewPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
@@ -898,11 +904,21 @@ export function AppRoutes() {
                                 <Route
                                     path=":integrationId"
                                     element={
-                                        <RequireIntegrationDefinitionRead>
-                                            <IntegrationOverviewPage />
-                                        </RequireIntegrationDefinitionRead>
+                                        <RequireIntegrationPermission anyOf={[INTEGRATION_DEFINITION_READ_PERMISSION]}>
+                                            <IntegrationDetailLayout />
+                                        </RequireIntegrationPermission>
                                     }
-                                />
+                                >
+                                    <Route index element={<IntegrationOverviewPage />} />
+                                    <Route
+                                        path="configuration"
+                                        element={
+                                            <RequireIntegrationPermission anyOf={INTEGRATION_CONFIGURATION_PERMISSIONS}>
+                                                <IntegrationConfigurationPage />
+                                            </RequireIntegrationPermission>
+                                        }
+                                    />
+                                </Route>
                             </Route>
                             <Route
                                 path="api-score"
