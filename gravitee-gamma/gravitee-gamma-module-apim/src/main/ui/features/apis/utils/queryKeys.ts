@@ -72,7 +72,6 @@ export const orgTagKeys = {
 export const orgConsoleKeys = {
     all: ['org-console'] as const,
     settings: () => [...orgConsoleKeys.all, 'settings'] as const,
-    licenseReportWaitStart: () => [...orgConsoleKeys.all, 'license-report-wait-start'] as const,
 };
 
 export const userTagKeys = {

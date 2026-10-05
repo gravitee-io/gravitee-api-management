@@ -13,16 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { License } from '@gravitee/gamma-modules-sdk/types';
 import { waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 
+import { licenseService } from '@gravitee/gamma-modules-sdk';
+
 import { useAuthStore } from './auth.store';
-import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE, buildUser } from '../../testing/factories';
-import { respondWithError, trackHandler } from '../../testing/helpers';
+import { TEST_ENVIRONMENTS, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ORGANIZATION_BASE, buildUser } from '../../testing/factories';
+import { respondWith, respondWithError, trackHandler } from '../../testing/helpers';
 import { server } from '../../testing/server';
 import { useEnvironmentStore } from '../environment/environment.store';
 
+const LICENSE: License = { tier: 'enterprise', packs: [], features: [], scope: 'ORGANIZATION', isExpired: false };
+
 describe('authStore', () => {
+    beforeEach(() => {
+        licenseService.setLicense(null);
+    });
+
     it('should initialize with existing session', async () => {
         await useAuthStore.getState().initialize();
 
@@ -74,6 +83,109 @@ describe('authStore', () => {
             expect(envTracker.callCount).toBe(1);
         });
         expect(useEnvironmentStore.getState().environments).toEqual(TEST_ENVIRONMENTS);
+    });
+
+    it('should load the organization license before login resolves', async () => {
+        trackHandler('post', `${TEST_MANAGEMENT_BASE}/user/login`, null, 200);
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/user`, buildUser());
+        respondWith('get', `${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, LICENSE);
+
+        await useAuthStore.getState().login('bob', 'password');
+
+        expect(licenseService.getLicense()).toEqual(LICENSE);
+    });
+
+    it('should load the organization license before setting the user on login', async () => {
+        trackHandler('post', `${TEST_MANAGEMENT_BASE}/user/login`, null, 200);
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/user`, buildUser({ displayName: 'Bob' }));
+        let licenseRequested = false;
+        let releaseLicense: (() => void) | undefined;
+        const gate = new Promise<void>(resolve => {
+            releaseLicense = resolve;
+        });
+        server.use(
+            http.get(`${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, async () => {
+                licenseRequested = true;
+                await gate;
+                return HttpResponse.json(LICENSE);
+            }),
+        );
+        let licenseWhenUserSet: License | null | undefined;
+        const unsubscribe = useAuthStore.subscribe(state => {
+            if (state.user && licenseWhenUserSet === undefined) {
+                licenseWhenUserSet = licenseService.getLicense();
+            }
+        });
+
+        const login = useAuthStore.getState().login('bob', 'password');
+        await waitFor(() => expect(licenseRequested).toBe(true));
+        expect(useAuthStore.getState().user).toBeNull();
+        releaseLicense?.();
+        await login;
+        unsubscribe();
+
+        expect(licenseWhenUserSet).toEqual(LICENSE);
+        expect(useAuthStore.getState().user?.displayName).toBe('Bob');
+    });
+
+    it('should finish login when the license does not respond within 2 seconds', async () => {
+        jest.useFakeTimers();
+        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        trackHandler('post', `${TEST_MANAGEMENT_BASE}/user/login`, null, 200);
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/user`, buildUser({ displayName: 'Bob' }));
+        let licenseRequested = false;
+        let releaseLicense: (() => void) | undefined;
+        const gate = new Promise<void>(resolve => {
+            releaseLicense = resolve;
+        });
+        server.use(
+            http.get(`${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, async () => {
+                licenseRequested = true;
+                await gate;
+                return HttpResponse.json(LICENSE);
+            }),
+        );
+
+        let settled = false;
+        const login = useAuthStore
+            .getState()
+            .login('bob', 'password')
+            .then(() => {
+                settled = true;
+            });
+        try {
+            await waitFor(() => expect(licenseRequested).toBe(true));
+            await jest.advanceTimersByTimeAsync(2000);
+
+            expect(settled).toBe(true);
+            expect(useAuthStore.getState().user?.displayName).toBe('Bob');
+            expect(licenseService.getLicense()).toBeNull();
+        } finally {
+            releaseLicense?.();
+            await login;
+            jest.useRealTimers();
+        }
+    });
+
+    it('should still sign the user in when the license request fails', async () => {
+        jest.spyOn(console, 'error').mockImplementation(() => {});
+        trackHandler('post', `${TEST_MANAGEMENT_BASE}/user/login`, null, 200);
+        trackHandler('get', `${TEST_MANAGEMENT_BASE}/user`, buildUser({ displayName: 'Bob' }));
+        respondWithError('get', `${TEST_MANAGEMENT_V2_ORGANIZATION_BASE}/license`, 500);
+
+        await useAuthStore.getState().login('bob', 'password');
+
+        expect(useAuthStore.getState().user?.displayName).toBe('Bob');
+        expect(licenseService.getLicense()).toBeNull();
+    });
+
+    it('should clear the license on logout', async () => {
+        licenseService.setLicense(LICENSE);
+        useAuthStore.setState({ user: buildUser() });
+
+        await useAuthStore.getState().logout();
+
+        expect(licenseService.getLicense()).toBeNull();
     });
 
     it('should refresh the current user and bump the avatar cache', async () => {
