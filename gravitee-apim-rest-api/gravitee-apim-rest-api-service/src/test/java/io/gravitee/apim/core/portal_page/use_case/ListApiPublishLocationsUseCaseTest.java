@@ -22,6 +22,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApiProduct;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -38,7 +39,7 @@ class ListApiPublishLocationsUseCaseTest {
 
     private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
     private final ListApiPublishLocationsUseCase useCase = new ListApiPublishLocationsUseCase(
-        new ApiOwnedNavigationDomainService(queryService)
+        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory())
     );
 
     @Test
