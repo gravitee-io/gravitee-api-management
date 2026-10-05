@@ -17,6 +17,9 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
@@ -39,6 +42,12 @@ import lombok.RequiredArgsConstructor;
 @DomainService
 @RequiredArgsConstructor
 public class ApiOwnedNavigationDomainService {
+
+    private static final Set<PortalNavigationItemType> DOCUMENTATION_TYPES = Set.of(
+        PortalNavigationItemType.PAGE,
+        PortalNavigationItemType.FOLDER,
+        PortalNavigationItemType.LINK
+    );
 
     private final PortalNavigationItemsQueryService queryService;
 
@@ -82,6 +91,38 @@ public class ApiOwnedNavigationDomainService {
             .map(PortalNavigationApi.class::cast)
             .filter(listing -> !hasApiProductAncestor(environmentId, listing))
             .toList();
+    }
+
+    /**
+     * The API is taken from the request URL, where permissions are resolved, while the item id comes from
+     * the caller: an item of another API, or of the portal, is reported as missing so that its existence
+     * is not revealed.
+     */
+    public PortalNavigationItem requireOwnedItem(String environmentId, String apiId, PortalNavigationItemId itemId) {
+        var item = queryService.findByIdAndEnvironmentId(environmentId, itemId);
+        if (item == null || !new NavigationItemReference.ApiReference(apiId).equals(item.getReference())) {
+            throw new PortalNavigationItemNotFoundException(itemId.json());
+        }
+        return item;
+    }
+
+    /**
+     * Turns an item a caller asked to create into documentation of the API: owned by it, unpublished until
+     * the caller publishes it, and only ever under a parent the API owns.
+     */
+    public CreatePortalNavigationItem claimForApi(String environmentId, String apiId, CreatePortalNavigationItem item) {
+        if (!DOCUMENTATION_TYPES.contains(item.getType())) {
+            throw InvalidPortalNavigationItemDataException.notApiDocumentationType(String.valueOf(item.getType()));
+        }
+        if (item.getParentId() != null) {
+            requireOwnedItem(environmentId, apiId, item.getParentId());
+        }
+        return item
+            .toBuilder()
+            .reference(new NavigationItemReference.ApiReference(apiId))
+            .area(PortalArea.TOP_NAVBAR)
+            .published(false)
+            .build();
     }
 
     private boolean hasApiProductAncestor(String environmentId, PortalNavigationItem item) {

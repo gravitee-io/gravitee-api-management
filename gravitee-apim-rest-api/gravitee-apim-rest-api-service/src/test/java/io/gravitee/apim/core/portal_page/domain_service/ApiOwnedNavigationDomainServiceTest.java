@@ -21,11 +21,18 @@ import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApiProduct;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +41,8 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiOwnedNavigationDomainServiceTest {
@@ -196,6 +205,138 @@ class ApiOwnedNavigationDomainServiceTest {
             queryService.initWith(List.of(product, productListing, section, standaloneListing));
 
             assertThat(service.findStandaloneListings(ENV_ID, API_ID)).containsExactly(standaloneListing);
+        }
+    }
+
+    @Nested
+    class RequireOwnedItem {
+
+        @Test
+        void should_return_an_item_owned_by_the_api() {
+            var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+            queryService.initWith(List.of(page));
+
+            assertThat(service.requireOwnedItem(ENV_ID, API_ID, page.getId())).isEqualTo(page);
+        }
+
+        @Test
+        void should_reject_an_unknown_item() {
+            var unknownId = PortalNavigationItemId.random();
+
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, unknownId)).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_reject_an_item_owned_by_another_api() {
+            var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            queryService.initWith(List.of(foreign));
+
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, foreign.getId())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_reject_a_portal_owned_item_stored_under_the_listing_row() {
+            var section = aFolder("APIs");
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
+            var storedUnderListing = aPage("Legacy page", listing.getId());
+            queryService.initWith(List.of(section, listing, storedUnderListing));
+
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, storedUnderListing.getId())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_reject_the_listing_row_of_the_api() {
+            var section = aFolder("APIs");
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
+            queryService.initWith(List.of(section, listing));
+
+            assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, listing.getId())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+    }
+
+    @Nested
+    class ClaimForApi {
+
+        @Test
+        void should_stamp_the_api_as_owner() {
+            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().build());
+
+            assertThat(claimed.getReference()).isEqualTo(ownedBy(API_ID));
+        }
+
+        @Test
+        void should_replace_an_owner_set_by_the_caller() {
+            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().reference(ownedBy(OTHER_API_ID)).build());
+
+            assertThat(claimed.getReference()).isEqualTo(ownedBy(API_ID));
+        }
+
+        @Test
+        void should_force_unpublished_even_when_published_is_requested() {
+            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().published(true).build());
+
+            assertThat(claimed.getPublished()).isFalse();
+        }
+
+        @Test
+        void should_force_the_top_navigation_area() {
+            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().area(PortalArea.HOMEPAGE).build());
+
+            assertThat(claimed.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
+        }
+
+        @Test
+        void should_accept_a_parent_owned_by_the_same_api() {
+            var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
+            queryService.initWith(List.of(folder));
+
+            var claimed = service.claimForApi(ENV_ID, API_ID, aPageToCreate().parentId(folder.getId()).build());
+
+            assertThat(claimed.getParentId()).isEqualTo(folder.getId());
+        }
+
+        @Test
+        void should_reject_a_parent_owned_by_another_api() {
+            var foreignFolder = aFolder("Auth").toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            queryService.initWith(List.of(foreignFolder));
+            var item = aPageToCreate().parentId(foreignFolder.getId()).build();
+
+            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item)).isInstanceOf(PortalNavigationItemNotFoundException.class);
+        }
+
+        @Test
+        void should_reject_a_portal_owned_parent() {
+            var section = aFolder("APIs");
+            queryService.initWith(List.of(section));
+            var item = aPageToCreate().parentId(section.getId()).build();
+
+            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item)).isInstanceOf(PortalNavigationItemNotFoundException.class);
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = PortalNavigationItemType.class, names = { "API", "API_PRODUCT" })
+        void should_reject_a_type_that_is_not_documentation(PortalNavigationItemType type) {
+            var item = aPageToCreate().type(type).build();
+
+            assertThatThrownBy(() -> service.claimForApi(ENV_ID, API_ID, item)).isInstanceOf(
+                InvalidPortalNavigationItemDataException.class
+            );
+        }
+
+        private CreatePortalNavigationItem.CreatePortalNavigationItemBuilder aPageToCreate() {
+            return CreatePortalNavigationItem.builder()
+                .title("Overview")
+                .type(PortalNavigationItemType.PAGE)
+                .area(PortalArea.TOP_NAVBAR)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
         }
     }
 
