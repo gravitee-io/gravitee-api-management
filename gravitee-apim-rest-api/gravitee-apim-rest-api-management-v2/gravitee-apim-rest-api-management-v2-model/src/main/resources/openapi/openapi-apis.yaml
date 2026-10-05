@@ -3442,6 +3442,36 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get a portal documentation item owned by an API
+            description: |-
+                Get a page, a folder or a link owned by the API, whether it is published or not.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalNavigationItem
+            responses:
+                "200":
+                    description: The portal documentation item
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                "404":
+                    description: The item does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
         parameters:
@@ -9520,6 +9550,13 @@ components:
             in: path
             required: true
             description: Id of an API.
+            schema:
+                type: string
+        portalNavigationItemIdParam:
+            name: navId
+            in: path
+            required: true
+            description: Id of a portal navigation item
             schema:
                 type: string
         requestIdParam:

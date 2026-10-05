@@ -219,6 +219,7 @@ import io.gravitee.apim.core.portal_page.use_case.CreateDefaultPortalNavigationI
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
@@ -1421,6 +1422,14 @@ public class ResourceContextConfiguration {
     @Bean
     public ListApiPublishLocationsUseCase listApiPublishLocationsUseCase(ApiOwnedNavigationDomainService apiOwnedNavigationDomainService) {
         return new ListApiPublishLocationsUseCase(apiOwnedNavigationDomainService);
+    }
+
+    @Bean
+    public GetApiPortalNavigationItemUseCase getApiPortalNavigationItemUseCase(
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+    ) {
+        return new GetApiPortalNavigationItemUseCase(apiOwnedNavigationDomainService, portalNavigationItemSourceDomainService);
     }
 
     @Bean

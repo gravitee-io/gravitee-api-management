@@ -1,0 +1,54 @@
+/*
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package io.gravitee.rest.api.management.v2.rest.resource.api;
+
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
+import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+
+public class ApiDocumentationNavigationItemResource extends AbstractResource {
+
+    @Inject
+    private GetApiPortalNavigationItemUseCase getApiPortalNavigationItemUseCase;
+
+    private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    public PortalNavigationItem getApiPortalNavigationItem(@PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
+        var output = getApiPortalNavigationItemUseCase.execute(
+            new GetApiPortalNavigationItemUseCase.Input(
+                GraviteeContext.getCurrentEnvironment(),
+                apiId,
+                PortalNavigationItemId.of(navigationItemId)
+            )
+        );
+        return mapper.map(output.item());
+    }
+}
