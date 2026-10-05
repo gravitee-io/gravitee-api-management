@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -53,6 +54,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
@@ -190,6 +194,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -743,6 +748,32 @@ public class ApiServiceImplTest {
     /*
     Create by import tests
      */
+    @Test
+    public void should_not_expose_property_values_when_the_import_creation_fails() throws TechnicalException {
+        ApiEntity apiEntity = fakeApiEntityV4();
+        apiEntity.setProperties(List.of(new Property("plain-key", "super-secret-value", false, false)));
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        doReturn(Optional.empty()).when(apiRepository).findById(anyString());
+        doReturn(apiEntity.getPrimaryOwner())
+            .when(primaryOwnerService)
+            .getPrimaryOwner(executionContext, USER_NAME, apiEntity.getPrimaryOwner());
+        doReturn(emptySet()).when(groupService).findByEvent(GraviteeContext.getCurrentEnvironment(), GroupEvent.API_CREATE);
+        doReturn(false).when(parameterService).findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT);
+        doThrow(new TechnicalException("repository unavailable")).when(apiRepository).create(any());
+        Appender<ILoggingEvent> appender = mock(Appender.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(ApiServiceImpl.class);
+        logger.addAppender(appender);
+        try {
+            assertThatThrownBy(() -> apiService.createWithImport(executionContext, apiEntity, USER_NAME))
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessageNotContaining("super-secret-value");
+            verify(appender, atLeastOnce()).doAppend(any());
+            verify(appender, never()).doAppend(argThat(event -> event.getFormattedMessage().contains("super-secret-value")));
+        } finally {
+            logger.detachAppender(appender);
+        }
+    }
+
     @Test
     public void should_mark_the_creation_audit_when_an_imported_api_holds_an_encrypted_property() throws TechnicalException {
         ApiEntity apiEntity = fakeApiEntityV4();

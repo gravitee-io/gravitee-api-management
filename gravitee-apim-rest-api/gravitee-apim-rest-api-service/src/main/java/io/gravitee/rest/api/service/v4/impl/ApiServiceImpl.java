@@ -333,7 +333,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             createdApi = apiRepository.create(repositoryApi);
             log.debug("API {} imported", createdApi.getId());
         } catch (TechnicalException ex) {
-            String errorMsg = String.format("An error occurs while trying to create '%s' for user '%s'", apiEntity, userId);
+            String errorMsg = String.format("An error occurs while trying to create API '%s' for user '%s'", apiEntity.getId(), userId);
             log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
