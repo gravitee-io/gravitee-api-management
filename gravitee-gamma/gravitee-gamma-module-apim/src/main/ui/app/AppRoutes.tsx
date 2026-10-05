@@ -49,6 +49,7 @@ import { ApiAlertsPage } from '../features/apis/pages/detail/alerts/ApiAlertsPag
 import { ApiScoringPage } from '../features/apis/pages/detail/api-score/ApiScoringPage';
 import { ApiDetailOverviewPage } from '../features/apis/pages/detail/ApiDetailOverviewPage';
 import { ApiDetailPlaceholderPage } from '../features/apis/pages/detail/ApiDetailPlaceholderPage';
+import { ApiDocumentationPage } from '../features/apis/pages/detail/ApiDocumentationPage';
 import { AuditLogsPage } from '../features/apis/pages/detail/audit-logs/AuditLogsPage';
 import { ApiBroadcastsPage } from '../features/apis/pages/detail/broadcasts/ApiBroadcastsPage';
 import { ApiConsumerDetailPage } from '../features/apis/pages/detail/consumers/ApiConsumerDetailPage';
@@ -250,7 +251,12 @@ export function AppRoutes() {
                                 </Route>
                                 <Route path="reporter-settings" element={<ApiReporterSettingsPage />} />
                                 <Route path="policy-studio" element={<PolicyStudioPage />} />
-                                <Route path="documentation" element={<ApiDetailPlaceholderPage title="Documentation" />} />
+                                <Route path="documentation">
+                                    <Route index element={<ApiDocumentationPage />} />
+                                    {/* The edit screen lands in a later story; the route shape is reserved so the
+                                        Documentation nav entry already stays highlighted on it. */}
+                                    <Route path=":pageId/edit" element={<ApiDetailPlaceholderPage title="Edit documentation page" />} />
+                                </Route>
                                 <Route path="plans">
                                     <Route index element={<ApiPlansPage />} />
                                     <Route path="new/:securityType" element={<ApiPlanFormPage />} />

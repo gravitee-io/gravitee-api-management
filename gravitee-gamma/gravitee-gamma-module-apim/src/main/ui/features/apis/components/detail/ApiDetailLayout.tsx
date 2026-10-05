@@ -46,6 +46,7 @@ import {
     FEDERATED_ALLOWED_PATHS,
     withApiScoreEnabled,
     withApiAlertPermission,
+    withDocumentationPermission,
     withFederatedRestrictions,
     withMetadataPermission,
     withObservabilityLinks,
@@ -307,6 +308,7 @@ export function ApiDetailLayout() {
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const isApiReviewer = useHasPermission({ anyOf: ['api-reviews-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
+    const canReadDocumentation = useHasPermission({ anyOf: ['api-documentation-r'] });
     const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
     const canAccessAlerts = useHasPermission({ anyOf: [...API_ALERT_PAGE_PERMISSIONS] });
     const showResponseTemplates = Boolean(api) && canReadResponseTemplates && supportsResponseTemplates(api);
@@ -368,17 +370,23 @@ export function ApiDetailLayout() {
     const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
     const navGroups = withFederatedRestrictions(
         withApiAlertPermission(
-            withMetadataPermission(
-                withTcpRestrictions(
-                    withObservabilityLinks(
-                        withResponseTemplatesPermission(withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled), showResponseTemplates),
-                        apiId
-                            ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) }
-                            : {},
+            withDocumentationPermission(
+                withMetadataPermission(
+                    withTcpRestrictions(
+                        withObservabilityLinks(
+                            withResponseTemplatesPermission(
+                                withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled),
+                                showResponseTemplates,
+                            ),
+                            apiId
+                                ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) }
+                                : {},
+                        ),
+                        hasTcpListeners(api),
                     ),
-                    hasTcpListeners(api),
+                    canReadMetadata,
                 ),
-                canReadMetadata,
+                canReadDocumentation,
             ),
             canAccessAlerts,
         ),
@@ -431,6 +439,7 @@ export function ApiDetailLayout() {
             reviewBannerCopy,
             askForReview.isPending,
             canReadMetadata,
+            canReadDocumentation,
             showResponseTemplates,
             apiScoreEnabled,
             canAccessAlerts,
