@@ -70,7 +70,7 @@ describe('GraviteeMarkdownPreview', () => {
 
         const { container } = render(<GraviteeMarkdownPreview content="# Hello" />);
 
-        expect(screen.getByRole('status')).toHaveTextContent('Loading preview');
+        expect(screen.getByRole('status', { name: 'Loading preview' })).toBeInTheDocument();
         expect(viewer(container)).not.toBeInTheDocument();
 
         finishRegistering();

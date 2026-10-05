@@ -22,7 +22,7 @@ export type GmdViewerElement = HTMLElement & { content: string };
 declare module 'react' {
     namespace JSX {
         interface IntrinsicElements {
-            'gmd-viewer': DetailedHTMLProps<HTMLAttributes<GmdViewerElement>, GmdViewerElement>;
+            'gmd-viewer': DetailedHTMLProps<HTMLAttributes<GmdViewerElement>, GmdViewerElement> & Pick<GmdViewerElement, 'content'>;
         }
     }
 }
