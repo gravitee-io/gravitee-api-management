@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
-
-import type { GmdViewerElement } from './gmd-viewer-element';
+import { Alert, AlertDescription, Skeleton } from '@gravitee/graphene-core';
+import { useEffect, useState } from 'react';
 
 type ViewerStatus = 'loading' | 'ready' | 'failed';
 
@@ -26,10 +25,10 @@ interface GraviteeMarkdownPreviewProps {
 
 /**
  * Renders Gravitee Markdown with the same viewer the portal uses, so the preview matches what is
- * published, interactive components included.
+ * published. Form field components (`gmd-input` and the like) are not supported by the viewer
+ * element and render nothing.
  */
 export function GraviteeMarkdownPreview({ content }: GraviteeMarkdownPreviewProps) {
-    const viewerRef = useRef<GmdViewerElement>(null);
     const [status, setStatus] = useState<ViewerStatus>('loading');
 
     useEffect(() => {
@@ -56,18 +55,21 @@ export function GraviteeMarkdownPreview({ content }: GraviteeMarkdownPreviewProp
         };
     }, []);
 
-    useEffect(() => {
-        // A property, not an attribute: markdown is too large and too newline-heavy for one.
-        if (status === 'ready' && viewerRef.current) {
-            viewerRef.current.content = content;
-        }
-    }, [status, content]);
-
     if (status === 'failed') {
-        return <div role="alert">The preview could not be loaded.</div>;
+        return (
+            <Alert variant="destructive">
+                <AlertDescription>The preview could not be loaded.</AlertDescription>
+            </Alert>
+        );
     }
     if (status === 'loading') {
-        return <div role="status">Loading preview…</div>;
+        return (
+            <div role="status" aria-busy="true" aria-label="Loading preview">
+                <Skeleton className="h-64 w-full rounded-lg" />
+            </div>
+        );
     }
-    return <gmd-viewer ref={viewerRef} />;
+    // The element is registered before it renders, so React 19 sets `content` as a property rather
+    // than an attribute: markdown is too large and too newline-heavy for an attribute.
+    return <gmd-viewer content={content} />;
 }
