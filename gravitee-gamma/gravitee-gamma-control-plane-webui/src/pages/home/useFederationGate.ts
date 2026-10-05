@@ -16,7 +16,6 @@
 import { useEffect, useState } from 'react';
 
 import {
-    createInMemoryLicenseWaitStartStore,
     useFederationGate as useSharedFederationGate,
     type FederationGate,
     type FederationSetting,
@@ -62,6 +61,5 @@ function useFederationSetting(): FederationSetting {
  * asks for the same API types as the API Proxies list. A failed or timed-out settings read fails closed.
  */
 export function useFederationGate(): FederationGate {
-    const [licenseWaitStartStore] = useState(createInMemoryLicenseWaitStartStore);
-    return useSharedFederationGate(useFederationSetting(), licenseWaitStartStore);
+    return useSharedFederationGate(useFederationSetting());
 }

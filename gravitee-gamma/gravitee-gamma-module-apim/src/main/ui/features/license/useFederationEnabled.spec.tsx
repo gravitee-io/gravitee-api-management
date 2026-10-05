@@ -22,7 +22,6 @@ import type { ReactNode } from 'react';
 import { useFederationEnabled } from './useFederationEnabled';
 import { ApimApiError } from '../../shared/api/apimClient';
 import { ENTERPRISE_LICENSE, OSS_LICENSE } from '../../testing/factories';
-import { orgConsoleKeys } from '../apis/utils/queryKeys';
 import { fetchOrgConsoleSettings, type OrgConsoleSettings } from '../settings/services/orgConsoleSettings';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -37,8 +36,6 @@ const mockFetchOrgConsoleSettings = jest.mocked(fetchOrgConsoleSettings);
 
 const EXPIRED_ENTERPRISE_LICENSE: License = { ...ENTERPRISE_LICENSE, isExpired: true };
 const UNIVERSE_LICENSE: License = { ...ENTERPRISE_LICENSE, tier: 'universe' };
-const LICENSE_REPORT_DEADLINE_MS = 10_000;
-const SLOW_SETTINGS_READ_MS = 9_500;
 
 function createWrapper(retry: boolean | number = false) {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry } } });
@@ -48,20 +45,11 @@ function createWrapper(retry: boolean | number = false) {
     return Object.assign(Wrapper, { queryClient });
 }
 
-async function waitForOrgSettingsRead(queryClient: QueryClient) {
-    await waitFor(() => expect(queryClient.getQueryState(orgConsoleKeys.settings())?.status).toBe('success'));
-}
-
-function resolveOrgSettingsAfter(delayMs: number, settings: OrgConsoleSettings) {
-    mockFetchOrgConsoleSettings.mockImplementation(() => new Promise(resolve => setTimeout(() => resolve(settings), delayMs)));
-}
-
 describe('useFederationEnabled', () => {
     beforeEach(() => mockLicenseSnapshot.mockReturnValue(ENTERPRISE_LICENSE));
 
     afterEach(() => {
         jest.clearAllMocks();
-        jest.useRealTimers();
     });
 
     // Every Enterprise tier is entitled to federation (APIM-4273); no license ever carries a federation feature id.
@@ -106,180 +94,28 @@ describe('useFederationEnabled', () => {
         await waitFor(() => expect(result.current.enabled).toBe(true));
     });
 
-    it('holds the gate unresolved while the org setting is on and the host has not reported a license', async () => {
+    it('resolves at once with federation off when the org setting is on and the host has not reported a license', async () => {
         mockLicenseSnapshot.mockReturnValue(null);
         mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
 
-        const { result } = renderHook(() => useFederationEnabled(), { wrapper });
-
-        await waitForOrgSettingsRead(wrapper.queryClient);
-        expect(result.current.isResolved).toBe(false);
-    });
-
-    it('resolves with federation on once the host reports an entitled license during the wait', async () => {
-        mockLicenseSnapshot.mockReturnValue(null);
-        mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
-
-        const { result } = renderHook(() => useFederationEnabled(), { wrapper });
-        await waitForOrgSettingsRead(wrapper.queryClient);
-
-        mockLicenseSnapshot.mockReturnValue(ENTERPRISE_LICENSE);
-        const notifyLicenseChanged = mockLicenseSubscribe.mock.calls.at(-1)![0];
-        act(() => notifyLicenseChanged());
+        const { result } = renderHook(() => useFederationEnabled(), { wrapper: createWrapper() });
 
         await waitFor(() => expect(result.current.isResolved).toBe(true));
-        expect(result.current.enabled).toBe(true);
-    });
-
-    it('resolves with federation off once the license report deadline passes', async () => {
-        jest.useFakeTimers();
-        mockLicenseSnapshot.mockReturnValue(null);
-        mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
-
-        const { result } = renderHook(() => useFederationEnabled(), { wrapper });
-        await waitForOrgSettingsRead(wrapper.queryClient);
-        // Pinning the wait first is what makes the resolution below read as "stopped waiting" rather than "never waited".
-        expect(result.current.isResolved).toBe(false);
-
-        act(() => jest.advanceTimersByTime(LICENSE_REPORT_DEADLINE_MS));
-
-        expect(result.current.isResolved).toBe(true);
         expect(result.current.enabled).toBe(false);
     });
 
-    it('gives a second license wait its own full deadline after an earlier wait already timed out', async () => {
-        jest.useFakeTimers();
+    it('turns federation on when an entitled license is reported after the gate resolved without one', async () => {
         mockLicenseSnapshot.mockReturnValue(null);
         mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
-
-        const { result } = renderHook(() => useFederationEnabled(), { wrapper });
-        await waitForOrgSettingsRead(wrapper.queryClient);
-        act(() => jest.advanceTimersByTime(LICENSE_REPORT_DEADLINE_MS));
-        expect(result.current.isResolved).toBe(true);
-
-        // The license arrives, ending the first wait, then becomes unreported again — the second wait
-        // must get its own full deadline, not read as instantly overdue from the first wait's stale flag.
-        mockLicenseSnapshot.mockReturnValue(ENTERPRISE_LICENSE);
-        const notifyLicenseChanged = mockLicenseSubscribe.mock.calls.at(-1)![0];
-        act(() => notifyLicenseChanged());
-        expect(result.current.isResolved).toBe(true);
-
-        mockLicenseSnapshot.mockReturnValue(null);
-        act(() => notifyLicenseChanged());
-        expect(result.current.isResolved).toBe(false);
-
-        act(() => jest.advanceTimersByTime(LICENSE_REPORT_DEADLINE_MS - 1));
-        expect(result.current.isResolved).toBe(false);
-
-        act(() => jest.advanceTimersByTime(1));
-        expect(result.current.isResolved).toBe(true);
-    });
-
-    it('resolves a gate that mounts after the license report deadline has passed without starting a new wait', async () => {
-        jest.useFakeTimers();
-        mockLicenseSnapshot.mockReturnValue(null);
-        mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
-
-        renderHook(() => useFederationEnabled(), { wrapper });
-        await waitForOrgSettingsRead(wrapper.queryClient);
-        act(() => jest.advanceTimersByTime(LICENSE_REPORT_DEADLINE_MS));
-
-        const { result: lateGate } = renderHook(() => useFederationEnabled(), { wrapper });
-
-        expect(lateGate.current.isResolved).toBe(true);
-        expect(lateGate.current.enabled).toBe(false);
-    });
-
-    it('resolves a gate that mounts mid-wait at the same moment as the gate that started the wait', async () => {
-        jest.useFakeTimers();
-        mockLicenseSnapshot.mockReturnValue(null);
-        mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
-        const elapsedBeforeSecondGateMs = 4_000;
-
-        renderHook(() => useFederationEnabled(), { wrapper });
-        await waitForOrgSettingsRead(wrapper.queryClient);
-        act(() => jest.advanceTimersByTime(elapsedBeforeSecondGateMs));
-        const { result: midWaitGate } = renderHook(() => useFederationEnabled(), { wrapper });
-
-        act(() => jest.advanceTimersByTime(LICENSE_REPORT_DEADLINE_MS - elapsedBeforeSecondGateMs - 1));
-        expect(midWaitGate.current.isResolved).toBe(false);
-
-        act(() => jest.advanceTimersByTime(1));
-        expect(midWaitGate.current.isResolved).toBe(true);
-    });
-
-    it('turns federation back on when an entitled license is reported after the deadline', async () => {
-        jest.useFakeTimers();
-        mockLicenseSnapshot.mockReturnValue(null);
-        mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
-
-        const { result } = renderHook(() => useFederationEnabled(), { wrapper });
-        await waitForOrgSettingsRead(wrapper.queryClient);
-        act(() => jest.advanceTimersByTime(LICENSE_REPORT_DEADLINE_MS));
-        expect(result.current.isResolved).toBe(true);
-        expect(result.current.enabled).toBe(false);
-
-        mockLicenseSnapshot.mockReturnValue(ENTERPRISE_LICENSE);
-        const notifyLicenseChanged = mockLicenseSubscribe.mock.calls.at(-1)![0];
-        act(() => notifyLicenseChanged());
-
-        expect(result.current.enabled).toBe(true);
-        expect(result.current.isResolved).toBe(true);
-    });
-
-    it('keeps waiting for the license a full deadline after a slow org settings read confirms the setting', async () => {
-        jest.useFakeTimers();
-        mockLicenseSnapshot.mockReturnValue(null);
-        resolveOrgSettingsAfter(SLOW_SETTINGS_READ_MS, { federation: { enabled: true } });
-
         const { result } = renderHook(() => useFederationEnabled(), { wrapper: createWrapper() });
-        await act(() => jest.advanceTimersByTimeAsync(SLOW_SETTINGS_READ_MS));
-        await act(() => jest.advanceTimersByTimeAsync(LICENSE_REPORT_DEADLINE_MS - 1));
-
-        expect(result.current.isResolved).toBe(false);
+        await waitFor(() => expect(result.current.isResolved).toBe(true));
 
         mockLicenseSnapshot.mockReturnValue(ENTERPRISE_LICENSE);
         const notifyLicenseChanged = mockLicenseSubscribe.mock.calls.at(-1)![0];
         act(() => notifyLicenseChanged());
 
+        await waitFor(() => expect(result.current.enabled).toBe(true));
         expect(result.current.isResolved).toBe(true);
-        expect(result.current.enabled).toBe(true);
-    });
-
-    it('resolves with federation off a full deadline after a slow org settings read confirms the setting', async () => {
-        jest.useFakeTimers();
-        mockLicenseSnapshot.mockReturnValue(null);
-        resolveOrgSettingsAfter(SLOW_SETTINGS_READ_MS, { federation: { enabled: true } });
-
-        const { result } = renderHook(() => useFederationEnabled(), { wrapper: createWrapper() });
-        await act(() => jest.advanceTimersByTimeAsync(SLOW_SETTINGS_READ_MS));
-        await act(() => jest.advanceTimersByTimeAsync(LICENSE_REPORT_DEADLINE_MS + 1));
-
-        expect(result.current.isResolved).toBe(true);
-        expect(result.current.enabled).toBe(false);
-    });
-
-    it('does not switch federation off silently when the host never reports a license', async () => {
-        jest.useFakeTimers();
-        const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        mockLicenseSnapshot.mockReturnValue(null);
-        mockFetchOrgConsoleSettings.mockResolvedValue({ federation: { enabled: true } });
-        const wrapper = createWrapper();
-
-        const { result } = renderHook(() => useFederationEnabled(), { wrapper });
-        await waitForOrgSettingsRead(wrapper.queryClient);
-        act(() => jest.advanceTimersByTime(LICENSE_REPORT_DEADLINE_MS));
-
-        expect(result.current.enabled).toBe(false);
-        expect(warn).toHaveBeenCalledWith(expect.stringContaining('has not reported a license'));
-        warn.mockRestore();
     });
 
     it('resolves without waiting for a license when the org setting is off', async () => {

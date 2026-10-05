@@ -13,14 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    useFederationGate,
-    type FederationGate,
-    type FederationSetting,
-    type LicenseWaitStartStore,
-} from '@gravitee/gamma-ui-shared/federation';
-import { useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo } from 'react';
+import { useFederationGate, type FederationGate, type FederationSetting } from '@gravitee/gamma-ui-shared/federation';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect } from 'react';
 
 import { ApimApiError } from '../../shared/api/apimClient';
 import { orgConsoleKeys } from '../apis/utils/queryKeys';
@@ -29,18 +24,6 @@ import { fetchOrgConsoleSettings } from '../settings/services/orgConsoleSettings
 const ORG_CONSOLE_SETTINGS_TIMEOUT_MS = 10_000;
 
 export type { FederationGate };
-
-function queryClientLicenseWaitStartStore(queryClient: QueryClient): LicenseWaitStartStore {
-    return {
-        read: () => queryClient.getQueryData<number>(orgConsoleKeys.licenseReportWaitStart()),
-        write: startedAt => {
-            queryClient.setQueryData(orgConsoleKeys.licenseReportWaitStart(), startedAt);
-        },
-        clear: () => {
-            queryClient.removeQueries({ queryKey: orgConsoleKeys.licenseReportWaitStart(), exact: true });
-        },
-    };
-}
 
 function toFederationSetting(isPending: boolean, federationEnabled: boolean | undefined): FederationSetting {
     if (isPending) {
@@ -53,13 +36,9 @@ function toFederationSetting(isPending: boolean, federationEnabled: boolean | un
  * Federation needs both the organization setting and an entitled license tier — either one alone is off.
  * The settings read fails closed so an unreachable settings endpoint narrows the feature rather than
  * blocking the callers that wait on `isResolved`. It is time-bounded so an endpoint that hangs instead
- * of answering takes that same path rather than parking those callers forever. The license wait window
- * lives in the QueryClient, so every caller on the same QueryClient shares it.
+ * of answering takes that same path rather than parking those callers forever.
  */
 export function useFederationEnabled(): FederationGate {
-    const queryClient = useQueryClient();
-    const licenseWaitStartStore = useMemo(() => queryClientLicenseWaitStartStore(queryClient), [queryClient]);
-
     const settingsQuery = useQuery({
         queryKey: orgConsoleKeys.settings(),
         queryFn: () => fetchOrgConsoleSettings(AbortSignal.timeout(ORG_CONSOLE_SETTINGS_TIMEOUT_MS)),
@@ -78,5 +57,5 @@ export function useFederationEnabled(): FederationGate {
         }
     }, [settingsError]);
 
-    return useFederationGate(setting, licenseWaitStartStore);
+    return useFederationGate(setting);
 }
