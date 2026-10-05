@@ -179,4 +179,53 @@ class ClusterManagerImplTest {
 
         assertThat(cut.clusters()).hasSize(2);
     }
+
+    @Test
+    void should_resolve_cluster_by_cross_id_and_environment() {
+        ReactableCluster envA = cluster("c1", "shared-cross-id", "env-a");
+        ReactableCluster envB = cluster("c2", "shared-cross-id", "env-b");
+        cut.register(envA);
+        cut.register(envB);
+
+        assertThat(cut.get("shared-cross-id", "env-a")).isSameAs(envA);
+        assertThat(cut.get("shared-cross-id", "env-b")).isSameAs(envB);
+        assertThat(cut.get("shared-cross-id", "env-c")).isNull();
+        assertThat(cut.get("unknown", "env-a")).isNull();
+    }
+
+    @Test
+    void should_resolve_the_updated_cluster_by_cross_id() {
+        cut.register(KafkaClusterReactableCluster.builder().id("c1").crossId("my-cluster").environmentId("env-a").version(1).build());
+        ReactableCluster updated = KafkaClusterReactableCluster.builder()
+            .id("c1")
+            .crossId("my-cluster")
+            .environmentId("env-a")
+            .version(2)
+            .build();
+
+        cut.register(updated);
+
+        assertThat(cut.get("my-cluster", "env-a")).isSameAs(updated);
+    }
+
+    @Test
+    void should_not_resolve_an_undeployed_cluster_by_cross_id() {
+        cut.register(cluster("c1", "my-cluster", "env-a"));
+
+        cut.unregister("c1");
+
+        assertThat(cut.get("my-cluster", "env-a")).isNull();
+    }
+
+    @Test
+    void should_not_resolve_null_cross_id_or_environment() {
+        cut.register(cluster("c1", "my-cluster", "env-a"));
+
+        assertThat(cut.get(null, "env-a")).isNull();
+        assertThat(cut.get("my-cluster", null)).isNull();
+    }
+
+    private static KafkaClusterReactableCluster cluster(String id, String crossId, String environmentId) {
+        return KafkaClusterReactableCluster.builder().id(id).crossId(crossId).environmentId(environmentId).deployedAt(new Date()).build();
+    }
 }

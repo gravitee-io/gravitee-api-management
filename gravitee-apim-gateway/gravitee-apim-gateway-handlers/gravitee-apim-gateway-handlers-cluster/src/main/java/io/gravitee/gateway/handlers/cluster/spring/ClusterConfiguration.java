@@ -20,11 +20,19 @@ import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
 import io.gravitee.gateway.handlers.cluster.manager.impl.ClusterManagerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class ClusterConfiguration {
 
+    /**
+     * Primary: the cluster manager is also the gateway's {@link io.gravitee.definition.model.cluster.ClusterRegistry}, and
+     * plugin contexts (child contexts of this one) may still declare their own registry, as the native Kafka reactor does
+     * up to 8.0. Without a primary candidate, injecting a {@code ClusterRegistry} in such a plugin fails on two matching
+     * beans and the gateway does not start; with it, the plugin uses the gateway's registry.
+     */
     @Bean
+    @Primary
     public ClusterManager clusterManager(EventManager eventManager) {
         return new ClusterManagerImpl(eventManager);
     }
