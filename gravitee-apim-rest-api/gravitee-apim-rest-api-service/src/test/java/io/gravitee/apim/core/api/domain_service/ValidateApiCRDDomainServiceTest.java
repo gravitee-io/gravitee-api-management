@@ -29,7 +29,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.ApiCRDFixtures;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiQueryServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
+import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
@@ -42,6 +44,7 @@ import io.gravitee.apim.core.notification.domain_service.ValidatePortalNotificat
 import io.gravitee.apim.core.plan.domain_service.ValidatePlanDomainService;
 import io.gravitee.apim.core.resource.domain_service.ValidateResourceDomainService;
 import io.gravitee.apim.core.validation.Validator;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -50,6 +53,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.notification.NotificationConfigType;
 import io.gravitee.rest.api.model.notification.PortalNotificationConfigEntity;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
@@ -92,6 +96,8 @@ class ValidateApiCRDDomainServiceTest {
 
     ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
 
+    DataEncryptor dataEncryptor = mock(DataEncryptor.class);
+
     ValidateApiCRDDomainService cut = new ValidateApiCRDDomainService(
         categoryIdsValidator,
         pathValidator,
@@ -103,7 +109,8 @@ class ValidateApiCRDDomainServiceTest {
         planValidator,
         portalNotificationValidator,
         healthCheckScheduleValidator,
-        apiQueryService
+        apiQueryService,
+        new PropertyDomainService(dataEncryptor)
     );
 
     PortalNotificationConfigEntity consoleNotificationConfiguration = new PortalNotificationConfigEntity();
@@ -128,6 +135,24 @@ class ValidateApiCRDDomainServiceTest {
             .build();
 
         assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class).isThrownBy(() ->
+            cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
+        );
+    }
+
+    @Test
+    void should_reject_a_changed_plaintext_flagged_encrypted_on_the_existing_api() throws GeneralSecurityException {
+        var existingApi = ApiFixtures.aProxyApiV4().toBuilder().environmentId(ENV_ID).crossId(API_CROSS_ID).build();
+        existingApi
+            .getApiDefinitionHttpV4()
+            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+        apiQueryService.initWith(List.of(existingApi));
+        when(dataEncryptor.decrypt("n3w-plaintext")).thenThrow(new GeneralSecurityException("bad padding"));
+        var spec = ApiCRDFixtures.newBaseSpec()
+            .crossId(API_CROSS_ID)
+            .properties(List.of(EncryptableProperty.builder().key("secret").value("n3w-plaintext").encrypted(true).build()))
+            .build();
+
+        assertThatExceptionOfType(ApiPropertyNotCiphertextException.class).isThrownBy(() ->
             cut.validateAndSanitize(new ValidateApiCRDDomainService.Input(AUDIT_INFO, spec))
         );
     }

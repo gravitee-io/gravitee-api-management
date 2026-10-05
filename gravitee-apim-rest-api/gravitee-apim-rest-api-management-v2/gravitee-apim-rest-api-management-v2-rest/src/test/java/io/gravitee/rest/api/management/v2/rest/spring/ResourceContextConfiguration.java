@@ -75,6 +75,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateHealthCheckScheduleDomai
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.WsdlParserDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
@@ -870,7 +871,8 @@ public class ResourceContextConfiguration {
         ParametersQueryService parametersQueryService,
         PolicyValidationDomainService policyValidationDomainService,
         PageCrudService pageCrudService,
-        KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService
+        KafkaPortRangeCrudServiceInMemory kafkaPortRangeCrudService,
+        DataEncryptor dataEncryptor
     ) {
         ValidateGroupsDomainService groupsValidator = new ValidateGroupsDomainService(groupQueryService);
         return new ValidateApiCRDUseCase(
@@ -892,7 +894,8 @@ public class ResourceContextConfiguration {
                 ),
                 new ValidatePortalNotificationDomainService(groupsValidator),
                 new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-                apiQueryService
+                apiQueryService,
+                new PropertyDomainService(dataEncryptor)
             )
         );
     }

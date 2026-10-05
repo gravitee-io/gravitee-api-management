@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
@@ -31,7 +32,6 @@ import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
-import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
@@ -64,6 +64,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
     private final ApiImportDomainService apiImportDomainService;
     private final ImportApiGroupsDomainService importApiGroupsDomainService;
+    private final PropertyDomainService propertyDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -76,7 +77,8 @@ public class ImportDefinitionUpdateDomainService {
         ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
         ImportDefinitionPageDomainService importDefinitionPageDomainService,
         ApiImportDomainService apiImportDomainService,
-        ImportApiGroupsDomainService importApiGroupsDomainService
+        ImportApiGroupsDomainService importApiGroupsDomainService,
+        PropertyDomainService propertyDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -89,6 +91,7 @@ public class ImportDefinitionUpdateDomainService {
         this.importDefinitionPageDomainService = importDefinitionPageDomainService;
         this.apiImportDomainService = apiImportDomainService;
         this.importApiGroupsDomainService = importApiGroupsDomainService;
+        this.propertyDomainService = propertyDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -112,7 +115,7 @@ public class ImportDefinitionUpdateDomainService {
             apiExport.setProperties(existingDefinition.getProperties());
         }
 
-        PropertyClassificationValidator.rejectEncryptedToPlain(
+        propertyDomainService.validateClassification(
             existingPromotedApi.getApiDefinitionValue(),
             toEncryptableProperties(apiExport.getProperties())
         );

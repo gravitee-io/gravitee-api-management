@@ -52,13 +52,16 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
+import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
@@ -165,6 +168,7 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -287,6 +291,9 @@ public class ApiServiceImplTest {
     private PropertiesService propertiesService;
 
     @Mock
+    private DataEncryptor dataEncryptor;
+
+    @Mock
     private ApiNotificationService apiNotificationService;
 
     @Mock
@@ -385,7 +392,8 @@ public class ApiServiceImplTest {
             apiCategoryService,
             removeApiFromApiProductsDomainService,
             removeApiFromSubscriptionFormDomainService,
-            apiMetadataQueryService
+            apiMetadataQueryService,
+            new PropertyDomainService(dataEncryptor)
         );
         var apiSearchService = new ApiSearchServiceImpl(
             apiRepository,
@@ -1070,6 +1078,19 @@ public class ApiServiceImplTest {
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", false, false)));
 
         assertThrows(ApiPropertyEncryptedToPlainException.class, () ->
+            apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME)
+        );
+        verify(apiRepository, never()).update(any());
+    }
+
+    @Test
+    public void should_not_update_when_a_changed_plaintext_is_flagged_encrypted() throws Exception {
+        prepareUpdate();
+        givenStoredProperties(List.of(new Property("secret-key", "encrypted-value", true, false)));
+        when(dataEncryptor.decrypt("plain-value")).thenThrow(new GeneralSecurityException("bad padding"));
+        updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "plain-value", false, true)));
+
+        assertThrows(ApiPropertyNotCiphertextException.class, () ->
             apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME)
         );
         verify(apiRepository, never()).update(any());

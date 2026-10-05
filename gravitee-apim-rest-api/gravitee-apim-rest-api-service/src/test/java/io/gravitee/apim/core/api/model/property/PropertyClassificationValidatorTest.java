@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import fixtures.definition.ApiDefinitionFixtures;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.definition.model.v4.property.Property;
 import java.util.List;
@@ -83,17 +82,6 @@ class PropertyClassificationValidatorTest {
         assertThatCode(() ->
             PropertyClassificationValidator.rejectEncryptedToPlain(List.of(STORED_ENCRYPTED), null)
         ).doesNotThrowAnyException();
-    }
-
-    @Test
-    void reads_stored_properties_from_a_v4_api() {
-        var definition = ApiDefinitionFixtures.anApiV4();
-        definition.setProperties(List.of(STORED_ENCRYPTED));
-        var incoming = List.of(EncryptableProperty.builder().key("secret").value("ciphertext").build());
-
-        assertThatThrownBy(() -> PropertyClassificationValidator.rejectEncryptedToPlain(definition, incoming)).isInstanceOf(
-            ApiPropertyEncryptedToPlainException.class
-        );
     }
 
     @Test

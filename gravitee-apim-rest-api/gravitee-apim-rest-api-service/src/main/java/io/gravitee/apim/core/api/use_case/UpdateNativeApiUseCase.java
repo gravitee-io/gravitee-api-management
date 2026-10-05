@@ -23,7 +23,6 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
-import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -78,7 +77,7 @@ public class UpdateNativeApiUseCase {
 
     private UnaryOperator<Api> rejectPlainDowngradeThenUpdate(UpdateNativeApi updateApi) {
         return existingApi -> {
-            PropertyClassificationValidator.rejectEncryptedToPlain(existingApi.getApiDefinitionValue(), updateApi.getProperties());
+            propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), updateApi.getProperties());
             var encryptedProperties = propertyDomainService.encryptProperties(updateApi.getProperties());
             return update(updateApi, encryptedProperties).apply(existingApi);
         };

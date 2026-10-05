@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service.property;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -27,6 +28,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import fixtures.definition.ApiDefinitionFixtures;
+import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
+import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.common.util.DataEncryptor;
@@ -250,6 +254,106 @@ public class PropertyDomainServiceTest {
             );
 
             assertThat(result).containsExactly(storedEncrypted);
+        }
+    }
+
+    @Nested
+    class ValidateClassification {
+
+        private final Property storedEncrypted = Property.builder().key("secret").value("ciphertext").encrypted(true).build();
+
+        @Test
+        void accepts_the_stored_ciphertext_without_decrypting() {
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("ciphertext").encrypted(true).build());
+
+            assertThatCode(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).doesNotThrowAnyException();
+            verifyNoInteractions(dataEncryptor);
+        }
+
+        @Test
+        void accepts_other_ciphertext_this_installation_can_decrypt() throws GeneralSecurityException {
+            when(dataEncryptor.decrypt("promoted-ciphertext")).thenReturn("anything");
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("promoted-ciphertext").encrypted(true).build());
+
+            assertThatCode(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void rejects_a_changed_plaintext_flagged_encrypted() throws GeneralSecurityException {
+            when(dataEncryptor.decrypt("n3w-plaintext")).thenThrow(new GeneralSecurityException("bad padding"));
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("n3w-plaintext").encrypted(true).build());
+
+            assertThatThrownBy(() -> cut.validateClassification(List.of(storedEncrypted), incoming))
+                .isInstanceOf(ApiPropertyNotCiphertextException.class)
+                .hasMessageContaining("secret")
+                .hasMessageNotContaining("n3w-plaintext")
+                .extracting("technicalCode")
+                .isEqualTo("api.property.notCiphertext");
+        }
+
+        @Test
+        void rejects_a_value_that_is_not_base64() throws GeneralSecurityException {
+            when(dataEncryptor.decrypt("n3w!")).thenThrow(new IllegalArgumentException("Illegal base64 character"));
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("n3w!").encrypted(true).build());
+
+            assertThatThrownBy(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).isInstanceOf(
+                ApiPropertyNotCiphertextException.class
+            );
+        }
+
+        @Test
+        void rejects_a_changed_plaintext_flagged_both_encrypted_and_encryptable() throws GeneralSecurityException {
+            when(dataEncryptor.decrypt("n3w")).thenThrow(new GeneralSecurityException("bad padding"));
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("n3w").encrypted(true).encryptable(true).build());
+
+            assertThatThrownBy(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).isInstanceOf(
+                ApiPropertyNotCiphertextException.class
+            );
+        }
+
+        @Test
+        void rejects_a_null_value_flagged_encrypted() {
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value(null).encrypted(true).build());
+
+            assertThatThrownBy(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).isInstanceOf(
+                ApiPropertyNotCiphertextException.class
+            );
+        }
+
+        @Test
+        void allows_renewing_with_encryptable_plaintext() {
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("n3w").encryptable(true).build());
+
+            assertThatCode(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).doesNotThrowAnyException();
+            verifyNoInteractions(dataEncryptor);
+        }
+
+        @Test
+        void leaves_new_keys_flagged_encrypted_unchecked() {
+            var incoming = List.of(EncryptableProperty.builder().key("new-key").value("whatever").encrypted(true).build());
+
+            assertThatCode(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).doesNotThrowAnyException();
+            verifyNoInteractions(dataEncryptor);
+        }
+
+        @Test
+        void still_rejects_making_an_encrypted_property_plain() {
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("ciphertext").build());
+
+            assertThatThrownBy(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).isInstanceOf(
+                ApiPropertyEncryptedToPlainException.class
+            );
+        }
+
+        @Test
+        void reads_stored_properties_from_a_v4_api() {
+            var definition = ApiDefinitionFixtures.anApiV4();
+            definition.setProperties(List.of(storedEncrypted));
+            var incoming = List.of(EncryptableProperty.builder().key("secret").value("ciphertext").build());
+
+            assertThatThrownBy(() -> cut.validateClassification(definition, incoming)).isInstanceOf(
+                ApiPropertyEncryptedToPlainException.class
+            );
         }
     }
 }

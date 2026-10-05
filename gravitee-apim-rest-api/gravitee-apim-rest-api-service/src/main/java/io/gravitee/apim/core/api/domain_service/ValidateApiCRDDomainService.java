@@ -16,8 +16,8 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
-import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.category.domain_service.ValidateCategoryIdsDomainService;
@@ -75,6 +75,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
     private final ValidateHealthCheckScheduleDomainService healthCheckScheduleValidator;
 
     private final ApiQueryService apiQueryService;
+
+    private final PropertyDomainService propertyDomainService;
 
     @Override
     public Validator.Result<ValidateApiCRDDomainService.Input> validateAndSanitize(ValidateApiCRDDomainService.Input input) {
@@ -161,7 +163,7 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
         apiQueryService
             .findByEnvironmentIdAndCrossId(input.auditInfo().environmentId(), input.spec().getCrossId())
             .ifPresent(existingApi ->
-                PropertyClassificationValidator.rejectEncryptedToPlain(existingApi.getApiDefinitionValue(), input.spec().getProperties())
+                propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), input.spec().getProperties())
             );
     }
 

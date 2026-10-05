@@ -40,6 +40,7 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
+import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -88,6 +89,7 @@ import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedLi
 import io.gravitee.rest.api.service.v4.exception.ListenerMissingException;
 import io.gravitee.rest.api.service.v4.impl.validation.ListenerValidationServiceImpl;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -1542,6 +1544,18 @@ class PatchApiUseCaseTest {
             var throwable = catchThrowable(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, false));
 
             assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
+            verify(updateApiDomainService, never()).updateV4(any(), any());
+        }
+
+        @Test
+        void rejects_a_changed_plaintext_flagged_encrypted() throws GeneralSecurityException {
+            givenExistingApi(apiWithProperties(List.of(Property.builder().key("secret-key").value("ciphertext").encrypted(true).build())));
+            when(dataEncryptor.decrypt("n3w-plaintext")).thenThrow(new GeneralSecurityException("bad padding"));
+            var body = mergePatch("properties", List.of(Map.of("key", "secret-key", "value", "n3w-plaintext", "encrypted", true)));
+
+            var throwable = catchThrowable(() -> execute(PatchApiUseCase.PatchType.MERGE_PATCH, body, false));
+
+            assertThat(throwable).isInstanceOf(ApiPropertyNotCiphertextException.class);
             verify(updateApiDomainService, never()).updateV4(any(), any());
         }
 

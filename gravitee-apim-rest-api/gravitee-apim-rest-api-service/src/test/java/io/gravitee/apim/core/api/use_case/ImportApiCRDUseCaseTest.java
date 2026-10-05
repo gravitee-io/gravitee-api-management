@@ -394,6 +394,8 @@ class ImportApiCRDUseCaseTest {
             )
         );
 
+        propertyDomainService = new PropertyDomainService(dataEncryptor);
+
         var crdValidator = new ValidateApiCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
@@ -405,7 +407,8 @@ class ImportApiCRDUseCaseTest {
             new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
             new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
-            apiQueryService
+            apiQueryService,
+            propertyDomainService
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -461,8 +464,6 @@ class ImportApiCRDUseCaseTest {
                 indexer
             )
         );
-
-        propertyDomainService = new PropertyDomainService(dataEncryptor);
 
         updateNativeApiUseCase = new UpdateNativeApiUseCase(
             apiPrimaryOwnerService,

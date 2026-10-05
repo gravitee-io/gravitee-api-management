@@ -32,6 +32,7 @@ import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
+import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
@@ -57,6 +58,7 @@ import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiService;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -254,6 +256,41 @@ class ImportDefinitionUpdateDomainServiceTest {
         var throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
 
         assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
+        verify(apiService, never()).update(any(), any(), any(), anyBoolean(), any());
+    }
+
+    @Test
+    public void should_reject_import_of_a_changed_plaintext_flagged_encrypted() throws GeneralSecurityException {
+        var baseProxyApi = ApiFixtures.aProxyApiV4();
+        ((io.gravitee.definition.model.v4.Api) baseProxyApi.getApiDefinitionValue()).setProperties(
+            List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build())
+        );
+        var existingApi = baseProxyApi
+            .toBuilder()
+            .id(PROMOTED_API_ID)
+            .crossId(PROMOTED_API_CROSS_ID)
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(existingApi));
+        apiQueryServiceInMemory.initWith(List.of(existingApi));
+        when(importDefinitionUpdateInitializer.dataEncryptor.decrypt("plaintext-from-source-env")).thenThrow(
+            new GeneralSecurityException("bad padding")
+        );
+
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(
+                ApiExport.builder()
+                    .id(PROMOTED_API_ID)
+                    .crossId(PROMOTED_API_CROSS_ID)
+                    .name("updated name")
+                    .properties(List.of(Property.builder().key("secret").value("plaintext-from-source-env").encrypted(true).build()))
+                    .build()
+            )
+            .build();
+
+        var throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
+
+        assertThat(throwable).isInstanceOf(ApiPropertyNotCiphertextException.class);
         verify(apiService, never()).update(any(), any(), any(), anyBoolean(), any());
     }
 

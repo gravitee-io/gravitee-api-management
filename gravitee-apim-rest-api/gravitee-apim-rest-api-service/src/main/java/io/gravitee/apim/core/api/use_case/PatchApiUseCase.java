@@ -31,7 +31,6 @@ import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.exception.ApiPatchNotAllowedException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
-import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
@@ -464,7 +463,7 @@ public class PatchApiUseCase {
             PatchableProperty.class,
             PatchableProperty.fromList(httpV4.getProperties())
         );
-        rejectEncryptedToPlain(httpV4.getProperties(), patchableProperties);
+        validateClassification(httpV4.getProperties(), patchableProperties);
         var properties = encryptProperties(patchableProperties);
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
 
@@ -861,11 +860,11 @@ public class PatchApiUseCase {
         return "/" + field;
     }
 
-    private static void rejectEncryptedToPlain(List<Property> storedProperties, List<PatchableProperty> patchableProperties) {
+    private void validateClassification(List<Property> storedProperties, List<PatchableProperty> patchableProperties) {
         if (patchableProperties == null) {
             return;
         }
-        PropertyClassificationValidator.rejectEncryptedToPlain(
+        propertyDomainService.validateClassification(
             storedProperties,
             patchableProperties.stream().filter(Objects::nonNull).map(PatchableProperty::toEncryptable).toList()
         );

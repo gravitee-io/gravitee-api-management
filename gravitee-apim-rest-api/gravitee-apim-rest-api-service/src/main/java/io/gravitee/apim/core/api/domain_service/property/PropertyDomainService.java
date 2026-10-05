@@ -16,9 +16,13 @@
 package io.gravitee.apim.core.api.domain_service.property;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
+import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.ApiDefinition;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.property.Property;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
@@ -57,6 +61,52 @@ public class PropertyDomainService {
             }
         }
         return asPropertyBuilder.build();
+    }
+
+    public void validateClassification(ApiDefinition storedDefinition, List<EncryptableProperty> incomingProperties) {
+        if (storedDefinition instanceof AbstractApi definition) {
+            validateClassification(definition.getProperties(), incomingProperties);
+        }
+    }
+
+    public void validateClassification(List<Property> storedProperties, List<EncryptableProperty> incomingProperties) {
+        PropertyClassificationValidator.rejectEncryptedToPlain(storedProperties, incomingProperties);
+        rejectChangedValuesThatAreNotCiphertext(storedProperties, incomingProperties);
+    }
+
+    private void rejectChangedValuesThatAreNotCiphertext(List<Property> storedProperties, List<EncryptableProperty> incomingProperties) {
+        if (storedProperties == null || incomingProperties == null) {
+            return;
+        }
+        Map<String, String> storedCiphertextByKey = storedProperties
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(Property::isEncrypted)
+            .filter(property -> property.getValue() != null)
+            .collect(Collectors.toMap(Property::getKey, Property::getValue, (first, second) -> first));
+        incomingProperties
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(EncryptableProperty::isEncrypted)
+            .filter(incoming -> storedCiphertextByKey.containsKey(incoming.getKey()))
+            .filter(incoming -> !storedCiphertextByKey.get(incoming.getKey()).equals(incoming.getValue()))
+            .filter(incoming -> !decrypts(incoming.getValue()))
+            .findFirst()
+            .ifPresent(incoming -> {
+                throw new ApiPropertyNotCiphertextException(incoming.getKey());
+            });
+    }
+
+    private boolean decrypts(String value) {
+        if (value == null) {
+            return false;
+        }
+        try {
+            dataEncryptor.decrypt(value);
+            return true;
+        } catch (GeneralSecurityException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
     public List<Property> keepStoredEncryption(String apiId, List<Property> storedProperties, List<Property> fetchedProperties) {

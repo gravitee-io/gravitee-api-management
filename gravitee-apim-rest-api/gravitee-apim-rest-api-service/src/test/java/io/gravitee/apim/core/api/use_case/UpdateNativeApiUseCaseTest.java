@@ -50,6 +50,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
+import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
@@ -385,6 +386,29 @@ public class UpdateNativeApiUseCaseTest {
         var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
 
         assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class).isThrownBy(() ->
+            cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
+        );
+        assertThat(apiCrudService.get(existingApi.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
+            Property.builder().key("secret").value("ciphertext").encrypted(true).build()
+        );
+    }
+
+    @Test
+    void should_reject_a_changed_plaintext_flagged_encrypted() throws GeneralSecurityException {
+        var existingApi = ApiFixtures.aNativeApi();
+        existingApi
+            .getApiDefinitionNativeV4()
+            .setProperties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()));
+        apiCrudService.initWith(List.of(existingApi));
+        when(dataEncryptor.decrypt("n3w-plaintext")).thenThrow(new GeneralSecurityException("bad padding"));
+        var apiToUpdate = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(List.of(EncryptableProperty.builder().key("secret").value("n3w-plaintext").encrypted(true).build()))
+            .build();
+        var auditInfo = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist");
+
+        assertThatExceptionOfType(ApiPropertyNotCiphertextException.class).isThrownBy(() ->
             cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
         );
         assertThat(apiCrudService.get(existingApi.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(

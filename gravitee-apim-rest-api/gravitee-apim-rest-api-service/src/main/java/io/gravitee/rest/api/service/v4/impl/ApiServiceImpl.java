@@ -25,9 +25,9 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
-import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProductComposition;
@@ -180,6 +180,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
     private final RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
     private final ApiMetadataQueryService apiMetadataQueryService;
+    private final PropertyDomainService propertyDomainService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
@@ -217,7 +218,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiCategoryService apiCategoryService,
         RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService,
         RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService,
-        ApiMetadataQueryService apiMetadataQueryService
+        ApiMetadataQueryService apiMetadataQueryService,
+        PropertyDomainService propertyDomainService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -252,6 +254,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.removeApiFromApiProductsDomainService = removeApiFromApiProductsDomainService;
         this.removeApiFromSubscriptionFormDomainService = removeApiFromSubscriptionFormDomainService;
         this.apiMetadataQueryService = apiMetadataQueryService;
+        this.propertyDomainService = propertyDomainService;
     }
 
     @Override
@@ -466,7 +469,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             if (updateApiEntity.getProperties() != null) {
-                PropertyClassificationValidator.rejectEncryptedToPlain(
+                propertyDomainService.validateClassification(
                     existingApiEntity.getProperties(),
                     toEncryptableProperties(updateApiEntity.getProperties())
                 );
