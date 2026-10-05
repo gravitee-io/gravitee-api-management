@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { http, HttpResponse } from 'msw';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
+
+import { licenseService } from '@gravitee/gamma-modules-sdk';
 
 import { HomePage } from './HomePage';
 import { useAuthStore } from '../../features/auth/auth.store';
 import type { GammaModule } from '../../features/modules';
 import { buildUser, TEST_GAMMA_BASE, TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ENVIRONMENT_BASE } from '../../testing/factories';
-import { respondWith, seedEnvironments } from '../../testing/helpers';
+import { respondWith, respondWithError, seedEnvironments } from '../../testing/helpers';
+import { server } from '../../testing/server';
 
 const ALL_MODULES: readonly GammaModule[] = [
     { id: 'apim', name: 'APIM Module', version: '1.0.0', remoteName: 'gravitee_gamma_module_apim', exposedModule: 'App' },
@@ -76,6 +80,7 @@ function seedMetricHandlers(overrides?: {
     } = overrides ?? {};
 
     respondWith('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, { pagination: { totalCount: apiCount } });
+    respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, {});
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/aim/catalog/agents`, { pagination: { totalCount: agentCount } });
     respondWith('get', `${TEST_MANAGEMENT_BASE}/environments/env-1-id/applications/_paged`, { page: { total_elements: appCount } });
     respondWith('get', `${TEST_GAMMA_BASE}/environments/env-1-id/modules/authz/policies`, { total: policyCount });
@@ -92,6 +97,12 @@ describe('HomePage', () => {
         seedEnvironments();
         useAuthStore.setState({ user: buildUser({ firstname: 'John', displayName: 'John Doe' }) });
         seedMetricHandlers();
+        licenseService.setLicense(null);
+    });
+
+    afterEach(() => {
+        licenseService.setLicense(null);
+        jest.restoreAllMocks();
     });
 
     it('should render all module headings when all modules are present', async () => {
@@ -169,6 +180,34 @@ describe('HomePage', () => {
         seedMetricHandlers({ apiCount: 24 });
         renderHome(ALL_MODULES);
         expect(await screen.findByText((_content, el) => el?.tagName === 'P' && /24\s+APIs/.test(el.textContent ?? ''))).toBeTruthy();
+    });
+
+    it('should include federated APIs in the API Management card count when federation is enabled and licensed', async () => {
+        respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { federation: { enabled: true } });
+        licenseService.setLicense({ tier: 'enterprise', packs: [], features: [], isExpired: false });
+        const requestedApiTypes: string[][] = [];
+        server.use(
+            http.post(`${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, async ({ request }) => {
+                const apiTypes = ((await request.json()) as { apiTypes?: string[] }).apiTypes ?? [];
+                requestedApiTypes.push(apiTypes);
+                return HttpResponse.json({ pagination: { totalCount: apiTypes.includes('FEDERATED') ? 26 : 24 } });
+            }),
+        );
+
+        renderHome(ALL_MODULES);
+
+        expect(await screen.findByText((_content, el) => el?.tagName === 'P' && /26\s+APIs/.test(el.textContent ?? ''))).toBeTruthy();
+        expect(requestedApiTypes).toEqual([['V4_HTTP_PROXY', 'V4_TCP_PROXY', 'FEDERATED']]);
+    });
+
+    it('should settle the API Management card on its empty state without a count when the count request fails', async () => {
+        respondWithError('post', `${TEST_MANAGEMENT_V2_ENVIRONMENT_BASE}/env-1-id/apis/_search`, 500);
+
+        renderHome(ALL_MODULES);
+
+        const card = screen.getByRole('heading', { level: 3, name: 'API Management' }).closest('a')!;
+        expect(await within(card).findByText('Create your first API')).toBeTruthy();
+        expect(within(card).queryByText((_content, el) => el?.tagName === 'P' && /\d\s+APIs?\b/.test(el.textContent ?? ''))).toBeNull();
     });
 
     it('should pluralize the API count correctly for a single API', async () => {

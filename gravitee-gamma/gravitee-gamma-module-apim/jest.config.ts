@@ -40,6 +40,7 @@ export default {
         '^@gravitee/gamma-ui-shared/api$': '<rootDir>/../gamma-ui-shared/src/api/index.ts',
         '^@gravitee/gamma-ui-shared/chip-input$': '<rootDir>/../gamma-ui-shared/src/chip-input/index.ts',
         '^@gravitee/gamma-ui-shared/cors$': '<rootDir>/../gamma-ui-shared/src/cors/index.ts',
+        '^@gravitee/gamma-ui-shared/federation$': '<rootDir>/../gamma-ui-shared/src/federation/index.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
