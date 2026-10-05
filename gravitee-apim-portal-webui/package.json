@@ -89,7 +89,7 @@
     "@messageformat/core": "3.4.0",
     "@ngneat/spectator": "22.1.0",
     "@types/jest": "30.0.0",
-    "@types/node": "22.20.2",
+    "@types/node": "22.20.5",
     "@typescript-eslint/eslint-plugin": "8.70.0",
     "@typescript-eslint/parser": "8.70.0",
     "@webcomponents/webcomponentsjs": "2.8.0",
