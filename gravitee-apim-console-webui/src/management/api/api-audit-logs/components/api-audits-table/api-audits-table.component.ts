@@ -16,7 +16,8 @@
 
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Audit, Pagination } from '../../../../../entities/management-api-v2';
+import { Audit, AuditProperty, Pagination } from '../../../../../entities/management-api-v2';
+import { isAuditTarget } from '../../../../../entities/audit/auditTargets';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 @Component({
@@ -42,6 +43,10 @@ export class ApiAuditsTableComponent {
 
   @Output()
   public paginationChange = new EventEmitter<Pagination>();
+
+  protected extractTargets(audit: Audit): AuditProperty[] {
+    return (audit.properties ?? []).filter(property => isAuditTarget(property.key));
+  }
 
   protected tableWrapperFilterChange(event: GioTableWrapperFilters) {
     this.paginationChange.emit({
