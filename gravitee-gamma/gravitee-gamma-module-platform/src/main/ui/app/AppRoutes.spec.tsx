@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { License } from '@gravitee/gamma-modules-sdk/types';
+import { dataTableHarness } from '@gravitee/graphene-core/testing';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentType } from 'react';
@@ -561,6 +562,30 @@ function spyOnIntegrationCreateAndListFetch(created: { id: string }) {
     });
 }
 
+const DEFAULT_ENVIRONMENT_INTEGRATIONS_URL = 'https://apim.test/management/v2/environments/DEFAULT/integrations';
+
+function spyOnA2aCreateFetch(created: { id: string }) {
+    resetApimClientForTests();
+    let createRequested = false;
+    return jest.spyOn(global, 'fetch').mockImplementation((input, init) => {
+        const url = String(input);
+        if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
+        if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
+        if (init?.method === 'POST' && url === DEFAULT_ENVIRONMENT_INTEGRATIONS_URL) {
+            createRequested = true;
+            return jsonResponse({ ...created, wellKnownUrls: [], groups: [] }, 201);
+        }
+        if (url.split('?')[0] === DEFAULT_ENVIRONMENT_INTEGRATIONS_URL) {
+            return createRequested
+                ? jsonResponse({ data: [created], pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 } })
+                : okIntegrationsResponse();
+        }
+        if (url.endsWith(`/integrations/${created.id}/permissions`)) return jsonResponse({ DEFINITION: 'R' });
+        if (url.endsWith(`/integrations/${created.id}`)) return jsonResponse(created);
+        return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
+    });
+}
+
 function renderIntegrationOverviewUrl(integrationId: string) {
     renderIntegrationPath(`/integrations/${integrationId}`);
 }
@@ -1095,7 +1120,7 @@ describe('AppRoutes', () => {
         },
     );
 
-    it('opens the create-integration page on its provider-selection step instead of reading new as an integration id', async () => {
+    it('opens the create-integration page on its provider-selection step at its provider create route', async () => {
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
@@ -1103,7 +1128,7 @@ describe('AppRoutes', () => {
         renderIntegrationPath('/integrations/new');
 
         expect(await screen.findByRole('heading', { name: 'Create a new integration' })).not.toBeNull();
-        expect(within(screen.getByRole('radiogroup', { name: 'Provider' })).getAllByRole('radio')).toHaveLength(8);
+        expect(within(screen.getByRole('radiogroup', { name: 'Provider' })).getAllByRole('radio')).toHaveLength(9);
         expect(screen.queryByTestId('integration-overview-page')).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/integrations/new');
         expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
@@ -1128,7 +1153,7 @@ describe('AppRoutes', () => {
         fetchSpy.mockRestore();
     });
 
-    it('redirects a direct create-integration visit to the Integrations list when the user lacks environment-integration-c', async () => {
+    it('redirects a direct /integrations/new visit to the Integrations list when the user lacks environment-integration-c', async () => {
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
@@ -1138,39 +1163,84 @@ describe('AppRoutes', () => {
         await act(async () => {});
 
         expect(screen.queryByRole('heading', { name: 'Create a new integration' })).toBeNull();
-        expect(screen.queryByRole('radiogroup', { name: 'Provider' })).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/integrations');
         fetchSpy.mockRestore();
     });
 
     // The list stays mounted while the create runs so only the create's invalidation, not a remount, can refetch it.
-    it('shows the created integration in the Integrations list under the entered name after a successful create', async () => {
-        mockUseRealIntegrationsPage = true;
-        const user = userEvent.setup();
-        const created = { id: 'created-1', name: 'My integration', provider: 'mulesoft', agentStatus: 'CONNECTED' };
-        const fetchSpy = spyOnIntegrationCreateAndListFetch(created);
-        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
-        mockSetLicense(ENTITLED_LICENSE);
+    it.each([
+        [
+            'MuleSoft',
+            '/integrations/new',
+            'env-1',
+            { id: 'created-1', name: 'My integration', provider: 'mulesoft', agentStatus: 'CONNECTED' },
+            spyOnIntegrationCreateAndListFetch,
+            'https://apim.test/management/v2/environments/env-1/integrations',
+            'MuleSoft',
+            async (user: ReturnType<typeof userEvent.setup>, created: { name: string }) => {
+                await user.click(await screen.findByRole('radio', { name: 'MuleSoft' }));
+                await user.type(screen.getByRole('textbox', { name: /^Name/ }), created.name);
+            },
+        ],
+        [
+            'A2A',
+            '/integrations/new',
+            'DEFAULT',
+            { id: 'billing-agents-created', name: 'Billing Agents', description: 'Invoice agents', provider: 'A2A' },
+            spyOnA2aCreateFetch,
+            DEFAULT_ENVIRONMENT_INTEGRATIONS_URL,
+            'A2A Protocol',
+            async (user: ReturnType<typeof userEvent.setup>, created: { name: string; description?: string }) => {
+                await user.click(await screen.findByRole('radio', { name: 'A2A Protocol' }));
+                await user.click(screen.getByRole('textbox', { name: /^Name/ }));
+                await user.paste(created.name);
+                await user.click(screen.getByRole('textbox', { name: /^Description/ }));
+                await user.paste(created.description ?? '');
+                for (const url of [
+                    'https://billing.example.com/.well-known/agent-card.json',
+                    'https://search.example.com/.well-known/agent-card.json',
+                ]) {
+                    await user.click(screen.getByRole('button', { name: 'Add another URL' }));
+                    const urlInputs = screen.getAllByRole('textbox', { name: /^Well-known URL \d+$/ });
+                    await user.click(urlInputs[urlInputs.length - 1]);
+                    await user.paste(url);
+                }
+            },
+        ],
+    ])(
+        'shows the created %s integration in the Integrations list under the entered name after a successful create',
+        async (_provider, path, environmentId, created, spyOnFetch, createUrl, providerLabel, fillForm) => {
+            mockUseRealIntegrationsPage = true;
+            mockUseEnvironment.mockReturnValue({ id: environmentId });
+            const user = userEvent.setup();
+            const fetchSpy = spyOnFetch(created);
+            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+            mockSetLicense(ENTITLED_LICENSE);
 
-        const listView = render(
-            <MemoryRouter initialEntries={['/integrations']}>
-                <AppRoutes />
-            </MemoryRouter>,
-        );
-        expect(await within(listView.container).findByText('No integrations yet')).not.toBeNull();
+            const listView = render(
+                <MemoryRouter initialEntries={['/integrations']}>
+                    <AppRoutes />
+                </MemoryRouter>,
+            );
+            expect(await within(listView.container).findByText('No integrations yet')).not.toBeNull();
 
-        renderIntegrationPath('/integrations/new');
-        await user.click(await screen.findByRole('radio', { name: 'MuleSoft' }));
-        await user.type(screen.getByRole('textbox', { name: /^Name/ }), created.name);
-        await user.click(screen.getByRole('button', { name: 'Create' }));
-        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${created.id}`));
+            renderIntegrationPath(path);
+            await fillForm(user, created);
+            expect(screen.getByTestId('location').textContent).toBe(path);
+            await user.click(screen.getByRole('button', { name: 'Create' }));
+            await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${created.id}`));
 
-        expect(integrationCreateRequestUrls(fetchSpy)).toEqual(['https://apim.test/management/v2/environments/env-1/integrations']);
-        expect(await within(listView.container).findByRole('link', { name: created.name })).not.toBeNull();
-        fetchSpy.mockRestore();
-    });
+            expect(integrationCreateRequestUrls(fetchSpy)).toEqual([createUrl]);
+            expect(await within(listView.container).findByRole('link', { name: created.name })).not.toBeNull();
+            const listTable = dataTableHarness({ within: within(listView.container).getByRole('region', { name: 'Integrations' }) });
+            expect(listTable.getRow(created.name).getCellText('Provider')).toBe(providerLabel);
+            const requestedUrls = fetchSpy.mock.calls.map(([input]) => String(input).split('?')[0]);
+            expect(requestedUrls.filter(url => /\/_(preview|ingest)$/.test(url))).toEqual([]);
+            fetchSpy.mockRestore();
+        },
+    );
 
-    it('returns to the Integrations list from the create-integration page Back button', async () => {
+    it('returns to the Integrations list from the /integrations/new Back button', async () => {
         const user = userEvent.setup();
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });

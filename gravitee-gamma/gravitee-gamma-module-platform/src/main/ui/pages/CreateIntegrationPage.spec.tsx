@@ -60,12 +60,22 @@ beforeAll(() => {
     });
 });
 
-function renderPage() {
-    renderWithGraphene(
+function pageElement() {
+    return (
         <MemoryRouter>
             <CreateIntegrationPage />
-        </MemoryRouter>,
+        </MemoryRouter>
     );
+}
+
+function renderPage() {
+    return renderWithGraphene(pageElement());
+}
+
+function setCreatePending(isPending: boolean) {
+    mockUseCreateIntegration.mockReturnValue({ mutateAsync: mockMutateAsync, isPending } as unknown as ReturnType<
+        typeof useCreateIntegration
+    >);
 }
 
 function checkedProviderNames(): string[] {
@@ -90,12 +100,12 @@ describe('CreateIntegrationPage', () => {
         expect(checkedProviderNames()).toEqual([]);
     });
 
-    it('checks the provider the user picks', async () => {
+    it.each([{ provider: 'MuleSoft' }, { provider: 'A2A Protocol' }])('checks $provider when the user picks it', async ({ provider }) => {
         renderPage();
 
-        await userEvent.click(screen.getByRole('radio', { name: 'MuleSoft' }));
+        await userEvent.click(screen.getByRole('radio', { name: provider }));
 
-        expect(checkedProviderNames()).toEqual(['MuleSoft']);
+        expect(checkedProviderNames()).toEqual([provider]);
     });
 
     it('goes back to the Integrations list', async () => {
@@ -246,5 +256,71 @@ describe('CreateIntegrationPage', () => {
         expect(screen.getByRole('textbox', { name: /^Name/ })).toHaveValue('My integration');
         expect(screen.getByRole('textbox', { name: /^Description/ })).toHaveValue('Ingests the EU gateways');
         expect(screen.getByRole('radio', { name: integrationProviderLabel('solace') })).toBeChecked();
+    });
+
+    it('locks the provider choice while an A2A create is in flight and unlocks it once the create ends', async () => {
+        const user = userEvent.setup();
+        const view = renderPage();
+        await user.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
+
+        setCreatePending(true);
+        view.rerender(pageElement());
+
+        await waitFor(() => screen.getAllByRole('radio').forEach(radio => expect(radio).toBeDisabled()));
+        await user.click(screen.getByRole('radio', { name: 'MuleSoft' }));
+        expect(checkedProviderNames()).toEqual(['A2A Protocol']);
+
+        setCreatePending(false);
+        view.rerender(pageElement());
+
+        await waitFor(() => screen.getAllByRole('radio').forEach(radio => expect(radio).toBeEnabled()));
+    });
+
+    it('asks for well-known URLs only once A2A Protocol is picked', async () => {
+        renderPage();
+
+        await userEvent.click(screen.getByRole('radio', { name: 'Solace' }));
+        expect(screen.queryByRole('button', { name: 'Add another URL' })).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
+        expect(screen.getByRole('button', { name: 'Add another URL' })).toBeInTheDocument();
+        expect(screen.getByRole('textbox', { name: /^Name/ })).toBeInTheDocument();
+        expect(screen.getByRole('textbox', { name: /^Description/ })).toBeInTheDocument();
+    });
+
+    it('creates an A2A integration with provider A2A and its well-known URLs, notifies success, and opens it', async () => {
+        mockMutateAsync.mockResolvedValue({ id: 'a2a-created-id', name: 'Billing Agents', provider: 'A2A' });
+        const user = userEvent.setup();
+        renderPage();
+
+        await user.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
+        await user.click(screen.getByRole('textbox', { name: /^Name/ }));
+        await user.paste('Billing Agents');
+        await user.click(screen.getByRole('button', { name: 'Add another URL' }));
+        await user.click(screen.getByRole('textbox', { name: 'Well-known URL 1' }));
+        await user.paste('https://billing.example.com/.well-known/agent-card.json');
+        await user.click(screen.getByRole('button', { name: 'Create' }));
+
+        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
+        expect(mockMutateAsync).toHaveBeenCalledTimes(1);
+        expect(mockMutateAsync).toHaveBeenCalledWith({
+            name: 'Billing Agents',
+            description: '',
+            provider: 'A2A',
+            wellKnownUrls: ['https://billing.example.com/.well-known/agent-card.json'],
+        });
+        expect(mockNotify.success).toHaveBeenCalledWith('Integration Billing Agents created successfully');
+        expect(mockNavigate).toHaveBeenCalledWith('../a2a-created-id');
+    });
+
+    it('drops back to the gateway form without well-known URLs when the user switches from A2A to another provider', async () => {
+        const user = userEvent.setup();
+        renderPage();
+
+        await user.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
+        await user.click(screen.getByRole('radio', { name: 'Solace' }));
+
+        expect(screen.queryByRole('button', { name: 'Add another URL' })).not.toBeInTheDocument();
+        expect(checkedProviderNames()).toEqual(['Solace']);
     });
 });
