@@ -21,6 +21,7 @@ import {
     API_PROXY_NAV_GROUPS,
     ApiDetailSidebarNav,
     withApiScoreEnabled,
+    withDocumentationPermission,
     withFederatedRestrictions,
     withMetadataPermission,
     withObservabilityLinks,
@@ -71,6 +72,7 @@ describe('API_PROXY_NAV_GROUPS', () => {
             'user-permissions',
             'authorization',
             'metadata',
+            'documentation',
             'api-score',
         ]);
         expect(general.items.find(i => i.path === 'general')!.label).toBe('Settings');
@@ -113,6 +115,11 @@ describe('ApiDetailSidebarNav — flat links', () => {
     it('renders the Metadata link with the correct href', () => {
         renderNav(`${BASE}/overview`);
         expect(screen.getByRole('link', { name: /^metadata$/i })).toHaveAttribute('href', `${BASE}/metadata`);
+    });
+
+    it('keeps Documentation highlighted while one of its pages is being edited', () => {
+        renderNav(`${BASE}/documentation/page-7/edit`);
+        expect(screen.getByRole('link', { name: /^documentation$/i })).toHaveAttribute('aria-current', 'page');
     });
 
     it('renders API Score as a navigable link', () => {
@@ -202,6 +209,7 @@ describe('withTcpRestrictions', () => {
         expect(paths).not.toContain('endpoints/failover');
         expect(paths).not.toContain('endpoints/health-check-dashboard');
         expect(paths).not.toContain('consumers');
+        expect(paths).not.toContain('documentation');
     });
 
     it('keeps flat deployment and reporter links under Operations', () => {
@@ -238,7 +246,10 @@ const FEDERATED_HIDDEN_PATHS = [
     'response-templates',
 ];
 
-const FEDERATED_KEPT_PATHS = ['general', 'plans', 'consumers', 'broadcasts', 'user-permissions', 'audit-logs'];
+// 'documentation' is here, not in FEDERATED_HIDDEN_PATHS, because a federated API does have portal
+// documentation even though it has no gateway definition — the classic console's federated menu builds the
+// same Documentation entry (api-federated-menu.service.ts), gated only on api-documentation-r.
+const FEDERATED_KEPT_PATHS = ['general', 'plans', 'consumers', 'broadcasts', 'user-permissions', 'audit-logs', 'documentation'];
 
 // Snapshotted at module load, and by value rather than by reference: API_PROXY_NAV_GROUPS is one structure shared
 // by every call, so a filter that pruned or re-shaped it in place would leave any expected value read later —
@@ -314,6 +325,19 @@ describe('withMetadataPermission', () => {
         const general = restricted.find(g => g.label === 'General')!;
         expect(general.items.find(item => item.path === 'metadata')).toBeUndefined();
         expect(general.items.find(item => item.path === 'user-permissions')).toBeDefined();
+    });
+});
+
+describe('withDocumentationPermission', () => {
+    it('returns the groups unchanged when the user can read documentation', () => {
+        expect(withDocumentationPermission(GROUPS, true)).toBe(GROUPS);
+    });
+
+    it('omits Documentation from the General group when the user lacks api-documentation-r', () => {
+        const restricted = withDocumentationPermission(GROUPS, false);
+        const general = restricted.find(g => g.label === 'General')!;
+        expect(general.items.find(item => item.path === 'documentation')).toBeUndefined();
+        expect(general.items.find(item => item.path === 'metadata')).toBeDefined();
     });
 });
 

@@ -18,6 +18,7 @@ import {
     ActivityIcon,
     AlignLeftIcon,
     BellIcon,
+    BookOpenIcon,
     ClockIcon,
     DatabaseIcon,
     ExternalLinkIcon,
@@ -91,6 +92,7 @@ export const API_PROXY_NAV_GROUPS: DetailNavGroup[] = [
             { path: 'user-permissions', label: 'User Permissions', icon: UsersIcon },
             { path: 'authorization', label: 'Authorization', icon: LockIcon, comingSoon: true },
             { path: 'metadata', label: 'Metadata', icon: DatabaseIcon },
+            { path: 'documentation', label: 'Documentation', icon: BookOpenIcon, end: false },
             { path: 'api-score', label: 'API Score', icon: SparklesIcon },
         ],
     },
@@ -192,6 +194,7 @@ export const FEDERATED_ALLOWED_PATHS: ReadonlySet<string> = new Set([
     'broadcasts',
     'audit-logs',
     'api-score',
+    'documentation',
 ]);
 
 export function withFederatedRestrictions(groups: DetailNavGroup[], isFederated: boolean): DetailNavGroup[] {
@@ -209,6 +212,14 @@ export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata
     return groups.map(group => ({
         ...group,
         items: group.items.filter(item => item.path !== 'metadata'),
+    }));
+}
+
+export function withDocumentationPermission(groups: DetailNavGroup[], canReadDocumentation: boolean): DetailNavGroup[] {
+    if (canReadDocumentation) return groups;
+    return groups.map(group => ({
+        ...group,
+        items: group.items.filter(item => item.path !== 'documentation'),
     }));
 }
 

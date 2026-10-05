@@ -761,7 +761,16 @@ describe('ApiInfoHeader', () => {
 // ─── Sidebar navigation ───────────────────────────────────────────────────────
 
 // One label per API_PROXY_NAV_GROUPS group, so a nav missing a whole group cannot pass.
-const NAV_ITEM_LABELS = ['Overview', 'Entrypoints', 'Policy Studio', 'Plans', 'User Permissions', 'Audit Logs', 'Sharding Tags'];
+const NAV_ITEM_LABELS = [
+    'Overview',
+    'Entrypoints',
+    'Policy Studio',
+    'Plans',
+    'User Permissions',
+    'Audit Logs',
+    'Sharding Tags',
+    'Documentation',
+];
 
 // Every API_PROXY_NAV_GROUPS item renders as exactly one of these: a NavLink, a collapsible parent button, or a
 // coming-soon row carrying role="button" — so an empty result for both roles means no nav item rendered at all.
@@ -797,6 +806,16 @@ describe('ApiDetailSidebarNav in the detail layout', () => {
         for (const label of NAV_ITEM_LABELS) {
             expect(screen.getByText(label)).toBeInTheDocument();
         }
+    });
+
+    it('hides Documentation from a user without api-documentation-r, leaving the rest of the nav alone', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-documentation-r'));
+        (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'Payment Gateway' }, isLoading: false, isError: false });
+        renderLayout();
+        renderSidebar();
+
+        expect(screen.queryByText('Documentation')).not.toBeInTheDocument();
+        expect(screen.getByText('Metadata')).toBeInTheDocument();
     });
 
     it('renders no navigation item once a refetch fails on an already-loaded API', () => {
@@ -847,6 +866,7 @@ const FEDERATED_SHOWN_LABELS = [
     'Settings',
     'User Permissions',
     'Metadata',
+    'Documentation',
     'Plans',
     'Subscriptions',
     'Broadcasts',
@@ -866,6 +886,9 @@ const FEDERATED_KEPT_LINKS: [label: string, path: string][] = [
     // Kept for the api-metadata-r holder the default useHasPermission mock stands in for: federation must not be
     // the thing that removes it, so this entry fails the moment 'metadata' joins the federated omission set.
     ['Metadata', 'metadata'],
+    // Same for documentation: a federated API's pages are still portal documentation, and the classic console's
+    // federated menu shows them.
+    ['Documentation', 'documentation'],
 ];
 
 const API_BASE_PATH = '/apis/abc-123';
