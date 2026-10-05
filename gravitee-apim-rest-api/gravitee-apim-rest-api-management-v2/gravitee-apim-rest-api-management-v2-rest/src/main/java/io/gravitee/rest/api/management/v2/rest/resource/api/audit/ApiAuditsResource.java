@@ -83,7 +83,8 @@ public class ApiAuditsResource extends AbstractResource {
             executionContext.getEnvironmentId(),
             Optional.ofNullable(params.getFrom()),
             Optional.ofNullable(params.getTo()),
-            params.getEvents()
+            params.getEvents(),
+            params.isEncryptedOnly()
         );
         return new SearchApiAuditUseCase.Input(query, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
     }

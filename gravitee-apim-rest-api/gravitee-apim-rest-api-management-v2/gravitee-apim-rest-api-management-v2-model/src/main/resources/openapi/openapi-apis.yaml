@@ -3089,6 +3089,7 @@ paths:
                 - $ref: "#/components/parameters/from"
                 - $ref: "#/components/parameters/to"
                 - $ref: "#/components/parameters/auditEvents"
+                - $ref: "#/components/parameters/auditEncrypted"
             tags:
                 - API Audits
             summary: Get API Audit
@@ -9982,6 +9983,13 @@ components:
                 type: array
                 items:
                     type: string
+        auditEncrypted:
+            name: encrypted
+            description: Filter on audit entries that involve an encrypted property. Only 'true' is supported.
+            in: query
+            required: false
+            schema:
+                type: boolean
         eventTypes:
             name: types
             description: List of event types to filter on.

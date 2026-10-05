@@ -74,7 +74,8 @@ class AuditQueryServiceImplTest {
                 "environment-id",
                 Optional.of(2L),
                 Optional.of(100L),
-                Set.of("event-1", "event-2")
+                Set.of("event-1", "event-2"),
+                false
             );
             var pageable = new PageableImpl(0, 50);
 
@@ -92,12 +93,34 @@ class AuditQueryServiceImplTest {
                 assertThat(criteria.getEvents()).containsExactlyInAnyOrderElementsOf(List.of("event-1", "event-2"));
                 assertThat(criteria.getFrom()).isEqualTo(2L);
                 assertThat(criteria.getTo()).isEqualTo(100L);
+                assertThat(criteria.getProperties()).isNullOrEmpty();
             });
 
             assertThat(pageableCaptor.getValue()).satisfies(pageParam -> {
                 assertThat(pageParam.pageNumber()).isZero();
                 assertThat(pageParam.pageSize()).isEqualTo(50);
             });
+        }
+
+        @Test
+        @SneakyThrows
+        void should_query_only_encrypted_entries_when_asked() {
+            when(auditRepository.search(any(), any())).thenReturn(new Page<>(List.of(), 0, 0, 0));
+            var query = new ApiAuditQueryFilters(
+                "api-id",
+                "organization-id",
+                "environment-id",
+                Optional.empty(),
+                Optional.empty(),
+                Set.of(),
+                true
+            );
+
+            service.searchApiAudit(query, new PageableImpl(1, 10));
+
+            var queryCaptor = ArgumentCaptor.forClass(AuditCriteria.class);
+            verify(auditRepository).search(queryCaptor.capture(), any());
+            assertThat(queryCaptor.getValue().getProperties()).isEqualTo(Map.of("ENCRYPTED", "true"));
         }
 
         @Test
@@ -126,7 +149,8 @@ class AuditQueryServiceImplTest {
                 "environment-id",
                 Optional.of(2L),
                 Optional.of(100L),
-                Set.of("event-1")
+                Set.of("event-1"),
+                false
             );
             var pageable = new PageableImpl(0, 50);
 

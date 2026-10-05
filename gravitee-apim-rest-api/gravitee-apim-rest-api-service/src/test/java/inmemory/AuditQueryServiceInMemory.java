@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class AuditQueryServiceInMemory implements AuditQueryService, InMemoryAlternative<AuditEntity> {
 
@@ -40,7 +41,16 @@ public class AuditQueryServiceInMemory implements AuditQueryService, InMemoryAlt
 
     @Override
     public SearchResponse searchApiAudit(ApiAuditQueryFilters query, Pageable pageable) {
-        return search(query.apiId(), query.environmentId(), query.organizationId(), query.events(), query.from(), query.to(), pageable);
+        return search(
+            query.apiId(),
+            query.environmentId(),
+            query.organizationId(),
+            query.events(),
+            query.from(),
+            query.to(),
+            audit -> !query.encryptedOnly() || "true".equals(audit.getProperties().get("ENCRYPTED")),
+            pageable
+        );
     }
 
     private SearchResponse search(
@@ -50,6 +60,7 @@ public class AuditQueryServiceInMemory implements AuditQueryService, InMemoryAlt
         java.util.Set<String> events,
         java.util.Optional<Long> from,
         java.util.Optional<Long> to,
+        Predicate<AuditEntity> matchesProperties,
         Pageable pageable
     ) {
         var pageNumber = pageable.getPageNumber();
@@ -63,6 +74,7 @@ public class AuditQueryServiceInMemory implements AuditQueryService, InMemoryAlt
             .filter(audit -> events.isEmpty() || events.contains(audit.getEvent()))
             .filter(audit -> from.map(f -> audit.getCreatedAt().toInstant().isAfter(new Date(f).toInstant())).orElse(true))
             .filter(audit -> to.map(t -> audit.getCreatedAt().toInstant().isBefore(new Date(t).toInstant())).orElse(true))
+            .filter(matchesProperties)
             .sorted(Comparator.comparing(AuditEntity::getCreatedAt).reversed())
             .toList();
 
@@ -80,6 +92,7 @@ public class AuditQueryServiceInMemory implements AuditQueryService, InMemoryAlt
             query.events(),
             query.from(),
             query.to(),
+            audit -> true,
             pageable
         );
     }
