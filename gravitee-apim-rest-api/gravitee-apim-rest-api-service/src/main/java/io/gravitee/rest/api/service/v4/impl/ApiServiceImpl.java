@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.rest.api.model.WorkflowState.DRAFT;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static java.util.Collections.singleton;
@@ -28,6 +29,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
+import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProductComposition;
@@ -40,6 +42,7 @@ import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -48,6 +51,7 @@ import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.LifecycleState;
@@ -126,6 +130,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -337,7 +342,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         auditService.createApiAuditLog(
             executionContext,
             AuditService.AuditLogData.builder()
-                .properties(Collections.emptyMap())
+                .properties(encryptedPropertyAuditProperties(null, apiEntity.getProperties()))
                 .event(API_CREATED)
                 .createdAt(createdApi.getCreatedAt())
                 .oldValue(null)
@@ -564,7 +569,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
-                    .properties(Collections.emptyMap())
+                    .properties(encryptedPropertyAuditProperties(existingApiEntity.getProperties(), updateApiEntity.getProperties()))
                     .event(API_UPDATED)
                     .createdAt(updatedApi.getUpdatedAt())
                     .oldValue(apiToUpdate)
@@ -743,7 +748,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
-                    .properties(Collections.emptyMap())
+                    .properties(encryptedPropertyAuditProperties(apiEntity.getProperties(), null))
                     .event(API_DELETED)
                     .createdAt(new Date())
                     .oldValue(api)
@@ -867,6 +872,20 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 e
             );
         }
+    }
+
+    private static Map<Audit.AuditProperties, String> encryptedPropertyAuditProperties(
+        List<? extends Property> oldProperties,
+        List<? extends Property> newProperties
+    ) {
+        Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
+        if (
+            EncryptedPropertyAuditMarker.holdsEncryptedProperty(oldProperties) ||
+            EncryptedPropertyAuditMarker.holdsEncryptedProperty(newProperties)
+        ) {
+            auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
+        }
+        return auditProperties;
     }
 
     private static List<EncryptableProperty> toEncryptableProperties(List<PropertyEntity> properties) {
