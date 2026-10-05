@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.common.http.MediaType;
@@ -33,12 +34,14 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 
 public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
@@ -47,6 +50,9 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
     @Inject
     private UpdatePortalNavigationItemUseCase updatePortalNavigationItemUseCase;
+
+    @Inject
+    private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -94,5 +100,18 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
             )
         );
         return mapper.map(output.updatedItem());
+    }
+
+    @DELETE
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.DELETE }) })
+    public Response deleteApiPortalNavigationItem(@PathParam("apiId") String apiId, @PathParam("navId") String navigationItemId) {
+        var environmentId = GraviteeContext.getCurrentEnvironment();
+        var itemId = PortalNavigationItemId.of(navigationItemId);
+        apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, itemId);
+
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(GraviteeContext.getCurrentOrganization(), environmentId, itemId)
+        );
+        return Response.noContent().build();
     }
 }
