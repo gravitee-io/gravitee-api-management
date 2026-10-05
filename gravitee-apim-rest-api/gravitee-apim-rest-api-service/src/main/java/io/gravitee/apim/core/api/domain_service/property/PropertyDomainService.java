@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -107,6 +108,29 @@ public class PropertyDomainService {
         } catch (GeneralSecurityException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public List<Property> encryptRestoredValuesOfEncryptedKeys(List<Property> storedProperties, List<Property> restoredProperties) {
+        if (storedProperties == null || restoredProperties == null) {
+            return restoredProperties;
+        }
+        Set<String> encryptedKeys = storedProperties
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(Property::isEncrypted)
+            .map(Property::getKey)
+            .collect(Collectors.toSet());
+        return encryptProperties(
+            restoredProperties
+                .stream()
+                .filter(Objects::nonNull)
+                .map(restored -> {
+                    var encryptable = EncryptableProperty.fromProperty(restored);
+                    encryptable.setEncryptable(encryptedKeys.contains(restored.getKey()));
+                    return encryptable;
+                })
+                .toList()
+        );
     }
 
     public List<Property> keepStoredEncryption(String apiId, List<Property> storedProperties, List<Property> fetchedProperties) {

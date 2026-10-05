@@ -135,6 +135,29 @@ public class PropertyDomainServiceTest {
         assertThat(result).isNotNull().isEmpty();
     }
 
+    @Test
+    public void should_encrypt_restored_plain_values_of_keys_stored_encrypted() throws GeneralSecurityException {
+        when(dataEncryptor.encrypt("old")).thenReturn("old-ciphertext");
+        var stored = List.of(Property.builder().key("secret").value("current-ciphertext").encrypted(true).build());
+        var restored = List.of(Property.builder().key("secret").value("old").build(), Property.builder().key("plain").value("v").build());
+
+        var result = cut.encryptRestoredValuesOfEncryptedKeys(stored, restored);
+
+        assertThat(result).containsExactly(
+            Property.builder().key("secret").value("old-ciphertext").encrypted(true).build(),
+            Property.builder().key("plain").value("v").build()
+        );
+    }
+
+    @Test
+    public void should_keep_restored_ciphertext_as_is() {
+        var stored = List.of(Property.builder().key("secret").value("current-ciphertext").encrypted(true).build());
+        var restored = List.of(Property.builder().key("secret").value("old-ciphertext").encrypted(true).build());
+
+        assertThat(cut.encryptRestoredValuesOfEncryptedKeys(stored, restored)).isEqualTo(restored);
+        verifyNoInteractions(dataEncryptor);
+    }
+
     @Nested
     class KeepStoredEncryption {
 

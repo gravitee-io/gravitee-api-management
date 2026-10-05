@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.mapper.V4toV2RollbackOperator;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -81,6 +82,7 @@ public class RollbackApiUseCase {
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiStateDomainService apiStateService;
     private final UpdateNativeApiDomainService updateNativeApiDomainService;
+    private final PropertyDomainService propertyDomainService;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -95,6 +97,14 @@ public class RollbackApiUseCase {
 
                 //update the description since the description is not stored in the definition
                 rollbackedApi.setDescription(api.getDescription());
+
+                var restoredDefinition = rollbackedApi.getApiDefinitionHttpV4();
+                restoredDefinition.setProperties(
+                    propertyDomainService.encryptRestoredValuesOfEncryptedKeys(
+                        toRollback.getApiDefinitionHttpV4().getProperties(),
+                        restoredDefinition.getProperties()
+                    )
+                );
 
                 var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
 
