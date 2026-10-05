@@ -195,6 +195,28 @@ public class AuditRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, auditPage.getPageElements(), "page elements");
     }
 
+    @Test
+    public void should_reach_every_audit_across_pages_when_audits_have_several_properties() throws Exception {
+        createEncryptedDictionaryAudit("pagedNewest", 1486771200003L);
+        createEncryptedDictionaryAudit("pagedMiddle", 1486771200002L);
+        createEncryptedDictionaryAudit("pagedOldest", 1486771200001L);
+        AuditCriteria auditCriteria = new AuditCriteria.Builder().environmentIds(List.of("paged-env")).build();
+
+        Page<Audit> firstPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(0).pageSize(2).build());
+        Page<Audit> secondPage = auditRepository.search(auditCriteria, new PageableBuilder().pageNumber(1).pageSize(2).build());
+
+        assertEquals(3, firstPage.getTotalElements(), "total elements");
+        assertThat(firstPage.getContent()).extracting(Audit::getId).containsExactly("pagedNewest", "pagedMiddle");
+        assertThat(secondPage.getContent()).extracting(Audit::getId).containsExactly("pagedOldest");
+        assertThat(firstPage.getContent()).allSatisfy(audit -> assertThat(audit.getProperties()).hasSize(2));
+    }
+
+    private void createEncryptedDictionaryAudit(String id, long createdAt) throws TechnicalException {
+        Audit audit = encryptedDictionaryAudit(id, "paged-env");
+        audit.setCreatedAt(new Date(createdAt));
+        auditRepository.create(audit);
+    }
+
     private static Audit encryptedDictionaryAudit(String id, String environmentId) {
         final Audit audit = new Audit();
         audit.setId(id);

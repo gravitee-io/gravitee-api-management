@@ -242,13 +242,15 @@ public class JdbcAuditRepository extends JdbcAbstractPageableRepository<Audit> i
             return new Page<>(List.of(), pageable.pageNumber(), 0, 0);
         }
         String sql =
+            "SELECT * FROM (" +
             getOrm().getSelectAllSql() +
-            " a LEFT JOIN " +
-            AUDIT_PROPERTIES +
-            " ap ON a.id = ap.audit_id " +
+            " a " +
             whereClause +
             " ORDER BY a.created_at DESC " +
-            createPagingClause(pageable.pageSize(), pageable.from());
+            createPagingClause(pageable.pageSize(), pageable.from()) +
+            ") a LEFT JOIN " +
+            AUDIT_PROPERTIES +
+            " ap ON a.id = ap.audit_id ORDER BY a.created_at DESC";
         log.debug("Data SQL: {}", sql);
 
         JdbcHelper.CollatingRowMapper<Audit> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
