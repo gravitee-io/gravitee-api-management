@@ -13,11 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
 
-export const integrationKeys = {
-    all: ['environment-integrations'] as const,
-    list: (envId: string, page: number, perPage: number) => [...integrationKeys.all, 'list', envId, page, perPage] as const,
-    detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
-    permissions: (envId: string, integrationId: string) => [...integrationKeys.all, 'permissions', envId, integrationId] as const,
-    federatedApis: (envId: string, integrationId: string) => [...integrationKeys.all, 'federated-apis', envId, integrationId] as const,
-} as const;
+export function integrationErrorMessage(error: unknown): string {
+    return `Something went wrong! ${extractErrorMessage(error)}`;
+}
