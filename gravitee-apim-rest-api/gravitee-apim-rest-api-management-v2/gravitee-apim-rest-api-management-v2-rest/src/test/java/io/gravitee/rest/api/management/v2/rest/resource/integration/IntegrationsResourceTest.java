@@ -35,6 +35,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationWellKnownUrl;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
@@ -71,6 +72,12 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
     static final String INTEGRATION_PROVIDER = "test-provider";
     static final String CREATED_INTEGRATION_PROVIDER = "mulesoft";
     static final String INTEGRATION_ID = "integration-id";
+    static final String A2A_INTEGRATION_NAME = "Billing Agents";
+    static final String A2A_INTEGRATION_DESCRIPTION = "Invoice agents";
+    static final List<String> A2A_WELL_KNOWN_URLS = List.of(
+        "https://billing.example.com/.well-known/agent-card.json",
+        "https://search.example.com/.well-known/agent-card.json"
+    );
 
     @Autowired
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
@@ -167,6 +174,46 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .extracting(IntegrationsResponse::getData, InstanceOfAssertFactories.list(Integration.class))
                 .extracting(Integration::getName)
                 .containsExactly(INTEGRATION_NAME);
+        }
+
+        @Test
+        void should_create_an_a2a_integration_and_read_back_its_well_known_urls() {
+            //Given
+            var createIntegration = anA2aCreateIntegration();
+
+            //When
+            Response createResponse = target.request().post(Entity.json(createIntegration));
+            Response readResponse = target.path(INTEGRATION_ID).request().get();
+
+            //Then
+            assertThat(createResponse)
+                .hasStatus(HttpStatusCode.CREATED_201)
+                .asEntity(Integration.class)
+                .satisfies(created -> {
+                    assertThat(created.getId()).isEqualTo(INTEGRATION_ID);
+                    assertThat(created.getName()).isEqualTo(A2A_INTEGRATION_NAME);
+                    assertThat(created.getDescription()).isEqualTo(A2A_INTEGRATION_DESCRIPTION);
+                    assertThat(created.getProvider()).isEqualTo("A2A");
+                });
+            assertThat(createResponse.getLocation().toString()).endsWith("/integrations/" + INTEGRATION_ID);
+            assertThat(readResponse)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(Integration.class)
+                .extracting(Integration::getWellKnownUrls, InstanceOfAssertFactories.list(IntegrationWellKnownUrl.class))
+                .extracting(IntegrationWellKnownUrl::getUrl)
+                .containsExactlyElementsOf(A2A_WELL_KNOWN_URLS);
+        }
+
+        private CreateIntegration anA2aCreateIntegration() {
+            return new CreateIntegration()
+                .name(A2A_INTEGRATION_NAME)
+                .description(A2A_INTEGRATION_DESCRIPTION)
+                .provider("A2A")
+                .wellKnownUrls(
+                    A2A_WELL_KNOWN_URLS.stream()
+                        .map(url -> new IntegrationWellKnownUrl().url(url))
+                        .toList()
+                );
         }
 
         @Test

@@ -17,7 +17,7 @@
 import { cn } from '@gravitee/graphene-core';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 
-import { GATEWAY_PROVIDER_TOKENS, integrationProviderLabel } from '../utils/providerLabels';
+import { integrationProviderLabel, SELECTABLE_PROVIDER_TOKENS } from '../utils/providerLabels';
 
 function nextProviderIndex(currentIndex: number, key: string, providerCount: number): number {
     if (key === 'Home') return 0;
@@ -30,11 +30,13 @@ function nextProviderIndex(currentIndex: number, key: string, providerCount: num
 export function IntegrationProviderSelector({
     value,
     onChange,
+    disabled = false,
 }: Readonly<{
     value: string | undefined;
     onChange: (provider: string) => void;
+    disabled?: boolean;
 }>) {
-    const [focusedProvider, setFocusedProvider] = useState<string>(value ?? GATEWAY_PROVIDER_TOKENS[0]);
+    const [focusedProvider, setFocusedProvider] = useState<string>(value ?? SELECTABLE_PROVIDER_TOKENS[0]);
     const buttonRefs = useRef<Partial<Record<string, HTMLButtonElement | null>>>({});
 
     useEffect(() => {
@@ -48,8 +50,8 @@ export function IntegrationProviderSelector({
             return;
         }
         event.preventDefault();
-        const currentIndex = GATEWAY_PROVIDER_TOKENS.indexOf(provider);
-        const next = GATEWAY_PROVIDER_TOKENS[nextProviderIndex(currentIndex, event.key, GATEWAY_PROVIDER_TOKENS.length)];
+        const currentIndex = SELECTABLE_PROVIDER_TOKENS.indexOf(provider);
+        const next = SELECTABLE_PROVIDER_TOKENS[nextProviderIndex(currentIndex, event.key, SELECTABLE_PROVIDER_TOKENS.length)];
         setFocusedProvider(next);
         onChange(next);
         buttonRefs.current[next]?.focus();
@@ -57,7 +59,7 @@ export function IntegrationProviderSelector({
 
     return (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Provider">
-            {GATEWAY_PROVIDER_TOKENS.map(provider => {
+            {SELECTABLE_PROVIDER_TOKENS.map(provider => {
                 const isSelected = value === provider;
 
                 return (
@@ -70,6 +72,7 @@ export function IntegrationProviderSelector({
                         role="radio"
                         tabIndex={focusedProvider === provider ? 0 : -1}
                         aria-checked={isSelected}
+                        disabled={disabled}
                         className={cn(
                             'relative flex items-center gap-3 rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary/40',
                             isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40',
