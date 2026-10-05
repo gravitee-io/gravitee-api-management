@@ -50,7 +50,7 @@
              https://github.com/awhitford/lombok.maven/issues/179 -->
     <maven-lombok.version>1.18.36</maven-lombok.version>
     <!-- Gravitee dependencies version -->
-    <gravitee-bom.version>9.0.0</gravitee-bom.version>
+    <gravitee-bom.version>9.0.7</gravitee-bom.version>
     <gravitee-alert-api.version>3.0.0</gravitee-alert-api.version>
     <gravitee-cockpit-api.version>3.12.0</gravitee-cockpit-api.version>
     <gravitee-cloud-initializer.version>2.3.1</gravitee-cloud-initializer.version>
@@ -138,7 +138,6 @@
     <mapstruct.version>1.6.3</mapstruct.version>
     <mariadb-java-client.version>3.5.6</mariadb-java-client.version>
     <mssql-jdbc.version>12.10.2.jre11</mssql-jdbc.version>
-    <netty-tcnative-boringssl-static.version>2.0.84.Final</netty-tcnative-boringssl-static.version>
     <nimbus-jose-jwt.version>10.0.2</nimbus-jose-jwt.version>
     <mongo.version>5.3.1</mongo.version>
     <owasp-java-html-sanitizer.version>20260102.1</owasp-java-html-sanitizer.version>
