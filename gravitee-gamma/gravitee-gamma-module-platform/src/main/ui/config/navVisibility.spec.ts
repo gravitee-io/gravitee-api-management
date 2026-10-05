@@ -100,6 +100,8 @@ const ORGANIZATION_ADMIN = [
 ] as const;
 
 const ENTITLED_LICENSE: License = { tier: 'enterprise', packs: [], features: [], isExpired: false };
+const OSS_LICENSE: License = { tier: 'oss', packs: [], features: [], isExpired: false };
+const EXPIRED_LICENSE: License = { tier: 'enterprise', packs: [], features: [], isExpired: true };
 
 function hasOf(granted: readonly string[]): (permission: string) => boolean {
     const set = new Set(granted);
@@ -267,9 +269,17 @@ describe('platform nav visibility', () => {
         expect(pageGuardForNavItem('integrations')).toEqual({ anyOf: ['environment-integration-r'] });
     });
 
-    it('withholds Federation availability until a license is reported', () => {
-        expect(isFederationAvailable({ federationEnabled: true, license: null })).toBe(false);
+    it('makes Federation available for an entitled license', () => {
         expect(isFederationAvailable({ federationEnabled: true, license: ENTITLED_LICENSE })).toBe(true);
+    });
+
+    it.each([
+        ['no license has been reported yet', true, null],
+        ['the license tier is oss', true, OSS_LICENSE],
+        ['the license has expired', true, EXPIRED_LICENSE],
+        ['Federation is not enabled for the organization', false, ENTITLED_LICENSE],
+    ])('withholds Federation availability when %s', (_case, federationEnabled, license) => {
+        expect(isFederationAvailable({ federationEnabled, license })).toBe(false);
     });
 
     it('hides Management, CORS, SMTP, and API Logging when the user has organization-settings-u without -r', () => {

@@ -35,6 +35,7 @@ export interface CreateIntegrationRequest {
     name: string;
     description?: string;
     provider: string;
+    wellKnownUrls?: string[];
 }
 
 export interface IntegrationsPagination {

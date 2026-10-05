@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { A2A_PROVIDER } from './integrationKind';
+
 const PROVIDER_LABELS: Record<string, string> = {
     A2A: 'A2A Protocol',
     'aws-api-gateway': 'AWS API Gateway',
@@ -37,6 +39,8 @@ export const GATEWAY_PROVIDER_TOKENS: readonly string[] = [
     'mulesoft',
     'edge-stack',
 ];
+
+export const SELECTABLE_PROVIDER_TOKENS: readonly string[] = [A2A_PROVIDER, ...GATEWAY_PROVIDER_TOKENS];
 
 export function hasProviderLabel(provider: string): boolean {
     return Object.prototype.hasOwnProperty.call(PROVIDER_LABELS, provider);
