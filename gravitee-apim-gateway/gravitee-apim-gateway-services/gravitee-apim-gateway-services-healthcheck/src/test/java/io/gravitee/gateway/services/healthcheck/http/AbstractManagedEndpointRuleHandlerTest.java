@@ -28,6 +28,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpClientSslOptions;
 import io.gravitee.definition.model.HttpProxy;
 import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
@@ -64,7 +65,10 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     private TemplateEngine templateEngine;
 
     @RegisterExtension
-    static WireMockExtension wm = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).proxyMode(true).build();
+    static WireMockExtension wm = WireMockExtension.newInstance()
+        .options(wireMockConfig().dynamicPort().dynamicHttpsPort())
+        .proxyMode(true)
+        .build();
 
     @BeforeEach
     void setup() {
@@ -126,6 +130,44 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
 
         // Prepare
         EndpointRule rule = createEndpointRule();
+
+        HealthCheckStep step = new HealthCheckStep();
+        HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
+
+        step.setRequest(request);
+        HealthCheckResponse response = new HealthCheckResponse();
+        response.setAssertions(Collections.singletonList(HealthCheckResponse.DEFAULT_ASSERTION));
+        step.setResponse(response);
+        when(rule.steps()).thenReturn(Collections.singletonList(step));
+
+        HttpEndpointRuleHandler runner = new HttpEndpointRuleHandler(vertx, rule, templateEngine, environment);
+
+        // Verify
+        runner.setStatusHandler(
+            (Handler<EndpointStatus>) status -> {
+                assertTrue(status.isSuccess());
+                wm.verify(getRequestedFor(urlEqualTo("/")));
+                statusCheckpoint.flag();
+            }
+        );
+        runner.setRescheduleHandler(v -> {
+            rescheduleCheckpoint.flag();
+        });
+
+        // Run
+        runner.handle(null);
+    }
+
+    @Test
+    void shouldValidateOverHttps(Vertx vertx, VertxTestContext context) throws Throwable {
+        // Prepare HTTPS endpoint
+        wm.stubFor(get(urlEqualTo("/")).willReturn(ok("{\"status\": \"green\"}")));
+
+        final Checkpoint statusCheckpoint = context.checkpoint();
+        final Checkpoint rescheduleCheckpoint = context.checkpoint();
+
+        // Prepare
+        EndpointRule rule = createEndpointRule(wm.getRuntimeInfo().getHttpsBaseUrl(), null, false);
 
         HealthCheckStep step = new HealthCheckStep();
         HealthCheckRequest request = new HealthCheckRequest("/", HttpMethod.GET);
@@ -502,6 +544,12 @@ public abstract class AbstractManagedEndpointRuleHandlerTest {
     private Endpoint createEndpoint(String baseUrl, String targetPath, boolean useSystemProxy) {
         HttpEndpoint aDefault = new HttpEndpoint("default", baseUrl + (targetPath != null ? targetPath : ""));
         aDefault.setHttpClientOptions(new HttpClientOptions());
+        if (baseUrl.startsWith("https")) {
+            // WireMock serves HTTPS with a self-signed certificate
+            HttpClientSslOptions sslOptions = new HttpClientSslOptions();
+            sslOptions.setTrustAll(true);
+            aDefault.setHttpClientSslOptions(sslOptions);
+        }
         if (useSystemProxy) {
             HttpProxy httpProxy = new HttpProxy();
             httpProxy.setUseSystemProxy(true);
