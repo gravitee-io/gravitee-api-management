@@ -22,8 +22,8 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import lombok.RequiredArgsConstructor;
 
 /**
- * Removes an API from the portal. Its documentation is kept, unpublished, against the API, ready to be
- * published again; only the navigation entry listing the API is deleted.
+ * Removes an API from every portal listing it. Its documentation is kept, unpublished, against the API,
+ * ready to be published again; only the navigation entries listing the API are deleted.
  */
 @UseCase
 @RequiredArgsConstructor
@@ -33,11 +33,13 @@ public class UnpublishApiFromPortalUseCase {
     private final PortalNavigationItemDomainService domainService;
 
     public void execute(Input input) {
-        var listing = apiOwnedNavigationDomainService
-            .findStandaloneListing(input.environmentId(), input.apiId())
-            .orElseThrow(() -> InvalidPortalNavigationItemDataException.apiIsNotListed(input.apiId()));
+        var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId());
+        if (listings.isEmpty()) {
+            throw InvalidPortalNavigationItemDataException.apiIsNotListed(input.apiId());
+        }
 
-        domainService.deleteWithDescendants(listing);
+        // The documentation is shared by every portal listing the API, so unpublishing it leaves no listing behind
+        listings.forEach(domainService::deleteWithDescendants);
         apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), false);
     }
 

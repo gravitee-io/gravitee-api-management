@@ -3519,7 +3519,7 @@ paths:
                 - API Documentation
             summary: Unpublish an API from the portal
             description: |-
-                Deletes the navigation item listing the API in the portal and unpublishes every page, folder and
+                Deletes every navigation item listing the API in a portal and unpublishes every page, folder and
                 link the API owns. The documentation itself is kept and can be published again.
 
                 A listing under an API product is left untouched.

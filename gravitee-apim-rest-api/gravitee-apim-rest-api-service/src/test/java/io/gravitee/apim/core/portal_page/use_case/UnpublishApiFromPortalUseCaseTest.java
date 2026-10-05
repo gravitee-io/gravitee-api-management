@@ -101,6 +101,20 @@ class UnpublishApiFromPortalUseCaseTest {
     }
 
     @Test
+    void should_delete_every_standalone_listing_row_of_the_api() {
+        var section = aSection();
+        var otherSection = aFolder("Partners");
+        otherSection.markAsRoot();
+        var listing = aListing(section, API_ID);
+        var otherListing = aListing(otherSection, API_ID);
+        queryService.initWith(List.of(section, otherSection, listing, otherListing));
+
+        unpublish();
+
+        assertThat(crudService.storage()).containsExactlyInAnyOrder(section, otherSection);
+    }
+
+    @Test
     void should_unpublish_every_item_owned_by_the_api_without_deleting_any() {
         var section = aSection();
         var listing = aListing(section, API_ID);
