@@ -6,7 +6,8 @@
         "moduleResolution": "bundler",
         "types": ["node", "@nx/react/typings/cssmodule.d.ts", "@nx/react/typings/image.d.ts"],
         "paths": {
-            "@gravitee/gamma-modules-sdk": ["./src/shared/gamma-modules-sdk.ts"]
+            "@gravitee/gamma-modules-sdk": ["./src/shared/gamma-modules-sdk.ts"],
+            "@gravitee/gamma-ui-shared/federation": ["../gamma-ui-shared/src/federation/index.ts"]
         }
     },
     "exclude": [
