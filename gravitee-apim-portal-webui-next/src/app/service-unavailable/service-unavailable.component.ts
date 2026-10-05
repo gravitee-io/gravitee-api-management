@@ -13,27 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DOCUMENT } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { MatButton } from '@angular/material/button';
-import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
+import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { get } from 'lodash';
 
 @Component({
   selector: 'app-service-unavailable',
   standalone: true,
-  imports: [MatCard, MatCardTitle, MatCardContent, RouterModule, MatCardHeader, MatCardActions, MatButton],
+  imports: [MatCard, MatCardTitle, MatCardContent, RouterModule, MatCardHeader],
   templateUrl: './service-unavailable.component.html',
   styleUrl: './service-unavailable.component.scss',
 })
 export class ServiceUnavailableComponent implements OnInit {
   public activatedRoute = inject(ActivatedRoute);
   public router = inject(Router);
-  private readonly document = inject(DOCUMENT);
 
-  public message =
-    "Portal API unreachable or error occurs, please check logs. If the problem persists, try clearing this site's cookies and retry.";
+  public message = 'Portal API unreachable or error occurs, please check logs';
 
   ngOnInit() {
     const state = this.router.lastSuccessfulNavigation?.extras.state;
@@ -41,11 +37,5 @@ export class ServiceUnavailableComponent implements OnInit {
     if (error?.code === 'errors.maintenance.mode') {
       this.message = error.message;
     }
-  }
-
-  retry() {
-    // Reloading the current URL would only land on /503 again, so start over from the portal home
-    // Through DOCUMENT rather than the window global, which is not replaceable under jsdom 26.
-    this.document.location.assign(this.document.baseURI);
   }
 }
