@@ -9,7 +9,8 @@
             "@gravitee/gamma-ui-shared/api": ["../gamma-ui-shared/src/api/index.ts"],
             "@gravitee/gamma-ui-shared/chip-input": ["../gamma-ui-shared/src/chip-input/index.ts"],
             "@gravitee/gamma-ui-shared/cors": ["../gamma-ui-shared/src/cors/index.ts"],
-            "@gravitee/gamma-ui-shared/federation": ["../gamma-ui-shared/src/federation/index.ts"]
+            "@gravitee/gamma-ui-shared/federation": ["../gamma-ui-shared/src/federation/index.ts"],
+            "@gravitee/gravitee-markdown-element": ["../../dist/@gravitee/gravitee-markdown-element/main.js"]
         }
     },
     "exclude": [
