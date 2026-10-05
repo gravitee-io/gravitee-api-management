@@ -17,13 +17,17 @@ import { UserManager, WebStorageStateStore } from 'oidc-client-ts';
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import { licenseService } from '@gravitee/gamma-modules-sdk';
+
 import type { CurrentUser, SocialIdentityProvider } from './auth.types';
 import { normalizeCurrentUser } from './normalizeCurrentUser';
 import { managementApi } from '../../shared/api/api-client';
 import { useBootstrapStore } from '../../shared/config/bootstrap.store';
 import { useEnvironmentStore } from '../environment/environment.store';
+import { loadOrganizationLicense } from '../license/load-organization-license';
 
 const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
+const LOGIN_LICENSE_TIMEOUT_MS = 2000;
 
 const oidcManagers: Record<string, UserManager> = {};
 
@@ -65,6 +69,26 @@ function getOrCreateUserManager(provider: SocialIdentityProvider): UserManager {
 
 function findProvider(providerId: string): SocialIdentityProvider | undefined {
     return useBootstrapStore.getState().config?.identityProviders.find(p => p.id === providerId);
+}
+
+async function loadLicenseBeforeSignIn(): Promise<void> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<void>(resolve => {
+        timer = setTimeout(() => {
+            console.warn(`Organization license did not load within ${LOGIN_LICENSE_TIMEOUT_MS} ms; continuing sign-in`);
+            resolve();
+        }, LOGIN_LICENSE_TIMEOUT_MS);
+    });
+    try {
+        await Promise.race([
+            loadOrganizationLicense().catch((error: unknown) => {
+                console.error('Failed to load organization license', error);
+            }),
+            timeout,
+        ]);
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 interface AuthState {
@@ -121,6 +145,7 @@ export const useAuthStore = create<AuthState>()(
                     Authorization: `Basic ${btoa(`${username}:${password}`)}`,
                 });
                 const user = normalizeCurrentUser(await managementApi.get<unknown>('/user'));
+                await loadLicenseBeforeSignIn();
                 set({ user });
                 const config = useBootstrapStore.getState().config!;
                 void useEnvironmentStore.getState().initialize(config.organizationId);
@@ -152,6 +177,7 @@ export const useAuthStore = create<AuthState>()(
                 localStorage.removeItem('XSRF-TOKEN');
                 set({ user: null, avatarCacheBust: 0 });
                 useEnvironmentStore.getState().reset();
+                licenseService.setLicense(null);
             },
 
             refreshCurrentUser: async () => {

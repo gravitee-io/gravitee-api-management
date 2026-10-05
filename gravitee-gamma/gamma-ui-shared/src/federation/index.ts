@@ -14,5 +14,4 @@
  * limitations under the License.
  */
 
-export { createInMemoryLicenseWaitStartStore, type LicenseWaitStartStore } from './licenseWaitStartStore';
-export { useFederationGate, type FederationGate, type FederationSetting } from './useFederationGate';
+export { isFederationEntitled, useFederationGate, type FederationGate, type FederationSetting } from './useFederationGate';

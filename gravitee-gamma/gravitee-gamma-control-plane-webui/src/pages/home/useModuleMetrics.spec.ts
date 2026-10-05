@@ -20,7 +20,7 @@ import { licenseService } from '@gravitee/gamma-modules-sdk';
 
 import { type CountResult, useApiCount } from './useModuleMetrics';
 import { TEST_MANAGEMENT_BASE, TEST_MANAGEMENT_V2_ENVIRONMENT_BASE } from '../../testing/factories';
-import { respondWith, respondWithError, seedEnvironments, trackHandler } from '../../testing/helpers';
+import { respondWith, respondWithError, seedEnvironments } from '../../testing/helpers';
 import { server } from '../../testing/server';
 
 const ENTERPRISE_LICENSE = { tier: 'enterprise', packs: [], features: [], isExpired: false };
@@ -91,69 +91,30 @@ describe('useApiCount', () => {
         expect(requestedApiTypes).toEqual([['V4_HTTP_PROXY', 'V4_TCP_PROXY']]);
     });
 
-    describe('when federation is on and the license is not reported yet', () => {
-        beforeEach(() => {
-            jest.useFakeTimers();
-        });
-
-        afterEach(() => {
-            jest.useRealTimers();
-        });
-
-        it('should keep the native-only count when the license is reported after the wait', async () => {
-            jest.spyOn(console, 'warn').mockImplementation(() => {});
-            const consoleSettings = trackHandler('get', `${TEST_MANAGEMENT_BASE}/console`, { federation: { enabled: true } });
+    describe('when federation is on and the license is not reported', () => {
+        it('should count only native APIs at once', async () => {
+            respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { federation: { enabled: true } });
             const requestedApiTypes = recordApiSearchRequests();
 
             const { result } = renderHook(() => useApiCount());
-            await waitFor(() => expect(consoleSettings.callCount).toBe(1));
-            await act(async () => {
-                await Promise.resolve();
-            });
 
-            expect(requestedApiTypes).toEqual([]);
-            expect(result.current).toEqual({ value: null, loading: true });
-
-            await act(async () => {
-                jest.advanceTimersByTime(10_000);
-            });
-
-            await waitFor(() => expect(result.current).toEqual({ value: 24, loading: false }));
-            expect(requestedApiTypes).toEqual([['V4_HTTP_PROXY', 'V4_TCP_PROXY']]);
-
-            act(() => {
-                licenseService.setLicense({ tier: 'enterprise', packs: [], features: [], isExpired: false });
-            });
-            await act(async () => {
-                await jest.advanceTimersByTimeAsync(0);
-            });
-
-            expect(result.current).toEqual({ value: 24, loading: false });
+            await waitFor(() => expect(result.current).toEqual({ value: NATIVE_API_COUNT, loading: false }));
             expect(requestedApiTypes).toEqual([['V4_HTTP_PROXY', 'V4_TCP_PROXY']]);
         });
 
-        it('should request native and federated APIs once when the license is reported before the wait ends', async () => {
-            const consoleSettings = trackHandler('get', `${TEST_MANAGEMENT_BASE}/console`, { federation: { enabled: true } });
+        it('should keep the native-only count when the license is reported afterwards', async () => {
+            respondWith('get', `${TEST_MANAGEMENT_BASE}/console`, { federation: { enabled: true } });
             const requestedApiTypes = recordApiSearchRequests();
-
             const { result } = renderHook(() => useApiCount());
-            await waitFor(() => expect(consoleSettings.callCount).toBe(1));
-            await act(async () => {
-                await Promise.resolve();
-            });
+            await waitFor(() => expect(result.current).toEqual({ value: NATIVE_API_COUNT, loading: false }));
 
-            expect(requestedApiTypes).toEqual([]);
-            expect(result.current).toEqual({ value: null, loading: true });
-
-            await act(async () => {
-                jest.advanceTimersByTime(5_000);
-            });
             act(() => {
                 licenseService.setLicense(ENTERPRISE_LICENSE);
             });
+            await act(async () => {});
 
-            await waitFor(() => expect(result.current).toEqual({ value: NATIVE_AND_FEDERATED_API_COUNT, loading: false }));
-            expect(requestedApiTypes).toEqual([['V4_HTTP_PROXY', 'V4_TCP_PROXY', 'FEDERATED']]);
+            expect(result.current).toEqual({ value: NATIVE_API_COUNT, loading: false });
+            expect(requestedApiTypes).toEqual([['V4_HTTP_PROXY', 'V4_TCP_PROXY']]);
         });
     });
 });

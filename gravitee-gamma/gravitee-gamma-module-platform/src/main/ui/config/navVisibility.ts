@@ -15,6 +15,7 @@
  */
 
 import type { License } from '@gravitee/gamma-modules-sdk/types';
+import { isFederationEntitled } from '@gravitee/gamma-ui-shared/federation';
 
 import { filterNavSections, firstNavItemKey, NAV_SECTIONS, type PlatformNavSection } from './navigation';
 import { DEFAULT_ROUTE_KEY, ROUTES, ROUTE_KEYS, type RouteKey } from './routes';
@@ -123,31 +124,9 @@ export interface NavVisibilityInput {
  * The single source for `federationAvailable`, read by the nav item and by its route guard so a
  * visible item can never lead to a route that bounces. Permission is not part of it: each side
  * already applies that half through NAV_ITEM_PERMISSIONS / pageGuardForNavItem.
- *
- * A null license means the host has not reported one yet, not that none is installed — an
- * installation without one reports `tier: 'oss'`. Granting on null would turn a license fetch that
- * has not landed, or failed, into an entitlement.
- *
- * Expiry is a separate term because the backend's tier does not carry it: an expired enterprise
- * license still reports `tier: 'enterprise'` (LicenseDomainService.isFederationFeatureAllowed).
  */
-export function isFederationAvailable({
-    federationEnabled,
-    license,
-}: Readonly<{ federationEnabled: boolean; license: License | null }>): boolean {
-    if (!federationEnabled) {
-        return false;
-    }
-    if (license === null) {
-        return false;
-    }
-    if (license.isExpired) {
-        return false;
-    }
-    if (license.tier === 'oss') {
-        return false;
-    }
-    return true;
+export function isFederationAvailable(gateInputs: Readonly<{ federationEnabled: boolean; license: License | null }>): boolean {
+    return isFederationEntitled(gateInputs);
 }
 
 export function requiresOrganizationSettingsGate(itemKey: string): boolean {
