@@ -23,6 +23,7 @@ export default {
         // Subpath imports like `@gravitee/graphene-core/icons` resolve to `dist/<subpath>/index.js`.
         '^@gravitee/graphene-core/(.+)$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/$1/index.js',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/shared/gamma-modules-sdk.ts',
+        '^@gravitee/gamma-ui-shared/federation$': '<rootDir>/../gamma-ui-shared/src/federation/index.ts',
     },
     transform: {
         '^(?!.*\\.(js|jsx|ts|tsx|css|json)$)': '@nx/react/plugins/jest',
