@@ -18,9 +18,11 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -34,6 +36,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
@@ -42,6 +45,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
 
     @Inject
     private ListApiDocumentationUseCase listApiDocumentationUseCase;
+
+    @Inject
+    private ListApiPublishLocationsUseCase listApiPublishLocationsUseCase;
 
     @Inject
     private CreatePortalNavigationItemUseCase createPortalNavigationItemUseCase;
@@ -57,6 +63,17 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     public ApiPortalNavigationItemsResponse getApiPortalNavigationItems(@PathParam("apiId") String apiId) {
         var output = listApiDocumentationUseCase.execute(
             new ListApiDocumentationUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId)
+        );
+        return mapper.map(output);
+    }
+
+    @Path("_publish-locations")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    public ApiPortalPublishLocationsResponse getApiPortalPublishLocations() {
+        var output = listApiPublishLocationsUseCase.execute(
+            new ListApiPublishLocationsUseCase.Input(GraviteeContext.getCurrentEnvironment())
         );
         return mapper.map(output);
     }

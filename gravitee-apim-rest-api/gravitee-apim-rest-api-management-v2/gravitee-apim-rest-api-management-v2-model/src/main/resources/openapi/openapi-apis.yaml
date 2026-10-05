@@ -3418,6 +3418,30 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-locations:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get the portal sections an API can be published to
+            description: |-
+                Get the published top-level folders of the portal's main navigation, in display order.
+                Only their id and name are returned, never the portal tree.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalPublishLocations
+            responses:
+                "200":
+                    description: The portal sections the API can be published to
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPortalPublishLocationsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
         parameters:
@@ -3706,6 +3730,30 @@ components:
             required:
                 - items
                 - publications
+        ApiPortalPublishLocationsResponse:
+            type: object
+            description: The portal sections an API can be published to.
+            properties:
+                data:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ApiPortalPublishLocation"
+            required:
+                - data
+        ApiPortalPublishLocation:
+            type: object
+            description: A portal section an API can be published to.
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                    description: The id of the section.
+                name:
+                    type: string
+                    description: The title of the section.
+            required:
+                - id
+                - name
         ApiPortalPublication:
             type: object
             description: The listing of an API in a portal.

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
@@ -30,6 +31,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -90,6 +92,22 @@ public class ApiOwnedNavigationDomainService {
             .stream()
             .map(PortalNavigationApi.class::cast)
             .filter(listing -> !hasApiProductAncestor(environmentId, listing))
+            .toList();
+    }
+
+    /**
+     * The sections an API can be listed under: the published top-level folders of the portal's main
+     * navigation. An unpublished section cannot hold a published listing.
+     */
+    public List<PortalNavigationFolder> findPublishLocations(String environmentId) {
+        return queryService
+            .findTopLevelItemsByEnvironmentIdAndPortalArea(environmentId, PortalArea.TOP_NAVBAR)
+            .stream()
+            .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
+            .filter(PortalNavigationFolder.class::isInstance)
+            .map(PortalNavigationFolder.class::cast)
+            .filter(section -> Boolean.TRUE.equals(section.getPublished()))
+            .sorted(Comparator.comparing(PortalNavigationFolder::getOrder))
             .toList();
     }
 

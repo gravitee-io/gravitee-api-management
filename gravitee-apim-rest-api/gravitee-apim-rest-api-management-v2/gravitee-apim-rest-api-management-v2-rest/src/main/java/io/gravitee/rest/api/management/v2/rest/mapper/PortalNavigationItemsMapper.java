@@ -22,6 +22,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
+import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -30,6 +31,8 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublication;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocation;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -186,6 +189,15 @@ public interface PortalNavigationItemsMapper {
         return new ApiPortalNavigationItemsResponse()
             .items(map(output.items()))
             .publications(output.publications().stream().map(this::mapPublication).toList());
+    }
+
+    default ApiPortalPublishLocationsResponse map(ListApiPublishLocationsUseCase.Output output) {
+        var locations = output
+            .locations()
+            .stream()
+            .map(location -> new ApiPortalPublishLocation().id(location.id().id()).name(location.name()))
+            .toList();
+        return new ApiPortalPublishLocationsResponse().data(locations);
     }
 
     default ApiPortalPublication mapPublication(ListApiDocumentationUseCase.Publication publication) {
