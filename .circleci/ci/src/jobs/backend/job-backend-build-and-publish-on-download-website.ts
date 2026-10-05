@@ -49,7 +49,7 @@ export class BackendBuildAndPublishOnDownloadWebsiteJob {
       new reusable.ReusedCommand(azureArtifactsTokenCmd),
       new commands.Run({
         name: 'Remove `-SNAPSHOT` from versions',
-        command: `mvn -B versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
+        command: `mvn -B -s ${config.maven.settingsFile} versions:set -DremoveSnapshot=true -DgenerateBackupPoms=false
 sed -i "s#<changelist>.*</changelist>#<changelist></changelist>#" pom.xml`,
       }),
       new reusable.ReusedCommand(prepareGpgCommand),
