@@ -425,6 +425,52 @@ class RollbackApiUseCaseTest {
     }
 
     @Test
+    void should_rollback_a_native_api_keeping_the_encryption_of_properties_stored_encrypted() throws Exception {
+        apiCrudService.initWith(
+            List.of(
+                ApiFixtures.aNativeApi()
+                    .toBuilder()
+                    .id(API_ID)
+                    .environmentId(ENVIRONMENT_ID)
+                    .apiDefinitionNativeV4(
+                        ApiDefinitionFixtures.aNativeApiV4(API_ID)
+                            .toBuilder()
+                            .properties(List.of(Property.builder().key("secret").value("current-ciphertext").encrypted(true).build()))
+                            .build()
+                    )
+                    .build()
+            )
+        );
+        when(dataEncryptor.encrypt("old")).thenReturn("old-ciphertext");
+
+        var deployedDefinition = ApiDefinitionFixtures.aNativeApiV4(API_ID)
+            .toBuilder()
+            .properties(List.of(Property.builder().key("secret").value("old").build()))
+            .build();
+        var apiRepositoryModel = io.gravitee.repository.management.model.Api.builder()
+            .id(deployedDefinition.getId())
+            .name(deployedDefinition.getName())
+            .version(deployedDefinition.getApiVersion())
+            .definitionVersion(deployedDefinition.getDefinitionVersion())
+            .type(io.gravitee.definition.model.v4.ApiType.NATIVE)
+            .definition(GraviteeJacksonMapper.getInstance().writeValueAsString(deployedDefinition))
+            .build();
+        var event = Event.builder()
+            .id("event-id")
+            .type(EventType.PUBLISH_API)
+            .environments(Set.of(ENVIRONMENT_ID))
+            .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(apiRepositoryModel))
+            .build();
+        eventQueryService.initWith(List.of(event));
+
+        useCase.execute(new RollbackApiUseCase.Input(event.getId(), AUDIT_INFO));
+
+        assertThat(apiCrudService.get(API_ID).getApiDefinitionNativeV4().getProperties())
+            .extracting(Property::getKey, Property::getValue, Property::isEncrypted)
+            .containsExactly(tuple("secret", "old-ciphertext", true));
+    }
+
+    @Test
     void should_not_rollback_api_when_api_definition_version_is_not_v4() {
         // Given
         var event = Event.builder()
