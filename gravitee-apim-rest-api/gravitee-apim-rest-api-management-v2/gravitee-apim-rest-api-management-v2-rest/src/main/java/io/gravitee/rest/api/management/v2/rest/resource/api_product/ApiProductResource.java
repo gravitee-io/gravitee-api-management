@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api_product;
 
+import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
 import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
@@ -94,6 +96,7 @@ public class ApiProductResource extends AbstractResource {
     @DELETE
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.DELETE }) })
     public Response deleteApiProductById() {
+        requireClassicApiProductInCurrentEnvironment();
         AuditInfo audit = getAuditInfo();
         deleteApiProductUseCase.execute(DeleteApiProductUseCase.Input.of(apiProductId, audit));
         return Response.noContent().build();
@@ -117,6 +120,7 @@ public class ApiProductResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response deployApiProduct() {
+        requireClassicApiProductInCurrentEnvironment();
         AuditInfo audit = getAuditInfo();
         var input = new DeployApiProductUseCase.Input(apiProductId, audit);
         log.debug("Deploy API Product [{}]", apiProductId);
@@ -130,6 +134,7 @@ public class ApiProductResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_PRODUCT_DEFINITION, acls = { RolePermissionAction.UPDATE }) })
     public Response updateApiProductById(@Valid @NotNull UpdateApiProduct updateApiProduct) {
+        requireClassicApiProductInCurrentEnvironment();
         AuditInfo audit = getAuditInfo();
         var input = new UpdateApiProductUseCase.Input(apiProductId, updateApiProduct, audit);
         log.debug("Update API Product by id: {}", apiProductId);
@@ -145,30 +150,50 @@ public class ApiProductResource extends AbstractResource {
 
     @Path("/members")
     public ApiProductMembersResource getApiProductMembersResource() {
-        verifyApiProductInCurrentEnvironment();
+        requireClassicApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductMembersResource.class);
     }
 
     @Path("/plans")
     public ApiProductPlansResource getApiProductPlansResource() {
-        verifyApiProductInCurrentEnvironment();
+        requireClassicApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductPlansResource.class);
     }
 
     @Path("/subscriptions")
     public ApiProductSubscriptionsResource getApiProductSubscriptionsResource() {
-        verifyApiProductInCurrentEnvironment();
+        requireClassicApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductSubscriptionsResource.class);
     }
 
     @Path("/notificationSettings")
     public ApiProductNotificationSettingsResource getApiProductNotificationSettingsResource() {
-        verifyApiProductInCurrentEnvironment();
+        requireClassicApiProductInCurrentEnvironment();
         return resourceContext.getResource(ApiProductNotificationSettingsResource.class);
     }
 
+    /** Existence alone, for a read: this surface does not manage every kind, but it may report on them. */
     private void verifyApiProductInCurrentEnvironment() {
         var ctx = GraviteeContext.getExecutionContext();
         verifyApiProductExistsUseCase.execute(new VerifyApiProductExistsUseCase.Input(ctx.getEnvironmentId(), apiProductId));
+    }
+
+    /**
+     * Refuses an operation on a product this surface does not manage, and on one that is not here at all.
+     *
+     * <p>A specialized product — an AI workspace — is already hidden from the classic listing, but it stayed
+     * reachable by id. Its own surface requires {@code AI_WORKSPACE_*} rights while these endpoints require
+     * {@code API_PRODUCT_*}, so a caller holding only the latter could edit or delete it, and could edit the
+     * plans that carry its budget.
+     *
+     * <p>Both answers are 404: an endpoint should no more confirm the existence of a product it cannot manage
+     * than of one in another environment. The kind and the environment are two properties of the same stored
+     * product, so they are read together — one lookup, not one each.
+     */
+    private void requireClassicApiProductInCurrentEnvironment() {
+        var ctx = GraviteeContext.getExecutionContext();
+        verifyApiProductExistsUseCase.execute(
+            new VerifyApiProductExistsUseCase.Input(ctx.getEnvironmentId(), apiProductId, ApiProductKindFilter.classicOnly())
+        );
     }
 }

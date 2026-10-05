@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +35,9 @@ import assertions.MAPIAssertions;
 import fixtures.core.model.LicenseFixtures;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.apim.core.api_product.model.ApiProductKindFilter;
+import io.gravitee.apim.core.api_product.model.UpdateApiProduct;
 import io.gravitee.apim.core.api_product.use_case.DeleteApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.DeployApiProductUseCase;
 import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
@@ -50,6 +54,7 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.HashSet;
@@ -109,6 +114,12 @@ class ApiProductResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENV_ID);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
         when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(LicenseFixtures.anEnterpriseLicense());
+        // These endpoints manage classic products, so that is what sits under the id unless a test says otherwise.
+        when(getApiProductByIdUseCase.execute(any())).thenReturn(
+            GetApiProductsUseCase.Output.single(
+                Optional.of(ApiProduct.builder().id(API_PRODUCT_ID).environmentId(ENV_ID).apiIds(new HashSet<>()).build())
+            )
+        );
     }
 
     @AfterEach
@@ -182,6 +193,75 @@ class ApiProductResourceTest extends AbstractResourceTest {
             shouldReturn403(RolePermission.API_PRODUCT_DEFINITION, API_PRODUCT_ID, RolePermissionAction.READ, () ->
                 rootTarget().request().get()
             );
+        }
+    }
+
+    @Nested
+    class SpecializedProductFenceTest {
+
+        @BeforeEach
+        void theCheckRefusesWhatThisSurfaceDoesNotManage() {
+            // The kind rule itself lives in VerifyApiProductExistsUseCase and is tested there; what belongs
+            // here is that every fenced route asks for it and stops when it is refused.
+            doThrow(new ApiProductNotFoundException(API_PRODUCT_ID)).when(verifyApiProductExistsUseCase).execute(any());
+        }
+
+        @Test
+        void should_ask_for_the_classic_kind_rather_than_bare_existence() {
+            rootTarget().path("plans").request().get();
+
+            var captor = ArgumentCaptor.forClass(VerifyApiProductExistsUseCase.Input.class);
+            verify(verifyApiProductExistsUseCase).execute(captor.capture());
+            // Environment and kind go to one lookup rather than one check each.
+            assertThat(captor.getValue().apiProductId()).isEqualTo(API_PRODUCT_ID);
+            assertThat(captor.getValue().kindFilter()).isEqualTo(ApiProductKindFilter.classicOnly());
+        }
+
+        @Test
+        void should_not_delete_a_product_this_surface_does_not_manage() {
+            final Response response = rootTarget().request().delete();
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            // Deleting a workspace here would close every member's subscription and stop its proxy.
+            verify(deleteApiProductUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_not_update_a_product_this_surface_does_not_manage() {
+            final Response response = rootTarget().request().put(Entity.json(UpdateApiProduct.builder().name("Renamed").build()));
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            verify(updateApiProductUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_not_deploy_a_product_this_surface_does_not_manage() {
+            final Response response = rootTarget().path("deployments").request().post(Entity.json(null));
+
+            assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
+            verify(deployApiProductUseCase, never()).execute(any());
+        }
+
+        @Test
+        void should_not_reach_the_plans_of_a_product_this_surface_does_not_manage() {
+            // A workspace's plans carry its budget: editing one here would edit the cost-ratelimit it enforces.
+            assertThat(rootTarget().path("plans").request().get().getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_not_reach_the_subscriptions_of_a_product_this_surface_does_not_manage() {
+            assertThat(rootTarget().path("subscriptions").request().get().getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_not_reach_the_notification_settings_of_a_product_this_surface_does_not_manage() {
+            // This sub-tree writes: a POST, two PUTs and a DELETE.
+            assertThat(rootTarget().path("notificationSettings").request().get().getStatus()).isEqualTo(NOT_FOUND_404);
+        }
+
+        @Test
+        void should_not_reach_the_members_of_a_product_this_surface_does_not_manage() {
+            assertThat(rootTarget().path("members").request().get().getStatus()).isEqualTo(NOT_FOUND_404);
         }
     }
 

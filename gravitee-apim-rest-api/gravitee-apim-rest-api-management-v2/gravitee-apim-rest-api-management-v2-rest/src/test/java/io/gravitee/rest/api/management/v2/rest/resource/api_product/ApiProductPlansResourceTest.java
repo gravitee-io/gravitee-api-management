@@ -31,6 +31,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
+import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.api_product.use_case.GetApiProductsUseCase;
 import io.gravitee.apim.core.api_product.use_case.VerifyApiProductExistsUseCase;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.CreateApiProductPlanUseCase;
@@ -51,7 +53,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
