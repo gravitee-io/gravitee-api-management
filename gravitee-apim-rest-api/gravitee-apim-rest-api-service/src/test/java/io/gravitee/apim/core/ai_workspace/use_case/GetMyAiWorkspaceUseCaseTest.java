@@ -19,12 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import io.gravitee.apim.core.ai_workspace.domain_service.AiWorkspaceMembershipQuery;
 import io.gravitee.apim.core.ai_workspace.exception.AiWorkspaceNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.definition.model.v4.ApiType;
@@ -36,6 +38,8 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.math.BigDecimal;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -51,11 +55,13 @@ class GetMyAiWorkspaceUseCaseTest {
     private final ApiProductQueryServiceInMemory products = new ApiProductQueryServiceInMemory();
     private final FlowCrudServiceInMemory flows = new FlowCrudServiceInMemory();
     private final ApiCrudServiceInMemory apis = new ApiCrudServiceInMemory();
+    private final ApiKeyQueryServiceInMemory apiKeys = new ApiKeyQueryServiceInMemory();
     private final GetMyAiWorkspaceUseCase useCase = new GetMyAiWorkspaceUseCase(
         new AiWorkspaceMembershipQuery(subscriptions),
         products,
         flows,
-        apis
+        apis,
+        apiKeys
     );
 
     @BeforeEach
@@ -64,6 +70,7 @@ class GetMyAiWorkspaceUseCaseTest {
         products.reset();
         flows.reset();
         apis.reset();
+        apiKeys.reset();
     }
 
     @Test
@@ -81,6 +88,34 @@ class GetMyAiWorkspaceUseCaseTest {
         assertThat(details.budget().amount()).isEqualByComparingTo(new BigDecimal("5.00"));
         assertThat(details.budget().period()).isEqualTo("DAY");
         assertThat(details.endpointUrl()).isEqualTo("/alpha/");
+        assertThat(details.key()).isNull();
+    }
+
+    @Test
+    void returns_only_the_callers_usable_key() {
+        products.initWith(List.of(product("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE, Set.of())));
+        subscriptions.initWith(
+            List.of(subscription("app-1", "ws-1"), subscription("app-2", "ws-1").toBuilder().id("sub-2").application("app-2").build())
+        );
+        ZonedDateTime older = ZonedDateTime.of(2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        ZonedDateTime newer = ZonedDateTime.of(2026, 2, 1, 0, 0, 0, 0, ZoneOffset.UTC);
+        apiKeys.initWith(
+            List.of(
+                key("revoked-key", "sub-1", older, true, false),
+                key("old-key", "sub-1", older, false, false),
+                key("paused-key", "sub-1", newer, false, true),
+                key("other-user-key", "sub-2", newer, false, false)
+            )
+        );
+
+        var caller = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details().key();
+        var other = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-2"), "ws-1")).details().key();
+
+        assertThat(caller.value()).isEqualTo("paused-key");
+        assertThat(caller.status()).isEqualTo("PAUSED");
+        assertThat(caller.createdAt()).isEqualTo(newer.toOffsetDateTime());
+        assertThat(other.value()).isEqualTo("other-user-key");
+        assertThat(other.status()).isEqualTo("ACTIVE");
     }
 
     @Test
@@ -138,6 +173,16 @@ class GetMyAiWorkspaceUseCaseTest {
         Flow flow = new Flow();
         flow.setRequest(List.of(step));
         return flow;
+    }
+
+    private static ApiKeyEntity key(String value, String subscriptionId, ZonedDateTime createdAt, boolean revoked, boolean paused) {
+        return ApiKeyEntity.builder()
+            .key(value)
+            .subscriptions(List.of(subscriptionId))
+            .createdAt(createdAt)
+            .revoked(revoked)
+            .paused(paused)
+            .build();
     }
 
     private static Api proxy(String id, String environmentId, String path) {

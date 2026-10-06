@@ -4946,6 +4946,27 @@ components:
                 endpointUrl:
                     type: string
                     description: Listener path of the workspace LLM proxy, as stored. Absent when the workspace has no proxy.
+                key:
+                    description: The caller's own API key for this workspace. Absent when the subscription has no usable key.
+                    allOf:
+                        - $ref: "#/components/schemas/AiWorkspaceKey"
+        AiWorkspaceKey:
+            type: object
+            description: API key of the caller's accepted subscription. Revoked and expired keys are omitted.
+            required:
+                - value
+                - status
+            properties:
+                value:
+                    type: string
+                status:
+                    type: string
+                    enum:
+                        - ACTIVE
+                        - PAUSED
+                createdAt:
+                    type: string
+                    format: date-time
         AiWorkspaceBudget:
             type: object
             description: Allocated budget for the plan window. The amount is in US dollars.
