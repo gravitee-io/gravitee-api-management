@@ -20,6 +20,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
+import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import java.time.Instant;
 import java.util.List;
@@ -54,12 +55,13 @@ public class ComputeObservabilityTimeSeriesUseCase {
     public record Output(JsonNode response) {}
 
     public Output execute(Input input) {
-        var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
-
-        if (scope.isEmpty()) {
-            return new Output(analyticsDataPort.emptyTimeSeriesResponse());
+        if (input.metrics == null || input.metrics.isEmpty()) {
+            throw InvalidObservabilityQueryException.missingMetrics();
         }
-
+        if (input.interval == null || input.interval <= 0) {
+            throw InvalidObservabilityQueryException.invalidInterval(input.interval);
+        }
+        var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
         var query = new ObservabilityAnalyticsDataPort.TimeSeriesQuery(
             input.organizationId,
             input.environmentId,
@@ -70,6 +72,11 @@ public class ComputeObservabilityTimeSeriesUseCase {
             input.metrics,
             input.ranges
         );
+        analyticsDataPort.validate(query);
+
+        if (scope.isEmpty()) {
+            return new Output(analyticsDataPort.emptyTimeSeriesResponse());
+        }
         return new Output(analyticsDataPort.computeTimeSeries(query));
     }
 }

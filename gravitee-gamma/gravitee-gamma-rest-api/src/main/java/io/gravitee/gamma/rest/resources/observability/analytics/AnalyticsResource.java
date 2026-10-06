@@ -27,6 +27,7 @@ import io.gravitee.gamma.rest.resources.observability.analytics.dto.AnalyticsTim
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.FacetMetricQueryDto;
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.MetricQueryDto;
 import io.gravitee.gamma.rest.resources.observability.analytics.dto.NumberRangeDto;
+import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -136,37 +137,25 @@ public class AnalyticsResource {
     }
 
     private static List<FilterCondition> toFilters(List<FilterConditionDto> dtos) {
-        if (dtos == null) {
-            return List.of();
-        }
-        return dtos.stream().map(FilterConditionDto::toCore).toList();
+        return RequestEntries.map(dtos, "filters", FilterConditionDto::toCore);
     }
 
     private static List<io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery> toMetrics(
         List<MetricQueryDto> dtos
     ) {
-        if (dtos == null) {
-            return List.of();
-        }
-        return dtos.stream().map(MetricQueryDto::toCore).toList();
+        return RequestEntries.map(dtos, "metrics", MetricQueryDto::toCore);
     }
 
     private static List<io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery> toFacetMetrics(
         List<FacetMetricQueryDto> dtos
     ) {
-        if (dtos == null) {
-            return List.of();
-        }
-        return dtos.stream().map(FacetMetricQueryDto::toCore).toList();
+        return RequestEntries.map(dtos, "metrics", FacetMetricQueryDto::toCore);
     }
 
     private static List<io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumberRange> toRanges(
         List<NumberRangeDto> dtos
     ) {
-        if (dtos == null) {
-            return List.of();
-        }
-        return dtos.stream().map(NumberRangeDto::toCore).toList();
+        return RequestEntries.map(dtos, "ranges", NumberRangeDto::toCore);
     }
 
     private void checkReadObservabilityPermission() {

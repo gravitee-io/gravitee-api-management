@@ -28,8 +28,7 @@ import java.util.List;
  */
 public record SearchLogsRequestDto(TimeRangeDto timeRange, List<FilterConditionDto> filters) {
     /**
-     * ISO-8601 time window. {@code null} on either bound defers to the use case's default
-     * handling.
+     * ISO-8601 time window. Both bounds are required; the use case refuses a missing one.
      */
     public record TimeRangeDto(Instant from, Instant to) {}
 }
