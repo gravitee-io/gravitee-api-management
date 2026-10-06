@@ -146,6 +146,14 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private final DistributedSyncMetrics metrics;
     private final DistributedSyncSettings settings;
 
+    static final String LEASE_KEY_PREFIX = "distributed_sync_lease:";
+
+    /** Whether a write lease must be acquired and renewed — short-circuited when disabled in settings. */
+    private volatile boolean fencingEnabled;
+    /** The lease value this node last acquired, or null when not the holder. */
+    private volatile String leaseValue;
+    private volatile String clusterIdCache;
+
     @Override
     public void validate() {
         if (distributedSyncRepoType == null || distributedSyncRepoType.isEmpty()) {
@@ -192,7 +200,34 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         if (replayCycle) {
             metrics.recordReplayedCycle();
         }
+        if (clusterIdCache == null) {
+            clusterIdCache = clusterManager.clusterId();
+        }
+        if (primary) {
+            acquireOrRenewLease();
+        }
         return primary;
+    }
+
+    private void acquireOrRenewLease() {
+        fencingEnabled = settings.fencingEnabled();
+        if (!fencingEnabled) {
+            leaseValue = null;
+            return;
+        }
+        String candidate = node.id() + ":" + System.currentTimeMillis();
+        distributedEventRepository
+            .applyFencedWrite(LEASE_KEY_PREFIX + clusterIdCache, candidate, 30_000)
+            .subscribe(
+                () -> leaseValue = candidate,
+                throwable -> {
+                    log.warn(
+                        "Unable to acquire the distributed sync write lease: {}. Acting as secondary for this cycle.",
+                        throwable.getMessage()
+                    );
+                    leaseValue = null;
+                }
+            );
     }
 
     @Override
@@ -223,6 +258,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         resyncPending.set(false);
         resyncCycle = false;
         stateStoredByThisNode = false;
+        leaseValue = null;
     }
 
     @Override
@@ -258,6 +294,14 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     @Override
     public Single<Boolean> catalogFullyIndexed() {
         return distributedEventRepository.fullyIndexed();
+    }
+
+    @Override
+    public Single<Long> serverTime() {
+        if (leaseValue == null) {
+            return Single.just(System.currentTimeMillis());
+        }
+        return distributedEventRepository.serverTime();
     }
 
     @Override
@@ -549,7 +593,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
             }
             event.setClusterId(clusterManager.clusterId());
             event.setSchemaVersion(EVENT_SCHEMA_VERSION);
-            return distributedEventRepository.createOrUpdateAtWriteTime(event);
+            return distributedEventRepository.createOrUpdateFenced(event, leaseValue);
         });
     }
 

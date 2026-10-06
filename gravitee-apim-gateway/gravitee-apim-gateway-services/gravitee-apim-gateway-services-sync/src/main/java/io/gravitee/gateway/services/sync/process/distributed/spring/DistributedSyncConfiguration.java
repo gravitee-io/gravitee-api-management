@@ -405,7 +405,8 @@ public class DistributedSyncConfiguration {
         @Value(
             "${services.sync.distributed.tombstones.purgeInterval:" + DistributedSyncSettings.DEFAULT_TOMBSTONE_PURGE_INTERVAL_MS + "}"
         ) final long tombstonePurgeIntervalMs,
-        final GatewayConfiguration gatewayConfiguration
+        final GatewayConfiguration gatewayConfiguration,
+        @Value("${services.sync.distributed.fencing.enabled:true}") final boolean fencingEnabled
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -431,7 +432,8 @@ public class DistributedSyncConfiguration {
                 tombstoneRetentionMs,
                 tombstonePurgeIntervalMs,
                 topology(gatewayConfiguration),
-                DistributedSyncSettings.DEFAULT_PRIMARY_STALE_AFTER_MS
+                DistributedSyncSettings.DEFAULT_PRIMARY_STALE_AFTER_MS,
+                fencingEnabled
             )
         );
     }

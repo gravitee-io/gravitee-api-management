@@ -142,6 +142,14 @@ public interface DistributedSyncService {
      */
     default void inspectPrimaryState(final DistributedSyncState state) {}
 
+    /**
+     * Returns the Redis server time when fencing is active on this node, otherwise the local clock. Secondaries use
+     * it for the sync window so clock skew between nodes does not lose events.
+     */
+    default Single<Long> serverTime() {
+        return Single.just(System.currentTimeMillis());
+    }
+
     Completable distributeIfNeeded(final ApiReactorDeployable deployable);
 
     Completable distributeIfNeeded(final SingleSubscriptionDeployable deployable);

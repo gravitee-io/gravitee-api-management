@@ -21,13 +21,23 @@ package io.gravitee.gateway.services.sync.process.distributed.service;
  * @param topology description of what this node synchronizes (sharding tags, tenant, organizations, environments)
  * @param primaryStaleAfterMs how old the primary heartbeat may get before secondaries report it as stale
  */
-public record DistributedSyncSettings(long tombstoneRetentionMs, long tombstonePurgeIntervalMs, String topology, long primaryStaleAfterMs) {
+public record DistributedSyncSettings(
+    long tombstoneRetentionMs,
+    long tombstonePurgeIntervalMs,
+    String topology,
+    long primaryStaleAfterMs,
+    boolean fencingEnabled
+) {
     public static final long DEFAULT_TOMBSTONE_RETENTION_MS = 7L * 24 * 60 * 60 * 1000;
     public static final long DEFAULT_TOMBSTONE_PURGE_INTERVAL_MS = 60L * 60 * 1000;
     public static final long DEFAULT_PRIMARY_STALE_AFTER_MS = 2L * 60 * 1000;
 
     public DistributedSyncSettings(long tombstoneRetentionMs, long tombstonePurgeIntervalMs) {
-        this(tombstoneRetentionMs, tombstonePurgeIntervalMs, null, DEFAULT_PRIMARY_STALE_AFTER_MS);
+        this(tombstoneRetentionMs, tombstonePurgeIntervalMs, null, DEFAULT_PRIMARY_STALE_AFTER_MS, true);
+    }
+
+    public DistributedSyncSettings(long tombstoneRetentionMs, long tombstonePurgeIntervalMs, String topology, long primaryStaleAfterMs) {
+        this(tombstoneRetentionMs, tombstonePurgeIntervalMs, topology, primaryStaleAfterMs, true);
     }
 
     public static DistributedSyncSettings defaults() {
