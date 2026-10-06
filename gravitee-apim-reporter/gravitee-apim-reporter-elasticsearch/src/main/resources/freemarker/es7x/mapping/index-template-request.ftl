@@ -264,7 +264,6 @@
                 {
                     "additional_keyword_metrics": {
                         "path_match": "additional-metrics.keyword_*",
-                        "match_mapping_type": "string",
                         "mapping": {
                             "type": "keyword",
                             "ignore_above": 1024
