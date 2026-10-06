@@ -67,6 +67,7 @@ describe('DocumentationFolderComponent', () => {
   ) => {
     queryParamsSubject = new BehaviorSubject(params.queryParams ?? {});
     routerSpy = {
+      url: '/documentation?selectedId=p1',
       navigate: jest.fn().mockImplementation((_, options) => {
         if (options?.queryParams) queryParamsSubject.next(options.queryParams);
         return Promise.resolve(true);
