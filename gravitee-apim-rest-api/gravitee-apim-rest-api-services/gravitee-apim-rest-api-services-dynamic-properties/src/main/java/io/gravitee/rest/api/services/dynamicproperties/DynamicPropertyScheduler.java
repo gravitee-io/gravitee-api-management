@@ -152,6 +152,10 @@ public class DynamicPropertyScheduler {
             }
         }
 
+        if (!needToBeSaved) {
+            needToBeSaved = hasRemovedDynamicProperty(dynamicProperties, properties);
+        }
+
         if (needToBeSaved) {
             // Add previous user-defined properties
             updatedProperties.addAll(userDefinedProperties);
@@ -194,5 +198,13 @@ public class DynamicPropertyScheduler {
                 }
             }
         }
+    }
+
+    private static boolean hasRemovedDynamicProperty(List<DynamicProperty> dynamicProperties, List<Property> properties) {
+        Set<String> providedKeys = dynamicProperties.stream().map(DynamicProperty::getKey).collect(Collectors.toSet());
+        return properties
+            .stream()
+            .filter(Property::isDynamic)
+            .anyMatch(property -> !providedKeys.contains(property.getKey()));
     }
 }

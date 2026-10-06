@@ -157,6 +157,30 @@ class UpdateDynamicPropertiesUseCaseTest {
     }
 
     @Test
+    void should_persist_the_removal_of_a_property_missing_from_the_source_even_if_nothing_else_changed() {
+        var kept = Property.builder().key("kept").value("value").dynamic(true).build();
+        var removed = Property.builder().key("removed").value("value").dynamic(true).build();
+        var api = givenApi(buildApiWithProperties(List.of(kept, removed)));
+
+        cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(kept), false));
+
+        assertAuditHasBeenCreated();
+        assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(kept);
+    }
+
+    @Test
+    void should_persist_the_removal_of_the_last_dynamic_property_and_keep_user_defined_ones() {
+        var userDefined = Property.builder().key("user-prop").value("value").dynamic(false).build();
+        var removed = Property.builder().key("removed").value("value").dynamic(true).build();
+        var api = givenApi(buildApiWithProperties(List.of(userDefined, removed)));
+
+        cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
+
+        assertAuditHasBeenCreated();
+        assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(userDefined);
+    }
+
+    @Test
     void should_determine_sync_state_before_updating_api_properties() {
         List<Property> initialPropertiesList = List.of(Property.builder().key("key").value("value").dynamic(true).build());
         var api = givenApi(buildApiWithProperties(initialPropertiesList));
@@ -318,6 +342,18 @@ class UpdateDynamicPropertiesUseCaseTest {
                             .build()
                     );
             });
+        }
+
+        @Test
+        void should_redeploy_api_when_a_dynamic_property_is_removed() {
+            var userDefined = Property.builder().key("user-prop").value("value").dynamic(false).build();
+            var removed = Property.builder().key("removed").value("value").dynamic(true).build();
+            var api = givenApi(buildApiWithProperties(List.of(userDefined, removed)));
+
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
+
+            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
+            assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties()).containsExactly(userDefined);
         }
 
         @Test
