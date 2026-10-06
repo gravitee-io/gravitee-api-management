@@ -175,6 +175,7 @@
     <gravitee-policy-transform-protobuf-json.version>2.0.1</gravitee-policy-transform-protobuf-json.version>
     <gravitee-policy-transformheaders.version>5.2.1</gravitee-policy-transformheaders.version>
     <gravitee-policy-transformqueryparams.version>2.0.0</gravitee-policy-transformqueryparams.version>
+<<<<<<< HEAD
     <gravitee-policy-transform-status-code.version>1.0.2</gravitee-policy-transform-status-code.version>
     <gravitee-policy-url-rewriting.version>1.7.0</gravitee-policy-url-rewriting.version>
     <gravitee-policy-xml-json.version>2.0.1</gravitee-policy-xml-json.version>
@@ -182,6 +183,15 @@
     <gravitee-policy-xml-validation.version>1.2.1</gravitee-policy-xml-validation.version>
     <gravitee-policy-xslt.version>3.1.2</gravitee-policy-xslt.version>
     <gravitee-policy-wssecurity-authentication.version>2.0.2</gravitee-policy-wssecurity-authentication.version>
+=======
+    <gravitee-policy-transform-status-code.version>2.0.0</gravitee-policy-transform-status-code.version>
+    <gravitee-policy-url-rewriting.version>2.0.0</gravitee-policy-url-rewriting.version>
+    <gravitee-policy-xml-json.version>3.0.0</gravitee-policy-xml-json.version>
+    <gravitee-policy-xml-threat-protection.version>2.0.0</gravitee-policy-xml-threat-protection.version>
+    <gravitee-policy-xml-validation.version>2.1.0</gravitee-policy-xml-validation.version>
+    <gravitee-policy-xslt.version>4.0.0</gravitee-policy-xslt.version>
+    <gravitee-policy-wssecurity-authentication.version>3.0.0</gravitee-policy-wssecurity-authentication.version>
+>>>>>>> bf20f67 (fix(deps): update gravitee-policy-xml-validation to v2)
     <gravitee-policy-http-redirect.version>1.0.2</gravitee-policy-http-redirect.version>
 
     <gravitee-resource-cache.version>3.1.0</gravitee-resource-cache.version>
