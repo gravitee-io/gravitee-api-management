@@ -15,11 +15,6 @@
  */
 package io.gravitee.apim.core.ai_workspace.model;
 
-public record AiWorkspaceDetails(
-    String id,
-    String name,
-    String description,
-    AiWorkspaceBudget budget,
-    String endpointUrl,
-    AiWorkspaceKey key
-) {}
+import java.time.OffsetDateTime;
+
+public record AiWorkspaceKey(String value, String status, OffsetDateTime createdAt) {}

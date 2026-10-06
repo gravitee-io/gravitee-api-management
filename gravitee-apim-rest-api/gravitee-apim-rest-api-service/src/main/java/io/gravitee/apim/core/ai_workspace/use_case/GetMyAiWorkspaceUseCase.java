@@ -22,15 +22,20 @@ import io.gravitee.apim.core.ai_workspace.domain_service.AiWorkspaceMembershipQu
 import io.gravitee.apim.core.ai_workspace.exception.AiWorkspaceNotFoundException;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceKey;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceMembership;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
+import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.time.OffsetDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,17 +48,20 @@ public class GetMyAiWorkspaceUseCase {
     private final ApiProductQueryService apiProductQueryService;
     private final FlowCrudService flowCrudService;
     private final ApiCrudService apiCrudService;
+    private final ApiKeyQueryService apiKeyQueryService;
 
     public GetMyAiWorkspaceUseCase(
         AiWorkspaceMembershipQuery memberships,
         ApiProductQueryService apiProductQueryService,
         FlowCrudService flowCrudService,
-        ApiCrudService apiCrudService
+        ApiCrudService apiCrudService,
+        ApiKeyQueryService apiKeyQueryService
     ) {
         this.memberships = memberships;
         this.apiProductQueryService = apiProductQueryService;
         this.flowCrudService = flowCrudService;
         this.apiCrudService = apiCrudService;
+        this.apiKeyQueryService = apiKeyQueryService;
     }
 
     public record Input(ExecutionContext executionContext, Set<String> applicationIds, String aiWorkspaceId) {}
@@ -89,9 +97,28 @@ public class GetMyAiWorkspaceUseCase {
                 product.getName(),
                 product.getDescription(),
                 budget(membership, flowsByPlan),
-                AiWorkspaceEndpointReader.read(input.executionContext().getEnvironmentId(), apis)
+                AiWorkspaceEndpointReader.read(input.executionContext().getEnvironmentId(), apis),
+                key(membership.subscriptionId())
             )
         );
+    }
+
+    private AiWorkspaceKey key(String subscriptionId) {
+        if (subscriptionId == null || subscriptionId.isBlank()) {
+            return null;
+        }
+        return apiKeyQueryService
+            .findBySubscription(subscriptionId)
+            .filter(candidate -> candidate.getKey() != null && !candidate.getKey().isBlank())
+            .filter(candidate -> !candidate.isRevoked() && !candidate.isExpired())
+            .max(Comparator.comparing(ApiKeyEntity::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+            .map(GetMyAiWorkspaceUseCase::toKey)
+            .orElse(null);
+    }
+
+    private static AiWorkspaceKey toKey(ApiKeyEntity entity) {
+        OffsetDateTime createdAt = entity.getCreatedAt() == null ? null : entity.getCreatedAt().toOffsetDateTime();
+        return new AiWorkspaceKey(entity.getKey(), entity.isPaused() ? "PAUSED" : "ACTIVE", createdAt);
     }
 
     private static AiWorkspaceBudget budget(AiWorkspaceMembership membership, Map<String, List<Flow>> flowsByPlan) {

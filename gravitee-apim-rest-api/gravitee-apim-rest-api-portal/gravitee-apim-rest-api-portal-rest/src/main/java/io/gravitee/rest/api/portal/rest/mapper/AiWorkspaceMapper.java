@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceKey;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceSummary;
 import java.math.BigDecimal;
 import org.mapstruct.Mapper;
@@ -44,5 +45,13 @@ public interface AiWorkspaceMapper {
     @Named("toPeriod")
     default io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget.PeriodEnum toPeriod(String period) {
         return period == null ? null : io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget.PeriodEnum.fromValue(period);
+    }
+
+    @Mapping(target = "status", source = "status", qualifiedByName = "toKeyStatus")
+    io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey toKey(AiWorkspaceKey key);
+
+    @Named("toKeyStatus")
+    default io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey.StatusEnum toKeyStatus(String status) {
+        return status == null ? null : io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey.StatusEnum.fromValue(status);
     }
 }
