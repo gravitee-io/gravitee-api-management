@@ -24,6 +24,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.PageCRD;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
+import io.gravitee.apim.core.utils.StringUtils;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import io.gravitee.rest.api.model.PageEntity;
@@ -41,6 +42,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mapstruct.Mapper;
@@ -57,6 +59,12 @@ import org.slf4j.Logger;
 public interface ApiCRDAdapter {
     ApiCRDAdapter INSTANCE = Mappers.getMapper(ApiCRDAdapter.class);
     Logger log = NodeLoggerFactory.getLogger(ApiCRDAdapter.class);
+
+    /**
+     * Plan keys become plan HRIDs once the manifest is applied, so they must match the
+     * HRID pattern of the Automation API.
+     */
+    Pattern HRID_PATTERN = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_-]{2,}$");
 
     @Mapping(target = "version", source = "apiEntity.apiVersion")
     @Mapping(target = "metadata", source = "exportEntity.metadata")
@@ -105,7 +113,7 @@ public interface ApiCRDAdapter {
             .filter(plan -> !plan.isClosed())
             .toList();
         for (var plan : nonClosedPlans) {
-            var key = plan.getName().trim().replace(" ", "-");
+            var key = planKey(plan);
             if (plansMap.containsKey(key)) {
                 key = randomize(key);
             }
@@ -192,6 +200,11 @@ public interface ApiCRDAdapter {
         }
 
         return Map.of();
+    }
+
+    private static String planKey(GenericPlanEntity plan) {
+        var key = StringUtils.slugify(plan.getName());
+        return key != null && HRID_PATTERN.matcher(key).matches() ? key : randomize("plan");
     }
 
     private static String randomize(String strToRandomize) {
