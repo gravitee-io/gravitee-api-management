@@ -35,6 +35,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -66,6 +67,7 @@ class AdditionalKeywordMetricsMappingTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String VERSION_METRIC = "keyword_mcp-proxy_protocol-version";
     private static final String VERSIONS_METRIC = "keyword_mcp-proxy_supported-protocol-versions";
+    private static final String VERSIONS_LIST_METRIC = "keyword_mcp-proxy_versions-list";
 
     @Autowired
     private ElasticsearchReporter reporter;
@@ -125,18 +127,22 @@ class AdditionalKeywordMetricsMappingTest {
     void should_keep_date_like_keyword_metrics_as_keywords_and_index_every_document() throws Exception {
         String api = UUID.randomUUID().toString();
 
-        // The first value looks like a date, so it is the one that decides the mapping of each field.
-        report(api, "2025-11-25", "2025-11-25");
-        report(api, "2026-07-28", "2025-11-25,2026-07-28");
+        // The first value looks like a date, so it is the one that decides the mapping of each field; the list metric
+        // goes through the same dynamic template as the scalar ones.
+        report(api, "2025-11-25", "2025-11-25", List.of("2025-11-25"));
+        report(api, "2026-07-28", "2025-11-25,2026-07-28", List.of("2025-11-25", "2026-07-28", "not-a-date"));
 
         assertThat(count(api)).as("the document whose versions are not a date is indexed too").isEqualTo(2);
-        assertThat(fieldType(VERSION_METRIC)).isEqualTo("keyword");
-        assertThat(fieldType(VERSIONS_METRIC)).isEqualTo("keyword");
+        String index = indexOf(api);
+        assertThat(fieldType(index, VERSION_METRIC)).isEqualTo("keyword");
+        assertThat(fieldType(index, VERSIONS_METRIC)).isEqualTo("keyword");
+        assertThat(fieldType(index, VERSIONS_LIST_METRIC)).isEqualTo("keyword");
         assertThat(count(api, VERSIONS_METRIC, "2025-11-25,2026-07-28")).isEqualTo(1);
         assertThat(count(api, VERSION_METRIC, "2025-11-25")).isEqualTo(1);
+        assertThat(count(api, VERSIONS_LIST_METRIC, "not-a-date")).isEqualTo(1);
     }
 
-    private void report(String api, String version, String supportedVersions) throws InterruptedException {
+    private void report(String api, String version, String supportedVersions, List<String> versionsList) throws InterruptedException {
         Metrics metrics = Metrics.builder()
             .timestamp(Instant.now().toEpochMilli())
             .requestId(UUID.randomUUID().toString())
@@ -146,7 +152,8 @@ class AdditionalKeywordMetricsMappingTest {
             .additionalMetrics(
                 Set.of(
                     new AdditionalMetric.KeywordMetric(VERSION_METRIC, version),
-                    new AdditionalMetric.KeywordMetric(VERSIONS_METRIC, supportedVersions)
+                    new AdditionalMetric.KeywordMetric(VERSIONS_METRIC, supportedVersions),
+                    new AdditionalMetric.KeywordListMetric(VERSIONS_LIST_METRIC, versionsList)
                 )
             )
             .build();
@@ -156,9 +163,15 @@ class AdditionalKeywordMetricsMappingTest {
         reported.assertNoErrors();
     }
 
-    private String fieldType(String metric) throws Exception {
-        JsonNode mappings = get("/gravitee-v4-metrics*/_mapping/field/additional-metrics." + metric);
-        JsonNode field = mappings.elements().next().path("mappings").path("additional-metrics." + metric).path("mapping").path(metric);
+    /** The index holding the documents of {@code api}: the container is shared, other tests may have created more. */
+    private String indexOf(String api) throws Exception {
+        JsonNode hits = post("/gravitee-v4-metrics*/_search", "{\"size\":1,\"query\":{\"term\":{\"api-id\":\"" + api + "\"}}}");
+        return hits.path("hits").path("hits").get(0).path("_index").asText();
+    }
+
+    private String fieldType(String index, String metric) throws Exception {
+        JsonNode mappings = get("/" + index + "/_mapping/field/additional-metrics." + metric);
+        JsonNode field = mappings.path(index).path("mappings").path("additional-metrics." + metric).path("mapping").path(metric);
         return field.path("type").asText();
     }
 
