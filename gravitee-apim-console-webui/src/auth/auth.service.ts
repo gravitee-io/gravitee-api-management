@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Inject, Injectable } from '@angular/core';
 import angular from 'angular';
+
+import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SignoutRedirectArgs, User, UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
 import { Router } from '@angular/router';
