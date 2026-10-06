@@ -104,13 +104,13 @@ public interface Validator<I extends Validator.Input> {
         }
 
         public Optional<List<Error>> warning() {
-            return Optional.of(errors().stream().flatMap(List::stream).filter(Error::isWarning).toList()).filter(
+            return Optional.of(errors().stream().flatMap(List::stream).filter(Error::isWarning).distinct().toList()).filter(
                 CollectionUtils::isNotEmpty
             );
         }
 
         public Optional<List<Error>> severe() {
-            return Optional.of(errors().stream().flatMap(List::stream).filter(Error::isSevere).toList()).filter(
+            return Optional.of(errors().stream().flatMap(List::stream).filter(Error::isSevere).distinct().toList()).filter(
                 CollectionUtils::isNotEmpty
             );
         }
