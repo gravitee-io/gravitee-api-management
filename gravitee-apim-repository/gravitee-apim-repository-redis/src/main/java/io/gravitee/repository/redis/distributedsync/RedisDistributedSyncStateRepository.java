@@ -27,6 +27,7 @@ import io.vertx.redis.client.Response;
 import io.vertx.redis.client.ResponseType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import lombok.CustomLog;
 
 /**
@@ -59,51 +60,36 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
             )
         )
             .filter(response -> response.type() == ResponseType.MULTI && response.size() != 0)
-            .map(item -> {
-                DistributedSyncState.DistributedSyncStateBuilder distributedSyncStateBuilder = DistributedSyncState.builder();
-                // Get cluster id
-                Response clusterIdResponse = item.get(DistributedSyncState.Fields.clusterId);
-                if (clusterIdResponse != null) {
-                    distributedSyncStateBuilder.clusterId(clusterIdResponse.toString());
-                }
-                // Get node id
-                Response nodeIdResponse = item.get(DistributedSyncState.Fields.nodeId);
-                if (nodeIdResponse != null) {
-                    distributedSyncStateBuilder.nodeId(nodeIdResponse.toString());
-                }
-                // Get node version
-                Response nodeVersionResponse = item.get(DistributedSyncState.Fields.nodeVersion);
-                if (nodeVersionResponse != null) {
-                    distributedSyncStateBuilder.nodeVersion(nodeVersionResponse.toString());
-                }
-                // Get from time
-                Response fromResponse = item.get(DistributedSyncState.Fields.from);
-                if (fromResponse != null) {
-                    distributedSyncStateBuilder.from(fromResponse.toLong());
-                }
-                // Get to time
-                Response toResponse = item.get(DistributedSyncState.Fields.to);
-                if (toResponse != null) {
-                    distributedSyncStateBuilder.to(toResponse.toLong());
-                }
-                Response statusResponse = item.get(DistributedSyncState.Fields.status);
-                if (statusResponse != null) {
-                    distributedSyncStateBuilder.status(parseStatus(statusResponse.toString()));
-                }
-                Response resyncIdResponse = item.get(DistributedSyncState.Fields.resyncId);
-                if (resyncIdResponse != null) {
-                    distributedSyncStateBuilder.resyncId(resyncIdResponse.toLong());
-                }
-                Response heartbeatResponse = item.get(DistributedSyncState.Fields.heartbeatAt);
-                if (heartbeatResponse != null) {
-                    distributedSyncStateBuilder.heartbeatAt(heartbeatResponse.toLong());
-                }
-                Response tombstoneHorizonResponse = item.get(DistributedSyncState.Fields.tombstoneHorizon);
-                if (tombstoneHorizonResponse != null) {
-                    distributedSyncStateBuilder.tombstoneHorizon(tombstoneHorizonResponse.toLong());
-                }
-                return distributedSyncStateBuilder.build();
-            });
+            .map(RedisDistributedSyncStateRepository::toState);
+    }
+
+    private static DistributedSyncState toState(final Response item) {
+        DistributedSyncState.DistributedSyncStateBuilder builder = DistributedSyncState.builder();
+        stringField(item, DistributedSyncState.Fields.clusterId, builder::clusterId);
+        stringField(item, DistributedSyncState.Fields.nodeId, builder::nodeId);
+        stringField(item, DistributedSyncState.Fields.nodeVersion, builder::nodeVersion);
+        longField(item, DistributedSyncState.Fields.from, builder::from);
+        longField(item, DistributedSyncState.Fields.to, builder::to);
+        stringField(item, DistributedSyncState.Fields.status, value -> builder.status(parseStatus(value)));
+        longField(item, DistributedSyncState.Fields.resyncId, builder::resyncId);
+        longField(item, DistributedSyncState.Fields.heartbeatAt, builder::heartbeatAt);
+        longField(item, DistributedSyncState.Fields.tombstoneHorizon, builder::tombstoneHorizon);
+        stringField(item, DistributedSyncState.Fields.topology, builder::topology);
+        return builder.build();
+    }
+
+    private static void stringField(final Response item, final String field, final Consumer<String> setter) {
+        Response value = item.get(field);
+        if (value != null) {
+            setter.accept(value.toString());
+        }
+    }
+
+    private static void longField(final Response item, final String field, final Consumer<Long> setter) {
+        Response value = item.get(field);
+        if (value != null) {
+            setter.accept(value.toLong());
+        }
     }
 
     /**
@@ -140,6 +126,7 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
             addIfPresent(args, DistributedSyncState.Fields.resyncId, distributedSyncState.getResyncId());
             addIfPresent(args, DistributedSyncState.Fields.heartbeatAt, distributedSyncState.getHeartbeatAt());
             addIfPresent(args, DistributedSyncState.Fields.tombstoneHorizon, distributedSyncState.getTombstoneHorizon());
+            addIfPresent(args, DistributedSyncState.Fields.topology, distributedSyncState.getTopology());
             return Completable.fromCompletionStage(
                 redisClient
                     .redisApi()
