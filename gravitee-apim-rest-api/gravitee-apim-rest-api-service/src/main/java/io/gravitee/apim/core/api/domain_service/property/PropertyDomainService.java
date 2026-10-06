@@ -15,8 +15,11 @@
  */
 package io.gravitee.apim.core.api.domain_service.property;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
+
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
+import io.gravitee.apim.core.api.exception.MaskedApiPropertyValueException;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.api.model.property.PropertyClassificationValidator;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -29,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -42,16 +46,37 @@ public class PropertyDomainService {
 
     private final DataEncryptor dataEncryptor;
 
-    public List<Property> encryptProperties(List<EncryptableProperty> apiProperties) {
+    public List<Property> encryptProperties(List<Property> storedProperties, List<EncryptableProperty> apiProperties) {
         if (apiProperties == null) {
             return new ArrayList<>();
         }
-        return apiProperties.stream().map(this::encryptProperty).filter(Objects::nonNull).toList();
+        Map<String, Property> storedByKey = indexByKey(storedProperties);
+        return apiProperties
+            .stream()
+            .map(property -> encryptProperty(storedByKey, property))
+            .filter(Objects::nonNull)
+            .toList();
     }
 
-    private Property encryptProperty(EncryptableProperty property) {
+    private static Map<String, Property> indexByKey(List<Property> properties) {
+        if (properties == null) {
+            return Map.of();
+        }
+        return properties
+            .stream()
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
+    }
+
+    private Property encryptProperty(Map<String, Property> storedByKey, EncryptableProperty property) {
         if (property == null) {
             return null;
+        }
+        if (ENCRYPTED_VALUE_MASK.equals(property.getValue())) {
+            Property stored = Optional.ofNullable(storedByKey.get(property.getKey()))
+                .filter(Property::isEncrypted)
+                .orElseThrow(() -> new MaskedApiPropertyValueException(property.getKey()));
+            return property.toPropertyBuilder().value(stored.getValue()).encrypted(true).build();
         }
         var asPropertyBuilder = property.toPropertyBuilder();
         if (property.isEncryptable() && !property.isEncrypted()) {
@@ -89,6 +114,7 @@ public class PropertyDomainService {
             .stream()
             .filter(Objects::nonNull)
             .filter(EncryptableProperty::isEncrypted)
+            .filter(incoming -> !ENCRYPTED_VALUE_MASK.equals(incoming.getValue()))
             .filter(incoming -> storedCiphertextByKey.containsKey(incoming.getKey()))
             .filter(incoming -> !storedCiphertextByKey.get(incoming.getKey()).equals(incoming.getValue()))
             .filter(incoming -> !decrypts(incoming.getValue()))
@@ -121,6 +147,7 @@ public class PropertyDomainService {
             .map(Property::getKey)
             .collect(Collectors.toSet());
         return encryptProperties(
+            storedProperties,
             restoredProperties
                 .stream()
                 .filter(Objects::nonNull)

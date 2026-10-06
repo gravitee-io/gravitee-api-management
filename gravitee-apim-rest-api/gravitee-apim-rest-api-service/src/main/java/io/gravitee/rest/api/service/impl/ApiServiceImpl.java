@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_CREATED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_DELETED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_ROLLBACKED;
@@ -49,6 +50,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.exception.MaskedApiPropertyValueException;
 import io.gravitee.apim.core.api.model.Path;
 import io.gravitee.apim.core.flow.domain_service.XmlValidationPolicyChecker;
 import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
@@ -62,6 +64,7 @@ import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.Logging;
 import io.gravitee.definition.model.LoggingMode;
 import io.gravitee.definition.model.Origin;
+import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.RequestValidation;
 import io.gravitee.definition.model.VirtualHost;
@@ -236,6 +239,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -1284,7 +1288,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             // encrypt API properties
-            encryptProperties(updateApiEntity.getPropertyList());
+            encryptProperties(apiToCheck.getPropertyList(), updateApiEntity.getPropertyList());
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(updateApiEntity.getLifecycleState())) {
                 planService
@@ -2794,15 +2798,33 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         return pageable;
     }
 
-    protected void encryptProperties(List<PropertyEntity> properties) {
+    protected void encryptProperties(List<Property> storedProperties, List<PropertyEntity> properties) {
+        Map<String, Property> storedByKey = storedProperties == null
+            ? Map.of()
+            : storedProperties
+                .stream()
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
         for (PropertyEntity property : properties) {
-            if (property.isEncryptable() && !property.isEncrypted()) {
-                try {
-                    property.setValue(dataEncryptor.encrypt(property.getValue()));
-                    property.setEncrypted(true);
-                } catch (GeneralSecurityException e) {
-                    log.error("Error encrypting property value", e);
-                }
+            encryptProperty(storedByKey, property);
+        }
+    }
+
+    private void encryptProperty(Map<String, Property> storedByKey, PropertyEntity property) {
+        if (ENCRYPTED_VALUE_MASK.equals(property.getValue())) {
+            Property stored = Optional.ofNullable(storedByKey.get(property.getKey()))
+                .filter(Property::isEncrypted)
+                .orElseThrow(() -> new MaskedApiPropertyValueException(property.getKey()));
+            property.setValue(stored.getValue());
+            property.setEncrypted(true);
+            return;
+        }
+        if (property.isEncryptable() && !property.isEncrypted()) {
+            try {
+                property.setValue(dataEncryptor.encrypt(property.getValue()));
+                property.setEncrypted(true);
+            } catch (GeneralSecurityException e) {
+                log.error("Error encrypting property value", e);
             }
         }
     }

@@ -1100,7 +1100,7 @@ public class ApiServiceImplTest {
     public void should_update_when_an_encrypted_dynamic_property_is_echoed_back() throws Exception {
         prepareUpdate();
         givenStoredProperties(List.of(new Property("secret-key", "encrypted-value", true, true)));
-        when(propertiesService.encryptProperties(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(propertiesService.encryptProperties(any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
         updateApiEntity.setProperties(List.of(new PropertyEntity("secret-key", "encrypted-value", false, true, true)));
 
         assertDoesNotThrow(() -> apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME));

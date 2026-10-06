@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -222,7 +223,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         DictionaryEntity result = dictionaryService.updateProperties(DICTIONARY_ID, Map.of("apiKey", "new-secret", "region", "new-region"));
 
-        assertThat(result.getProperties()).containsEntry("apiKey", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
+        assertThat(result.getProperties()).containsEntry("apiKey", ENCRYPTED_VALUE_MASK);
         assertThat(result.getProperties()).containsEntry("region", "new-region");
         verify(dictionaryRepository).update(
             argThat(
@@ -262,7 +263,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         DictionaryEntity result = dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "previous-cipher"));
 
-        assertThat(result.getProperties()).containsEntry("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
+        assertThat(result.getProperties()).containsEntry("secret", ENCRYPTED_VALUE_MASK);
         verify(dictionaryRepository, never()).update(any(Dictionary.class));
         verify(dataEncryptor, never()).encrypt(any());
     }
