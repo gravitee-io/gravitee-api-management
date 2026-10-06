@@ -44,7 +44,7 @@ inputs:
   - { dir: "gravitee-apim-webui-libs/gravitee-kafka-explorer", buildFiles: ["ng-package.json","package.json","project.json"] }
   - { path: "gravitee-apim-webui-libs/gravitee-kafka-explorer/project.json", hash: "sha256:ce2317d584b45428274e1c4c5f44bc0f3a01f2cec8d46028eac440e4f63fb423" }
   - { dir: "gravitee-apim-webui-libs/gravitee-markdown", buildFiles: ["ng-package.json","package.json","project.json"] }
-  - { path: "gravitee-apim-webui-libs/gravitee-markdown/project.json", hash: "sha256:1b0ad60d0fd3bbb21d714b6e194a98c636ba0e74ae3a0b6aa2b0721db2991c8c" }
+  - { path: "gravitee-apim-webui-libs/gravitee-markdown/project.json", hash: "sha256:2f261b0e84bfbf106dfa476d9ef04ea24c27f9c09042d0073fb3fad576dd4d49" }
   - { dir: "gravitee-gamma/gravitee-gamma-control-plane-webui", buildFiles: ["project.json"] }
   - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/project.json", hash: "sha256:70fd903be5c9e0426dbd6d83f1a374b4a7852ad06c04dcfe63a88201fc30e5f1" }
   - { dir: "gravitee-gamma/gravitee-gamma-definition-model", buildFiles: ["pom.xml"] }
@@ -57,86 +57,6 @@ inputs:
   - { dir: "gravitee-gamma/gravitee-gamma-plugin", buildFiles: ["pom.xml"] }
   - { dir: "gravitee-gamma/gravitee-gamma-rest-api", buildFiles: ["pom.xml"] }
 entries:
-  - path: ".agents/skills/analyze-test-coverage/SKILL.md"
-    hash: sha256:35f5bf7a4c37d9b7377a1c481ca8a9219b90929494b3120f7597bf38f58b6e83
-    status: generated
-    scope: local
-  - path: ".agents/skills/analyze-test-coverage/directives-template.md"
-    hash: sha256:e5396257629d371f27c81b67792352c020720ee76fcfdc85bcc30220ac3cac13
-    status: generated
-    scope: local
-  - path: ".agents/skills/debugging/SKILL.md"
-    hash: sha256:a72ec4b533f481750ff68bd31496e0c48c84654c6d61a420721e0f05a88c989d
-    status: generated
-    scope: local
-  - path: ".agents/skills/debugging/directives-template.md"
-    hash: sha256:cab14d51cfc2fa23ddca1575f8f975b04bc9c27670ca78984e0d554c8c365274
-    status: generated
-    scope: local
-  - path: ".agents/skills/explain-feature/SKILL.md"
-    hash: sha256:a23f59a78f45aa772001ebbf888c8862864f6b9455be56a5da85f5c991a9f6fa
-    status: generated
-    scope: local
-  - path: ".agents/skills/explain-feature/directives-template.md"
-    hash: sha256:eeb0802c8c27f646692a7e6779cf30f0cc28d12a3bff61626cc62f4077600c95
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/SKILL.md"
-    hash: sha256:ba5ac442be7c0ff9a23492f36ab39d416014d484916da73e205ba92225f23e98
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/directives-template.md"
-    hash: sha256:dc08b9b5dea16c8a28590c73ffc4fb3d19dae333baf48777df38ec7617627d05
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/pr-body-template.md"
-    hash: sha256:01d701ffde39db922429c59aaac1086640fab0c96e3fd8d1d30f4da961e45b1f
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/references/cleanup.md"
-    hash: sha256:e584b96b6dab213b394ee9a052d8bc5883836d7f11b289f60087f38a688175b5
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/references/conflict-resolution.md"
-    hash: sha256:7856d09ab1a2ca151a8aa03873be04e37cc74f4c841911bb316fde4488d8cd28
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/references/pull-request-creation.md"
-    hash: sha256:910086e562b15c4c6bd49e3ad0245720473dbd50e8ac39a1f8122bd5c7795b8a
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/references/rebasing.md"
-    hash: sha256:0d42e315c1217f4f35dc64a52eccb730ee784fed73f36d5f6c46de53055861aa
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/references/stacked-pull-requests.md"
-    hash: sha256:143c5a95bd5e9cd28df6b10df521bbd4c87ad2c128290394cc56e0f1f561f93b
-    status: generated
-    scope: local
-  - path: ".agents/skills/git-github/references/worktrees.md"
-    hash: sha256:960713b07cf1c30b9a33f0aa939609cb25e08e72f566946628e84aa1fbc17ab2
-    status: generated
-    scope: local
-  - path: ".agents/skills/peer-code-review/SKILL.md"
-    hash: sha256:a06b7b63c883e0d982cbe571401c25fb1e4fa73367f993a57de85750625f6747
-    status: generated
-    scope: local
-  - path: ".agents/skills/planning/SKILL.md"
-    hash: sha256:fb3654c7cc678256a345159a955e31fa665f3bbaf71205e8c0950e809191a911
-    status: generated
-    scope: local
-  - path: ".agents/skills/self-code-review/SKILL.md"
-    hash: sha256:943b86fad4cd1e4f97bee28d7a831f2d742af0b98bb299f966183e24a9132f49
-    status: generated
-    scope: local
-  - path: ".agents/skills/write-tests/SKILL.md"
-    hash: sha256:1528ba5cdfdae07cf8259bcb026513f21b0a40e88f138b9fae59d73c6f516fdf
-    status: generated
-    scope: local
-  - path: ".agents/skills/write-tests/directives-template.md"
-    hash: sha256:208d4456693e4099c853ff82e5f7aa97c0ea8cadc3a297ae6cbc091345cccd94
-    status: generated
-    scope: local
   - path: ".ai/AGENTS.md"
     hash: sha256:c97be23e2984ae9e86f36fde09261efeef0817616c6b989204a07064708c24d4
     status: generated
@@ -145,96 +65,16 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-  - path: ".claude/skills/analyze-test-coverage/SKILL.md"
-    hash: sha256:35f5bf7a4c37d9b7377a1c481ca8a9219b90929494b3120f7597bf38f58b6e83
-    status: generated
-    scope: local
-  - path: ".claude/skills/analyze-test-coverage/directives-template.md"
-    hash: sha256:e5396257629d371f27c81b67792352c020720ee76fcfdc85bcc30220ac3cac13
-    status: generated
-    scope: local
-  - path: ".claude/skills/debugging/SKILL.md"
-    hash: sha256:a72ec4b533f481750ff68bd31496e0c48c84654c6d61a420721e0f05a88c989d
-    status: generated
-    scope: local
-  - path: ".claude/skills/debugging/directives-template.md"
-    hash: sha256:cab14d51cfc2fa23ddca1575f8f975b04bc9c27670ca78984e0d554c8c365274
-    status: generated
-    scope: local
-  - path: ".claude/skills/explain-feature/SKILL.md"
-    hash: sha256:a23f59a78f45aa772001ebbf888c8862864f6b9455be56a5da85f5c991a9f6fa
-    status: generated
-    scope: local
-  - path: ".claude/skills/explain-feature/directives-template.md"
-    hash: sha256:eeb0802c8c27f646692a7e6779cf30f0cc28d12a3bff61626cc62f4077600c95
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/SKILL.md"
-    hash: sha256:ba5ac442be7c0ff9a23492f36ab39d416014d484916da73e205ba92225f23e98
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/directives-template.md"
-    hash: sha256:dc08b9b5dea16c8a28590c73ffc4fb3d19dae333baf48777df38ec7617627d05
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/pr-body-template.md"
-    hash: sha256:01d701ffde39db922429c59aaac1086640fab0c96e3fd8d1d30f4da961e45b1f
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/references/cleanup.md"
-    hash: sha256:e584b96b6dab213b394ee9a052d8bc5883836d7f11b289f60087f38a688175b5
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/references/conflict-resolution.md"
-    hash: sha256:7856d09ab1a2ca151a8aa03873be04e37cc74f4c841911bb316fde4488d8cd28
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/references/pull-request-creation.md"
-    hash: sha256:910086e562b15c4c6bd49e3ad0245720473dbd50e8ac39a1f8122bd5c7795b8a
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/references/rebasing.md"
-    hash: sha256:0d42e315c1217f4f35dc64a52eccb730ee784fed73f36d5f6c46de53055861aa
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/references/stacked-pull-requests.md"
-    hash: sha256:143c5a95bd5e9cd28df6b10df521bbd4c87ad2c128290394cc56e0f1f561f93b
-    status: generated
-    scope: local
-  - path: ".claude/skills/git-github/references/worktrees.md"
-    hash: sha256:960713b07cf1c30b9a33f0aa939609cb25e08e72f566946628e84aa1fbc17ab2
-    status: generated
-    scope: local
-  - path: ".claude/skills/peer-code-review/SKILL.md"
-    hash: sha256:a06b7b63c883e0d982cbe571401c25fb1e4fa73367f993a57de85750625f6747
-    status: generated
-    scope: local
-  - path: ".claude/skills/planning/SKILL.md"
-    hash: sha256:fb3654c7cc678256a345159a955e31fa665f3bbaf71205e8c0950e809191a911
-    status: generated
-    scope: local
-  - path: ".claude/skills/self-code-review/SKILL.md"
-    hash: sha256:943b86fad4cd1e4f97bee28d7a831f2d742af0b98bb299f966183e24a9132f49
-    status: generated
-    scope: local
-  - path: ".claude/skills/write-tests/SKILL.md"
-    hash: sha256:1528ba5cdfdae07cf8259bcb026513f21b0a40e88f138b9fae59d73c6f516fdf
-    status: generated
-    scope: local
-  - path: ".claude/skills/write-tests/directives-template.md"
-    hash: sha256:208d4456693e4099c853ff82e5f7aa97c0ea8cadc3a297ae6cbc091345cccd94
-    status: generated
-    scope: local
   - path: ".github/instructions/code-review.instructions.md"
-    hash: sha256:099ebc0d75d677d12cdc8e55aca4241a24551a3b76a9b47fde81f3742848c2e9
+    hash: sha256:d3cafa9551f1f1be59bb035ae0cd043667434dcea4380c2ddd4d491e6ac2693c
     status: generated
     scope: committed
   - path: ".github/scripts/verify-ai-context.mjs"
-    hash: sha256:e3ae3def50d91348ab488230ee71483f2c61c9a0e95d4b2fd6ec626e7b0681ea
+    hash: sha256:261d29ae7fe29a7700361f03395b0ca054a4393b8f423644c21951b514d70196
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:307ef05893bc4b791da58bac5beb5539838d4fd1bfb837f6a54250b20f40bac2
+    hash: sha256:8880bcb957271a5f3cc2bf8f2ccaff0f78f5b0fa251944e390f86b767b6cb784
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -417,4 +257,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:46c31240b9cc39eaa3c861d35d8cce0e9d59a5f4bf8485922db180b5fe3b78ec
+record: sha256:c3562113db3954b22daca164a955b3475be12c0c96f14c1396c7bdd2663afa24
