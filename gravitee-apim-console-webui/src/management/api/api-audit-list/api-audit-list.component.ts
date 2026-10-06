@@ -19,13 +19,14 @@ import { BehaviorSubject, EMPTY, Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, switchMap, takeUntil, tap, throttleTime } from 'rxjs/operators';
 import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { isEqual, mapValues } from 'lodash';
+import { isEqual } from 'lodash';
 import { Moment } from 'moment';
 
 import { ApiAuditService } from '../../../services-ngx/api-audit.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { endOfDay } from '../../../util/date.util';
+import { toAuditTargets } from '../../../entities/audit/auditTargets';
 
 interface ApiAuditData {
   id: string;
@@ -130,7 +131,7 @@ export class ApiAuditListComponent implements OnInit, OnDestroy {
           date: audit.createdAt,
           user: (auditsList.metadata[`USER:${audit.user}:name`] as string) ?? audit.user,
           event: audit.event,
-          targets: mapValues(audit.properties, (v, k) => auditsList.metadata[k + ':' + v + ':name'] as string),
+          targets: toAuditTargets(audit.properties, auditsList.metadata),
           patch: JSON.parse(audit.patch),
           displayPatch: false,
         }));
