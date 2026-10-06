@@ -138,9 +138,21 @@ public class ClusterSynchronizer implements RepositorySynchronizer {
     }
 
     private Flowable<ClusterReactorDeployable> prepareForUndeployment(final Flowable<Event> eventsByType) {
-        return eventsByType
-            .flatMapMaybe(clusterMapper::toId)
-            .map(clusterId -> ClusterReactorDeployable.builder().syncAction(SyncAction.UNDEPLOY).clusterId(clusterId).build());
+        return eventsByType.flatMapMaybe(event ->
+            clusterMapper
+                .toId(event)
+                .map(clusterId ->
+                    ClusterReactorDeployable.builder()
+                        .syncAction(SyncAction.UNDEPLOY)
+                        .clusterId(clusterId)
+                        .environmentId(singleEnvironment(event))
+                        .build()
+                )
+        );
+    }
+
+    private static String singleEnvironment(final Event event) {
+        return event.getEnvironments() != null && event.getEnvironments().size() == 1 ? event.getEnvironments().iterator().next() : null;
     }
 
     private Flowable<ClusterReactorDeployable> deployCluster(ClusterDeployer clusterDeployer, final ClusterReactorDeployable deployable) {

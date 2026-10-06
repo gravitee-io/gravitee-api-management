@@ -18,6 +18,7 @@ package io.gravitee.gateway.services.sync.process.common.deployer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.cluster.KafkaClusterReactableCluster;
 import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
@@ -83,6 +84,24 @@ class ClusterDeployerTest {
 
             cut.undeploy(deployable).test().assertComplete();
             verify(clusterManager).unregister("id");
+        }
+
+        @Test
+        void should_undeploy_the_cluster_whose_cross_id_the_event_carries() {
+            var deployed = KafkaClusterReactableCluster.builder().id("cluster-uuid").crossId("my-cluster").environmentId("env").build();
+            when(clusterManager.get("my-cluster", "env")).thenReturn(deployed);
+            var deployable = ClusterReactorDeployable.builder().clusterId("my-cluster").environmentId("env").build();
+
+            cut.undeploy(deployable).test().assertComplete();
+            verify(clusterManager).unregister("cluster-uuid");
+        }
+
+        @Test
+        void should_fall_back_to_the_event_value_as_an_id_when_no_cluster_has_that_cross_id() {
+            var deployable = ClusterReactorDeployable.builder().clusterId("cluster-uuid").environmentId("env").build();
+
+            cut.undeploy(deployable).test().assertComplete();
+            verify(clusterManager).unregister("cluster-uuid");
         }
 
         @Test

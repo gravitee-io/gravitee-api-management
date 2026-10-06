@@ -19,6 +19,7 @@ import static io.gravitee.repository.management.model.Event.EventProperties.CLUS
 import static io.gravitee.repository.management.model.EventType.DEPLOY_CLUSTER;
 import static io.gravitee.repository.management.model.EventType.UNDEPLOY_CLUSTER;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
@@ -157,6 +158,22 @@ class ClusterSynchronizerTest {
             cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
 
             verify(clusterDeployer).undeploy(any());
+        }
+
+        @Test
+        void should_pass_the_event_environment_with_the_cross_id_to_undeploy() throws InterruptedException {
+            Event event = new Event();
+            event.setId("event-id");
+            event.setType(UNDEPLOY_CLUSTER);
+            event.setEnvironments(Set.of("env"));
+            event.setProperties(Map.of(CLUSTER_ID.getValue(), "my-cluster"));
+
+            when(latestEventFetcher.fetchLatest(any(), any(), any(), any(), any())).thenReturn(Flowable.just(List.of(event)));
+            cut.synchronize(-1L, Instant.now().toEpochMilli(), Set.of()).test().await().assertComplete();
+
+            verify(clusterDeployer).undeploy(
+                argThat(deployable -> "my-cluster".equals(deployable.clusterId()) && "env".equals(deployable.environmentId()))
+            );
         }
     }
 }

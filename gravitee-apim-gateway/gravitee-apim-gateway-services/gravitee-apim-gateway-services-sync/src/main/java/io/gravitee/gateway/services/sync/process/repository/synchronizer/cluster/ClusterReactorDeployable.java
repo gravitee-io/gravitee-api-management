@@ -30,6 +30,8 @@ import lombok.experimental.Accessors;
 public class ClusterReactorDeployable implements ClusterDeployable {
 
     private String clusterId;
+    /** Environment of an undeploy event, whose cluster id property holds the cluster cross id. */
+    private String environmentId;
     private ReactableCluster reactableCluster;
     private SyncAction syncAction;
 
