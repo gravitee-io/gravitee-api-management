@@ -76,6 +76,38 @@ paths:
                     $ref: "#/components/responses/UnauthorizedError"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /ai-workspaces/{aiWorkspaceId}:
+        get:
+            tags:
+                - AI Workspace
+            summary: Get one of the caller's Gamma AI Workspaces
+            description: |
+                Returned only when the caller is the USER primary owner of an application with an accepted subscription.
+                Any other id returns 404.
+            operationId: getAiWorkspace
+            parameters:
+                - name: aiWorkspaceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: The workspace
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AiWorkspace"
+                401:
+                    $ref: "#/components/responses/UnauthorizedError"
+                404:
+                    description: The workspace does not exist, is not an AI workspace, or the caller is not mapped to it.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /apis:
         get:
             tags:
@@ -4895,6 +4927,25 @@ components:
                     description: Absent when the plan has no readable budget configuration. The workspace is still listed.
                     allOf:
                         - $ref: "#/components/schemas/AiWorkspaceBudget"
+        AiWorkspace:
+            type: object
+            required:
+                - id
+                - name
+            properties:
+                id:
+                    type: string
+                name:
+                    type: string
+                description:
+                    type: string
+                budget:
+                    description: Absent when the plan has no readable budget configuration.
+                    allOf:
+                        - $ref: "#/components/schemas/AiWorkspaceBudget"
+                endpointUrl:
+                    type: string
+                    description: Listener path of the workspace LLM proxy, as stored. Absent when the workspace has no proxy.
         AiWorkspaceBudget:
             type: object
             description: Allocated budget for the plan window. The amount is in US dollars.
