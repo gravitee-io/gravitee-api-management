@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.CriteriaDefinition;
 import org.springframework.data.mongodb.core.query.Query;
 
@@ -87,6 +88,16 @@ public class AuditMongoRepositoryImpl implements AuditMongoRepositoryCustom {
 
         if (filter.getOrganizationId() != null) {
             query.addCriteria(where("organizationId").is(filter.getOrganizationId()));
+        }
+
+        if (filter.getProperties() != null && !filter.getProperties().isEmpty()) {
+            Criteria[] propertyCriteria = filter
+                .getProperties()
+                .entrySet()
+                .stream()
+                .map(property -> where("properties." + property.getKey()).is(property.getValue()))
+                .toArray(Criteria[]::new);
+            query.addCriteria(new Criteria().orOperator(propertyCriteria));
         }
 
         long total = mongoQueries.countOrTimeout(mongoTemplate, query, AuditMongo.class);

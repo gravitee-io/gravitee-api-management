@@ -88,6 +88,11 @@ public class Audit {
         AUTHORIZATION_PDP,
         AUTHORIZATION_SCHEMA,
         AI_WORKSPACE_COMPONENT,
+        /**
+         * Classifies the change instead of naming an entity it was made against, so it is not a target:
+         * any audit entry, whatever its type, can carry it.
+         */
+        ENCRYPTED,
     }
 
     private String id;

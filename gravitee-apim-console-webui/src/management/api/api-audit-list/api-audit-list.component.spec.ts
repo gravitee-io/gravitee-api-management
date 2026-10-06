@@ -78,6 +78,17 @@ describe('ApiAuditListComponent', () => {
     });
   });
 
+  it('should not display the encryption marker as a target', async () => {
+    expectEncryptedApiAuditListRequest();
+    expectGetApiEventsListRequest();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '#auditTable' }));
+    const rows = await table.getRows();
+    const rowCells = await parallel(() => rows.map(row => row.getCellTextByColumnName()));
+
+    expect(rowCells[0].targets).toEqual('API:my-api');
+  });
+
   it('should display audit logs with event filter', async () => {
     expectGetApiAuditListRequest();
     expectGetApiEventsListRequest();
@@ -151,6 +162,28 @@ describe('ApiAuditListComponent', () => {
         method: 'GET',
       })
       .flush(fakeMetadataPageAudit());
+  }
+
+  function expectEncryptedApiAuditListRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/undefined/audit?page=1&size=10`, method: 'GET' }).flush(
+      fakeMetadataPageAudit({
+        content: [
+          {
+            id: 'api-audit',
+            referenceId: 'my-api',
+            referenceType: 'API',
+            user: 'system',
+            createdAt: 1650382350999,
+            event: 'API_UPDATED',
+            properties: { API: 'my-api', ENCRYPTED: 'true' },
+            patch: '[]',
+          },
+        ],
+        metadata: { 'USER:system:name': 'system', 'API:my-api:name': 'my-api' },
+        pageElements: 1,
+        totalElements: 1,
+      }),
+    );
   }
 
   function expectGetApiEventsListRequest() {
