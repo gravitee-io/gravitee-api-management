@@ -38,8 +38,10 @@ export class ClusterConnectionTypeComponent extends FieldType<FieldTypeConfig> i
   ngOnInit() {
     const clusterCrossIdControl = this.form.get('clusterCrossId');
     if (!clusterCrossIdControl) {
-      this.filteredConnections$ = of([]);
-      this.connectionNotFound$ = of(false);
+      // The cluster is chosen in another form (e.g. a Message API Kafka endpoint group in CLUSTER mode, while this
+      // field belongs to one of its endpoints): offer the connections of every deployed registered cluster. The
+      // management API checks on save that the connection belongs to the group's cluster.
+      this.initWithoutClusterField();
       return;
     }
 
@@ -69,6 +71,32 @@ export class ClusterConnectionTypeComponent extends FieldType<FieldTypeConfig> i
         if (!term) return false;
         return !connections.some(c => c.crossId === term);
       }),
+      shareReplay(1),
+    );
+  }
+
+  private initWithoutClusterField() {
+    const allConnections$: Observable<DeployedClusterConnection[]> = this.clusterService.listDeployed('KAFKA_CLUSTER').pipe(
+      catchError(() => of([])),
+      map(clusters =>
+        clusters.flatMap(cluster =>
+          (cluster.connections ?? []).map(connection => ({ ...connection, name: `${cluster.name} / ${connection.name}` })),
+        ),
+      ),
+      shareReplay(1),
+    );
+    const currentValue$ = this.formControl.valueChanges.pipe(startWith(this.formControl.value ?? ''));
+
+    this.filteredConnections$ = combineLatest([currentValue$, allConnections$]).pipe(
+      map(([term, connections]) => {
+        if (!term) return connections;
+        const lowerTerm = `${term}`.toLowerCase();
+        return connections.filter(c => c.name.toLowerCase().includes(lowerTerm) || c.crossId.toLowerCase().includes(lowerTerm));
+      }),
+      shareReplay(1),
+    );
+    this.connectionNotFound$ = combineLatest([currentValue$, allConnections$]).pipe(
+      map(([term, connections]) => !!term && !connections.some(c => c.crossId === term)),
       shareReplay(1),
     );
   }
