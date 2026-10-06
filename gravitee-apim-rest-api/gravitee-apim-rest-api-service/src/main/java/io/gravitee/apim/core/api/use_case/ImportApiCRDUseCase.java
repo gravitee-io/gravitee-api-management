@@ -551,7 +551,7 @@ public class ImportApiCRDUseCase {
 
     private void encryptProperties(Api api, List<EncryptableProperty> properties) {
         if (properties != null && api.getApiDefinitionValue() instanceof AbstractApi definition) {
-            definition.setProperties(propertyDomainService.encryptProperties(properties));
+            definition.setProperties(propertyDomainService.encryptProperties(null, properties));
         }
     }
 }

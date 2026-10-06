@@ -78,7 +78,9 @@ public class UpdateNativeApiUseCase {
     private UnaryOperator<Api> rejectPlainDowngradeThenUpdate(UpdateNativeApi updateApi) {
         return existingApi -> {
             propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), updateApi.getProperties());
-            var encryptedProperties = propertyDomainService.encryptProperties(updateApi.getProperties());
+            var existingDefinition = existingApi.getApiDefinitionValue();
+            var existingProperties = existingDefinition instanceof NativeApi nativeApi ? nativeApi.getProperties() : null;
+            var encryptedProperties = propertyDomainService.encryptProperties(existingProperties, updateApi.getProperties());
             return update(updateApi, encryptedProperties).apply(existingApi);
         };
     }
