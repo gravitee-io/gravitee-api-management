@@ -21,10 +21,12 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.definition.model.v4.ApiType;
@@ -42,6 +44,8 @@ import io.gravitee.rest.api.portal.rest.model.AiWorkspacesResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +69,9 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
     @Autowired
     private ApiCrudServiceInMemory apis;
 
+    @Autowired
+    private ApiKeyQueryServiceInMemory apiKeys;
+
     @Override
     protected String contextPath() {
         return "ai-workspaces/";
@@ -83,6 +90,7 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         products.reset();
         flows.reset();
         apis.reset();
+        apiKeys.reset();
         GraviteeContext.cleanContext();
     }
 
@@ -178,6 +186,30 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         assertThat(body.getBudget().getAmount()).isEqualTo(5.0);
         assertThat(body.getBudget().getPeriod().getValue()).isEqualTo("DAY");
         assertThat(body.getEndpointUrl()).isEqualTo("/alpha/");
+        assertThat(body.getKey()).isNull();
+    }
+
+    @Test
+    void returns_the_callers_key_and_not_another_subscribers() {
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE)));
+        subscriptions.initWith(
+            List.of(subscription("app-1", "ws-1"), subscription("app-2", "ws-1").toBuilder().id("sub-2").application("app-2").build())
+        );
+        ZonedDateTime createdAt = ZonedDateTime.of(2026, 3, 4, 5, 6, 7, 0, ZoneOffset.UTC);
+        apiKeys.initWith(
+            List.of(
+                ApiKeyEntity.builder().key("caller-key").subscriptions(List.of("sub-1")).createdAt(createdAt).build(),
+                ApiKeyEntity.builder().key("other-key").subscriptions(List.of("sub-2")).createdAt(createdAt).build()
+            )
+        );
+
+        Response response = target().path("ws-1").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        AiWorkspace body = response.readEntity(AiWorkspace.class);
+        assertThat(body.getKey().getValue()).isEqualTo("caller-key");
+        assertThat(body.getKey().getStatus().getValue()).isEqualTo("ACTIVE");
+        assertThat(body.getKey().getCreatedAt()).isEqualTo(createdAt.toOffsetDateTime());
     }
 
     @Test
