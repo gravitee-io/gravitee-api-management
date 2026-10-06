@@ -103,8 +103,10 @@ describe('apiListSearchParams', () => {
         expect(parseApiListSearchParams(params, { sanitizeApiTypes: false }).filters.apiTypes).toEqual(['FEDERATED']);
     });
 
-    it('caps page size to the table allowlist', () => {
+    it('caps page size to the Classic allowlist (25, 50, 100, 200)', () => {
         expect(parseApiListSearchParams(new URLSearchParams('size=100000')).perPage).toBe(API_LIST_DEFAULT_PER_PAGE);
+        expect(parseApiListSearchParams(new URLSearchParams('size=10')).perPage).toBe(API_LIST_DEFAULT_PER_PAGE);
         expect(parseApiListSearchParams(new URLSearchParams('size=50')).perPage).toBe(50);
+        expect(parseApiListSearchParams(new URLSearchParams('size=200')).perPage).toBe(200);
     });
 });

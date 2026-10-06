@@ -38,7 +38,7 @@ const MOCK_ENV = { id: 'env-1', hrids: ['env-1'] };
 
 const MOCK_RESPONSE = {
     data: [],
-    pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 },
+    pagination: { page: 1, perPage: 25, pageCount: 0, totalCount: 0 },
 };
 
 const FEDERATION_OFF = { includeFederated: false, isFederationResolved: true };
@@ -71,37 +71,37 @@ describe('useApiList', () => {
     });
 
     it('passes the search query string when provided — no sortBy (relevance order)', async () => {
-        renderHook(() => useApiList({ query: 'my-api', page: 1, perPage: 10, ...FEDERATION_OFF }), { wrapper: createWrapper() });
+        renderHook(() => useApiList({ query: 'my-api', page: 1, perPage: 25, ...FEDERATION_OFF }), { wrapper: createWrapper() });
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
-        expect(mockSearchApis).toHaveBeenCalledWith('env-1', { query: 'my-api' }, 1, 10, undefined, false);
+        expect(mockSearchApis).toHaveBeenCalledWith('env-1', { query: 'my-api' }, 1, 25, undefined, false);
     });
 
     it('asks for federated proxies when the federation gate has resolved on', async () => {
-        renderHook(() => useApiList({ query: '', page: 1, perPage: 10, ...FEDERATION_ON }), { wrapper: createWrapper() });
+        renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_ON }), { wrapper: createWrapper() });
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
-        expect(mockSearchApis).toHaveBeenCalledWith('env-1', { query: undefined }, 1, 10, 'name', true);
+        expect(mockSearchApis).toHaveBeenCalledWith('env-1', { query: undefined }, 1, 25, 'name', true);
     });
 
     it.each<[string, string, object, string]>([
         ['while browsing, instead of the name default', '', { query: undefined }, 'status'],
         ['while searching, instead of relevance order', 'my-api', { query: 'my-api' }, '-tags_desc'],
     ])('forwards an explicit column sort %s', async (_case, query, expectedQueryArg, sortBy) => {
-        renderHook(() => useApiList({ query, page: 1, perPage: 10, sortBy, ...FEDERATION_ON }), { wrapper: createWrapper() });
+        renderHook(() => useApiList({ query, page: 1, perPage: 25, sortBy, ...FEDERATION_ON }), { wrapper: createWrapper() });
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
-        expect(mockSearchApis).toHaveBeenCalledWith('env-1', expectedQueryArg, 1, 10, sortBy, true);
+        expect(mockSearchApis).toHaveBeenCalledWith('env-1', expectedQueryArg, 1, 25, sortBy, true);
     });
 
     it('holds its search until the federation gate resolves', () => {
-        renderHook(() => useApiList({ query: '', page: 1, perPage: 10, ...FEDERATION_PENDING }), { wrapper: createWrapper() });
+        renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_PENDING }), { wrapper: createWrapper() });
 
         expect(mockSearchApis).not.toHaveBeenCalled();
     });
 
     it('reports the wait for the federation gate as loading, not as a loaded empty list', () => {
-        const { result } = renderHook(() => useApiList({ query: '', page: 1, perPage: 10, ...FEDERATION_PENDING }), {
+        const { result } = renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_PENDING }), {
             wrapper: createWrapper(),
         });
 
@@ -110,7 +110,7 @@ describe('useApiList', () => {
 
     it('searches again rather than serving the gate-off result once the gate flips on', async () => {
         const wrapper = createWrapper();
-        const { rerender } = renderHook((gate: typeof FEDERATION_OFF) => useApiList({ query: '', page: 1, perPage: 10, ...gate }), {
+        const { rerender } = renderHook((gate: typeof FEDERATION_OFF) => useApiList({ query: '', page: 1, perPage: 25, ...gate }), {
             wrapper,
             initialProps: FEDERATION_OFF,
         });
@@ -119,13 +119,13 @@ describe('useApiList', () => {
         rerender(FEDERATION_ON);
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(2));
-        expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: undefined }, 1, 10, 'name', true);
+        expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: undefined }, 1, 25, 'name', true);
     });
 
     it('searches again rather than serving the previous sort when the same column flips direction', async () => {
         const wrapper = createWrapper();
         const { rerender } = renderHook(
-            ({ sortBy }: { sortBy: string }) => useApiList({ query: '', page: 1, perPage: 10, sortBy, ...FEDERATION_OFF }),
+            ({ sortBy }: { sortBy: string }) => useApiList({ query: '', page: 1, perPage: 25, sortBy, ...FEDERATION_OFF }),
             {
                 wrapper,
                 initialProps: { sortBy: 'status' },
@@ -136,7 +136,7 @@ describe('useApiList', () => {
         rerender({ sortBy: '-status' });
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(2));
-        expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: undefined }, 1, 10, '-status', false);
+        expect(mockSearchApis).toHaveBeenLastCalledWith('env-1', { query: undefined }, 1, 25, '-status', false);
     });
 
     it('searches again when the API list cache is invalidated at its root, whatever this page was built from', async () => {
@@ -158,7 +158,7 @@ describe('useApiList', () => {
     });
 
     it('maps an empty query string to undefined in the request body and sorts by name', async () => {
-        renderHook(() => useApiList({ query: '', page: 1, perPage: 10, ...FEDERATION_OFF }), { wrapper: createWrapper() });
+        renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_OFF }), { wrapper: createWrapper() });
 
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
         const [, queryArg, , , sortByArg] = mockSearchApis.mock.calls[0];
@@ -170,7 +170,7 @@ describe('useApiList', () => {
         const failure = new Error('search failed');
         mockSearchApis.mockRejectedValue(failure);
 
-        const { result } = renderHook(() => useApiList({ query: '', page: 1, perPage: 10, ...FEDERATION_OFF }), {
+        const { result } = renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_OFF }), {
             wrapper: createWrapper(),
         });
 
@@ -180,7 +180,7 @@ describe('useApiList', () => {
 
     it('does not fire when environment is not yet ready', () => {
         mockUseEnvironment.mockReturnValue(null);
-        renderHook(() => useApiList({ query: '', page: 1, perPage: 10, ...FEDERATION_OFF }), { wrapper: createWrapper() });
+        renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_OFF }), { wrapper: createWrapper() });
         expect(mockSearchApis).not.toHaveBeenCalled();
     });
 
@@ -212,7 +212,7 @@ describe('useApiList', () => {
         const wrapper = createWrapper();
         const { rerender } = renderHook(
             ({ apiTypes }: { apiTypes: string[] }) =>
-                useApiList({ query: 'orders', page: 1, perPage: 10, filters: { apiTypes, statuses: ['STOPPED'] }, ...FEDERATION_OFF }),
+                useApiList({ query: 'orders', page: 1, perPage: 25, filters: { apiTypes, statuses: ['STOPPED'] }, ...FEDERATION_OFF }),
             { wrapper, initialProps: { apiTypes: ['V4_TCP_PROXY'] } },
         );
         await waitFor(() => expect(mockSearchApis).toHaveBeenCalledTimes(1));
@@ -224,7 +224,7 @@ describe('useApiList', () => {
             'env-1',
             { query: 'orders', apiTypes: ['V4_HTTP_PROXY'], statuses: ['STOPPED'] },
             1,
-            10,
+            25,
             undefined,
             false,
         );
