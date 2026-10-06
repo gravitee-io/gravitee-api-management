@@ -47,6 +47,7 @@ import io.gravitee.apim.core.api.domain_service.CategoryDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -54,6 +55,7 @@ import io.gravitee.apim.core.plan.domain_service.DeprecatePlanDomainService;
 import io.gravitee.apim.infra.domain_service.api.UpdateApiDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
+import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.rest.api.service.v4.ApiService;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -65,6 +67,7 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
     public final CategoryDomainService categoryDomainService = mock(CategoryDomainService.class);
     public final ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
     public final ApiImportDomainService apiImportDomainService = mock(ApiImportDomainService.class);
+    public final DataEncryptor dataEncryptor = mock(DataEncryptor.class);
 
     // In Memory
     public ApiCrudServiceInMemory apiCrudServiceInMemory;
@@ -157,7 +160,8 @@ public class ImportDefinitionUpdateDomainServiceTestInitializer {
             planDomainServiceInitializer.initialize(environmentId),
             pageDomainServiceTestInitializer.initialize(),
             apiImportDomainService,
-            new ImportApiGroupsDomainService(groupQueryServiceInMemory, new CreateGroupDomainServiceInMemory(groupQueryServiceInMemory))
+            new ImportApiGroupsDomainService(groupQueryServiceInMemory, new CreateGroupDomainServiceInMemory(groupQueryServiceInMemory)),
+            new PropertyDomainService(dataEncryptor)
         );
     }
 

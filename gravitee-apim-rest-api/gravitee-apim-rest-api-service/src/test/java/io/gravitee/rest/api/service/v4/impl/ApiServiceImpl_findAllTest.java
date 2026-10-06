@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
@@ -203,6 +204,9 @@ public class ApiServiceImpl_findAllTest {
     private PropertiesService propertiesService;
 
     @Mock
+    private PropertyDomainService propertyDomainService;
+
+    @Mock
     private ApiNotificationService apiNotificationService;
 
     @Mock
@@ -298,7 +302,8 @@ public class ApiServiceImpl_findAllTest {
             apiCategoryService,
             removeApiFromApiProductsDomainService,
             removeApiFromSubscriptionFormDomainService,
-            apiMetadataQueryService
+            apiMetadataQueryService,
+            propertyDomainService
         );
     }
 

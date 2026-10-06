@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.mapper.V4toV2RollbackOperator;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -40,6 +41,7 @@ import io.gravitee.apim.core.plan.domain_service.ClosePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.definition.model.v4.AbstractApi;
 import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativePlan;
@@ -81,6 +83,7 @@ public class RollbackApiUseCase {
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiStateDomainService apiStateService;
     private final UpdateNativeApiDomainService updateNativeApiDomainService;
+    private final PropertyDomainService propertyDomainService;
 
     public void execute(Input input) {
         Api api = eventQueryService
@@ -95,6 +98,8 @@ public class RollbackApiUseCase {
 
                 //update the description since the description is not stored in the definition
                 rollbackedApi.setDescription(api.getDescription());
+
+                keepStoredEncryption(toRollback.getApiDefinitionHttpV4(), rollbackedApi.getApiDefinitionHttpV4());
 
                 var apiUpdatedV4 = updateApiDomainService.updateV4(rollbackedApi, input.auditInfo);
 
@@ -152,6 +157,7 @@ public class RollbackApiUseCase {
                         var rollbackedApi = toRollback.rollbackTo(apiDefinition);
                         // update the description since the description is not stored in the definition
                         rollbackedApi.setDescription(api.getDescription());
+                        keepStoredEncryption(toRollback.getApiDefinitionNativeV4(), rollbackedApi.getApiDefinitionNativeV4());
                         return rollbackedApi;
                     },
                     // no sanitizing: a rollback restores a definition that was already validated when it was deployed,
@@ -172,6 +178,12 @@ public class RollbackApiUseCase {
         };
 
         createAuditLog(input.auditInfo, apiUpdated.getId(), apiUpdated.getUpdatedAt());
+    }
+
+    private void keepStoredEncryption(AbstractApi storedDefinition, AbstractApi restoredDefinition) {
+        restoredDefinition.setProperties(
+            propertyDomainService.encryptRestoredValuesOfEncryptedKeys(storedDefinition.getProperties(), restoredDefinition.getProperties())
+        );
     }
 
     public record Input(String eventId, AuditInfo auditInfo) {}
