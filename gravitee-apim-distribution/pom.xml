@@ -164,7 +164,7 @@
     <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
     <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
     <gravitee-policy-request-validation.version>1.16.0</gravitee-policy-request-validation.version>
-    <gravitee-policy-resource-filtering.version>2.0.2</gravitee-policy-resource-filtering.version>
+    <gravitee-policy-resource-filtering.version>2.0.3</gravitee-policy-resource-filtering.version>
     <gravitee-policy-rest-to-soap.version>1.15.0</gravitee-policy-rest-to-soap.version>
     <gravitee-policy-retry.version>5.0.1</gravitee-policy-retry.version>
     <gravitee-policy-role-based-access-control.version>2.1.0</gravitee-policy-role-based-access-control.version>
@@ -232,7 +232,7 @@
     <gravitee-entrypoint-sse.version>6.0.0</gravitee-entrypoint-sse.version>
     <gravitee-entrypoint-webhook.version>8.0.3</gravitee-entrypoint-webhook.version>
     <gravitee-entrypoint-websocket.version>3.0.0</gravitee-entrypoint-websocket.version>
-    <gravitee-entrypoint-agent-to-agent.version>2.0.1</gravitee-entrypoint-agent-to-agent.version>
+    <gravitee-entrypoint-agent-to-agent.version>2.0.2</gravitee-entrypoint-agent-to-agent.version>
     <gravitee-entrypoint-mcp-tool-server.version>2.0.3</gravitee-entrypoint-mcp-tool-server.version>
     <gravitee-endpoint-jms.version>2.0.3</gravitee-endpoint-jms.version>
     <gravitee-endpoint-kafka.version>6.1.5</gravitee-endpoint-kafka.version>
@@ -275,7 +275,7 @@
     <gravitee-policy-offloading.version>1.2.0</gravitee-policy-offloading.version>
     <gravitee-policy-token-ratelimit.version>1.1.4</gravitee-policy-token-ratelimit.version>
     <gravitee-policy-cost-ratelimit.version>1.1.4</gravitee-policy-cost-ratelimit.version>
-    <gravitee-policy-mcp-acl.version>2.0.0</gravitee-policy-mcp-acl.version>
+    <gravitee-policy-mcp-acl.version>2.0.1</gravitee-policy-mcp-acl.version>
     <gravitee-policy-oauth2-token-exchange.version>1.0.0</gravitee-policy-oauth2-token-exchange.version>
     <gravitee-policy-pii-filtering.version>3.0.1</gravitee-policy-pii-filtering.version>
     <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
