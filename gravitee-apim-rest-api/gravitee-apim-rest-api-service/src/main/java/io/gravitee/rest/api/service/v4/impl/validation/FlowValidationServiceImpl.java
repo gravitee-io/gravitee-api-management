@@ -15,19 +15,23 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import io.gravitee.apim.core.flow.domain_service.XmlValidationPolicyChecker;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
+import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.exception.FlowSelectorsDuplicatedException;
 import io.gravitee.rest.api.service.v4.exception.FlowSelectorsEntrypointInvalidException;
 import io.gravitee.rest.api.service.v4.exception.FlowSelectorsInvalidException;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
+import jakarta.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +57,11 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
 
     @Override
     public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows) {
+        return validateAndSanitize(apiType, flows, null);
+    }
+
+    @Override
+    public List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows, @Nullable Set<String> apiResourceNames) {
         if (flows != null) {
             flows.forEach(flow -> {
                 // Check duplicated selectors
@@ -62,7 +71,7 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
                 checkSelectorsForType(apiType, flow);
 
                 // Validate policy
-                checkPolicyConfiguration(flow);
+                checkPolicyConfiguration(apiType, flow, apiResourceNames);
             });
         }
         return flows;
@@ -124,12 +133,22 @@ public class FlowValidationServiceImpl extends TransactionalService implements F
         }
     }
 
-    private void checkPolicyConfiguration(final Flow flow) {
+    private void checkPolicyConfiguration(final ApiType apiType, final Flow flow, @Nullable Set<String> apiResourceNames) {
         Stream.of(flow.getRequest(), flow.getResponse(), flow.getSubscribe(), flow.getPublish())
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
-            .forEach(step -> step.setConfiguration(policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration())));
+            .forEach(step -> {
+                validateXmlValidationStructuralConfiguration(apiType, step, apiResourceNames);
+                step.setConfiguration(policyService.validatePolicyConfiguration(step.getPolicy(), step.getConfiguration()));
+            });
+    }
+
+    private void validateXmlValidationStructuralConfiguration(ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
+        String error = XmlValidationPolicyChecker.validateRegistryConfiguration(apiType, step, apiResourceNames);
+        if (error != null) {
+            throw new InvalidDataException(error);
+        }
     }
 
     private void checkDuplicatedSelectors(final Flow flow) {

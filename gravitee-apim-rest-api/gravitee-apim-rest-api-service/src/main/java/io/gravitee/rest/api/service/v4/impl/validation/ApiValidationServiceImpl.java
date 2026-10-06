@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
+import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -204,11 +205,21 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
         // Validate and clean flow
         updateApiEntity.setFlows(
-            flowValidationDomainService.validateAndSanitizeHttpV4(updateApiEntity.getType(), updateApiEntity.getFlows())
+            flowValidationDomainService.validateAndSanitizeHttpV4(
+                updateApiEntity.getType(),
+                updateApiEntity.getFlows(),
+                ApiResourceNames.from(updateApiEntity.getResources())
+            )
         );
 
         // Validate and clean plans
-        updateApiEntity.setPlans(planValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getPlans()));
+        updateApiEntity.setPlans(
+            planValidationService.validateAndSanitize(
+                updateApiEntity.getType(),
+                updateApiEntity.getPlans(),
+                ApiResourceNames.from(updateApiEntity.getResources())
+            )
+        );
 
         // Validate path parameters
         flowValidationDomainService.validatePathParameters(
@@ -264,10 +275,22 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             analyticsValidationService.validateAndSanitize(executionContext, apiEntity.getType(), apiEntity.getAnalytics())
         );
         // Validate and clean flow
-        apiEntity.setFlows(flowValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getFlows()));
+        apiEntity.setFlows(
+            flowValidationService.validateAndSanitize(
+                apiEntity.getType(),
+                apiEntity.getFlows(),
+                ApiResourceNames.from(apiEntity.getResources())
+            )
+        );
 
         // Validate and clean plans
-        apiEntity.setPlans(planValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getPlans()));
+        apiEntity.setPlans(
+            planValidationService.validateAndSanitize(
+                apiEntity.getType(),
+                apiEntity.getPlans(),
+                ApiResourceNames.from(apiEntity.getResources())
+            )
+        );
 
         // Validate path parameters
         flowValidationDomainService.validatePathParameters(

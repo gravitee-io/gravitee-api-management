@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.validation;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -27,4 +28,10 @@ import java.util.List;
 @Deprecated
 public interface FlowValidationService {
     List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows);
+
+    /**
+     * @param apiResourceNames names of resources declared on the API; {@code null} to skip
+     *                         resource-existence checks for registry-sourced XML validation.
+     */
+    List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows, Set<String> apiResourceNames);
 }

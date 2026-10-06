@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.v4.ApiType;
@@ -73,7 +74,9 @@ class PlanValidationServiceImplTest {
         Flow flow1Plan3 = new Flow();
         Flow flow2Plan3 = new Flow();
         plan3.setFlows(List.of(flow1Plan3, flow2Plan3));
-        when(flowValidationService.validateAndSanitize(any(), anyList())).thenAnswer(invocation -> invocation.getArguments()[1]);
+        when(flowValidationService.validateAndSanitize(any(), anyList(), nullable(Set.class))).thenAnswer(invocation ->
+            invocation.getArguments()[1]
+        );
         final Set<PlanEntity> result = cut.validateAndSanitize(ApiType.PROXY, Set.of(plan1, plan2, plan3));
         assertThat(result).isNotNull().hasSize(3);
         assertThat(
