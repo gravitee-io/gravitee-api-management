@@ -29,6 +29,7 @@ const PROVIDER_LABELS_IN_DISPLAY_ORDER = [
     'Confluent Platform',
     'MuleSoft',
     'Edge Stack',
+    'SAP Business Technology Platform',
 ];
 
 beforeAll(() => {
@@ -74,6 +75,6 @@ describe('IntegrationProviderSelector', () => {
 
         const checkedStates = screen.getAllByRole('radio').map(radio => radio.getAttribute('aria-checked'));
 
-        expect(checkedStates).toEqual(['false', 'false', 'false', 'false', 'false', 'false', 'false', 'true', 'false']);
+        expect(checkedStates).toEqual(['false', 'false', 'false', 'false', 'false', 'false', 'false', 'true', 'false', 'false']);
     });
 });

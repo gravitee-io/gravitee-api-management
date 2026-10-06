@@ -25,6 +25,7 @@ const PROVIDER_LABELS: Record<string, string> = {
     'confluent-platform': 'Confluent Platform',
     mulesoft: 'MuleSoft',
     'edge-stack': 'Edge Stack',
+    'sap-api-management': 'SAP Business Technology Platform',
 };
 
 export const SUPPORTED_PROVIDER_TOKENS: readonly string[] = Object.keys(PROVIDER_LABELS);
@@ -38,6 +39,7 @@ export const GATEWAY_PROVIDER_TOKENS: readonly string[] = [
     'confluent-platform',
     'mulesoft',
     'edge-stack',
+    'sap-api-management',
 ];
 
 export const SELECTABLE_PROVIDER_TOKENS: readonly string[] = [A2A_PROVIDER, ...GATEWAY_PROVIDER_TOKENS];

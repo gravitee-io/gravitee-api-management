@@ -511,6 +511,7 @@ describe('ApiListTable', () => {
             ['confluent-platform', 'Confluent Platform'],
             ['mulesoft', 'MuleSoft'],
             ['edge-stack', 'Edge Stack'],
+            ['sap-api-management', 'SAP Business Technology Platform'],
         ])('shows the display name of the %s provider rather than its raw code', (provider, displayName) => {
             renderTable({ apis: [makeApi({ originContext: { origin: 'INTEGRATION', provider } })] });
             expect(screen.getByTestId('api-origin-indicator').textContent).toBe(displayName);
