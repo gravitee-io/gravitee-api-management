@@ -177,6 +177,29 @@ public class DynamicPropertySchedulerTest {
     }
 
     @Test
+    public void should_update_and_deploy_api_when_a_dynamic_property_is_removed() {
+        Property removedDynamicProperty = new Property("removed-key", "value");
+        removedDynamicProperty.setDynamic(true);
+        existingApi.getProperties().setProperties(List.of(removedDynamicProperty));
+
+        when(apiService.findById(eq(executionContext), any())).thenReturn(existingApi);
+        when(apiService.isSynchronized(eq(executionContext), any())).thenReturn(true);
+
+        when(provider.get()).thenReturn(Maybe.just(List.of()));
+        dynamicPropertyScheduler.schedule(provider);
+        testScheduler.advanceTimeBy(1000, TimeUnit.MILLISECONDS);
+
+        verify(apiService, times(1)).update(eq(executionContext), eq(existingApi.getId()), any(), eq(false), eq(false), eq(true));
+        verify(apiService, times(1)).deploy(
+            eq(executionContext),
+            eq(existingApi.getId()),
+            eq("dynamic-property-updater"),
+            eq(EventType.PUBLISH_API),
+            any()
+        );
+    }
+
+    @Test
     public void should_not_update_properties_or_deploy_api_on_secondary_member() {
         Member secondary = spy(new StandaloneMember());
         when(secondary.primary()).thenReturn(false);
