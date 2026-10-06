@@ -70,6 +70,18 @@ public interface ApiCRDMapper {
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
+    /**
+     * The ApiV4Definition CRD schema has no CREATED value, so a manifest meant for kubectl apply
+     * reports an API that was never published as UNPUBLISHED.
+     */
+    default ApiCRDSpec mapForKubernetes(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec) {
+        var spec = map(coreSpec);
+        if (spec.getLifecycleState() == ApiLifecycleState.CREATED) {
+            spec.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
+        }
+        return spec;
+    }
+
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     @Mapping(target = "type", source = "type", qualifiedByName = "mapPlanTypeCoreToRest")

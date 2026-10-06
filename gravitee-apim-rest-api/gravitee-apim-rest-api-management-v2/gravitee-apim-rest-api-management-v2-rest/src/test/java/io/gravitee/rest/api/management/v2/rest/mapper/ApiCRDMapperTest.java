@@ -42,6 +42,9 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiCRDMapperTest {
@@ -115,6 +118,24 @@ class ApiCRDMapperTest {
             soft.assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.PUBLISHED);
             soft.assertThat(restModel.getTags()).contains("tag");
         });
+    }
+
+    @Test
+    void should_map_created_lifecycle_state_to_unpublished_for_kubernetes() {
+        var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(aCoreCRD().lifecycleState("CREATED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(value = ApiLifecycleState.class, names = "CREATED", mode = EnumSource.Mode.EXCLUDE)
+    void should_keep_lifecycle_state_for_kubernetes_when_not_created(ApiLifecycleState lifecycleState) {
+        var coreSpec = aCoreCRD().lifecycleState(lifecycleState == null ? null : lifecycleState.name()).build();
+
+        var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(coreSpec);
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(lifecycleState);
     }
 
     private static ApiCRDSpec.ApiCRDSpecBuilder aCoreCRD() {
