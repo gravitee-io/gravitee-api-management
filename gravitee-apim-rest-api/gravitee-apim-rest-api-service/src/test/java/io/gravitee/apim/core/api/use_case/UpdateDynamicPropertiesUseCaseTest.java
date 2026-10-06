@@ -249,7 +249,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of()));
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
 
             assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
                 Property.builder().key("user-prop").value("value").dynamic(false).build()
@@ -471,7 +471,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of()));
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
 
             assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
                 Property.builder().key("user-prop").value("value").dynamic(false).build()
