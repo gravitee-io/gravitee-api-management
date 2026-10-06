@@ -123,6 +123,8 @@ isProject: false
 
 ## Summary
 
+> **Update — 2026-10-06:** [STORY-02a](#story-02a--keep-api-owned-documentation-out-of-api-product-navigation) adds an API Product documentation isolation requirement. Existing story identifiers, overview lists and diagrams are preserved; this additional story and all implications for existing work are documented together in that section.
+
 **The feature.** The Gamma Console gets a Documentation screen on each API: write pages — Gravitee Markdown, OpenAPI or AsyncAPI — by typing them, uploading a file or linking a GitHub folder; organise them into folders and links; then publish the API, with its documentation, into the Next Gen developer portal at a location of your choosing.
 
 **The core idea.** An API's documentation is stored **once, against the API** rather than inside a portal's menu, and is shown inside every portal that lists that API. This is already how the GitOps pipeline works. The plan extends it to the Gamma Console **and to the classic portal editor**, so documentation exists one way rather than two.
@@ -549,6 +551,53 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Subtasks:**
 1. Pin today's behaviour: a test over editor-created pages under a listing row, asserting propagate reaches them. Must pass before any change.
 2. Extend the walk to the API's own items and assert both kinds are reached.
+
+#### STORY-02a — Keep API-Owned Documentation Out of API Product Navigation
+
+**Added 2026-10-06 — requirement clarification and separate implementation story.** **Jira:** [PORTAL-234](https://gravitee.atlassian.net/browse/PORTAL-234). All changes to the original plan's assumptions are collected here to keep this addition easy to review.
+
+**Finding:** `ListPortalNavigationItemsUseCase.childrenOf()` currently combines physical children with API-owned documentation for every API navigation entry, without checking for an API Product ancestor. Consequently, Automation-created documentation can also appear beneath the same API inside a product. This is a read-time projection of the same documents, not a copy or an overwrite of product-local documentation. Updating their content or publication state can therefore change what is displayed in both contexts. This finding comes from code inspection; the combined scenario still needs regression coverage.
+
+**Confirmed requirement:** an API navigation entry with an `API_PRODUCT` ancestor is a product-scoped context. Its documentation remains portal-owned, physically attached to that context, and lifecycle-independent from the standalone API's API-owned documentation. API-owned documentation must not be projected into product-scoped API entries, regardless of its originating writer. A standalone API entry continues to include API-owned documentation. The boundary is the full ancestor chain, not just the immediate parent's type or the presence of `AutomationMetadata`.
+
+**Implementation scope:** prevent API-owned root projection into product-scoped API entries while preserving their physical children and the existing standalone projection. Apply the rule in the shared tree reader used by Console and Developer Portal. No new endpoints or request/response schema changes are planned; the change affects which items existing tree reads return.
+
+**Acceptance criteria:**
+
+- A standalone API navigation entry continues to display its API-owned pages, folders and links, subject to existing publication and visibility rules.
+- An API navigation entry with an API Product ancestor does not include API-owned documentation, including documentation created through Automation. Intermediate folders do not bypass this rule.
+- Physically attached product-context documentation remains available under the existing publication and visibility rules, with its content, identifiers, ownership, parentage and ordering unchanged.
+- The same rule applies to Console and Developer Portal reads, both when loading the tree recursively and when requesting children of an API entry directly.
+- Creating or updating Automation documentation does not add or update documents displayed in the product context. The standalone context continues to reflect those changes.
+- No persisted documentation is deleted, copied, reparented or reassigned. Previously projected API-owned documents stop appearing in the product context but remain stored and available in the standalone context as permitted by existing access rules.
+
+**Files:**
+
+- *edit* `CORE/portal_page/use_case/ListPortalNavigationItemsUseCase.java` — check the API entry's product ancestry before combining physical children with API-owned roots.
+- Update the corresponding tests with standalone and product-scoped entries referencing the same API, including a product-scoped API nested beneath a folder.
+
+**Size:** S, preliminary estimate · **Depends on:** nothing
+
+**Subtasks:**
+
+1. Add a failing regression test containing the same API in standalone and product contexts, API-owned documentation, and independent product-local documentation.
+2. Apply the context boundary when resolving displayed children, preserving physical product-local children.
+3. Cover pages, folders and links, nested product ancestry, direct child queries, recursive tree loading, and Console/Developer Portal viewer modes.
+
+**Relationship to STORY-02 (PORTAL-229):** this story owns read-projection isolation; STORY-02 continues to own publication propagation. Its traversal must include API-owned documentation only through standalone API entries, while product-scoped entries retain propagation through their physical descendants. Unpublishing a standalone entry must not affect the product context merely because both entries reference the same API. Unpublishing a folder must unpublish its descendants even when propagation is not requested. If a product is physically inside that folder, propagation within its physical subtree still applies. The stories can be implemented independently; prefer merging this isolation fix before rolling out broader API-owned publication propagation.
+
+**Implications for existing stories — guardrails, not additional implementation scope for STORY-02a:**
+
+- **STORY-03 / STORY-05 / STORY-08:** ownership assignment, moves and imports must consider the full destination context. An API parent beneath an API Product must not cause product-local documentation to become API-owned.
+- **STORY-09:** the existence of standalone API-owned documentation must not by itself suppress a product-local starter page. Apply the existence check within the relevant documentation context.
+- **STORY-07 / STORY-18:** distinguish standalone and product-scoped occurrences when evaluating shared-document ambiguity or migration candidates. A product occurrence does not imply participation in shared API-owned documentation.
+- **STORY-19:** exclude product-local documentation from migration to API ownership and from deduplication with standalone API documentation. Their separate starter pages are legitimate, not duplicates to merge or remove.
+- **STORY-12 / STORY-12 Bis:** product-local, portal-owned documentation remains outside API-scoped documentation and content operations. Preserve the not-found behavior for portal-owned pages and the safeguards against accessing arbitrary content identifiers; API documentation permission does not grant access to product-local documentation.
+- **STORY-16 / STORY-31:** whole-API publish, unpublish, republish and per-item visibility changes apply to API-owned documentation shared by standalone listings, not to independent product-local documentation. Wording such as "every portal listing this API" must respect this boundary. The accepted republish behavior still re-shows individually hidden API-owned items, but never product-local items.
+
+**Out of scope:** implementing publication propagation, changing ownership assignment or migration, adding API Product management to Automation API, introducing per-listing copies of API-owned documents, and changing existing authorization or PUBLIC/PRIVATE visibility policies. The related stories remain responsible for their own behavior under the boundary above.
+
+**Precedence:** this clarification supersedes statements elsewhere in the plan that imply sharing API-owned documentation with product-scoped API entries, including the API Product duplicate-starter-page example in [API products](#api-products). The existing story identifiers and descriptions remain in place; use the guardrails above when implementing the affected stories.
 
 ---
 
