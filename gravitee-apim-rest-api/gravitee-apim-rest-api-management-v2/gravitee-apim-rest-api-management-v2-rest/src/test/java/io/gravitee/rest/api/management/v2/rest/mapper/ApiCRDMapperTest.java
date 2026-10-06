@@ -39,6 +39,9 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiCRDMapperTest {
@@ -62,6 +65,74 @@ class ApiCRDMapperTest {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    void should_map_to_rest_model_unpublished() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("UNPUBLISHED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
+    }
+
+    @Test
+    void should_map_to_rest_model_deprecated() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("DEPRECATED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.DEPRECATED);
+    }
+
+    @Test
+    void should_map_to_rest_model_archived() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("ARCHIVED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.ARCHIVED);
+    }
+
+    @Test
+    void should_map_null_lifecycle_state_to_null() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState(null).build());
+
+        assertThat(restModel.getLifecycleState()).isNull();
+    }
+
+    @Test
+    void should_throw_when_lifecycle_state_is_unknown() {
+        var spec = aCoreCRD().lifecycleState("UNKNOWN_STATE").build();
+
+        assertThatThrownBy(() -> ApiCRDMapper.INSTANCE.map(spec)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void should_map_created_lifecycle_state_to_unpublished_for_kubernetes() {
+        var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(aCoreCRD().lifecycleState("CREATED").build());
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(ApiLifecycleState.UNPUBLISHED);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(value = ApiLifecycleState.class, names = "CREATED", mode = EnumSource.Mode.EXCLUDE)
+    void should_keep_lifecycle_state_for_kubernetes_when_not_created(ApiLifecycleState lifecycleState) {
+        var coreSpec = aCoreCRD().lifecycleState(lifecycleState == null ? null : lifecycleState.name()).build();
+
+        var restModel = ApiCRDMapper.INSTANCE.mapForKubernetes(coreSpec);
+
+        assertThat(restModel.getLifecycleState()).isEqualTo(lifecycleState);
+    }
+
+    @Test
+    void should_map_message_sampling_to_rest_sampling() {
+        var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().type("MESSAGE").analytics(AnalyticsFixtures.anAnalytics()).build());
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(restModel.getAnalytics()).isNotNull();
+            soft.assertThat(restModel.getAnalytics().getSampling()).isNotNull();
+            soft.assertThat(restModel.getAnalytics().getSampling().getType()).isEqualTo(Sampling.TypeEnum.COUNT);
+            soft.assertThat(restModel.getAnalytics().getSampling().getValue()).isEqualTo("10");
+        });
+    }
+
+    @Test
+>>>>>>> 6688f10 (fix(api): export a never published API as UNPUBLISHED in its Kubernetes CRD)
     void should_map_to_rest_model_published() {
         var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("PUBLISHED").build());
 
