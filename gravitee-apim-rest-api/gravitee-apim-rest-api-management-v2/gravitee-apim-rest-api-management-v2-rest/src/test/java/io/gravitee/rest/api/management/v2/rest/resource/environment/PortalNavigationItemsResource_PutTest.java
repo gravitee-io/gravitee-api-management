@@ -31,6 +31,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
@@ -42,6 +43,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsRespon
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
@@ -65,6 +67,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
@@ -568,6 +573,192 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_publish_api_owned_and_physical_documentation_when_propagation_query_param_is_true() {
+        var parent = PortalNavigationItemFixtures.aFolder("APIs");
+        parent.markAsRoot();
+        var api = PortalNavigationItemFixtures.anApi();
+        api.setPublished(false);
+        api.updateParent(parent);
+        var reference = new ApiReference(api.getApiId());
+        var ownedFolder = PortalNavigationItemFixtures.aFolder("API guide").toBuilder().reference(reference).published(false).build();
+        ownedFolder.markAsRoot();
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", ownedFolder.getId())
+            .toBuilder()
+            .reference(reference)
+            .published(false)
+            .build();
+        ownedPage.updateParent(ownedFolder);
+        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder().published(false).build();
+        physicalPage.updateParent(api);
+        initStorageWith(List.of(parent, api, ownedFolder, ownedPage, physicalPage));
+        var expectedFolder = ownedFolder.toBuilder().published(true).build();
+        var expectedOwnedPage = ownedPage.toBuilder().published(true).build();
+        var expectedPhysicalPage = physicalPage.toBuilder().published(true).build();
+
+        var response = target
+            .path(api.getId().json())
+            .queryParam("propagatePublishToChildren", true)
+            .request()
+            .put(json(updateApiPublished(api, true)));
+
+        assertThat(response).hasStatus(OK_200);
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedFolder.getId()))
+            .usingRecursiveComparison()
+            .isEqualTo(expectedFolder);
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()))
+            .usingRecursiveComparison()
+            .isEqualTo(expectedOwnedPage);
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()))
+            .usingRecursiveComparison()
+            .isEqualTo(expectedPhysicalPage);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(booleans = false)
+    void should_publish_only_selected_api_when_propagation_is_omitted_or_false(Boolean propagate) {
+        var parent = PortalNavigationItemFixtures.aFolder("APIs");
+        parent.markAsRoot();
+        var api = PortalNavigationItemFixtures.anApi();
+        api.setPublished(false);
+        api.updateParent(parent);
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
+            .toBuilder()
+            .reference(new ApiReference(api.getApiId()))
+            .published(false)
+            .build();
+        ownedPage.markAsRoot();
+        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder().published(false).build();
+        physicalPage.updateParent(api);
+        initStorageWith(List.of(parent, api, ownedPage, physicalPage));
+
+        var requestTarget = target.path(api.getId().json());
+        if (propagate != null) {
+            requestTarget = requestTarget.queryParam("propagatePublishToChildren", propagate);
+        }
+        var response = requestTarget.request().put(json(updateApiPublished(api, true)));
+
+        assertThat(response).hasStatus(OK_200);
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isFalse();
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(booleans = false)
+    void should_unpublish_standalone_api_documentation_without_affecting_api_product_documentation(Boolean propagate) {
+        var parent = PortalNavigationItemFixtures.aFolder("APIs");
+        parent.markAsRoot();
+        var api = PortalNavigationItemFixtures.anApi();
+        api.updateParent(parent);
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
+            .toBuilder()
+            .reference(new ApiReference(api.getApiId()))
+            .build();
+        ownedPage.markAsRoot();
+        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId());
+        physicalPage.updateParent(api);
+        var product = PortalNavigationItemFixtures.anApiProduct();
+        product.updateParent(parent);
+        var productFolder = PortalNavigationItemFixtures.aFolder("Product folder", product.getId());
+        productFolder.updateParent(product);
+        var productApi = PortalNavigationItemFixtures.anApi(
+            "20000000-0000-4000-8000-000000000032",
+            "Product API",
+            productFolder.getId(),
+            api.getApiId()
+        );
+        productApi.updateParent(productFolder);
+        var productPage = PortalNavigationItemFixtures.aPage("Product page", productApi.getId());
+        productPage.updateParent(productApi);
+        initStorageWith(List.of(parent, api, ownedPage, physicalPage, product, productFolder, productApi, productPage));
+
+        var requestTarget = target.path(api.getId().json());
+        if (propagate != null) {
+            requestTarget = requestTarget.queryParam("propagatePublishToChildren", propagate);
+        }
+        var response = requestTarget.request().put(json(updateApiPublished(api, false)));
+
+        assertThat(response).hasStatus(OK_200);
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, product.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, productApi.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, productPage.getId()).getPublished()).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    void should_not_propagate_unchanged_api_publication_status(boolean published) {
+        var parent = PortalNavigationItemFixtures.aFolder("APIs");
+        parent.markAsRoot();
+        var api = PortalNavigationItemFixtures.anApi();
+        api.setPublished(published);
+        api.updateParent(parent);
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
+            .toBuilder()
+            .reference(new ApiReference(api.getApiId()))
+            .published(!published)
+            .build();
+        ownedPage.markAsRoot();
+        var physicalPage = PortalNavigationItemFixtures.aPage("Portal page", api.getId()).toBuilder().published(!published).build();
+        physicalPage.updateParent(api);
+        initStorageWith(List.of(parent, api, ownedPage, physicalPage));
+
+        var response = target
+            .path(api.getId().json())
+            .queryParam("propagatePublishToChildren", true)
+            .request()
+            .put(json(updateApiPublished(api, published)));
+
+        assertThat(response).hasStatus(OK_200);
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isEqualTo(
+            !published
+        );
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isEqualTo(
+            !published
+        );
+    }
+
+    @Test
+    void should_unpublish_api_in_product_folder_without_unpublishing_api_owned_documentation() {
+        var parent = PortalNavigationItemFixtures.aFolder("APIs");
+        parent.markAsRoot();
+        var product = PortalNavigationItemFixtures.anApiProduct();
+        product.updateParent(parent);
+        var productFolder = PortalNavigationItemFixtures.aFolder("Product folder", product.getId());
+        productFolder.updateParent(product);
+        var api = PortalNavigationItemFixtures.anApi();
+        api.updateParent(productFolder);
+        var ownedPage = PortalNavigationItemFixtures.aPage("Automation page", null)
+            .toBuilder()
+            .reference(new ApiReference(api.getApiId()))
+            .build();
+        ownedPage.markAsRoot();
+        var physicalPage = PortalNavigationItemFixtures.aPage("Product page", api.getId());
+        physicalPage.updateParent(api);
+        initStorageWith(List.of(parent, product, productFolder, api, ownedPage, physicalPage));
+
+        var payload = new UpdatePortalNavigationFolder()
+            .title(productFolder.getTitle())
+            .parentId(product.getId().id())
+            .type(PortalNavigationItemType.FOLDER)
+            .order(productFolder.getOrder())
+            .published(false)
+            .visibility(PortalVisibility.PUBLIC);
+        var response = target.path(productFolder.getId().json()).request().put(json(payload));
+
+        assertThat(response).hasStatus(OK_200);
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, api.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, physicalPage.getId()).getPublished()).isFalse();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, ownedPage.getId()).getPublished()).isTrue();
+        assertThat(portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, product.getId()).getPublished()).isTrue();
+    }
+
+    @Test
     void should_change_a_page_visibility_to_private() {
         // Given an existing PAGE item
         String navId = PAGE11_ID;
@@ -743,5 +934,16 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
             .order(folder.getOrder())
             .published(published)
             .visibility(PortalVisibility.valueOf(folder.getVisibility().name()));
+    }
+
+    private BaseUpdatePortalNavigationItem updateApiPublished(PortalNavigationApi api, boolean published) {
+        return new UpdatePortalNavigationApi()
+            .apiId(api.getApiId())
+            .title(api.getTitle())
+            .type(PortalNavigationItemType.API)
+            .parentId(api.getParentId().id())
+            .order(api.getOrder())
+            .published(published)
+            .visibility(PortalVisibility.valueOf(api.getVisibility().name()));
     }
 }

@@ -1174,6 +1174,10 @@ paths:
         When publishing a container, descendants are published only if `propagatePublishToChildren=true`.
         If `propagatePublishToChildren` is omitted or false, only the selected item is published.
         When unpublishing a container, descendants are always unpublished according to the business rule; `propagatePublishToChildren` is ignored and may be omitted.
+        Descendants include physically nested navigation items and, for APIs outside an API Product, API-owned documentation and its nested items.
+        APIs inside an API Product propagate publication only through their physically nested documentation; matching an API ID does not propagate publication between standalone and product contexts.
+        Traversal continues through intermediate containers that already have the target publication status.
+        Publication propagation does not change documentation ownership, hierarchy, ordering, or visibility.
       operationId: updatePortalNavigationItem
       parameters:
         - name: navId
@@ -1191,6 +1195,7 @@ paths:
             If omitted or false, publishing affects only the selected item.
             If true, publishing also affects descendants.
             Ignored for unpublish; container descendants are always unpublished according to the business rule.
+            For APIs outside an API Product, descendants also include API-owned documentation. APIs inside an API Product retain their independent documentation publication lifecycle.
           required: false
           schema:
             type: boolean
