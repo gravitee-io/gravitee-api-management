@@ -71,7 +71,7 @@ export function ApplicationSubscriptionMultiSelectFilter({
                 {options.length === 0 ? (
                     <p className="text-xs text-muted-foreground">{emptyMessage ?? 'No options'}</p>
                 ) : (
-                    <div className="max-h-[200px] space-y-2 overflow-y-auto">
+                    <div className="max-h-48 min-h-0 space-y-2 overflow-y-auto overscroll-contain">
                         {options.map(option => (
                             <label key={option.value} className="flex cursor-pointer items-center gap-2 text-sm">
                                 <Checkbox checked={selectedValues.includes(option.value)} onCheckedChange={() => toggle(option.value)} />

@@ -61,6 +61,25 @@ function cellUnderHeader(row: HTMLElement, headerText: string) {
 }
 
 describe('ApiListTable', () => {
+    const originalScrollIntoView = Element.prototype.scrollIntoView;
+    const originalHasPointerCapture = Element.prototype.hasPointerCapture;
+    const originalSetPointerCapture = Element.prototype.setPointerCapture;
+    const originalReleasePointerCapture = Element.prototype.releasePointerCapture;
+
+    beforeAll(() => {
+        Element.prototype.scrollIntoView = jest.fn();
+        Element.prototype.hasPointerCapture = jest.fn();
+        Element.prototype.setPointerCapture = jest.fn();
+        Element.prototype.releasePointerCapture = jest.fn();
+    });
+
+    afterAll(() => {
+        Element.prototype.scrollIntoView = originalScrollIntoView;
+        Element.prototype.hasPointerCapture = originalHasPointerCapture;
+        Element.prototype.setPointerCapture = originalSetPointerCapture;
+        Element.prototype.releasePointerCapture = originalReleasePointerCapture;
+    });
+
     beforeEach(() => {
         (useNavigate as jest.Mock).mockReturnValue(mockNavigate);
     });
@@ -91,6 +110,51 @@ describe('ApiListTable', () => {
         expect(screen.getByRole('combobox', { name: 'Items per page' })).not.toBeNull();
     });
 
+    it('offers Classic page sizes including 200 and reports that size when selected', async () => {
+        const onPageSizeChange = jest.fn();
+        renderTable({ apis: [makeApi()], totalCount: 201, onPageChange: jest.fn(), onPageSizeChange });
+
+        await userEvent.click(screen.getByRole('combobox', { name: 'Items per page' }));
+        expect(screen.queryByRole('option', { name: '10' })).toBeNull();
+        expect(screen.getByRole('option', { name: '25' })).not.toBeNull();
+        expect(screen.getByRole('option', { name: '50' })).not.toBeNull();
+        expect(screen.getByRole('option', { name: '100' })).not.toBeNull();
+        await userEvent.click(await screen.findByRole('option', { name: '200' }));
+
+        expect(onPageSizeChange).toHaveBeenCalledWith(200);
+    });
+
+    it('shows each API version as a badge beside the name so same-named APIs can be told apart', () => {
+        renderTable({
+            apis: [
+                makeApi({ id: 'api-v1', name: 'Payments', apiVersion: 'v1.0' }),
+                makeApi({ id: 'api-v2', name: 'Payments', apiVersion: 'v2.0' }),
+            ],
+        });
+
+        const [, firstRow, secondRow] = screen.getAllByRole('row');
+        expect(screen.queryByRole('columnheader', { name: 'Version' })).toBeNull();
+        expect(cellUnderHeader(firstRow, 'API Name').textContent).toContain('v1.0');
+        expect(cellUnderHeader(secondRow, 'API Name').textContent).toContain('v2.0');
+    });
+
+    it('omits the version badge when apiVersion is empty', () => {
+        renderTable({ apis: [makeApi({ name: 'Payments', apiVersion: '' })] });
+
+        const [, dataRow] = screen.getAllByRole('row');
+        expect(cellUnderHeader(dataRow, 'API Name').textContent).toBe('Payments');
+    });
+
+    it.each<[string, Partial<ApiListItem>, string]>([
+        ['HTTP Proxy for a default PROXY API', {}, 'HTTP Proxy'],
+        ['TCP Proxy when a listener is TCP', { listeners: [{ type: 'TCP', host: 'tcp.example.com', port: 4082 }] }, 'TCP Proxy'],
+        ['Federated API when definitionVersion is FEDERATED', { definitionVersion: 'FEDERATED' }, 'Federated API'],
+    ])('shows %s under API Type', (_scenario, overrides, expectedLabel) => {
+        renderTable({ apis: [makeApi(overrides)] });
+        const [, dataRow] = screen.getAllByRole('row');
+        expect(cellUnderHeader(dataRow, 'API Type').textContent).toBe(expectedLabel);
+    });
+
     it('renders the empty state when no APIs are present', () => {
         renderTable({ apis: [], isLoading: false });
         expect(screen.queryByText(/no apis found/i)).not.toBeNull();
@@ -118,14 +182,21 @@ describe('ApiListTable', () => {
         expect(screen.queryByText('My Service')).not.toBeNull();
     });
 
-    it('truncates a name longer than 40 characters and exposes the full name as the button title', () => {
+    it('truncates a name longer than 40 characters and exposes name (version) as the button title', () => {
         const longName = 'Customer-Relationship-Management-Integration-Gateway';
-        renderTable({ apis: [makeApi({ name: longName })] });
+        renderTable({ apis: [makeApi({ name: longName, apiVersion: 'v2.0' })] });
 
         const nameButton = screen.getByRole('button', { name: 'Customer-Relationship-Management-Integra…' });
         expect(nameButton.textContent).toHaveLength(41);
         expect(nameButton.textContent?.endsWith('…')).toBe(true);
-        expect(nameButton.getAttribute('title')).toBe(longName);
+        expect(nameButton.getAttribute('title')).toBe(`${longName} (v2.0)`);
+    });
+
+    it('uses only the name in the truncated title when apiVersion is empty', () => {
+        const longName = 'Customer-Relationship-Management-Integration-Gateway';
+        renderTable({ apis: [makeApi({ name: longName, apiVersion: '' })] });
+
+        expect(screen.getByRole('button', { name: 'Customer-Relationship-Management-Integra…' }).getAttribute('title')).toBe(longName);
     });
 
     it('navigates to the overview page on a natively-managed row click', () => {
@@ -475,10 +546,11 @@ describe('ApiListTable', () => {
             expect(within(screen.getByRole('columnheader', { name: 'API Name' })).queryByRole('button')).not.toBeNull();
         });
 
-        it('adds the Origin column right after API Name without displacing any other column', () => {
+        it('adds the Origin column after API Name and API Type without displacing any other column', () => {
             renderTable({ apis: [makeApi({ originContext: { origin: 'INTEGRATION', provider: 'solace' } })] });
             expect(screen.getAllByRole('columnheader').map(header => header.textContent)).toEqual([
                 'API Name',
+                'API Type',
                 'Origin',
                 'Runtime Status',
                 'Sync Status',

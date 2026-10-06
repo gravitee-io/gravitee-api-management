@@ -23,7 +23,7 @@ import { apiListKeys } from '../utils/queryKeys';
 
 const EMPTY_LIST_RESPONSE: ApiListResponse = {
     data: [],
-    pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 },
+    pagination: { page: 1, perPage: 25, pageCount: 0, totalCount: 0 },
 };
 
 // `T extends unknown` distributes over the result union, so each member keeps the narrowing that ties

@@ -41,16 +41,19 @@ import { ShardingTagsCell } from '../../../../shared/components/ShardingTagsCell
 import type { ApiDeploymentState, ApiListItem, ApiListOriginContext, ApiState } from '../../types';
 import { buildApiAnalyticsPath } from '../../utils/analyticsDeepLink';
 import { getApiAccessPath } from '../../utils/apiAccess';
+import { getApiProxyTypeLabel } from '../../utils/apiHttpProxy';
 import { isFederatedApiListItem } from '../../utils/federatedApi';
 import { federatedProviderLabel } from '../../utils/federatedProviderLabels';
 import { ApiAvatar } from '../ApiAvatar';
+import { API_LIST_PAGE_SIZE_OPTIONS } from './apiListFilters';
 
-type ColCell<T> = { row: { original: T } };
+type ColCell<T> = { row: { original: T }; getValue: () => unknown };
 type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
 
 // Sortable column id → backend `sortBy` field (api-v2 `/apis/_search`). Columns absent here are not server-sortable.
 const SORT_FIELD_BY_COLUMN: Record<string, string> = {
     'API Name': 'name',
+    'API Type': 'api_type',
     'Runtime Status': 'status',
     access: 'paths',
     Owner: 'owner',
@@ -137,6 +140,12 @@ function OriginIndicator({ originContext }: { originContext: ApiListOriginContex
     );
 }
 
+/** Labels match the API Proxies filter options (HTTP Proxy / TCP Proxy / Federated API). */
+function apiListTypeLabel(api: ApiListItem): string {
+    if (isFederatedApiListItem(api)) return 'Federated API';
+    return getApiProxyTypeLabel(api);
+}
+
 // A federated API's detail nav has no Overview section, so its detail page opens on General instead.
 function apiDetailLandingPath(api: ApiListItem): string {
     return isFederatedApiListItem(api) ? `${api.id}/general` : `${api.id}/overview`;
@@ -176,20 +185,34 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
                 const api = row.original;
                 const name = api.name;
                 const truncated = name.length > 40;
+                const truncatedTitle = api.apiVersion ? `${name} (${api.apiVersion})` : name;
                 return (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                         <ApiAvatar src={api._links?.pictureUrl} name={name} />
-                        <button
-                            type="button"
-                            className="text-left font-medium hover:underline"
-                            title={truncated ? name : undefined}
-                            onClick={() => navigate(apiDetailLandingPath(api))}
-                        >
-                            {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
-                        </button>
+                        <div className="flex flex-wrap items-center gap-2 min-w-0">
+                            <button
+                                type="button"
+                                className="text-left font-medium hover:underline"
+                                title={truncated ? truncatedTitle : undefined}
+                                onClick={() => navigate(apiDetailLandingPath(api))}
+                            >
+                                {truncated ? `${name.slice(0, 40).trimEnd()}…` : name}
+                            </button>
+                            {api.apiVersion ? (
+                                <Badge variant="outline" className="text-xs font-normal">
+                                    {api.apiVersion}
+                                </Badge>
+                            ) : null}
+                        </div>
                     </div>
                 );
             },
+        },
+        {
+            id: 'API Type',
+            accessorFn: (row: ApiListItem) => apiListTypeLabel(row),
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="API Type" />,
+            cell: ({ getValue }: ColCell<ApiListItem>) => <span className="text-sm">{String(getValue() ?? '')}</span>,
         },
         {
             id: 'Origin',
@@ -300,7 +323,7 @@ export function ApiListTable({
     isLoading,
     skeletonRowCount = 5,
     page = 1,
-    pageSize = 10,
+    pageSize = 25,
     totalCount = 0,
     sorting,
     onSortingChange,
@@ -331,7 +354,7 @@ export function ApiListTable({
                           page,
                           pageSize,
                           totalCount,
-                          pageSizeOptions: [10, 25, 50, 100],
+                          pageSizeOptions: [...API_LIST_PAGE_SIZE_OPTIONS],
                           onPageChange,
                           onPageSizeChange,
                       }
