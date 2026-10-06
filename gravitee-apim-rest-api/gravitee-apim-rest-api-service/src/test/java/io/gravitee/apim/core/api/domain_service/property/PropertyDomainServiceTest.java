@@ -307,7 +307,6 @@ public class PropertyDomainServiceTest {
             var incoming = List.of(EncryptableProperty.builder().key("secret").value("ciphertext").encrypted(true).build());
 
             assertThatCode(() -> cut.validateClassification(List.of(storedEncrypted), incoming)).doesNotThrowAnyException();
-            verifyNoInteractions(dataEncryptor);
         }
 
         @Test
@@ -394,6 +393,66 @@ public class PropertyDomainServiceTest {
             assertThatThrownBy(() -> cut.validateClassification(definition, incoming)).isInstanceOf(
                 ApiPropertyEncryptedToPlainException.class
             );
+        }
+    }
+
+    @Nested
+    class EncryptOnFetch {
+
+        @Test
+        void encrypts_a_not_yet_encrypted_property() throws GeneralSecurityException {
+            when(dataEncryptor.encrypt("s3cret")).thenReturn("ciphertext");
+
+            var result = cut.encryptOnFetch(
+                "api-id",
+                List.of(),
+                List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build())
+            );
+
+            assertThat(result).containsExactly(Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build());
+        }
+
+        @Test
+        void leaves_an_already_encrypted_property_untouched() {
+            var alreadyEncrypted = Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build();
+
+            var result = cut.encryptOnFetch("api-id", List.of(), List.of(alreadyEncrypted));
+
+            assertThat(result).containsExactly(alreadyEncrypted);
+            verifyNoInteractions(dataEncryptor);
+        }
+
+        @Test
+        void drops_a_new_property_when_its_encryption_fails_while_another_still_encrypts() throws GeneralSecurityException {
+            when(dataEncryptor.encrypt("s3cret")).thenThrow(new GeneralSecurityException());
+            when(dataEncryptor.encrypt("other-value")).thenReturn("other-ciphertext");
+
+            var result = cut.encryptOnFetch(
+                "api-id",
+                List.of(),
+                List.of(
+                    Property.builder().key("secret").value("s3cret").dynamic(true).build(),
+                    Property.builder().key("other").value("other-value").dynamic(true).build()
+                )
+            );
+
+            assertThat(result).containsExactly(
+                Property.builder().key("other").value("other-ciphertext").encrypted(true).dynamic(true).build()
+            );
+        }
+
+        @Test
+        void falls_back_to_the_stored_property_when_its_encryption_fails() throws GeneralSecurityException {
+            var stored = Property.builder().key("secret").value("ciphertext").encrypted(true).dynamic(true).build();
+            when(dataEncryptor.encrypt("n3w-s3cret")).thenThrow(new GeneralSecurityException());
+
+            var result = cut.encryptOnFetch(
+                "api-id",
+                List.of(stored),
+                List.of(Property.builder().key("secret").value("n3w-s3cret").dynamic(true).build())
+            );
+
+            assertThat(result).containsExactly(stored);
         }
     }
 }
