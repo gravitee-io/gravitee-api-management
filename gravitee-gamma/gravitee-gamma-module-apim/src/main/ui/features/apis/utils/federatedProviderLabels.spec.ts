@@ -30,6 +30,7 @@ describe('federatedProviderLabel', () => {
         ['shortens the confluent-platform key', 'confluent'],
         ['misspells the MuleSoft display name', 'Mulesoft'],
         ['drops the hyphen from the edge-stack key', 'edgestack'],
+        ['shortens the sap-api-management key', 'sap'],
     ])('returns a provider code that %s verbatim', (_scenario, provider) => {
         expect(federatedProviderLabel(provider)).toBe(provider);
     });
@@ -59,7 +60,7 @@ describe('federatedProviderLabel', () => {
             expect(warn).toHaveBeenCalledWith(expect.any(String), provider);
         });
 
-        it.each(['aws-api-gateway', 'AWS'])('does not warn for the mapped provider code %s', provider => {
+        it.each(['aws-api-gateway', 'AWS', 'sap-api-management'])('does not warn for the mapped provider code %s', provider => {
             federatedProviderLabel(provider);
 
             expect(warn).not.toHaveBeenCalled();

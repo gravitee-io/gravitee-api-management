@@ -24,6 +24,7 @@ const FEDERATED_PROVIDER_LABELS: Record<string, string> = {
     'confluent-platform': 'Confluent Platform',
     mulesoft: 'MuleSoft',
     'edge-stack': 'Edge Stack',
+    'sap-api-management': 'SAP Business Technology Platform',
 };
 
 export function federatedProviderLabel(provider: string): string {

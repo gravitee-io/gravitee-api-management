@@ -1128,7 +1128,7 @@ describe('AppRoutes', () => {
         renderIntegrationPath('/integrations/new');
 
         expect(await screen.findByRole('heading', { name: 'Create a new integration' })).not.toBeNull();
-        expect(within(screen.getByRole('radiogroup', { name: 'Provider' })).getAllByRole('radio')).toHaveLength(9);
+        expect(within(screen.getByRole('radiogroup', { name: 'Provider' })).getAllByRole('radio')).toHaveLength(10);
         expect(screen.queryByTestId('integration-overview-page')).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/integrations/new');
         expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
