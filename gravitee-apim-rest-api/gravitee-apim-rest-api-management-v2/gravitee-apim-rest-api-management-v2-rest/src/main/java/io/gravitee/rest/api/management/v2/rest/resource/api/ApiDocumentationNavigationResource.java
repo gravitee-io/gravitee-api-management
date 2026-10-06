@@ -39,9 +39,14 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
 public class ApiDocumentationNavigationResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private ListApiDocumentationUseCase listApiDocumentationUseCase;
@@ -102,5 +107,10 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         );
 
         return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+    }
+
+    @Path("{navId}")
+    public ApiDocumentationNavigationItemResource getApiDocumentationNavigationItemResource() {
+        return resourceContext.getResource(ApiDocumentationNavigationItemResource.class);
     }
 }
