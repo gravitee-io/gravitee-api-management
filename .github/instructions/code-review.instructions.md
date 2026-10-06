@@ -19,4 +19,4 @@ Run this as a self-review before pushing, and apply it when reviewing others' ch
 5. **Tests cover behaviour** — every behaviour change has a test that would fail without it, asserting behaviour, not implementation. Authors confirm RED → GREEN → REFACTOR; reviewers check the evidence, never the author's process.
 6. **Clean code** — meaningful names, no dead code, explicit imports, no leaked internals.
 
-Delivering findings: anchor each to file and line, quote the evidence, verify each claim against the code before filing, grade severity (blocker / improvement / nit) and origin, and order by reviewer value; the **peer-code-review** skill (run `gbuddy setup`) carries the full format.
+Delivering findings: anchor each to file and line, quote the evidence, verify each claim against the code before filing, grade severity (blocker / improvement / nit) and origin, and order by reviewer value; a skill for reviewing someone else's change, where one is installed, carries the full finding format.

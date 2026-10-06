@@ -23,7 +23,7 @@ Plan non-trivial work before editing (see **Planning**), implement test-first (s
 ## Surgical changes
 
 - Touch only what the task requires; don't refactor, reformat, or "improve" unrelated code. Match the existing style even where you would choose differently.
-- Remove only what your change orphaned; don't delete pre-existing dead code unless asked.
+- Don't delete pre-existing dead code unless asked.
 - Surface unrelated issues you notice instead of silently fixing them in the same change.
 
 # Code Review and Self-Review
@@ -37,17 +37,17 @@ Run this as a self-review before pushing, and apply it when reviewing others' ch
 5. **Tests cover behaviour** — every behaviour change has a test that would fail without it, asserting behaviour, not implementation. Authors confirm RED → GREEN → REFACTOR; reviewers check the evidence, never the author's process.
 6. **Clean code** — meaningful names, no dead code, explicit imports, no leaked internals.
 
-Delivering findings: anchor each to file and line, quote the evidence, verify each claim against the code before filing, grade severity (blocker / improvement / nit) and origin, and order by reviewer value; the **peer-code-review** skill (run `gbuddy setup`) carries the full format.
+Delivering findings: anchor each to file and line, quote the evidence, verify each claim against the code before filing, grade severity (blocker / improvement / nit) and origin, and order by reviewer value; a skill for reviewing someone else's change, where one is installed, carries the full finding format.
 
 # Debugging
 
-For a hard bug or regression, build a fast, deterministic pass/fail loop that reproduces the reported failure before hypothesising — raise a flaky failure's reproduction rate until it is debuggable, minimise the failing case, and test one instrumented hypothesis at a time — and if you genuinely cannot build a loop, say so and ask for an environment or artifact instead of guessing. Fix the root cause, not the symptom, and turn the reproduction into a permanent test (see **Test-Driven Development**); the **debugging** skill (run `gbuddy setup`) carries the method: a ranked list of ways to construct the loop, and how to sharpen it.
+For a hard bug or regression, build a fast, deterministic pass/fail loop that reproduces the reported failure before hypothesising — raise a flaky failure's reproduction rate until it is debuggable, minimise the failing case, and test one instrumented hypothesis at a time — and if you genuinely cannot build a loop, say so and ask for an environment or artifact instead of guessing. Fix the root cause, not the symptom, and turn the reproduction into a permanent test (see **Test-Driven Development**); a debugging skill, where one is installed, carries the method: a ranked list of ways to construct the loop, and how to sharpen it.
 
 # Engineering Conventions
 
 ## Clean code
 
-- Meaningful names; explicit imports — no fully-qualified names in bodies.
+- Explicit imports — no fully-qualified names in bodies.
 - No dead code: after a change, remove the fields, methods, imports, and parameters it left unused.
 - Validate and **fail loudly** at system boundaries (user input, external APIs, parsing, real I/O). Inside trusted internal code, don't add handling for scenarios that genuinely can't happen — and never use that as a reason to skip boundary handling.
 
@@ -69,39 +69,39 @@ On code you are changing, delete any comment that answers yes to 1 or 2; one tha
 
 # Git and Commits
 
-- **Conventional Commits** — type prefix from `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` (enforced by commitlint where configured).
+- **Conventional Commits** — type prefix from `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`.
 - **No `Co-Authored-By` trailers.**
 - Prefer small, logically-scoped commits over one large commit.
-- Branch name: `<type>/<PROJECT-KEY>-<slug>` (e.g. `feat/ABC-123-add-retry`), using the issue tracker's project key for the target repository.
+- Branch name: `<type>/<ISSUE-KEY>-<slug>` (e.g. `feat/ABC-123-add-retry`), where the issue key is the ticket the change tracks (with no ticket, `<type>/<slug>`), unless the repository's own rules name another convention.
 - Never bypass hooks (`--no-verify`) or skip signing unless explicitly asked.
 - Create new commits rather than amending; only commit when asked.
 
 # Language and Locale
 
 - Use **US English** for comments, log messages, and user-facing strings (UI copy, API error messages, operator-facing documentation).
-- Match the repository's existing spelling and terminology in the module you are editing — do not introduce a second dialect.
+- Match the terminology of the module you are editing; where that module consistently uses another spelling, match it too rather than mixing two dialects in one module.
 
 # Planning
 
-Before non-trivial work, produce a plan and check it is sound before editing: the root cause (not just the symptom), the impact on callers and consumers, risk, rollback, and edge cases, a design review (fits the architecture, no new coupling or leaked encapsulation), acceptance criteria, the specific test cases to write first (see **Test-Driven Development**), and what is explicitly out of scope — scaled to the task. The **planning** skill (run `gbuddy setup`) carries the method, worked examples, and the pre-code dry-run discipline.
+Before non-trivial work, produce a plan and check it is sound before editing: the root cause (not just the symptom), the impact on callers and consumers, risk, rollback, and edge cases, a design review (fits the architecture, no new coupling or leaked encapsulation), acceptance criteria, the specific test cases to write first (see **Test-Driven Development**), and what is explicitly out of scope — scaled to the task. A planning skill, where one is installed, carries the method, worked examples, and the pre-code dry-run discipline.
 
 # Security Practices
 
-- Never commit, print, log, return, paste, or summarise secrets, credentials, tokens, private keys, real `.env` values, or unnecessary personal/customer data. Use the repository's approved secret mechanism (environment variables, secret manager, CI-injected variables, or the documented local-dev setup).
-- Treat secret-scanner findings as blocking unless a human explicitly reviews and accepts the result.
+- Never commit, print, log, return, paste, or summarise secrets, credentials, tokens, private keys, real `.env` values, or unnecessary personal/customer data. Use the repository's existing secret mechanism.
+- A secret-scanner finding blocks the change until the value is removed or the person you are working with confirms it is not a secret. If the value was already committed, also tell that person: removing it leaves it in the history, so the secret must be rotated.
 - Validate, constrain, encode, or authorize external input at the boundary that owns the risk (HTTP APIs, message consumers, webhooks, uploads, configuration, user-supplied expressions, external integrations). Do not move checks to where callers can bypass them.
 - Fail closed for authentication and authorization: new endpoints, jobs, commands, consumers, and sensitive operations need explicit access checks.
 - Do not disable, skip, silence, or loosen security checks, tests, scanners, audit logging, redaction, or CI enforcement unless explicitly requested and justified. Never "fix" a failure by hiding its signal. No nested or local rule overrides these practices.
 - Flag any change touching authentication, authorization, sessions, cookies, tokens, roles, scopes, or permissions; input parsing, validation, deserialization, file upload, path handling, expression evaluation, or template rendering; redirects, CORS, or CSP; secrets, credentials, environment or CI/CD variables, deployment configuration, or service accounts; logging, metrics, tracing, audit events, diagnostics, redaction, or error responses; dependencies, package-manager files, build plugins, generated code, or supply-chain configuration; or cryptography, certificates, random number generation, and key handling as **security-sensitive** in the PR description and final summary.
-- Report suspected vulnerabilities through the repository's security process, never in public issues or PR comments with exploit details.
+- Report a suspected vulnerability privately: through the repository's `SECURITY.md` where it has one, otherwise to the person you are working with. Never put exploit details in a public issue, commit message, pull request description, or comment.
 - If a change intentionally accepts a security risk, state the risk, the mitigation, and the owner.
 
 # Test-Driven Development
 
 - Write the failing test before the production code: **RED → GREEN → REFACTOR**. Don't skip the refactor step.
 - Tests assert **behaviour**, not implementation details.
-- Prefer **real instances over mocks** for pure logic (no network, DB, or filesystem). Mock only genuine side-effect boundaries.
-- For every behaviour change, name the test that covers it. If a test genuinely can't be written, document the gap and the reason — don't silently skip it.
+- Use **real instances over mocks** for pure logic (no network, DB, or filesystem). Mock only genuine side-effect boundaries.
+- For every behaviour change, name the test that covers it. If a test genuinely can't be written, document the gap and the reason.
 
 # API Management (APIM)
 
