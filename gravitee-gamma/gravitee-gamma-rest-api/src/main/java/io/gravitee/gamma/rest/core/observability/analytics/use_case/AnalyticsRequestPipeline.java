@@ -16,8 +16,8 @@
 package io.gravitee.gamma.rest.core.observability.analytics.use_case;
 
 import io.gravitee.apim.core.DomainService;
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
+import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -55,10 +55,13 @@ public class AnalyticsRequestPipeline {
      * adapter is responsible for translating {@link #filters()} to the analytics-engine model.
      */
     public record PreparedScope(Instant from, Instant to, List<FilterCondition> filters, Set<String> apiIds) {
-        static final PreparedScope EMPTY = new PreparedScope(null, null, List.of(), Set.of());
+        /** Nothing the caller can read. Keeps the time range, so the query can still be validated. */
+        public static PreparedScope empty(Instant from, Instant to) {
+            return new PreparedScope(from, to, List.of(), Set.of());
+        }
 
         public boolean isEmpty() {
-            return this == EMPTY;
+            return apiIds.isEmpty();
         }
     }
 
@@ -82,7 +85,7 @@ public class AnalyticsRequestPipeline {
         // Nothing readable means nothing to query, whether the caller named APIs it cannot read or none at
         // all: an analytics query never runs environment-wide.
         if (scope.apiIds().isEmpty()) {
-            return PreparedScope.EMPTY;
+            return PreparedScope.empty(from, to);
         }
 
         var effectiveConditions = removeRecordTypeConditions(removeApiConditions(conditions));
@@ -94,8 +97,14 @@ public class AnalyticsRequestPipeline {
     }
 
     private static void validateTimeRange(Instant from, Instant to) {
-        if (from != null && to != null && from.isAfter(to)) {
-            throw new ValidationDomainException("Invalid time range: 'from' must be before 'to'.");
+        if (from == null) {
+            throw InvalidObservabilityQueryException.missingTimeRangeBound("from");
+        }
+        if (to == null) {
+            throw InvalidObservabilityQueryException.missingTimeRangeBound("to");
+        }
+        if (from.isAfter(to)) {
+            throw InvalidObservabilityQueryException.invalidTimeRange();
         }
     }
 

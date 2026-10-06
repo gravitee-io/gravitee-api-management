@@ -71,6 +71,17 @@ public interface ObservabilityAnalyticsDataPort {
         List<AnalyticsNumberRange> ranges
     ) {}
 
+    /**
+     * Refuses a query the analytics engine would refuse, without reading any data: an unknown metric,
+     * measure, facet or sort, and the engine's own rules. The use cases call it whatever the caller can
+     * read, so a malformed query gets the same 400 from a caller with no readable API as from an admin.
+     */
+    void validate(MeasuresQuery query);
+
+    void validate(FacetsQuery query);
+
+    void validate(TimeSeriesQuery query);
+
     JsonNode emptyMeasuresResponse();
     JsonNode emptyFacetsResponse();
     JsonNode emptyTimeSeriesResponse();
