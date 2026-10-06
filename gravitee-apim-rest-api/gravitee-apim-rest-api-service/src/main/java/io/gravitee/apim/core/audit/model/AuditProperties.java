@@ -53,4 +53,5 @@ public enum AuditProperties {
     AUTHORIZATION_PDP,
     AUTHORIZATION_SCHEMA,
     AI_WORKSPACE_COMPONENT,
+    MCP_SERVER,
 }
