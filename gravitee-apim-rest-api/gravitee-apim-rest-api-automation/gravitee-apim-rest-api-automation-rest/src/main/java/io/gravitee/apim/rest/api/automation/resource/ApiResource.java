@@ -23,12 +23,11 @@ import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.portal_page.domain_service.ApiDocumentationSyncDomainService;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
+import io.gravitee.apim.rest.api.automation.helpers.ApiV4StateHelper;
 import io.gravitee.apim.rest.api.automation.helpers.HRIDHelper;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
-import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
 import io.gravitee.apim.rest.api.automation.model.ApiV4Spec;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.mapper.ApiCRDMapper;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -48,10 +47,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.CustomLog;
@@ -121,25 +117,16 @@ public class ApiResource extends AbstractResource {
                 }
                 setPageParentAndGeneralConditionsHRIDs(apiCRDSpec);
             }
-            ApiV4Spec apiV4Spec = ApiMapper.INSTANCE.apiCRDSpecToApiV4Spec(ApiCRDMapper.INSTANCE.map(apiCRDSpec));
-            SharedPolicyGroupIdHelper.removeSharedPolicyGroupId(apiV4Spec);
+            ApiV4Spec apiV4Spec = ApiV4StateHelper.toApiV4Spec(apiCRDSpec);
             if (setHRIDFromName) {
                 SharedPolicyGroupIdHelper.addHRID(apiV4Spec);
                 // now that hrid are populated from the CRD map that uses names as keys,
                 // we need to format them to be compliant with the previous transformation
                 formatHrids(apiV4Spec);
             }
-            replaceGroupNamesWithHrids(executionContext.getEnvironmentId(), apiV4Spec);
+            ApiV4StateHelper.replaceGroupNamesWithHrids(groupQueryService, executionContext.getEnvironmentId(), apiV4Spec);
 
-            return Response.ok(
-                ApiMapper.INSTANCE.apiV4SpecToApiV4State(
-                    apiV4Spec,
-                    apiCRDSpec.getId(),
-                    apiCRDSpec.getCrossId(),
-                    executionContext.getOrganizationId(),
-                    executionContext.getEnvironmentId()
-                )
-            ).build();
+            return Response.ok(ApiV4StateHelper.toApiV4State(apiV4Spec, apiCRDSpec, executionContext)).build();
         } catch (ApiNotFoundException e) {
             log.warn("API not found for HRID: {}, operation: getApiByHRID", apiHrid, e);
             throw new HRIDNotFoundException(apiHrid);
@@ -196,33 +183,6 @@ public class ApiResource extends AbstractResource {
                 .stream()
                 .filter(p -> p.getGeneralConditions() != null)
                 .forEach(p -> p.setGeneralConditionsHrid(pageIDsToHrid.get(p.getGeneralConditions())));
-        }
-    }
-
-    private void replaceGroupNamesWithHrids(String environmentId, ApiV4Spec apiV4Spec) {
-        if (apiV4Spec.getGroups() != null && !apiV4Spec.getGroups().isEmpty()) {
-            var groups = new ArrayList<>(apiV4Spec.getGroups());
-            List<String> notificationGroups = new ArrayList<>();
-            if (apiV4Spec.getConsoleNotification() != null && apiV4Spec.getConsoleNotification().getGroups() != null) {
-                notificationGroups.addAll(apiV4Spec.getConsoleNotification().getGroups());
-            }
-            // all groups in notifications are included in API groups
-            groupQueryService
-                .findByNames(environmentId, new LinkedHashSet<>(groups))
-                .stream()
-                .filter(group -> group.getHrid() != null)
-                .forEach(group -> {
-                    groups.set(groups.indexOf(group.getName()), group.getHrid());
-                    // update notification groups if this group is included in notification groups
-                    int index = notificationGroups.indexOf(group.getName());
-                    if (index != -1) {
-                        notificationGroups.set(index, group.getHrid());
-                    }
-                });
-            apiV4Spec.setGroups(groups);
-            if (!notificationGroups.isEmpty()) {
-                apiV4Spec.getConsoleNotification().setGroups(notificationGroups);
-            }
         }
     }
 

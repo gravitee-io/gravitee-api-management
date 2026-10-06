@@ -103,6 +103,7 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                 apiCriteria.getIds() != null ||
                 apiCriteria.getDefinitionVersion() != null ||
                 apiCriteria.getEnvironmentId() != null ||
+                apiCriteria.getNotApiTypes() != null ||
                 (apiCriteria.getGroups() != null && !apiCriteria.getGroups().isEmpty()))
         ) {
             return this.storage()
@@ -126,13 +127,18 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
                         isNull(apiCriteria.getGroups()) ||
                         apiCriteria.getGroups().isEmpty() ||
                         (api.getGroups() != null && !Collections.disjoint(api.getGroups(), apiCriteria.getGroups()));
+                    var matchesNotApiTypes =
+                        isNull(apiCriteria.getNotApiTypes()) ||
+                        isNull(api.getType()) ||
+                        !apiCriteria.getNotApiTypes().contains(api.getType());
                     return (
                         matchesIntegrationId &&
                         matchesApiId &&
                         matchesLifecycleState &&
                         matchesApiDefinitionVersion &&
                         matchesEnvironmentId &&
-                        matchesGroups
+                        matchesGroups &&
+                        matchesNotApiTypes
                     );
                 });
         }

@@ -390,6 +390,126 @@ class GammaModuleAutomationResourceTest extends AbstractResourceTest {
     }
 
     @Nested
+    class ListAll {
+
+        private static ObjectNode listed(String id) {
+            return MAPPER.createObjectNode().put("id", id).put("entityId", "mcp-server." + id).put("protocolVersion", "2024-11-05");
+        }
+
+        private Response list(String path) {
+            return rootTarget(path).request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+        }
+
+        @Test
+        void should_return_200_with_every_view_stamped_with_where_it_lives() {
+            when(port.findAll(any(), eq(KIND))).thenReturn(List.of(listed("id-1"), listed("id-2")));
+
+            try (var response = list(MODULE + "/" + KIND_PATH)) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                var states = body(response);
+                assertThat(states.isArray()).isTrue();
+                assertThat(states)
+                    .extracting(state -> state.get("id").asText())
+                    .containsExactly("id-1", "id-2");
+                SoftAssertions.assertSoftly(soft -> {
+                    for (var state : states) {
+                        soft.assertThat(state.get("environmentId").asText()).isEqualTo(ENVIRONMENT);
+                        soft.assertThat(state.get("organizationId").asText()).isEqualTo(ORGANIZATION);
+                        soft.assertThat(state.get("protocolVersion").asText()).isEqualTo("2024-11-05");
+                        soft.assertThat(state.has("hrid")).isFalse();
+                    }
+                });
+            }
+        }
+
+        @Test
+        void should_keep_the_hrid_the_module_reports() {
+            when(port.findAll(any(), eq(KIND))).thenReturn(List.of(listed("id-1").put("hrid", "github-mcp"), listed("id-2")));
+
+            try (var response = list(MODULE + "/" + KIND_PATH)) {
+                var states = body(response);
+                assertThat(states.get(0).get("hrid").asText()).isEqualTo("github-mcp");
+                assertThat(states.get(1).has("hrid")).isFalse();
+            }
+        }
+
+        @Test
+        void should_return_an_empty_array_when_the_module_lists_nothing() {
+            when(port.findAll(any(), eq(KIND))).thenReturn(List.of());
+
+            try (var response = list(MODULE + "/" + KIND_PATH)) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(body(response)).isEmpty();
+            }
+        }
+
+        @Test
+        void should_return_405_when_the_module_does_not_list_the_kind() {
+            when(port.findAll(any(), eq(KIND))).thenThrow(new UnsupportedOperationException("no listing"));
+
+            try (var response = list(MODULE + "/" + KIND_PATH)) {
+                assertThat(response.getStatus()).isEqualTo(405);
+            }
+        }
+
+        @Test
+        void should_return_500_when_a_listed_view_carries_no_id() {
+            when(port.findAll(any(), eq(KIND))).thenReturn(List.of(listed("id-1"), view("github-mcp")));
+
+            try (var response = list(MODULE + "/" + KIND_PATH)) {
+                assertThat(response.getStatus()).isEqualTo(500);
+            }
+        }
+
+        @Test
+        void should_check_the_read_acl_and_never_call_the_module_when_denied() {
+            clearInvocations(permissionService);
+            when(permissionService.hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), any(), eq(READ))).thenReturn(false);
+
+            try (var response = list(MODULE + "/" + KIND_PATH)) {
+                assertThat(response.getStatus()).isEqualTo(403);
+            }
+
+            verify(permissionService).hasPermission(any(), eq(RolePermission.ENVIRONMENT_AI_CATALOG), eq(ENVIRONMENT), eq(READ));
+            verify(port, never()).findAll(any(), any());
+        }
+
+        @Test
+        void should_return_403_when_license_lacks_the_module_feature() {
+            when(license.isFeatureEnabled(LICENSE_FEATURE)).thenReturn(false);
+
+            try (var response = list(MODULE + "/" + KIND_PATH)) {
+                assertThat(response.getStatus()).isEqualTo(403);
+                assertThat(body(response).get("technicalCode").asText()).isEqualTo("feature.missing");
+                verify(port, never()).findAll(any(), any());
+            }
+        }
+
+        @Test
+        void should_still_route_an_item_under_a_two_segment_kind_to_find_by_id() {
+            when(port.findById(any(), eq(KIND), eq(derivedId(KIND_PATH, "github-mcp")))).thenReturn(Optional.of(view("github-mcp")));
+
+            try (var response = list(MODULE + "/" + KIND_PATH + "/github-mcp")) {
+                assertThat(response.getStatus()).isEqualTo(200);
+                assertThat(body(response).get("hrid").asText()).isEqualTo("github-mcp");
+            }
+            verify(port, never()).findAll(any(), any());
+        }
+
+        @Test
+        void should_return_404_when_a_bare_segment_names_no_kind() {
+            when(port.kind("unknown")).thenReturn(Optional.empty());
+
+            try (var response = list(MODULE + "/unknown")) {
+                assertThat(response.getStatus()).isEqualTo(404);
+                assertThat(body(response).get("technicalCode").asText()).isEqualTo("gamma.resource.kind.notFound");
+                verify(port, never()).findAll(any(), any());
+                verify(port, never()).findById(any(), any(), any());
+            }
+        }
+    }
+
+    @Nested
     class Delete {
 
         @Test

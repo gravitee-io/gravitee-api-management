@@ -18,8 +18,11 @@ package inmemory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiFieldFilter;
+import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedAgent;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
@@ -52,6 +55,30 @@ class ApiQueryServiceInMemoryTest {
             .toBuilder()
             .apiDefinitionValue(FederatedAgent.builder().provider(new FederatedAgent.Provider(organization, "https://example.net")).build())
             .build();
+    }
+
+    @Nested
+    class Search {
+
+        @Test
+        void should_leave_out_the_api_types_the_criteria_excludes() {
+            cut.initWith(
+                List.of(
+                    anApi("proxy").toBuilder().type(ApiType.PROXY).build(),
+                    anApi("edge").toBuilder().type(ApiType.EDGE).build(),
+                    anApi("authz").toBuilder().type(ApiType.AUTHZ).build(),
+                    anApi("untyped")
+                )
+            );
+
+            var found = cut.search(
+                ApiSearchCriteria.builder().notApiTypes(List.of(ApiType.EDGE, ApiType.AUTHZ)).build(),
+                null,
+                ApiFieldFilter.builder().build()
+            );
+
+            assertThat(found).extracting(Api::getId).containsExactly("proxy", "untyped");
+        }
     }
 
     @Nested

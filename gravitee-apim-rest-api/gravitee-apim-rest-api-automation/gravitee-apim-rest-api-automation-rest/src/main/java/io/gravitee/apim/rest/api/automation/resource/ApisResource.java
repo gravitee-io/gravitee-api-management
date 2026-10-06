@@ -16,17 +16,23 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.apim.core.api.domain_service.ValidateApiCRDDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
+import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
+import io.gravitee.apim.core.api.use_case.ExportEnvironmentApiCRDsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.rest.api.automation.helpers.ApiV4StateHelper;
 import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
 import io.gravitee.apim.rest.api.automation.helpers.SharedPolicyGroupIdHelper;
 import io.gravitee.apim.rest.api.automation.mapper.ApiMapper;
+import io.gravitee.apim.rest.api.automation.model.ApiV4State;
 import io.gravitee.apim.rest.api.automation.model.LegacyAPIV4Spec;
 import io.gravitee.apim.rest.api.automation.model.PageV4;
 import io.gravitee.apim.rest.api.automation.model.PlanV4;
@@ -39,13 +45,16 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
@@ -61,12 +70,39 @@ public class ApisResource extends AbstractResource {
     @Inject
     private ValidateApiCRDDomainService validateApiCRDDomainService;
 
+    @Inject
+    private ExportEnvironmentApiCRDsUseCase exportEnvironmentApiCRDsUseCase;
+
+    @Inject
+    private GroupQueryService groupQueryService;
+
     @Context
     private ResourceContext resourceContext;
 
     @Path("/{apiHrid}")
     public ApiResource getApiResource() {
         return resourceContext.getResource(ApiResource.class);
+    }
+
+    /**
+     * Every V4 API of the environment, each in the shape {@code GET /apis/{hrid}} answers. The {@code hrid} is
+     * the stored one, so it is {@code null} for an API that was not created through the Automation API.
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { READ }) })
+    public Response listApis() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var auditInfo = buildAuditInfo(executionContext, getAuthenticatedUserDetails());
+
+        var states = exportEnvironmentApiCRDsUseCase
+            .execute(new ExportEnvironmentApiCRDsUseCase.Input(auditInfo, IDExportStrategy.ALL, true))
+            .specs()
+            .stream()
+            .map(spec -> ApiV4StateHelper.toApiV4State(spec, executionContext, groupQueryService))
+            .toList();
+
+        return Response.ok(new GenericEntity<List<ApiV4State>>(states) {}).build();
     }
 
     @PUT

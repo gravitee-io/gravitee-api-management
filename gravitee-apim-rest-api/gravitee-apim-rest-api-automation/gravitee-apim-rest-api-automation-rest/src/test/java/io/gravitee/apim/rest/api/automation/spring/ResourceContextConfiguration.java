@@ -68,6 +68,7 @@ import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.service_provider.ApiTemplateModelProvider;
 import io.gravitee.apim.core.api.use_case.ExportApiCRDUseCase;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
+import io.gravitee.apim.core.api.use_case.ExportEnvironmentApiCRDsUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.GetExposedEntrypointsUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiCRDUseCase;
@@ -687,6 +688,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ExportApiCRDUseCase exportApiCRDUseCase() {
         return mock(ExportApiCRDUseCase.class);
+    }
+
+    @Bean
+    public ExportEnvironmentApiCRDsUseCase exportEnvironmentApiCRDsUseCase() {
+        return mock(ExportEnvironmentApiCRDsUseCase.class);
     }
 
     @Bean

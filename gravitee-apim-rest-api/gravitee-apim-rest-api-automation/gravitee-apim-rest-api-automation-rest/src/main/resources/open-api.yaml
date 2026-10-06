@@ -55,6 +55,33 @@ tags:
 paths:
   # APIs
   /organizations/{orgId}/environments/{envId}/apis:
+    get:
+      operationId: listApis
+      tags:
+        - APIs
+      summary: List the APIs of an environment
+      description: |
+        List every V4 API of the environment, each in the shape `GET /apis/{hrid}` answers. EDGE and AUTHZ APIs
+        are not part of the automation contract and are left out. `hrid` is `null` for an API that was not created
+        through the Automation API (for instance from the Console).
+      parameters:
+        - $ref: "#/components/parameters/orgIdParam"
+        - $ref: "#/components/parameters/envIdParam"
+      responses:
+        "200":
+          description: APIs of the environment
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ApiV4State"
+        "401":
+          $ref: "#/components/responses/Unauthenticated"
+        "403":
+          $ref: "#/components/responses/Unauthorized"
+        default:
+          $ref: "#/components/responses/Error"
     put:
       operationId: createOrUpdateApis
       tags:

@@ -16,6 +16,7 @@
 package io.gravitee.apim.plugin.gamma.api.automation;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -25,7 +26,7 @@ import java.util.Optional;
  * into the host context and the Automation API mounts it at
  * {@code /automation/organizations/{orgId}/environments/{envId}/{module}/{kind}} with the uniform verbs:
  * {@code PUT} on the collection with the {@code hrid} carried in the body (optionally {@code ?dryRun=true}),
- * {@code GET} and {@code DELETE} on {@code {kind}/{hrid}}.
+ * {@code GET} on the collection, and {@code GET} and {@code DELETE} on {@code {kind}/{hrid}}.
  *
  * <p>The Automation API owns the conventions and enforces them before a call reaches the module: the
  * license feature and the kind's permission are checked, {@code spec.hrid} is present and well-formed,
@@ -72,6 +73,16 @@ public interface GammaAutomationPort {
     UpsertResult<ObjectNode> upsert(AutomationContext context, ResourceKind kind, String id, ObjectNode spec);
 
     Optional<ObjectNode> findById(AutomationContext context, ResourceKind kind, String id);
+
+    /**
+     * Every resource of {@code kind} in the environment, each view carrying the resource's {@code id} and,
+     * only when the module knows it, its {@code hrid}. The Automation API stamps {@code environmentId} and
+     * {@code organizationId} on each view. Modules that do not list a kind keep this default, and the
+     * Automation API answers {@code 405} for it.
+     */
+    default List<ObjectNode> findAll(AutomationContext context, ResourceKind kind) {
+        throw new UnsupportedOperationException("Module [" + module() + "] does not list [" + kind.path() + "]");
+    }
 
     /**
      * @return {@code true} when the resource existed and was deleted, {@code false} when there was nothing to

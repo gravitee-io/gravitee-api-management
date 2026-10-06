@@ -48,6 +48,7 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotAllowedException;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -68,7 +69,8 @@ import java.util.regex.Pattern;
  * <p>All three verbs share one path template on purpose: JAX-RS selects the matching template before it
  * looks at the HTTP method, so a collection template and an item template that both match a two-segment
  * path would turn {@code PUT} on the collection into a 405. The resource splits the path itself instead —
- * an HRID is a single segment, so the item path is always {@code <kind path>/<hrid>}.
+ * an HRID is a single segment and never contains a slash, so a {@code GET} path the module serves a kind at
+ * is the collection, and anything else is {@code <kind path>/<hrid>}.
  */
 public class GammaModuleAutomationResource extends AbstractResource {
 
@@ -125,6 +127,14 @@ public class GammaModuleAutomationResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response get(@PathParam("module") String module, @PathParam("path") String path) {
         var port = port(module);
+        // An HRID never contains a slash, so a whole path the module serves a kind at can only be the collection.
+        var collection = port.kind(path);
+        if (collection.isPresent()) {
+            return list(port, module, collection.get());
+        }
+        if (path.indexOf('/') < 0) {
+            throw new AutomationResourceKindNotFoundException(module, path);
+        }
         var item = ItemPath.parse(path);
         var kind = kind(port, module, item.kindPath());
         checkLicense(port);
@@ -137,6 +147,23 @@ public class GammaModuleAutomationResource extends AbstractResource {
             .findById(context(audit, module), kind, id)
             .map(view -> Response.ok(stamp(view, id, item.hrid(), audit, List.of())).build())
             .orElseThrow(() -> new HRIDNotFoundException(item.hrid()));
+    }
+
+    private Response list(GammaAutomationPort port, String module, ResourceKind kind) {
+        checkLicense(port);
+        checkPermission(kind, READ);
+
+        var audit = getAuditInfo();
+        List<ObjectNode> views;
+        try {
+            views = port.findAll(context(audit, module), kind);
+        } catch (UnsupportedOperationException e) {
+            throw new NotAllowedException("PUT");
+        }
+
+        var states = MAPPER.createArrayNode();
+        views.forEach(view -> states.add(stampEnvelope(requireListedId(view, kind), audit)));
+        return Response.ok(states).build();
     }
 
     @DELETE
@@ -189,6 +216,15 @@ public class GammaModuleAutomationResource extends AbstractResource {
         }
     }
 
+    /** A listed view must identify its resource: an id-less view is a module bug, not a client error. */
+    private static ObjectNode requireListedId(ObjectNode view, ResourceKind kind) {
+        JsonNode id = view.get(ID_FIELD);
+        if (id == null || !id.isTextual() || id.asText().isBlank()) {
+            throw new IllegalStateException("Module view of [" + kind.path() + "] carries no [" + ID_FIELD + "]");
+        }
+        return view;
+    }
+
     private static String requireHrid(ObjectNode spec) {
         JsonNode hrid = spec.get(HRID_FIELD);
         if (hrid == null || !hrid.isTextual()) {
@@ -218,11 +254,9 @@ public class GammaModuleAutomationResource extends AbstractResource {
      * an automation identifier: it comes from the request (body on apply, path on read), so modules need not store it.
      */
     private static ObjectNode stamp(ObjectNode view, String id, String hrid, AuditInfo audit, List<AutomationIssue> issues) {
-        var state = view.deepCopy();
+        var state = stampEnvelope(view, audit);
         state.put(HRID_FIELD, hrid);
         state.put(ID_FIELD, id);
-        state.put(ENVIRONMENT_ID_FIELD, audit.environmentId());
-        state.put(ORGANIZATION_ID_FIELD, audit.organizationId());
         state.remove(ERRORS_FIELD);
         if (!issues.isEmpty()) {
             // Serialized through the generated contract model so a schema change breaks compilation here
@@ -231,6 +265,14 @@ public class GammaModuleAutomationResource extends AbstractResource {
             issues.forEach(issue -> (issue.isSevere() ? errors.getSevere() : errors.getWarning()).add(issue.message()));
             state.set(ERRORS_FIELD, MAPPER.valueToTree(errors));
         }
+        return state;
+    }
+
+    /** The part of the envelope every view carries, listed or not: where the resource lives. */
+    private static ObjectNode stampEnvelope(ObjectNode view, AuditInfo audit) {
+        var state = view.deepCopy();
+        state.put(ENVIRONMENT_ID_FIELD, audit.environmentId());
+        state.put(ORGANIZATION_ID_FIELD, audit.organizationId());
         return state;
     }
 
