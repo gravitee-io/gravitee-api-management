@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
+import io.gravitee.definition.model.cluster.ReactableCluster;
 import io.gravitee.gateway.handlers.cluster.manager.ClusterManager;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.cluster.ClusterReactorDeployable;
@@ -49,12 +50,28 @@ public class ClusterDeployer implements Deployer<ClusterReactorDeployable> {
     public Completable undeploy(ClusterReactorDeployable deployable) {
         return Completable.fromRunnable(() -> {
             try {
-                clusterManager.unregister(deployable.clusterId());
-                log.debug("Cluster [{}] undeployed", deployable.clusterId());
+                String clusterId = deployedClusterId(deployable);
+                clusterManager.unregister(clusterId);
+                log.debug("Cluster [{}] (cross id [{}]) undeployed", clusterId, deployable.clusterId());
             } catch (Exception e) {
                 throw new SyncException("An error occurred when trying to undeploy cluster [" + deployable.clusterId() + "].", e);
             }
         });
+    }
+
+    /**
+     * The management API publishes undeploy events with the cluster <em>cross id</em>, while the cluster manager is keyed
+     * by cluster id: resolve the deployed cluster by cross id in the event's environment. When the event names no single
+     * environment, or the cluster is not deployed on this gateway, the value is used as is and unregistering is a no-op.
+     */
+    private String deployedClusterId(ClusterReactorDeployable deployable) {
+        if (deployable.environmentId() != null) {
+            ReactableCluster deployed = clusterManager.get(deployable.clusterId(), deployable.environmentId());
+            if (deployed != null) {
+                return deployed.getId();
+            }
+        }
+        return deployable.clusterId();
     }
 
     @Override
