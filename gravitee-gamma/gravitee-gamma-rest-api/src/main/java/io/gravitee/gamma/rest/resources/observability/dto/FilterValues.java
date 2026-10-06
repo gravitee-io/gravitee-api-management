@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.resources.observability.dto;
 
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import java.util.List;
 
 /**
@@ -24,7 +25,8 @@ import java.util.List;
  * {@code FilterCondition} carries. Promoted out of the logs {@code FilterConditionDto} (OBS-16) so
  * the dashboards write DTOs reuse it instead of copying it. {@code null} and {@code []} both
  * normalize to an empty list — the "all values" placeholder, which is legal and carries no query
- * constraint.
+ * constraint. Anything else — an object, a nested array, a null element — is refused rather than
+ * stringified into a value no document holds.
  *
  * @author GraviteeSource Team
  */
@@ -32,17 +34,23 @@ public final class FilterValues {
 
     private FilterValues() {}
 
-    public static List<String> normalize(Object value) {
+    public static List<String> normalize(String filterName, Object value) {
         if (value == null) {
             return List.of();
         }
         if (value instanceof List<?> list) {
-            return list.stream().map(FilterValues::asString).toList();
+            return list
+                .stream()
+                .map(element -> asScalar(filterName, element))
+                .toList();
         }
-        return List.of(asString(value));
+        return List.of(asScalar(filterName, value));
     }
 
-    private static String asString(Object v) {
-        return v == null ? "" : v.toString();
+    private static String asScalar(String filterName, Object value) {
+        if (value instanceof String || value instanceof Number || value instanceof Boolean) {
+            return value.toString();
+        }
+        throw UnsupportedObservabilityFilterException.invalidValueShape(filterName);
     }
 }

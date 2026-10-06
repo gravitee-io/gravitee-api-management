@@ -904,11 +904,8 @@ paths:
                 "400":
                     description: |
                         The query is refused. Possible causes:
-                        - Unknown filter name (`observability.filter.unknown_name`)
-                        - Filter does not apply to the LOGS signal (`observability.filter.signal_mismatch`)
-                        - Operator not usable for this filter on log search (`observability.filter.unsupported_operator`).
+                        - A filter condition breaks a rule of the `FilterCondition` schema (`observability.filter.*`)
                         - Filter is valid for LOGS but not yet supported by log search (`observability.filter.search_translation_not_supported`)
-                        - A filter value is malformed or out of range (e.g. an `HTTP_STATUS` outside 100–599)
                         - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                         - An array of the body holds a null entry (`observability.query.null_entry`)
                     content:
@@ -941,10 +938,17 @@ paths:
                                         message: "Filter 'API_TYPE' is not yet supported for log search"
                                         technicalCode: "observability.filter.search_translation_not_supported"
                                 invalid-filter-value:
-                                    summary: Malformed or out-of-range filter value
+                                    summary: Out-of-range filter value
                                     value:
                                         http_status: 400
-                                        message: "Invalid HTTP status code: 1000. Must be between 100 and 599."
+                                        message: "Value '1000' is outside the range [100, 599] of filter 'HTTP_STATUS'"
+                                        technicalCode: "observability.filter.value_out_of_range"
+                                invalid-arity:
+                                    summary: Several values on a single-value operator
+                                    value:
+                                        http_status: 400
+                                        message: "Operator 'EQ' on filter 'HTTP_METHOD' takes exactly one value, got 2 values [GET, POST]. Use IN to match several values."
+                                        technicalCode: "observability.filter.invalid_arity"
                                 missing-time-range-bound:
                                     summary: Missing time-range bound
                                     value:
@@ -1685,7 +1689,7 @@ components:
         AnalyticsQueryRefused:
             description: |
                 The query is refused, whatever APIs the caller can read. Possible causes:
-                - A filter condition is invalid (`observability.filter.*`)
+                - A filter condition breaks a rule of the `FilterCondition` schema (`observability.filter.*`)
                 - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                 - `metrics` is empty (`observability.query.metrics_required`)
                 - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
@@ -1697,6 +1701,12 @@ components:
                     schema:
                         $ref: "#/components/schemas/Error"
                     examples:
+                        repeated-filter:
+                            summary: A filter repeated outside a closed numeric range
+                            value:
+                                http_status: 400
+                                message: "Filter 'HTTP_METHOD' appears 2 times [IN, IN]. Send one condition per filter, or one GTE and one LTE for a numeric range."
+                                technicalCode: "observability.filter.repeated"
                         missing-interval:
                             summary: Time-series without an interval
                             value:
@@ -2023,8 +2033,21 @@ components:
         FilterCondition:
             type: object
             description: |
-                A single filter condition. `operator` is uppercase (`EQ`, `IN`, `GTE`, `LTE`).
-                `value` is a scalar string for `EQ`/`GTE`/`LTE`, or an array of strings for `IN`.
+                A single filter condition, checked against the filter catalog of the endpoint's signal.
+                A condition breaking one of these rules is refused with a 400:
+
+                - `name` is in the catalog and applies to the signal (`unknown_name`, `signal_mismatch`);
+                - `operator` is one the filter advertises (`unsupported_operator`);
+                - `value` is a scalar or an array of scalars, with no null element (`invalid_value_shape`);
+                - `EQ`, `GTE`, `LTE` and `CONTAINS` take exactly one value, `IN` one or more
+                  (`invalid_arity`, `blank_value`);
+                - an ENUM value is one the filter advertises; a NUMBER value is a whole number within the
+                  filter's range (`unknown_enum_value`, `invalid_number`, `value_out_of_range`);
+                - a filter appears once per request; the only repetition is one `GTE` and one `LTE` on
+                  the same NUMBER filter, a closed range whose lower bound is not above its upper bound
+                  (`repeated`, `inverted_range`).
+
+                Technical codes are prefixed with `observability.filter.`.
             required: [name, operator, value]
             properties:
                 name:
@@ -2034,12 +2057,17 @@ components:
                 operator:
                     $ref: "#/components/schemas/FilterOperator"
                 value:
-                    description: Scalar for EQ/GTE/LTE, array of strings for IN/NOT_IN.
+                    description: A scalar for `EQ`, `GTE`, `LTE` and `CONTAINS`; an array for `IN`.
                     oneOf:
                         - type: string
+                        - type: number
+                        - type: boolean
                         - type: array
                           items:
-                              type: string
+                              oneOf:
+                                  - type: string
+                                  - type: number
+                                  - type: boolean
                     example: "200"
 
         LogDetail:
