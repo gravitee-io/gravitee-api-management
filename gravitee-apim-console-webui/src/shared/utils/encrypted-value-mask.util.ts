@@ -13,11 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './cors.util';
-export * from './http.util';
-export * from './simple-validator';
-export * from './propertiesParser';
-export * from './bitfield';
-export * from './hostPattern.util';
-export * from './api-access.util';
-export * from './encrypted-value-mask.util';
+
+export const ENCRYPTED_VALUE_MASK = '•'.repeat(12);
