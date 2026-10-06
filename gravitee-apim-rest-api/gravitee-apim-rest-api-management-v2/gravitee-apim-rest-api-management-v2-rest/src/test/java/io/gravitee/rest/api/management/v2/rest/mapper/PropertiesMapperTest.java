@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import fixtures.PropertyFixtures;
@@ -130,5 +131,35 @@ public class PropertiesMapperTest {
         assertThat(convertedProperty.getDynamic()).isEqualTo(propertiesToMap.getProperties().get(0).isDynamic());
         assertThat(convertedProperty.getEncrypted()).isEqualTo(propertiesToMap.getProperties().get(0).isEncrypted());
         assertThat(convertedProperty.getEncryptable()).isNull();
+    }
+
+    @Test
+    void shouldMaskValueWhenMappingAnEncryptedV4PropertyToTheRestModel() {
+        var encryptedProperty = io.gravitee.definition.model.v4.property.Property.builder()
+            .key("prop-key")
+            .value("ciphertext")
+            .encrypted(true)
+            .dynamic(false)
+            .build();
+
+        Property convertedProperty = propertiesMapper.map(encryptedProperty);
+
+        assertThat(convertedProperty.getValue()).isEqualTo(ENCRYPTED_VALUE_MASK);
+        assertThat(convertedProperty.getEncrypted()).isTrue();
+    }
+
+    @Test
+    void shouldMaskValueWhenMappingAnEncryptedV2PropertyToTheRestModel() {
+        var encryptedProperty = io.gravitee.definition.model.Property.builder()
+            .key("prop-key")
+            .value("ciphertext")
+            .encrypted(true)
+            .dynamic(false)
+            .build();
+
+        Property convertedProperty = propertiesMapper.map(encryptedProperty);
+
+        assertThat(convertedProperty.getValue()).isEqualTo(ENCRYPTED_VALUE_MASK);
+        assertThat(convertedProperty.getEncrypted()).isTrue();
     }
 }

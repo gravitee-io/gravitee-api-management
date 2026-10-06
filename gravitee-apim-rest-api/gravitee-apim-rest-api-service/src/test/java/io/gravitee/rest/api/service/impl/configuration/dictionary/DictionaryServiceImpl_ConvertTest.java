@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -65,7 +66,7 @@ class DictionaryServiceImpl_ConvertTest {
         DictionaryEntity entity = dictionaryService.findById(new ExecutionContext("org", "DEFAULT"), "dic-1");
 
         assertThat(entity.getProperties()).containsEntry("plain", "plain-value");
-        assertThat(entity.getProperties()).containsEntry("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
+        assertThat(entity.getProperties()).containsEntry("secret", ENCRYPTED_VALUE_MASK);
     }
 
     @Test

@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.apim.core.utils;
 
-import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
-import java.util.List;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface PropertiesService {
-    List<PropertyEntity> encryptProperties(List<PropertyEntity> storedProperties, List<PropertyEntity> properties);
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class EncryptedValueMask {
+
+    /**
+     * Stands in for an encrypted value on a read, so the ciphertext never leaves through one. Resubmitting it
+     * on a write means "keep the stored value". The Console renders the same string, see
+     * {@code shared/utils/encrypted-value-mask.util.ts}.
+     */
+    public static final String ENCRYPTED_VALUE_MASK = "••••••••••••";
 }

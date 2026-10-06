@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_CREATED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -382,7 +383,7 @@ public class DictionaryServiceImpl_CreateTest {
         newDictionary.setKey("my-key");
         newDictionary.setName("My Dictionary");
         newDictionary.setType(DictionaryType.MANUAL);
-        newDictionary.setProperties(Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK));
+        newDictionary.setProperties(Map.of("secret", ENCRYPTED_VALUE_MASK));
         newDictionary.setPropertyOptions(options);
 
         when(dictionaryRepository.findById("my-key")).thenReturn(Optional.empty());

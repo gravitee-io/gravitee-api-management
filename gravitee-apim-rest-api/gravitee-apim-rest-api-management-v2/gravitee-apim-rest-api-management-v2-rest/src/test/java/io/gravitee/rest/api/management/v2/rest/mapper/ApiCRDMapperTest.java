@@ -67,6 +67,17 @@ class ApiCRDMapperTest {
     }
 
     @Test
+    void should_not_mask_encrypted_property_values_when_exporting_to_crd() {
+        var restModel = ApiCRDMapper.INSTANCE.map(
+            aCoreCRD().properties(List.of(EncryptableProperty.builder().key("secret").value("ciphertext").encrypted(true).build())).build()
+        );
+
+        assertThat(restModel.getProperties()).hasSize(1);
+        assertThat(restModel.getProperties().get(0).getValue()).isEqualTo("ciphertext");
+        assertThat(restModel.getProperties().get(0).getEncrypted()).isTrue();
+    }
+
+    @Test
     void should_map_to_rest_model_unpublished() {
         var restModel = ApiCRDMapper.INSTANCE.map(aCoreCRD().lifecycleState("UNPUBLISHED").build());
 

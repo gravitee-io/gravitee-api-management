@@ -15,17 +15,18 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.apim.core.api.exception.MaskedApiPropertyValueException;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.PropertiesService;
 import java.security.GeneralSecurityException;
-import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,7 @@ public class PropertiesServiceImplTest {
         throws GeneralSecurityException {
         List<PropertyEntity> properties = buildProperties();
 
-        propertiesService.encryptProperties(properties);
+        propertiesService.encryptProperties(null, properties);
 
         verify(dataEncryptor, times(1)).encrypt("value2");
         verify(dataEncryptor, times(1)).encrypt("value4");
@@ -69,7 +70,7 @@ public class PropertiesServiceImplTest {
     public void encryptProperties_should_set_encrypted_boolean_true_for_each_encrypted_property() throws GeneralSecurityException {
         List<PropertyEntity> properties = buildProperties();
 
-        propertiesService.encryptProperties(properties);
+        propertiesService.encryptProperties(null, properties);
 
         assertFalse(properties.get(0).isEncrypted());
         assertTrue(properties.get(1).isEncrypted());
@@ -83,7 +84,7 @@ public class PropertiesServiceImplTest {
         when(dataEncryptor.encrypt("value2")).thenReturn("encryptedValue2");
         when(dataEncryptor.encrypt("value4")).thenReturn("encryptedValue4");
 
-        propertiesService.encryptProperties(properties);
+        propertiesService.encryptProperties(null, properties);
 
         assertEquals("value1", properties.get(0).getValue());
         assertEquals("encryptedValue2", properties.get(1).getValue());
@@ -105,11 +106,32 @@ public class PropertiesServiceImplTest {
         var property = new PropertyEntity("key", "plaintext", true, false);
         when(dataEncryptor.encrypt("plaintext")).thenThrow(new GeneralSecurityException());
 
-        var throwable = catchThrowable(() -> propertiesService.encryptProperties(List.of(property)));
+        var throwable = catchThrowable(() -> propertiesService.encryptProperties(null, List.of(property)));
 
         assertThat(throwable)
             .isInstanceOf(TechnicalManagementException.class)
             .hasMessageContaining("key")
             .hasMessageNotContaining("plaintext");
+    }
+
+    @Test
+    public void encryptProperties_should_keep_the_stored_encrypted_value_when_the_mask_is_resubmitted() throws GeneralSecurityException {
+        PropertyEntity storedProperty = new PropertyEntity("key1", "ciphertext", true, true);
+        PropertyEntity resubmittedMaskedProperty = new PropertyEntity("key1", ENCRYPTED_VALUE_MASK, true, false);
+
+        List<PropertyEntity> result = propertiesService.encryptProperties(List.of(storedProperty), List.of(resubmittedMaskedProperty));
+
+        verifyNoMoreInteractions(dataEncryptor);
+        assertEquals("ciphertext", result.get(0).getValue());
+        assertTrue(result.get(0).isEncrypted());
+    }
+
+    @Test
+    public void encryptProperties_should_reject_the_mask_when_no_stored_encrypted_value_exists_for_the_key() {
+        PropertyEntity resubmittedMaskedProperty = new PropertyEntity("key1", ENCRYPTED_VALUE_MASK, true, false);
+
+        assertThrows(MaskedApiPropertyValueException.class, () ->
+            propertiesService.encryptProperties(null, List.of(resubmittedMaskedProperty))
+        );
     }
 }

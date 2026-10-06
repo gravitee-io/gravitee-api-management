@@ -277,7 +277,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
         const keyControl = new UntypedFormControl(
           {
             value: currentValue.key,
-            disabled: this.isReadOnly || currentValue.dynamic,
+            disabled: this.isReadOnly || currentValue.encrypted || currentValue.dynamic,
           },
           [
             Validators.required,

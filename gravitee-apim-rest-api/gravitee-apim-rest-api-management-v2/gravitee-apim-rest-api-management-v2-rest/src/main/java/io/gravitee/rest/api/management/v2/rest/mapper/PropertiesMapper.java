@@ -15,12 +15,16 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
+
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.rest.api.management.v2.rest.model.Property;
 import io.gravitee.rest.api.model.PropertiesEntity;
 import java.util.List;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.factory.Mappers;
 
@@ -50,6 +54,24 @@ public interface PropertiesMapper {
 
     @Mapping(target = "encryptable", ignore = true)
     Property map(io.gravitee.definition.model.Property property);
+
+    @AfterMapping
+    @SuppressWarnings("java:S1172") // source selects which mappings this hook applies to
+    default void maskEncryptedValue(io.gravitee.definition.model.v4.property.Property source, @MappingTarget Property target) {
+        maskEncryptedValue(target);
+    }
+
+    @AfterMapping
+    @SuppressWarnings("java:S1172") // source selects which mappings this hook applies to
+    default void maskEncryptedValue(io.gravitee.definition.model.Property source, @MappingTarget Property target) {
+        maskEncryptedValue(target);
+    }
+
+    private void maskEncryptedValue(Property target) {
+        if (Boolean.TRUE.equals(target.getEncrypted())) {
+            target.setValue(ENCRYPTED_VALUE_MASK);
+        }
+    }
 
     List<Property> mapToApiModelList(List<io.gravitee.definition.model.Property> properties);
 
