@@ -79,7 +79,7 @@ class ListMyAiWorkspacesUseCaseTest {
             )
         );
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"))).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
 
         assertThat(workspaces)
             .extracting(summary -> summary.id())
@@ -96,7 +96,7 @@ class ListMyAiWorkspacesUseCaseTest {
             List.of(subscription("sub-catalog", "app-1", "other", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)))
         );
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"))).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
 
         assertThat(workspaces).isEmpty();
     }
@@ -108,7 +108,7 @@ class ListMyAiWorkspacesUseCaseTest {
             List.of(subscription("sub-other-user", "app-2", "ws-2", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)))
         );
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"))).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
 
         assertThat(workspaces).isEmpty();
     }
@@ -125,7 +125,7 @@ class ListMyAiWorkspacesUseCaseTest {
         page.add(subscription("sub-last", "app-1", "ws-2", "plan-1", SubscriptionStatus.ACCEPTED, new Date(501)));
         subscriptions.initWith(page);
 
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"))).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), null)).workspaces();
 
         assertThat(workspaces)
             .extracting(summary -> summary.id())
@@ -133,8 +133,40 @@ class ListMyAiWorkspacesUseCaseTest {
     }
 
     @Test
+    void filters_by_a_case_insensitive_name_fragment() {
+        products.initWith(
+            List.of(
+                product("ws-1", "Alpha", ENV, ApiProductKind.AI_WORKSPACE),
+                product("ws-2", "Alpine", ENV, ApiProductKind.AI_WORKSPACE),
+                product("ws-3", "Bravo", ENV, ApiProductKind.AI_WORKSPACE)
+            )
+        );
+        subscriptions.initWith(
+            List.of(
+                subscription("sub-1", "app-1", "ws-1", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)),
+                subscription("sub-2", "app-1", "ws-2", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000)),
+                subscription("sub-3", "app-1", "ws-3", "plan-1", SubscriptionStatus.ACCEPTED, new Date(1_000))
+            )
+        );
+
+        var matched = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "ALP")).workspaces();
+        var padded = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), " alp ")).workspaces();
+        var blank = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "  ")).workspaces();
+        var none = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of("app-1"), "zzzz")).workspaces();
+
+        assertThat(matched)
+            .extracting(summary -> summary.name())
+            .containsExactly("Alpha", "Alpine");
+        assertThat(padded)
+            .extracting(summary -> summary.name())
+            .containsExactly("Alpha", "Alpine");
+        assertThat(blank).hasSize(3);
+        assertThat(none).isEmpty();
+    }
+
+    @Test
     void empty_when_the_caller_has_no_applications() {
-        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of())).workspaces();
+        var workspaces = useCase.execute(new ListMyAiWorkspacesUseCase.Input(CONTEXT, Set.of(), null)).workspaces();
 
         assertThat(workspaces).isEmpty();
     }
