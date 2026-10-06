@@ -23,6 +23,7 @@ import io.gravitee.gamma.rest.core.observability.logs.use_case.GetAuthzDecisionU
 import io.gravitee.gamma.rest.core.observability.logs.use_case.GetObservabilityLogDetailUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogMessagesUseCase;
 import io.gravitee.gamma.rest.core.observability.logs.use_case.SearchObservabilityLogsUseCase;
+import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.LogDetailDto;
 import io.gravitee.gamma.rest.resources.observability.logs.dto.LogEntryDto;
@@ -101,10 +102,11 @@ public class LogsResource {
     ) {
         checkReadObservabilityPermission();
 
-        List<FilterCondition> filters = List.of();
-        if (request != null && request.filters() != null) {
-            filters = request.filters().stream().map(FilterConditionDto::toCore).toList();
-        }
+        List<FilterCondition> filters = RequestEntries.map(
+            request != null ? request.filters() : null,
+            "filters",
+            FilterConditionDto::toCore
+        );
 
         var ctx = GraviteeContext.getExecutionContext();
         var output = searchLogsUseCase.execute(

@@ -18,10 +18,11 @@ package io.gravitee.gamma.rest.core.observability.analytics.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
+import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -42,6 +43,8 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -51,6 +54,8 @@ class AnalyticsRequestPipelineTest {
 
     private static final String ORG_ID = "org-1";
     private static final String ENV_ID = "env-1";
+    private static final Instant FROM = Instant.parse("2026-06-10T00:00:00Z");
+    private static final Instant TO = Instant.parse("2026-06-11T00:00:00Z");
 
     @Mock
     private ObservabilityAnalyticsDataPort analyticsDataPort;
@@ -124,7 +129,7 @@ class AnalyticsRequestPipelineTest {
                 )
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort);
 
             assertThat(scope.apiIds()).containsExactlyInAnyOrder("api-proxy", "api-llm");
         }
@@ -136,7 +141,7 @@ class AnalyticsRequestPipelineTest {
             );
 
             var filters = List.of(new FilterCondition("API", FilterOperator.EQ, List.of("api-1")));
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort);
 
             assertThat(scope.apiIds()).containsExactly("api-1");
         }
@@ -145,7 +150,7 @@ class AnalyticsRequestPipelineTest {
         void should_return_empty_scope_when_no_accessible_apis() {
             when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort);
 
             assertThat(scope.apiIds()).isEmpty();
         }
@@ -154,7 +159,7 @@ class AnalyticsRequestPipelineTest {
         void should_return_the_empty_scope_rather_than_an_environment_wide_query_when_no_api_is_accessible() {
             when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort);
 
             assertThat(scope.isEmpty()).isTrue();
             assertThat(scope.filters()).isEmpty();
@@ -167,7 +172,7 @@ class AnalyticsRequestPipelineTest {
             );
 
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("non-existent-api")));
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort);
 
             assertThat(scope.isEmpty()).isTrue();
             assertThat(scope.apiIds()).isEmpty();
@@ -181,7 +186,7 @@ class AnalyticsRequestPipelineTest {
         void should_reject_unknown_filter_name() {
             var filters = List.of(new FilterCondition("UNKNOWN", FilterOperator.EQ, List.of("val")));
 
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, null, null, analyticsDataPort)).isInstanceOf(
+            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort)).isInstanceOf(
                 UnsupportedObservabilityFilterException.class
             );
         }
@@ -190,7 +195,7 @@ class AnalyticsRequestPipelineTest {
         void should_reject_unsupported_operator() {
             var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.CONTAINS, List.of("200")));
 
-            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, null, null, analyticsDataPort)).isInstanceOf(
+            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort)).isInstanceOf(
                 UnsupportedObservabilityFilterException.class
             );
         }
@@ -205,8 +210,21 @@ class AnalyticsRequestPipelineTest {
             var to = Instant.parse("2026-06-10T12:00:00Z");
 
             assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, analyticsDataPort))
-                .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("from");
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessageContaining("from")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.invalid_time_range");
+        }
+
+        @ParameterizedTest
+        @CsvSource(value = { "null, 2026-06-11T00:00:00Z, from", "2026-06-10T00:00:00Z, null, to" }, nullValues = "null")
+        void should_reject_a_missing_bound_before_loading_the_accessible_apis(Instant from, Instant to, String missingBound) {
+            assertThatThrownBy(() -> pipeline.prepare(ORG_ID, ENV_ID, List.of(), from, to, analyticsDataPort))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessageContaining("'" + missingBound + "'")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.time_range_required");
+            verifyNoInteractions(analyticsDataPort);
         }
 
         @Test
@@ -233,7 +251,7 @@ class AnalyticsRequestPipelineTest {
                 List.of(new AccessibleApi("api-1", "API 1", ApiType.HTTP_PROXY))
             );
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, List.of(), FROM, TO, analyticsDataPort);
 
             assertThat(scope.filters()).noneMatch(condition -> "ENTRYPOINT".equals(condition.name()));
         }
@@ -245,7 +263,7 @@ class AnalyticsRequestPipelineTest {
             );
 
             var filters = List.of(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("http-proxy")));
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, filters, FROM, TO, analyticsDataPort);
 
             var entrypoints = scope
                 .filters()
@@ -264,7 +282,7 @@ class AnalyticsRequestPipelineTest {
         void should_strip_the_record_type_condition_before_it_reaches_the_analytics_engine() {
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort);
 
             assertThat(scope.filters()).noneMatch(condition -> "RECORD_TYPE".equals(condition.name()));
         }
@@ -276,7 +294,7 @@ class AnalyticsRequestPipelineTest {
             );
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort);
 
             assertThat(scope.filters()).anyMatch(condition -> "API".equals(condition.name()));
         }
@@ -288,7 +306,7 @@ class AnalyticsRequestPipelineTest {
             );
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("REQUEST")));
 
-            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, null, null, analyticsDataPort);
+            var scope = pipeline.prepare(ORG_ID, ENV_ID, conditions, FROM, TO, analyticsDataPort);
 
             assertThat(scope.filters()).noneMatch(condition -> "RECORD_TYPE".equals(condition.name()));
             assertThat(scope.filters()).anyMatch(condition -> "API".equals(condition.name()));

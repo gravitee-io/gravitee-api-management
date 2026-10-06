@@ -18,13 +18,18 @@ package io.gravitee.gamma.rest.core.observability.analytics.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
+import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -36,6 +41,7 @@ import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +60,8 @@ class ComputeObservabilityMeasuresUseCaseTest {
 
     private static final String ORG_ID = "org-1";
     private static final String ENV_ID = "env-1";
+    private static final Instant FROM = Instant.parse("2026-06-10T00:00:00Z");
+    private static final Instant TO = Instant.parse("2026-06-11T00:00:00Z");
 
     @Mock
     private ObservabilityAnalyticsDataPort analyticsDataPort;
@@ -70,30 +78,32 @@ class ComputeObservabilityMeasuresUseCaseTest {
         var pipeline = new AnalyticsRequestPipeline(filterValidator, accessibleApiScope);
         useCase = new ComputeObservabilityMeasuresUseCase(analyticsDataPort, pipeline);
 
-        when(filterRegistry.getFilters(any(), any())).thenReturn(
-            List.of(
-                new FilterSpec(
-                    "API",
-                    "API",
-                    FilterType.KEYWORD,
-                    List.of(FilterOperator.EQ, FilterOperator.IN),
-                    null,
-                    null,
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    ApiType.ALL
-                ),
-                new FilterSpec(
-                    "HTTP_STATUS",
-                    "Status Code",
-                    FilterType.NUMBER,
-                    List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
-                    null,
-                    new FilterSpec.Range(100, 599),
-                    Set.of(Signal.LOGS, Signal.ANALYTICS),
-                    Set.of(ApiType.HTTP_PROXY)
+        lenient()
+            .when(filterRegistry.getFilters(any(), any()))
+            .thenReturn(
+                List.of(
+                    new FilterSpec(
+                        "API",
+                        "API",
+                        FilterType.KEYWORD,
+                        List.of(FilterOperator.EQ, FilterOperator.IN),
+                        null,
+                        null,
+                        Set.of(Signal.LOGS, Signal.ANALYTICS),
+                        ApiType.ALL
+                    ),
+                    new FilterSpec(
+                        "HTTP_STATUS",
+                        "Status Code",
+                        FilterType.NUMBER,
+                        List.of(FilterOperator.EQ, FilterOperator.GTE, FilterOperator.LTE),
+                        null,
+                        new FilterSpec.Range(100, 599),
+                        Set.of(Signal.LOGS, Signal.ANALYTICS),
+                        Set.of(ApiType.HTTP_PROXY)
+                    )
                 )
-            )
-        );
+            );
     }
 
     @Nested
@@ -108,7 +118,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
             when(analyticsDataPort.computeMeasures(any())).thenReturn(fakeResponse);
 
             var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
-            var output = useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, metrics));
+            var output = useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, metrics));
 
             assertThat(output.response()).isEqualTo(fakeResponse);
 
@@ -129,8 +139,23 @@ class ComputeObservabilityMeasuresUseCaseTest {
             var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
 
             assertThatThrownBy(() ->
-                useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, null, null, metrics))
+                useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, metrics))
             ).isInstanceOf(UnsupportedObservabilityFilterException.class);
+        }
+    }
+
+    @Nested
+    class QueryValidation {
+
+        @Test
+        void should_reject_a_request_without_metrics_before_loading_the_accessible_apis() {
+            var input = new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, List.of());
+
+            assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.metrics_required");
+            verifyNoInteractions(analyticsDataPort);
         }
     }
 
@@ -147,7 +172,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
 
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("api-1")));
             var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
-            useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, null, null, metrics));
+            useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, metrics));
 
             var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
             verify(analyticsDataPort).computeMeasures(captor.capture());
@@ -164,10 +189,25 @@ class ComputeObservabilityMeasuresUseCaseTest {
 
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("non-existent-api")));
             var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
-            var output = useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, null, null, metrics));
+            var output = useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, metrics));
 
             assertThat(output.response()).isEqualTo(emptyResponse);
             verify(analyticsDataPort).emptyMeasuresResponse();
+        }
+
+        // The answer to a malformed query must not depend on what the caller can read.
+        @Test
+        void should_refuse_a_malformed_query_even_when_the_caller_can_read_no_api() {
+            when(analyticsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
+            doThrow(InvalidObservabilityQueryException.unknownMetric("BOGUS"))
+                .when(analyticsDataPort)
+                .validate(any(ObservabilityAnalyticsDataPort.MeasuresQuery.class));
+            var metrics = List.of(new AnalyticsMetricQuery("BOGUS", List.of("COUNT")));
+
+            assertThatThrownBy(() ->
+                useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, metrics))
+            ).isInstanceOf(InvalidObservabilityQueryException.class);
+            verify(analyticsDataPort, never()).emptyMeasuresResponse();
         }
     }
 }
