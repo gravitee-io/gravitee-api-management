@@ -45,6 +45,9 @@ import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -246,6 +249,35 @@ class ApiCRDAdapterTest {
         var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
         assertThat(spec.getPlans()).hasSize(3);
         assertThat(spec.getPlans()).containsKey("api-key");
+    }
+
+    @ParameterizedTest
+    @CsvSource(
+        textBlock = """
+        Default Keyless (UNSECURED), default-keyless-unsecured
+        API Key,                     api-key
+        '  JWT  ',                   jwt
+        Café Plan,                   cafe-plan
+        """
+    )
+    void should_derive_plan_key_matching_hrid_pattern(String planName, String expectedKey) {
+        var export = exportEntity(false);
+        export.setPlans(Set.of(PlanEntity.builder().id("plan-id").name(planName).security(new PlanSecurity("key-less", "{}")).build()));
+
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+
+        assertThat(spec.getPlans()).containsOnlyKeys(expectedKey);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "(!)", "A" })
+    void should_randomize_plan_key_when_name_cannot_be_an_hrid(String planName) {
+        var export = exportEntity(false);
+        export.setPlans(Set.of(PlanEntity.builder().id("plan-id").name(planName).security(new PlanSecurity("key-less", "{}")).build()));
+
+        var spec = ApiCRDAdapter.INSTANCE.toCRDSpec(export, export.getApiEntity());
+
+        assertThat(spec.getPlans().keySet()).singleElement().asString().matches("plan-\\d{8}");
     }
 
     private static ExportApiEntity exportEntity(boolean withHrid) {
