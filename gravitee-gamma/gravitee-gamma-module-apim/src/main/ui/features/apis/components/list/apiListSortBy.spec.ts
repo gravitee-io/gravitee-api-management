@@ -24,6 +24,8 @@ describe('toApiListSortBy', () => {
     it('maps a regular column with a `-` prefix for descending', () => {
         expect(toApiListSortBy([{ id: 'API Name', desc: false }])).toBe('name');
         expect(toApiListSortBy([{ id: 'API Name', desc: true }])).toBe('-name');
+        expect(toApiListSortBy([{ id: 'API Type', desc: false }])).toBe('api_type');
+        expect(toApiListSortBy([{ id: 'API Type', desc: true }])).toBe('-api_type');
         expect(toApiListSortBy([{ id: 'access', desc: false }])).toBe('paths');
         expect(toApiListSortBy([{ id: 'access', desc: true }])).toBe('-paths');
         expect(toApiListSortBy([{ id: 'Runtime Status', desc: false }])).toBe('status');
@@ -46,6 +48,8 @@ describe('toApiListSortBy', () => {
 describe('sortingFromApiListOrder', () => {
     it('round-trips server sort values used by the classic Console order param', () => {
         expect(sortingFromApiListOrder('name')).toEqual([{ id: 'API Name', desc: false }]);
+        expect(sortingFromApiListOrder('api_type')).toEqual([{ id: 'API Type', desc: false }]);
+        expect(sortingFromApiListOrder('-api_type')).toEqual([{ id: 'API Type', desc: true }]);
         expect(sortingFromApiListOrder('-status')).toEqual([{ id: 'Runtime Status', desc: true }]);
         expect(sortingFromApiListOrder('tags_asc')).toEqual([{ id: 'Sharding Tags', desc: false }]);
         expect(toApiListSortBy(sortingFromApiListOrder('-tags_desc'))).toBe('-tags_desc');

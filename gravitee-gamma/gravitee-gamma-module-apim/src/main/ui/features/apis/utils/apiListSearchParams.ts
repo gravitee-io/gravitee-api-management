@@ -22,7 +22,8 @@ import {
 } from '../components/list/apiListFilters';
 
 export const API_LIST_DEFAULT_PAGE = 1;
-export const API_LIST_DEFAULT_PER_PAGE = 10;
+/** Matches Classic Console API list default (`api-list.component.ts` pagination.size). */
+export const API_LIST_DEFAULT_PER_PAGE = 25;
 
 export interface ApiListUrlState {
     query: string;

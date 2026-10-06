@@ -15,8 +15,8 @@
  */
 import type { MultiSelectFilterOption } from '../../../../shared/components';
 
-/** Matches `ApiListTable` page size options. */
-export const API_LIST_PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
+/** Matches Classic Console API list (`api-list.component.html` paginationPageSizeOptions). */
+export const API_LIST_PAGE_SIZE_OPTIONS = [25, 50, 100, 200] as const;
 
 /** Types this page can list. Labels match the classic Console API list. */
 export const API_TYPE_FILTER_OPTIONS: MultiSelectFilterOption[] = [
