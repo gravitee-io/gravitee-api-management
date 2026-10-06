@@ -20,8 +20,7 @@ import { cloneDeep, filter, forEach } from 'lodash';
 
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';
-
-const ENCRYPTED_VALUE_MASK = '•'.repeat(12);
+import { ENCRYPTED_VALUE_MASK } from '../../../shared/utils/encrypted-value-mask.util';
 
 class DictionaryController {
   private dictionary: any;
