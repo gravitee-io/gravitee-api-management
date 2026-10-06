@@ -29,6 +29,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class ListMyAiWorkspacesUseCase {
         this.flowCrudService = flowCrudService;
     }
 
-    public record Input(ExecutionContext executionContext, Set<String> applicationIds) {}
+    public record Input(ExecutionContext executionContext, Set<String> applicationIds, String name) {}
 
     public record Output(List<AiWorkspaceSummary> workspaces) {}
 
@@ -81,10 +82,21 @@ public class ListMyAiWorkspacesUseCase {
             .stream()
             .map(membership -> toSummary(membership, productsById, flowsByPlan))
             .flatMap(Optional::stream)
+            .filter(summary -> matchesName(summary.name(), input.name()))
             .sorted(Comparator.comparing(AiWorkspaceSummary::name, NULLS_LAST).thenComparing(AiWorkspaceSummary::id, NULLS_LAST))
             .toList();
 
         return new Output(matched);
+    }
+
+    private static boolean matchesName(String workspaceName, String name) {
+        if (name == null || name.isBlank()) {
+            return true;
+        }
+        if (workspaceName == null) {
+            return false;
+        }
+        return workspaceName.toLowerCase(Locale.ROOT).contains(name.trim().toLowerCase(Locale.ROOT));
     }
 
     private static Optional<AiWorkspaceSummary> toSummary(
