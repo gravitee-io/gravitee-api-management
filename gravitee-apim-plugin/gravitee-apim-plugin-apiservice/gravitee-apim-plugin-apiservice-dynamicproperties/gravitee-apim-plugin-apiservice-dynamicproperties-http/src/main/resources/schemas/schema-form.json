@@ -76,6 +76,18 @@
         }
       }
     },
+    "encryption": {
+      "title": "Encryption",
+      "type": "object",
+      "properties": {
+        "encryptOnFetch": {
+          "title": "Encrypt on fetch",
+          "description": "When enabled, every fetched value is encrypted before storage, regardless of per-key classification. A value already classified keeps its classification; an unencrypted property is encrypted the next time it is fetched. Once encrypted, a value cannot be made plain again.",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
     "http": {
       "$ref": "#/gioExternalDefinitions/httpClientOptions"
     },
