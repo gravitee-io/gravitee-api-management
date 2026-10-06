@@ -33,7 +33,7 @@ public final class EncryptedPropertyAuditMarker {
         ApiDefinition oldDefinition,
         ApiDefinition newDefinition
     ) {
-        if (!holdsEncryptedProperty(oldDefinition) && !holdsEncryptedProperty(newDefinition)) {
+        if (!involvesEncryptedProperty(v4Properties(oldDefinition), v4Properties(newDefinition))) {
             return auditProperties;
         }
         Map<AuditProperties, String> marked = new EnumMap<>(AuditProperties.class);
@@ -42,11 +42,15 @@ public final class EncryptedPropertyAuditMarker {
         return marked;
     }
 
-    public static boolean holdsEncryptedProperty(List<? extends Property> properties) {
+    public static boolean involvesEncryptedProperty(List<? extends Property> oldProperties, List<? extends Property> newProperties) {
+        return holdsEncryptedProperty(oldProperties) || holdsEncryptedProperty(newProperties);
+    }
+
+    private static boolean holdsEncryptedProperty(List<? extends Property> properties) {
         return properties != null && properties.stream().filter(Objects::nonNull).anyMatch(Property::isEncrypted);
     }
 
-    private static boolean holdsEncryptedProperty(ApiDefinition definition) {
-        return definition instanceof AbstractApi v4Definition && holdsEncryptedProperty(v4Definition.getProperties());
+    private static List<Property> v4Properties(ApiDefinition definition) {
+        return definition instanceof AbstractApi v4Definition ? v4Definition.getProperties() : null;
     }
 }

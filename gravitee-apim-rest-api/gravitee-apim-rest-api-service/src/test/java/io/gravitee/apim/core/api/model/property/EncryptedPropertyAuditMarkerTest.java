@@ -72,9 +72,16 @@ class EncryptedPropertyAuditMarkerTest {
     }
 
     @Test
+    void should_involve_an_encrypted_property_when_the_old_or_the_new_properties_hold_one() {
+        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(null, List.of(encrypted("secret")))).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(List.of(encrypted("secret")), null)).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(List.of(plain("p")), List.of(plain("p")))).isFalse();
+    }
+
+    @Test
     void should_ignore_null_properties_when_looking_for_an_encrypted_one() {
-        assertThat(EncryptedPropertyAuditMarker.holdsEncryptedProperty(null)).isFalse();
-        assertThat(EncryptedPropertyAuditMarker.holdsEncryptedProperty(Arrays.asList(null, encrypted("secret")))).isTrue();
+        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(null, null)).isFalse();
+        assertThat(EncryptedPropertyAuditMarker.involvesEncryptedProperty(Arrays.asList(null, encrypted("secret")), null)).isTrue();
     }
 
     private static ApiDefinition httpApi(Property... properties) {

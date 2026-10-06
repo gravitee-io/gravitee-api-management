@@ -130,7 +130,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -878,14 +877,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         List<? extends Property> oldProperties,
         List<? extends Property> newProperties
     ) {
-        Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
-        if (
-            EncryptedPropertyAuditMarker.holdsEncryptedProperty(oldProperties) ||
-            EncryptedPropertyAuditMarker.holdsEncryptedProperty(newProperties)
-        ) {
-            auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
-        }
-        return auditProperties;
+        return EncryptedPropertyAuditMarker.involvesEncryptedProperty(oldProperties, newProperties)
+            ? Map.of(ENCRYPTED, Boolean.TRUE.toString())
+            : Map.of();
     }
 
     private static List<EncryptableProperty> toEncryptableProperties(List<PropertyEntity> properties) {
