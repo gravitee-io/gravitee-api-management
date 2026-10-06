@@ -4828,16 +4828,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-charts@npm:3.22.1":
-  version: 3.22.1
-  resolution: "@gravitee/graphene-charts@npm:3.22.1"
+"@gravitee/graphene-charts@npm:3.26.2":
+  version: 3.26.2
+  resolution: "@gravitee/graphene-charts@npm:3.26.2"
   dependencies:
     "@dagrejs/dagre": "npm:3.0.0"
     d3-array: "npm:3.2.4"
     d3-scale: "npm:4.0.2"
     d3-shape: "npm:3.2.0"
   peerDependencies:
-    "@gravitee/graphene-core": ^3.22.1
+    "@gravitee/graphene-core": ^3.26.2
     "@xyflow/react": ^12.0.0
     react: ^19.0.0
     react-dom: ^19.0.0
@@ -4850,13 +4850,13 @@ __metadata:
       optional: true
     tailwindcss:
       optional: true
-  checksum: 10c0/f98b5a57f0b2b7301f05aec3388ce651cc17d585c85bcf54a56d6c47b9b4eab4114eb4072a1a89cd59993d3e692a7e6f409c8909f0b8bb8f413e0c9b024c3ffa
+  checksum: 10c0/2d1033af2190595afde088b7212742e999e43a245bb86b8d9580593e3a67424230e2ac1f476b248ca4986a45347f5e74743ac570a7129b01829039f93b16f9de
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-core@npm:3.22.1":
-  version: 3.22.1
-  resolution: "@gravitee/graphene-core@npm:3.22.1"
+"@gravitee/graphene-core@npm:3.26.2":
+  version: 3.26.2
+  resolution: "@gravitee/graphene-core@npm:3.26.2"
   dependencies:
     "@base-ui/react": "npm:1.4.1"
     "@tailwindcss/cli": "npm:4.3.0"
@@ -4927,13 +4927,13 @@ __metadata:
   bin:
     graphene-check-classes: scripts/check-classes.mjs
     graphene-sync-ai-rules: scripts/sync-ai-rules.mjs
-  checksum: 10c0/b594d1ce9b36a705898065f94e8520844fa96dce78329d4739dcec1d67c44691a32363eff321690d807ccea559cb4f1b7e468f316bdb73c5263f584f591e4c52
+  checksum: 10c0/c047702f30aa55dee6ac571cbf710130f457343a7e58bf027d485b6a54f4cbc6bdbd819b51e0ab7f3241e9a64b15f799ca14f24ab221fb1415fdc64c9d79f1cd
   languageName: node
   linkType: hard
 
-"@gravitee/graphene-policy-studio@npm:3.22.1":
-  version: 3.22.1
-  resolution: "@gravitee/graphene-policy-studio@npm:3.22.1"
+"@gravitee/graphene-policy-studio@npm:3.26.2":
+  version: 3.26.2
+  resolution: "@gravitee/graphene-policy-studio@npm:3.26.2"
   dependencies:
     "@asciidoctor/core": "npm:3.0.4"
     "@dnd-kit/core": "npm:6.3.1"
@@ -4949,14 +4949,14 @@ __metadata:
     remark-gfm: "npm:4.0.1"
     zod: "npm:4.4.3"
   peerDependencies:
-    "@gravitee/graphene-core": ^3.22.1
+    "@gravitee/graphene-core": ^3.26.2
     react: ^19.0.0
     react-dom: ^19.0.0
     tailwindcss: ^4.0.0
   peerDependenciesMeta:
     tailwindcss:
       optional: true
-  checksum: 10c0/cf6f5cbca2480fe14b8821b1b18e51cd7f2c25d95880c01c2e84fad74a551dd5098afca33a6d04002b708580282311d8f5cde3239f7bdc987c6ce319e36529fc
+  checksum: 10c0/79d6c49c49d90d0d6eb33f6b442619e2f6d67f354829dd5c5e4b0d45225c948e3132b62027574053f20b3329e8ab709c4804a7ee24316cf1bfd285fcc37fceac
   languageName: node
   linkType: hard
 
@@ -21480,9 +21480,9 @@ __metadata:
     "@fontsource/roboto": "npm:5.3.0"
     "@gravitee/gamma-lib-observability": "npm:4.0.1"
     "@gravitee/gamma-modules-sdk": "npm:1.2.1"
-    "@gravitee/graphene-charts": "npm:3.22.1"
-    "@gravitee/graphene-core": "npm:3.22.1"
-    "@gravitee/graphene-policy-studio": "npm:3.22.1"
+    "@gravitee/graphene-charts": "npm:3.26.2"
+    "@gravitee/graphene-core": "npm:3.26.2"
+    "@gravitee/graphene-policy-studio": "npm:3.26.2"
     "@gravitee/ui-analytics": "npm:18.0.0"
     "@gravitee/ui-components": "npm:5.0.0"
     "@gravitee/ui-particles-angular": "npm:18.0.0"
