@@ -474,6 +474,12 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                             resyncCycle = false;
                             log.info("The distributed sync catalog has been rebuilt (resync #{})", knownResyncId.get());
                         }
+                        distributedEventRepository
+                            .advanceChangeSequence(clusterIdCache)
+                            .subscribe(
+                                () -> {},
+                                throwable -> log.warn("Unable to advance the distributed sync change sequence", throwable)
+                            );
                     })
                     .andThen(tombstoneHorizon != null ? purgeTombstones(tombstoneHorizon) : Completable.complete());
             }

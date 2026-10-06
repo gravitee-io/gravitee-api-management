@@ -440,6 +440,11 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             );
     }
 
+    @Override
+    public Completable advanceChangeSequence(final String clusterId) {
+        return send(redisAPI -> redisAPI.incr("distributed_sync_seq:" + clusterId)).ignoreElement();
+    }
+
     static String escapeGlob(final String value) {
         StringBuilder escaped = new StringBuilder(value.length());
         for (char c : value.toCharArray()) {
