@@ -54,4 +54,18 @@ class DecisionFilterAllowlistTest {
             .as("every filter the decisions screen offers must be applicable by the decision search")
             .containsExactlyInAnyOrderElementsOf(offered);
     }
+
+    @Test
+    void should_hold_exactly_the_filters_only_decision_records_carry() {
+        Set<String> decisionOnly = Arrays.stream(StaticFilters.values())
+            .map(StaticFilters::toSpec)
+            .filter(spec -> spec.signals().contains(Signal.LOGS))
+            .filter(spec -> spec.apiTypes().equals(Set.of(ApiType.AUTHZ_DECISION)))
+            .map(FilterSpec::name)
+            .collect(Collectors.toSet());
+
+        assertThat(SearchObservabilityLogsUseCase.DECISION_ONLY_FILTERS)
+            .as("a filter only decision records carry must be refused on a request search with a message naming RECORD_TYPE")
+            .containsExactlyInAnyOrderElementsOf(decisionOnly);
+    }
 }

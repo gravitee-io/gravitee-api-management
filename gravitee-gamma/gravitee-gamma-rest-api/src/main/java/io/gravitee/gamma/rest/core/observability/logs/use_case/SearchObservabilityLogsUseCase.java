@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
@@ -101,6 +102,7 @@ public class SearchObservabilityLogsUseCase {
         if (recordType == RecordType.AUTHZ_DECISION) {
             rejectConditionsTheDecisionSearchCannotApply(effectiveConditions);
         } else {
+            rejectDecisionFiltersOnTheRequestSearch(effectiveConditions);
             // Entrypoints only exist on request documents: a decision search carries no scope.
             entrypointScope = resolveEntrypointScope(effectiveConditions);
             effectiveConditions = removeEntrypointConditions(effectiveConditions);
@@ -167,7 +169,8 @@ public class SearchObservabilityLogsUseCase {
             .toList();
         if (values.size() > 1) {
             throw new ValidationDomainException(
-                "Filter 'RECORD_TYPE' accepts a single value, was " + values + ". Search one record kind at a time."
+                "Filter 'RECORD_TYPE' accepts a single value, was " + values + ". Search one record kind at a time.",
+                "observability.filter.multiple_record_types"
             );
         }
         return values.stream().findFirst().map(RecordType::fromNameOrDefault).orElse(RecordType.REQUEST);
@@ -210,9 +213,31 @@ public class SearchObservabilityLogsUseCase {
                     unsupported +
                     " do not apply to RECORD_TYPE=AUTHZ_DECISION. Supported: API, API_TYPE, " +
                     DECISION_SUPPORTED_FILTERS.stream().sorted().collect(Collectors.joining(", ")) +
-                    " and the time range."
+                    " and the time range.",
+                "observability.filter.not_applicable_to_decisions"
             );
         }
+    }
+
+    /** Filters only decision records carry; {@code REQUEST_ID} is the one the request search reads too. */
+    // Package-private so a test can assert set equality against the catalog, like the allowlist above.
+    static final Set<String> DECISION_ONLY_FILTERS = DECISION_SUPPORTED_FILTERS.stream()
+        .filter(name -> !StaticFilters.REQUEST_ID.filterName().equals(name))
+        .collect(Collectors.toUnmodifiableSet());
+
+    /**
+     * Request documents hold none of the decision fields, so such a condition can only mean the caller forgot
+     * to ask for decision records. Said so, rather than the translator's generic "not yet supported".
+     */
+    private static void rejectDecisionFiltersOnTheRequestSearch(List<FilterCondition> conditions) {
+        conditions
+            .stream()
+            .map(FilterCondition::name)
+            .filter(DECISION_ONLY_FILTERS::contains)
+            .findFirst()
+            .ifPresent(name -> {
+                throw UnsupportedObservabilityFilterException.requiresDecisionRecordType(name);
+            });
     }
 
     private static Set<String> extractApiFilter(List<FilterCondition> conditions) {
