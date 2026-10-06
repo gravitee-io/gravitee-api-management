@@ -756,7 +756,7 @@ public class ApiResource extends AbstractResource {
             false
         );
         var output = exportApiCRDUseCase.execute(input);
-        var spec = ApiCRDMapper.INSTANCE.map(output.spec());
+        var spec = ApiCRDMapper.INSTANCE.mapForKubernetes(output.spec());
         return Response.ok(new ApiCRD(spec)).build();
     }
 
