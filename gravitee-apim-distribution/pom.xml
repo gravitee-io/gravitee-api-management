@@ -57,8 +57,8 @@
             reactors at once. That ends when the distribution gets a lane of its own.
         -->
         <revision>4.13.0</revision>
-        <sha1>-alpha.3</sha1>
-        <changelist></changelist>
+        <sha1>-alpha.4</sha1>
+        <changelist>-SNAPSHOT</changelist>
 
         <!--
             The APIM core this distribution assembles.
