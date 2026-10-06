@@ -51,13 +51,9 @@ public class UpdateNativeApiUseCase {
             updateApi.getId()
         );
 
-        var encryptedProperties = propertyDomainService.encryptProperties(input.apiToUpdate().getProperties());
-
-        var updating = update(input.apiToUpdate(), encryptedProperties);
-
         var updated = updateNativeApiDomainService.update(
             input.apiToUpdate.getId(),
-            updating,
+            rejectPlainDowngradeThenUpdate(updateApi),
             (existingApi, apiToUpdate) ->
                 validateApiDomainService.validateAndSanitizeForUpdate(
                     existingApi,
@@ -78,6 +74,14 @@ public class UpdateNativeApiUseCase {
     public record Input(UpdateNativeApi apiToUpdate, AuditInfo auditInfo) {}
 
     public record Output(Api updatedApi, PrimaryOwnerEntity primaryOwnerEntity) {}
+
+    private UnaryOperator<Api> rejectPlainDowngradeThenUpdate(UpdateNativeApi updateApi) {
+        return existingApi -> {
+            propertyDomainService.validateClassification(existingApi.getApiDefinitionValue(), updateApi.getProperties());
+            var encryptedProperties = propertyDomainService.encryptProperties(updateApi.getProperties());
+            return update(updateApi, encryptedProperties).apply(existingApi);
+        };
+    }
 
     static UnaryOperator<Api> update(UpdateNativeApi updateNativeApi, List<Property> properties) {
         return currentApi ->

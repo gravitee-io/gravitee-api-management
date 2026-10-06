@@ -25,7 +25,9 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api_product.domain_service.RemoveApiFromApiProductsDomainService;
 import io.gravitee.apim.core.api_product.model.ApiProductComposition;
@@ -75,6 +77,7 @@ import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
@@ -177,6 +180,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService;
     private final RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService;
     private final ApiMetadataQueryService apiMetadataQueryService;
+    private final PropertyDomainService propertyDomainService;
 
     private static final String EMAIL_METADATA_VALUE = "${(api.primaryOwner.email)!''}";
     private static final String EXPAND_PRIMARY_OWNER = "primaryOwner";
@@ -214,7 +218,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         ApiCategoryService apiCategoryService,
         RemoveApiFromApiProductsDomainService removeApiFromApiProductsDomainService,
         RemoveApiFromSubscriptionFormDomainService removeApiFromSubscriptionFormDomainService,
-        ApiMetadataQueryService apiMetadataQueryService
+        ApiMetadataQueryService apiMetadataQueryService,
+        PropertyDomainService propertyDomainService
     ) {
         this.apiRepository = apiRepository;
         this.apiMapper = apiMapper;
@@ -249,6 +254,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.removeApiFromApiProductsDomainService = removeApiFromApiProductsDomainService;
         this.removeApiFromSubscriptionFormDomainService = removeApiFromSubscriptionFormDomainService;
         this.apiMetadataQueryService = apiMetadataQueryService;
+        this.propertyDomainService = propertyDomainService;
     }
 
     @Override
@@ -462,8 +468,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                     });
             }
 
-            // encrypt API properties
             if (updateApiEntity.getProperties() != null) {
+                propertyDomainService.validateClassification(
+                    existingApiEntity.getProperties(),
+                    toEncryptableProperties(updateApiEntity.getProperties())
+                );
                 updateApiEntity.setProperties(this.propertiesService.encryptProperties(updateApiEntity.getProperties()));
             }
 
@@ -853,6 +862,18 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                 e
             );
         }
+    }
+
+    private static List<EncryptableProperty> toEncryptableProperties(List<PropertyEntity> properties) {
+        return properties
+            .stream()
+            .filter(Objects::nonNull)
+            .map(property -> {
+                var encryptableProperty = EncryptableProperty.fromProperty(property);
+                encryptableProperty.setEncryptable(property.isEncryptable());
+                return encryptableProperty;
+            })
+            .toList();
     }
 
     private void auditApiLogging(ExecutionContext executionContext, String apiId, Logging existingLogging, Logging updatedLogging) {

@@ -32,4 +32,13 @@ public class EncryptableProperty {
     public Property.PropertyBuilder<?, ?> toPropertyBuilder() {
         return Property.builder().key(key).value(value).encrypted(encrypted).dynamic(dynamic);
     }
+
+    public static EncryptableProperty fromProperty(Property property) {
+        return EncryptableProperty.builder()
+            .key(property.getKey())
+            .value(property.getValue())
+            .encrypted(property.isEncrypted())
+            .dynamic(property.isDynamic())
+            .build();
+    }
 }

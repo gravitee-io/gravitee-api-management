@@ -24,12 +24,14 @@ import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateNativeApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinitionSubEntityProcessor;
+import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.api.service_provider.ApiImagesServiceProvider;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.domain_service.ImportApiGroupsDomainService;
@@ -40,6 +42,7 @@ import io.gravitee.definition.model.v4.nativeapi.NativeApi;
 import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.definition.model.v4.nativeapi.NativeListener;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +64,7 @@ public class ImportDefinitionUpdateDomainService {
     private final ImportDefinitionPageDomainService importDefinitionPageDomainService;
     private final ApiImportDomainService apiImportDomainService;
     private final ImportApiGroupsDomainService importApiGroupsDomainService;
+    private final PropertyDomainService propertyDomainService;
 
     ImportDefinitionUpdateDomainService(
         UpdateApiDomainService updateApiDomainService,
@@ -73,7 +77,8 @@ public class ImportDefinitionUpdateDomainService {
         ImportDefinitionPlanDomainService importDefinitionPlanDomainService,
         ImportDefinitionPageDomainService importDefinitionPageDomainService,
         ApiImportDomainService apiImportDomainService,
-        ImportApiGroupsDomainService importApiGroupsDomainService
+        ImportApiGroupsDomainService importApiGroupsDomainService,
+        PropertyDomainService propertyDomainService
     ) {
         this.updateApiDomainService = updateApiDomainService;
         this.apiImagesServiceProvider = apiImagesServiceProvider;
@@ -86,6 +91,7 @@ public class ImportDefinitionUpdateDomainService {
         this.importDefinitionPageDomainService = importDefinitionPageDomainService;
         this.apiImportDomainService = apiImportDomainService;
         this.importApiGroupsDomainService = importApiGroupsDomainService;
+        this.propertyDomainService = propertyDomainService;
     }
 
     public Api update(ImportDefinition importDefinition, Api existingPromotedApi, AuditInfo auditInfo) {
@@ -108,6 +114,11 @@ public class ImportDefinitionUpdateDomainService {
         ) {
             apiExport.setProperties(existingDefinition.getProperties());
         }
+
+        propertyDomainService.validateClassification(
+            existingPromotedApi.getApiDefinitionValue(),
+            toEncryptableProperties(apiExport.getProperties())
+        );
 
         // Defer group resolution for NATIVE APIs: groups are resolved/created only after validation passes.
         // For PROXY/MESSAGE, validation is coupled in ApiService.update, so groups are resolved before update
@@ -256,5 +267,12 @@ public class ImportDefinitionUpdateDomainService {
                         : null
                 )
                 .build();
+    }
+
+    private static List<EncryptableProperty> toEncryptableProperties(List<Property> properties) {
+        if (properties == null) {
+            return null;
+        }
+        return properties.stream().filter(Objects::nonNull).map(EncryptableProperty::fromProperty).toList();
     }
 }
