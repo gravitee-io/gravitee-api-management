@@ -33,8 +33,12 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -195,5 +199,164 @@ class ObservabilityFilterValidatorTest {
         assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
             .hasMessageContaining("GATEWAY");
+    }
+
+    @Nested
+    class Arity {
+
+        @ParameterizedTest
+        @CsvSource({ "GATEWAY, EQ, ANALYTICS", "PAYLOAD, CONTAINS, LOGS", "HTTP_STATUS, GTE, LOGS", "HTTP_STATUS, LTE, ANALYTICS" })
+        void should_reject_a_single_value_operator_carrying_several_values(String filter, FilterOperator operator, Signal signal) {
+            var conditions = List.of(new FilterCondition(filter, operator, List.of("400", "500")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, signal))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining(filter)
+                .hasMessageContaining(operator.name())
+                .hasMessageContaining("2 values")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_arity");
+        }
+
+        @Test
+        void should_accept_several_values_on_in() {
+            var conditions = List.of(new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-1", "gw-2")));
+
+            assertThatCode(() -> validator.validate(conditions, Signal.ANALYTICS)).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    class NumberValues {
+
+        @Test
+        void should_reject_a_value_that_is_not_a_number() {
+            var conditions = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("abc")));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("abc")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_number");
+        }
+
+        // Every NUMBER filter of the catalog counts or measures in whole units; the logs translator parses them as such.
+        @ParameterizedTest
+        @ValueSource(strings = { "404.5", "1e2", "404.0" })
+        void should_reject_a_value_that_is_not_a_whole_number(String value) {
+            var conditions = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of(value)));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining(value)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.invalid_number");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "99", "600", "-1" })
+        void should_reject_a_value_outside_the_declared_range(String value) {
+            var conditions = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of(value)));
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining(value)
+                .hasMessageContaining("100")
+                .hasMessageContaining("599")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.value_out_of_range");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "100", "404", "599" })
+        void should_accept_a_value_within_the_declared_range(String value) {
+            var conditions = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of(value)));
+
+            assertThatCode(() -> validator.validate(conditions, Signal.LOGS)).doesNotThrowAnyException();
+        }
+    }
+
+    @Nested
+    class Repetition {
+
+        @Test
+        void should_accept_a_gte_and_an_lte_on_one_number_filter() {
+            var conditions = List.of(
+                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("400")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("499"))
+            );
+
+            assertThatCode(() -> validator.validate(conditions, Signal.LOGS)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_accept_a_closed_range_of_a_single_value() {
+            var conditions = List.of(
+                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("404")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("404"))
+            );
+
+            assertThatCode(() -> validator.validate(conditions, Signal.ANALYTICS)).doesNotThrowAnyException();
+        }
+
+        // Logs refused it later without a code and analytics answered an empty set: one answer for both signals.
+        @Test
+        void should_reject_a_range_whose_lower_bound_is_above_its_upper_bound() {
+            var conditions = List.of(
+                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("400"))
+            );
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("HTTP_STATUS")
+                .hasMessageContaining("500")
+                .hasMessageContaining("400")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.inverted_range");
+        }
+
+        @Test
+        void should_reject_the_same_condition_twice() {
+            var conditions = List.of(
+                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-1")),
+                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-2"))
+            );
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("GATEWAY")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.repeated");
+        }
+
+        @Test
+        void should_reject_two_operators_on_one_filter_outside_a_numeric_range() {
+            var conditions = List.of(
+                new FilterCondition("GATEWAY", FilterOperator.EQ, List.of("gw-1")),
+                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-2"))
+            );
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.ANALYTICS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("EQ")
+                .hasMessageContaining("IN")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.repeated");
+        }
+
+        @ParameterizedTest
+        @CsvSource({ "GTE, GTE", "LTE, LTE", "EQ, GTE", "EQ, LTE" })
+        void should_reject_a_number_filter_repeated_other_than_as_one_closed_range(FilterOperator first, FilterOperator second) {
+            var conditions = List.of(
+                new FilterCondition("HTTP_STATUS", first, List.of("400")),
+                new FilterCondition("HTTP_STATUS", second, List.of("500"))
+            );
+
+            assertThatThrownBy(() -> validator.validate(conditions, Signal.LOGS))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.repeated");
+        }
     }
 }
