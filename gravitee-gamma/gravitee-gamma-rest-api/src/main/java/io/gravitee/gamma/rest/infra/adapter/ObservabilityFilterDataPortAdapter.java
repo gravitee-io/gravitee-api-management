@@ -29,9 +29,7 @@ import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
-import java.util.EnumMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -56,20 +54,6 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
     private final GetFilterValuesUseCase getFilterValuesUseCase;
     private final ResolveFilterLabelsUseCase resolveFilterLabelsUseCase;
 
-    private static final Map<ApiType, io.gravitee.definition.model.v4.ApiType> GAMMA_TO_PLATFORM_API_TYPE;
-
-    static {
-        var map = new EnumMap<ApiType, io.gravitee.definition.model.v4.ApiType>(ApiType.class);
-        map.put(ApiType.HTTP_PROXY, io.gravitee.definition.model.v4.ApiType.PROXY);
-        map.put(ApiType.LLM, io.gravitee.definition.model.v4.ApiType.LLM_PROXY);
-        map.put(ApiType.MCP, io.gravitee.definition.model.v4.ApiType.MCP_PROXY);
-        map.put(ApiType.A2A, io.gravitee.definition.model.v4.ApiType.A2A_PROXY);
-        map.put(ApiType.MESSAGE, io.gravitee.definition.model.v4.ApiType.MESSAGE);
-        map.put(ApiType.NATIVE, io.gravitee.definition.model.v4.ApiType.NATIVE);
-        map.put(ApiType.EDGE, io.gravitee.definition.model.v4.ApiType.EDGE);
-        GAMMA_TO_PLATFORM_API_TYPE = Map.copyOf(map);
-    }
-
     @Override
     public FilterValuesPage listKeywordValues(
         String filterName,
@@ -85,7 +69,10 @@ public class ObservabilityFilterDataPortAdapter implements ObservabilityFilterDa
             Instant toInstant = to != null ? Instant.ofEpochMilli(to) : null;
             Set<io.gravitee.definition.model.v4.ApiType> platformApiTypes = apiTypes == null || apiTypes.isEmpty()
                 ? Set.of()
-                : apiTypes.stream().map(GAMMA_TO_PLATFORM_API_TYPE::get).filter(java.util.Objects::nonNull).collect(Collectors.toSet());
+                : apiTypes
+                    .stream()
+                    .flatMap(apiType -> ApiTypeAdapter.toDefinition(apiType).stream())
+                    .collect(Collectors.toSet());
             var output = getFilterValuesUseCase.execute(
                 new GetFilterValuesUseCase.Input(
                     currentAuditInfo(),

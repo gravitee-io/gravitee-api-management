@@ -60,7 +60,9 @@ public class ApiTypeFilterTransformer implements QueryFilterTransformer {
         "NATIVE",
         ApiType.NATIVE,
         "EDGE",
-        ApiType.EDGE
+        ApiType.EDGE,
+        "AUTHZ",
+        ApiType.AUTHZ
     );
 
     @Override
