@@ -138,6 +138,19 @@ class ApiTypeFilterTransformerTest {
             .containsExactlyInAnyOrder("api-2", "api-3");
     }
 
+    @Test
+    void should_narrow_to_authz_apis() {
+        var context = buildContext(Set.of("api-1", "api-authz"), Map.of(ApiType.AUTHZ, Set.of("api-authz")));
+
+        var apiTypeFilter = new Filter(FilterSpec.Name.API_TYPE, FilterOperator.EQ, "AUTHZ");
+        var filters = transformer.transform(context, List.of(apiTypeFilter));
+
+        assertThat(filters).hasSize(1);
+        assertThat(filters.getFirst().value())
+            .asInstanceOf(InstanceOfAssertFactories.collection(String.class))
+            .containsExactly("api-authz");
+    }
+
     @ParameterizedTest
     @ValueSource(strings = { "NATIVE", "KAFKA" })
     void should_narrow_to_native_apis_for_both_native_and_kafka_values(String apiTypeValue) {
