@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.portal_page;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,6 +36,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
+import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,11 +44,14 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
@@ -72,11 +77,20 @@ class PortalNavigationItemSourceDomainServiceImplTest {
     @SuppressWarnings("rawtypes")
     FetcherPlugin fetcherPlugin;
 
+    @Mock
+    ImportConfiguration importConfiguration;
+
     PortalNavigationItemSourceDomainServiceImpl cut;
 
     @BeforeEach
     void setUp() {
-        cut = new PortalNavigationItemSourceDomainServiceImpl(fetcherConfigurationFactory, pluginManager, applicationContext);
+        cut = new PortalNavigationItemSourceDomainServiceImpl(
+            fetcherConfigurationFactory,
+            pluginManager,
+            applicationContext,
+            importConfiguration
+        );
+        lenient().when(importConfiguration.isAllowImportFromPrivate()).thenReturn(true);
     }
 
     @SuppressWarnings("unchecked")
@@ -288,6 +302,142 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             cut.mergeSensitiveData(stored, exposed);
 
             assertThat(exposed.getSourceConfiguration()).isEqualTo(storedConfiguration);
+        }
+    }
+
+    /**
+     * Addresses are IP literals so that no test depends on name resolution.
+     */
+    @Nested
+    class SourceAddress {
+
+        private static final String PRIVATE_URL = "http://10.0.0.1/docs";
+        private static final String LOOPBACK_URL = "http://127.0.0.1:8083/management";
+        private static final String PUBLIC_URL = "https://93.184.216.34/docs";
+
+        private void forbidPrivateAddresses(String... whitelist) {
+            when(importConfiguration.isAllowImportFromPrivate()).thenReturn(false);
+            lenient().when(importConfiguration.getImportWhitelist()).thenReturn(List.of(whitelist));
+        }
+
+        private static PortalNavigationItemSource sourceWith(String key, String address) {
+            return dummySource("{\"%s\":\"%s\",\"sensitive\":\"secret\"}".formatted(key, address));
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { PRIVATE_URL, LOOPBACK_URL, "http://169.254.169.254/latest/meta-data" })
+        void should_reject_a_private_address_on_validation(String address) {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", address)))
+                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                .hasMessageContaining("not allowed");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "url", "githubUrl", "gitlabUrl", "repository" })
+        void should_check_every_configuration_field_that_holds_an_address(String key) {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith(key, PRIVATE_URL))).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+        }
+
+        @Test
+        void should_reject_a_private_address_hidden_behind_an_allowed_one() {
+            forbidPrivateAddresses();
+            var source = dummySource("{\"url\":\"%s\",\"gitlabUrl\":\"%s\"}".formatted(PUBLIC_URL, PRIVATE_URL));
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(source)).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+        }
+
+        @Test
+        void should_reject_before_any_fetcher_is_built() {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", PRIVATE_URL))).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+
+            verifyNoInteractions(fetcherConfigurationFactory);
+        }
+
+        @Test
+        void should_accept_a_public_address() {
+            forbidPrivateAddresses();
+            mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
+
+            cut.validateSourceConfiguration(sourceWith("url", PUBLIC_URL));
+        }
+
+        @Test
+        void should_accept_a_private_address_when_the_administrator_allows_them() {
+            mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
+
+            cut.validateSourceConfiguration(sourceWith("url", PRIVATE_URL));
+        }
+
+        @Test
+        void should_reject_an_address_outside_the_whitelist() {
+            forbidPrivateAddresses("https://93.184.216.34/docs");
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", "https://93.184.216.35/docs"))).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+        }
+
+        @Test
+        void should_accept_an_address_inside_the_whitelist() {
+            forbidPrivateAddresses("https://93.184.216.34/docs");
+            mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
+
+            cut.validateSourceConfiguration(sourceWith("url", "https://93.184.216.34/docs/guide.md"));
+        }
+
+        @Test
+        void should_not_quote_the_address_in_the_error() {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("url", "http://user:hunter2@10.0.0.1/docs")))
+                .isInstanceOf(InvalidPortalNavigationItemSourceException.class)
+                .hasMessageNotContaining("hunter2")
+                .hasMessageNotContaining("10.0.0.1");
+        }
+
+        @Test
+        void should_not_fetch_content_from_a_private_address() {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.fetchContent(sourceWith("url", PRIVATE_URL))).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+
+            verifyNoInteractions(pluginManager, fetcherConfigurationFactory);
+        }
+
+        @Test
+        void should_not_list_files_from_a_private_address() {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.listFiles(sourceWith("repository", PRIVATE_URL))).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+
+            verifyNoInteractions(pluginManager, fetcherConfigurationFactory);
+        }
+
+        @Test
+        void should_not_fetch_a_file_from_a_private_address() {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.fetchFileContent(sourceWith("repository", PRIVATE_URL), "/docs/guide.md")).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+
+            verifyNoInteractions(pluginManager, fetcherConfigurationFactory);
         }
     }
 
