@@ -148,7 +148,7 @@ describe('ApisPage', () => {
 
     it('shows the empty landing when there are no APIs and no active search', () => {
         mockUseApiList.mockReturnValue({
-            data: { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 } },
+            data: { data: [], pagination: { page: 1, perPage: 25, pageCount: 0, totalCount: 0 } },
             isLoading: false,
             isFetching: false,
         });
@@ -160,7 +160,7 @@ describe('ApisPage', () => {
 
     it('keeps the list view instead of the empty landing while an empty result is placeholder data', () => {
         mockUseApiList.mockReturnValue({
-            data: { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 } },
+            data: { data: [], pagination: { page: 1, perPage: 25, pageCount: 0, totalCount: 0 } },
             isLoading: false,
             isFetching: true,
             isPlaceholderData: true,
@@ -175,7 +175,7 @@ describe('ApisPage', () => {
     it('shows the table and not the empty landing when every API in the environment is federated', () => {
         const rows = [federatedRow('solace'), federatedRow('apigee')];
         mockUseApiList.mockReturnValue({
-            data: { data: rows, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: rows.length } },
+            data: { data: rows, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: rows.length } },
             isLoading: false,
             isFetching: false,
             isPlaceholderData: false,
@@ -192,7 +192,7 @@ describe('ApisPage', () => {
         const deleted = federatedRow('solace');
         const kept = federatedRow('apigee');
         mockUseApiList.mockReturnValue({
-            data: { data: [kept, deleted], pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 2 } },
+            data: { data: [kept, deleted], pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: 2 } },
             isLoading: false,
             isFetching: false,
             isPlaceholderData: false,
@@ -201,7 +201,7 @@ describe('ApisPage', () => {
         expect(tableRowContaining(deleted.name)).not.toBeUndefined();
 
         mockUseApiList.mockReturnValue({
-            data: { data: [kept], pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 } },
+            data: { data: [kept], pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: 1 } },
             isLoading: false,
             isFetching: false,
             isPlaceholderData: false,
@@ -214,7 +214,7 @@ describe('ApisPage', () => {
 
     it('renders an API row of either kind when the search succeeds', () => {
         mockUseApiList.mockReturnValue({
-            data: { data: API_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: API_ROWS.length } },
+            data: { data: API_ROWS, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: API_ROWS.length } },
             isLoading: false,
             isFetching: false,
         });
@@ -232,7 +232,7 @@ describe('ApisPage', () => {
         ['carries an origin provider with no display name, alongside one that has', [federatedRow('kong'), federatedRow('solace')]],
     ])('renders exactly one row per federated API when it %s', (_case, rows) => {
         mockUseApiList.mockReturnValue({
-            data: { data: rows, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: rows.length } },
+            data: { data: rows, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: rows.length } },
             isLoading: false,
             isFetching: false,
         });
@@ -326,7 +326,7 @@ describe('ApisPage', () => {
             expect(lastRequest()).toMatchObject({
                 query: 'payments',
                 page: 1,
-                perPage: 10,
+                perPage: 25,
                 sortBy: undefined,
                 filters: { apiTypes: [], statuses: [], tags: [], categories: [] },
                 includeFederated: true,
@@ -340,7 +340,7 @@ describe('ApisPage', () => {
         const { rerender } = renderPage();
 
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: MIXED_ROWS.length } },
             isLoading: false,
             isFetching: false,
             isPlaceholderData: false,
@@ -355,7 +355,7 @@ describe('ApisPage', () => {
         mockUseApiList.mockReturnValue({
             data: {
                 data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
-                pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+                pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: 1 },
             },
             isLoading: false,
             isFetching: false,
@@ -370,7 +370,7 @@ describe('ApisPage', () => {
         mockUseApiList.mockImplementation(({ query }) =>
             query === 'nothing-matches'
                 ? {
-                      data: { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 } },
+                      data: { data: [], pagination: { page: 1, perPage: 25, pageCount: 0, totalCount: 0 } },
                       isLoading: false,
                       isFetching: false,
                       isPlaceholderData: false,
@@ -379,7 +379,7 @@ describe('ApisPage', () => {
                 : {
                       data: {
                           data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
-                          pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+                          pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: 1 },
                       },
                       isLoading: false,
                       isFetching: false,
@@ -411,7 +411,7 @@ describe('ApisPage', () => {
         mockUseApiList.mockReturnValue({
             data: {
                 data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
-                pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+                pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: 1 },
             },
             isLoading: false,
             isFetching: false,
@@ -448,7 +448,7 @@ describe('ApisPage', () => {
         mockUseApiList.mockReturnValue({
             data: {
                 data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
-                pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+                pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: 1 },
             },
             isLoading: false,
             isFetching: false,
@@ -490,7 +490,7 @@ describe('ApisPage', () => {
         ['Sharding Tags', 'tags_asc', '-tags_desc'],
     ])('sorts by %s both ways with a federated row in the list', (columnTitle, ascending, descending) => {
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: MIXED_ROWS.length } },
             isLoading: false,
             isFetching: false,
         });
@@ -509,7 +509,7 @@ describe('ApisPage', () => {
 
     it('sorts by the newly clicked column instead of the one sorted before it', () => {
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: MIXED_ROWS.length } },
             isLoading: false,
             isFetching: false,
         });
@@ -524,7 +524,7 @@ describe('ApisPage', () => {
 
     it('returns to page 1 when a column is sorted from a later page', () => {
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 3, totalCount: 25 } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 3, totalCount: 75 } },
             isLoading: false,
             isFetching: false,
         });
@@ -542,7 +542,7 @@ describe('ApisPage', () => {
 
     it('returns to page 1 when the page size changes from a later page', async () => {
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 3, totalCount: 25 } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 3, totalCount: 75 } },
             isLoading: false,
             isFetching: false,
         });
@@ -552,14 +552,14 @@ describe('ApisPage', () => {
         expect(lastRequest().page).toBe(2);
 
         await userEvent.click(screen.getByRole('combobox', { name: 'Items per page' }));
-        await userEvent.click(await screen.findByRole('option', { name: '25' }));
+        await userEvent.click(await screen.findByRole('option', { name: '50' }));
 
-        await waitFor(() => expect(lastRequest()).toMatchObject({ page: 1, perPage: 25 }));
+        await waitFor(() => expect(lastRequest()).toMatchObject({ page: 1, perPage: 50 }));
     });
 
     it('adds the sort to the outbound request without dropping the active search term', async () => {
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: MIXED_ROWS.length } },
             isLoading: false,
             isFetching: false,
         });
@@ -574,7 +574,7 @@ describe('ApisPage', () => {
             expect(lastRequest()).toMatchObject({
                 query: 'payments',
                 page: 1,
-                perPage: 10,
+                perPage: 25,
                 sortBy: 'status',
                 filters: { apiTypes: [], statuses: [], tags: [], categories: [] },
                 includeFederated: true,
@@ -588,7 +588,7 @@ describe('ApisPage', () => {
         mockUseApiList.mockImplementation(({ filters }) =>
             filters?.apiTypes?.includes('V4_TCP_PROXY')
                 ? {
-                      data: { data: [], pagination: { page: 1, perPage: 10, pageCount: 0, totalCount: 0 } },
+                      data: { data: [], pagination: { page: 1, perPage: 25, pageCount: 0, totalCount: 0 } },
                       isLoading: false,
                       isFetching: false,
                       isPlaceholderData: false,
@@ -597,7 +597,7 @@ describe('ApisPage', () => {
                 : {
                       data: {
                           data: [{ id: '1', name: 'My API', apiVersion: '1.0', type: 'PROXY', definitionVersion: 'V4' }],
-                          pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: 1 },
+                          pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: 1 },
                       },
                       isLoading: false,
                       isFetching: false,
@@ -616,7 +616,7 @@ describe('ApisPage', () => {
 
     it('applies API type and search together and returns to page 1', async () => {
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 3, totalCount: 25 } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 3, totalCount: 75 } },
             isLoading: false,
             isFetching: false,
         });
@@ -641,7 +641,7 @@ describe('ApisPage', () => {
 
     it('sends status, tag, and category with the selected API type in one list query', async () => {
         mockUseApiList.mockReturnValue({
-            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 10, pageCount: 1, totalCount: MIXED_ROWS.length } },
+            data: { data: MIXED_ROWS, pagination: { page: 1, perPage: 25, pageCount: 1, totalCount: MIXED_ROWS.length } },
             isLoading: false,
             isFetching: false,
         });
