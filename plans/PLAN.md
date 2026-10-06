@@ -768,7 +768,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - Publishing an API already published in that part of the tree is rejected with the existing error.
 - Unpublishing leaves the API's documentation intact.
 - The existing constraints still hold: a section must be chosen, it must be in the main navigation, and no section can be created along the way.
-- Publishing and unpublishing change only the API's listing row, never the published flag of the API's own pages, folders and links. Changing those flags would affect every portal listing the API, and would undo per-item show/hide (STORY-31).
+- Publishing the API publishes all its pages, folders and links; unpublishing hides them all, as the portal editor does once STORY-02 lands. While the API is published, individual items can still be hidden or shown (STORY-31). Accepted limitation: republishing also re-shows items that were hidden individually.
 **Files:**
 - *create* `V2REST/resource/api/ApiPortalPublicationResource.java` — publish and unpublish under the API path
 - *read only* `CORE/portal_page/use_case/CreatePortalNavigationItemUseCase.java`, `DeletePortalNavigationItemUseCase.java` — delegated to unchanged
@@ -1005,6 +1005,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - Hiding a folder hides its contents; showing one asks whether to show its contents too.
 - The update carries every field of the item, built from fresh data — in particular its external source and its address, since dropping those silently unlinks a sourced page and rejects every link.
 - The UI states that the change applies in every portal listing this API.
+- The UI warns that publishing the API again will show every item, including the ones hidden here.
 **Files:**
 - *edit* `GAMMA/features/apis/components/detail/documentation/DocumentationTree.tsx` — the per-item action
 - *create* `GAMMA/features/apis/components/detail/documentation/toUpdatePayload.ts` — build the full replace payload from a list row, in one place, so no caller can forget a field
@@ -1312,7 +1313,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Permission annotations are OR-semantics, allowing escalation on requests with a body | Medium | STORY-13, kept as its own story |
 | Gamma users can manage pages but cannot read or write their content, which needs environment permission | High | STORY-12 Bis |
 | Creating a page can point it at another page's existing content and show that content in the portal | High | STORY-12 refuses `portalPageContentId` on the API-scoped create |
-| Publishing or unpublishing rewrites every page's own published flag | Medium | STORY-16 changes only the listing row |
+| Republishing the API re-shows items that were hidden individually | Low (accepted) | STORY-31 warns about it; choosing what to publish can come later |
 | The sortable tree is the largest frontend item | Medium | STORY-32 last, cuttable |
 | A hand-made folder blocks a GitOps apply | Accepted | STORY-36 pins and documents it |
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
