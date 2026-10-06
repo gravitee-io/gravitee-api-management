@@ -17,6 +17,7 @@ package io.gravitee.gamma.rest.core.observability.logs.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
@@ -120,8 +121,8 @@ public class SearchObservabilityLogsUseCase {
             .apiIds(scope.apiIds())
             .apisById(scope.apisById())
             .conditions(effectiveConditions)
-            .from(input.from != null ? input.from.toEpochMilli() : null)
-            .to(input.to != null ? input.to.toEpochMilli() : null)
+            .from(input.from.toEpochMilli())
+            .to(input.to.toEpochMilli())
             .page(page)
             .perPage(perPage)
             .recordType(recordType)
@@ -141,8 +142,14 @@ public class SearchObservabilityLogsUseCase {
     }
 
     private static void validateTimeRange(Instant from, Instant to) {
-        if (from != null && to != null && from.isAfter(to)) {
-            throw new ValidationDomainException("Invalid time range: 'from' must be before 'to'.");
+        if (from == null) {
+            throw InvalidObservabilityQueryException.missingTimeRangeBound("from");
+        }
+        if (to == null) {
+            throw InvalidObservabilityQueryException.missingTimeRangeBound("to");
+        }
+        if (from.isAfter(to)) {
+            throw InvalidObservabilityQueryException.invalidTimeRange();
         }
     }
 

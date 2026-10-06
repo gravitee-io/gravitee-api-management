@@ -16,6 +16,7 @@
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
+import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
 import java.util.List;
 
 /**
@@ -26,7 +27,7 @@ public record FacetMetricQueryDto(String name, List<String> measures, List<SortS
         return new AnalyticsFacetMetricQuery(
             name,
             measures != null ? measures : List.of(),
-            sorts != null ? sorts.stream().map(SortSpecDto::toCore).toList() : List.of()
+            RequestEntries.map(sorts, "sorts", SortSpecDto::toCore)
         );
     }
 }

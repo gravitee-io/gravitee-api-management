@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
 import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
@@ -56,6 +57,8 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -66,6 +69,8 @@ class SearchObservabilityLogsUseCaseTest {
 
     private static final String ORG_ID = "org-1";
     private static final String ENV_ID = "env-1";
+    private static final Instant FROM = Instant.parse("2026-06-10T00:00:00Z");
+    private static final Instant TO = Instant.parse("2026-06-11T00:00:00Z");
 
     @Mock
     private ObservabilityLogsDataPort logsDataPort;
@@ -184,8 +189,8 @@ class SearchObservabilityLogsUseCaseTest {
                             new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
                             new FilterCondition("APPLICATION", FilterOperator.EQ, List.of("app-1"))
                         ),
-                        null,
-                        null,
+                        FROM,
+                        TO,
                         1,
                         20
                     )
@@ -206,8 +211,8 @@ class SearchObservabilityLogsUseCaseTest {
                         ORG_ID,
                         ENV_ID,
                         List.of(new FilterCondition("RECORD_TYPE", FilterOperator.IN, List.of("REQUEST", "AUTHZ_DECISION"))),
-                        null,
-                        null,
+                        FROM,
+                        TO,
                         1,
                         20
                     )
@@ -230,8 +235,8 @@ class SearchObservabilityLogsUseCaseTest {
                             new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
                             new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of())
                         ),
-                        null,
-                        null,
+                        FROM,
+                        TO,
                         1,
                         20
                     )
@@ -256,8 +261,8 @@ class SearchObservabilityLogsUseCaseTest {
                         new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
                         new FilterCondition("AUTHZ_DECISION", FilterOperator.IN, List.of("PERMIT", "FORBID"))
                     ),
-                    null,
-                    null,
+                    FROM,
+                    TO,
                     1,
                     20
                 )
@@ -279,8 +284,8 @@ class SearchObservabilityLogsUseCaseTest {
                             new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
                             new FilterCondition("AUTHZ_OPERATION", FilterOperator.EQ, List.of("evaluation"))
                         ),
-                        null,
-                        null,
+                        FROM,
+                        TO,
                         1,
                         20
                     )
@@ -307,8 +312,8 @@ class SearchObservabilityLogsUseCaseTest {
                         new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
                         new FilterCondition("AUTHZ_INDETERMINATE_CAUSE", FilterOperator.IN, List.of("NOT_READY", "TIMEOUT"))
                     ),
-                    null,
-                    null,
+                    FROM,
+                    TO,
                     1,
                     20
                 )
@@ -334,8 +339,8 @@ class SearchObservabilityLogsUseCaseTest {
                         new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")),
                         new FilterCondition("API", FilterOperator.EQ, List.of("api-1"))
                     ),
-                    null,
-                    null,
+                    FROM,
+                    TO,
                     1,
                     20
                 )
@@ -355,7 +360,7 @@ class SearchObservabilityLogsUseCaseTest {
         void should_return_empty_page_when_no_accessible_apis() {
             when(logsDataPort.loadAccessibleApis(ORG_ID, ENV_ID)).thenReturn(List.of());
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 1, 20));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
             assertThat(output.page()).isEqualTo(1);
@@ -376,7 +381,7 @@ class SearchObservabilityLogsUseCaseTest {
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -394,7 +399,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("NATIVE")));
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -409,7 +414,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API", FilterOperator.EQ, List.of("api-1")));
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -423,7 +428,7 @@ class SearchObservabilityLogsUseCaseTest {
             );
 
             var filters = List.of(new FilterCondition("API", FilterOperator.EQ, List.of("api-unknown")));
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
         }
@@ -440,7 +445,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM")));
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -459,7 +464,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.IN, List.of("LLM", "MCP")));
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -476,7 +481,7 @@ class SearchObservabilityLogsUseCaseTest {
             );
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("EDGE")));
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             assertThat(output.data()).isEqualTo(LogsPage.EMPTY);
         }
@@ -492,7 +497,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("MESSAGE")));
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -505,7 +510,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("API_TYPE", FilterOperator.EQ, List.of("LLM")));
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -521,7 +526,7 @@ class SearchObservabilityLogsUseCaseTest {
             var filters = List.of(new FilterCondition("UNKNOWN_FILTER", FilterOperator.EQ, List.of("val")));
 
             assertThatThrownBy(() ->
-                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20))
+                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20))
             ).isInstanceOf(UnsupportedObservabilityFilterException.class);
             verifyNoInteractions(logsDataPort);
         }
@@ -531,7 +536,7 @@ class SearchObservabilityLogsUseCaseTest {
             var filters = List.of(new FilterCondition("GATEWAY", FilterOperator.EQ, List.of("gw-1")));
 
             assertThatThrownBy(() ->
-                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20))
+                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20))
             ).isInstanceOf(UnsupportedObservabilityFilterException.class);
             verifyNoInteractions(logsDataPort);
         }
@@ -541,7 +546,7 @@ class SearchObservabilityLogsUseCaseTest {
             var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.CONTAINS, List.of("200")));
 
             assertThatThrownBy(() ->
-                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20))
+                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20))
             ).isInstanceOf(UnsupportedObservabilityFilterException.class);
             verifyNoInteractions(logsDataPort);
         }
@@ -554,7 +559,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
             var filters = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("200")));
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, null, null, 1, 20));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, 1, 20));
 
             assertThat(output.data()).isNotNull();
         }
@@ -568,9 +573,22 @@ class SearchObservabilityLogsUseCaseTest {
             var from = Instant.parse("2026-06-11T12:00:00Z");
             var to = Instant.parse("2026-06-10T12:00:00Z");
 
-            assertThatThrownBy(() ->
-                useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), from, to, 1, 20))
-            ).isInstanceOf(ValidationDomainException.class);
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), from, to, 1, 20)))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.invalid_time_range");
+
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @ParameterizedTest
+        @CsvSource(value = { "null, 2026-06-11T00:00:00Z, from", "2026-06-10T00:00:00Z, null, to" }, nullValues = "null")
+        void should_reject_a_missing_bound(Instant from, Instant to, String missingBound) {
+            assertThatThrownBy(() -> useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), from, to, 1, 20)))
+                .isInstanceOf(InvalidObservabilityQueryException.class)
+                .hasMessageContaining("'" + missingBound + "'")
+                .extracting("technicalCode")
+                .isEqualTo("observability.query.time_range_required");
 
             verifyNoInteractions(logsDataPort);
         }
@@ -603,7 +621,7 @@ class SearchObservabilityLogsUseCaseTest {
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 20));
 
             var query = capturedQuery();
             assertThat(query.entrypointScope().kind()).isEqualTo(EntrypointScope.Kind.EXCLUDING);
@@ -623,7 +641,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
             var conditions = List.of(new FilterCondition("ENTRYPOINT", FilterOperator.IN, List.of("mcp-studio", "(none)")));
 
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, conditions, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, conditions, FROM, TO, 1, 20));
 
             var query = capturedQuery();
             assertThat(query.entrypointScope()).isEqualTo(EntrypointScope.exactly(List.of("mcp-studio", "(none)")));
@@ -636,7 +654,7 @@ class SearchObservabilityLogsUseCaseTest {
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
             var conditions = List.of(new FilterCondition("RECORD_TYPE", FilterOperator.EQ, List.of("AUTHZ_DECISION")));
 
-            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, conditions, null, null, 1, 20));
+            useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, conditions, FROM, TO, 1, 20));
 
             assertThat(capturedQuery().entrypointScope()).isNull();
         }
@@ -658,7 +676,7 @@ class SearchObservabilityLogsUseCaseTest {
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 0, -1));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 0, -1));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());
@@ -675,7 +693,7 @@ class SearchObservabilityLogsUseCaseTest {
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, null, null));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, null, null));
 
             assertThat(output.page()).isEqualTo(1);
             assertThat(output.perPage()).isEqualTo(20);
@@ -688,7 +706,7 @@ class SearchObservabilityLogsUseCaseTest {
             );
             when(logsDataPort.searchLogs(eq(ORG_ID), eq(ENV_ID), any())).thenReturn(LogsPage.EMPTY);
 
-            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), null, null, 1, 500));
+            var output = useCase.execute(new SearchObservabilityLogsUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, 1, 500));
 
             var captor = ArgumentCaptor.forClass(LogsSearchQuery.class);
             verify(logsDataPort).searchLogs(eq(ORG_ID), eq(ENV_ID), captor.capture());

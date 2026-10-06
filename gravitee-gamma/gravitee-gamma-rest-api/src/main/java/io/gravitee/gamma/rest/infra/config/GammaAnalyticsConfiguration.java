@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.infra.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.analytics_engine.domain_service.AnalyticsQueryValidator;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeFacetsUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.analytics_engine.use_case.ComputeTimeSeriesUseCase;
@@ -51,6 +52,7 @@ public class GammaAnalyticsConfiguration {
         ComputeMeasuresUseCase computeMeasuresUseCase,
         ComputeFacetsUseCase computeFacetsUseCase,
         ComputeTimeSeriesUseCase computeTimeSeriesUseCase,
+        AnalyticsQueryValidator analyticsQueryValidator,
         UserContextLoader userContextLoader,
         ObjectMapper objectMapper
     ) {
@@ -58,6 +60,7 @@ public class GammaAnalyticsConfiguration {
             computeMeasuresUseCase,
             computeFacetsUseCase,
             computeTimeSeriesUseCase,
+            analyticsQueryValidator,
             userContextLoader,
             objectMapper
         );

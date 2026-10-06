@@ -48,6 +48,8 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -176,6 +178,18 @@ class LogsResourceTest extends AbstractResourceTest {
             Response response = rootTarget("search").request().post(Entity.entity("", MediaType.APPLICATION_JSON_TYPE));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_return_400_rather_than_500_when_the_filters_hold_a_null() {
+            var body = new HashMap<String, Object>();
+            body.put("filters", Arrays.asList((Object) null));
+
+            Response response = rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo("observability.query.null_entry");
+            verifyNoInteractions(searchLogsUseCase);
         }
 
         @Test
