@@ -120,6 +120,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException requiresDecisionRecordType(String filterName) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' applies to authorization decision records only: add the condition RECORD_TYPE = AUTHZ_DECISION",
+            "observability.filter.requires_decision_record_type"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException valueListingNotSupported(String filterName, String type) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' of type " + type + " does not support value listing",

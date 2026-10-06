@@ -906,6 +906,8 @@ paths:
                         The query is refused. Possible causes:
                         - A filter condition breaks a rule of the `FilterCondition` schema (`observability.filter.*`)
                         - Filter is valid for LOGS but not yet supported by log search (`observability.filter.search_translation_not_supported`)
+                        - A decision filter (`AUTHZ_*`) sent without `RECORD_TYPE = AUTHZ_DECISION` (`observability.filter.requires_decision_record_type`)
+                        - `RECORD_TYPE` with several values, or a filter the decision search cannot apply (`observability.filter.multiple_record_types`, `observability.filter.not_applicable_to_decisions`)
                         - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
                         - An array of the body holds a null entry (`observability.query.null_entry`)
                     content:
@@ -949,6 +951,12 @@ paths:
                                         http_status: 400
                                         message: "Operator 'EQ' on filter 'HTTP_METHOD' takes exactly one value, got 2 values [GET, POST]. Use IN to match several values."
                                         technicalCode: "observability.filter.invalid_arity"
+                                decision-filter-without-record-type:
+                                    summary: Decision filter on a request search
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'AUTHZ_DECISION' applies to authorization decision records only: add the condition RECORD_TYPE = AUTHZ_DECISION"
+                                        technicalCode: "observability.filter.requires_decision_record_type"
                                 missing-time-range-bound:
                                     summary: Missing time-range bound
                                     value:
