@@ -67,6 +67,34 @@ public interface ApiCRDMapper {
     @Mapping(target = "lifecycleState", qualifiedByName = "mapLifecycleState")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
+<<<<<<< HEAD
+=======
+    /**
+     * The ApiV4Definition CRD schema has no CREATED value, so a manifest meant for kubectl apply
+     * reports an API that was never published as UNPUBLISHED.
+     */
+    default ApiCRDSpec mapForKubernetes(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec) {
+        var spec = map(coreSpec);
+        if (spec.getLifecycleState() == ApiLifecycleState.CREATED) {
+            spec.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
+        }
+        return spec;
+    }
+
+    default Analytics mapAnalytics(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec) {
+        if (coreSpec.isNative()) {
+            return mapNative(coreSpec.getNativeAnalytics());
+        }
+        return mapAnalytics(coreSpec.getAnalytics());
+    }
+
+    default Analytics mapAnalytics(io.gravitee.definition.model.v4.analytics.Analytics analytics) {
+        return AnalyticsMapper.INSTANCE.toAnalytics(analytics);
+    }
+
+    Analytics mapNative(io.gravitee.definition.model.v4.nativeapi.NativeAnalytics analytics);
+
+>>>>>>> 6688f10 (fix(api): export a never published API as UNPUBLISHED in its Kubernetes CRD)
     @Mapping(target = "security.type", qualifiedByName = "mapSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     PlanCRD map(io.gravitee.apim.core.api.model.crd.PlanCRD plan);

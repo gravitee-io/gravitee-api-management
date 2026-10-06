@@ -20,15 +20,44 @@ import io.gravitee.apim.core.api.domain_service.ApiCRDExportDomainService;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainService {
+public class ApiCRDExportDomainServiceInMemory implements ApiCRDExportDomainService, InMemoryAlternative<ApiCRDSpec> {
+
+    private final List<ApiCRDSpec> storage = new ArrayList<>();
 
     @Override
+<<<<<<< HEAD
     public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo) {
         return ApiCRDFixtures.anApiCRD();
+=======
+    public ApiCRDSpec export(String apiId, IDExportStrategy idExport, AuditInfo auditInfo, boolean exportNotifications) {
+        return storage
+            .stream()
+            .filter(spec -> apiId.equals(spec.getId()))
+            .findFirst()
+            .orElseGet(ApiCRDFixtures::anApiCRD);
+    }
+
+    @Override
+    public void initWith(List<ApiCRDSpec> items) {
+        reset();
+        storage.addAll(items);
+    }
+
+    @Override
+    public void reset() {
+        storage.clear();
+    }
+
+    @Override
+    public List<ApiCRDSpec> storage() {
+        return storage;
+>>>>>>> 6688f10 (fix(api): export a never published API as UNPUBLISHED in its Kubernetes CRD)
     }
 }

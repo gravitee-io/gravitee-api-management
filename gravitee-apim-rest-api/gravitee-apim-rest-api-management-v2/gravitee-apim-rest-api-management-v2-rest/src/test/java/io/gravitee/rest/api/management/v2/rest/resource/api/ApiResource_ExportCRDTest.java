@@ -23,12 +23,16 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import fixtures.core.model.ApiCRDFixtures;
+import inmemory.ApiCRDExportDomainServiceInMemory;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -38,9 +42,17 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
 
     private static final YAMLMapper YAML = new YAMLMapper();
 
+    @Autowired
+    private ApiCRDExportDomainServiceInMemory apiCRDExportDomainService;
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/_export/crd";
+    }
+
+    @AfterEach
+    public void tearDown() {
+        apiCRDExportDomainService.reset();
     }
 
     @Test
@@ -77,5 +89,16 @@ public class ApiResource_ExportCRDTest extends ApiResourceTest {
             soft.assertThat(yamlNode.get("spec").get("listeners")).isNotEmpty();
             soft.assertThat(yamlNode.get("spec").get("endpointGroups")).isNotEmpty();
         });
+    }
+
+    @Test
+    public void should_export_created_api_as_unpublished() throws JsonProcessingException {
+        apiCRDExportDomainService.initWith(List.of(ApiCRDFixtures.newBaseSpec().id(API).lifecycleState("CREATED").build()));
+
+        Response response = rootTarget().request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        var yamlNode = YAML.readTree(response.readEntity(String.class));
+        assertThat(yamlNode.get("spec").get("lifecycleState").asText()).isEqualTo("UNPUBLISHED");
     }
 }
