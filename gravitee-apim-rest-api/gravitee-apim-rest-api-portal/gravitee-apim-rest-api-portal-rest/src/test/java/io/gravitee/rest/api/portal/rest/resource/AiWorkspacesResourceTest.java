@@ -153,6 +153,50 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void filters_by_name_before_paging() {
+        products.initWith(
+            List.of(
+                workspace("ws-b", "Bravo", ApiProductKind.AI_WORKSPACE),
+                workspace("ws-a", "Alpha", ApiProductKind.AI_WORKSPACE),
+                workspace("ws-c", "Alpine", ApiProductKind.AI_WORKSPACE)
+            )
+        );
+        subscriptions.initWith(
+            List.of(
+                subscription("app-1", "ws-b"),
+                subscription("app-1", "ws-a").toBuilder().id("sub-2").referenceId("ws-a").build(),
+                subscription("app-1", "ws-c").toBuilder().id("sub-3").referenceId("ws-c").build()
+            )
+        );
+
+        Response response = target().queryParam("name", "alp").queryParam("page", 1).queryParam("size", 1).request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        AiWorkspacesResponse body = response.readEntity(AiWorkspacesResponse.class);
+        assertThat(body.getData())
+            .extracting(item -> item.getName())
+            .containsExactly("Alpha");
+        assertThat(pagination(body)).containsEntry("total", 2).containsEntry("current_page", 1);
+    }
+
+    @Test
+    void blank_name_returns_the_full_list_and_an_unknown_name_returns_an_empty_page() {
+        products.initWith(
+            List.of(workspace("ws-a", "Alpha", ApiProductKind.AI_WORKSPACE), workspace("ws-b", "Bravo", ApiProductKind.AI_WORKSPACE))
+        );
+        subscriptions.initWith(
+            List.of(subscription("app-1", "ws-a"), subscription("app-1", "ws-b").toBuilder().id("sub-2").referenceId("ws-b").build())
+        );
+
+        Response blank = target().queryParam("name", " ").request().get();
+        assertThat(blank.readEntity(AiWorkspacesResponse.class).getData()).hasSize(2);
+
+        Response none = target().queryParam("name", "zzzz").request().get();
+        assertThat(none.getStatus()).isEqualTo(200);
+        assertThat(none.readEntity(AiWorkspacesResponse.class).getData()).isEmpty();
+    }
+
+    @Test
     void pages_the_list() {
         products.initWith(
             List.of(workspace("ws-b", "Bravo", ApiProductKind.AI_WORKSPACE), workspace("ws-a", "Alpha", ApiProductKind.AI_WORKSPACE))
