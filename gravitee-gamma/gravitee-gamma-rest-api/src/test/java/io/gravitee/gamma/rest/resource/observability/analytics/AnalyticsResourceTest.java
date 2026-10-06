@@ -145,6 +145,53 @@ class AnalyticsResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class FilterContract {
+
+        @Test
+        void should_answer_400_when_eq_carries_several_values() {
+            var response = post("measures", measures(List.of(filter("HTTP_METHOD", "EQ", List.of("GET", "POST")))));
+
+            assertBadRequest(response, "observability.filter.invalid_arity");
+        }
+
+        @Test
+        void should_answer_400_when_a_value_array_holds_a_null() {
+            var response = post("measures", measures(List.of(filter("HTTP_METHOD", "IN", Arrays.asList("GET", null)))));
+
+            assertBadRequest(response, "observability.filter.invalid_value_shape");
+        }
+
+        @Test
+        void should_answer_400_when_a_filter_is_repeated() {
+            var response = post(
+                "measures",
+                measures(List.of(filter("HTTP_METHOD", "IN", List.of("GET")), filter("HTTP_METHOD", "IN", List.of("POST"))))
+            );
+
+            assertBadRequest(response, "observability.filter.repeated");
+        }
+
+        @Test
+        void should_answer_200_to_a_closed_numeric_range() {
+            var response = post("measures", measures(List.of(filter("HTTP_STATUS", "GTE", 400), filter("HTTP_STATUS", "LTE", 499))));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        private static Map<String, Object> measures(List<Map<String, Object>> filters) {
+            return Map.of("timeRange", TIME_RANGE, "metrics", REQUEST_COUNT, "filters", filters);
+        }
+
+        private static Map<String, Object> filter(String name, String operator, Object value) {
+            var filter = new HashMap<String, Object>();
+            filter.put("name", name);
+            filter.put("operator", operator);
+            filter.put("value", value);
+            return filter;
+        }
+    }
+
     private Response post(String path, Map<String, ?> body) {
         return rootTarget(path).request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
     }
