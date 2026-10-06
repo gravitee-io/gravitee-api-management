@@ -201,9 +201,9 @@ public class ApiValidationServiceImplTest {
         verify(listenerValidationService, times(1)).validateAndSanitizeHttpV4(GraviteeContext.getExecutionContext(), null, listeners, null);
         verify(endpointGroupsValidationService, times(1)).validateAndSanitizeHttpV4(apiEntity.getType(), null);
         verify(loggingValidationService, times(1)).validateAndSanitize(GraviteeContext.getExecutionContext(), apiEntity.getType(), null);
-        verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null);
+        verify(flowValidationService, times(1)).validateAndSanitize(apiEntity.getType(), null, Set.of());
         verify(resourcesValidationService, times(1)).validateAndSanitize(List.of());
-        verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of());
+        verify(planValidationService, times(1)).validateAndSanitize(apiEntity.getType(), Set.of(), Set.of());
         verify(flowValidationDomainService, times(1)).validatePathParameters(any(), any(), any());
     }
 

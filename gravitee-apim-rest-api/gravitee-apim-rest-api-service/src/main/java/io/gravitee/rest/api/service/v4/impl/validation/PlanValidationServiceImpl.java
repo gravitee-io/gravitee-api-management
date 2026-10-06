@@ -35,8 +35,13 @@ public class PlanValidationServiceImpl implements PlanValidationService {
 
     @Override
     public Set<PlanEntity> validateAndSanitize(ApiType apiType, Set<PlanEntity> plans) {
+        return validateAndSanitize(apiType, plans, null);
+    }
+
+    @Override
+    public Set<PlanEntity> validateAndSanitize(ApiType apiType, Set<PlanEntity> plans, Set<String> apiResourceNames) {
         if (plans != null) {
-            plans.forEach(plan -> plan.setFlows(flowValidationService.validateAndSanitize(apiType, plan.getFlows())));
+            plans.forEach(plan -> plan.setFlows(flowValidationService.validateAndSanitize(apiType, plan.getFlows(), apiResourceNames)));
         }
         return plans;
     }

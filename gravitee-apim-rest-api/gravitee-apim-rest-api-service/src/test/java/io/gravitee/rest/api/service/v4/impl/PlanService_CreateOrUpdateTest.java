@@ -216,6 +216,34 @@ public class PlanService_CreateOrUpdateTest {
     }
 
     @Test
+    public void shouldPassApiResourceNamesIntoFlowValidationOnCreate() throws Exception {
+        final PlanEntity expected = initPlanEntity("created");
+        String definitionJson = "{\"resources\":[{\"name\":\"schema-registry\",\"type\":\"schema-registry\",\"configuration\":{}}]}";
+
+        when(planEntity.getId()).thenReturn(null);
+        when(planEntity.getSecurity()).thenReturn(new PlanSecurity("oauth2", "{ \"foo\": \"bar\"}"));
+        when(planEntity.getValidation()).thenReturn(PlanValidationType.AUTO);
+        when(planEntity.getReferenceId()).thenReturn(API_ID);
+        when(planEntity.getReferenceType()).thenReturn(GenericPlanEntity.ReferenceType.API);
+        when(planEntity.getFlows()).thenReturn(List.of(new Flow()));
+        when(api.getDefinition()).thenReturn(definitionJson);
+        when(api.getType()).thenReturn(io.gravitee.definition.model.v4.ApiType.PROXY);
+        when(objectMapper.readValue(eq(definitionJson), eq(io.gravitee.definition.model.v4.Api.class))).thenReturn(
+            new ObjectMapper().readValue(definitionJson, io.gravitee.definition.model.v4.Api.class)
+        );
+        when(flowValidationService.validateAndSanitize(any(), any(), any())).thenAnswer(invocation -> invocation.getArgument(1));
+        mockPrivateCreate(expected);
+
+        planService.createOrUpdatePlan(GraviteeContext.getExecutionContext(), planEntity);
+
+        verify(flowValidationService).validateAndSanitize(
+            eq(io.gravitee.definition.model.v4.ApiType.PROXY),
+            any(),
+            eq(Set.of("schema-registry"))
+        );
+    }
+
+    @Test
     public void shouldPreserveEnvironmentIdOnUpdate() throws TechnicalException {
         final String ENV_ID = "my-env";
         final PlanEntity expected = initPlanEntity("updated");

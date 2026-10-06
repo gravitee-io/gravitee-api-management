@@ -25,4 +25,10 @@ import java.util.Set;
  */
 public interface PlanValidationService {
     Set<PlanEntity> validateAndSanitize(final ApiType apiType, Set<PlanEntity> plans);
+
+    /**
+     * @param apiResourceNames names of resources declared on the API; {@code null} to skip
+     *                         resource-existence checks for registry-sourced XML validation.
+     */
+    Set<PlanEntity> validateAndSanitize(final ApiType apiType, Set<PlanEntity> plans, Set<String> apiResourceNames);
 }

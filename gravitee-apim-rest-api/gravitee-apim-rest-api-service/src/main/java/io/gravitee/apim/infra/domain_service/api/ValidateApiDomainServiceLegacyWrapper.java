@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
@@ -129,7 +130,11 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
         api.getApiDefinitionHttpV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionHttpV4().getResources()));
 
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), newApiEntity.getFlows());
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(
+            api.getType(),
+            newApiEntity.getFlows(),
+            ApiResourceNames.fromHttpV4(api)
+        );
         api.getApiDefinitionHttpV4().setFlows(sanitizedFlows);
 
         apiValidationService.validateDynamicProperties(
