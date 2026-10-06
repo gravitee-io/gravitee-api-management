@@ -61,13 +61,13 @@ todos:
     status: pending
   - id: STORY-20
     content: "Confirm the Angular Markdown viewer runs without zone.js inside a React host. Spike — gates STORY-21."
-    status: pending
+    status: completed
   - id: STORY-21
     content: "Package the Gravitee Markdown viewer as a custom element."
-    status: pending
+    status: completed
   - id: STORY-22
     content: "Render Gravitee Markdown previews in Gamma from the packaged viewer."
-    status: pending
+    status: completed
   - id: STORY-23
     content: "Add a Documentation entry to the API sidebar, gated on documentation read permission."
     status: pending
@@ -810,6 +810,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 ### PHASE 5 — Gravitee Markdown in React
 
 #### STORY-20 — Confirm the Angular viewer runs without zone.js in a React host
+**Status:** Done — proceed, no fallback needed. Full write-up in [STORY-20-findings.md](STORY-20-findings.md).
 **Why:** if zone.js is required it patches global timers and event handling across all of Gamma, which would make this approach unattractive. The viewer's signal-based design suggests it is not needed, but that must be proved before anything is built on it.
 **Acceptance criteria:**
 - A throwaway page renders Gravitee Markdown through the Angular viewer inside a React host with change detection in zoneless mode.
@@ -820,8 +821,17 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - *read only* `GMD/src/lib/gravitee-markdown-viewer/gravitee-markdown-viewer.module.ts` — the module already exists, so STORY-21 will not need to create one
 **Size:** S · **Depends on:** nothing
 **Note:** do this early. It gates STORY-21 and STORY-22. Use content containing an interactive component, not plain markdown — plain markdown would pass even if the mechanism is broken.
+**Outcome:**
+- *Built:* an Angular build with no polyfills, so zone.js is never loaded, bootstrapped with zoneless change detection and registering the existing viewer as `gmd-viewer` through `@angular/elements`. It was mounted in a React 19 page with `content` set as a property. The content used `gmd-install-mcp`, which has signal state, a click handler and a `setTimeout`.
+- *Result — 7/7 checks passed:* zone.js absent after load; markdown renders inside the shadow root; `gmd-install-mcp` upgrades to a component rather than escaped text; clicking a tab re-renders; a revert driven by `setTimeout` repaints; a React re-render with new markdown updates the shadow DOM; a second `customElements.define` throws `NotSupportedError`.
+- *The load-bearing check* is the `setTimeout` one. Under zone.js a repaint after a timer is free because the zone patches the timer; zoneless, it only happens if the signal write notifies Angular's scheduler. It did.
+- *Negative control:* the same page without zoneless change detection fails at bootstrap with `NG0908`, so zone.js was genuinely absent rather than pulled in by something else.
+- *Handed to STORY-21:* `@angular/elements` already notifies the zoneless scheduler on every input write, so nothing is hand-written for repaints; the element entry must `importProvidersFrom(GraviteeMarkdownViewerModule)` because the component is not standalone and its module provides the renderer service; the double-registration guard is required, not defensive; and `lodash`, pulled in by a form component, is CommonJS and warrants an `allowedCommonJsDependencies` entry so its build warning is not noise.
+- *Size:* 417 kB raw / 112 kB gzipped for the Angular runtime, the viewer, every GMD component, DOMPurify and ngx-dynamic-hooks — comfortable for STORY-22's lazy load.
+- *Not covered:* the GMD form components (`gmd-input`, `gmd-checkbox` and the rest), which depend on `GmdFormStateStore` and the form host that the viewer alone does not wire up — if published documentation is expected to contain forms, that needs its own check. The bundle was also loaded as a plain module script, not through module federation.
 
 #### STORY-21 — Package the Gravitee Markdown viewer as a custom element
+**Status:** Done
 **Why:** reuse the existing viewer rather than re-implementing it, so the interactive components keep working and there is only one sanitisation allowlist to maintain.
 **Acceptance criteria:**
 - A build target produces a self-contained bundle registering the viewer as a custom element.
@@ -841,6 +851,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 3. Confirm the two existing consumers still build and their tests pass.
 
 #### STORY-22 — Render Gravitee Markdown previews in Gamma
+**Status:** Done
 **Why:** the documentation editor needs a preview that matches the portal exactly.
 **Acceptance criteria:**
 - A React component renders markdown through the custom element by setting the content property, not an attribute.
