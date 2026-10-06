@@ -17,6 +17,13 @@ Three flags, each of which fails quietly rather than loudly:
 - **`-nsu`** — without it Maven may replace the engine you just installed with a timestamped snapshot from the remote. Same symptom, different route.
 - **`-Dbundle=dev`** — activates the profile adding the Cloud initializer and MCP libraries to `lib/`. That profile belongs to the gateway container, an external dependency here, so `-P` does not reach it; only the property activation does.
 
+## Running the inference plugin on a Mac
+
+The `gravitee-inference-service` zip bundled by default only ships the Linux ONNX Runtime natives, which is what the images need. To run the plugin natively on macOS, assemble with `task build-distribution-macos`, or pass `-Dgravitee-inference-service.classifier=macos` to the distribution build: it swaps in the `macos` zip, never both.
+
+- **Never for an image.** A distribution assembled with the macOS zip packaged into a Linux image starts, then fails when the plugin loads. `task docker` rebuilds through `build-distribution`, so it keeps the Linux zip; for a hand-made `buildx` image, assemble the distribution without the property.
+- **Never in `~/.m2/settings.xml` or the environment.** The property is read by every distribution build, images included. Pass it per build.
+
 ## What this reactor does not inherit
 
 Its parent is `io.gravitee:gravitee-parent`, the organisation pom — not `gravitee-apim-parent`. That parent carries build conventions only: no `dependencyManagement`, no `repositories`, no dependencies. Anything the product parent supplied must be declared here explicitly.
