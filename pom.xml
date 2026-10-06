@@ -288,7 +288,7 @@
     <gravitee-resource-oauth2-provider-keycloak.version>4.0.0</gravitee-resource-oauth2-provider-keycloak.version>
     <gravitee-resource-ai-model-text-classification.version>2.2.1</gravitee-resource-ai-model-text-classification.version>
     <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
-    <gravitee-inference-service.version>2.0.0</gravitee-inference-service.version>
+    <gravitee-inference-service.version>3.0.0</gravitee-inference-service.version>
     <!-- Empty: the Linux zip. Pass -Dgravitee-inference-service.classifier=macos to run the plugin natively on macOS. Never for images. -->
     <gravitee-inference-service.classifier/>
     <gravitee-secretprovider-kubernetes.version>2.0.0</gravitee-secretprovider-kubernetes.version>
