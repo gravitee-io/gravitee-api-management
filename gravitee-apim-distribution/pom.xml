@@ -143,7 +143,7 @@
     <gravitee-policy-json-validation.version>3.0.1</gravitee-policy-json-validation.version>
     <gravitee-policy-json-xml.version>4.0.0</gravitee-policy-json-xml.version>
     <gravitee-policy-jws.version>3.0.0</gravitee-policy-jws.version>
-    <gravitee-policy-jwt.version>8.1.0</gravitee-policy-jwt.version>
+    <gravitee-policy-jwt.version>8.1.1</gravitee-policy-jwt.version>
     <gravitee-policy-keyless.version>5.0.0</gravitee-policy-keyless.version>
     <gravitee-policy-latency.version>3.0.0</gravitee-policy-latency.version>
     <gravitee-policy-metrics-reporter.version>4.0.0</gravitee-policy-metrics-reporter.version>
