@@ -23,12 +23,17 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
 import io.gravitee.rest.api.management.v2.rest.model.PortalPageContentType;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApiProduct;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -223,6 +228,27 @@ class PortalNavigationItemsMapperTest {
 
     @Nested
     class ResourceToDomain {
+
+        @Test
+        void should_map_requested_parent_without_setting_server_resolved_parent() {
+            var parentId = UUID.fromString(PortalNavigationItemFixtures.API_ID);
+            List<BaseUpdatePortalNavigationItem> requests = List.of(
+                new UpdatePortalNavigationPage().type(PortalNavigationItemType.PAGE),
+                new UpdatePortalNavigationFolder().type(PortalNavigationItemType.FOLDER),
+                new UpdatePortalNavigationLink().type(PortalNavigationItemType.LINK),
+                new UpdatePortalNavigationApi().type(PortalNavigationItemType.API),
+                new UpdatePortalNavigationApiProduct().type(PortalNavigationItemType.API_PRODUCT)
+            );
+
+            for (var request : requests) {
+                request.setParentId(parentId);
+
+                var result = mapper.map(request);
+
+                assertThat(result.getParentId().id()).isEqualTo(parentId);
+                assertThat(result.getRenderedParentId()).isNull();
+            }
+        }
 
         @Test
         void should_map_create_portal_navigation_page() {

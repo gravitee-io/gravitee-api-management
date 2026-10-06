@@ -2975,7 +2975,10 @@ components:
         parentId:
           type: string
           format: uuid
-          description: The parent ID of the navigation item, if not provided item is moved to the root level
+          description: >-
+            The parent ID of the navigation item. If omitted, the item is moved to the root level of its existing owner.
+            For API-owned pages, folders, and links, an API navigation item referencing the same API represents that API's
+            documentation root. Sending its ID preserves API ownership and does not physically attach the document to that navigation item.
           example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
         published:
           type: boolean

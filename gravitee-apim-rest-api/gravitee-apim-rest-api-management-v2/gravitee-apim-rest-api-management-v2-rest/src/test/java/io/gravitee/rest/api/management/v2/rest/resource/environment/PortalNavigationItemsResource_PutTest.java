@@ -30,6 +30,7 @@ import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationApiProduct;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationFolder;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemSource;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemType;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalVisibility;
@@ -146,6 +148,67 @@ class PortalNavigationItemResource_PutTest extends AbstractResourceTest {
         // And storage reflects the change
         var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, PortalNavigationItemId.of(navId));
         assertThat(updated.getTitle()).isEqualTo("Updated Title");
+    }
+
+    @Test
+    void should_preserve_api_owned_page_when_updating_with_its_rendered_parent() {
+        var api = PortalNavigationItemFixtures.anApi();
+        var otherApiEntry = PortalNavigationItemFixtures.anApi(
+            "20000000-0000-4000-8000-000000000031",
+            "Another API entry",
+            null,
+            api.getApiId()
+        );
+        var reference = new ApiReference(api.getApiId());
+        var page = PortalNavigationItemFixtures.aPage("API documentation", null).toBuilder().reference(reference).build();
+        page.markAsRoot();
+        initStorageWith(List.of(api, otherApiEntry, page));
+        when(
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.ENVIRONMENT_DOCUMENTATION,
+                ENVIRONMENT,
+                RolePermissionAction.READ
+            )
+        ).thenReturn(true);
+
+        var getResponse = target.queryParam("area", api.getArea()).queryParam("parentId", api.getId().id()).request().get();
+        assertThat(getResponse).hasStatus(OK_200);
+        var items = getResponse.readEntity(PortalNavigationItemsResponse.class).getItems();
+        assertThat(items).hasSize(1);
+        var renderedPage = (PortalNavigationPage) items.getFirst().getActualInstance();
+        assertThat(renderedPage.getParentId()).isEqualTo(api.getId().id());
+
+        var payload = new UpdatePortalNavigationPage()
+            .title("Updated API documentation")
+            .type(PortalNavigationItemType.PAGE)
+            .order(renderedPage.getOrder())
+            .parentId(renderedPage.getParentId())
+            .published(renderedPage.getPublished())
+            .visibility(renderedPage.getVisibility());
+        var response = target.path(page.getId().json()).request().put(json(payload));
+
+        assertThat(response).hasStatus(OK_200);
+        var updated = portalNavigationItemsQueryService.findByIdAndEnvironmentId(ENVIRONMENT, page.getId());
+        assertThat(updated.getTitle()).isEqualTo("Updated API documentation");
+        assertThat(updated.getReference()).isEqualTo(reference);
+        assertThat(updated.getParentId()).isNull();
+        assertThat(updated.getRootId()).isEqualTo(page.getId());
+
+        for (var navigationEntry : List.of(api, otherApiEntry)) {
+            var refreshedResponse = target
+                .queryParam("area", navigationEntry.getArea())
+                .queryParam("parentId", navigationEntry.getId().id())
+                .request()
+                .get();
+            assertThat(refreshedResponse).hasStatus(OK_200);
+            var refreshedItems = refreshedResponse.readEntity(PortalNavigationItemsResponse.class).getItems();
+            assertThat(refreshedItems).hasSize(1);
+            var refreshedPage = (PortalNavigationPage) refreshedItems.getFirst().getActualInstance();
+            assertThat(refreshedPage.getId()).isEqualTo(page.getId().id());
+            assertThat(refreshedPage.getTitle()).isEqualTo("Updated API documentation");
+            assertThat(refreshedPage.getParentId()).isEqualTo(navigationEntry.getId().id());
+        }
     }
 
     @Test

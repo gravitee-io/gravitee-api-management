@@ -290,22 +290,27 @@ public interface PortalNavigationItemsMapper {
         };
     }
 
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationPage page
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationFolder folder
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationLink link
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.UpdatePortalNavigationApi api
     );
 
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem map(UpdatePortalNavigationApiProduct apiProduct);
 
     default PortalCategoryId mapCategoryId(UUID id) {
