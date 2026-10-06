@@ -33,6 +33,12 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException notApiDocumentationType(String type) {
+        return new InvalidPortalNavigationItemDataException(
+            "The documentation of an API can only hold pages, folders and links (got %s).".formatted(type)
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException apiMustBeInTopNavbar() {
         return new InvalidPortalNavigationItemDataException("API items can only be added to TOP_NAVBAR area.");
     }

@@ -44,6 +44,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedI
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
@@ -267,6 +268,28 @@ class CreatePortalNavigationItemUseCaseTest {
         // Then
         Exception exception = assertThrows(ApiNotFoundException.class, throwing);
         assertThat(exception.getMessage()).isEqualTo("Api not found.");
+    }
+
+    @Test
+    void should_store_an_item_with_no_parent_as_top_level_documentation_of_the_api_that_owns_it() {
+        var apiReference = new NavigationItemReference.ApiReference("apiId");
+        var createPortalNavigationItem = CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(PortalNavigationItemType.FOLDER)
+            .title("Guides")
+            .area(PortalArea.TOP_NAVBAR)
+            .reference(apiReference)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .build();
+
+        useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
+
+        var created = queryService.findByIdAndEnvironmentId(ENV_ID, createPortalNavigationItem.getId());
+        assertThat(created.getReference()).isEqualTo(apiReference);
+        assertThat(created.getParentId()).isNull();
+        assertThat(queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(ENV_ID, PortalArea.TOP_NAVBAR, apiReference))
+            .extracting(PortalNavigationItem::getId)
+            .containsExactly(created.getId());
     }
 
     @Test

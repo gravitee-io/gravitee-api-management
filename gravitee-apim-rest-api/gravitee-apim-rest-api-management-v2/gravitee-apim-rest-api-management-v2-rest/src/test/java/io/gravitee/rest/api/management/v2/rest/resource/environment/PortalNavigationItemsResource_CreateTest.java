@@ -125,6 +125,21 @@ class PortalNavigationItemsResource_CreateTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_ignore_the_page_content_id_of_the_request_so_that_a_new_content_is_always_created() {
+        final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(
+            new CreatePortalNavigationItemUseCase.Output(PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT))
+        );
+
+        Response response = target.request().post(json(page));
+
+        assertThat(response).hasStatus(CREATED_201);
+        var captor = ArgumentCaptor.forClass(CreatePortalNavigationItemUseCase.Input.class);
+        Mockito.verify(createPortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().item().getPortalPageContentId()).isNull();
+    }
+
+    @Test
     void should_create_portal_navigation_page() {
         // Given
         final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();

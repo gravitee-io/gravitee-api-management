@@ -111,10 +111,9 @@ public interface PortalNavigationItemsMapper {
         };
     }
 
-    @Mapping(
-        target = "portalPageContentId",
-        expression = "java(page.getPortalPageContentId() == null ? null : io.gravitee.apim.core.portal_page.model.PortalPageContentId.of(page.getPortalPageContentId().toString()))"
-    )
+    // No endpoint lets a client create a page content on its own, so an id sent here can only name the content of
+    // another page: a page created through the Management API always gets a content of its own
+    @Mapping(target = "portalPageContentId", ignore = true)
     @Mapping(
         target = "contentType",
         expression = "java(page.getContentType() == null ? io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN : map(page.getContentType()))"

@@ -2850,7 +2850,8 @@ components:
             portalPageContentId:
               type: string
               format: uuid
-              description: The UUID of the portal page content
+              deprecated: true
+              description: Ignored. A new page content is always created for the page.
               example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
             contentType:
               $ref: "#/components/schemas/PortalPageContentType"
