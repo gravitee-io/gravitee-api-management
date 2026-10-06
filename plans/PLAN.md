@@ -38,6 +38,9 @@ todos:
   - id: STORY-12
     content: "Expose create, read, update and delete for an API's documentation under an API-scoped path, governed by API documentation permission."
     status: pending
+  - id: STORY-12-BIS
+    content: "Read and save a page's content under the API-scoped path, governed by API documentation permission. Without it, Gamma cannot create or edit what a page says."
+    status: pending
   - id: STORY-13
     content: "Reject a request whose body targets a different API than the one in the URL. Security control."
     status: pending
@@ -561,7 +564,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - The originally requested parent is still available to the validation rules and to the response.
 **Files:**
 - *edit* `CORE/portal_page/domain_service/PortalNavigationItemCreationExpansionDomainService.java` — the owner-assignment step, in `expand`, before validation
-- *edit* `CORE/portal_page/model/CreatePortalNavigationItem.java` — carry the requested parent alongside the stored one
+- *edit* `CORE/portal_page/model/CreatePortalNavigationItem.java` — carry the requested parent alongside the stored one, named and handled like `renderedParentId`, which STORY-01 adds to `UpdatePortalNavigationItem`
 - *edit* `CORE/portal_page/domain_service/validation/ParentRule.java` — an API branch validating against the requested listing row
 - *edit* `CORE/portal_page/domain_service/validation/SegmentConflictRule.java` — use the assigned owner, not the pre-assignment one
 - *read only* `CORE/portal_page/domain_service/validation/ApiDocumentationAreaRule.java`, `SourcedItemReadOnlyRule.java` — no change needed, but both must be covered by tests proving the new ordering did not silently disable them
@@ -590,6 +593,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - Moving a folder onto an API's listing row changes the owner of the folder **and** every page and folder nested inside it, to any depth.
 - Moving it back out reverts all of them.
 - A subtree is never left with mixed owners.
+- An item already owned by one API and moved onto **another** API's listing row takes that other API as its owner, rather than being stored under the row while still owned by the first API.
 **Files:**
 - *edit* `CORE/portal_page/model/PortalNavigationItem.java` — add a setter for the owner, which today is assigned once at construction
 - *edit* `CORE/portal_page/domain_service/PortalNavigationItemDomainService.java` — set the new owner on a move, and extend the existing root-propagation walk to carry the owner down with it
@@ -665,7 +669,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 #### STORY-11 — Publish the OpenAPI contract for the API documentation endpoints
 **Why:** repository convention is contract-first, and this is what lets the frontend start against a stand-in instead of waiting for the backend.
 **Acceptance criteria:**
-- Paths and schemas for the API-scoped documentation operations, the documentation list and the publish-locations list are in the spec.
+- Paths and schemas for the API-scoped documentation operations, a page's content (STORY-12 Bis), the documentation list and the publish-locations list are in the spec.
 - Models generate and the module compiles.
 - Request and response bodies reuse the existing navigation item schemas rather than redefining them.
 - The Automation API sync checklist has been reviewed for this change.
@@ -688,6 +692,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - The owner is stamped from the URL, so a create with no parent is stored owned by that API — this is the Gamma first-page case.
 - Someone with permission on one API can operate on that API's documentation and is refused on another.
 - The existing environment-scoped endpoints behave exactly as before.
+- A create under the API path refuses `portalPageContentId`, so a page always starts with new, empty content. Otherwise a page could be pointed at another page's content (a private portal page's, or another API's) and show it in the portal.
 **Files:**
 - *create* `V2REST/resource/api/ApiDocumentationNavigationResource.java` and `ApiDocumentationNavigationItemResource.java` — the collection and single-item resources, named to sit alongside `ApiMetadataResource` and `ApiPlansResource`
 - *edit* `V2REST/resource/api/ApiResource.java` — mount the new sub-resource
@@ -700,6 +705,20 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 2. The single-item resource: read, update, delete.
 3. Permission annotations with the verb mapping, and a test per method that environment permission alone is not accepted and API permission alone is.
 4. Response rendering reusing STORY-04's shape.
+**Note:** the single-item read has no identified caller yet, because the list (STORY-14) returns the same item. Keep it only if STORY-24 uses it.
+
+#### STORY-12 Bis — Read and save a page's content under the API-scoped path
+**Why:** a page's text is stored apart from the page, and reading or saving it goes through `/portal-page-contents/{id}`, which needs `ENVIRONMENT_DOCUMENTATION`. Without this story, a Gamma user with only API documentation permission can create, move and publish pages, but can never read or write what they say.
+**Acceptance criteria:**
+- A page's content can be read and saved under that page's API-scoped path, with API documentation READ and UPDATE respectively.
+- The content is found through the page, never from a content id sent by the client.
+- A page of another API, or a portal-owned page, is reported as not found. A folder or a link is rejected.
+- The existing `/portal-page-contents` endpoints behave exactly as before.
+**Files:**
+- *edit* the single-item resource from STORY-12 — `GET` and `PUT` on `{navId}/content`
+- *read only* `CORE/portal_page/use_case/GetPortalPageContentUseCase.java`, `UpdatePortalPageContentUseCase.java` — delegated to for the actual read and save
+**Size:** S · **Depends on:** STORY-12
+**Note:** security-sensitive, because it is a new authorization path. Addressing content by its own id under an API permission was rejected: the permission check reads only the URL, and a content id does not say which API it belongs to. Blocks STORY-26 and STORY-29 on the backend side.
 
 #### STORY-13 — Reject a request whose body targets a different API than the URL
 **Why:** permission is worked out from the URL only and cannot consult the database. Without this check, someone with permission on one API could pass an item or parent belonging to another.
@@ -735,6 +754,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - Returns the id and name of each top-level section of the portal's main navigation, and nothing else.
 - Guarded by API documentation read permission.
 - Returns an empty list when no top-level sections exist.
+- Leaves out unpublished sections, because a published listing cannot sit under an unpublished section.
 **Files:**
 - *create* `CORE/portal_page/use_case/ListApiPublishLocationsUseCase.java`
 - *edit* the collection resource from STORY-12, or a sibling resource under the same API path
@@ -748,6 +768,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - Publishing an API already published in that part of the tree is rejected with the existing error.
 - Unpublishing leaves the API's documentation intact.
 - The existing constraints still hold: a section must be chosen, it must be in the main navigation, and no section can be created along the way.
+- Publishing and unpublishing change only the API's listing row, never the published flag of the API's own pages, folders and links. Changing those flags would affect every portal listing the API, and would undo per-item show/hide (STORY-31).
 **Files:**
 - *create* `V2REST/resource/api/ApiPortalPublicationResource.java` — publish and unpublish under the API path
 - *read only* `CORE/portal_page/use_case/CreatePortalNavigationItemUseCase.java`, `DeletePortalNavigationItemUseCase.java` — delegated to unchanged
@@ -924,7 +945,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - Title required; the page appears in the tree on success.
 **Files:**
 - *create* `GAMMA/features/apis/components/detail/documentation/CreateDocumentationDialog.tsx` — the shared dialog shell plus the page branch; STORY-27 and STORY-28 add their branches to it
-**Size:** M · **Depends on:** STORY-25
+**Size:** M · **Depends on:** STORY-25 · **Backend:** STORY-12 Bis, to save what was typed or uploaded
 **Subtasks:**
 1. The dialog shell and the what-to-add step, extensible for folders and links.
 2. Type it in, including the content field.
@@ -955,7 +976,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - *create* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx`
 - *create* `GAMMA/features/apis/components/detail/documentation/DocumentationEditor.tsx` — the editor pane and its mode selection
 - *read only* the host's editor setup in the platform module — already available, do not add a second editor dependency
-**Size:** M · **Depends on:** STORY-25, STORY-22
+**Size:** M · **Depends on:** STORY-25, STORY-22 · **Backend:** STORY-12 Bis
 **Subtasks:**
 1. The editor pane with the mode matching the content type, plus save and discard.
 2. Unsaved-change protection on navigation away.
@@ -1138,6 +1159,7 @@ flowchart LR
     subgraph P3 ["Phase 3 · Backend API"]
         S11["11 Contract"]
         S12["12 API-scoped mount"]
+        S12B["12 Bis Page content"]
         S13["13 Body-target check"]
         S14["14 List docs"]
         S15["15 Publish locations"]
@@ -1189,6 +1211,7 @@ flowchart LR
     S11 --> S15
     S11 --> S24
     S12 --> S13
+    S12 --> S12B
     S12 --> S16
     S15 --> S16
     S12 --> S17
@@ -1233,7 +1256,7 @@ The longest backend chain is **01 → 03 → 05 → 06** ≈ 8. It only becomes 
 | Track | Stories | Notes |
 |---|---|---|
 | **A — ownership core** | 01 → 03 → 04, 05 → 06, 07, 08, 09, 02, 10, 36 | One owner. Stories 01, 02, 05, 06 all land in the same file, so they cannot be split further without constant conflicts |
-| **B — Gamma backend and data** | 11 → 12 → 13, 14, 15, 16, 17, 35, 19, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
+| **B — Gamma backend and data** | 11 → 12 → 12 Bis, 13, 14, 15, 16, 17, 35, 19, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
 | **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 31, 33, 34, 32 | Build against the contract's stand-in. 32 last |
 
 Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/29/33/34 against 24/25/26/27/28/30/31/32), while the backend cannot, because of the shared file in track A.
@@ -1287,6 +1310,9 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Per-item visibility and ordering apply to every portal listing the API | Medium | Explicit wording; decision 1 |
 | Moves that change owner corrupt sibling order | Medium | STORY-06; Gamma's own moves never change owner |
 | Permission annotations are OR-semantics, allowing escalation on requests with a body | Medium | STORY-13, kept as its own story |
+| Gamma users can manage pages but cannot read or write their content, which needs environment permission | High | STORY-12 Bis |
+| Creating a page can point it at another page's existing content and show that content in the portal | High | STORY-12 refuses `portalPageContentId` on the API-scoped create |
+| Publishing or unpublishing rewrites every page's own published flag | Medium | STORY-16 changes only the listing row |
 | The sortable tree is the largest frontend item | Medium | STORY-32 last, cuttable |
 | A hand-made folder blocks a GitOps apply | Accepted | STORY-36 pins and documents it |
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
@@ -1295,7 +1321,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Angular runtime shipped into Gamma for one widget | Low | Lazy-load on the documentation screen only (STORY-22) |
 | Gamma's theme does not reach inside the preview | Low (accepted) | Already true in the classic console |
 
-**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-13 and STORY-16: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields.
+**Security-sensitive** — call out in the PR descriptions for STORY-12, STORY-12 Bis, STORY-13 and STORY-16: new authorization paths, publishing moved from environment-level to API-level permission, and the body-target check. STORY-19 rewrites persisted ownership fields.
 
 ---
 
