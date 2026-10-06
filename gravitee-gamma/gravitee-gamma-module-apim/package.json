@@ -4,9 +4,9 @@
     "dependencies": {
         "@gravitee/gamma-lib-observability": "4.0.1",
         "@gravitee/gamma-modules-sdk": "1.2.1",
-        "@gravitee/graphene-charts": "3.26.2",
-        "@gravitee/graphene-core": "3.26.2",
-        "@gravitee/graphene-policy-studio": "3.26.2",
+        "@gravitee/graphene-charts": "3.26.3",
+        "@gravitee/graphene-core": "3.26.3",
+        "@gravitee/graphene-policy-studio": "3.26.3",
         "@tanstack/react-query": "5.100.14",
         "react": "19.2.6",
         "react-dom": "19.2.6",
