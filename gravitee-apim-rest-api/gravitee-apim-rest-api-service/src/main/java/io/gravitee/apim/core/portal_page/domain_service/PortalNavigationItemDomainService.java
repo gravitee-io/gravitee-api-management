@@ -26,6 +26,8 @@ import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDa
 import io.gravitee.apim.core.portal_page.exception.PageContentNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -338,12 +340,7 @@ public class PortalNavigationItemDomainService {
 
         final var visibilityToPropagate = PortalVisibility.PRIVATE.equals(changedVisibility) ? PortalVisibility.PRIVATE : null;
         if (visibilityToPropagate != null || publishedToPropagate != null) {
-            propagateAttributesToDescendants(
-                updatedItem.getId(),
-                updatedItem.getEnvironmentId(),
-                visibilityToPropagate,
-                publishedToPropagate
-            );
+            propagateAttributesToDescendants(updatedItem, visibilityToPropagate, publishedToPropagate);
         }
         if (isMoveToNewParent) {
             propagateRootIdToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId());
@@ -413,19 +410,26 @@ public class PortalNavigationItemDomainService {
     }
 
     private void propagateAttributesToDescendants(
-        PortalNavigationItemId parentId,
-        String environmentId,
+        PortalNavigationItem parent,
         PortalVisibility changedVisibility,
         Boolean changedPublished
     ) {
-        propagateAttributesToDescendants(parentId, environmentId, changedVisibility, changedPublished, 0);
+        propagateAttributesToDescendants(
+            parent,
+            changedVisibility,
+            changedPublished,
+            changedPublished != null && isInApiProductContext(parent),
+            new HashSet<>(),
+            0
+        );
     }
 
     private void propagateAttributesToDescendants(
-        PortalNavigationItemId parentId,
-        String environmentId,
+        PortalNavigationItem parent,
         PortalVisibility changedVisibility,
         Boolean changedPublished,
+        boolean inApiProductContext,
+        Set<PortalNavigationItemId> visited,
         int currentNestingLevel
     ) {
         if (currentNestingLevel > MAX_PROPAGATION_NESTING_LEVEL) {
@@ -436,24 +440,69 @@ public class PortalNavigationItemDomainService {
             );
         }
 
-        final var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);
+        if (!visited.add(parent.getId())) {
+            return;
+        }
+
+        final var children = new ArrayList<>(queryService.findByParentIdAndEnvironmentId(parent.getEnvironmentId(), parent.getId()));
+        if (changedPublished != null && parent instanceof PortalNavigationApi api && !inApiProductContext) {
+            children.addAll(
+                queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+                    parent.getEnvironmentId(),
+                    parent.getArea(),
+                    new NavigationItemReference.ApiReference(api.getApiId())
+                )
+            );
+        }
         for (PortalNavigationItem child : children) {
-            final boolean shouldUpdateVisibility = changedVisibility != null && !Objects.equals(child.getVisibility(), changedVisibility);
+            if (visited.contains(child.getId())) {
+                continue;
+            }
+            // API-owned roots are projected below the API; only publication crosses that boundary.
+            final var childVisibility = parent.getId().equals(child.getParentId()) ? changedVisibility : null;
+            final boolean shouldUpdateVisibility = childVisibility != null && !Objects.equals(child.getVisibility(), childVisibility);
             final boolean shouldUpdatePublished = changedPublished != null && !Objects.equals(child.getPublished(), changedPublished);
 
-            if (!shouldUpdateVisibility && !shouldUpdatePublished) {
+            if (!shouldUpdateVisibility && changedPublished == null) {
                 continue;
             }
 
             if (shouldUpdateVisibility) {
-                child.setVisibility(changedVisibility);
+                child.setVisibility(childVisibility);
             }
             if (shouldUpdatePublished) {
                 child.setPublished(changedPublished);
             }
-            crudService.update(child);
-            propagateAttributesToDescendants(child.getId(), environmentId, changedVisibility, changedPublished, currentNestingLevel + 1);
+            if (shouldUpdateVisibility || shouldUpdatePublished) {
+                crudService.update(child);
+            }
+            // An unchanged intermediate node can still contain descendants with a different publication status.
+            propagateAttributesToDescendants(
+                child,
+                childVisibility,
+                changedPublished,
+                inApiProductContext || child instanceof PortalNavigationApiProduct,
+                visited,
+                currentNestingLevel + 1
+            );
         }
+    }
+
+    private boolean isInApiProductContext(PortalNavigationItem item) {
+        var current = item;
+        Set<PortalNavigationItemId> visited = new HashSet<>();
+        while (current != null) {
+            if (!visited.add(current.getId())) {
+                throw InvalidPortalNavigationItemDataException.cyclicParentHierarchy();
+            }
+            if (current instanceof PortalNavigationApiProduct) {
+                return true;
+            }
+            current = current.getParentId() == null
+                ? null
+                : queryService.findByIdAndEnvironmentId(item.getEnvironmentId(), current.getParentId());
+        }
+        return false;
     }
 
     private int sanitizeOrderForReordering(
