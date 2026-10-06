@@ -15,12 +15,14 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
-import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.PropertiesService;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
@@ -99,17 +101,15 @@ public class PropertiesServiceImplTest {
     }
 
     @Test
-    public void shouldNotFailNorEncryptIfEncryptionProblem() throws GeneralSecurityException {
-        PropertyEntity failingProperty = new PropertyEntity("key1", "value1", true, false);
-        List<PropertyEntity> properties = singletonList(failingProperty);
+    public void should_fail_without_exposing_the_value_when_encryption_fails() throws GeneralSecurityException {
+        var property = new PropertyEntity("key", "plaintext", true, false);
+        when(dataEncryptor.encrypt("plaintext")).thenThrow(new GeneralSecurityException());
 
-        doThrow(new GeneralSecurityException()).when(dataEncryptor).encrypt(failingProperty.getValue());
+        var throwable = catchThrowable(() -> propertiesService.encryptProperties(List.of(property)));
 
-        propertiesService.encryptProperties(properties);
-
-        verify(dataEncryptor, times(1)).encrypt("value1");
-        verifyNoMoreInteractions(dataEncryptor);
-        assertEquals("value1", failingProperty.getValue());
-        assertFalse(failingProperty.isEncrypted());
+        assertThat(throwable)
+            .isInstanceOf(TechnicalManagementException.class)
+            .hasMessageContaining("key")
+            .hasMessageNotContaining("plaintext");
     }
 }

@@ -94,6 +94,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateHealthCheckScheduleDomai
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.domain_service.property.PropertyDomainService;
+import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.crd.ApiCRDSpec;
@@ -185,6 +186,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.vertx.rxjava3.core.Vertx;
+import java.security.GeneralSecurityException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -392,6 +394,8 @@ class ImportApiCRDUseCaseTest {
             )
         );
 
+        propertyDomainService = new PropertyDomainService(dataEncryptor);
+
         var crdValidator = new ValidateApiCRDDomainService(
             new ValidateCategoryIdsDomainService(categoryQueryService),
             verifyApiPathDomainService,
@@ -402,7 +406,9 @@ class ImportApiCRDUseCaseTest {
             new ValidatePagesDomainService(pageSourceValidator, accessControlValidator, validationDomainService),
             new ValidatePlanDomainService(planValidatorService, verifyPlanPortRanges),
             new ValidatePortalNotificationDomainService(new ValidateGroupsDomainService(groupQueryService)),
-            new ValidateHealthCheckScheduleDomainService(new ObjectMapper())
+            new ValidateHealthCheckScheduleDomainService(new ObjectMapper()),
+            apiQueryService,
+            propertyDomainService
         );
 
         planQueryService = new PlanQueryServiceInMemory(planCrudService);
@@ -459,8 +465,6 @@ class ImportApiCRDUseCaseTest {
             )
         );
 
-        propertyDomainService = new PropertyDomainService(dataEncryptor);
-
         updateNativeApiUseCase = new UpdateNativeApiUseCase(
             apiPrimaryOwnerService,
             propertyDomainService,
@@ -494,7 +498,8 @@ class ImportApiCRDUseCaseTest {
             updateApiDocumentationDomainService,
             crdValidator,
             notificationCRDService,
-            mock(PortalListingSyncDomainService.class)
+            mock(PortalListingSyncDomainService.class),
+            propertyDomainService
         );
 
         enableApiPrimaryOwnerMode();
@@ -615,6 +620,25 @@ class ImportApiCRDUseCaseTest {
                 soft.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
                 soft.assertThat(apiCrudService.storage()).isEmpty();
             });
+        }
+
+        @Test
+        void should_store_encryptable_properties_encrypted() throws GeneralSecurityException {
+            when(dataEncryptor.encrypt("prop-value")).thenReturn("ciphertext");
+
+            useCase.execute(
+                new ImportApiCRDUseCase.Input(
+                    AUDIT_INFO,
+                    aCRD()
+                        .plans(Map.of())
+                        .properties(List.of(EncryptableProperty.builder().key("prop-key").value("prop-value").encryptable(true).build()))
+                        .build()
+                )
+            );
+
+            assertThat(apiCrudService.storage().getFirst().getApiDefinitionHttpV4().getProperties()).containsExactly(
+                Property.builder().key("prop-key").value("ciphertext").encrypted(true).build()
+            );
         }
 
         @Test
@@ -1243,6 +1267,31 @@ class ImportApiCRDUseCaseTest {
                     )
                     .build()
             );
+        }
+
+        @Test
+        void should_reject_making_an_encrypted_property_plain() {
+            var existing = API_PROXY_V4.toBuilder()
+                .apiDefinitionValue(
+                    API_PROXY_V4.getApiDefinitionHttpV4()
+                        .toBuilder()
+                        .properties(List.of(Property.builder().key("prop-key").value("ciphertext").encrypted(true).build()))
+                        .build()
+                )
+                .build();
+            apiQueryService.initWith(List.of(existing));
+
+            var throwable = catchThrowable(() ->
+                useCase.execute(
+                    new ImportApiCRDUseCase.Input(
+                        AUDIT_INFO,
+                        aCRD().properties(List.of(EncryptableProperty.builder().key("prop-key").value("ciphertext").build())).build()
+                    )
+                )
+            );
+
+            assertThat(throwable).isInstanceOf(ApiPropertyEncryptedToPlainException.class);
+            verify(updateApiDomainService, never()).update(any(), any(), any());
         }
 
         @Test

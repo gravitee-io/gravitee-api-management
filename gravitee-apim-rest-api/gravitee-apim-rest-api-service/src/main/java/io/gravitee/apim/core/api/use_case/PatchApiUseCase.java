@@ -60,6 +60,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -462,6 +463,7 @@ public class PatchApiUseCase {
             PatchableProperty.class,
             PatchableProperty.fromList(httpV4.getProperties())
         );
+        validateClassification(httpV4.getProperties(), patchableProperties);
         var properties = encryptProperties(patchableProperties);
         var responseTemplates = resolveResponseTemplates(patchType, rawPatchNode, patchedNode, httpV4.getResponseTemplates());
 
@@ -856,6 +858,16 @@ public class PatchApiUseCase {
             return sb.toString();
         }
         return "/" + field;
+    }
+
+    private void validateClassification(List<Property> storedProperties, List<PatchableProperty> patchableProperties) {
+        if (patchableProperties == null) {
+            return;
+        }
+        propertyDomainService.validateClassification(
+            storedProperties,
+            patchableProperties.stream().filter(Objects::nonNull).map(PatchableProperty::toEncryptable).toList()
+        );
     }
 
     private List<Property> encryptProperties(List<PatchableProperty> patchableProperties) {
