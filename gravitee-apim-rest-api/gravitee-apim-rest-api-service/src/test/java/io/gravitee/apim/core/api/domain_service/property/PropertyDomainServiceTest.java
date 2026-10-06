@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service.property;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.when;
 import fixtures.definition.ApiDefinitionFixtures;
 import io.gravitee.apim.core.api.exception.ApiPropertyEncryptedToPlainException;
 import io.gravitee.apim.core.api.exception.ApiPropertyNotCiphertextException;
+import io.gravitee.apim.core.api.exception.MaskedApiPropertyValueException;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.common.util.DataEncryptor;
@@ -89,7 +91,7 @@ public class PropertyDomainServiceTest {
         when(dataEncryptor.encrypt(eq(encryptableProperty.getValue()))).thenReturn("encrypted value");
 
         // When
-        var result = cut.encryptProperties(List.of(encryptedProperty, encryptableProperty, notEncryptableDynamicProperty));
+        var result = cut.encryptProperties(null, List.of(encryptedProperty, encryptableProperty, notEncryptableDynamicProperty));
 
         // Then
         verify(dataEncryptor, times(1)).encrypt(anyString());
@@ -106,7 +108,7 @@ public class PropertyDomainServiceTest {
         var encryptableProperty = EncryptableProperty.builder().key("encryptable").value("not encrypted").encryptable(true).build();
         when(dataEncryptor.encrypt("not encrypted")).thenThrow(new GeneralSecurityException());
 
-        assertThatThrownBy(() -> cut.encryptProperties(List.of(encryptableProperty)))
+        assertThatThrownBy(() -> cut.encryptProperties(null, List.of(encryptableProperty)))
             .isInstanceOf(TechnicalDomainException.class)
             .hasMessageContaining("encryptable")
             .hasMessageNotContaining("not encrypted");
@@ -120,7 +122,7 @@ public class PropertyDomainServiceTest {
         encryptableProperties.add(null);
 
         // When
-        var result = cut.encryptProperties(encryptableProperties);
+        var result = cut.encryptProperties(null, encryptableProperties);
 
         // Then
         assertThat(result).hasSize(1);
@@ -129,7 +131,7 @@ public class PropertyDomainServiceTest {
     @Test
     public void should_handle_null_property_list() {
         // When
-        var result = cut.encryptProperties(null);
+        var result = cut.encryptProperties(null, null);
 
         // Then
         assertThat(result).isNotNull().isEmpty();
@@ -454,5 +456,42 @@ public class PropertyDomainServiceTest {
 
             assertThat(result).containsExactly(stored);
         }
+    }
+
+    @Test
+    public void should_keep_the_stored_encrypted_value_when_the_mask_is_resubmitted() throws GeneralSecurityException {
+        // Given
+        var storedProperty = Property.builder().key("encrypted").value("ciphertext").encrypted(true).dynamic(false).build();
+        var resubmittedMaskedProperty = EncryptableProperty.builder()
+            .key("encrypted")
+            .value(ENCRYPTED_VALUE_MASK)
+            .encrypted(false)
+            .dynamic(false)
+            .encryptable(true)
+            .build();
+
+        // When
+        var result = cut.encryptProperties(List.of(storedProperty), List.of(resubmittedMaskedProperty));
+
+        // Then
+        verify(dataEncryptor, never()).encrypt(anyString());
+        assertThat(result).containsExactly(storedProperty);
+    }
+
+    @Test
+    public void should_reject_the_mask_when_no_stored_encrypted_value_exists_for_the_key() {
+        // Given
+        var resubmittedMaskedProperty = EncryptableProperty.builder()
+            .key("encrypted")
+            .value(ENCRYPTED_VALUE_MASK)
+            .encrypted(false)
+            .dynamic(false)
+            .encryptable(true)
+            .build();
+
+        // When / Then
+        assertThatThrownBy(() -> cut.encryptProperties(null, List.of(resubmittedMaskedProperty))).isInstanceOf(
+            MaskedApiPropertyValueException.class
+        );
     }
 }

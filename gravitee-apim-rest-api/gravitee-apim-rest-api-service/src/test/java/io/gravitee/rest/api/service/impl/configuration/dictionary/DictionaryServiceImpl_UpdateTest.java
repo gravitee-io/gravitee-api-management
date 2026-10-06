@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -505,7 +506,7 @@ public class DictionaryServiceImpl_UpdateTest {
         stored.put("secret", new DictionaryProperty("cipher", true));
         given_stored_dictionary(stored);
 
-        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK), null);
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("secret", ENCRYPTED_VALUE_MASK), null);
 
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
 
@@ -522,7 +523,7 @@ public class DictionaryServiceImpl_UpdateTest {
         given_stored_dictionary_without_update_stub(stored);
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
-            Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK),
+            Map.of("secret", ENCRYPTED_VALUE_MASK),
             Map.of("secret", DictionaryPropertyOptions.builder().encrypted(false).build())
         );
 
@@ -539,7 +540,7 @@ public class DictionaryServiceImpl_UpdateTest {
         given_stored_dictionary_without_update_stub(stored);
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
-            Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK),
+            Map.of("secret", ENCRYPTED_VALUE_MASK),
             Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).encryptable(true).build())
         );
 
@@ -556,7 +557,7 @@ public class DictionaryServiceImpl_UpdateTest {
         given_stored_dictionary(stored);
 
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
-            Map.of("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK),
+            Map.of("secret", ENCRYPTED_VALUE_MASK),
             Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build())
         );
 
@@ -683,8 +684,8 @@ public class DictionaryServiceImpl_UpdateTest {
         given_stored_dictionary_without_update_stub(stored);
 
         Map<String, String> properties = new HashMap<>();
-        properties.put("other", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
-        properties.put("secret", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK);
+        properties.put("other", ENCRYPTED_VALUE_MASK);
+        properties.put("secret", ENCRYPTED_VALUE_MASK);
         UpdateDictionaryEntity updateDictionaryEntity = anUpdate(
             properties,
             Map.of("secret", DictionaryPropertyOptions.builder().encrypted(true).build())
@@ -702,7 +703,7 @@ public class DictionaryServiceImpl_UpdateTest {
         stored.put("hostname", new DictionaryProperty("api.example.com", false));
         given_stored_dictionary_without_update_stub(stored);
 
-        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("hostname", DictionaryServiceImpl.ENCRYPTED_VALUE_MASK), null);
+        UpdateDictionaryEntity updateDictionaryEntity = anUpdate(Map.of("hostname", ENCRYPTED_VALUE_MASK), null);
 
         assertThatThrownBy(() -> dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity))
             .isInstanceOf(DictionaryPropertyMaskedValueException.class)

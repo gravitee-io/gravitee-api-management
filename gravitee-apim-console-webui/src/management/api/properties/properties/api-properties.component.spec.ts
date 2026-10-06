@@ -177,6 +177,27 @@ describe('ApiPropertiesComponent', () => {
     expect(await dynamicValueInput.isDisabled()).toEqual(true);
   });
 
+  it('should disable the key input for an encrypted property so it cannot be renamed (EXT-165)', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [
+          { key: 'encryptedKey', value: 'cipher', encrypted: true },
+          { key: 'plainKey', value: 'plain-value', encrypted: false },
+        ],
+      }),
+    );
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const rows = await table.getRows();
+
+    const encryptedKeyInput = await (await rows[0].getCells())[0].getHarness(MatInputHarness);
+    expect(await encryptedKeyInput.isDisabled()).toEqual(true);
+
+    const plainKeyInput = await (await rows[1].getCells())[0].getHarness(MatInputHarness);
+    expect(await plainKeyInput.isDisabled()).toEqual(false);
+  });
+
   it('should block copy and paste on an encrypted value (EXT-165)', async () => {
     expectGetApi(
       fakeApiV4({

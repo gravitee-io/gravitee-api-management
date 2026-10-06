@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 
@@ -91,12 +92,6 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
 
     @Autowired
     private DataEncryptor dataEncryptor;
-
-    /**
-     * Server-owned sentinel returned on read in place of an encrypted value. On write it means "leave
-     * the stored ciphertext alone", so it is only accepted for a key already stored encrypted.
-     */
-    static final String ENCRYPTED_VALUE_MASK = "••••••••••••";
 
     @Override
     public Set<DictionaryEntity> findAll(ExecutionContext executionContext) {
@@ -805,8 +800,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
      * Flattens the stored properties for the wire, ordered by key so a client diffing successive
      * reads — a GitOps reconcile in particular — sees no drift from the storage layer's map ordering.
      *
-     * <p>An encrypted value is replaced by {@link #ENCRYPTED_VALUE_MASK}: the ciphertext never leaves
-     * through this read.
+     * <p>An encrypted value is replaced by the mask: the ciphertext never leaves through this read.
      */
     private static Map<String, String> toFlatProperties(Map<String, DictionaryProperty> typed) {
         if (typed == null) {

@@ -13,15 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4;
+package io.gravitee.apim.core.api.exception;
 
-import io.gravitee.rest.api.model.v4.api.properties.PropertyEntity;
-import java.util.List;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import java.util.Map;
 
-/**
- * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface PropertiesService {
-    List<PropertyEntity> encryptProperties(List<PropertyEntity> storedProperties, List<PropertyEntity> properties);
+public class MaskedApiPropertyValueException extends ValidationDomainException {
+
+    public MaskedApiPropertyValueException(String propertyKey) {
+        super(
+            "Property [" +
+                propertyKey +
+                "] holds the placeholder that stands in for an encrypted value, but no encrypted value is " +
+                "stored under that key. Send the real value instead.",
+            Map.of("key", propertyKey),
+            "api.property.maskedValue"
+        );
+    }
 }
