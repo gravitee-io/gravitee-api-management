@@ -27,7 +27,9 @@ import { getAndUpdatePlanFlows, getFullApiDetail, updateApi } from '../services/
  * Follows the GET-then-PUT pattern used throughout the module:
  * - If commonFlows or flowExecution changed → GET api, merge, PUT api
  * - If plansToUpdate present → for each plan, GET plan, merge flows, PUT plan
- * - Invalidates policy-studio query keys after success
+ * - Invalidates the api and plans queries in parallel after success: the studio receives
+ *   them as two updates, and until the second one arrives, the flows it carries still
+ *   show their previous version
  */
 export function usePolicyStudioSave(apiId: string | undefined) {
     const env = useEnvironment();
@@ -53,8 +55,10 @@ export function usePolicyStudioSave(apiId: string | undefined) {
                     await Promise.all(plansToUpdate.map((plan: Plan) => getAndUpdatePlanFlows(envId, apiId, plan.id, [...plan.flows])));
                 }
 
-                await queryClient.invalidateQueries({ queryKey: policyStudioKeys.api(envId, apiId) });
-                await queryClient.invalidateQueries({ queryKey: policyStudioKeys.plans(envId, apiId) });
+                await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: policyStudioKeys.api(envId, apiId) }),
+                    queryClient.invalidateQueries({ queryKey: policyStudioKeys.plans(envId, apiId) }),
+                ]);
             } catch (error) {
                 console.error('[PolicyStudio] Save failed:', error);
                 throw error;
