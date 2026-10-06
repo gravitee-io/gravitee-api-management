@@ -19,6 +19,7 @@ import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObs
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.resources.observability.dto.FilterValues;
+import java.util.Locale;
 
 /**
  * Wire shape for one filter condition on the POST search body. Same polymorphic {@code value}
@@ -35,10 +36,10 @@ public record FilterConditionDto(String name, String operator, Object value) {
         }
         FilterOperator op;
         try {
-            op = FilterOperator.valueOf(operator.toUpperCase());
+            op = FilterOperator.valueOf(operator.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw UnsupportedObservabilityFilterException.unsupportedOperator(name, operator);
         }
-        return new FilterCondition(name, op, FilterValues.normalize(value));
+        return new FilterCondition(name, op, FilterValues.normalize(name, value));
     }
 }

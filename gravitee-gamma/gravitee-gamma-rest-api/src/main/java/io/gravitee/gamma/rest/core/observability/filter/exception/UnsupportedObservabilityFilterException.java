@@ -17,11 +17,13 @@ package io.gravitee.gamma.rest.core.observability.filter.exception;
 
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
+import java.util.List;
 
 /**
- * Raised when an observability query receives a {@code FilterCondition} that references an unknown
- * filter name or an unsupported operator. Maps to HTTP 400 via the apim
- * {@code ValidationDomainExceptionMapper}.
+ * Raised when an observability query or dashboard receives a {@code FilterCondition} the filter catalog
+ * refuses: an unknown name, a filter outside the signal, an unadvertised operator, a malformed or
+ * out-of-range value, the wrong number of values, or a repeated filter. Maps to HTTP 400 via the apim
+ * {@code ValidationDomainExceptionMapper}, with one technical code per rule.
  *
  * @author GraviteeSource Team
  */
@@ -59,6 +61,62 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' requires a non-blank value",
             "observability.filter.blank_value"
+        );
+    }
+
+    public static UnsupportedObservabilityFilterException invalidValueShape(String filterName) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' takes a scalar or an array of scalars as value, with no null element",
+            "observability.filter.invalid_value_shape"
+        );
+    }
+
+    public static UnsupportedObservabilityFilterException invalidArity(String filterName, String operator, List<String> values) {
+        return new UnsupportedObservabilityFilterException(
+            "Operator '" +
+                operator +
+                "' on filter '" +
+                filterName +
+                "' takes exactly one value, got " +
+                values.size() +
+                " values " +
+                values +
+                ". Use IN to match several values.",
+            "observability.filter.invalid_arity"
+        );
+    }
+
+    public static UnsupportedObservabilityFilterException invalidNumber(String filterName, String value) {
+        return new UnsupportedObservabilityFilterException(
+            "Value '" + value + "' is not a whole number, as filter '" + filterName + "' requires",
+            "observability.filter.invalid_number"
+        );
+    }
+
+    public static UnsupportedObservabilityFilterException valueOutOfRange(String filterName, String value, Number min, Number max) {
+        return new UnsupportedObservabilityFilterException(
+            "Value '" + value + "' is outside the range [" + min + ", " + max + "] of filter '" + filterName + "'",
+            "observability.filter.value_out_of_range"
+        );
+    }
+
+    public static UnsupportedObservabilityFilterException invertedRange(String filterName, long lower, long upper) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" + filterName + "' asks for values >= " + lower + " and <= " + upper + ", which nothing matches",
+            "observability.filter.inverted_range"
+        );
+    }
+
+    public static UnsupportedObservabilityFilterException repeated(String filterName, List<String> operators) {
+        return new UnsupportedObservabilityFilterException(
+            "Filter '" +
+                filterName +
+                "' appears " +
+                operators.size() +
+                " times " +
+                operators +
+                ". Send one condition per filter, or one GTE and one LTE for a numeric range.",
+            "observability.filter.repeated"
         );
     }
 

@@ -22,7 +22,6 @@ import io.gravitee.gamma.rest.core.observability.filter.domain_service.Observabi
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.ExtensibleFilters;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
-import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.model.StaticFilters;
@@ -269,7 +268,7 @@ public class SearchObservabilityLogsUseCase {
         var explicitValues = conditions
             .stream()
             .filter(SearchObservabilityLogsUseCase::isEntrypointCondition)
-            .flatMap(SearchObservabilityLogsUseCase::selectedEntrypoints)
+            .flatMap(condition -> condition.values().stream())
             .toList();
         return explicitValues.isEmpty()
             ? EntrypointScope.excluding(entrypointScopeProvider.excludedFromLogs())
@@ -281,18 +280,6 @@ public class SearchObservabilityLogsUseCase {
             .stream()
             .filter(condition -> !isEntrypointCondition(condition))
             .toList();
-    }
-
-    /**
-     * The values one condition selects, read as the analytics engine reads the same condition: {@code EQ} names a
-     * single entrypoint, so both signals answer a given filter chip with the same set.
-     */
-    private static Stream<String> selectedEntrypoints(FilterCondition condition) {
-        var values = condition.values();
-        if (values.isEmpty()) {
-            return Stream.empty();
-        }
-        return condition.operator() == FilterOperator.EQ ? Stream.of(values.getFirst()) : values.stream();
     }
 
     private static boolean isEntrypointCondition(FilterCondition condition) {

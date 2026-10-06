@@ -181,6 +181,19 @@ class LogsResourceTest extends AbstractResourceTest {
         }
 
         @Test
+        void should_return_400_when_a_filter_value_is_not_a_scalar_or_an_array_of_scalars() {
+            var body = Map.of("filters", List.of(Map.of("name", "API", "operator", "IN", "value", List.of(Map.of("id", "api-1")))));
+
+            Response response = rootTarget("search").request().post(Entity.entity(body, MediaType.APPLICATION_JSON_TYPE));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("technicalCode").asText()).isEqualTo(
+                "observability.filter.invalid_value_shape"
+            );
+            verifyNoInteractions(searchLogsUseCase);
+        }
+
+        @Test
         void should_return_400_rather_than_500_when_the_filters_hold_a_null() {
             var body = new HashMap<String, Object>();
             body.put("filters", Arrays.asList((Object) null));

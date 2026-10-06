@@ -21,6 +21,7 @@ import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObs
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.resources.observability.dto.FilterValues;
+import java.util.Locale;
 
 /**
  * Request shape for one dashboard filter (OBS-16). {@code value} is polymorphic — scalar or array,
@@ -41,10 +42,10 @@ public record SaveDashboardFilterDto(String name, String label, String operator,
         }
         FilterOperator op;
         try {
-            op = FilterOperator.valueOf(operator.toUpperCase());
+            op = FilterOperator.valueOf(operator.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw UnsupportedObservabilityFilterException.unsupportedOperator(name, operator);
         }
-        return new DashboardFilter(new FilterCondition(name, op, FilterValues.normalize(value)), label, editable != null && editable);
+        return new DashboardFilter(new FilterCondition(name, op, FilterValues.normalize(name, value)), label, editable != null && editable);
     }
 }
