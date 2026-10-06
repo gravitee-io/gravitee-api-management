@@ -26,6 +26,8 @@ import { CategoriesApi } from '../../../../../../lib/management-webclient-sdk/sr
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
+const ENCRYPTED_VALUE_MASK = '•'.repeat(12);
+
 const v2ApisResourceAsAdmin = new APIsApiV2(forManagementV2AsAdminUser());
 const shardingTagsAsAdmin = new ShardingTagsApi(forManagementAsAdminUser());
 const groupsAsAdmin = new GroupsApi(forManagementAsAdminUser());
@@ -187,7 +189,7 @@ describeIfV4EmulationEngine('API - Imports OpenAPI specification', () => {
     expect(importedApi.properties).toStrictEqual([
       {
         key: 'prop1',
-        value: 'propValue1',
+        value: ENCRYPTED_VALUE_MASK,
         encrypted: true,
         encryptable: undefined,
         dynamic: false,
