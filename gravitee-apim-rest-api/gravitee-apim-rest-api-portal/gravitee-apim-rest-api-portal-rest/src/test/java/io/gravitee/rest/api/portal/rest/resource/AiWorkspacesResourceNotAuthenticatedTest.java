@@ -35,5 +35,6 @@ class AiWorkspacesResourceNotAuthenticatedTest extends AbstractResourceTest {
     @Test
     void anonymous_caller_is_unauthorized() {
         assertThat(target().request().get().getStatus()).isEqualTo(401);
+        assertThat(target().path("ws-1").request().get().getStatus()).isEqualTo(401);
     }
 }

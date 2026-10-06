@@ -48,11 +48,15 @@ public class AiWorkspaceMembershipQuery {
     private final SubscriptionSearchQueryService subscriptionSearchQueryService;
 
     public List<AiWorkspaceMembership> find(ExecutionContext executionContext, Set<String> applicationIds) {
+        return find(executionContext, applicationIds, null);
+    }
+
+    public List<AiWorkspaceMembership> find(ExecutionContext executionContext, Set<String> applicationIds, Set<String> apiProductIds) {
         if (applicationIds == null || applicationIds.isEmpty()) {
             return List.of();
         }
         var byProduct = new LinkedHashMap<String, SubscriptionEntity>();
-        subscriptions(executionContext, applicationIds)
+        subscriptions(executionContext, applicationIds, apiProductIds)
             .stream()
             .filter(subscription -> subscription.getReferenceId() != null)
             .filter(subscription -> "API_PRODUCT".equals(subscription.getReferenceType()))
@@ -73,11 +77,15 @@ public class AiWorkspaceMembershipQuery {
             .toList();
     }
 
-    private List<SubscriptionEntity> subscriptions(ExecutionContext executionContext, Set<String> applicationIds) {
+    private List<SubscriptionEntity> subscriptions(
+        ExecutionContext executionContext,
+        Set<String> applicationIds,
+        Set<String> apiProductIds
+    ) {
         var criteria = new SubscriptionSearchQueryService.Criteria(
             Set.of(SubscriptionReferenceType.API_PRODUCT),
             null,
-            null,
+            apiProductIds,
             applicationIds,
             null,
             Set.of(SubscriptionStatus.ACCEPTED),
