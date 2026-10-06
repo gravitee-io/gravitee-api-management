@@ -16,6 +16,7 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { By } from '@angular/platform-browser';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -24,7 +25,9 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTooltipHarness } from '@angular/material/tooltip/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -34,8 +37,10 @@ import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-a
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
+import { ENCRYPTED_VALUE_MASK } from '../../../../shared/utils';
 import { Api, fakeApiV2, fakeApiV4, KubernetesContext } from '../../../../entities/management-api-v2/api';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
@@ -113,7 +118,7 @@ describe('ApiPropertiesComponent', () => {
       },
       {
         key: 'key2',
-        value: '*************',
+        value: ENCRYPTED_VALUE_MASK,
         isValueDisabled: true,
         characteristic: 'Encrypted',
       },
@@ -124,6 +129,170 @@ describe('ApiPropertiesComponent', () => {
         characteristic: 'Unencrypted Dynamic',
       },
     ]);
+  });
+
+  it('should visually distinguish the Dynamic chip from Unencrypted', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key3', value: 'value3', dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const dynamicChip = await loader.getHarness(SpanHarness.with({ selector: '[data-testid="property-characteristic-dynamic"]' }));
+    expect(await dynamicChip.getText()).toEqual('Dynamic');
+
+    const dynamicChipHost = await dynamicChip.host();
+    expect(await dynamicChipHost.hasClass('gio-badge-neutral')).toEqual(false);
+  });
+
+  it('should disable the value input for encrypted and dynamic properties (AC-4)', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [
+          { key: 'encryptedKey', value: 'cipher', encrypted: true },
+          { key: 'dynamicKey', value: 'value', dynamic: true },
+        ],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const rows = await table.getRows();
+
+    const encryptedValueInput = await (await rows[0].getCells())[1].getHarness(MatInputHarness);
+    expect(await encryptedValueInput.isDisabled()).toEqual(true);
+
+    const dynamicValueInput = await (await rows[1].getCells())[1].getHarness(MatInputHarness);
+    expect(await dynamicValueInput.isDisabled()).toEqual(true);
+  });
+
+  it('should block copy and paste on an encrypted value (EXT-165)', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'encryptedKey', value: 'cipher', encrypted: true }],
+      }),
+    );
+    fixture.detectChanges();
+
+    const valueInput = fixture.debugElement.query(By.css('[data-testid="property-value"]'));
+    const copyEvent = new Event('copy', { cancelable: true });
+    const pasteEvent = new Event('paste', { cancelable: true });
+
+    valueInput.triggerEventHandler('copy', copyEvent);
+    valueInput.triggerEventHandler('paste', pasteEvent);
+
+    expect(copyEvent.defaultPrevented).toEqual(true);
+    expect(pasteEvent.defaultPrevented).toEqual(true);
+  });
+
+  it('should show a security tooltip on an encrypted value (EXT-165)', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'encryptedKey', value: 'cipher', encrypted: true }],
+      }),
+    );
+
+    const tooltip = await loader.getHarness(MatTooltipHarness.with({ selector: '[data-testid="property-value"]' }));
+    await tooltip.show();
+    expect(await tooltip.getTooltipText()).toEqual('Encrypted - value hidden for security');
+  });
+
+  it('should not block copy and paste on a plain value', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'plainKey', value: 'plain-value', encrypted: false }],
+      }),
+    );
+    fixture.detectChanges();
+
+    const valueInput = fixture.debugElement.query(By.css('[data-testid="property-value"]'));
+    const copyEvent = new Event('copy', { cancelable: true });
+    const pasteEvent = new Event('paste', { cancelable: true });
+
+    valueInput.triggerEventHandler('copy', copyEvent);
+    valueInput.triggerEventHandler('paste', pasteEvent);
+
+    expect(copyEvent.defaultPrevented).toEqual(false);
+    expect(pasteEvent.defaultPrevented).toEqual(false);
+  });
+
+  it('should render an encrypted dynamic property row masked, badged, deletable, and without an encrypt action', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'cipher', encrypted: true, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const cellContentByIndex = await getCellContentByIndex(table);
+    expect(cellContentByIndex).toEqual([
+      {
+        key: 'dynamicKey',
+        value: ENCRYPTED_VALUE_MASK,
+        isValueDisabled: true,
+        characteristic: 'EncryptedDynamic',
+      },
+    ]);
+
+    const encryptButtons = await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    expect(encryptButtons).toEqual([]);
+
+    const removeButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    expect(await removeButton.isDisabled()).toEqual(false);
+  });
+
+  it('should allow encrypting a dynamic property row', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'value', dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const encryptValueButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    expect(await encryptValueButton.isDisabled()).toEqual(false);
+  });
+
+  it('should not offer a renew action on an encrypted dynamic property row', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'cipher', encrypted: true, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+
+    const renewButtons = await loader.getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Renew encrypted value"]' }));
+    expect(renewButtons).toEqual([]);
   });
 
   it('should renew encrypted value', async () => {
@@ -181,6 +350,31 @@ describe('ApiPropertiesComponent', () => {
     ]);
   });
 
+  it('should keep a dynamic property value disabled even if renew is invoked directly', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'encryptedValue', encrypted: true, dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+      }),
+    );
+    fixture.detectChanges();
+
+    component.renewEncryptedPropertyValue(component.apiProperties[0]._id);
+    fixture.detectChanges();
+
+    const table = await loader.getHarness(MatTableHarness.with({ selector: '[aria-label="API Properties"]' }));
+    const firstRow = (await table.getRows())[0];
+    const valueCell = (await firstRow.getCells())[1];
+    const valueInput = await valueCell.getHarness(MatInputHarness);
+
+    expect(await valueInput.isDisabled()).toEqual(true);
+  });
+
   it('should encrypt value', async () => {
     expectGetApi(
       fakeApiV4({
@@ -197,14 +391,14 @@ describe('ApiPropertiesComponent', () => {
     const valueCell = (await firstRow.getCells())[1];
     const valueInput = await valueCell.getHarness(MatInputHarness);
 
-    expect(await valueInput.getValue()).toEqual('ValueToEncrypt');
+    expect(await valueInput.getValue()).toEqual(ENCRYPTED_VALUE_MASK);
 
     const cellContentByIndex = await getCellContentByIndex(table);
     expect(cellContentByIndex).toEqual([
       {
         key: 'key2',
-        value: 'ValueToEncrypt',
-        isValueDisabled: false,
+        value: ENCRYPTED_VALUE_MASK,
+        isValueDisabled: true,
         characteristic: 'Encrypted on save',
       },
     ]);
@@ -263,6 +457,37 @@ describe('ApiPropertiesComponent', () => {
     expect(postApiReq.request.body.properties).toEqual([]);
   });
 
+  it('should show an error snackbar when the save is rejected by the server', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+      }),
+    );
+    const errorSpy = jest.spyOn(TestBed.inject(SnackBarService), 'error');
+
+    const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    await removePropertyButton.click();
+
+    const saveBar = await loader.getHarness(GioSaveBarHarness);
+    await saveBar.clickSubmit();
+
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'key2', value: 'ValueToEncrypt', encrypted: false }],
+      }),
+    );
+
+    const postApiReq = httpTestingController.expectOne({
+      method: 'PUT',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+    });
+    postApiReq.flush({ message: 'Invalid property value' }, { status: 400, statusText: 'Bad Request' });
+
+    expect(errorSpy).toHaveBeenCalledWith('Invalid property value');
+  });
+
   it('should disable remove with origin KUBERNETES', async () => {
     expectGetApi(
       fakeApiV4({
@@ -275,6 +500,27 @@ describe('ApiPropertiesComponent', () => {
     const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
     const isDisabled = await removePropertyButton.isDisabled();
     expect(isDisabled).toBe(true);
+  });
+
+  it('should disable the encrypt action and remove for a dynamic property with origin KUBERNETES', async () => {
+    expectGetApi(
+      fakeApiV4({
+        id: API_ID,
+        properties: [{ key: 'dynamicKey', value: 'value', dynamic: true }],
+        services: {
+          dynamicProperty: {
+            enabled: true,
+          },
+        },
+        originContext: new KubernetesContext(),
+      }),
+    );
+
+    const encryptButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Encrypt value"]' }));
+    expect(await encryptButton.isDisabled()).toEqual(true);
+
+    const removePropertyButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Remove property"]' }));
+    expect(await removePropertyButton.isDisabled()).toEqual(true);
   });
 
   it('should add property', async () => {
