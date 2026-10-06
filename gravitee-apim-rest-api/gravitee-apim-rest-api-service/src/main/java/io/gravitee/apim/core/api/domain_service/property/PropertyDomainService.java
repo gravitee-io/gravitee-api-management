@@ -181,4 +181,38 @@ public class PropertyDomainService {
             return null;
         }
     }
+
+    public List<Property> encryptOnFetch(String apiId, List<Property> storedProperties, List<Property> properties) {
+        Map<String, Property> storedDynamicPropertiesByKey = storedProperties
+            .stream()
+            .filter(Objects::nonNull)
+            .filter(Property::isDynamic)
+            .collect(Collectors.toMap(Property::getKey, Function.identity(), (first, second) -> first));
+        return properties
+            .stream()
+            .map(property -> encryptIfNotEncrypted(apiId, storedDynamicPropertiesByKey.get(property.getKey()), property))
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private Property encryptIfNotEncrypted(String apiId, Property stored, Property property) {
+        if (property.isEncrypted()) {
+            return property;
+        }
+        try {
+            return Property.builder()
+                .key(property.getKey())
+                .value(dataEncryptor.encrypt(property.getValue()))
+                .encrypted(true)
+                .dynamic(property.isDynamic())
+                .build();
+        } catch (GeneralSecurityException e) {
+            if (stored != null) {
+                log.error("Unable to encrypt property [{}] of API [{}] on fetch; keeping the stored value", property.getKey(), apiId, e);
+                return stored;
+            }
+            log.error("Unable to encrypt new property [{}] of API [{}] on fetch; dropping it", property.getKey(), apiId, e);
+            return null;
+        }
+    }
 }

@@ -13,13 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.rest.api.common.apiservices.events;
+package io.gravitee.apim.plugin.apiservice.dynamicproperties.http;
 
-import io.gravitee.definition.model.v4.property.Property;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record DynamicPropertiesEvent(String apiId, String pluginId, List<Property> dynamicProperties, boolean encryptOnFetch) {}
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class DynamicPropertiesEncryptionPolicy {
+
+    private boolean encryptOnFetch;
+}
