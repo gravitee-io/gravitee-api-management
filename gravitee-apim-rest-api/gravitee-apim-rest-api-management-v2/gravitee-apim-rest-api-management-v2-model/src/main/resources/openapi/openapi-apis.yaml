@@ -3351,6 +3351,33 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # API Portal Navigation
+    /environments/{envId}/apis/{apiId}/portal-navigation-items:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get the portal documentation owned by an API
+            description: |-
+                Get every portal navigation page, folder and link owned by the API, at any depth, together with
+                the portals the API is listed in.
+
+                Items carry their stored parent: a top-level item has no parent, even when the API is listed.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalNavigationItems
+            responses:
+                "200":
+                    description: The portal documentation owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPortalNavigationItemsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
         parameters:
@@ -3620,6 +3647,41 @@ paths:
 
 components:
     schemas:
+        ApiPortalNavigationItemsResponse:
+            type: object
+            description: The portal documentation owned by an API.
+            properties:
+                items:
+                    type: array
+                    description: The pages, folders and links owned by the API, at any depth.
+                    items:
+                        $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationItem"
+                publications:
+                    type: array
+                    description: |-
+                        Where the API is listed, one entry per portal listing it. Empty when the API is not listed.
+                        A listing under an API product is not reported here.
+                    items:
+                        $ref: "#/components/schemas/ApiPortalPublication"
+            required:
+                - items
+                - publications
+        ApiPortalPublication:
+            type: object
+            description: The listing of an API in a portal.
+            properties:
+                portalId:
+                    type: string
+                    description: The id of the portal listing the API.
+                portalNavigationItem:
+                    $ref: "./openapi-environments.yaml#/components/schemas/PortalNavigationApi"
+                sectionName:
+                    type: string
+                    description: The title of the navigation item holding the listing, whose id is the listing's `parentId`.
+            required:
+                - portalId
+                - portalNavigationItem
+                - sectionName
         ApiMergePatch:
             type: object
             description: |-

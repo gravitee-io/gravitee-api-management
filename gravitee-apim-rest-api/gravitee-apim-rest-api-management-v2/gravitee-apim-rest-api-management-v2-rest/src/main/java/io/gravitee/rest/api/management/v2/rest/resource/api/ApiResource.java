@@ -366,6 +366,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiPagesResource.class);
     }
 
+    @Path("/portal-navigation-items")
+    public ApiDocumentationNavigationResource getApiDocumentationNavigationResource() {
+        return resourceContext.getResource(ApiDocumentationNavigationResource.class);
+    }
+
     @Path("/metadata")
     public ApiMetadataResource getApiMetadataResource() {
         return resourceContext.getResource(ApiMetadataResource.class);
