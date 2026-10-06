@@ -39,6 +39,7 @@ const PROVIDER_LABEL_BY_TOKEN: [token: string, label: string][] = [
     ['confluent-platform', 'Confluent Platform'],
     ['mulesoft', 'MuleSoft'],
     ['edge-stack', 'Edge Stack'],
+    ['sap-api-management', 'SAP Business Technology Platform'],
 ];
 const SUPPORTED_PROVIDER_TOKENS = PROVIDER_LABEL_BY_TOKEN.map(([token]) => token);
 const UNMAPPED_PROVIDER_TOKEN = 'kong';

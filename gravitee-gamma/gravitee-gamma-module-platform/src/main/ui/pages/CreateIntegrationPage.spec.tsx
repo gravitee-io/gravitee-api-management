@@ -125,6 +125,7 @@ describe('CreateIntegrationPage', () => {
         { label: 'Confluent Platform', provider: 'confluent-platform' },
         { label: 'MuleSoft', provider: 'mulesoft' },
         { label: 'Edge Stack', provider: 'edge-stack' },
+        { label: 'SAP Business Technology Platform', provider: 'sap-api-management' },
     ])(
         'creates a $label integration with the exact $provider provider token, notifies success, and opens the created integration',
         async ({ label, provider }) => {
