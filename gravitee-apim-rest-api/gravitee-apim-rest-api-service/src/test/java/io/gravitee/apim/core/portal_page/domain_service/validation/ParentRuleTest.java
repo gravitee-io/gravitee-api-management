@@ -20,9 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator.PendingUpdate;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentAreaMismatchException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
@@ -149,6 +151,66 @@ class ParentRuleTest {
         var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
 
         assertThatCode(() -> rule.validate(pageUpdate(FOLDER_ID), existing, UpdateValidationContext.empty())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_apply_to_an_update_with_only_a_rendered_parent() {
+        var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
+        var update = pageUpdate(null).toBuilder().renderedParentId(FOLDER_ID).build();
+
+        assertThat(rule.appliesTo(update, existing)).isTrue();
+        assertThat(rule.appliesTo(pageUpdate(null), existing)).isFalse();
+    }
+
+    @Test
+    void should_validate_visibility_against_the_persisted_rendered_parent() {
+        navigationItemsQueryService.storage().add(privatePublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR));
+        var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
+        var update = pageUpdate(null).toBuilder().renderedParentId(FOLDER_ID).build();
+
+        assertThatThrownBy(() -> rule.validate(update, existing, UpdateValidationContext.empty()))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void should_validate_area_against_a_pending_rendered_parent() {
+        var pendingParent = folderCreate(FOLDER_ID, PortalArea.HOMEPAGE);
+        var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
+        var update = pageUpdate(null).toBuilder().renderedParentId(FOLDER_ID).build();
+        var ctx = new UpdateValidationContext(List.of(), Map.of(), Map.of(FOLDER_ID, pendingParent), Map.of(), List.of());
+
+        assertThatThrownBy(() -> rule.validate(update, existing, ctx)).isInstanceOf(ParentAreaMismatchException.class);
+    }
+
+    @Test
+    void should_validate_publication_against_a_pending_rendered_parent_update() {
+        var parent = publicPublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR);
+        navigationItemsQueryService.storage().add(parent);
+        var parentUpdate = UpdatePortalNavigationItem.builder().type(PortalNavigationItemType.FOLDER).published(false).build();
+        var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
+        var update = pageUpdate(null).toBuilder().renderedParentId(FOLDER_ID).build();
+        var ctx = new UpdateValidationContext(
+            List.of(),
+            Map.of(),
+            Map.of(),
+            Map.of(FOLDER_ID, new PendingUpdate(parentUpdate, parent)),
+            List.of()
+        );
+
+        assertThatThrownBy(() -> rule.validate(update, existing, ctx))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLISHED");
+    }
+
+    @Test
+    void should_reject_a_cycle_through_the_rendered_parent() {
+        var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
+        var update = pageUpdate(null).toBuilder().renderedParentId(ITEM_ID).build();
+
+        assertThatThrownBy(() -> rule.validate(update, existing, UpdateValidationContext.empty()))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("Cyclic dependency");
     }
 
     @Test

@@ -91,33 +91,38 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
     @Override
     public boolean appliesTo(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem) {
-        return toUpdate.getParentId() != null;
+        return validationParentId(toUpdate) != null;
     }
 
     @Override
     public void validate(UpdatePortalNavigationItem toUpdate, PortalNavigationItem existingItem, UpdateValidationContext ctx) {
-        ParentHierarchyValidation.ensureAcyclic(existingItem.getId(), toUpdate.getParentId(), ctx.itemsById(), ctx.pendingItemsById());
+        var parentId = validationParentId(toUpdate);
+        ParentHierarchyValidation.ensureAcyclic(existingItem.getId(), parentId, ctx.itemsById(), ctx.pendingItemsById());
 
-        var pendingParent = ctx.pendingItemsById().get(toUpdate.getParentId());
+        var pendingParent = ctx.pendingItemsById().get(parentId);
         if (pendingParent != null) {
             validatePendingParent(toUpdate, existingItem, pendingParent);
             return;
         }
 
-        var pendingParentUpdate = ctx.pendingUpdatesByExistingId().get(toUpdate.getParentId());
+        var pendingParentUpdate = ctx.pendingUpdatesByExistingId().get(parentId);
         if (pendingParentUpdate != null && !Objects.equals(pendingParentUpdate.existing().getId(), existingItem.getId())) {
             validatePendingParentUpdate(toUpdate, existingItem, pendingParentUpdate);
             return;
         }
 
         validateParent(
-            toUpdate.getParentId(),
+            parentId,
             existingItem.getArea(),
             existingItem.getEnvironmentId(),
             toUpdate.getPublished() != null ? toUpdate.getPublished() : false,
             toUpdate.getVisibility(),
             existingItem.getAutomationMetadata() != null
         );
+    }
+
+    private static PortalNavigationItemId validationParentId(UpdatePortalNavigationItem toUpdate) {
+        return toUpdate.getRenderedParentId() != null ? toUpdate.getRenderedParentId() : toUpdate.getParentId();
     }
 
     private void validatePendingParentUpdate(
