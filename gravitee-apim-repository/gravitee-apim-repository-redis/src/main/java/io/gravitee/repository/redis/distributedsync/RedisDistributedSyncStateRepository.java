@@ -102,6 +102,10 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
                 if (tombstoneHorizonResponse != null) {
                     distributedSyncStateBuilder.tombstoneHorizon(tombstoneHorizonResponse.toLong());
                 }
+                Response topologyResponse = item.get(DistributedSyncState.Fields.topology);
+                if (topologyResponse != null) {
+                    distributedSyncStateBuilder.topology(topologyResponse.toString());
+                }
                 return distributedSyncStateBuilder.build();
             });
     }
@@ -140,6 +144,7 @@ public class RedisDistributedSyncStateRepository implements DistributedSyncState
             addIfPresent(args, DistributedSyncState.Fields.resyncId, distributedSyncState.getResyncId());
             addIfPresent(args, DistributedSyncState.Fields.heartbeatAt, distributedSyncState.getHeartbeatAt());
             addIfPresent(args, DistributedSyncState.Fields.tombstoneHorizon, distributedSyncState.getTombstoneHorizon());
+            addIfPresent(args, DistributedSyncState.Fields.topology, distributedSyncState.getTopology());
             return Completable.fromCompletionStage(
                 redisClient
                     .redisApi()

@@ -129,11 +129,19 @@ public interface DistributedSyncService {
     default void recordLocalDeployFailure() {}
 
     /**
+/**
      * Records that the primary deployed an entity locally, so the cycle can compare what was deployed with what
      * was actually distributed (see {@link DistributedSyncMetrics#localDeploys()}). No-op when distributed sync is
      * disabled: nothing must be distributed.
      */
     default void recordLocalDeploy() {}
+
+    /**
+     * Compares what the primary publishes with what this secondary expects (topology) and reports a primary that
+     * stopped publishing (heartbeat age).
+     */
+    default void inspectPrimaryState(final DistributedSyncState state) {}
+
 
     Completable distributeIfNeeded(final ApiReactorDeployable deployable);
 

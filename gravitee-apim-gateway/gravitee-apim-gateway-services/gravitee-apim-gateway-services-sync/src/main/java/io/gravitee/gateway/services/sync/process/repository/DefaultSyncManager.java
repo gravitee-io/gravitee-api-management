@@ -324,6 +324,7 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
             .map(Optional::of)
             .defaultIfEmpty(Optional.empty())
             .flatMap(state -> {
+                state.ifPresent(distributedSyncService::inspectPrimaryState);
                 if (state.isEmpty() || !state.get().active()) {
                     if (!syncReadyForProbe.get()) {
                         log.info(

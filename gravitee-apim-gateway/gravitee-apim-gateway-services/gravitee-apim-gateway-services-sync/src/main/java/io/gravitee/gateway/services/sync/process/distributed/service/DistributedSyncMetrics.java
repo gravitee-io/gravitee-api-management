@@ -46,6 +46,11 @@ public class DistributedSyncMetrics {
     private final AtomicLong heldWindows = new AtomicLong();
     private final AtomicLong staleEntriesRemoved = new AtomicLong();
     private final AtomicLong skippedStaleEntriesRemovals = new AtomicLong();
+    private final AtomicLong skippedDistributions = new AtomicLong();
+    private final AtomicLong unsupportedSchemaEvents = new AtomicLong();
+    private final AtomicLong primaryHeartbeatAgeMs = new AtomicLong(-1);
+    private volatile boolean topologyMismatch;
+    private volatile boolean foreignWriterDetected;
     private final Map<DistributedEventType, AtomicLong> deadLettersByType = Collections.synchronizedMap(
         new EnumMap<>(DistributedEventType.class)
     );
@@ -114,6 +119,49 @@ public class DistributedSyncMetrics {
 
     public long skippedStaleEntriesRemovals() {
         return skippedStaleEntriesRemovals.get();
+    }
+
+    public void recordSkippedDistribution() {
+        skippedDistributions.incrementAndGet();
+    }
+
+    public long skippedDistributions() {
+        return skippedDistributions.get();
+    }
+
+    public void recordUnsupportedSchemaEvent() {
+        unsupportedSchemaEvents.incrementAndGet();
+    }
+
+    public long unsupportedSchemaEvents() {
+        return unsupportedSchemaEvents.get();
+    }
+
+    public void recordPrimaryHeartbeatAge(final long ageMs) {
+        primaryHeartbeatAgeMs.set(ageMs);
+    }
+
+    /**
+     * @return how old the primary heartbeat was at the last secondary cycle, {@code -1} when unknown
+     */
+    public long primaryHeartbeatAgeMs() {
+        return primaryHeartbeatAgeMs.get();
+    }
+
+    public void topologyMismatch(final boolean mismatch) {
+        topologyMismatch = mismatch;
+    }
+
+    public boolean topologyMismatch() {
+        return topologyMismatch;
+    }
+
+    public void foreignWriterDetected(final boolean detected) {
+        foreignWriterDetected = detected;
+    }
+
+    public boolean foreignWriterDetected() {
+        return foreignWriterDetected;
     }
 
     public long deadLetters() {

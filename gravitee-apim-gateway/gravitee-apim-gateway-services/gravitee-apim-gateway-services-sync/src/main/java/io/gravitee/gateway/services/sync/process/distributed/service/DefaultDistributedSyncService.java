@@ -50,6 +50,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
+import io.gravitee.repository.distributedsync.api.DistributedSyncUnavailableException;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -66,6 +67,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import lombok.CustomLog;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -115,6 +117,13 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     private volatile boolean stateStoredByThisNode;
     private volatile long lastTombstonePurgeAt;
     private volatile Long lastTombstoneHorizon;
+    /** A write failed because the repository is unreachable: the remaining writes of the cycle are not attempted. */
+    private volatile boolean repositoryUnavailable;
+    private volatile String reportedPrimaryTopology;
+    private volatile boolean reportedStalePrimary;
+
+    /** Version of the distributed event payload format written by this gateway. */
+    public static final int EVENT_SCHEMA_VERSION = 1;
 
     private final Node node;
     private final ClusterManager clusterManager;
@@ -167,6 +176,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public boolean beginCycle() {
         boolean primary = clusterManager.self().primary();
         pinnedPrimary = primary;
+        repositoryUnavailable = false;
         replayCycle = primary && replayRequired.get();
         if (replayCycle) {
             metrics.recordReplayedCycle();
@@ -281,6 +291,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 .defaultIfEmpty(Optional.empty())
                 .flatMap(storedState -> {
                     storedState.map(DistributedSyncState::getResyncId).ifPresent(id -> knownResyncId.accumulateAndGet(id, Math::max));
+                    storedState.ifPresent(this::detectForeignWriter);
                     if (!resyncPending.get()) {
                         if (storedState.isEmpty() && stateStoredByThisNode) {
                             requestResync("the distributed sync state disappeared from the distributed repository");
@@ -294,6 +305,57 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                     return startResync().toSingleDefault(true);
                 });
         });
+    }
+
+    /**
+     * Once this primary stored the state, reading another node id back means another node stored it since: two nodes
+     * write the same catalog (cluster split, or two clusters sharing the same cluster name and Redis). Their catalogs
+     * may differ (sharding tags, versions), so the secondaries may serve a mix of both.
+     */
+    private void detectForeignWriter(final DistributedSyncState storedState) {
+        boolean foreign = stateStoredByThisNode && storedState.getNodeId() != null && !storedState.getNodeId().equals(node.id());
+        if (foreign && !metrics.foreignWriterDetected()) {
+            log.error(
+                "Node [{}] also writes the distributed sync state of cluster [{}]: two primaries share the same distributed repository " +
+                    "(cluster split, or several clusters with the same cluster name). Use a distinct cluster name per gateway cluster.",
+                storedState.getNodeId(),
+                clusterManager.clusterId()
+            );
+        }
+        metrics.foreignWriterDetected(foreign);
+    }
+
+    @Override
+    public void inspectPrimaryState(final DistributedSyncState state) {
+        String primaryTopology = state.getTopology();
+        boolean mismatch = primaryTopology != null && settings.topology() != null && !primaryTopology.equals(settings.topology());
+        if (mismatch && !primaryTopology.equals(reportedPrimaryTopology)) {
+            log.warn(
+                "This gateway synchronizes [{}] but the distributed sync primary [{}] publishes [{}]: entities the primary does not " +
+                    "publish will be missing here. All gateways of a cluster should share sharding tags, tenant, organizations and environments.",
+                settings.topology(),
+                state.getNodeId(),
+                primaryTopology
+            );
+            reportedPrimaryTopology = primaryTopology;
+        }
+        metrics.topologyMismatch(mismatch);
+
+        if (state.getHeartbeatAt() != null) {
+            long age = System.currentTimeMillis() - state.getHeartbeatAt();
+            metrics.recordPrimaryHeartbeatAge(age);
+            boolean stale = settings.primaryStaleAfterMs() > 0 && age > settings.primaryStaleAfterMs();
+            if (stale && !reportedStalePrimary) {
+                log.warn(
+                    "The distributed sync primary [{}] has not published its state for {}s: changes are not reaching this gateway",
+                    state.getNodeId(),
+                    age / 1000
+                );
+            } else if (!stale && reportedStalePrimary) {
+                log.info("The distributed sync primary [{}] publishes its state again", state.getNodeId());
+            }
+            reportedStalePrimary = stale;
+        }
     }
 
     private Completable startResync() {
@@ -434,6 +496,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
             .resyncId(resyncId > 0 ? resyncId : null)
             .heartbeatAt(System.currentTimeMillis())
             .tombstoneHorizon(tombstoneHorizon)
+            .topology(settings.topology())
             .build();
     }
 
@@ -446,6 +509,9 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                     distribute(apiMapper.to(deployable)).andThen(
                         Completable.defer(() -> {
                             if (deployable.syncAction() == SyncAction.UNDEPLOY) {
+                                if (repositoryUnavailable) {
+                                    return skippedWrite();
+                                }
                                 return distributedEventRepository.updateAllAtWriteTime(
                                     clusterManager.clusterId(),
                                     DistributedEventType.API,
@@ -466,8 +532,21 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     }
 
     private Completable createOrUpdateEvent(final DistributedEvent event) {
-        event.setClusterId(clusterManager.clusterId());
-        return distributedEventRepository.createOrUpdateAtWriteTime(event);
+        return Completable.defer(() -> {
+            if (repositoryUnavailable) {
+                return skippedWrite();
+            }
+            event.setClusterId(clusterManager.clusterId());
+            event.setSchemaVersion(EVENT_SCHEMA_VERSION);
+            return distributedEventRepository.createOrUpdateAtWriteTime(event);
+        });
+    }
+
+    private Completable skippedWrite() {
+        metrics.recordSkippedDistribution();
+        return Completable.error(
+            new DistributedSyncTransientException("The distributed sync repository is unavailable, the write is not attempted", null)
+        );
     }
 
     @Override
@@ -639,6 +718,12 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
             distributionFailed.set(true);
             replayRequired.set(true);
             metrics.recordDistributionFailure();
+            if (!repositoryUnavailable && ExceptionUtils.throwableOfType(throwable, DistributedSyncUnavailableException.class) != null) {
+                repositoryUnavailable = true;
+                log.warn(
+                    "The distributed sync repository is unavailable: the other distributions of this cycle are skipped and the sync window will be replayed"
+                );
+            }
             return Completable.error(
                 new DistributedSyncTransientException(
                     "Unable to distribute %s event for [%s], the sync time window will be replayed".formatted(eventType, id),

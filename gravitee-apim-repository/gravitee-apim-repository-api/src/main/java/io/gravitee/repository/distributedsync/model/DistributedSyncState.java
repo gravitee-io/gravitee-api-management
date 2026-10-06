@@ -49,6 +49,8 @@ public class DistributedSyncState {
     private Long heartbeatAt;
     /** Removal events older than this instant have been purged from the distributed repository. */
     private Long tombstoneHorizon;
+    /** Sharding tags, tenant, organizations and environments the primary synchronizes, to detect mismatching secondaries. */
+    private String topology;
 
     public boolean active() {
         return status == null || status == DistributedSyncStatus.ACTIVE;

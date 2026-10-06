@@ -48,4 +48,6 @@ public class DistributedEvent {
     private DistributedEventType type;
     private DistributedSyncAction syncAction;
     private Date updatedAt;
+    /** Version of the payload format; {@code null} for events written by gateways that predate it. */
+    private Integer schemaVersion;
 }
