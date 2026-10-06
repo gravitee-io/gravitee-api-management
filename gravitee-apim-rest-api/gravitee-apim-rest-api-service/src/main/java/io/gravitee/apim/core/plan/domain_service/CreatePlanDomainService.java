@@ -26,6 +26,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.crud_service.KafkaPortRangeCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -138,7 +139,7 @@ public class CreatePlanDomainService {
     }
 
     private PlanWithFlows createHttpV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
-        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows);
+        var sanitizedFlows = flowValidationDomainService.validateAndSanitizeHttpV4(api.getType(), flows, ApiResourceNames.fromHttpV4(api));
         flowValidationDomainService.validatePathParameters(
             api.getType(),
             api.getApiDefinitionHttpV4().getFlows() != null ? api.getApiDefinitionHttpV4().getFlows().stream() : Stream.empty(),

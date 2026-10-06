@@ -50,6 +50,7 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Path;
+import io.gravitee.apim.core.flow.domain_service.XmlValidationPolicyChecker;
 import io.gravitee.apim.core.subscription_form.domain_service.RemoveApiFromSubscriptionFormDomainService;
 import io.gravitee.apim.core.utils.CollectionUtils;
 import io.gravitee.common.data.domain.Page;
@@ -1562,7 +1563,10 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .getPre()
                         .stream()
                         .filter(Step::isEnabled)
-                        .forEach(step -> policyService.validatePolicyConfiguration(step))
+                        .forEach(step -> {
+                            rejectRegistryXmlValidationOnV2(step);
+                            policyService.validatePolicyConfiguration(step);
+                        })
                 );
 
             flows
@@ -1573,8 +1577,21 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .getPost()
                         .stream()
                         .filter(Step::isEnabled)
-                        .forEach(step -> policyService.validatePolicyConfiguration(step))
+                        .forEach(step -> {
+                            rejectRegistryXmlValidationOnV2(step);
+                            policyService.validatePolicyConfiguration(step);
+                        })
                 );
+        }
+    }
+
+    private void rejectRegistryXmlValidationOnV2(Step step) {
+        if (step == null || step.getPolicy() == null) {
+            return;
+        }
+        String error = XmlValidationPolicyChecker.rejectRegistryOnUnsupportedDefinition(step.getPolicy(), step.getConfiguration());
+        if (error != null) {
+            throw new InvalidDataException(error);
         }
     }
 
