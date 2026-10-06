@@ -424,12 +424,12 @@ The natural home is `PortalNavigationItemCreationExpansionDomainService.expand(.
 | Action | What happens | Visible in the portal? |
 |---|---|---|
 | Gamma: write documentation | Content + items owned by the API; no listing row yet | No — nothing to graft into |
-| Gamma: "Publish to Portal" | Listing row created at the chosen folder, published | Yes |
+| Gamma: "Publish to Portal" | Listing row created at the chosen folder, or an existing hidden row moved there and made visible; all the API's items published | Yes |
 | Editor: add an API to the navigation | Listing row created immediately, **unpublished**; starter page seeded **only if the API has no documentation yet** | No — the row hides everything below it |
 | Editor: add a page under a listed API | Created immediately, owned by the API | No, until published |
-| Either: unpublish | Listing row deleted; the documentation survives | No |
+| Either: unpublish | Listing row hidden, **not deleted**; all the API's items hidden; the documentation survives | No |
 
-It is **the listing row** that starts unpublished, not the pages. The row hides everything below it, and rewriting the pages' own flags would unpublish the API in every other portal that lists it.
+In the editor it is **the listing row** that starts unpublished, not the pages; the row hides everything below it. Publishing or unpublishing the whole API also sets every item's own flag (STORY-16). An API counts as published only when its listing row exists **and** is visible.
 
 ### Permissions
 
@@ -815,17 +815,20 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Acceptance criteria:**
 - With only API documentation permission, the API can be published into an existing section and unpublished again.
 - Publishing an API already published in that part of the tree is rejected with the existing error.
-- Unpublishing leaves the API's documentation intact.
+- Publishing an API that already has a **hidden** listing row, for example one added in the portal editor, is not rejected: the row is moved to the chosen section if it is elsewhere, and made visible. This goes through the existing update path, so `ApiItemUpdateRule` still applies.
+- Unpublishing hides the listing row instead of deleting it, so the API's documentation and anything still stored under the row stay intact.
 - The existing constraints still hold: a section must be chosen, it must be in the main navigation, and no section can be created along the way.
 - Publishing the API publishes all its pages, folders and links; unpublishing hides them all, as the portal editor does once STORY-02 lands. While the API is published, individual items can still be hidden or shown (STORY-31). Accepted limitation: republishing also re-shows items that were hidden individually.
 **Files:**
 - *create* `V2REST/resource/api/ApiPortalPublicationResource.java` — publish and unpublish under the API path
-- *read only* `CORE/portal_page/use_case/CreatePortalNavigationItemUseCase.java`, `DeletePortalNavigationItemUseCase.java` — delegated to unchanged
-- *read only* `CORE/portal_page/domain_service/validation/ApiItemCreateRule.java` — the constraints that make this permission safe; covered by tests, not modified
+- *read only* `CORE/portal_page/use_case/CreatePortalNavigationItemUseCase.java`, `UpdatePortalNavigationItemUseCase.java` — delegated to unchanged
+- *read only* `CORE/portal_page/domain_service/validation/ApiItemCreateRule.java`, `ApiItemUpdateRule.java` — the constraints that make this permission safe; covered by tests, not modified
 **Size:** M · **Depends on:** STORY-12, STORY-15
+**Note:** someone with only API documentation permission can now move a listing row an admin placed in the portal editor, limited to their own API and to the allowed sections. Call it out in the PR description.
 **Subtasks:**
 1. Publish, with the existing already-published rejection asserted.
-2. Unpublish, asserting the documentation survives.
+2. Publish an API with a hidden listing row: moved when another section is chosen, left in place otherwise, and made visible.
+3. Unpublish, asserting the row is hidden rather than deleted and the documentation survives.
 
 #### STORY-17 — Refresh an externally sourced page from the API-scoped path
 **Why:** refreshing a page from its external source currently needs environment-wide permission.
@@ -1034,9 +1037,10 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 #### STORY-30 — Publish and unpublish the API from Gamma
 **Why:** this is the step that puts documentation in front of customers, and the product's central promise — write first, choose where it appears later — only holds if the location is picked here. Publishing must also be a deliberate choice of an existing section, since these users are not allowed to create top-level sections.
 **Acceptance criteria:**
-- The dialog lists available sections, preselecting the one named "APIs" by name if present, otherwise the first.
+- The dialog lists available sections, preselecting the section the API's hidden listing row is already in, if any; otherwise the one named "APIs" by name if present, otherwise the first.
+- When the hidden listing row sits somewhere the dialog cannot offer, such as a nested folder, the dialog says where it is and that publishing will move it.
 - On success the screen shows where the API is published.
-- Unpublish is offered only when published, and publish only when not.
+- Unpublish is offered only when published, and publish only when not. A hidden listing row counts as not published.
 - **Decision required:** what the dialog does when no sections exist at all.
 **Files:**
 - *create* `GAMMA/features/apis/components/detail/documentation/PublishToPortalDialog.tsx`
@@ -1363,6 +1367,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Gamma users can manage pages but cannot read or write their content, which needs environment permission | High | STORY-12 Bis |
 | Creating a page can point it at another page's existing content and show that content in the portal | High | STORY-12 refuses `portalPageContentId` on the API-scoped create |
 | Republishing the API re-shows items that were hidden individually | Low (accepted) | STORY-31 warns about it; choosing what to publish can come later |
+| Publishing from Gamma can move a listing row an admin placed in the portal editor | Low (accepted) | Limited to the caller's own API and to allowed sections; `ApiItemUpdateRule` still applies (STORY-16) |
 | The sortable tree is the largest frontend item | Medium | STORY-32 last, cuttable |
 | A hand-made folder blocks a GitOps apply | Accepted | STORY-36 pins and documents it |
 | A console page inside an automation-managed folder is deleted with its content when the config drops that folder | Accepted | Not caused by this work; release-note it |
