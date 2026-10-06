@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,11 +62,22 @@ public class DynamicApiProperties {
             }
         });
 
+        needToBeSaved.compareAndSet(false, hasRemovedDynamicProperty(dynamicProperties));
+
         final List<Property> orderedProperties = Stream.concat(currentUserDefinedProperties.stream(), updatedDynamicProperties.stream())
             .sorted(Comparator.comparing(Property::getKey))
             .toList();
 
         return new DynamicPropertiesResult(orderedProperties, needToBeSaved.get());
+    }
+
+    private boolean hasRemovedDynamicProperty(List<Property> dynamicProperties) {
+        final Set<String> providedKeys = dynamicProperties.stream().map(Property::getKey).collect(Collectors.toSet());
+        return currentPropertiesByKey
+            .values()
+            .stream()
+            .filter(Property::isDynamic)
+            .anyMatch(currentProperty -> !providedKeys.contains(currentProperty.getKey()));
     }
 
     private static boolean isNewProperty(Property previousProperty) {
