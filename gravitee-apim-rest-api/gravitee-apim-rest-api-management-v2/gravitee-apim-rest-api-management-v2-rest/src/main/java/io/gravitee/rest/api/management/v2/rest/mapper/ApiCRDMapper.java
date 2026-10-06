@@ -71,6 +71,18 @@ public interface ApiCRDMapper {
     @Mapping(target = "analytics", expression = "java(mapAnalytics(coreSpec))")
     ApiCRDSpec map(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec);
 
+    /**
+     * The ApiV4Definition CRD schema has no CREATED value, so a manifest meant for kubectl apply
+     * reports an API that was never published as UNPUBLISHED.
+     */
+    default ApiCRDSpec mapForKubernetes(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec) {
+        var spec = map(coreSpec);
+        if (spec.getLifecycleState() == ApiLifecycleState.CREATED) {
+            spec.setLifecycleState(ApiLifecycleState.UNPUBLISHED);
+        }
+        return spec;
+    }
+
     default Analytics mapAnalytics(io.gravitee.apim.core.api.model.crd.ApiCRDSpec coreSpec) {
         if (coreSpec.isNative()) {
             return mapNative(coreSpec.getNativeAnalytics());
