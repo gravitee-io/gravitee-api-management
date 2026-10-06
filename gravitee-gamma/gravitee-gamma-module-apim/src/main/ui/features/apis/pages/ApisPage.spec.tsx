@@ -75,6 +75,7 @@ const FEDERATED_PROVIDERS = [
     'confluent-platform',
     'mulesoft',
     'edge-stack',
+    'sap-api-management',
 ];
 
 function federatedRow(provider?: string) {
