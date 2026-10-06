@@ -20,17 +20,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
+import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.portal.rest.model.AiWorkspace;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspacesResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -56,6 +62,9 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
     @Autowired
     private FlowCrudServiceInMemory flows;
 
+    @Autowired
+    private ApiCrudServiceInMemory apis;
+
     @Override
     protected String contextPath() {
         return "ai-workspaces/";
@@ -73,6 +82,7 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         subscriptions.reset();
         products.reset();
         flows.reset();
+        apis.reset();
         GraviteeContext.cleanContext();
     }
 
@@ -150,6 +160,54 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(200);
         AiWorkspacesResponse body = response.readEntity(AiWorkspacesResponse.class);
         assertThat(body.getData()).isEmpty();
+    }
+
+    @Test
+    void returns_the_workspace_with_its_budget_and_endpoint() {
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE).toBuilder().apiIds(Set.of("api-1")).build()));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+        flows.savePlanFlows("plan-1", List.of(budgetFlow()));
+        apis.initWith(List.of(proxy("api-1", "/alpha/")));
+
+        Response response = target().path("ws-1").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        AiWorkspace body = response.readEntity(AiWorkspace.class);
+        assertThat(body.getName()).isEqualTo("Alpha");
+        assertThat(body.getDescription()).isEqualTo("desc");
+        assertThat(body.getBudget().getAmount()).isEqualTo(5.0);
+        assertThat(body.getBudget().getPeriod().getValue()).isEqualTo("DAY");
+        assertThat(body.getEndpointUrl()).isEqualTo("/alpha/");
+    }
+
+    @Test
+    void returns_the_workspace_when_it_has_no_proxy() {
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE)));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+
+        Response response = target().path("ws-1").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        AiWorkspace body = response.readEntity(AiWorkspace.class);
+        assertThat(body.getEndpointUrl()).isNull();
+        assertThat(body.getBudget()).isNull();
+    }
+
+    @Test
+    void does_not_reveal_a_workspace_the_caller_cannot_see() {
+        products.initWith(List.of(workspace("missing", "Missing", ApiProductKind.AI_WORKSPACE), workspace("catalog", "Catalog", null)));
+        subscriptions.initWith(List.of(subscription("app-1", "catalog")));
+
+        assertThat(target().path("missing").request().get().getStatus()).isEqualTo(404);
+        assertThat(target().path("catalog").request().get().getStatus()).isEqualTo(404);
+        assertThat(target().path("ws-2").request().get().getStatus()).isEqualTo(404);
+
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE)));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+        doReturn(Set.of(application("app-1", "someone-else")))
+            .when(applicationService)
+            .findByUser(any(ExecutionContext.class), eq(USER_NAME));
+        assertThat(target().path("ws-1").request().get().getStatus()).isEqualTo(404);
     }
 
     @Test
@@ -238,6 +296,19 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
             .plan("plan-1")
             .status(SubscriptionStatus.ACCEPTED)
             .createdAt(new Date(1_000))
+            .build();
+    }
+
+    private static Api proxy(String id, String path) {
+        return Api.builder()
+            .id(id)
+            .environmentId("DEFAULT")
+            .type(ApiType.LLM_PROXY)
+            .apiDefinitionHttpV4(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build()))
+                    .build()
+            )
             .build();
     }
 

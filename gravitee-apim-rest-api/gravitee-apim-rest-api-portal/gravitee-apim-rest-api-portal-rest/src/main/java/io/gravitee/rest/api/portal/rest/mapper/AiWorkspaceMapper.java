@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceSummary;
 import java.math.BigDecimal;
 import org.mapstruct.Mapper;
@@ -28,6 +29,8 @@ public interface AiWorkspaceMapper {
     AiWorkspaceMapper INSTANCE = Mappers.getMapper(AiWorkspaceMapper.class);
 
     io.gravitee.rest.api.portal.rest.model.AiWorkspaceSummary toSummary(AiWorkspaceSummary summary);
+
+    io.gravitee.rest.api.portal.rest.model.AiWorkspace toDetails(AiWorkspaceDetails details);
 
     @Mapping(target = "amount", source = "amount", qualifiedByName = "toDollars")
     @Mapping(target = "period", source = "period", qualifiedByName = "toPeriod")

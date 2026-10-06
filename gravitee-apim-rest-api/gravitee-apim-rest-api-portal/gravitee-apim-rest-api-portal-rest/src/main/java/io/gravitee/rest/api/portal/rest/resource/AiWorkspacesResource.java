@@ -17,6 +17,7 @@ package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.rest.api.service.common.GraviteeContext.getExecutionContext;
 
+import io.gravitee.apim.core.ai_workspace.use_case.GetMyAiWorkspaceUseCase;
 import io.gravitee.apim.core.ai_workspace.use_case.ListMyAiWorkspacesUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
@@ -28,6 +29,8 @@ import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
@@ -38,6 +41,9 @@ public class AiWorkspacesResource extends AbstractResource {
 
     @Inject
     private ListMyAiWorkspacesUseCase listMyAiWorkspacesUseCase;
+
+    @Inject
+    private GetMyAiWorkspaceUseCase getMyAiWorkspaceUseCase;
 
     @Inject
     private ApplicationService applicationService;
@@ -56,6 +62,19 @@ public class AiWorkspacesResource extends AbstractResource {
             .map(AiWorkspaceMapper.INSTANCE::toSummary)
             .toList();
         return createListResponse(executionContext, workspaces, pagination);
+    }
+
+    @GET
+    @Path("{aiWorkspaceId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response get(@PathParam("aiWorkspaceId") String aiWorkspaceId) {
+        if (!isAuthenticated()) {
+            throw new UnauthorizedAccessException();
+        }
+        var details = getMyAiWorkspaceUseCase
+            .execute(new GetMyAiWorkspaceUseCase.Input(getExecutionContext(), applicationIds(), aiWorkspaceId))
+            .details();
+        return Response.ok(AiWorkspaceMapper.INSTANCE.toDetails(details)).build();
     }
 
     private Set<String> applicationIds() {
