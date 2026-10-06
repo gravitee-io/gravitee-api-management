@@ -18,10 +18,13 @@ package io.gravitee.gamma.rest.core.observability.filter.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterSpec;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.filter.port.service_provider.FilterRegistry;
+import java.util.EnumSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -37,15 +40,25 @@ import lombok.RequiredArgsConstructor;
  * <p>Each condition is rejected (HTTP 400 via {@link UnsupportedObservabilityFilterException}) when:
  * <ul>
  *   <li>its {@code name} is not in the catalog,</li>
- *   <li>the catalog entry does not apply to the requested signal, or</li>
- *   <li>its {@code operator} is not among the operators the catalog advertises for that filter.</li>
+ *   <li>the catalog entry does not apply to the requested signal,</li>
+ *   <li>its {@code operator} is not among the operators the catalog advertises for that filter,</li>
+ *   <li>it carries no value, or several values on an operator that takes one, or</li>
+ *   <li>a value is not one the filter accepts: blank, an unadvertised ENUM value, a non-number or an
+ *       out-of-range number.</li>
  * </ul>
+ *
+ * <p>A request names each filter once. The only repetition is a {@code GTE} and an {@code LTE} on the
+ * same NUMBER filter, a closed range both signals read as AND. Anything else would read differently
+ * per signal: analytics used to AND repeated conditions, logs to OR them.
  *
  * @author GraviteeSource Team
  */
 @DomainService
 @RequiredArgsConstructor
 public class ObservabilityFilterValidator {
+
+    private static final Set<FilterOperator> MULTI_VALUE_OPERATORS = EnumSet.of(FilterOperator.IN, FilterOperator.NOT_IN);
+    private static final Set<FilterOperator> CLOSED_RANGE = EnumSet.of(FilterOperator.GTE, FilterOperator.LTE);
 
     private final FilterRegistry filterRegistry;
 
@@ -75,11 +88,89 @@ public class ObservabilityFilterValidator {
             if (condition.values() == null || condition.values().isEmpty()) {
                 throw UnsupportedObservabilityFilterException.blankValue(condition.name());
             }
+            validateArity(condition);
             if (spec.type() == FilterType.STRING && hasOnlyBlankValues(condition)) {
                 throw UnsupportedObservabilityFilterException.blankValue(condition.name());
             }
             validateEnumValues(condition, spec);
+            validateNumberValues(condition, spec);
         }
+        validateRepetition(conditions, specsByName);
+    }
+
+    // A single-value operator handed several values was read as its first value by analytics and as IN by
+    // logs: refusing it is the only answer both signals can give.
+    private static void validateArity(FilterCondition condition) {
+        if (!MULTI_VALUE_OPERATORS.contains(condition.operator()) && condition.values().size() != 1) {
+            throw UnsupportedObservabilityFilterException.invalidArity(condition.name(), condition.operator().name(), condition.values());
+        }
+    }
+
+    private static void validateNumberValues(FilterCondition condition, FilterSpec spec) {
+        if (spec.type() != FilterType.NUMBER) {
+            return;
+        }
+        for (String value : condition.values()) {
+            var number = parseNumber(condition.name(), value);
+            var range = spec.range();
+            if (range != null && (isBelow(number, range.min()) || isAbove(number, range.max()))) {
+                throw UnsupportedObservabilityFilterException.valueOutOfRange(condition.name(), value, range.min(), range.max());
+            }
+        }
+    }
+
+    // Every NUMBER filter counts or measures in whole units, and the logs translator parses them as such.
+    private static long parseNumber(String filterName, String value) {
+        try {
+            return Long.parseLong(value.trim());
+        } catch (NumberFormatException e) {
+            throw UnsupportedObservabilityFilterException.invalidNumber(filterName, value);
+        }
+    }
+
+    private static boolean isBelow(long number, Number min) {
+        return min != null && number < min.longValue();
+    }
+
+    private static boolean isAbove(long number, Number max) {
+        return max != null && number > max.longValue();
+    }
+
+    private static void validateRepetition(List<FilterCondition> conditions, Map<String, FilterSpec> specsByName) {
+        conditions
+            .stream()
+            .collect(Collectors.groupingBy(FilterCondition::name, LinkedHashMap::new, Collectors.toList()))
+            .forEach((name, repeated) -> {
+                if (repeated.size() == 1) {
+                    return;
+                }
+                var operators = repeated.stream().map(FilterCondition::operator).toList();
+                if (!isClosedRange(specsByName.get(name), operators)) {
+                    throw UnsupportedObservabilityFilterException.repeated(name, operators.stream().map(FilterOperator::name).toList());
+                }
+                validateRangeBounds(name, repeated);
+            });
+    }
+
+    private static boolean isClosedRange(FilterSpec spec, List<FilterOperator> operators) {
+        return spec.type() == FilterType.NUMBER && operators.size() == 2 && Set.copyOf(operators).equals(CLOSED_RANGE);
+    }
+
+    private static void validateRangeBounds(String name, List<FilterCondition> range) {
+        long lower = boundOf(name, range, FilterOperator.GTE);
+        long upper = boundOf(name, range, FilterOperator.LTE);
+        if (lower > upper) {
+            throw UnsupportedObservabilityFilterException.invertedRange(name, lower, upper);
+        }
+    }
+
+    private static long boundOf(String name, List<FilterCondition> range, FilterOperator operator) {
+        return range
+            .stream()
+            .filter(condition -> condition.operator() == operator)
+            .map(condition -> parseNumber(name, condition.values().getFirst()))
+            .findFirst()
+            .orElseThrow();
     }
 
     /**
