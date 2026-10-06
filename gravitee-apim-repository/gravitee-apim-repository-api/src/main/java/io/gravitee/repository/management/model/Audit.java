@@ -93,6 +93,7 @@ public class Audit {
          * any audit entry, whatever its type, can carry it.
          */
         ENCRYPTED,
+        MCP_SERVER,
     }
 
     private String id;
