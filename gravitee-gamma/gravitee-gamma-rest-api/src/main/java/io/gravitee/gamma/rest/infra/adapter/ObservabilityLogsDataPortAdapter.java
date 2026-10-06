@@ -137,7 +137,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .apis()
             .orElseGet(Collections::emptyList)
             .stream()
-            .map(api -> new AccessibleApi(api.getId(), api.getName(), toGammaApiType(api.getType())))
+            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
             .toList();
     }
 
@@ -151,7 +151,7 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .orElseGet(Collections::emptyList)
             .stream()
             .findFirst()
-            .map(api -> new AccessibleApi(api.getId(), api.getName(), toGammaApiType(api.getType())));
+            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())));
     }
 
     @Override
@@ -199,10 +199,10 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
         // Read by id rather than through loadAccessibleApi: that path enumerates every API the caller
         // can reach only to test one id, and the resource already ran checkApiLogReadPermissionOrCollapse
         // on this one. The environment filter is kept because the by-id read has no scope of its own,
-        // and toGammaApiType because the wire names differ from the definition enum (PROXY -> HTTP_PROXY).
+        // and ApiTypeAdapter because the wire names differ from the definition enum (PROXY -> HTTP_PROXY).
         var api = apiCrudService.findById(apiId).filter(candidate -> candidate.belongsToEnvironment(environmentId));
         var apiType = api
-            .map(found -> toGammaApiType(found.getType()))
+            .map(found -> ApiTypeAdapter.toObservability(found.getType()))
             .map(Enum::name)
             .orElse(null);
 
@@ -908,24 +908,6 @@ public class ObservabilityLogsDataPortAdapter implements ObservabilityLogsDataPo
             .environmentId(environmentId)
             .actor(actor)
             .build();
-    }
-
-    private static io.gravitee.gamma.rest.core.observability.filter.model.ApiType toGammaApiType(
-        io.gravitee.definition.model.v4.ApiType definitionType
-    ) {
-        if (definitionType == null) {
-            return null;
-        }
-        return switch (definitionType) {
-            case PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.HTTP_PROXY;
-            case MESSAGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MESSAGE;
-            case LLM_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.LLM;
-            case MCP_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.MCP;
-            case A2A_PROXY -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.A2A;
-            case NATIVE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.NATIVE;
-            case EDGE -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.EDGE;
-            case AUTHZ -> io.gravitee.gamma.rest.core.observability.filter.model.ApiType.AUTHZ;
-        };
     }
 
     /**

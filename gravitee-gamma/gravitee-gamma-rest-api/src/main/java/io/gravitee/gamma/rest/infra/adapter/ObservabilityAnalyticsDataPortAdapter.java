@@ -47,7 +47,6 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsSortSp
 import io.gravitee.gamma.rest.core.observability.analytics.port.service_provider.ObservabilityAnalyticsDataPort;
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.exception.InvalidObservabilityQueryException;
-import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
@@ -85,7 +84,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             .apis()
             .orElseGet(Collections::emptyList)
             .stream()
-            .map(api -> new AccessibleApi(api.getId(), api.getName(), toGammaApiType(api.getType())))
+            .map(api -> new AccessibleApi(api.getId(), api.getName(), ApiTypeAdapter.toObservability(api.getType())))
             .toList();
     }
 
@@ -297,21 +296,5 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
             actor = AuditActor.builder().userId(userId).build();
         }
         return AuditInfo.builder().organizationId(organizationId).environmentId(environmentId).actor(actor).build();
-    }
-
-    private static ApiType toGammaApiType(io.gravitee.definition.model.v4.ApiType definitionType) {
-        if (definitionType == null) {
-            return null;
-        }
-        return switch (definitionType) {
-            case PROXY -> ApiType.HTTP_PROXY;
-            case MESSAGE -> ApiType.MESSAGE;
-            case LLM_PROXY -> ApiType.LLM;
-            case MCP_PROXY -> ApiType.MCP;
-            case A2A_PROXY -> ApiType.A2A;
-            case NATIVE -> ApiType.NATIVE;
-            case EDGE -> ApiType.EDGE;
-            case AUTHZ -> ApiType.AUTHZ;
-        };
     }
 }
