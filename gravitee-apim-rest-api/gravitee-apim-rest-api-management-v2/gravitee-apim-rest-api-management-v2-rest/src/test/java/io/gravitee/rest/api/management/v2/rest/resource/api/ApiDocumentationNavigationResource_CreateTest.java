@@ -120,6 +120,16 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     }
 
     @Test
+    void should_ignore_the_page_content_id_of_the_request_so_that_no_existing_content_can_be_attached() {
+        var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null);
+
+        Response response = rootTarget().request().post(json(page));
+
+        assertThat(response).hasStatus(CREATED_201);
+        assertThat(capturedItem().getPortalPageContentId()).isNull();
+    }
+
+    @Test
     void should_create_an_item_under_a_folder_of_the_same_api() {
         var folder = aFolderOwnedBy(API_ID);
         portalNavigationItemsQueryService.initWith(List.of(folder));

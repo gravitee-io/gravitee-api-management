@@ -263,7 +263,16 @@ class PortalNavigationItemsMapperTest {
             assertThat(result.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
             assertThat(result.getOrder()).isEqualTo(1);
             assertThat(result.getParentId().id()).isEqualTo(page.getParentId());
-            assertThat(result.getPortalPageContentId().id()).isEqualTo(((CreatePortalNavigationPage) page).getPortalPageContentId());
+        }
+
+        @Test
+        void should_not_carry_the_page_content_id_of_a_create_portal_navigation_page() {
+            final var page = (CreatePortalNavigationPage) PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+            assertThat(page.getPortalPageContentId()).isNotNull();
+
+            var result = mapper.map(page);
+
+            assertThat(result.getPortalPageContentId()).isNull();
         }
 
         @Test
