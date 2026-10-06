@@ -126,4 +126,67 @@ public class ImportGroupCRDUseCaseTest {
             soft.assertThat(membersService.getGroupApplicationRole(GROUP_ID)).isEqualTo("USER");
         });
     }
+<<<<<<< HEAD
+=======
+
+    @Test
+    void should_reject_import_when_primary_owner_is_added_as_group_member() {
+        userDomainService.initWith(
+            List.of(
+                BaseUserEntity.builder()
+                    .organizationId(ORGANIZATION_ID)
+                    .id(ACTOR_USER_ID)
+                    .source(IdpSource.of("memory"))
+                    .sourceId("admin")
+                    .build()
+            )
+        );
+        roleQueryService.initWith(
+            List.of(
+                Role.builder()
+                    .name("USER")
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .id(UUID.randomUUID().toString())
+                    .scope(Role.Scope.API)
+                    .build()
+            )
+        );
+
+        var spec = GroupCRDSpec.builder()
+            .id(GROUP_ID)
+            .name("kubernetes-spec")
+            .members(
+                new LinkedHashSet<>(
+                    Set.of(GroupCRDSpec.Member.builder().source("memory").sourceId("admin").roles(Map.of(RoleScope.API, "USER")).build())
+                )
+            );
+
+        ImportGroupCRDUseCase.Input input = new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build());
+        assertThatThrownBy(() -> cut.execute(input))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage("Unable to import because of errors [can not change the role of primary owner [admin]]");
+    }
+
+    @Test
+    void sanitize_guard_throws_ValidationDomainException_when_value_is_absent() {
+        var validationService = mock(ValidateGroupCRDDomainService.class);
+        when(validationService.validateAndSanitize(any())).thenReturn(Validator.Result.empty());
+
+        var useCase = new ImportGroupCRDUseCase(
+            validationService,
+            new GroupQueryServiceInMemory(),
+            new GroupCrudServiceInMemory(),
+            new CRDMembersDomainServiceInMemory()
+        );
+
+        var auditInfo = AuditInfoFixtures.anAuditInfo("org", "env", "user");
+        var spec = GroupCRDSpec.builder().id("group-id").name("test").build();
+
+        var input = new ImportGroupCRDUseCase.Input(auditInfo, spec);
+        assertThatThrownBy(() -> useCase.execute(input))
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessage("Unable to sanitize CRD spec");
+    }
+>>>>>>> 418fea9 (fix(automation): report each distinct validation error once)
 }
