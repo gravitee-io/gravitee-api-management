@@ -179,6 +179,30 @@ class SearchObservabilityLogsUseCaseTest {
     class DecisionRecordType {
 
         @Test
+        void should_name_the_missing_record_type_when_a_decision_filter_reaches_the_request_search() {
+            assertThatThrownBy(() ->
+                useCase.execute(
+                    new SearchObservabilityLogsUseCase.Input(
+                        ORG_ID,
+                        ENV_ID,
+                        List.of(new FilterCondition("AUTHZ_DECISION", FilterOperator.EQ, List.of("FORBID"))),
+                        FROM,
+                        TO,
+                        1,
+                        20
+                    )
+                )
+            )
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("AUTHZ_DECISION")
+                .hasMessageContaining("RECORD_TYPE")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.requires_decision_record_type");
+
+            verifyNoInteractions(logsDataPort);
+        }
+
+        @Test
         void should_refuse_a_condition_the_decision_search_cannot_apply() {
             assertThatThrownBy(() ->
                 useCase.execute(
@@ -198,7 +222,9 @@ class SearchObservabilityLogsUseCaseTest {
             )
                 .isInstanceOf(ValidationDomainException.class)
                 .hasMessageContaining("APPLICATION")
-                .hasMessageContaining("AUTHZ_DECISION");
+                .hasMessageContaining("AUTHZ_DECISION")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.not_applicable_to_decisions");
 
             verifyNoInteractions(logsDataPort);
         }
@@ -219,7 +245,9 @@ class SearchObservabilityLogsUseCaseTest {
                 )
             )
                 .isInstanceOf(ValidationDomainException.class)
-                .hasMessageContaining("single value");
+                .hasMessageContaining("single value")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.multiple_record_types");
 
             verifyNoInteractions(logsDataPort);
         }
