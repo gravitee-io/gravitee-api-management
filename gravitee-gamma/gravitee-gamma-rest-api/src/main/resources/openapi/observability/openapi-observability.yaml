@@ -775,7 +775,7 @@ paths:
                       minimum: 1
                       maximum: 100
             requestBody:
-                required: false
+                required: true
                 content:
                     application/json:
                         schema:
@@ -903,13 +903,14 @@ paths:
                                             pageItemsCount: 0
                 "400":
                     description: |
-                        A filter condition is invalid. Possible causes:
+                        The query is refused. Possible causes:
                         - Unknown filter name (`observability.filter.unknown_name`)
                         - Filter does not apply to the LOGS signal (`observability.filter.signal_mismatch`)
                         - Operator not usable for this filter on log search (`observability.filter.unsupported_operator`).
                         - Filter is valid for LOGS but not yet supported by log search (`observability.filter.search_translation_not_supported`)
                         - A filter value is malformed or out of range (e.g. an `HTTP_STATUS` outside 100–599)
-                        - `from` is after `to` in the time range
+                        - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
+                        - An array of the body holds a null entry (`observability.query.null_entry`)
                     content:
                         application/json:
                             schema:
@@ -944,11 +945,18 @@ paths:
                                     value:
                                         http_status: 400
                                         message: "Invalid HTTP status code: 1000. Must be between 100 and 599."
+                                missing-time-range-bound:
+                                    summary: Missing time-range bound
+                                    value:
+                                        http_status: 400
+                                        message: "Time range bound 'from' is required"
+                                        technicalCode: "observability.query.time_range_required"
                                 invalid-time-range:
                                     summary: Invalid time range (from > to)
                                     value:
                                         http_status: 400
                                         message: "Invalid time range: 'from' must be before 'to'."
+                                        technicalCode: "observability.query.invalid_time_range"
                 "403":
                     description: The caller cannot read observability data in this environment (missing `ENVIRONMENT_DASHBOARD:READ` or `ENVIRONMENT_API:READ` permission).
                     content:
@@ -1039,11 +1047,7 @@ paths:
                                                   - name: "COUNT"
                                                     value: 42
                 "400":
-                    description: Invalid filter condition or time range.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+                    $ref: "#/components/responses/AnalyticsQueryRefused"
                 "403":
                     description: Insufficient permissions.
                     content:
@@ -1139,11 +1143,7 @@ paths:
                                                         - name: "COUNT"
                                                           value: 12
                 "400":
-                    description: Invalid filter condition, facet name, or time range.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+                    $ref: "#/components/responses/AnalyticsQueryRefused"
                 "403":
                     description: Insufficient permissions.
                     content:
@@ -1227,11 +1227,7 @@ paths:
                                                         - name: "COUNT"
                                                           value: 12
                 "400":
-                    description: Invalid filter condition, interval, or time range.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Error"
+                    $ref: "#/components/responses/AnalyticsQueryRefused"
                 "403":
                     description: Insufficient permissions.
                     content:
@@ -1685,6 +1681,34 @@ paths:
                                 message: "Dashboard 'd7e246cb-ab02-4da4-8f47-f9fa3e061d6b' not found"
 
 components:
+    responses:
+        AnalyticsQueryRefused:
+            description: |
+                The query is refused, whatever APIs the caller can read. Possible causes:
+                - A filter condition is invalid (`observability.filter.*`)
+                - A time-range bound is missing, or `from` is after `to` (`observability.query.time_range_required`, `observability.query.invalid_time_range`)
+                - `metrics` is empty (`observability.query.metrics_required`)
+                - `interval` is missing or not positive, on time-series (`observability.query.invalid_interval`)
+                - A metric, measure, facet or sort order the engine does not know (`observability.query.unknown_metric`, `unknown_measure`, `unknown_facet`, `unknown_sort_order`)
+                - An array of the body holds a null entry (`observability.query.null_entry`)
+                - A combination the engine refuses, such as a facet a metric does not support (no technical code)
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+                    examples:
+                        missing-interval:
+                            summary: Time-series without an interval
+                            value:
+                                http_status: 400
+                                message: "'interval' must be a positive number of milliseconds, was null"
+                                technicalCode: "observability.query.invalid_interval"
+                        unknown-metric:
+                            summary: Unknown metric name
+                            value:
+                                http_status: 400
+                                message: "Metric 'HTTP_REQUEST' is not supported"
+                                technicalCode: "observability.query.unknown_metric"
     securitySchemes:
         CookieAuth:
             type: apiKey
@@ -1967,6 +1991,7 @@ components:
         SearchLogsRequest:
             type: object
             description: Request body for the logs search endpoint.
+            required: [timeRange]
             properties:
                 timeRange:
                     $ref: "#/components/schemas/TimeRange"
@@ -1979,9 +2004,10 @@ components:
         TimeRange:
             type: object
             description: |
-                ISO-8601 time window. Both bounds are optional; omitting either defers to server
-                defaults (no constraint on that side). When both are provided, `from` must be
-                before `to` — otherwise the server returns 400.
+                ISO-8601 time window. Both bounds are required, and `from` must be before `to`:
+                otherwise the server answers 400 (`observability.query.time_range_required`,
+                `observability.query.invalid_time_range`).
+            required: [from, to]
             properties:
                 from:
                     type: string
@@ -2572,7 +2598,7 @@ components:
                     example: "COUNT"
                 order:
                     type: string
-                    description: Sort direction.
+                    description: Sort direction, read case-insensitively.
                     enum: [ASC, DESC]
                     example: "DESC"
 
@@ -2615,7 +2641,7 @@ components:
         AnalyticsMeasuresRequest:
             type: object
             description: Request body for the measures endpoint.
-            required: [metrics]
+            required: [timeRange, metrics]
             properties:
                 timeRange:
                     $ref: "#/components/schemas/TimeRange"
@@ -2627,13 +2653,14 @@ components:
                 metrics:
                     type: array
                     description: One or more metrics to compute.
+                    minItems: 1
                     items:
                         $ref: "#/components/schemas/MetricQuery"
 
         AnalyticsFacetsRequest:
             type: object
             description: Request body for the facets endpoint.
-            required: [metrics, by]
+            required: [timeRange, metrics, by]
             properties:
                 timeRange:
                     $ref: "#/components/schemas/TimeRange"
@@ -2644,6 +2671,7 @@ components:
                 metrics:
                     type: array
                     description: Metrics to compute per facet bucket.
+                    minItems: 1
                     items:
                         $ref: "#/components/schemas/FacetMetricQuery"
                 by:
@@ -2669,7 +2697,7 @@ components:
         AnalyticsTimeSeriesRequest:
             type: object
             description: Request body for the time-series endpoint.
-            required: [metrics, interval]
+            required: [timeRange, metrics, interval]
             properties:
                 timeRange:
                     $ref: "#/components/schemas/TimeRange"
@@ -2681,10 +2709,12 @@ components:
                     type: integer
                     format: int64
                     description: Time bucket size in milliseconds (e.g. `60000` for 1 minute, `3600000` for 1 hour).
+                    minimum: 1
                     example: 3600000
                 metrics:
                     type: array
                     description: Metrics to compute per time bucket.
+                    minItems: 1
                     items:
                         $ref: "#/components/schemas/FacetMetricQuery"
                 by:
