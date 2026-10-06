@@ -590,6 +590,38 @@ jobs:
             sha1sum graviteeio-full-4.2.0-hotfix.1.zip > graviteeio-full-4.2.0-hotfix.1.zip.sha1
 
             rm -rf graviteeio-full-4.2.0-hotfix.1
+      - run:
+          name: Packaging components
+          command: |
+            componentsDir=$(pwd)/folder_to_sync/graviteeio-apim/components
+            staging=$(mktemp -d)
+
+            package_component() {
+              source=$1
+              folder=$2
+              name=$3
+              destination=$componentsDir/$folder
+              mkdir -p $destination
+
+              cp -r $source $staging/$name-4.2.0-hotfix.1
+              if [ -n "$4" ]; then
+                find $staging/$name-4.2.0-hotfix.1/plugins -mindepth 1 -maxdepth 1 ! -name "$4*" ! -name .gitignore ! -name ext -exec rm -rf {} +
+                find $staging/$name-4.2.0-hotfix.1/plugins/ext -type f -delete
+              fi
+              (cd $staging && zip -q -r $destination/$name-4.2.0-hotfix.1.zip $name-4.2.0-hotfix.1)
+              rm -rf $staging/$name-4.2.0-hotfix.1
+
+              cd $destination
+              md5sum $name-4.2.0-hotfix.1.zip > $name-4.2.0-hotfix.1.zip.md5
+              sha512sum $name-4.2.0-hotfix.1.zip > $name-4.2.0-hotfix.1.zip.sha512sum
+              sha1sum $name-4.2.0-hotfix.1.zip > $name-4.2.0-hotfix.1.zip.sha1
+              cd - > /dev/null
+            }
+
+            package_component gravitee-apim-console-webui/dist gravitee-management-webui gravitee-apim-console-webui
+            package_component gravitee-apim-portal-webui/dist gravitee-portal-webui gravitee-apim-portal-webui
+            package_component gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-management-rest-api gravitee-apim-rest-api gravitee-apim-rest-api-
+            package_component gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution gravitee-gateway gravitee-apim-gateway gravitee-apim-gateway-
       - cmd-sync-folder-to-s3:
           folder-to-sync: folder_to_sync
   job-release-helm:

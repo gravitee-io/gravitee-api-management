@@ -57,6 +57,43 @@ sha1sum ${zipName} > ${zipName}.sha1
 rm -rf ${graviteeFullDistrib}
 `,
       }),
+      new commands.Run({
+        // Same layout as the components published up to 4.7: <folder>/<name>-<version>.zip, whose
+        // single root directory is <name>-<version>, next to its checksums.
+        // The gateway and REST API zips keep only the plugins their own module ships, as before 4.8:
+        // the bundle-default plugins stay in the full bundle. The folder ext/ is kept, emptied.
+        name: 'Packaging components',
+        command: `componentsDir=$(pwd)/folder_to_sync/graviteeio-apim/components
+staging=$(mktemp -d)
+
+package_component() {
+  source=$1
+  folder=$2
+  name=$3
+  destination=$componentsDir/$folder
+  mkdir -p $destination
+
+  cp -r $source $staging/$name-${graviteeioVersion}
+  if [ -n "$4" ]; then
+    find $staging/$name-${graviteeioVersion}/plugins -mindepth 1 -maxdepth 1 ! -name "$4*" ! -name .gitignore ! -name ext -exec rm -rf {} +
+    find $staging/$name-${graviteeioVersion}/plugins/ext -type f -delete
+  fi
+  (cd $staging && zip -q -r $destination/$name-${graviteeioVersion}.zip $name-${graviteeioVersion})
+  rm -rf $staging/$name-${graviteeioVersion}
+
+  cd $destination
+  md5sum $name-${graviteeioVersion}.zip > $name-${graviteeioVersion}.zip.md5
+  sha512sum $name-${graviteeioVersion}.zip > $name-${graviteeioVersion}.zip.sha512sum
+  sha1sum $name-${graviteeioVersion}.zip > $name-${graviteeioVersion}.zip.sha1
+  cd - > /dev/null
+}
+
+package_component gravitee-apim-console-webui/dist gravitee-management-webui gravitee-apim-console-webui
+package_component gravitee-apim-portal-webui/dist gravitee-portal-webui gravitee-apim-portal-webui
+package_component gravitee-apim-rest-api/gravitee-apim-rest-api-standalone/gravitee-apim-rest-api-standalone-distribution/target/distribution gravitee-management-rest-api gravitee-apim-rest-api gravitee-apim-rest-api-
+package_component gravitee-apim-gateway/gravitee-apim-gateway-standalone/gravitee-apim-gateway-standalone-distribution/target/distribution gravitee-gateway gravitee-apim-gateway gravitee-apim-gateway-
+`,
+      }),
       new reusable.ReusedCommand(syncFolderToS3Cmd, {
         'folder-to-sync': 'folder_to_sync',
       }),
