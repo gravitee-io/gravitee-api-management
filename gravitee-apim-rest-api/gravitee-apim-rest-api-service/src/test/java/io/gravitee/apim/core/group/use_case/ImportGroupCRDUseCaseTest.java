@@ -213,8 +213,7 @@ class ImportGroupCRDUseCaseTest {
         ImportGroupCRDUseCase.Input input = new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build());
         assertThatThrownBy(() -> cut.execute(input))
             .isInstanceOf(ValidationDomainException.class)
-            .hasMessageContaining("Unable to import because of errors")
-            .hasMessageContaining("can not change the role of primary owner [admin]");
+            .hasMessage("Unable to import because of errors [can not change the role of primary owner [admin]]");
     }
 
     @Test
