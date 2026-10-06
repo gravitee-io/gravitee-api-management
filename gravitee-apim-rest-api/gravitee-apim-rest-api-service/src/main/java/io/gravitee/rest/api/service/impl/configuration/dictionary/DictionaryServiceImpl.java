@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
@@ -52,6 +53,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -472,6 +474,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 EventType.UNPUBLISH_DICTIONARY,
                 dictionary
             );
+
+            createAuditLog(executionContext, Dictionary.AuditEvent.DICTIONARY_DELETED, new Date(), dictionary, null);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
         }
@@ -486,16 +490,30 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     ) {
         String dictionaryName = oldValue != null ? oldValue.getName() : newValue.getName();
 
+        Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
+        auditProperties.put(DICTIONARY, dictionaryName);
+        if (hasEncryptedProperty(oldValue) || hasEncryptedProperty(newValue)) {
+            auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
+        }
+
         auditService.createAuditLog(
             executionContext,
             AuditService.AuditLogData.builder()
-                .properties(Collections.singletonMap(DICTIONARY, dictionaryName))
+                .properties(auditProperties)
                 .event(event)
                 .createdAt(createdAt)
                 .oldValue(oldValue)
                 .newValue(newValue)
                 .build()
         );
+    }
+
+    private static boolean hasEncryptedProperty(Dictionary dictionary) {
+        return dictionary != null && hasEncryptedProperty(dictionary.getProperties());
+    }
+
+    private static boolean hasEncryptedProperty(Map<String, DictionaryProperty> properties) {
+        return properties != null && properties.values().stream().filter(Objects::nonNull).anyMatch(DictionaryProperty::encrypted);
     }
 
     private DictionaryEntity convert(Dictionary dictionary) {

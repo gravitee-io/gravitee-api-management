@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forEach, map, mapValues } from 'lodash';
+import { forEach, map } from 'lodash';
 
 import { AuditQuery, default as AuditService } from '../../services/audit.service';
+import { toAuditTargets } from '../../entities/audit/auditTargets';
 
 const AuditComponent: ng.IComponentOptions = {
   template: require('html-loader!./audit.html').default, // eslint-disable-line @typescript-eslint/no-require-imports
@@ -71,7 +72,7 @@ const AuditComponent: ng.IComponentOptions = {
       };
 
       this.getDisplayableProperties = properties => {
-        return mapValues(properties, (v, k) => this.metadata[k + ':' + v + ':name']);
+        return toAuditTargets(properties, this.metadata);
       };
 
       this.onOrgEnvFilterChange = () => {
