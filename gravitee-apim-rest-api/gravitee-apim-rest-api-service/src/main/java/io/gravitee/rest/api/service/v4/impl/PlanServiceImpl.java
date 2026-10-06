@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api_product.exception.ApiProductNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.core.flow.domain_service.ApiResourceNames;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.v4.ApiType;
@@ -88,6 +89,7 @@ import io.gravitee.rest.api.service.v4.mapper.PlanMapper;
 import io.gravitee.rest.api.service.v4.validation.FlowValidationService;
 import io.gravitee.rest.api.service.v4.validation.NativePlanSecurityValidator;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -231,7 +233,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
                 .findById(newPlan.getReferenceId())
                 .orElseThrow(() -> new ApiNotFoundException(newPlan.getReferenceId()));
 
-            newPlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), newPlan.getFlows()));
+            newPlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), newPlan.getFlows(), apiResourceNames(api)));
 
             if (api.getApiLifecycleState() == DEPRECATED) {
                 throw new ApiDeprecatedException(api.getName());
@@ -386,7 +388,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             final var apiId = newPlan.getReferenceId();
             Api api = apiRepository.findById(apiId).orElseThrow(() -> new ApiNotFoundException(apiId));
             validateTags(newPlan.getTags(), api);
-            updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows()));
+            updatePlan.setFlows(flowValidationService.validateAndSanitize(api.getType(), updatePlan.getFlows(), apiResourceNames(api)));
 
             // if order change, reorder all pages
             if (newPlan.getOrder() != updatePlan.getOrder()) {
@@ -838,5 +840,18 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
 
     private void validatePlanSecurity(String type, String configuration) {
         policyService.validatePolicyConfiguration(type, configuration);
+    }
+
+    private Set<String> apiResourceNames(Api api) {
+        try {
+            if (api.getDefinition() == null || api.getDefinition().isBlank()) {
+                return null;
+            }
+            var definition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+            return ApiResourceNames.from(definition.getResources());
+        } catch (IOException e) {
+            log.warn("Unable to read API resource names for plan flow validation on API {}", api.getId(), e);
+            return null;
+        }
     }
 }

@@ -31,6 +31,7 @@ import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -102,6 +103,17 @@ public class FlowValidationDomainService {
     );
 
     public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows) {
+        return validateAndSanitizeHttpV4(apiType, flows, null);
+    }
+
+    /**
+     * Validates and sanitizes flows, optionally verifying that registry resource references
+     * resolve to declared API resource names.
+     *
+     * @param apiResourceNames names of resources declared on the API; {@code null} to skip
+     *                         resource-existence checks.
+     */
+    public List<Flow> validateAndSanitizeHttpV4(final ApiType apiType, List<Flow> flows, @Nullable Set<String> apiResourceNames) {
         if (flows != null) {
             flows.forEach(flow -> {
                 // Check duplicated selectors
@@ -122,7 +134,7 @@ public class FlowValidationDomainService {
                     .flatMap(Collection::stream)
                     .toList();
 
-                checkPolicyConfiguration(steps);
+                checkPolicyConfiguration(apiType, steps, apiResourceNames);
             });
         }
         return flows;
@@ -140,7 +152,7 @@ public class FlowValidationDomainService {
                     .flatMap(Collection::stream)
                     .toList();
 
-                checkPolicyConfiguration(steps);
+                checkPolicyConfiguration(ApiType.NATIVE, steps, null);
             });
         }
         return flows;
@@ -236,15 +248,23 @@ public class FlowValidationDomainService {
         }
     }
 
-    private void checkPolicyConfiguration(final List<Step> steps) {
+    private void checkPolicyConfiguration(final ApiType apiType, final List<Step> steps, @Nullable Set<String> apiResourceNames) {
         steps
             .stream()
             .filter(step -> step != null && step.getPolicy() != null && step.getConfiguration() != null)
-            .forEach(step ->
+            .forEach(step -> {
+                validateXmlValidationStructuralConfiguration(apiType, step, apiResourceNames);
                 step.setConfiguration(
                     policyValidationDomainService.validateAndSanitizeConfiguration(step.getPolicy(), step.getConfiguration())
-                )
-            );
+                );
+            });
+    }
+
+    private void validateXmlValidationStructuralConfiguration(ApiType apiType, Step step, @Nullable Set<String> apiResourceNames) {
+        String error = XmlValidationPolicyChecker.validateRegistryConfiguration(apiType, step, apiResourceNames);
+        if (error != null) {
+            throw new ValidationDomainException(error);
+        }
     }
 
     private void checkDuplicatedSelectors(final Flow flow) {

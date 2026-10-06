@@ -199,7 +199,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
             doAnswer(invocation -> invocation.<List<Flow>>getArgument(1))
                 .when(flowValidationDomainService)
-                .validateAndSanitizeHttpV4(any(), any());
+                .validateAndSanitizeHttpV4(any(), any(), any());
 
             var sanitizedResources = List.of(Resource.builder().name("sanitized").build());
             when(apiValidationService.validateAndSanitize(any())).thenReturn(sanitizedResources);
