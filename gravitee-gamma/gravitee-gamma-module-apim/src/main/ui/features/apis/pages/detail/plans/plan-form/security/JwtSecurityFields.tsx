@@ -18,10 +18,11 @@ import { XIcon } from '@gravitee/graphene-core/icons';
 import { useRef, useState } from 'react';
 
 import { CollapsibleSection } from '../../../../../components/CollapsibleSection';
+import { JWT_SIGNATURES, type JwtSignature } from '../../../../../utils/securityFormatters';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type JwtSignature = 'RSA_RS256' | 'RSA_RS384' | 'RSA_RS512' | 'HMAC_HS256' | 'HMAC_HS384' | 'HMAC_HS512';
+export type { JwtSignature };
 export type JwtPublicKeyResolver = 'GIVEN_KEY' | 'GATEWAY_KEYS' | 'JWKS_URL';
 type RevocationAuthType = 'none' | 'basic' | 'token';
 
@@ -108,15 +109,6 @@ export const DEFAULT_JWT_CONFIG: JwtConfig = {
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const SIGNATURE_OPTIONS: { value: JwtSignature; label: string }[] = [
-    { value: 'RSA_RS256', label: 'RS256 — RSA signature with SHA-256' },
-    { value: 'RSA_RS384', label: 'RS384 — RSA signature with SHA-384' },
-    { value: 'RSA_RS512', label: 'RS512 — RSA signature with SHA-512' },
-    { value: 'HMAC_HS256', label: 'HS256 — HMAC with SHA-256' },
-    { value: 'HMAC_HS384', label: 'HS384 — HMAC with SHA-384' },
-    { value: 'HMAC_HS512', label: 'HS512 — HMAC with SHA-512' },
-];
 
 const RESOLVER_LABELS: Record<JwtPublicKeyResolver, string> = {
     GIVEN_KEY: 'Public key',
@@ -268,7 +260,7 @@ export function JwtSecurityFields({ value, onChange, readOnly = false }: Readonl
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        {SIGNATURE_OPTIONS.map(o => (
+                        {JWT_SIGNATURES.map(o => (
                             <SelectItem key={o.value} value={o.value}>
                                 {o.label}
                             </SelectItem>

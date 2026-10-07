@@ -42,7 +42,7 @@ const BASE: ApiProxyDraft = {
     authType: 'keyless',
     apiKeyPlanName: 'API Key Plan',
     jwtPlanName: 'JWT Plan',
-    jwtSignature: 'RS256',
+    jwtSignature: 'RSA_RS256',
     jwtJwksResolver: 'JWKS_URL',
     jwtResolverParameter: 'https://jwks.example.com/.well-known/jwks.json',
     oauth2PlanName: 'OAuth2 Plan',
@@ -126,7 +126,7 @@ describe('mapFormToCreateRequest', () => {
         const req = mapFormToCreateRequest(form({ virtualHostsEnabled: true }));
         expect(req.listeners[0]).toEqual({
             type: 'HTTP',
-            hosts: [{ host: 'api.example.com', path: '/v1', overrideAccess: false }],
+            paths: [{ host: 'api.example.com', path: '/v1', overrideAccess: false }],
             entrypoints: [{ type: 'http-proxy' }],
         });
     });
@@ -196,7 +196,7 @@ describe('mapFormToPlanRequest', () => {
         const jwtSecurity = mapFormToPlanRequest(form({ authType: 'jwt' })).security;
         expect(jwtSecurity.type).toBe('JWT');
         expect(jwtSecurity.configuration).toMatchObject({
-            signature: 'RS256',
+            signature: 'RSA_RS256',
             publicKeyResolver: 'JWKS_URL',
             resolverParameter: 'https://jwks.example.com/.well-known/jwks.json',
         });

@@ -78,41 +78,45 @@ const DEPLOYMENT_LABEL_MAX_LENGTH = 32;
 /** Tasks & Approvals opens the API with this query parameter so the reviewer lands straight in the review sheet. */
 export const OPEN_REVIEW_SEARCH_PARAM = 'review';
 
-function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state']; deploymentState?: string }) {
-    if (state === 'STARTED' && deploymentState === 'NEED_REDEPLOY') {
-        return (
-            <Badge variant="warning" className="gap-1 h-5 px-1.5 text-xs font-medium">
-                <TriangleAlertIcon className="size-3" />
-                Out of sync
-            </Badge>
-        );
-    }
+function apiBreadcrumbs(name: string | undefined, isLoading: boolean, isError: boolean): { label: string }[] {
+    if (isError) return [];
+    if (name) return [{ label: name.length > 40 ? `${name.slice(0, 40).trimEnd()}…` : name }];
+    if (isLoading) return [{ label: 'Loading…' }];
+    return [];
+}
 
-    switch (state) {
-        case 'STARTED':
-            return (
-                <Badge variant="success" className="gap-1 h-5 px-1.5 text-xs font-medium">
-                    <CircleCheckIcon className="size-3" />
-                    Started
+function StateIndicator({ state, deploymentState }: { state: ApiDetailDto['state']; deploymentState?: string }) {
+    const lifecycle =
+        state === 'STARTED' ? (
+            <Badge variant="success" className="gap-1 h-5 px-1.5 text-xs font-medium">
+                <CircleCheckIcon className="size-3" />
+                Started
+            </Badge>
+        ) : state === 'STOPPED' ? (
+            <Badge variant="secondary" className="gap-1 h-5 px-1.5 text-xs font-medium">
+                <CircleStopIcon className="size-3" />
+                Stopped
+            </Badge>
+        ) : state === 'CLOSED' ? (
+            <Badge variant="outline" className="gap-1 h-5 px-1.5 text-xs font-medium">
+                <CircleXIcon className="size-3" />
+                Closed
+            </Badge>
+        ) : null;
+
+    if (!lifecycle && deploymentState !== 'NEED_REDEPLOY') return null;
+
+    return (
+        <span className="flex flex-wrap gap-1">
+            {lifecycle}
+            {deploymentState === 'NEED_REDEPLOY' ? (
+                <Badge variant="warning" className="gap-1 h-5 px-1.5 text-xs font-medium">
+                    <TriangleAlertIcon className="size-3" />
+                    Out of sync
                 </Badge>
-            );
-        case 'STOPPED':
-            return (
-                <Badge variant="secondary" className="gap-1 h-5 px-1.5 text-xs font-medium">
-                    <CircleStopIcon className="size-3" />
-                    Stopped
-                </Badge>
-            );
-        case 'CLOSED':
-            return (
-                <Badge variant="outline" className="gap-1 h-5 px-1.5 text-xs font-medium">
-                    <CircleXIcon className="size-3" />
-                    Closed
-                </Badge>
-            );
-        default:
-            return null;
-    }
+            ) : null}
+        </span>
+    );
 }
 
 function ApiAvatar({ api }: { api: ApiDetailDto }) {
@@ -397,10 +401,7 @@ export function ApiDetailLayout() {
                 </ContextSidebar>
             ),
             leading: <ContextToggleButton expanded={contextExpanded} onToggle={() => setContextExpanded(v => !v)} />,
-            breadcrumbs: [
-                { label: 'API Proxies', href: `${moduleRoot}/apis` },
-                { label: api?.name ? (api.name.length > 40 ? `${api.name.slice(0, 40).trimEnd()}…` : api.name) : 'Loading…' },
-            ],
+            breadcrumbs: [{ label: 'API Proxies', href: `${moduleRoot}/apis` }, ...apiBreadcrumbs(api?.name, isLoading, isError)],
             banner:
                 reviewBannerCopy || showDeployBanner ? (
                     <div>

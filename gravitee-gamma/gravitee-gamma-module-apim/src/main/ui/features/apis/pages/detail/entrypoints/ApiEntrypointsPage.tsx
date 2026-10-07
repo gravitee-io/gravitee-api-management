@@ -49,7 +49,15 @@ function getTcpListener(api: ApiDetailDto | null): TcpListener | undefined {
 }
 
 function isVirtualHostMode(listener: HttpListener | undefined): boolean {
-    return (listener?.hosts?.length ?? 0) > 0;
+    const pathHasHost = (listener?.paths ?? []).some(path => path.host !== undefined);
+    return pathHasHost || (listener?.hosts?.length ?? 0) > 0;
+}
+
+function virtualHostRows(listener: HttpListener | undefined): { host: string; path: string; overrideAccess?: boolean }[] {
+    const fromPaths = (listener?.paths ?? []).filter(path => path.host !== undefined);
+    if (fromPaths.length > 0)
+        return fromPaths.map(path => ({ host: path.host ?? '', path: path.path, overrideAccess: path.overrideAccess }));
+    return listener?.hosts ?? [];
 }
 
 function listenerHasEntrypoints(listener: HttpListener | undefined): boolean {
@@ -107,14 +115,14 @@ export function ApiEntrypointsPage() {
             if (isVirtualHostMode(listener)) {
                 setVirtualHostMode(true);
                 setVirtualHosts(
-                    (listener?.hosts ?? []).map(h => ({
+                    virtualHostRows(listener).map(h => ({
                         id: newId(),
                         host: h.host,
                         path: h.path,
                         overrideAccess: h.overrideAccess ?? false,
                     })),
                 );
-                setContextPaths((listener?.paths ?? []).map(p => ({ id: newId(), path: p.path })));
+                setContextPaths((listener?.paths ?? []).filter(path => path.host === undefined).map(p => ({ id: newId(), path: p.path })));
             } else {
                 setVirtualHostMode(false);
                 const paths = listener?.paths ?? [];
@@ -250,10 +258,10 @@ export function ApiEntrypointsPage() {
                   const existingListener = getHttpListener(api);
                   const updatedListener: HttpListener = {
                       ...(existingListener ?? { type: 'HTTP' }),
-                      paths: virtualHostMode ? (existingListener?.paths ?? []) : contextPaths.map(r => ({ path: r.path })),
-                      hosts: virtualHostMode
+                      paths: virtualHostMode
                           ? virtualHosts.map(r => ({ host: r.host, path: r.path, overrideAccess: r.overrideAccess }))
-                          : [],
+                          : contextPaths.map(r => ({ path: r.path })),
+                      hosts: [],
                   };
                   // Keep all listeners, replace/add the HTTP one
                   return [...(api.listeners ?? []).filter(l => l.type !== 'HTTP'), updatedListener];

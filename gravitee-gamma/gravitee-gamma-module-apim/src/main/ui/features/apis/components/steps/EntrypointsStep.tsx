@@ -21,6 +21,7 @@ import { useVerifyContextPath } from '../../hooks/useVerifyContextPath';
 import { useVerifyTcpHosts } from '../../hooks/useVerifyTcpHosts';
 import { useApiCreation } from '../../store/apiCreationStore';
 import type { VirtualHostEntry } from '../../types/apiCreation';
+import { validateVirtualHostPath } from '../../utils/apiCreationValidation';
 import { isTcpForm } from '../../utils/protocol';
 
 function HttpEntrypointsFields() {
@@ -58,21 +59,44 @@ function HttpEntrypointsFields() {
 
                 {form.virtualHostsEnabled ? (
                     <div className="space-y-3">
-                        {form.virtualHosts.map((vh, index) => (
-                            <div key={vh.id} className="grid grid-cols-2 gap-3 items-end">
-                                <div className="space-y-1.5">
-                                    <Label htmlFor={`vh-host-${index}`} className="text-xs">
-                                        Host
-                                    </Label>
-                                    <Input
-                                        id={`vh-host-${index}`}
-                                        placeholder="e.g. api.example.com"
-                                        value={vh.host}
-                                        onChange={e => updateVirtualHost(index, { host: e.target.value })}
-                                    />
-                                </div>
-                                <div className="flex items-end gap-2">
-                                    <div className="flex-1 space-y-1.5">
+                        {(() => {
+                            const sharedError = errors['virtualHosts'];
+                            const shownOnARow = form.virtualHosts.some(vh => {
+                                const pathError = validateVirtualHostPath(vh.path);
+                                return (pathError && sharedError === pathError) || (!pathError && !vh.host.trim() && Boolean(sharedError));
+                            });
+                            // The verify call does not name a row, so a path that is already in use is reported once.
+                            return sharedError && !shownOnARow ? <p className="text-xs text-destructive">{sharedError}</p> : null;
+                        })()}
+                        {form.virtualHosts.map((vh, index) => {
+                            const pathError = validateVirtualHostPath(vh.path);
+                            const hostMissing = !vh.host.trim();
+                            const sharedError = errors['virtualHosts'];
+                            const showPathError = Boolean(pathError && sharedError === pathError);
+                            const showHostError = Boolean(!pathError && hostMissing && sharedError);
+                            return (
+                                <div
+                                    key={vh.id}
+                                    className={
+                                        form.virtualHosts.length > 1
+                                            ? 'grid grid-cols-[1fr_1fr_auto] gap-3 items-start'
+                                            : 'grid grid-cols-2 gap-3 items-start'
+                                    }
+                                >
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor={`vh-host-${index}`} className="text-xs">
+                                            Host
+                                        </Label>
+                                        <Input
+                                            id={`vh-host-${index}`}
+                                            placeholder="e.g. api.example.com"
+                                            value={vh.host}
+                                            onChange={e => updateVirtualHost(index, { host: e.target.value })}
+                                            aria-invalid={showHostError}
+                                        />
+                                        {showHostError && <p className="text-xs text-destructive">{sharedError}</p>}
+                                    </div>
+                                    <div className="space-y-1.5">
                                         <Label htmlFor={`vh-path-${index}`} className="text-xs">
                                             Path
                                         </Label>
@@ -81,7 +105,9 @@ function HttpEntrypointsFields() {
                                             placeholder="/"
                                             value={vh.path}
                                             onChange={e => updateVirtualHost(index, { path: e.target.value })}
+                                            aria-invalid={showPathError}
                                         />
+                                        {showPathError && <p className="text-xs text-destructive">{pathError}</p>}
                                     </div>
                                     {form.virtualHosts.length > 1 && (
                                         <Button
@@ -89,15 +115,14 @@ function HttpEntrypointsFields() {
                                             size="icon"
                                             onClick={() => dispatch({ type: 'REMOVE_VIRTUAL_HOST', index })}
                                             aria-label="Remove virtual host"
-                                            className="shrink-0"
+                                            className="mt-6 shrink-0"
                                         >
                                             <Trash2Icon className="size-4 text-muted-foreground" aria-hidden />
                                         </Button>
                                     )}
                                 </div>
-                            </div>
-                        ))}
-                        {errors['virtualHosts'] && <p className="text-xs text-destructive">{errors['virtualHosts']}</p>}
+                            );
+                        })}
                         <Button variant="outline" size="sm" onClick={() => dispatch({ type: 'ADD_VIRTUAL_HOST' })} className="w-full">
                             <PlusIcon className="size-4" aria-hidden />
                             Add virtual host
@@ -152,7 +177,7 @@ function HttpEntrypointsFields() {
                     />
                 </div>
                 {errors['targetUrl'] && <p className="text-xs text-destructive">{errors['targetUrl']}</p>}
-                <p className="text-xs text-muted-foreground">The upstream backend the gateway will forward requests to.</p>
+                <p className="text-xs text-muted-foreground">The target url to use to contact the backend. (Supports EL and secrets)</p>
             </div>
         </>
     );
