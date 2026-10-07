@@ -103,6 +103,9 @@ public class MongoApiRepository implements ApiRepository {
 
     @Override
     public Stream<Api> search(ApiCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter, int batchSize) {
+        if (sortable == null) {
+            return searchByKeyset(apiCriteria, apiFieldFilter, batchSize);
+        }
         var pageable = new PageableBuilder().pageSize(batchSize).pageNumber(0).build();
         var page = search(apiCriteria, sortable, pageable, apiFieldFilter);
         if (page == null || page.getContent() == null) {
@@ -118,6 +121,24 @@ public class MongoApiRepository implements ApiRepository {
             }
             return Stream.empty();
         });
+    }
+
+    /**
+     * Streams the default order (name, then id) page by page, seeking after the last API of the previous page
+     * instead of skipping: every page reads its own {@code batchSize} documents, whatever its position.
+     */
+    private Stream<Api> searchByKeyset(ApiCriteria apiCriteria, ApiFieldFilter apiFieldFilter, int batchSize) {
+        return Stream.iterate(
+            internalApiRepo.searchAfter(apiCriteria, apiFieldFilter, null, null, batchSize),
+            page -> !page.isEmpty(),
+            page -> {
+                if (page.size() < batchSize) {
+                    return List.<ApiMongo>of();
+                }
+                ApiMongo last = page.getLast();
+                return internalApiRepo.searchAfter(apiCriteria, apiFieldFilter, last.getName(), last.getId(), batchSize);
+            }
+        ).flatMap(page -> mapper.mapApis(page).stream());
     }
 
     @Override
