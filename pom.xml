@@ -215,13 +215,13 @@
         <gravitee-policy-mock.version>1.15.0</gravitee-policy-mock.version>
         <gravitee-policy-mtls.version>3.0.0</gravitee-policy-mtls.version>
         <gravitee-policy-oauth2.version>5.3.2</gravitee-policy-oauth2.version>
-        <gravitee-policy-oas-validation.version>3.0.0</gravitee-policy-oas-validation.version>
+        <gravitee-policy-oas-validation.version>3.0.1</gravitee-policy-oas-validation.version>
         <gravitee-policy-openid-connect-userinfo.version>1.7.0</gravitee-policy-openid-connect-userinfo.version>
         <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
         <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest and gateway-services-ratelimit    -->
         <!--    <gravitee-policy-quota.version>4.3.0</gravitee-policy-quota.version>    -->
         <!--    <gravitee-policy-spikearrest.version>4.3.0</gravitee-policy-spikearrest.version>    -->
-        <gravitee-policy-ratelimit.version>4.3.0</gravitee-policy-ratelimit.version>
+        <gravitee-policy-ratelimit.version>4.3.1</gravitee-policy-ratelimit.version>
         <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
         <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
         <gravitee-policy-request-validation.version>1.15.1</gravitee-policy-request-validation.version>
@@ -233,7 +233,7 @@
         <gravitee-policy-traffic-shadowing.version>3.0.3</gravitee-policy-traffic-shadowing.version>
         <gravitee-policy-transform-avro-json.version>5.2.5</gravitee-policy-transform-avro-json.version>
         <gravitee-policy-transform-avro-protobuf.version>1.0.9</gravitee-policy-transform-avro-protobuf.version>
-        <gravitee-policy-transform-protobuf-json.version>2.0.1</gravitee-policy-transform-protobuf-json.version>
+        <gravitee-policy-transform-protobuf-json.version>2.0.2</gravitee-policy-transform-protobuf-json.version>
         <gravitee-policy-transformheaders.version>5.2.0</gravitee-policy-transformheaders.version>
         <gravitee-policy-transformqueryparams.version>2.0.0</gravitee-policy-transformqueryparams.version>
         <gravitee-policy-transform-status-code.version>1.0.2</gravitee-policy-transform-status-code.version>
@@ -295,19 +295,19 @@
         <gravitee-entrypoint-agent-to-agent.version>2.0.0</gravitee-entrypoint-agent-to-agent.version>
         <gravitee-entrypoint-mcp-tool-server.version>2.0.2</gravitee-entrypoint-mcp-tool-server.version>
         <gravitee-endpoint-jms.version>2.0.3</gravitee-endpoint-jms.version>
-        <gravitee-endpoint-kafka.version>6.1.5</gravitee-endpoint-kafka.version>
+        <gravitee-endpoint-kafka.version>6.1.6</gravitee-endpoint-kafka.version>
         <gravitee-endpoint-mqtt5.version>5.0.0</gravitee-endpoint-mqtt5.version>
-        <gravitee-endpoint-rabbitmq.version>4.0.0</gravitee-endpoint-rabbitmq.version>
+        <gravitee-endpoint-rabbitmq.version>4.0.1</gravitee-endpoint-rabbitmq.version>
         <gravitee-endpoint-solace.version>4.1.1</gravitee-endpoint-solace.version>
-        <gravitee-endpoint-azure-service-bus.version>2.0.2</gravitee-endpoint-azure-service-bus.version>
+        <gravitee-endpoint-azure-service-bus.version>2.0.3</gravitee-endpoint-azure-service-bus.version>
         <gravitee-endpoint-agent-to-agent.version>2.0.0</gravitee-endpoint-agent-to-agent.version>
         <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>4.1.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
         <gravitee-reactor-message.version>10.0.1</gravitee-reactor-message.version>
         <gravitee-reactor-native-kafka.version>6.3.5</gravitee-reactor-native-kafka.version>
-        <gravitee-reactor-mcp-proxy.version>2.2.4</gravitee-reactor-mcp-proxy.version>
-        <gravitee-reactor-llm-proxy.version>2.11.5</gravitee-reactor-llm-proxy.version>
+        <gravitee-reactor-mcp-proxy.version>2.2.5</gravitee-reactor-mcp-proxy.version>
+        <gravitee-reactor-llm-proxy.version>2.11.6</gravitee-reactor-llm-proxy.version>
         <gravitee-reactor-a2a-proxy.version>1.0.4</gravitee-reactor-a2a-proxy.version>
         <gravitee-resource-ai-vector-store-redis.version>1.0.1</gravitee-resource-ai-vector-store-redis.version>
         <gravitee-resource-ai-vector-store-aws-s3.version>1.0.0</gravitee-resource-ai-vector-store-aws-s3.version>
