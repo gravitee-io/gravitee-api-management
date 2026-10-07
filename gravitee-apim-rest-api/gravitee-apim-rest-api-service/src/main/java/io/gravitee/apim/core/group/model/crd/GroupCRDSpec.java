@@ -52,6 +52,13 @@ public class GroupCRDSpec {
 
     private String apiProductRole;
 
+    /**
+     * Default role per scope, from the Automation API. {@code null} means not declared: the platform's defaults are
+     * left untouched. When declared, it is authoritative for API, APPLICATION and API_PRODUCT; a missing scope is cleared.
+     * The flat {@code apiRole}, {@code applicationRole} and {@code apiProductRole} remain for the Management API import.
+     */
+    private Map<RoleScope, String> defaultMemberRoles;
+
     @Builder.Default
     private String origin = Origin.KUBERNETES.name();
 

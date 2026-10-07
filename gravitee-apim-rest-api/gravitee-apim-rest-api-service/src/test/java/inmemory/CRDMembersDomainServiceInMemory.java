@@ -18,8 +18,10 @@ package inmemory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
 import io.gravitee.apim.core.member.domain_service.CRDMembersDomainService;
+import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -66,6 +68,21 @@ public class CRDMembersDomainServiceInMemory implements CRDMembersDomainService 
         }
         if (apiProductRole != null) {
             groupApiProductRoles.put(groupId, apiProductRole);
+        }
+    }
+
+    @Override
+    public void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, Map<RoleScope, String> defaultMemberRoles) {
+        putOrRemove(groupApiRoles, groupId, defaultMemberRoles.get(RoleScope.API));
+        putOrRemove(groupApplicationRoles, groupId, defaultMemberRoles.get(RoleScope.APPLICATION));
+        putOrRemove(groupApiProductRoles, groupId, defaultMemberRoles.get(RoleScope.API_PRODUCT));
+    }
+
+    private static void putOrRemove(Map<String, String> roles, String groupId, String role) {
+        if (role == null) {
+            roles.remove(groupId);
+        } else {
+            roles.put(groupId, role);
         }
     }
 

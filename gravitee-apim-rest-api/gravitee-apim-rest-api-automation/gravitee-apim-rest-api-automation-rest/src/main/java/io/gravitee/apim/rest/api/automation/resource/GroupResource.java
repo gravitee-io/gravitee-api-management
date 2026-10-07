@@ -21,6 +21,7 @@ import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.rest.api.automation.exception.HRIDNotFoundException;
 import io.gravitee.apim.rest.api.automation.mapper.GroupMapper;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.UserEntity;
@@ -84,8 +85,9 @@ public class GroupResource extends AbstractResource {
         );
 
         var members = buildGroupMembers(executionContext, memberEntities);
+        var defaultMemberRoles = buildDefaultMemberRoles(executionContext, groupId);
 
-        return Response.ok(GroupMapper.INSTANCE.groupToGroupState(group, members, executionContext)).build();
+        return Response.ok(GroupMapper.INSTANCE.groupToGroupState(group, members, defaultMemberRoles, executionContext)).build();
     }
 
     @DELETE
@@ -134,5 +136,26 @@ public class GroupResource extends AbstractResource {
                     .build()
             )
             .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static final List<io.gravitee.rest.api.model.permissions.RoleScope> GROUP_DEFAULT_ROLE_SCOPES = List.of(
+        io.gravitee.rest.api.model.permissions.RoleScope.API,
+        io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,
+        io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT
+    );
+
+    private Map<String, String> buildDefaultMemberRoles(ExecutionContext executionContext, String groupId) {
+        var roles = Optional.ofNullable(groupService.findById(executionContext, groupId)).map(GroupEntity::getRoles).orElse(null);
+        if (roles == null) {
+            return Map.of();
+        }
+        var defaultMemberRoles = new LinkedHashMap<String, String>();
+        GROUP_DEFAULT_ROLE_SCOPES.forEach(scope -> {
+            var role = roles.get(scope);
+            if (role != null) {
+                defaultMemberRoles.put(scope.name(), role);
+            }
+        });
+        return defaultMemberRoles;
     }
 }

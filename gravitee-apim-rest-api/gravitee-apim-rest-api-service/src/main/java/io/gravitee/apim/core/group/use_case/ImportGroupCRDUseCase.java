@@ -97,13 +97,17 @@ public class ImportGroupCRDUseCase {
     }
 
     private GroupCRDStatus syncGroupMemberships(Input input) {
-        membersService.updateGroupDefaultRoles(
-            input.auditInfo,
-            input.spec.getId(),
-            input.spec.getApiRole(),
-            input.spec.getApplicationRole(),
-            input.spec.getApiProductRole()
-        );
+        if (input.spec.getDefaultMemberRoles() != null) {
+            membersService.updateGroupDefaultRoles(input.auditInfo, input.spec.getId(), input.spec.getDefaultMemberRoles());
+        } else {
+            membersService.updateGroupDefaultRoles(
+                input.auditInfo,
+                input.spec.getId(),
+                input.spec.getApiRole(),
+                input.spec.getApplicationRole(),
+                input.spec.getApiProductRole()
+            );
+        }
         membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
         return GroupCRDStatus.builder().id(input.spec.getId()).members(input.spec.getMembers().size()).build();
     }
