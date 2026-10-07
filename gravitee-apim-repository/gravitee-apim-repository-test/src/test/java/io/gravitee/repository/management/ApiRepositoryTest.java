@@ -708,6 +708,158 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         }
     }
 
+    /**
+     * Fixture for the unsorted searches (null {@code Sortable}): the streamed search used by {@code PromotionContextDomainService} and {@code GetCategoryApisUseCase},
+     * and {@code searchIds}. Names are deliberately shared so that the id tie-break decides the default order (name, then id).
+     */
+    private static final String DEFAULT_ORDER_ENV = "ENV-DEFAULT-ORDER";
+
+    private List<String> createDefaultOrderApis() throws TechnicalException {
+        // id, name, definition version, category
+        String[][] rows = {
+            { "order-3", "beta", "V4", "cat-order" },
+            { "order-1", "beta", null, "cat-order" },
+            { "order-2", "beta", "V2", null },
+            { "order-5", "alpha", "V4", "cat-order" },
+            { "order-4", "gamma", null, null },
+            { "order-6", "alpha", "FEDERATED", "cat-order" },
+        };
+        List<String> ids = new ArrayList<>();
+        for (String[] row : rows) {
+            Api api = new Api();
+            api.setId(row[0]);
+            api.setEnvironmentId(DEFAULT_ORDER_ENV);
+            api.setName(row[1]);
+            api.setVersion("1");
+            api.setDefinitionVersion(row[2] == null ? null : DefinitionVersion.valueOf(row[2]));
+            api.setCategories(row[3] == null ? null : Set.of(row[3]));
+            api.setLifecycleState(STOPPED);
+            api.setVisibility(PRIVATE);
+            api.setDefinition("{}");
+            api.setCreatedAt(new Date());
+            api.setUpdatedAt(new Date());
+            apiRepository.create(api);
+            ids.add(row[0]);
+        }
+        return ids;
+    }
+
+    private void deleteApis(List<String> ids) throws TechnicalException {
+        for (String id : ids) {
+            apiRepository.delete(id);
+        }
+    }
+
+    @Test
+    public void shouldStreamSearchByEnvironmentAndDefinitionVersions_orderedByNameThenId() throws TechnicalException {
+        List<String> ids = createDefaultOrderApis();
+        try {
+            // PromotionContextDomainService.searchPathBearingApis: environment + V2/V4, no sort, picture excluded
+            ApiCriteria criteria = new ApiCriteria.Builder()
+                .environmentId(DEFAULT_ORDER_ENV)
+                .definitionVersion(List.of(DefinitionVersion.V2, DefinitionVersion.V4))
+                .build();
+
+            // batch size 2 forces several offset pages over the shared names
+            List<String> streamed = apiRepository
+                .search(criteria, null, new ApiFieldFilter.Builder().excludePicture().build(), 2)
+                .map(Api::getId)
+                .toList();
+
+            // FEDERATED excluded; legacy documents without definitionVersion count as V2
+            assertThat(streamed).containsExactly("order-5", "order-1", "order-2", "order-3", "order-4");
+        } finally {
+            deleteApis(ids);
+        }
+    }
+
+    @Test
+    public void shouldStreamSearchByEnvironmentAndCategory_orderedByNameThenId() throws TechnicalException {
+        List<String> ids = createDefaultOrderApis();
+        try {
+            // GetCategoryApisUseCase: category (+ environment), no sort, picture excluded
+            ApiCriteria criteria = new ApiCriteria.Builder().environmentId(DEFAULT_ORDER_ENV).category("cat-order").build();
+
+            List<String> streamed = apiRepository
+                .search(criteria, null, new ApiFieldFilter.Builder().excludePicture().build(), 2)
+                .map(Api::getId)
+                .toList();
+
+            assertThat(streamed).containsExactly("order-5", "order-6", "order-1", "order-3");
+        } finally {
+            deleteApis(ids);
+        }
+    }
+
+    @Test
+    public void shouldSearchIdsWithoutSortable_orderedByNameThenIdAcrossPages() throws TechnicalException {
+        List<String> ids = createDefaultOrderApis();
+        try {
+            List<ApiCriteria> criteria = List.of(new ApiCriteria.Builder().environmentId(DEFAULT_ORDER_ENV).build());
+
+            List<String> collected = new ArrayList<>();
+            for (int pageNumber = 0; pageNumber < 3; pageNumber++) {
+                Page<String> page = apiRepository.searchIds(
+                    criteria,
+                    new PageableBuilder().pageNumber(pageNumber).pageSize(2).build(),
+                    null
+                );
+                assertThat(page.getTotalElements()).isEqualTo(6);
+                collected.addAll(page.getContent());
+            }
+
+            assertThat(collected).containsExactly("order-5", "order-6", "order-1", "order-2", "order-3", "order-4");
+        } finally {
+            deleteApis(ids);
+        }
+    }
+
+    @Test
+    public void shouldStreamSearchInNameThenIdOrderAcrossBatches() throws TechnicalException {
+        // 200 APIs over 7 names: every page boundary falls inside a group of equal names, so the id tie-break
+        // decides what each page starts with. Names and ids are plain lowercase to sort the same on every backend.
+        List<String> ids = new ArrayList<>();
+        Map<String, String> nameById = new HashMap<>();
+        for (int i = 0; i < 200; i++) {
+            Api api = new Api();
+            String id = String.format("keyset%03d", i);
+            api.setId(id);
+            api.setEnvironmentId("DEFAULT");
+            api.setName("keysetname" + ((i * 3) % 7));
+            api.setVersion("1");
+            api.setLifecycleState(STOPPED);
+            api.setVisibility(PRIVATE);
+            api.setDefinition("{}");
+            api.setCreatedAt(new Date());
+            api.setUpdatedAt(new Date());
+            apiRepository.create(api);
+            ids.add(id);
+            nameById.put(id, api.getName());
+        }
+
+        try {
+            List<String> expected = ids
+                .stream()
+                .sorted(Comparator.comparing((String id) -> nameById.get(id)).thenComparing(Comparator.naturalOrder()))
+                .toList();
+            ApiCriteria criteria = new ApiCriteria.Builder().ids(ids).environmentId("DEFAULT").build();
+
+            // exact multiple of the batch size, batch size that does not divide the total, and a single page
+            for (int batchSize : new int[] { 100, 70, 1000 }) {
+                List<String> streamedIds = apiRepository
+                    .search(criteria, null, ApiFieldFilter.defaultFields(), batchSize)
+                    .map(Api::getId)
+                    .toList();
+
+                assertThat(streamedIds).as("batch size %d", batchSize).containsExactlyElementsOf(expected);
+            }
+        } finally {
+            for (String id : ids) {
+                apiRepository.delete(id);
+            }
+        }
+    }
+
     @Test
     public void shouldFindIdByEnvironmentIdAndCrossId() throws TechnicalException {
         Optional<String> optApiId = apiRepository.findIdByEnvironmentIdAndCrossId("ENV6", "searched-crossId2");
