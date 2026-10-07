@@ -134,6 +134,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 EventType.PUBLISH_DICTIONARY,
                 dictionary
             );
+            auditEncryptedPropertiesAccess(executionContext, dictionary);
             return convert(dictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
@@ -530,6 +531,24 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .filter(property -> property.getValue() != null && property.getValue().encrypted())
             .map(Map.Entry::getKey);
+    }
+
+    private void auditEncryptedPropertiesAccess(ExecutionContext executionContext, Dictionary deployedDictionary) {
+        if (!hasEncryptedProperty(deployedDictionary)) {
+            return;
+        }
+        Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
+        auditProperties.put(DICTIONARY, deployedDictionary.getName());
+        auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
+
+        auditService.createAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(auditProperties)
+                .event(Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED)
+                .createdAt(deployedDictionary.getDeployedAt())
+                .build()
+        );
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {

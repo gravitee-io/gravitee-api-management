@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
+import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryAuditPatch.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -177,6 +178,24 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
             argThat(
                 dict -> dict.getProperties().get("apiKey").encrypted() && dict.getProperties().get("apiKey").value().equals("fresh-cipher")
             )
+        );
+    }
+
+    @Test
+    public void should_not_audit_encrypted_properties_access_when_a_refresh_publishes_an_encrypted_dictionary()
+        throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of(), true);
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("fresh-value")).thenReturn("fresh-cipher");
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("apiKey", "fresh-value"));
+
+        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+        verify(auditService, never()).createAuditLog(
+            any(),
+            argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED)
         );
     }
 
