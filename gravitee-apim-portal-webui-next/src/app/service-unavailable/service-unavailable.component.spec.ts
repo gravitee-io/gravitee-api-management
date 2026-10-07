@@ -17,8 +17,9 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { provideRouter, Router } from '@angular/router';
 
-import { ServiceUnavailableComponent } from './service-unavailable.component';
+import { ServiceUnavailableComponent, ServiceUnavailableState } from './service-unavailable.component';
 import { AppTestingModule } from '../../testing/app-testing.module';
 
 describe('ServiceUnavailableComponent', () => {
@@ -26,29 +27,41 @@ describe('ServiceUnavailableComponent', () => {
   let harnessLoader: HarnessLoader;
   const assign = jest.fn();
 
-  beforeEach(async () => {
+  async function init(state?: ServiceUnavailableState) {
     await TestBed.configureTestingModule({
       imports: [ServiceUnavailableComponent, AppTestingModule],
+      providers: [provideRouter([{ path: '503', component: ServiceUnavailableComponent }])],
     }).compileComponents();
+
+    await TestBed.inject(Router).navigate(['/503'], { state });
 
     fixture = TestBed.createComponent(ServiceUnavailableComponent);
     // The real document renders the component; only the navigation goes through the fake one
     Object.assign(fixture.componentInstance, { document: { location: { assign }, baseURI: 'http://localhost/portal/' } });
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
-  });
+  }
 
   afterEach(() => {
     assign.mockReset();
   });
 
-  it('should show the default unavailable message', () => {
+  it('should show the default unavailable message', async () => {
+    await init({ status: 0 });
+
     expect(fixture.nativeElement.textContent).toContain(
       "Portal API unreachable or error occurs, please check logs. If the problem persists, try clearing this site's cookies and retry.",
     );
   });
 
+  it('should show the maintenance message carried by the navigation state', async () => {
+    await init({ status: 503, errors: [{ code: 'errors.maintenance.mode', message: 'Portal is under maintenance' }] });
+
+    expect(fixture.nativeElement.textContent).toContain('Portal is under maintenance');
+  });
+
   it('should load the portal home again when clicking retry', async () => {
+    await init();
     const retryButton = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Retry' }));
 
     await retryButton.click();

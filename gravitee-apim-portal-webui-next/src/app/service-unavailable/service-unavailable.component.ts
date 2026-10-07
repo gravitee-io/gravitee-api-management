@@ -18,7 +18,12 @@ import { Component, inject, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { get } from 'lodash';
+
+// Navigation state carried to /503: history.pushState must be able to clone it, so plain values only
+export interface ServiceUnavailableState {
+  status?: number;
+  errors?: { code: string; message: string }[];
+}
 
 @Component({
   selector: 'app-service-unavailable',
@@ -36,8 +41,8 @@ export class ServiceUnavailableComponent implements OnInit {
     "Portal API unreachable or error occurs, please check logs. If the problem persists, try clearing this site's cookies and retry.";
 
   ngOnInit() {
-    const state = this.router.lastSuccessfulNavigation?.extras.state;
-    const error = get(state, 'errors[0]');
+    const state = this.router.lastSuccessfulNavigation?.extras.state as ServiceUnavailableState | undefined;
+    const error = state?.errors?.[0];
     if (error?.code === 'errors.maintenance.mode') {
       this.message = error.message;
     }
