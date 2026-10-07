@@ -340,27 +340,19 @@
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams</artifactId>
         </dependency>
-        <!-- Kafka and compression codecs: endpoint-kafka, transform-protobuf-json -->
+        <!-- Kafka: endpoint-kafka, transform-protobuf-json (kafka-clients also brings the zstd-jni, lz4-java and snappy-java codecs they load) -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.github.luben</groupId>
-            <artifactId>zstd-jni</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>at.yawk.lz4</groupId>
-            <artifactId>lz4-java</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.xerial.snappy</groupId>
-            <artifactId>snappy-java</artifactId>
-        </dependency>
-        <!-- transform-protobuf-json (also commons-lang3, declared above) -->
+        <!-- transform-protobuf-json -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
         <!-- BouncyCastle: generate-wssecurity (also bcpkix-jdk18on, declared above) -->
         <dependency>
