@@ -274,6 +274,10 @@ public class ImportApiCRDUseCase {
 
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
+            if (input.spec().isIgnoreGroups()) {
+                // The platform owns the API's groups: keep them whatever the spec says
+                input.spec().setGroups(existingApi.getGroups());
+            }
             List<NavigationPath> previousNavigation = existingApi.getPortalNavigation() != null
                 ? existingApi.getPortalNavigation()
                 : List.of();

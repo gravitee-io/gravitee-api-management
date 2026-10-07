@@ -747,6 +747,13 @@ class ImportApiCRDUseCaseTest {
         }
 
         @Test
+        void should_not_validate_ignored_groups_on_create() {
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().ignoreGroups(true).build()));
+
+            assertThat(result.status().getErrors().warning()).isEmpty();
+        }
+
+        @Test
         void should_return_CRD_status() {
             var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
 
@@ -1267,6 +1274,33 @@ class ImportApiCRDUseCaseTest {
                     )
                     .build()
             );
+        }
+
+        @Test
+        void should_keep_existing_groups_when_ignoring_groups() {
+            apiQueryService.initWith(List.of(API_PROXY_V4.toBuilder().groups(Set.of(GROUP_ID_2)).build()));
+            givenExistingPlans(List.of(KEYLESS));
+
+            var result = useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().ignoreGroups(true).build()));
+
+            var spec = org.mockito.ArgumentCaptor.forClass(ApiCRDSpec.class);
+            verify(updateApiDomainService).update(eq(API_ID), spec.capture(), any());
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(spec.getValue().getGroups()).containsExactly(GROUP_ID_2);
+                soft.assertThat(result.status().getErrors().warning()).isEmpty();
+            });
+        }
+
+        @Test
+        void should_apply_spec_groups_when_not_ignoring_groups() {
+            apiQueryService.initWith(List.of(API_PROXY_V4.toBuilder().groups(Set.of(GROUP_ID_2)).build()));
+            givenExistingPlans(List.of(KEYLESS));
+
+            useCase.execute(new ImportApiCRDUseCase.Input(AUDIT_INFO, aCRD().build()));
+
+            var spec = org.mockito.ArgumentCaptor.forClass(ApiCRDSpec.class);
+            verify(updateApiDomainService).update(eq(API_ID), spec.capture(), any());
+            assertThat(spec.getValue().getGroups()).containsExactlyInAnyOrder(GROUP_ID_1, GROUP_ID_2, DEFAULT_GROUP);
         }
 
         @Test

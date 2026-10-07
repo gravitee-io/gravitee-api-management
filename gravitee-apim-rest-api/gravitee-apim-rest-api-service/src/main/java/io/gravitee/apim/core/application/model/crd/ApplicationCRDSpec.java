@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.application.model.crd;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
 import io.gravitee.definition.model.Origin;
 import io.gravitee.rest.api.model.ApplicationEntity;
@@ -45,6 +46,13 @@ public class ApplicationCRDSpec extends ApplicationEntity {
 
     private List<ApplicationMetadataCRD> metadata;
     private SequencedSet<MemberCRD> members;
+
+    /**
+     * Set by the Automation API from the {@code ignoreGroups} query parameter, never read from the payload.
+     * When true, {@code groups} is not applied: an update keeps the groups the platform holds.
+     */
+    @JsonIgnore
+    private boolean ignoreGroups;
 
     public NewApplicationEntity toNewApplicationEntity() {
         NewApplicationEntity nae = new NewApplicationEntity();
