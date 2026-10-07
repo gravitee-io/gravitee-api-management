@@ -267,6 +267,51 @@ class ImportGroupCRDUseCaseTest {
         });
     }
 
+    @Test
+    void should_keep_console_only_settings_on_update() {
+        var existing = io.gravitee.apim.core.group.model.Group.builder()
+            .id(GROUP_ID)
+            .hrid("developers")
+            .environmentId(ENVIRONMENT_ID)
+            .name("old-name")
+            .lockApiRole(true)
+            .lockApplicationRole(true)
+            .lockApiProductRole(true)
+            .eventRules(
+                List.of(
+                    new io.gravitee.apim.core.group.model.Group.GroupEventRule(
+                        io.gravitee.apim.core.group.model.Group.GroupEvent.API_CREATE
+                    )
+                )
+            )
+            .maxInvitation(10)
+            .systemInvitation(true)
+            .emailInvitation(true)
+            .apiPrimaryOwner("po-user")
+            .disableMembershipNotifications(false)
+            .origin(OriginContext.Origin.KUBERNETES.name())
+            .build();
+        groupQueryService.initWith(List.of(existing));
+        groupCrudService.storage().put(GROUP_ID, existing);
+
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().name("new-name").notifyMembers(false).build()));
+
+        var updated = groupCrudService.storage().get(GROUP_ID);
+        assertSoftly(soft -> {
+            soft.assertThat(updated.getName()).isEqualTo("new-name");
+            soft.assertThat(updated.isDisableMembershipNotifications()).isTrue();
+            soft.assertThat(updated.getHrid()).isEqualTo("developers");
+            soft.assertThat(updated.isLockApiRole()).isTrue();
+            soft.assertThat(updated.isLockApplicationRole()).isTrue();
+            soft.assertThat(updated.isLockApiProductRole()).isTrue();
+            soft.assertThat(updated.getEventRules()).isEqualTo(existing.getEventRules());
+            soft.assertThat(updated.getMaxInvitation()).isEqualTo(10);
+            soft.assertThat(updated.isSystemInvitation()).isTrue();
+            soft.assertThat(updated.isEmailInvitation()).isTrue();
+            soft.assertThat(updated.getApiPrimaryOwner()).isEqualTo("po-user");
+        });
+    }
+
     private static GroupCRDSpec.GroupCRDSpecBuilder aGroupSpec() {
         return GroupCRDSpec.builder().id(GROUP_ID).name("kubernetes-spec").notifyMembers(true);
     }
