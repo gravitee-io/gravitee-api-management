@@ -24,6 +24,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSour
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemSourceException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
@@ -61,6 +62,7 @@ public class ImportPortalNavigationUseCase {
             .type(PortalNavigationItemType.FOLDER)
             .area(area)
             .parentId(input.parentId())
+            .reference(input.reference() == null ? NavigationItemReference.defaultReference() : input.reference())
             .visibility(input.visibility() == null ? PortalVisibility.PRIVATE : input.visibility())
             .published(false)
             .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
@@ -85,14 +87,18 @@ public class ImportPortalNavigationUseCase {
         return new Output(importedRoot, result);
     }
 
-    @Builder
+    /**
+     * @param reference who owns the imported subtree; the portal when null
+     */
+    @Builder(toBuilder = true)
     public record Input(
         String organizationId,
         String environmentId,
         String title,
         @Nullable PortalNavigationItemId parentId,
         @Nullable PortalVisibility visibility,
-        PortalNavigationItemSource source
+        PortalNavigationItemSource source,
+        @Nullable NavigationItemReference reference
     ) {}
 
     public record Output(PortalNavigationFolder rootFolder, PortalNavigationBulkImportDomainService.BulkImportResult result) {}

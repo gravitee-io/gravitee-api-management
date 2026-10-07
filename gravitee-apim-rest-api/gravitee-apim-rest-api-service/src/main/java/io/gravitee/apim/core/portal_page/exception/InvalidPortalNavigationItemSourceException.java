@@ -38,6 +38,15 @@ public class InvalidPortalNavigationItemSourceException extends ValidationDomain
         );
     }
 
+    /**
+     * The address is left out of the message on purpose: it can carry credentials, and the message is returned by the API.
+     */
+    public static InvalidPortalNavigationItemSourceException sourceAddressNotAllowed(String sourceType) {
+        return new InvalidPortalNavigationItemSourceException(
+            "The address configured for source type %s is not allowed.".formatted(sourceType)
+        );
+    }
+
     public static InvalidPortalNavigationItemSourceException invalidCronExpression(String cron) {
         return new InvalidPortalNavigationItemSourceException("The fetch cron expression %s is not valid.".formatted(cron));
     }

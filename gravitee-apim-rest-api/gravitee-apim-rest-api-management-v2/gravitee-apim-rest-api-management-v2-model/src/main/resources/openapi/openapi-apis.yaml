@@ -3418,6 +3418,51 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_import:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Import a documentation tree owned by an API from a remote repository
+            description: |-
+                Creates a folder bound to a file-listing source, lists the remote files and builds the folder and
+                page hierarchy below it, as the environment-level import does.
+
+                The folder and everything imported below it are owned by the API of the path and created unpublished.
+                A parent must itself be owned by the API.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: importApiPortalNavigation
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/ImportPortalNavigationRequest"
+                required: true
+            responses:
+                "200":
+                    description: Import result. A file failing to import does not abort the others; per-file failures are reported in the summary.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/ImportPortalNavigationResponse"
+                "400":
+                    description: Invalid source configuration, or a source that cannot list files
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The parent does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-locations:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
