@@ -356,6 +356,18 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Libraries that plugins declare provided and load from lib/ext: removing one breaks the listed plugins -->
+        <!-- Jackson: oas-validation (also jackson-annotations, jackson-core, jackson-databind, declared above) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <!-- Jakarta APIs: oas-validation (also jakarta.activation-api, jakarta.xml.bind-api, declared above) -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
         <!-- Unit Tests -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
