@@ -33,6 +33,11 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+<<<<<<< HEAD
+=======
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
+>>>>>>> fa74b4d (fix(api): default plan validation when omitted on import (APIM-15327))
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.Collections;
@@ -104,7 +109,15 @@ public class CreatePlanDomainService {
             plan
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
+<<<<<<< HEAD
                 .apiId(api.getId())
+=======
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(api.getId())
+                .environmentId(auditInfo.environmentId())
+                .validation(validationOrDefault(plan))
+                .definitionVersion(api.getDefinitionVersion())
+>>>>>>> fa74b4d (fix(api): default plan validation when omitted on import (APIM-15327))
                 .apiType(api.getType())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
@@ -134,6 +147,13 @@ public class CreatePlanDomainService {
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiId(api.getId())
                 .apiType(api.getType())
+<<<<<<< HEAD
+=======
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(api.getId())
+                .environmentId(auditInfo.environmentId())
+                .validation(validationOrDefault(plan))
+>>>>>>> fa74b4d (fix(api): default plan validation when omitted on import (APIM-15327))
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
@@ -171,6 +191,14 @@ public class CreatePlanDomainService {
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiId(api.getId())
                 .apiType(api.getType())
+<<<<<<< HEAD
+=======
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .referenceId(api.getId())
+                .environmentId(auditInfo.environmentId())
+                .validation(validationOrDefault(plan))
+                .definitionVersion(api.getDefinitionVersion())
+>>>>>>> fa74b4d (fix(api): default plan validation when omitted on import (APIM-15327))
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
                 .needRedeployAt(Date.from(TimeProvider.instantNow()))
@@ -183,6 +211,93 @@ public class CreatePlanDomainService {
         return new PlanWithFlows(createdPlan, flows);
     }
 
+<<<<<<< HEAD
+=======
+    public Plan createApiProductPlan(Plan plan, ApiProduct apiProduct, AuditInfo auditInfo) {
+        //TODO handle deprecated api product
+        /*if (apiProduct.isDeprecated()) {
+            throw new ApiDeprecatedException(plan.getApiId());
+        }*/
+
+        planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId(), null);
+        planValidatorDomainService.validatePlanTagsAgainstApiProductTags(plan.getTags(), apiProduct.getTags());
+        planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
+        var incomingFlows = plan.getPlanDefinitionHttpV4() != null ? plan.getPlanDefinitionHttpV4().getFlows() : null;
+        var sanitizedFlows = incomingFlows == null ? null : flowValidationDomainService.validateAndSanitizeHttpV4(null, incomingFlows);
+        var createdPlan = planCrudService.create(
+            plan
+                .toBuilder()
+                .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
+                .referenceType(GenericPlanEntity.ReferenceType.API_PRODUCT)
+                .referenceId(apiProduct.getId())
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .needRedeployAt(Date.from(TimeProvider.instantNow()))
+                .publishedAt(plan.isPublished() ? TimeProvider.now() : null)
+                .build()
+        );
+        flowCrudService.savePlanFlows(createdPlan.getId(), sanitizedFlows);
+        createApiProductAuditLog(createdPlan, auditInfo);
+        return createdPlan;
+    }
+
+    /**
+     * Imports and other programmatic callers may omit the validation; persisting null breaks every later read of the plan.
+     * KEY_LESS plans need no human validation, so they default to AUTO.
+     */
+    private static Plan.PlanValidationType validationOrDefault(Plan plan) {
+        if (plan.getValidation() != null) {
+            return plan.getValidation();
+        }
+        var security = plan.getPlanSecurity();
+        return security != null && PlanSecurityType.valueOfLabel(security.getType()) == PlanSecurityType.KEY_LESS
+            ? Plan.PlanValidationType.AUTO
+            : Plan.PlanValidationType.MANUAL;
+    }
+
+    /**
+     * Validates the candidate plan's port allocation against existing plans before the plan row is
+     * written. No-op when the plan doesn't configure port-based routing.
+     */
+    private void validatePortRoutingIfConfigured(Plan plan, Api api, AuditInfo auditInfo) {
+        var nativeDefinition = plan.getPlanDefinitionNativeV4();
+        if (nativeDefinition == null || nativeDefinition.getBootstrapPort() == null) {
+            return;
+        }
+        verifyPlanPortRangesDomainService.verify(
+            auditInfo.environmentId(),
+            null, // new plan — nothing to exclude from the conflict check
+            nativeDefinition.getBootstrapPort(),
+            nativeDefinition.getBrokerRangeStart(),
+            nativeDefinition.getBrokerRangeEnd()
+        );
+    }
+
+    /**
+     * Writes the {@code kafka_port_ranges} row for a newly created plan. No-op when the plan
+     * doesn't configure port-based routing. Called after the plan has been persisted so the row
+     * is only written when the plan save itself succeeded.
+     */
+    private void persistPortRangeIfConfigured(Plan createdPlan, Api api, AuditInfo auditInfo) {
+        var nativeDefinition = createdPlan.getPlanDefinitionNativeV4();
+        if (nativeDefinition == null || nativeDefinition.getBootstrapPort() == null) {
+            return;
+        }
+        kafkaPortRangeCrudService.create(
+            KafkaPortRange.builder()
+                .planId(createdPlan.getId())
+                .apiId(api.getId())
+                .environmentId(auditInfo.environmentId())
+                .bootstrapPort(nativeDefinition.getBootstrapPort())
+                .rangeStart(nativeDefinition.getBrokerRangeStart())
+                .rangeEnd(nativeDefinition.getBrokerRangeEnd())
+                .createdAt(TimeProvider.now())
+                .updatedAt(TimeProvider.now())
+                .build()
+        );
+    }
+
+>>>>>>> fa74b4d (fix(api): default plan validation when omitted on import (APIM-15327))
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity.builder()

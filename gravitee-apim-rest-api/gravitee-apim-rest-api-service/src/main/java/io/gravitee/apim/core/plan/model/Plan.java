@@ -306,7 +306,13 @@ public class Plan implements GenericPlanEntity {
             .excludedGroups(updated.excludedGroups)
             .characteristics(updated.characteristics)
             .crossId(updated.crossId == null ? crossId : updated.crossId)
+<<<<<<< HEAD
             .validation(updated.validation)
+=======
+            .validation(updated.validation == null ? validation : updated.validation)
+            .referenceId(updated.referenceId)
+            .referenceType(updated.referenceType)
+>>>>>>> fa74b4d (fix(api): default plan validation when omitted on import (APIM-15327))
             .build();
     }
 
