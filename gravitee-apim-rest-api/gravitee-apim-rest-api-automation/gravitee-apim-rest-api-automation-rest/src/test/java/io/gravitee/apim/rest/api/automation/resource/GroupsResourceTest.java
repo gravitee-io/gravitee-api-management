@@ -18,21 +18,27 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
+import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.rest.api.automation.model.GroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
+import java.util.Map;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 
 class GroupsResourceTest extends AbstractResourceTest {
 
@@ -133,6 +139,62 @@ class GroupsResourceTest extends AbstractResourceTest {
                 soft.assertThat(state.getErrors()).isNotNull();
                 soft.assertThat(state.getErrors().getWarning()).contains("unknown role");
             });
+        }
+    }
+
+    @Nested
+    class DefaultMemberRoles {
+
+        @BeforeEach
+        void setUp() {
+            when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
+                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("group-id").members(0).build())
+            );
+            when(validateGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
+                new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("group-id").members(0).build())
+            );
+        }
+
+        @Test
+        void should_pass_default_member_roles_to_the_use_case_and_echo_them() {
+            var state = expectEntity("group-with-default-member-roles.json");
+
+            var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
+            verify(importGroupCRDUseCase).execute(input.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(input.getValue().spec().getDefaultMemberRoles())
+                    .containsExactlyInAnyOrderEntriesOf(
+                        Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER")
+                    );
+                soft.assertThat(input.getValue().spec().isIgnoreMembers()).isFalse();
+                soft.assertThat(state.getDefaultMemberRoles()).containsEntry("API_PRODUCT", "USER");
+            });
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "group-with-name.json", "group-with-empty-default-member-roles.json" })
+        void should_leave_default_member_roles_undeclared_when_absent_or_empty(String fixture) {
+            expectEntity(fixture);
+
+            var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
+            verify(importGroupCRDUseCase).execute(input.capture());
+            assertThat(input.getValue().spec().getDefaultMemberRoles()).isNull();
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_reject_a_scope_that_is_not_a_group_default_role_scope(boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("group-with-integration-default-member-role.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(400);
+                assertThat(response.readEntity(String.class)).contains("scope [INTEGRATION] is not a group default role scope");
+            }
         }
     }
 

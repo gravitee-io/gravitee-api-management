@@ -84,7 +84,13 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
         return Result.ofValue(name);
     }
 
+    private static final List<RoleScope> GROUP_DEFAULT_ROLE_SCOPES = List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
+
     private void validateAndSanitizeDefaultRoles(ValidateGroupCRDDomainService.Input input, ArrayList<Error> errors) {
+        if (input.spec().getDefaultMemberRoles() != null) {
+            validateAndSanitizeDefaultMemberRoles(input, errors);
+            return;
+        }
         validateAndSanitizeDefaultRole(input, input.spec().getApiRole(), RoleScope.API, role -> input.spec().setApiRole(role), errors);
         validateAndSanitizeDefaultRole(
             input,
@@ -100,6 +106,27 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
             role -> input.spec().setApiProductRole(role),
             errors
         );
+    }
+
+    private void validateAndSanitizeDefaultMemberRoles(ValidateGroupCRDDomainService.Input input, ArrayList<Error> errors) {
+        var sanitized = new LinkedHashMap<RoleScope, String>();
+        input
+            .spec()
+            .getDefaultMemberRoles()
+            .forEach((roleScope, roleName) -> {
+                if (!GROUP_DEFAULT_ROLE_SCOPES.contains(roleScope)) {
+                    errors.add(
+                        Error.severe(
+                            "defaultMemberRoles: scope [%s] is not a group default role scope (API, APPLICATION, API_PRODUCT)",
+                            roleScope
+                        )
+                    );
+                    return;
+                }
+                validateAndSanitizeDefaultRole(input, roleName, roleScope, role -> sanitized.put(roleScope, role), errors);
+            });
+        sanitized.values().removeIf(java.util.Objects::isNull);
+        input.spec().setDefaultMemberRoles(sanitized);
     }
 
     private void validateAndSanitizeDefaultRole(

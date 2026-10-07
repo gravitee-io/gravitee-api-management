@@ -673,6 +673,57 @@ class CRDMembersDomainServiceImplTest {
         }
 
         @Test
+        void should_converge_on_a_declared_map_setting_declared_scopes_and_clearing_the_others() {
+            when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(Set.of());
+            when(membershipService.getRoles(MembershipReferenceType.APPLICATION, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
+                Set.of(RoleEntity.builder().id("app-user-role").name("USER").scope(RoleScope.APPLICATION).build())
+            );
+            when(membershipService.getRoles(MembershipReferenceType.API_PRODUCT, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(
+                Set.of()
+            );
+
+            cut.updateGroupDefaultRoles(AUDIT_INFO, GROUP_ID, java.util.Map.of(io.gravitee.apim.core.member.model.RoleScope.API, "USER"));
+
+            var executionContext = new ExecutionContext(AUDIT_INFO.organizationId(), AUDIT_INFO.environmentId());
+            verify(membershipService).addRoleToMemberOnReference(
+                eq(executionContext),
+                argThat(ref -> ref.getType() == MembershipReferenceType.API && ref.getId() == null),
+                eq(new MembershipService.MembershipMember(GROUP_ID, null, MembershipMemberType.GROUP)),
+                eq(new MembershipService.MembershipRole(RoleScope.API, "USER"))
+            );
+            verify(membershipService).deleteReferenceMember(
+                executionContext,
+                MembershipReferenceType.APPLICATION,
+                null,
+                MembershipMemberType.GROUP,
+                GROUP_ID
+            );
+            verify(membershipService, never()).deleteReferenceMember(
+                any(),
+                eq(MembershipReferenceType.API_PRODUCT),
+                eq(null),
+                eq(MembershipMemberType.GROUP),
+                eq(GROUP_ID)
+            );
+        }
+
+        @Test
+        void should_not_set_primary_owner_from_a_declared_map() {
+            cut.updateGroupDefaultRoles(
+                AUDIT_INFO,
+                GROUP_ID,
+                java.util.Map.of(io.gravitee.apim.core.member.model.RoleScope.API, "PRIMARY_OWNER")
+            );
+
+            verify(membershipService, never()).addRoleToMemberOnReference(
+                any(ExecutionContext.class),
+                any(MembershipService.MembershipReference.class),
+                any(MembershipService.MembershipMember.class),
+                any(MembershipService.MembershipRole.class)
+            );
+        }
+
+        @Test
         void should_set_default_roles() {
             when(membershipService.getRoles(MembershipReferenceType.API, null, MembershipMemberType.GROUP, GROUP_ID)).thenReturn(Set.of());
 
