@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model.crd;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.Path;
@@ -122,6 +123,13 @@ public class ApiCRDSpec {
     private Failover failover;
 
     private Set<String> groups;
+
+    /**
+     * Set by the Automation API from the {@code ignoreGroups} query parameter, never read from the payload.
+     * When true, {@code groups} is not applied: an update keeps the groups the platform holds.
+     */
+    @JsonIgnore
+    private boolean ignoreGroups;
 
     private SequencedSet<MemberCRD> members;
 

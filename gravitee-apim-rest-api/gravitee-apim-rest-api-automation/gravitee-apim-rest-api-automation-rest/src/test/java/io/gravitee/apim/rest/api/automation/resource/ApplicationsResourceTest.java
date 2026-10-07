@@ -143,6 +143,59 @@ class ApplicationsResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class IgnoreGroups {
+
+        @BeforeEach
+        void setUp() {
+            when(importApplicationCRDUseCase.execute(any(ImportApplicationCRDUseCase.Input.class))).thenReturn(
+                new ImportApplicationCRDUseCase.Output(
+                    ApplicationCRDStatus.builder().id("application-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                )
+            );
+            when(validateApplicationCRDDomainService.validateAndSanitize(any(ValidateApplicationCRDDomainService.Input.class))).thenAnswer(
+                call -> Validator.Result.ofValue(call.getArgument(0))
+            );
+        }
+
+        @Test
+        void should_pass_ignore_groups_to_the_use_case() {
+            put("application-with-hrid.json", false, true);
+
+            var input = ArgumentCaptor.forClass(ImportApplicationCRDUseCase.Input.class);
+            verify(importApplicationCRDUseCase).execute(input.capture());
+            assertThat(input.getValue().crd().isIgnoreGroups()).isTrue();
+        }
+
+        @Test
+        void should_not_ignore_groups_by_default() {
+            put("application-with-hrid.json", false, null);
+
+            var input = ArgumentCaptor.forClass(ImportApplicationCRDUseCase.Input.class);
+            verify(importApplicationCRDUseCase).execute(input.capture());
+            assertThat(input.getValue().crd().isIgnoreGroups()).isFalse();
+        }
+
+        @Test
+        void should_pass_ignore_groups_to_the_dry_run_validation() {
+            put("application-with-hrid.json", true, true);
+
+            var input = ArgumentCaptor.forClass(ValidateApplicationCRDDomainService.Input.class);
+            verify(validateApplicationCRDDomainService).validateAndSanitize(input.capture());
+            assertThat(input.getValue().spec().isIgnoreGroups()).isTrue();
+        }
+
+        private void put(String spec, boolean dryRun, Boolean ignoreGroups) {
+            var target = rootTarget().queryParam("dryRun", dryRun);
+            if (ignoreGroups != null) {
+                target = target.queryParam("ignoreGroups", ignoreGroups);
+            }
+            try (var response = target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+        }
+    }
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/applications";

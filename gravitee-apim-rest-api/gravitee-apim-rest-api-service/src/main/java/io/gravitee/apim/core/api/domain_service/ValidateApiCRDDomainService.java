@@ -109,7 +109,8 @@ public class ValidateApiCRDDomainService implements Validator<ValidateApiCRDDoma
             .validateAndSanitize(
                 new ValidateGroupsDomainService.Input(
                     input.auditInfo.environmentId(),
-                    input.spec().getGroups(),
+                    // ignoreGroups: validate nothing that will not be applied; default groups are still injected on create
+                    input.spec().isIgnoreGroups() ? null : input.spec().getGroups(),
                     input.spec().getDefinitionVersion(),
                     input.spec().getDefinitionContext() != null ? input.spec().getDefinitionContext().getOrigin() : null,
                     Group.GroupEvent.API_CREATE,
