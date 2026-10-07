@@ -17,16 +17,20 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.CreatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.PublishApiToPortalUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublication;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalPublishLocationsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.ImportPortalNavigationRequest;
+import io.gravitee.rest.api.management.v2.rest.model.PublishApiToPortal;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -62,6 +66,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
 
     @Inject
     private ImportPortalNavigationUseCase importPortalNavigationUseCase;
+
+    @Inject
+    private PublishApiToPortalUseCase publishApiToPortalUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -113,6 +120,27 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         );
 
         return Response.created(this.getLocationHeader(output.item().getId().toString())).entity(mapper.map(output.item())).build();
+    }
+
+    @Path("_publish")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    public ApiPortalPublication publishApiToPortal(
+        @PathParam("apiId") String apiId,
+        @Valid @NotNull final PublishApiToPortal publishApiToPortal
+    ) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var output = publishApiToPortalUseCase.execute(
+            new PublishApiToPortalUseCase.Input(
+                executionContext.getOrganizationId(),
+                executionContext.getEnvironmentId(),
+                apiId,
+                PortalNavigationItemId.of(publishApiToPortal.getSectionId().toString())
+            )
+        );
+        return mapper.mapPublication(new ListApiDocumentationUseCase.Publication(output.listing(), output.section()));
     }
 
     @Path("_import")

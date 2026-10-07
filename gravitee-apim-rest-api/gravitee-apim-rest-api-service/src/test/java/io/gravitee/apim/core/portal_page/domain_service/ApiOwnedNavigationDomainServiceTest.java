@@ -23,9 +23,11 @@ import static fixtures.core.model.PortalNavigationItemFixtures.anApiProduct;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -50,8 +52,11 @@ class ApiOwnedNavigationDomainServiceTest {
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
 
-    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
-    private final ApiOwnedNavigationDomainService service = new ApiOwnedNavigationDomainService(queryService);
+    private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory();
+    private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory(
+        crudService.storage()
+    );
+    private final ApiOwnedNavigationDomainService service = new ApiOwnedNavigationDomainService(queryService, crudService);
 
     @Nested
     class FindOwnedItems {
@@ -118,7 +123,7 @@ class ApiOwnedNavigationDomainServiceTest {
                 }
             };
 
-            var ownedItems = new ApiOwnedNavigationDomainService(loopingQueryService).findOwnedItems(ENV_ID, API_ID);
+            var ownedItems = new ApiOwnedNavigationDomainService(loopingQueryService, crudService).findOwnedItems(ENV_ID, API_ID);
 
             assertThat(ownedItems).extracting(PortalNavigationItem::getId).containsExactlyInAnyOrder(folder.getId(), page.getId());
         }
@@ -143,7 +148,9 @@ class ApiOwnedNavigationDomainServiceTest {
                 }
             };
 
-            assertThat(new ApiOwnedNavigationDomainService(indexedQueryService).findOwnedItems(ENV_ID, API_ID)).hasSize(20_000);
+            assertThat(new ApiOwnedNavigationDomainService(indexedQueryService, crudService).findOwnedItems(ENV_ID, API_ID)).hasSize(
+                20_000
+            );
         }
     }
 
@@ -337,6 +344,115 @@ class ApiOwnedNavigationDomainServiceTest {
                 .type(PortalNavigationItemType.PAGE)
                 .area(PortalArea.TOP_NAVBAR)
                 .contentType(PortalPageContentType.GRAVITEE_MARKDOWN);
+        }
+    }
+
+    @Nested
+    class SetPublished {
+
+        @Test
+        void should_set_the_flag_on_every_item_the_api_owns_at_any_depth() {
+            var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).published(false).build();
+            var nestedFolder = aFolder("OAuth", folder.getId()).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+            var nestedPage = aPage("Setup", nestedFolder.getId()).toBuilder().reference(ownedBy(API_ID)).published(false).build();
+            queryService.initWith(List.of(folder, nestedFolder, nestedPage));
+
+            service.setPublished(ENV_ID, API_ID, true);
+
+            assertThat(crudService.storage())
+                .hasSize(3)
+                .allSatisfy(item -> assertThat(item.getPublished()).isTrue());
+        }
+
+        @Test
+        void should_unset_the_flag_on_every_item_the_api_owns() {
+            var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(true).build();
+            queryService.initWith(List.of(page));
+
+            service.setPublished(ENV_ID, API_ID, false);
+
+            assertThat(crudService.storage())
+                .singleElement()
+                .satisfies(item -> assertThat(item.getPublished()).isFalse());
+        }
+
+        @Test
+        void should_not_touch_items_of_another_api_or_of_the_portal() {
+            var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).published(false).build();
+            var section = aFolder("APIs").toBuilder().published(false).build();
+            queryService.initWith(List.of(foreign, section));
+
+            service.setPublished(ENV_ID, API_ID, true);
+
+            assertThat(crudService.storage()).allSatisfy(item -> assertThat(item.getPublished()).isFalse());
+        }
+    }
+
+    @Nested
+    class RequirePublishLocation {
+
+        @Test
+        void should_return_a_published_top_level_section() {
+            var section = aFolder("APIs");
+            queryService.initWith(List.of(section));
+
+            assertThat(service.requirePublishLocation(ENV_ID, section.getId())).isEqualTo(section);
+        }
+
+        @Test
+        void should_reject_an_unknown_section() {
+            var unknownId = PortalNavigationItemId.random();
+
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, unknownId)).isInstanceOf(ParentNotFoundException.class);
+        }
+
+        @Test
+        void should_reject_a_nested_folder() {
+            var section = aFolder("APIs");
+            var nested = aFolder("Payments", section.getId());
+            queryService.initWith(List.of(section, nested));
+
+            assertNotAPublishLocation(nested.getId());
+        }
+
+        @Test
+        void should_reject_an_api_product_and_a_folder_under_it() {
+            var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id");
+            var folderInProduct = aFolder("Members", product.getId());
+            queryService.initWith(List.of(product, folderInProduct));
+
+            assertNotAPublishLocation(product.getId());
+            assertNotAPublishLocation(folderInProduct.getId());
+        }
+
+        @Test
+        void should_reject_a_folder_outside_the_main_navigation() {
+            var homepageFolder = aFolder("Homepage blocks").toBuilder().area(PortalArea.HOMEPAGE).build();
+            queryService.initWith(List.of(homepageFolder));
+
+            assertNotAPublishLocation(homepageFolder.getId());
+        }
+
+        @Test
+        void should_reject_a_folder_owned_by_an_api() {
+            var apiFolder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
+            queryService.initWith(List.of(apiFolder));
+
+            assertNotAPublishLocation(apiFolder.getId());
+        }
+
+        @Test
+        void should_reject_an_unpublished_section() {
+            var draft = aFolder("Draft").toBuilder().published(false).build();
+            queryService.initWith(List.of(draft));
+
+            assertNotAPublishLocation(draft.getId());
+        }
+
+        private void assertNotAPublishLocation(PortalNavigationItemId id) {
+            assertThatThrownBy(() -> service.requirePublishLocation(ENV_ID, id)).isInstanceOf(
+                InvalidPortalNavigationItemDataException.class
+            );
         }
     }
 

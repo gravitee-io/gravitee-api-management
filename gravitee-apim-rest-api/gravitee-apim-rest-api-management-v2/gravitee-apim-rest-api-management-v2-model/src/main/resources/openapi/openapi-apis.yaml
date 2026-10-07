@@ -3463,6 +3463,53 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Publish an API to the portal
+            description: |-
+                Lists the API under the chosen section of the portal's main navigation and publishes every page,
+                folder and link the API owns, including those that were hidden individually.
+
+                The section must be one returned by `_publish-locations`. When the API already has a hidden
+                listing, for example one added in the portal editor, that listing is reused: it is moved to the
+                chosen section if it is elsewhere, and made visible together with what is stored under it. An API
+                whose listing is visible is already published and cannot be published again.
+
+                User must have the API_DOCUMENTATION[CREATE] permission.
+            operationId: publishApiToPortal
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PublishApiToPortal"
+                required: true
+            responses:
+                "200":
+                    description: Where the API is now listed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ApiPortalPublication"
+                "400":
+                    description: The API is already published, or the section is not a publish location
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The section does not exist
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/portal-navigation-items/_publish-locations:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -3829,6 +3876,16 @@ components:
             required:
                 - id
                 - name
+        PublishApiToPortal:
+            type: object
+            description: Where to publish an API in the portal.
+            properties:
+                sectionId:
+                    type: string
+                    format: uuid
+                    description: The id of the section to list the API under, as returned by `_publish-locations`.
+            required:
+                - sectionId
         ApiPortalPublication:
             type: object
             description: The listing of an API in a portal.

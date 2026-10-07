@@ -39,6 +39,12 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException notAPublishLocation(String sectionId) {
+        return new InvalidPortalNavigationItemDataException(
+            "An API can only be published to a published top-level folder of the main navigation (got %s).".formatted(sectionId)
+        );
+    }
+
     public static InvalidPortalNavigationItemDataException apiMustBeInTopNavbar() {
         return new InvalidPortalNavigationItemDataException("API items can only be added to TOP_NAVBAR area.");
     }

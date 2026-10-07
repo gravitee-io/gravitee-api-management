@@ -17,7 +17,9 @@ package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
@@ -52,6 +54,7 @@ public class ApiOwnedNavigationDomainService {
     );
 
     private final PortalNavigationItemsQueryService queryService;
+    private final PortalNavigationItemCrudService crudService;
 
     public List<PortalNavigationItem> findOwnedItems(String environmentId, String apiId) {
         var owner = new NavigationItemReference.ApiReference(apiId);
@@ -109,6 +112,31 @@ public class ApiOwnedNavigationDomainService {
             .filter(section -> Boolean.TRUE.equals(section.getPublished()))
             .sorted(Comparator.comparing(PortalNavigationFolder::getOrder))
             .toList();
+    }
+
+    public PortalNavigationFolder requirePublishLocation(String environmentId, PortalNavigationItemId sectionId) {
+        if (queryService.findByIdAndEnvironmentId(environmentId, sectionId) == null) {
+            throw new ParentNotFoundException(sectionId.json());
+        }
+        return findPublishLocations(environmentId)
+            .stream()
+            .filter(section -> section.getId().equals(sectionId))
+            .findFirst()
+            .orElseThrow(() -> InvalidPortalNavigationItemDataException.notAPublishLocation(sectionId.json()));
+    }
+
+    /**
+     * Publication is a property of the API's documentation as a whole when the API enters or leaves the
+     * portal: every item follows, whatever its own flag was.
+     */
+    public void setPublished(String environmentId, String apiId, boolean published) {
+        findOwnedItems(environmentId, apiId)
+            .stream()
+            .filter(item -> !Boolean.valueOf(published).equals(item.getPublished()))
+            .forEach(item -> {
+                item.setPublished(published);
+                crudService.update(item);
+            });
     }
 
     /**

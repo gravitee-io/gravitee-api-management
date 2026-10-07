@@ -24,6 +24,7 @@ import static fixtures.core.model.PortalNavigationItemFixtures.anApiProduct;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalId;
@@ -48,7 +49,7 @@ class ListApiDocumentationUseCaseTest {
 
     private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
     private final ListApiDocumentationUseCase useCase = new ListApiDocumentationUseCase(
-        new ApiOwnedNavigationDomainService(queryService),
+        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
         queryService,
         new PortalNavigationItemSourceDomainServiceInMemory()
     );

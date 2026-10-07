@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -43,7 +44,7 @@ class GetApiPortalNavigationItemUseCaseTest {
 
     private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory();
     private final GetApiPortalNavigationItemUseCase useCase = new GetApiPortalNavigationItemUseCase(
-        new ApiOwnedNavigationDomainService(queryService),
+        new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory()),
         new PortalNavigationItemSourceDomainServiceInMemory()
     );
 

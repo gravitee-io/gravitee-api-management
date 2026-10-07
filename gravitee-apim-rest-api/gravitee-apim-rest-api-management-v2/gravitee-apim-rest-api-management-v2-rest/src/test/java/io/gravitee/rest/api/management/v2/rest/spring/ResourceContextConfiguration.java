@@ -225,6 +225,7 @@ import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListPortalNavigationItemsUseCase;
+import io.gravitee.apim.core.portal_page.use_case.PublishApiToPortalUseCase;
 import io.gravitee.apim.core.portal_page.use_case.SeedDefaultPagesForPortalNavigationItemsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentConfigurationUseCase;
@@ -1414,9 +1415,23 @@ public class ResourceContextConfiguration {
 
     @Bean
     public ApiOwnedNavigationDomainService apiOwnedNavigationDomainService(
-        PortalNavigationItemsQueryService portalNavigationItemsQueryService
+        PortalNavigationItemsQueryService portalNavigationItemsQueryService,
+        PortalNavigationItemCrudService portalNavigationItemCrudService
     ) {
-        return new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService);
+        return new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemCrudService);
+    }
+
+    @Bean
+    public PublishApiToPortalUseCase publishApiToPortalUseCase(
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
+        PortalNavigationItemDomainService portalNavigationItemDomainService
+    ) {
+        return new PublishApiToPortalUseCase(
+            apiOwnedNavigationDomainService,
+            portalNavigationItemValidatorService,
+            portalNavigationItemDomainService
+        );
     }
 
     @Bean
