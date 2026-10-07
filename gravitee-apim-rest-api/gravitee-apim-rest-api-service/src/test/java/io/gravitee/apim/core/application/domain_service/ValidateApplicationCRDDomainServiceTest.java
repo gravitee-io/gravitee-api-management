@@ -99,6 +99,29 @@ class ValidateApplicationCRDDomainServiceTest {
             );
     }
 
+    @Test
+    void should_not_validate_groups_that_are_ignored() {
+        when(groupsValidator.validateAndSanitize(any(ValidateGroupsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(membersValidator.validateAndSanitize(any(ValidateCRDMembersDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+        when(settingsValidator.validateAndSanitize(any(ValidateApplicationSettingsDomainService.Input.class))).thenAnswer(call ->
+            Validator.Result.ofValue(call.getArgument(0))
+        );
+
+        ApplicationCRDSpec crd = anApplicationCRD();
+        crd.setGroups(java.util.Set.of("spec-group"));
+        crd.setIgnoreGroups(true);
+
+        cut.validateAndSanitize(new ValidateApplicationCRDDomainService.Input(AUDIT_INFO, crd));
+
+        var groupsInput = org.mockito.ArgumentCaptor.forClass(ValidateGroupsDomainService.Input.class);
+        org.mockito.Mockito.verify(groupsValidator).validateAndSanitize(groupsInput.capture());
+        Assertions.assertThat(groupsInput.getValue().groups()).isNull();
+    }
+
     private static ApplicationCRDSpec anApplicationCRD() {
         return ApplicationCRDSpec.builder()
             .id(APP_ID)

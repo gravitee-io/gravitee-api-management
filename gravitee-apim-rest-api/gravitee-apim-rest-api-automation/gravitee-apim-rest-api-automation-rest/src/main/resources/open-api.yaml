@@ -65,6 +65,7 @@ paths:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/dryRunQueryParam"
+        - $ref: "#/components/parameters/ignoreGroupsQueryParam"
       requestBody:
         description: API Specification
         content:
@@ -151,6 +152,7 @@ paths:
         - $ref: "#/components/parameters/orgIdParam"
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/dryRunQueryParam"
+        - $ref: "#/components/parameters/ignoreGroupsQueryParam"
       requestBody:
         description: Application specification
         content:
@@ -3971,6 +3973,18 @@ components:
         default: false
         examples:
           - true
+    ignoreGroupsQueryParam:
+      name: ignoreGroups
+      in: query
+      description: |
+        When true, `groups` in the spec is not applied and the platform keeps ownership of the
+        resource's group assignment, for instance groups managed from the Console.
+        On update, the resource keeps the groups it has on the platform. On create, it receives
+        the environment's default groups, as a Console create does.
+        The answer echoes the request; read the group assignment back with GET.
+      schema:
+        type: boolean
+        default: false
     hridParam:
       name: hrid
       in: path

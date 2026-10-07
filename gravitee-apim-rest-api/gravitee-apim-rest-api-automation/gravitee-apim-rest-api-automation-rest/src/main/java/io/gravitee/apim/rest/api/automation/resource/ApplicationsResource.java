@@ -69,7 +69,8 @@ public class ApplicationsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull ApplicationSpec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @QueryParam("ignoreGroups") boolean ignoreGroups
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -90,6 +91,8 @@ public class ApplicationsResource extends AbstractResource {
         } else {
             CrdIdHelper.generateApplicationId(applicationCRDSpec, auditInfo);
         }
+
+        applicationCRDSpec.setIgnoreGroups(ignoreGroups);
 
         if (dryRun) {
             ApplicationCRDStatus status = validateApplicationCRDUseCase

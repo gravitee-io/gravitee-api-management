@@ -51,7 +51,8 @@ public class ValidateApplicationCRDDomainService implements Validator<ValidateAp
             .validateAndSanitize(
                 new ValidateGroupsDomainService.Input(
                     input.auditInfo.environmentId(),
-                    input.spec().getGroups(),
+                    // ignoreGroups: validate nothing that will not be applied; default groups are still injected on create
+                    input.spec().isIgnoreGroups() ? null : input.spec().getGroups(),
                     null,
                     null,
                     Group.GroupEvent.APPLICATION_CREATE,

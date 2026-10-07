@@ -257,6 +257,47 @@ class ImportApplicationCRDUseCaseTest {
         }
 
         @Test
+        void should_keep_existing_groups_when_ignoring_groups() {
+            var existing = anApplicationCRD();
+            existing.setGroups(Set.of("console-group"));
+            applicationCrudService.initWith(List.of(existing));
+
+            ApplicationCRDSpec crd = anApplicationCRD();
+            crd.setGroups(Set.of("spec-group"));
+            crd.setIgnoreGroups(true);
+            var result = useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(importApplicationCRDDomainService.storage())
+                    .extracting(BaseApplicationEntity::getGroups)
+                    .containsExactly(Set.of("console-group"));
+                soft.assertThat(result.status().getErrors().warning()).isEmpty();
+            });
+        }
+
+        @Test
+        void should_apply_spec_groups_when_not_ignoring_groups() {
+            var existing = anApplicationCRD();
+            existing.setGroups(Set.of("console-group"));
+            applicationCrudService.initWith(List.of(existing));
+
+            ApplicationCRDSpec crd = anApplicationCRD();
+            crd.setGroups(Set.of("spec-group"));
+            var result = useCase.execute(new ImportApplicationCRDUseCase.Input(AUDIT_INFO, crd));
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(importApplicationCRDDomainService.storage())
+                    .extracting(BaseApplicationEntity::getGroups)
+                    .containsExactly(Set.of());
+                soft
+                    .assertThat(result.status().getErrors().warning())
+                    .containsExactly("Group [spec-group] could not be found in environment [" + ENVIRONMENT_ID + "]");
+            });
+        }
+
+        @Test
         void should_update_existing_application_and_its_metadata() {
             var expectedApp = expectedApplication();
             ApplicationCRDSpec crd = anApplicationCRD();
