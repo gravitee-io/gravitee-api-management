@@ -298,7 +298,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            verify(apiStateDomainService, never()).deploy(any(), any(), any());
+            verify(apiStateDomainService, never()).redeployWithSyncedDynamicProperties(any(), any(), any());
         }
     }
 
@@ -354,7 +354,8 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
+            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
+            verify(apiStateDomainService, never()).deploy(any(), any(), any());
             assertSoftly(softly -> {
                 softly
                     .assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties())
@@ -382,7 +383,11 @@ class UpdateDynamicPropertiesUseCaseTest {
 
             cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
 
-            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
+            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(
+                apiCaptor.capture(),
+                any(String.class),
+                auditInfoCaptor.capture()
+            );
             assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties()).containsExactly(userDefined);
         }
 
@@ -410,7 +415,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
+            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), auditInfoCaptor.capture());
             assertSoftly(softly -> {
                 var definition = api.getApiDefinitionHttpV4();
                 softly.assertThat(definition.getServices().getDynamicProperty().isEnabled()).isTrue();
@@ -512,7 +517,7 @@ class UpdateDynamicPropertiesUseCaseTest {
                 )
             );
 
-            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), any());
+            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), any());
             assertSoftly(softly -> {
                 var definition = apiCaptor.getValue().getApiDefinitionNativeV4();
                 // the deployed service instance itself must be carried over, not just an enabled flag
@@ -619,7 +624,7 @@ class UpdateDynamicPropertiesUseCaseTest {
 
             assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(stored);
             assertThat(auditCrudServiceInMemory.storage()).isEmpty();
-            verify(apiStateDomainService, never()).deploy(any(), any(), any());
+            verify(apiStateDomainService, never()).redeployWithSyncedDynamicProperties(any(), any(), any());
         }
 
         @Test
@@ -635,7 +640,7 @@ class UpdateDynamicPropertiesUseCaseTest {
             assertThat(persisted.isDynamic()).isTrue();
             assertThat(DATA_ENCRYPTOR.decrypt(persisted.getValue())).isEqualTo("n3w");
 
-            verify(apiStateDomainService).deploy(apiCaptor.capture(), any(String.class), any());
+            verify(apiStateDomainService).redeployWithSyncedDynamicProperties(apiCaptor.capture(), any(String.class), any());
             assertThat(apiCaptor.getValue().getApiDefinitionHttpV4().getProperties()).containsExactly(persisted);
             var auditCaptor = ArgumentCaptor.forClass(ApiAuditLogEntity.class);
             verify(auditDomainService).createApiAuditLog(auditCaptor.capture());

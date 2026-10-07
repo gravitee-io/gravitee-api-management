@@ -165,6 +165,17 @@ public class ApiStateServiceImpl implements ApiStateService {
         return deploy(executionContext, api, apiToDeploy, authenticatedUser, apiDeploymentEntity);
     }
 
+    @Override
+    public GenericApiEntity redeployWithSyncedDynamicProperties(
+        ExecutionContext executionContext,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity
+    ) {
+        Api api = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
+        return deploy(executionContext, api, apiToDeploy, authenticatedUser, apiDeploymentEntity);
+    }
+
     /**
      * Deploys an api
      * @param apiFromDb is the api coming from database, on which the deployedAt date will be set

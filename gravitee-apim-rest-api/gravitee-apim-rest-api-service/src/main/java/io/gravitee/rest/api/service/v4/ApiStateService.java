@@ -56,6 +56,21 @@ public interface ApiStateService {
         ApiDeploymentEntity apiDeploymentEntity
     );
 
+    /**
+     * Redeploys an API right after its dynamic properties were synchronized.
+     * @param executionContext the execution context containing organization and environment information
+     * @param apiToDeploy is the API to deploy, carrying the synchronized dynamic properties
+     * @param authenticatedUser user to reference in deployment properties
+     * @param apiDeploymentEntity additional information about the deployment
+     * @return the deployed API
+     */
+    GenericApiEntity redeployWithSyncedDynamicProperties(
+        ExecutionContext executionContext,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity
+    );
+
     GenericApiEntity start(ExecutionContext executionContext, String apiId, String userId);
 
     boolean startV2DynamicProperties(String apiId);

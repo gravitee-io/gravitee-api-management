@@ -321,6 +321,30 @@ public class ApiStateServiceImpl_DeployTest {
     }
 
     @Test
+    public void should_redeploy_api_with_synced_dynamic_properties() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiRepository.update(api)).thenReturn(api);
+
+        final GenericApiEntity result = apiStateService.redeployWithSyncedDynamicProperties(
+            GraviteeContext.getExecutionContext(),
+            updatedApi,
+            USER_NAME,
+            new ApiDeploymentEntity("http-dynamic-properties sync")
+        );
+
+        verify(eventService).createApiEvent(
+            any(ExecutionContext.class),
+            anySet(),
+            anyString(),
+            eq(EventType.PUBLISH_API),
+            same(updatedApi),
+            argThat(properties -> "http-dynamic-properties sync".equals(properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue())))
+        );
+        verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
+    }
+
+    @Test
     public void should_throw_technical_exception_during_update() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
