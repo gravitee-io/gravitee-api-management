@@ -415,7 +415,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
 
-        JsonNode patch = auditedPatch();
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).contains(
             json(
                 """
@@ -439,7 +439,7 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-secret", "plain", "fetched-plain"));
 
-        JsonNode patch = auditedPatch();
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).contains(
             json(
                 """
@@ -455,11 +455,6 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         assertThat(published.getValue().getProperties()).containsEntry("secret", new DictionaryProperty("ENC(fetched-secret)", true));
     }
 
-    private JsonNode auditedPatch() {
-        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
-        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
-        return DictionaryAuditPatch.of(auditLogData.getValue());
-    }
 
     @Test
     public void should_publish_the_refreshed_properties() throws TechnicalException {

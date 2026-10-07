@@ -15,20 +15,38 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.List;
+import org.mockito.ArgumentCaptor;
 
-/** The RFC-6902 patch {@code AuditServiceImpl} persists for the given audit data. */
+/**
+ * The RFC-6902 patch for the given audit data, diffed the way {@code AuditServiceImpl} does it. Unlike the
+ * production mapper, the plain mapper used here keeps null fields, so the patch may hold extra null-valued ops.
+ */
 final class DictionaryAuditPatch {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private DictionaryAuditPatch() {}
+
+    static AuditService.AuditLogData captured(AuditService auditService) {
+        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
+        return auditLogData.getValue();
+    }
+
+    static JsonNode capturedPatch(AuditService auditService) {
+        return of(captured(auditService));
+    }
 
     static JsonNode of(AuditService.AuditLogData data) {
         return JsonDiff.asJson(withoutTimestamps(data.getOldValue()), withoutTimestamps(data.getNewValue()));

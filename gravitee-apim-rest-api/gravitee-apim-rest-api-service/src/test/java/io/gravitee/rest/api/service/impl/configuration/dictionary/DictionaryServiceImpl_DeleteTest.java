@@ -35,13 +35,11 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -131,10 +129,9 @@ public class DictionaryServiceImpl_DeleteTest {
 
         dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
-        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
-        assertThat(DictionaryAuditPatch.of(auditLogData.getValue()).toString()).doesNotContain("STORED-CIPHER");
-        assertThat(mapper.writeValueAsString(auditLogData.getValue().getOldValue())).doesNotContain("STORED-CIPHER");
+        AuditService.AuditLogData auditLogData = DictionaryAuditPatch.captured(auditService);
+        assertThat(DictionaryAuditPatch.of(auditLogData).toString()).doesNotContain("STORED-CIPHER");
+        assertThat(mapper.writeValueAsString(auditLogData.getOldValue())).doesNotContain("STORED-CIPHER");
     }
 
     private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {

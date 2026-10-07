@@ -48,7 +48,6 @@ import io.gravitee.rest.api.model.configuration.dictionary.UpdateDictionaryEntit
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
@@ -64,7 +63,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -850,7 +848,7 @@ public class DictionaryServiceImpl_UpdateTest {
 
         dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(Map.of("secret", "renewed-plaintext"), null));
 
-        JsonNode patch = auditedPatch();
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).noneMatch(operation -> operation.get("path").asText().startsWith("/properties"));
         assertThat(patch.toString()).doesNotContain("OLD-CIPHER").doesNotContain("NEW-CIPHER").doesNotContain("renewed-plaintext");
     }
@@ -868,7 +866,7 @@ public class DictionaryServiceImpl_UpdateTest {
             anUpdate(Map.of("secret", "was-plain"), Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build()))
         );
 
-        JsonNode patch = auditedPatch();
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).contains(
             json(
                 """
@@ -896,7 +894,7 @@ public class DictionaryServiceImpl_UpdateTest {
             )
         );
 
-        JsonNode patch = auditedPatch();
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).noneMatch(operation -> Set.of("copy", "move").contains(operation.get("op").asText()));
         assertThat(patch).anySatisfy(operation -> {
             assertThat(operation.get("op").asText()).isEqualTo("add");
@@ -920,7 +918,7 @@ public class DictionaryServiceImpl_UpdateTest {
             anUpdate(Map.of("c", "plain-c"), Map.of("c", DictionaryPropertyOptions.builder().encryptable(true).build()))
         );
 
-        JsonNode patch = auditedPatch();
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).noneMatch(operation -> Set.of("copy", "move").contains(operation.get("op").asText()));
         assertThat(patch).anySatisfy(operation -> {
             assertThat(operation.get("op").asText()).isEqualTo("remove");
@@ -932,11 +930,6 @@ public class DictionaryServiceImpl_UpdateTest {
         });
     }
 
-    private JsonNode auditedPatch() {
-        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
-        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
-        return DictionaryAuditPatch.of(auditLogData.getValue());
-    }
 
     private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
         given_stored_dictionary(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);

@@ -59,7 +59,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -317,7 +316,7 @@ public class DictionaryServiceImpl_CreateTest {
 
         dictionaryService.create(new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID), newDictionary);
 
-        JsonNode patch = auditedPatch();
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).contains(
             json(
                 """
@@ -345,14 +344,9 @@ public class DictionaryServiceImpl_CreateTest {
 
         dictionaryService.create(new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID), newDictionary);
 
-        assertThat(auditedPatch().toString()).doesNotContain("CIPHER-OF-S3CR3T").contains("db/pass~word");
+        assertThat(DictionaryAuditPatch.capturedPatch(auditService).toString()).doesNotContain("CIPHER-OF-S3CR3T").contains("db/pass~word");
     }
 
-    private JsonNode auditedPatch() {
-        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
-        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
-        return DictionaryAuditPatch.of(auditLogData.getValue());
-    }
 
     @Test
     public void should_set_stopped_state_on_create() throws TechnicalException {
