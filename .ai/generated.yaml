@@ -9,10 +9,12 @@ inputs:
   - { path: ".ai/manifest.yaml", hash: "sha256:3d71657b8b456f46c16e3749cabc72330953b4246f86864dbc62b5e2ad1b50e2" }
   - { path: ".ai/rules/ai-context-authoring.md", hash: "sha256:da3b2d09f7c8e8f34d4dba3550038cc1db089751ebf641aef27c8ad8f33d83d4" }
   - { path: ".ai/rules/apim-angular.md", hash: "sha256:9e7472cc16201f62230b0de128c0c47c370fffe517cf1b0482dd43a584f17850" }
-  - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:2fb3523317ece500892026c92f4f4949323047766088a82665078ec3f1cf6e2f" }
-  - { path: ".ai/rules/apim-automation-signpost-definition.md", hash: "sha256:e855c57a8a9492a406a97a0c310ce995734d9e7ef69b6bcb50f815a94d99f9de" }
-  - { path: ".ai/rules/apim-automation-signpost-repository.md", hash: "sha256:7e989bd60fed34f02f1e4766e9d5716c069d424576d87306b13d45e0a29a4f47" }
-  - { path: ".ai/rules/apim-automation-signpost-restapi.md", hash: "sha256:037be833b5ab453ab884d81bd73de22414c9f0862d8880f22ff025d6ecb61ef7" }
+  - { path: ".ai/rules/apim-automation-api.md", hash: "sha256:355c04e3bf2ddcf30445b982692d353a4ae21335782f0d089be16e2fb564bbe8" }
+  - { path: ".ai/rules/apim-automation-module-ownership.md", hash: "sha256:817b9be54a62e3cdf2cd17cf16432f05aaddcf888971c7772f877b0560d7a229" }
+  - { path: ".ai/rules/apim-automation-ownership-review.md", hash: "sha256:d68c3beae4e4eeecc38e7f450b24156d897acf900e31be65c05d8e62d737327c" }
+  - { path: ".ai/rules/apim-automation-signpost-definition.md", hash: "sha256:36cdfade56e02f0f0fce4b03c1d015fb1f3d64bd8f9577b888c348055b90b7d6" }
+  - { path: ".ai/rules/apim-automation-signpost-repository.md", hash: "sha256:2445a6a106e1b3187a130f6efa374bd7f57c051d4d51df000672a265a987de8b" }
+  - { path: ".ai/rules/apim-automation-signpost-restapi.md", hash: "sha256:962751855bd090c2812076d8d465187c34e39ead0bb273ee506d4a8db778496b" }
   - { path: ".ai/rules/apim-distribution-build.md", hash: "sha256:f65d1c7e853b993bc1536efeee90d2e9a3ed9ee4c89a516401ca40100b513b83" }
   - { path: ".ai/rules/apim-java.md", hash: "sha256:037362a2a791c844ecefd9e990020d1b857dd1ed81a2158c0cf59c2b174c8695" }
   - { path: ".ai/rules/apim-jsonnode.md", hash: "sha256:0dbaec902740b64b750be53ff03062a59e4de0171a4a52576253e20ed6e2b777" }
@@ -49,7 +51,7 @@ inputs:
   - { path: "gravitee-gamma/gravitee-gamma-control-plane-webui/project.json", hash: "sha256:70fd903be5c9e0426dbd6d83f1a374b4a7852ad06c04dcfe63a88201fc30e5f1" }
   - { dir: "gravitee-gamma/gravitee-gamma-definition-model", buildFiles: ["pom.xml"] }
   - { dir: "gravitee-gamma/gravitee-gamma-module-apim", buildFiles: ["package.json","pom.xml","project.json"] }
-  - { path: "gravitee-gamma/gravitee-gamma-module-apim/project.json", hash: "sha256:b0c6d1a502ad2a4138a9e9ee68a248482cde1a1bb4c75c97ec366a6edf7f855b" }
+  - { path: "gravitee-gamma/gravitee-gamma-module-apim/project.json", hash: "sha256:82cb7d3333c59a7ad132ffa29c0f4e987a9ffbfe03fbc3968bce8d837be095b4" }
   - { dir: "gravitee-gamma/gravitee-gamma-module-platform", buildFiles: ["package.json","pom.xml","project.json"] }
   - { path: "gravitee-gamma/gravitee-gamma-module-platform/project.json", hash: "sha256:90be49af03bd78c037c81ae4a73faed6c32949b9a4ca1b4dced015b001a4f10a" }
   - { dir: "gravitee-gamma/gravitee-gamma-module-portals", buildFiles: ["package.json","pom.xml","project.json"] }
@@ -65,6 +67,10 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
+  - path: ".github/instructions/apim-automation-ownership-review.instructions.md"
+    hash: sha256:af0de38da7ac781c7da18c3ac94cb0106bd14e32f7317571c93f352d5c56950c
+    status: generated
+    scope: committed
   - path: ".github/instructions/code-review.instructions.md"
     hash: sha256:d3cafa9551f1f1be59bb035ae0cd043667434dcea4380c2ddd4d491e6ac2693c
     status: generated
@@ -74,7 +80,7 @@ entries:
     status: generated
     scope: committed
   - path: "AGENTS.md"
-    hash: sha256:8880bcb957271a5f3cc2bf8f2ccaff0f78f5b0fa251944e390f86b767b6cb784
+    hash: sha256:99fba74293df4d87806fa28f2bc0d64e8328a6e6bd4ce5c3648f52c7345d34ed
     status: generated
     scope: committed
   - path: "CLAUDE.md"
@@ -98,7 +104,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-definition/AGENTS.md"
-    hash: sha256:7d47d7d7466aee68a9bfdd5b98ffe9c903abc46244a8dd80c16f7ddf0da990b7
+    hash: sha256:997fd53f80279e776905dc9ed7900943e6f79beca3ccd26ada110274f7b61171
     status: generated
     scope: committed
   - path: "gravitee-apim-definition/CLAUDE.md"
@@ -162,7 +168,7 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-repository/AGENTS.md"
-    hash: sha256:af5400bf5f6e56cda549c194b5b043b7c6cf1226370bd02a6a89b071da0cd429
+    hash: sha256:bb3275c4f09bc3b44b1bec94312470edc9f0cdfb3e029c40ad2b9e30562565be
     status: generated
     scope: committed
   - path: "gravitee-apim-repository/CLAUDE.md"
@@ -170,10 +176,18 @@ entries:
     status: generated
     scope: committed
   - path: "gravitee-apim-rest-api/AGENTS.md"
-    hash: sha256:a7c14e86b5bc01a4b91d9b1f511a437846940c3e548ebc87a67d608b65122a80
+    hash: sha256:50604d481de243fdd20db280c08d47c275a2e6f6d8a91846c0c8ef01676ff91c
     status: generated
     scope: committed
   - path: "gravitee-apim-rest-api/CLAUDE.md"
+    hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
+    status: generated
+    scope: committed
+  - path: "gravitee-apim-rest-api/gravitee-apim-rest-api-automation/AGENTS.md"
+    hash: sha256:23f0685f61274ec1a4e27b11046d71e05ac10975845ba59247adfc40f8c203cb
+    status: generated
+    scope: committed
+  - path: "gravitee-apim-rest-api/gravitee-apim-rest-api-automation/CLAUDE.md"
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
@@ -257,4 +271,4 @@ entries:
     hash: sha256:336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49
     status: generated
     scope: committed
-record: sha256:edb1f0be16335c2492748d4103093380fdc54317c43053439ae9f0cdc3f2031e
+record: sha256:93ce69e4c39bade650fdaba6a6f9b9a0b3bed5c05a3357cbf0363d4cac3e0261
