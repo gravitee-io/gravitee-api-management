@@ -58,6 +58,7 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -381,6 +382,7 @@ public class ApiStateServiceImpl_DeployTest {
         given_deployable_api(ApiType.PROXY, PLAIN_PROPERTY_DEFINITION);
         updatedApi.setType(ApiType.PROXY);
         updatedApi.setDefinition(ENCRYPTED_PROPERTY_DEFINITION);
+        updatedApi.setDeployedAt(new Date(0));
 
         apiStateService.deploy(GraviteeContext.getExecutionContext(), updatedApi, USER_NAME, new ApiDeploymentEntity());
 
