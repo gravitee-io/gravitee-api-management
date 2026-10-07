@@ -32,7 +32,7 @@ import {
     UserIcon,
 } from '@gravitee/graphene-core/icons';
 import { useCallback, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { CategorySelectInput } from './CategorySelectInput';
 import { ChipInput } from './ChipInput';
@@ -55,7 +55,8 @@ import type { ApiDetailDto } from '../../../types';
 import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntryMode } from '../../../utils/apiGeneralDuplicate';
 import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 import { canAskForReview, isReviewClearedForLifecycle } from '../../../utils/apiReview';
-import { isFederatedApi } from '../../../utils/federatedApi';
+import { getSourceIntegration, isFederatedApi } from '../../../utils/federatedApi';
+import { buildIntegrationOverviewPath } from '../../../utils/integrationOverviewPath';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -99,6 +100,7 @@ export function ApiGeneralPage() {
     const { apiId } = useParams<{ apiId: string }>();
     const env = useEnvironment();
     const navigate = useNavigate();
+    const location = useLocation();
     const { api, isLoading, permissionsReady } = useApiDetailContext();
 
     // ── Permissions (mirrors legacy api-general-info.component.ts) ────────────
@@ -113,6 +115,7 @@ export function ApiGeneralPage() {
 
     const isKubernetesManaged = api?.definitionContext?.origin === 'KUBERNETES';
     const isFederated = isFederatedApi(api);
+    const sourceIntegration = getSourceIntegration(api);
 
     // Form is read-only until permissions are resolved, if user lacks update rights,
     // or if the API is managed by the Kubernetes operator.
@@ -541,6 +544,26 @@ export function ApiGeneralPage() {
                                         }
                                         value={formatDate(api?.updatedAt)}
                                     />
+                                    {sourceIntegration && (
+                                        <div className="flex items-center justify-between gap-2">
+                                            <dt className="text-muted-foreground shrink-0 text-xs">Source</dt>
+                                            <dd className="text-right text-xs font-medium truncate">
+                                                {sourceIntegration.integrationName ? (
+                                                    <Link
+                                                        to={buildIntegrationOverviewPath(
+                                                            location.pathname,
+                                                            sourceIntegration.integrationId,
+                                                        )}
+                                                        className="underline"
+                                                    >
+                                                        {sourceIntegration.integrationName}
+                                                    </Link>
+                                                ) : (
+                                                    '—'
+                                                )}
+                                            </dd>
+                                        </div>
+                                    )}
                                     <div className="flex items-center justify-between gap-2">
                                         <dt className="text-muted-foreground flex items-center gap-1.5 shrink-0 text-xs">
                                             <GlobeIcon className="size-3" /> Visibility

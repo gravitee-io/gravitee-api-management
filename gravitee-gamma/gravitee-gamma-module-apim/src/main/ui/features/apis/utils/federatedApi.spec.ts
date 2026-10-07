@@ -13,8 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiListItem } from '../types';
-import { isFederatedApiListItem } from './federatedApi';
+import type { ApiDetailDto, ApiListItem } from '../types';
+import { getSourceIntegration, isFederatedApiListItem, type SourceIntegration } from './federatedApi';
+
+describe('getSourceIntegration', () => {
+    const integrationApi = (overrides: Partial<ApiDetailDto>): ApiDetailDto => ({ id: 'api-1', name: 'API', ...overrides });
+
+    it.each<[string, Partial<ApiDetailDto>, SourceIntegration]>([
+        [
+            'the integration id and name of a federated API sourced from an integration',
+            {
+                definitionVersion: 'FEDERATED',
+                originContext: { origin: 'INTEGRATION', integrationId: 'int-1', integrationName: 'My Solace env' },
+            },
+            { integrationId: 'int-1', integrationName: 'My Solace env' },
+        ],
+        [
+            'the integration id without a name when the name is unavailable',
+            { definitionVersion: 'FEDERATED', originContext: { origin: 'INTEGRATION', integrationId: 'int-1' } },
+            { integrationId: 'int-1', integrationName: undefined },
+        ],
+    ])('returns %s', (_label, overrides, expected) => {
+        expect(getSourceIntegration(integrationApi(overrides))).toEqual(expected);
+    });
+
+    it.each<[string, Partial<ApiDetailDto>]>([
+        ['an API created in the platform', { definitionVersion: 'V4', originContext: { origin: 'MANAGEMENT' } }],
+        ['an API discovered through Kubernetes', { definitionVersion: 'V4', originContext: { origin: 'KUBERNETES' } }],
+        ['a federated API with no origin context', { definitionVersion: 'FEDERATED' }],
+        ['a federated API whose origin is not an integration', { definitionVersion: 'FEDERATED', originContext: { origin: 'MANAGEMENT' } }],
+        ['a federated API missing its integration id', { definitionVersion: 'FEDERATED', originContext: { origin: 'INTEGRATION' } }],
+        [
+            'a federated API with an empty integration id',
+            { definitionVersion: 'FEDERATED', originContext: { origin: 'INTEGRATION', integrationId: '' } },
+        ],
+        [
+            'a non-federated API that carries an integration origin',
+            { definitionVersion: 'V4', originContext: { origin: 'INTEGRATION', integrationId: 'int-1' } },
+        ],
+        [
+            'a federated agent API sourced from an integration',
+            {
+                definitionVersion: 'FEDERATED_AGENT',
+                originContext: { origin: 'INTEGRATION', integrationId: 'int-1', integrationName: 'My env' },
+            },
+        ],
+    ])('returns null for %s', (_label, overrides) => {
+        expect(getSourceIntegration(integrationApi(overrides))).toBeNull();
+    });
+
+    it('returns null when there is no API', () => {
+        expect(getSourceIntegration(null)).toBeNull();
+        expect(getSourceIntegration(undefined)).toBeNull();
+    });
+});
 
 describe('isFederatedApiListItem', () => {
     let warn: jest.SpyInstance;

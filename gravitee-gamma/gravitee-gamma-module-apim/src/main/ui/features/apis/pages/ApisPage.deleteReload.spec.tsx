@@ -28,6 +28,7 @@ jest.mock('@gravitee/gamma-lib-observability', () => ({
     DEFAULT_TIME_RANGE: { type: 'relative', period: '5m' },
     encodeObservabilityState: () => ({ q: 'ENCODED_Q', v: '1' }),
 }));
+jest.mock('@gravitee/gamma-modules-sdk/routing', () => jest.requireActual('../../../testing/buildModuleNavPathForTests'));
 // The stats cards issue their own searches; stubbing them leaves the list's search as the only one counted.
 jest.mock('../hooks/useApiStats', () => ({
     useApiStats: () => ({
