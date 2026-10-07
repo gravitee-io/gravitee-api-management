@@ -88,7 +88,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void materialize_creates_nav_page_with_deterministic_id() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
 
         assertThat(navItemCrud.storage()).hasSize(1);
 
@@ -110,16 +110,16 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void materialize_invokes_nav_item_validator_on_create_path() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
 
         verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()), eq(Set.of(DOC_ID)), eq(Set.of()));
     }
 
     @Test
     void materialize_invokes_nav_item_validator_on_update_path() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
 
-        syncService.materialize(AUDIT_INFO, markdownDoc("Renamed", "/projects/alpha", 2));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Renamed", "/projects/alpha", 2));
 
         verify(validatorService).validateToUpdate(any(), any());
     }
@@ -128,17 +128,17 @@ class PortalDocumentationSyncDomainServiceTest {
     void materialize_is_idempotent() {
         var doc = markdownDoc("Getting Started", "/projects/alpha", 1);
 
-        syncService.materialize(AUDIT_INFO, doc);
-        syncService.materialize(AUDIT_INFO, doc);
+        syncService.rematerialize(AUDIT_INFO, doc);
+        syncService.rematerialize(AUDIT_INFO, doc);
 
         assertThat(navItemCrud.storage()).hasSize(1);
     }
 
     @Test
     void materialize_updates_nav_page_when_doc_changes() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
 
-        syncService.materialize(AUDIT_INFO, markdownDoc("Renamed", "/projects/beta", 2));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Renamed", "/projects/beta", 2));
 
         var page = (PortalNavigationPage) navItemCrud.storage().get(0);
         assertThat(page.getTitle()).isEqualTo("Renamed");
@@ -151,7 +151,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void dematerialize_removes_nav_page() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
 
         syncService.dematerialize(AUDIT_INFO, PORTAL_ID.toString(), DOC_ID);
 
@@ -167,7 +167,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void materialize_with_null_location_marks_page_as_root() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", null, 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", null, 1));
 
         var page = (PortalNavigationPage) navItemCrud.storage().get(0);
         assertThat(page.getParentId()).isNull();
@@ -193,7 +193,7 @@ class PortalDocumentationSyncDomainServiceTest {
             )
         );
 
-        syncService.materialize(AUDIT_INFO, markdownDoc("Setup", "/private-guides", 0));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Setup", "/private-guides", 0));
 
         var page = (PortalNavigationPage) navItemCrud
             .storage()
@@ -236,7 +236,7 @@ class PortalDocumentationSyncDomainServiceTest {
             )
         );
 
-        syncService.materialize(AUDIT_INFO, markdownDoc("Setup", "/projects/alpha", 0));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Setup", "/projects/alpha", 0));
 
         var page = (PortalNavigationPage) navItemCrud
             .storage()
@@ -292,7 +292,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void materialize_points_at_deterministic_folder_id_even_when_folder_missing() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/unknown", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/unknown", 1));
 
         var page = (PortalNavigationPage) navItemCrud.storage().get(0);
         assertThat(page.getParentId()).isEqualTo(expectedFolderId("/unknown"));
@@ -300,7 +300,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void materialize_uses_zero_when_order_is_null() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", null));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", null));
 
         var page = (PortalNavigationPage) navItemCrud.storage().get(0);
         assertThat(page.getOrder()).isZero();
@@ -308,7 +308,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void materialize_moves_an_existing_page_to_a_different_area_via_delete_and_recreate() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
 
         syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", null, 0), PortalArea.HOMEPAGE, null);
 
@@ -320,7 +320,7 @@ class PortalDocumentationSyncDomainServiceTest {
 
     @Test
     void validate_placement_allows_moving_an_existing_page_to_a_different_area_without_writing_anything() {
-        syncService.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncService.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
         var storageBefore = List.copyOf(navItemCrud.storage());
 
         syncService.validatePlacement(AUDIT_INFO, markdownDoc("Getting Started", null, 0), PortalArea.HOMEPAGE, null);
@@ -344,7 +344,7 @@ class PortalDocumentationSyncDomainServiceTest {
         var existingHomepage = automationOwnedHomepagePage();
         navItemCrud.create(existingHomepage);
         pageContentCrud.create(staleContent(existingHomepage));
-        syncWithRealValidator.materialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
+        syncWithRealValidator.rematerialize(AUDIT_INFO, markdownDoc("Getting Started", "/projects/alpha", 1));
         var storageBefore = List.copyOf(navItemCrud.storage());
 
         assertThatThrownBy(() ->
