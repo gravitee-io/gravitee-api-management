@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceConsumption;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceKey;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceSummary;
@@ -32,6 +33,8 @@ public interface AiWorkspaceMapper {
     io.gravitee.rest.api.portal.rest.model.AiWorkspaceSummary toSummary(AiWorkspaceSummary summary);
 
     io.gravitee.rest.api.portal.rest.model.AiWorkspace toDetails(AiWorkspaceDetails details);
+
+    io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption toConsumption(AiWorkspaceConsumption consumption);
 
     @Mapping(target = "amount", source = "amount", qualifiedByName = "toDollars")
     @Mapping(target = "period", source = "period", qualifiedByName = "toPeriod")
