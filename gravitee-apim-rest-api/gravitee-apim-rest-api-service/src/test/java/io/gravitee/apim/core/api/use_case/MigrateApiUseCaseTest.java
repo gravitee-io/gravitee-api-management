@@ -101,6 +101,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.ObjectAssert;
@@ -530,6 +531,7 @@ class MigrateApiUseCaseTest {
         assertThat(auditLog.getReferenceId()).isEqualTo(API_ID);
         assertThat(auditLog.getOrganizationId()).isEqualTo(ORGANIZATION_ID);
         assertThat(auditLog.getEnvironmentId()).isEqualTo(ENVIRONMENT_ID);
+        assertThat(auditLog.getProperties()).isEqualTo(Map.of("API", API_ID));
 
         assertThat(indexer.storage()).hasSize(1);
     }
@@ -802,6 +804,25 @@ class MigrateApiUseCaseTest {
                 new io.gravitee.definition.model.v4.property.Property("key3", "value3", true, false)
             );
         });
+    }
+
+    @Test
+    void should_mark_the_audit_when_the_migrated_api_holds_an_encrypted_property() {
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setProperties(new Properties(List.of(new Property("secret", "ciphertext", true))));
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(List.of(v2Api));
+
+        var result = useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        assertThat(result.state()).isEqualTo(MigrationResult.State.MIGRATED);
+        assertThat(auditCrudService.storage()).hasSize(1);
+        assertThat(auditCrudService.storage().getFirst().getProperties()).isEqualTo(Map.of("API", API_ID, "ENCRYPTED", "true"));
     }
 
     @Test
