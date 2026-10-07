@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -74,17 +75,31 @@ public class ComputeMeasuresUseCase {
     public record Output(MeasuresResponse response) {}
 
     public Output execute(Input input) {
-        validator.validateMeasuresRequest(input.request);
+        return compute(contextLoader.load(input.auditInfo, input.scope()), input.request);
+    }
 
-        var analyticsContext = contextLoader.load(input.auditInfo, input.scope());
+    /**
+     * Runs a measures query already authorized by the caller.
+     * {@code authorizedApiIds} is the only API set applied. Portal navigation and management permissions are not consulted.
+     */
+    public Output executeForApis(AuditInfo auditInfo, MeasuresRequest request, Set<String> authorizedApiIds) {
+        return compute(
+            new AnalyticsQueryContext(
+                auditInfo,
+                new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
+                authorizedApiIds,
+                Map.of(),
+                Map.of(),
+                Map.of()
+            ),
+            request
+        );
+    }
 
-        var queryContext = queryContextProvider.resolve(input.request);
-
-        var responses = executeQueries(analyticsContext.executionContext(), analyticsContext, queryContext);
-
-        var response = MeasuresResponse.merge(responses);
-        var enriched = unitEnrichmentPostProcessor.enrichUnits(response);
-        return new Output(enriched);
+    private Output compute(AnalyticsQueryContext analyticsContext, MeasuresRequest request) {
+        validator.validateMeasuresRequest(request);
+        var responses = executeQueries(analyticsContext.executionContext(), analyticsContext, queryContextProvider.resolve(request));
+        return new Output(unitEnrichmentPostProcessor.enrichUnits(MeasuresResponse.merge(responses)));
     }
 
     private List<MeasuresResponse> executeQueries(

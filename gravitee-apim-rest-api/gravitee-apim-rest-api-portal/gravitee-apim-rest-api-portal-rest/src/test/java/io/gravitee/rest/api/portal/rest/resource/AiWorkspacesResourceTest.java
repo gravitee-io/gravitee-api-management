@@ -16,15 +16,27 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.SubscriptionSearchQueryServiceInMemory;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
+import io.gravitee.apim.core.analytics_engine.model.Measure;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
+import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricMeasuresResponse;
+import io.gravitee.apim.core.analytics_engine.model.MetricSpec;
+import io.gravitee.apim.core.analytics_engine.use_case.ComputeMeasuresUseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
@@ -40,10 +52,12 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspace;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget;
+import io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspacesResponse;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
+import java.time.Duration;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Date;
@@ -53,6 +67,7 @@ import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class AiWorkspacesResourceTest extends AbstractResourceTest {
@@ -71,6 +86,9 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
 
     @Autowired
     private ApiKeyQueryServiceInMemory apiKeys;
+
+    @Autowired
+    private ComputeMeasuresUseCase computeMeasuresUseCase;
 
     @Override
     protected String contextPath() {
@@ -91,6 +109,7 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         flows.reset();
         apis.reset();
         apiKeys.reset();
+        reset(computeMeasuresUseCase);
         GraviteeContext.cleanContext();
     }
 
@@ -210,6 +229,79 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         assertThat(body.getKey().getValue()).isEqualTo("caller-key");
         assertThat(body.getKey().getStatus().getValue()).isEqualTo("ACTIVE");
         assertThat(body.getKey().getCreatedAt()).isEqualTo(createdAt.toOffsetDateTime());
+    }
+
+    @Test
+    void returns_only_the_callers_consumption_over_30_days() {
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE).toBuilder().apiIds(Set.of("proxy-1")).build()));
+        subscriptions.initWith(
+            List.of(subscription("app-1", "ws-1"), subscription("app-2", "ws-1").toBuilder().id("sub-2").application("app-2").build())
+        );
+        when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenReturn(
+            new ComputeMeasuresUseCase.Output(
+                new MeasuresResponse(
+                    List.of(
+                        new MetricMeasuresResponse(
+                            MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN,
+                            MetricSpec.Unit.NUMBER,
+                            List.of(new Measure(MetricSpec.Measure.COUNT, 12))
+                        ),
+                        new MetricMeasuresResponse(
+                            MetricSpec.Name.HTTP_REQUESTS,
+                            MetricSpec.Unit.NUMBER,
+                            List.of(new Measure(MetricSpec.Measure.COUNT, 3))
+                        ),
+                        new MetricMeasuresResponse(
+                            MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
+                            MetricSpec.Unit.NUMBER,
+                            List.of(new Measure(MetricSpec.Measure.COUNT, 1.5))
+                        )
+                    )
+                )
+            )
+        );
+
+        Response response = target().path("ws-1").path("consumption").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        AiWorkspaceConsumption body = response.readEntity(AiWorkspaceConsumption.class);
+        assertThat(body.getTokens()).isEqualTo(12L);
+        assertThat(body.getRequests()).isEqualTo(3L);
+        assertThat(body.getCost()).isEqualTo(1.5);
+        assertThat(Duration.between(body.getFrom(), body.getTo())).isEqualTo(Duration.ofDays(30));
+
+        ArgumentCaptor<MeasuresRequest> request = ArgumentCaptor.forClass(MeasuresRequest.class);
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Set<String>> apis = ArgumentCaptor.forClass(Set.class);
+        verify(computeMeasuresUseCase).executeForApis(any(), request.capture(), apis.capture());
+        assertThat(apis.getValue()).containsExactly("proxy-1");
+        assertThat(request.getValue().filters())
+            .extracting(filter -> filter.name(), filter -> filter.value())
+            .containsExactly(tuple(FilterSpec.Name.API_PRODUCT, "ws-1"), tuple(FilterSpec.Name.APPLICATION, "app-1"));
+    }
+
+    @Test
+    void returns_zeros_when_analytics_cannot_be_read() {
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE).toBuilder().apiIds(Set.of("proxy-1")).build()));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+        when(computeMeasuresUseCase.executeForApis(any(), any(), any())).thenThrow(new IllegalStateException("analytics down"));
+
+        Response response = target().path("ws-1").path("consumption").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        AiWorkspaceConsumption body = response.readEntity(AiWorkspaceConsumption.class);
+        assertThat(body.getTokens()).isEqualTo(0L);
+        assertThat(body.getRequests()).isEqualTo(0L);
+        assertThat(body.getCost()).isEqualTo(0.0);
+        assertThat(Duration.between(body.getFrom(), body.getTo())).isEqualTo(Duration.ofDays(30));
+    }
+
+    @Test
+    void does_not_read_consumption_for_a_workspace_the_caller_cannot_see() {
+        products.initWith(List.of(workspace("missing", "Missing", ApiProductKind.AI_WORKSPACE)));
+
+        assertThat(target().path("missing").path("consumption").request().get().getStatus()).isEqualTo(404);
+        verify(computeMeasuresUseCase, never()).executeForApis(any(), any(), any());
     }
 
     @Test
