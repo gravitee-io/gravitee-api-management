@@ -362,10 +362,18 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
-        <!-- Jakarta APIs: oas-validation (also jakarta.activation-api, jakarta.xml.bind-api, declared above) -->
+        <!-- Jakarta APIs: oas-validation -->
         <dependency>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
         </dependency>
 
         <!-- Unit Tests -->
@@ -392,14 +400,6 @@
         <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
