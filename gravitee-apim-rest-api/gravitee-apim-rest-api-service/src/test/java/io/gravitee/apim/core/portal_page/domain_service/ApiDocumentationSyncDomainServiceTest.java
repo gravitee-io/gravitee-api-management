@@ -97,7 +97,7 @@ class ApiDocumentationSyncDomainServiceTest {
             automationMetadata
         );
 
-        syncService.materialize(AUDIT_INFO, doc);
+        syncService.rematerialize(AUDIT_INFO, doc);
 
         assertThat(navItemCrud.storage())
             .singleElement()
@@ -113,7 +113,7 @@ class ApiDocumentationSyncDomainServiceTest {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
         seedNavApi(PortalNavigationItemId.of("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"));
 
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         assertThat(
@@ -140,7 +140,7 @@ class ApiDocumentationSyncDomainServiceTest {
         var ours = seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
         var theirs = seedNavApi(PortalNavigationItemId.of("cccccccc-cccc-cccc-cccc-cccccccccccc"), "another-api-id");
 
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
         var pageIdOurs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         var pageIdTheirs = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, "another-api-id", DOC_ID);
@@ -151,7 +151,7 @@ class ApiDocumentationSyncDomainServiceTest {
     void materialize_invokes_nav_item_validator_on_create_path() {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
 
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
         verify(validatorService).validateOne(any(), eq(AUDIT_INFO.environmentId()), any(), any());
     }
@@ -159,9 +159,9 @@ class ApiDocumentationSyncDomainServiceTest {
     @Test
     void materialize_invokes_nav_item_validator_on_update_path() {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
         verify(validatorService).validateToUpdate(any(), any());
     }
@@ -180,7 +180,7 @@ class ApiDocumentationSyncDomainServiceTest {
     @Test
     void validate_placement_invokes_validator_without_persisting_on_update_path() {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
         var storageBefore = List.copyOf(navItemCrud.storage());
 
         syncService.validatePlacement(AUDIT_INFO, aDocumentation(), null);
@@ -243,9 +243,9 @@ class ApiDocumentationSyncDomainServiceTest {
     void should_be_idempotent_when_materializing_twice() {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
 
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
         var afterFirst = navItemCrud.storage().size();
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
         assertThat(navItemCrud.storage()).hasSize(afterFirst);
     }
@@ -253,7 +253,7 @@ class ApiDocumentationSyncDomainServiceTest {
     @Test
     void should_remove_pages_on_dematerialize() {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
-        syncService.materialize(AUDIT_INFO, aDocumentation());
+        syncService.rematerialize(AUDIT_INFO, aDocumentation());
 
         syncService.dematerialize(AUDIT_INFO, API_ID, DOC_ID);
 
@@ -279,7 +279,7 @@ class ApiDocumentationSyncDomainServiceTest {
         seedNavApi(navApiIdB);
         var doc = aDocumentation();
         pageContentQuery.initWith(java.util.List.of(doc));
-        syncService.materialize(AUDIT_INFO, doc);
+        syncService.rematerialize(AUDIT_INFO, doc);
 
         syncService.cleanupForApi(AUDIT_INFO, API_ID);
 
@@ -362,7 +362,7 @@ class ApiDocumentationSyncDomainServiceTest {
         seedNavApi(removedNavApiId);
         var doc = aDocumentation();
         pageContentQuery.initWith(java.util.List.of(doc));
-        syncService.materialize(AUDIT_INFO, doc);
+        syncService.rematerialize(AUDIT_INFO, doc);
 
         syncService.cleanupNavApi(AUDIT_INFO, removedNavApiId);
 
@@ -376,7 +376,7 @@ class ApiDocumentationSyncDomainServiceTest {
     }
 
     @Test
-    void materialize_preserves_stored_page_visibility_when_caller_visibility_is_absent() {
+    void rematerialize_preserves_stored_page_visibility_when_caller_visibility_is_absent() {
         seedNavApi(PortalNavigationItemId.of("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), API_ID, PortalVisibility.PUBLIC);
         var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
         navItemCrud.create(
@@ -408,7 +408,7 @@ class ApiDocumentationSyncDomainServiceTest {
             GraviteeMarkdown.of("# Hello"),
             automationMetadata
         );
-        syncService.materialize(AUDIT_INFO, doc);
+        syncService.rematerialize(AUDIT_INFO, doc);
 
         var page = (PortalNavigationPage) navItemCrud
             .storage()
@@ -417,6 +417,109 @@ class ApiDocumentationSyncDomainServiceTest {
             .findFirst()
             .orElseThrow();
         assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+    }
+
+    @Test
+    void materialize_resolves_from_parent_when_caller_omits_visibility_on_an_existing_page() {
+        var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/docs");
+        navItemCrud.create(
+            PortalNavigationFolder.builder()
+                .id(folderId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("docs")
+                .segment("docs")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .published(true)
+                .visibility(PortalVisibility.PUBLIC)
+                .build()
+        );
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        navItemCrud.create(
+            PortalNavigationPage.builder()
+                .id(pageId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("Getting Started")
+                .segment("getting-started")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .parentId(folderId)
+                .portalPageContentId(DOC_ID)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()
+        );
+
+        var automationMetadata = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.API,
+            API_ID,
+            "Getting Started",
+            Optional.of("/docs"),
+            Optional.of(0)
+        );
+        var doc = new GraviteeMarkdownPageContent(
+            DOC_ID,
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId(),
+            GraviteeMarkdown.of("# Hello"),
+            automationMetadata
+        );
+
+        syncService.materialize(AUDIT_INFO, doc, null);
+
+        var page = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(pageId))
+            .findFirst()
+            .orElseThrow();
+        assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
+    }
+
+    @Test
+    void materialize_resolves_from_parent_when_caller_omits_visibility_on_an_existing_root_page() {
+        var pageId = PortalNavigationItemId.forApiDocumentation(AUDIT_INFO, API_ID, DOC_ID);
+        navItemCrud.create(
+            PortalNavigationPage.builder()
+                .id(pageId)
+                .organizationId(AUDIT_INFO.organizationId())
+                .environmentId(AUDIT_INFO.environmentId())
+                .title("Guides")
+                .segment("guides")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .portalPageContentId(DOC_ID)
+                .published(true)
+                .visibility(PortalVisibility.PRIVATE)
+                .build()
+        );
+
+        var automationMetadata = new AutomationMetadata(
+            AutomationMetadata.ReferenceType.API,
+            API_ID,
+            "Guides",
+            Optional.empty(),
+            Optional.of(0)
+        );
+        var doc = new GraviteeMarkdownPageContent(
+            DOC_ID,
+            AUDIT_INFO.organizationId(),
+            AUDIT_INFO.environmentId(),
+            GraviteeMarkdown.of("# Hello"),
+            automationMetadata
+        );
+
+        syncService.materialize(AUDIT_INFO, doc, null);
+
+        var page = (PortalNavigationPage) navItemCrud
+            .storage()
+            .stream()
+            .filter(item -> item.getId().equals(pageId))
+            .findFirst()
+            .orElseThrow();
+        assertThat(page.getVisibility()).isEqualTo(PortalVisibility.PUBLIC);
     }
 
     private PortalNavigationApi seedNavApi(PortalNavigationItemId id) {

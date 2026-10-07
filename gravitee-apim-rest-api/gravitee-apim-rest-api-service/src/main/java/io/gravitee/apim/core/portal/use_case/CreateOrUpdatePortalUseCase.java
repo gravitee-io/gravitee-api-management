@@ -98,7 +98,7 @@ public class CreateOrUpdatePortalUseCase {
             portalNavigationSyncDomainService.sync(input.auditInfo(), saved.getId(), previouslyPersisted, sanitized.structure());
             portalPageContentQueryService
                 .findByReference(input.auditInfo().environmentId(), AutomationMetadata.ReferenceType.PORTAL, saved.getId().toString())
-                .forEach(pc -> portalDocumentationSyncDomainService.materialize(input.auditInfo(), pc));
+                .forEach(pc -> portalDocumentationSyncDomainService.rematerialize(input.auditInfo(), pc));
         }
         var activeThemeHrid = reverseResolveActiveThemeHrid(input, saved.getActiveThemeId());
         return new Output(saved, saved.getNavigationStructure(), activeThemeHrid, warnings);
