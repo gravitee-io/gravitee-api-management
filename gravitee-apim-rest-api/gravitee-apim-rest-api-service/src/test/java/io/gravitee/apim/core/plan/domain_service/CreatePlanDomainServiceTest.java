@@ -417,6 +417,123 @@ class CreatePlanDomainServiceTest {
         }
 
         @Test
+        void should_default_validation_to_auto_when_native_keyless_plan_has_no_validation() {
+            // Given
+            var plan = fixtures.core.model.PlanFixtures.NativeV4.aKeyless()
+                .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiId(API_ID)
+                .validation(null)
+                .build()
+                .setPlanStatus(PlanStatus.STAGING)
+                .setPlanTags(Set.of(TAG));
+
+            // When
+            var result = service.create(
+                plan,
+                List.of(FlowFixtures.aNativeFlowV4().toBuilder().name("flow").build()),
+                API_NATIVE_V4,
+                AUDIT_INFO
+            );
+
+            // Then
+            assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
+        }
+
+        @Test
+        void should_default_validation_to_auto_when_keyless_plan_has_no_validation() {
+            // Given
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.aKeyless()
+                .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiId(API_ID)
+                .validation(null)
+                .build()
+                .setPlanStatus(PlanStatus.STAGING)
+                .setPlanTags(Set.of(TAG));
+
+            // When
+            var result = service.create(
+                plan,
+                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build()),
+                HTTP_PROXY_API_V4,
+                AUDIT_INFO
+            );
+
+            // Then
+            assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
+        }
+
+        @Test
+        void should_default_validation_to_manual_when_secured_plan_has_no_validation() {
+            // Given
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
+                .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiId(API_ID)
+                .validation(null)
+                .build()
+                .setPlanStatus(PlanStatus.STAGING);
+
+            // When
+            var result = service.create(
+                plan,
+                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build()),
+                HTTP_PROXY_API_V4,
+                AUDIT_INFO
+            );
+
+            // Then
+            assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.MANUAL);
+        }
+
+        @Test
+        void should_default_validation_to_auto_when_v2_keyless_plan_has_no_validation() {
+            // Given
+            var plan = fixtures.core.model.PlanFixtures.aPlanV2()
+                .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiId(API_ID)
+                .planDefinitionV2(fixtures.core.model.PlanFixtures.aPlanV2().getPlanDefinitionV2().toBuilder().security("KEY_LESS").build())
+                .validation(null)
+                .build();
+
+            // When
+            var result = service.create(plan, List.of(), ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build(), AUDIT_INFO);
+
+            // Then
+            assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
+        }
+
+        @Test
+        void should_keep_explicit_validation() {
+            // Given
+            var plan = fixtures.core.model.PlanFixtures.HttpV4.anApiKey()
+                .toBuilder()
+                .referenceId(API_ID)
+                .referenceType(GenericPlanEntity.ReferenceType.API)
+                .apiId(API_ID)
+                .validation(Plan.PlanValidationType.AUTO)
+                .build()
+                .setPlanStatus(PlanStatus.STAGING);
+
+            // When
+            var result = service.create(
+                plan,
+                List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build()),
+                HTTP_PROXY_API_V4,
+                AUDIT_INFO
+            );
+
+            // Then
+            assertThat(result.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
+        }
+
+        @Test
         void should_throw_when_adding_secured_plan_to_tcp_api() {
             // When
             var throwable = Assertions.catchThrowable(() ->
