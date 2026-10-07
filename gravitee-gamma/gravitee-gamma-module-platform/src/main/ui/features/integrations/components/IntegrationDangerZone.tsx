@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, CardContent, CardHeader, CardTitle, cn } from '@gravitee/graphene-core';
+import { Button, Card, CardContent, CardHeader, CardTitle, cn } from '@gravitee/graphene-core';
 import { Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useEffect, useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -41,15 +41,15 @@ function tileSubtitle(federatedApisCheck: FederatedApisCheck, withFederatedApis:
 function deleteIntegrationTileSubtitle(federatedApisCheck: FederatedApisCheck): string {
     return tileSubtitle(
         federatedApisCheck,
-        'An integration with federated APIs cannot be deleted. Delete its federated APIs first.',
-        'Permanently deletes the integration. This action cannot be undone.',
+        'Delete its federated APIs first. An integration with federated APIs can’t be deleted.',
+        'Permanently deletes the integration. This can’t be undone.',
     );
 }
 
 function deleteApisTileSubtitle(federatedApisCheck: FederatedApisCheck): string {
     return tileSubtitle(
         federatedApisCheck,
-        'Deletes the federated APIs of this integration. Published APIs are not deleted.',
+        'Deletes the APIs imported from this integration. Published APIs are kept.',
         'This integration has no federated APIs to delete.',
     );
 }
@@ -61,35 +61,26 @@ function deletedFederatedApisMessage({ deleted, skipped, errors }: IntegrationDe
 function DangerZoneTile({
     title,
     subtitle,
+    buttonLabel,
     disabled,
     onSelect,
-}: Readonly<{ title: string; subtitle: string; disabled: boolean; onSelect: () => void }>) {
-    const titleId = useId();
+}: Readonly<{ title: string; subtitle: string; buttonLabel: string; disabled: boolean; onSelect: () => void }>) {
     const subtitleId = useId();
     return (
-        <button
-            type="button"
-            className={cn(
-                'flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors',
-                disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-destructive/5',
-            )}
-            disabled={disabled}
-            aria-labelledby={titleId}
-            aria-describedby={subtitleId}
-            onClick={onSelect}
-        >
-            <div className="shrink-0 rounded-lg p-2 bg-destructive/10">
-                <Trash2Icon className="size-5 text-destructive" aria-hidden />
+        <div className="flex w-full items-center gap-3 rounded-lg border p-4">
+            <div className={cn('shrink-0 rounded-lg p-2', disabled ? 'bg-muted' : 'bg-destructive/10')}>
+                <Trash2Icon className={cn('size-5', disabled ? 'text-muted-foreground' : 'text-destructive')} aria-hidden />
             </div>
-            <div>
-                <p id={titleId} className="text-sm font-medium text-destructive">
-                    {title}
-                </p>
-                <p id={subtitleId} className="text-xs text-muted-foreground">
+            <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">{title}</p>
+                <p id={subtitleId} className="text-sm text-muted-foreground">
                     {subtitle}
                 </p>
             </div>
-        </button>
+            <Button type="button" variant="destructive" size="sm" disabled={disabled} aria-describedby={subtitleId} onClick={onSelect}>
+                {buttonLabel}
+            </Button>
+        </div>
     );
 }
 
@@ -140,20 +131,22 @@ export function IntegrationDangerZone({ integrationId }: Readonly<{ integrationI
     return (
         <Card className="border-destructive/40">
             <CardHeader>
-                <CardTitle>Danger Zone</CardTitle>
+                <CardTitle>Danger zone</CardTitle>
             </CardHeader>
             <CardContent>
                 <div className="space-y-3">
                     {canDeleteApis ? (
                         <DangerZoneTile
-                            title="Delete APIs"
+                            title="Delete federated APIs"
+                            buttonLabel="Delete APIs"
                             subtitle={deleteApisTileSubtitle(federatedApisCheck)}
                             disabled={deleteApisDisabled}
                             onSelect={() => setDeleteApisOpen(true)}
                         />
                     ) : null}
                     <DangerZoneTile
-                        title="Delete Integration"
+                        title="Delete integration"
+                        buttonLabel="Delete integration"
                         subtitle={deleteIntegrationTileSubtitle(federatedApisCheck)}
                         disabled={deleteIntegrationDisabled}
                         onSelect={() => setDeleteOpen(true)}
@@ -165,7 +158,7 @@ export function IntegrationDangerZone({ integrationId }: Readonly<{ integrationI
                     open={deleteApisOpen}
                     onOpenChange={setDeleteApisOpen}
                     title="Delete APIs"
-                    description="Published APIs won't be deleted. Deleted APIs cannot be restored."
+                    description="Published APIs won’t be deleted. Deleted APIs can’t be restored."
                     confirmLabel="Delete APIs"
                     pendingLabel="Deleting…"
                     destructive
@@ -181,13 +174,14 @@ export function IntegrationDangerZone({ integrationId }: Readonly<{ integrationI
                     title="Delete integration"
                     description={
                         <>
-                            This will permanently delete <strong>{integration.name}</strong>. This action cannot be undone.
+                            This will permanently delete <strong>{integration.name}</strong>. This can’t be undone.
                         </>
                     }
                     confirmLabel="Delete permanently"
                     pendingLabel="Deleting…"
                     destructive
                     confirmKeyword={integration.name}
+                    contentClassName="sm:max-w-md"
                     icon={<Trash2Icon className="size-4" aria-hidden />}
                     isPending={deleteIntegration.isPending}
                     onConfirm={() => void handleConfirmDelete()}
