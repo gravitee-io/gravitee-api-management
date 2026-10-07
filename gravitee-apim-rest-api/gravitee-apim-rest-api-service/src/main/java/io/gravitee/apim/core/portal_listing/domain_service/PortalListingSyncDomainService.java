@@ -164,6 +164,6 @@ public class PortalListingSyncDomainService {
     private void materializeApiDocs(AuditInfo auditInfo, String apiId) {
         portalPageContentQueryService
             .findByReference(auditInfo.environmentId(), AutomationMetadata.ReferenceType.API, apiId)
-            .forEach(pc -> apiDocumentationSyncDomainService.materialize(auditInfo, pc));
+            .forEach(pc -> apiDocumentationSyncDomainService.rematerialize(auditInfo, pc));
     }
 }
