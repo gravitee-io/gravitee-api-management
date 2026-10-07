@@ -2387,14 +2387,15 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         List<RoleEntity> roleEntities = roleService.findDefaultRoleByScopes(
             executionContext.getOrganizationId(),
             RoleScope.API,
-            RoleScope.APPLICATION
+            RoleScope.APPLICATION,
+            RoleScope.API_PRODUCT
         );
 
         for (GroupEntity group : userGroups) {
             if (group == null) {
                 continue;
             }
-            for (RoleScope scope : List.of(RoleScope.API, RoleScope.APPLICATION)) {
+            for (RoleScope scope : List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT)) {
                 String roleName = Optional.ofNullable(group.getRoles())
                     .map(roles -> roles.get(scope))
                     .orElseGet(() ->

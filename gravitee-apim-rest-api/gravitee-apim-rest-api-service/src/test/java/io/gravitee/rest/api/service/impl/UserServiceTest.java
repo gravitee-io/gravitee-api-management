@@ -2378,7 +2378,7 @@ public class UserServiceTest {
 
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationAdmin));
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationUser));
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT)).thenReturn(
             Arrays.asList(roleApiUser, roleApplicationAdmin)
         );
 
@@ -2532,7 +2532,7 @@ public class UserServiceTest {
 
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationAdmin));
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "USER", ORGANIZATION)).thenReturn(Optional.of(roleOrganizationUser));
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT)).thenReturn(
             Arrays.asList(roleApiUser, roleApplicationAdmin)
         );
 
@@ -2859,6 +2859,48 @@ public class UserServiceTest {
     }
 
     @Test
+    public void shouldApplyGroupApiProductDefaultRoleOnGroupMapping() throws Exception {
+        reset(identityProvider, userRepository, groupService, roleService, membershipService);
+        mockDefaultEnvironment();
+        GroupMappingEntity mapping = new GroupMappingEntity();
+        mapping.setCondition("true");
+        mapping.setGroups(List.of("Group with roles"));
+        when(identityProvider.getGroupMappings()).thenReturn(List.of(mapping));
+        when(userRepository.findBySource(any(), any(), eq(ORGANIZATION))).thenReturn(Optional.empty());
+        when(identityProvider.getId()).thenReturn("oauth2");
+
+        User createdUser = mockUser();
+        when(userRepository.create(any())).thenReturn(createdUser);
+
+        GroupEntity group = new GroupEntity();
+        group.setId("group-1");
+        group.setRoles(
+            Map.of(RoleScope.API, "API_OVERRIDE", RoleScope.APPLICATION, "APP_OVERRIDE", RoleScope.API_PRODUCT, "PRODUCT_OVERRIDE")
+        );
+        when(groupService.findById(EXECUTION_CONTEXT, "Group with roles")).thenReturn(group);
+        when(roleService.findDefaultRoleByScopes(eq(ORGANIZATION), any())).thenReturn(Collections.emptyList());
+        when(membershipService.updateRolesToMemberOnReferenceBySource(any(), any(), any(), any(), any())).thenReturn(
+            List.of(mockMemberEntity())
+        );
+
+        String userInfo = IOUtils.toString(read("/oauth2/json/user_info_response_body.json"), Charset.defaultCharset());
+        userService.createOrUpdateUserFromSocialIdentityProvider(EXECUTION_CONTEXT, identityProvider, userInfo, null, null);
+
+        verify(membershipService).updateRolesToMemberOnReferenceBySource(
+            eq(EXECUTION_CONTEXT),
+            eq(new MembershipService.MembershipReference(MembershipReferenceType.GROUP, "group-1")),
+            eq(new MembershipService.MembershipMember(createdUser.getId(), null, MembershipMemberType.USER)),
+            argThat(
+                roles ->
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API, "API_OVERRIDE")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.APPLICATION, "APP_OVERRIDE")) &&
+                    roles.contains(new MembershipService.MembershipRole(RoleScope.API_PRODUCT, "PRODUCT_OVERRIDE"))
+            ),
+            eq("oauth2")
+        );
+    }
+
+    @Test
     public void shouldNotAssignRolesWhenNoOrgOrGroupDefaultRoles() throws Exception {
         reset(identityProvider, userRepository, groupService, roleService, membershipService);
         mockDefaultEnvironment();
@@ -3006,7 +3048,7 @@ public class UserServiceTest {
         RoleEntity roleApiUser = mockRoleEntity(RoleScope.API, "USER");
         RoleEntity roleApiPrimaryOwner = mockRoleEntity(RoleScope.API, "PRIMARY_OWNER");
         RoleEntity roleApplicationUser = mockRoleEntity(RoleScope.APPLICATION, "USER");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT)).thenReturn(
             Arrays.asList(roleApiUser, roleApplicationUser)
         );
         when(roleService.findById(roleApiPrimaryOwner.getId())).thenReturn(roleApiPrimaryOwner);
@@ -3108,7 +3150,7 @@ public class UserServiceTest {
         RoleEntity roleApiUser = mockRoleEntity(RoleScope.API, "USER");
         RoleEntity roleApiPrimaryOwner = mockRoleEntity(RoleScope.API, "PRIMARY_OWNER");
         RoleEntity roleApplicationUser = mockRoleEntity(RoleScope.APPLICATION, "USER");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT)).thenReturn(
             Arrays.asList(roleApiUser, roleApplicationUser)
         );
         when(roleService.findById(roleApiPrimaryOwner.getId())).thenReturn(roleApiPrimaryOwner);
@@ -3204,7 +3246,7 @@ public class UserServiceTest {
 
         RoleEntity roleApiUser = mockRoleEntity(RoleScope.API, "USER");
         RoleEntity roleApplicationUser = mockRoleEntity(RoleScope.APPLICATION, "USER");
-        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION)).thenReturn(
+        when(roleService.findDefaultRoleByScopes(ORGANIZATION, RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT)).thenReturn(
             Arrays.asList(roleApiUser, roleApplicationUser)
         );
         when(roleService.findById(roleApiUser.getId())).thenReturn(roleApiUser);
