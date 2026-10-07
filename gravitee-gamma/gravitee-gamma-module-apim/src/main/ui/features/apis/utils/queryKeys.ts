@@ -155,6 +155,13 @@ export const apiMetadataKeys = {
     list: (envId: string, apiId: string, params: object) => [...apiMetadataKeys.all, 'list', envId, apiId, params] as const,
 };
 
+export const apiDocumentationKeys = {
+    all: ['api-documentation'] as const,
+    api: (envId: string, apiId: string) => [...apiDocumentationKeys.all, envId, apiId] as const,
+    list: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'list'] as const,
+    publishLocations: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'publish-locations'] as const,
+};
+
 export const apiPlanKeys = {
     all: ['api-plans'] as const,
     list: (envId: string, ctx: PlanContext, statuses: PlanStatus[], page: number, perPage: number) =>
