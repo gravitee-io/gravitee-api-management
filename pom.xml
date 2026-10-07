@@ -332,9 +332,6 @@
         <gravitee-policy-pii-filtering.version>1.0.1</gravitee-policy-pii-filtering.version>
         <gravitee-policy-native-ipfiltering.version>1.0.1</gravitee-policy-native-ipfiltering.version>
         <gravitee-resource-ai-model-token-classification.version>1.0.0</gravitee-resource-ai-model-token-classification.version>
-        <lz4-java.version>1.10.1</lz4-java.version>
-        <snappy-java.version>1.1.10.5</snappy-java.version>
-        <zstd-jni.version>1.5.6-4</zstd-jni.version>
     </properties>
 
     <scm>
