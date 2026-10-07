@@ -872,11 +872,64 @@ public class DictionaryServiceImpl_UpdateTest {
         assertThat(patch).contains(
             json(
                 """
-                {"op":"replace","path":"/properties/secret","value":{"encrypted":true}}
+                {"op":"replace","path":"/properties/secret","value":{"encrypted":true,"key":"secret"}}
                 """
             )
         );
         assertThat(patch.toString()).doesNotContain("NEW-CIPHER").doesNotContain("was-plain");
+    }
+
+    @Test
+    public void should_audit_the_addition_of_an_encrypted_property_beside_an_existing_one()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("a", new DictionaryProperty("CIPHER-A", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("plain-b")).thenReturn("CIPHER-B");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(
+                Map.of("a", ENCRYPTED_VALUE_MASK, "b", "plain-b"),
+                Map.of("b", DictionaryPropertyOptions.builder().encryptable(true).build())
+            )
+        );
+
+        JsonNode patch = auditedPatch();
+        assertThat(patch).noneMatch(operation -> Set.of("copy", "move").contains(operation.get("op").asText()));
+        assertThat(patch).anySatisfy(operation -> {
+            assertThat(operation.get("op").asText()).isEqualTo("add");
+            assertThat(operation.get("path").asText()).isEqualTo("/properties/b");
+            assertThat(operation.get("value").get("encrypted").asBoolean()).isTrue();
+            assertThat(operation.get("value").has("value")).isFalse();
+        });
+    }
+
+    @Test
+    public void should_audit_the_replacement_of_an_encrypted_property_as_a_removal_and_an_addition()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("a", new DictionaryProperty("CIPHER-A", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("plain-c")).thenReturn("CIPHER-C");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("c", "plain-c"), Map.of("c", DictionaryPropertyOptions.builder().encryptable(true).build()))
+        );
+
+        JsonNode patch = auditedPatch();
+        assertThat(patch).noneMatch(operation -> Set.of("copy", "move").contains(operation.get("op").asText()));
+        assertThat(patch).anySatisfy(operation -> {
+            assertThat(operation.get("op").asText()).isEqualTo("remove");
+            assertThat(operation.get("path").asText()).isEqualTo("/properties/a");
+        });
+        assertThat(patch).anySatisfy(operation -> {
+            assertThat(operation.get("op").asText()).isEqualTo("add");
+            assertThat(operation.get("path").asText()).isEqualTo("/properties/c");
+        });
     }
 
     private JsonNode auditedPatch() {

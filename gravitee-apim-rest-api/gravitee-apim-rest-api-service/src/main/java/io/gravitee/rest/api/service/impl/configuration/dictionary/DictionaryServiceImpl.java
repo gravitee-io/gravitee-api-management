@@ -512,7 +512,8 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
         ObjectNode snapshot = mapper.valueToTree(dictionary);
         JsonNode properties = snapshot.path("properties");
-        encryptedPropertyKeys(dictionary).forEach(key -> ((ObjectNode) properties.get(key)).remove("value"));
+        // Naming the key keeps redacted nodes distinct, so the diff never records a copy or move between secrets.
+        encryptedPropertyKeys(dictionary).forEach(key -> ((ObjectNode) properties.get(key)).put("key", key).remove("value"));
         return snapshot;
     }
 

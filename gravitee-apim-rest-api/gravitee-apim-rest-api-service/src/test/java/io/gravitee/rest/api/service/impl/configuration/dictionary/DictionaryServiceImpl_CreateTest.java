@@ -321,7 +321,7 @@ public class DictionaryServiceImpl_CreateTest {
         assertThat(patch).contains(
             json(
                 """
-                {"op":"add","path":"/properties","value":{"secret":{"encrypted":true},"plain":"plain-value"}}
+                {"op":"add","path":"/properties","value":{"secret":{"encrypted":true,"key":"secret"},"plain":"plain-value"}}
                 """
             )
         );
