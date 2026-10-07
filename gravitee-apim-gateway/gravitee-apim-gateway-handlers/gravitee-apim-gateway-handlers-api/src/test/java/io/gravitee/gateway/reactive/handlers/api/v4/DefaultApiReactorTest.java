@@ -50,9 +50,11 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.proxy.ProxyConnection;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
@@ -62,6 +64,7 @@ import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.ApiProductPlanEntry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -120,6 +123,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeAll;
@@ -1425,6 +1429,59 @@ class DefaultApiReactorTest {
             when(resourceLifecycleManager.getResource("unknown", Resource.class)).thenReturn(null);
 
             assertThat(cut.resource("unknown", Resource.class)).isEmpty();
+        }
+    }
+
+    @Nested
+    class ProductPlanPolicyChainCacheSize {
+
+        private static final String API_ID = "api-id";
+        private static final String ENVIRONMENT_ID = "environment-id";
+
+        @Test
+        void should_size_cache_for_every_enabled_product_plan_flow_in_every_phase() {
+            final List<ApiProductPlanEntry> entries = IntStream.range(0, 12)
+                .mapToObj(i -> new ApiProductPlanEntry("product-" + i, productPlan("plan-" + i, List.of(enabledFlow("flow-" + i)))))
+                .toList();
+            when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENVIRONMENT_ID)).thenReturn(entries);
+
+            assertThat(DefaultApiReactor.productPlanPolicyChainCacheSize(apiProductRegistry, API_ID, ENVIRONMENT_ID)).isEqualTo(12 * 4);
+        }
+
+        @Test
+        void should_not_count_disabled_flows_nor_plans_without_flows() {
+            final Flow disabledFlow = Flow.builder().name("disabled").enabled(false).build();
+            final List<ApiProductPlanEntry> entries = new ArrayList<>(
+                IntStream.range(0, 5)
+                    .mapToObj(i ->
+                        new ApiProductPlanEntry("product", productPlan("plan-" + i, List.of(enabledFlow("flow-" + i), disabledFlow)))
+                    )
+                    .toList()
+            );
+            entries.add(new ApiProductPlanEntry("product", productPlan("plan-without-flows", null)));
+            when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENVIRONMENT_ID)).thenReturn(entries);
+
+            assertThat(DefaultApiReactor.productPlanPolicyChainCacheSize(apiProductRegistry, API_ID, ENVIRONMENT_ID)).isEqualTo(5 * 4);
+        }
+
+        @Test
+        void should_keep_default_cache_size_when_api_has_no_product_plan() {
+            when(apiProductRegistry.getApiProductPlanEntriesForApi(API_ID, ENVIRONMENT_ID)).thenReturn(List.of());
+
+            assertThat(DefaultApiReactor.productPlanPolicyChainCacheSize(apiProductRegistry, API_ID, ENVIRONMENT_ID)).isEqualTo(15);
+        }
+
+        @Test
+        void should_keep_default_cache_size_when_environment_is_unknown() {
+            assertThat(DefaultApiReactor.productPlanPolicyChainCacheSize(apiProductRegistry, API_ID, null)).isEqualTo(15);
+        }
+
+        private Plan productPlan(String id, List<Flow> flows) {
+            return Plan.builder().id(id).flows(flows).build();
+        }
+
+        private Flow enabledFlow(String name) {
+            return Flow.builder().name(name).build();
         }
     }
 }

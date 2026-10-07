@@ -50,6 +50,11 @@ public class HttpPolicyChainFactory extends AbstractPolicyChainFactory<HttpPolic
         initPolicyHooks(tracing);
     }
 
+    public HttpPolicyChainFactory(final String id, final PolicyManager policyManager, final boolean tracing, final long cacheMaxSize) {
+        super(id, policyManager, cacheMaxSize);
+        initPolicyHooks(tracing);
+    }
+
     protected void initPolicyHooks(final boolean tracing) {
         if (tracing) {
             policyHooks.add(new TracingPolicyHook());

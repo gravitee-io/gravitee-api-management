@@ -17,6 +17,8 @@ package io.gravitee.gateway.reactive.handlers.api.v4;
 
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY;
 import static io.gravitee.gateway.handlers.api.ApiReactorHandlerFactory.REPORTERS_LOGGING_MAX_SIZE_PROPERTY;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_REQUEST;
+import static io.gravitee.gateway.reactive.api.ExecutionPhase.MESSAGE_RESPONSE;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.*;
@@ -31,9 +33,11 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.gateway.api.Invoker;
 import io.gravitee.gateway.core.component.ComponentProvider;
@@ -42,6 +46,7 @@ import io.gravitee.gateway.handlers.accesspoint.manager.AccessPointManager;
 import io.gravitee.gateway.handlers.api.event.ApiProductChangedEvent;
 import io.gravitee.gateway.handlers.api.event.ApiProductEventType;
 import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry;
+import io.gravitee.gateway.handlers.api.registry.ApiProductRegistry.ApiProductPlanEntry;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.reactive.api.ComponentType;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
@@ -80,6 +85,7 @@ import io.gravitee.gateway.reactive.handlers.api.v4.flow.FlowChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.processor.ApiProcessorChainFactory;
 import io.gravitee.gateway.reactive.handlers.api.v4.security.HttpSecurityChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.gateway.reactive.v4.policy.AbstractPolicyChainFactory;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
@@ -124,6 +130,14 @@ public class DefaultApiReactor extends AbstractApiReactor {
         LogEntryFactory.refreshable("requestMethod", DefaultExecutionContext.class, context ->
             Objects.toString(context.getAttribute(ATTR_REQUEST_METHOD), null)
         )
+    );
+
+    // A chain is cached per flow and phase; reactors extending this one can run the product plan chain on message phases.
+    private static final Set<ExecutionPhase> PRODUCT_PLAN_POLICY_CHAIN_PHASES = Set.of(
+        REQUEST,
+        RESPONSE,
+        MESSAGE_REQUEST,
+        MESSAGE_RESPONSE
     );
 
     public static final String API_VALIDATE_SUBSCRIPTION_PROPERTY = "api.validateSubscription";
@@ -784,7 +798,8 @@ public class DefaultApiReactor extends AbstractApiReactor {
                 new io.gravitee.gateway.reactive.v4.policy.HttpPolicyChainFactory(
                     api.getId(),
                     apiProductPlanPolicyManager,
-                    tracingContext != null && tracingContext.isEnabled()
+                    tracingContext != null && tracingContext.isEnabled(),
+                    productPlanPolicyChainCacheSize(apiProductRegistry, api.getId(), api.getEnvironmentId())
                 );
             this.apiProductPlanFlowChain = v4FlowChainFactory.createProductPlanFlow(
                 api,
@@ -796,6 +811,27 @@ public class DefaultApiReactor extends AbstractApiReactor {
         } else {
             this.apiProductPlanFlowChain = null;
         }
+    }
+
+    /**
+     * Sizes the product plan policy chain cache so that every enabled product plan flow keeps its policy chains for
+     * every phase: an evicted chain is rebuilt with new policy instances, which loses their in-memory state.
+     */
+    static long productPlanPolicyChainCacheSize(ApiProductRegistry apiProductRegistry, String apiId, String environmentId) {
+        if (environmentId == null) {
+            return AbstractPolicyChainFactory.CACHE_MAX_SIZE;
+        }
+        final long enabledFlowCount = apiProductRegistry
+            .getApiProductPlanEntriesForApi(apiId, environmentId)
+            .stream()
+            .map(ApiProductPlanEntry::plan)
+            .filter(Plan.class::isInstance)
+            .map(Plan.class::cast)
+            .filter(plan -> plan.getFlows() != null)
+            .flatMap(plan -> plan.getFlows().stream())
+            .filter(Flow::isEnabled)
+            .count();
+        return Math.max(AbstractPolicyChainFactory.CACHE_MAX_SIZE, enabledFlowCount * PRODUCT_PLAN_POLICY_CHAIN_PHASES.size());
     }
 
     /**

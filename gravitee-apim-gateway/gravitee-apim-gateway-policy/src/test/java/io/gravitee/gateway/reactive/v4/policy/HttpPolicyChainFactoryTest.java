@@ -38,9 +38,14 @@ import io.gravitee.gateway.reactive.api.policy.Policy;
 import io.gravitee.gateway.reactive.api.policy.http.HttpPolicy;
 import io.gravitee.gateway.reactive.policy.HttpPolicyChain;
 import io.gravitee.gateway.reactive.policy.PolicyManager;
+import io.gravitee.node.api.cache.CacheListener;
 import io.gravitee.node.container.spring.SpringEnvironmentConfiguration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -301,5 +306,55 @@ class HttpPolicyChainFactoryTest {
         final HttpPolicyChain policyChain = cut.create("flowchain-test", flow, ExecutionPhase.REQUEST);
         assertNotNull(policyChain);
         assertEquals("flowchain-test-all-path", policyChain.getId());
+    }
+
+    @Test
+    public void shouldKeepEveryPolicyChainInCacheWhenSizedForAllFlowsAndPhases() {
+        final HttpPolicyChainFactory sizedFactory = new HttpPolicyChainFactory("unit-test", policyManager, false, 40);
+        final List<Flow> flows = distinctFlows(20);
+
+        final List<HttpPolicyChain> firstChains = createRequestAndResponseChains(sizedFactory, flows);
+        final List<HttpPolicyChain> secondChains = createRequestAndResponseChains(sizedFactory, flows);
+
+        assertThat(secondChains).hasSize(40);
+        for (int i = 0; i < firstChains.size(); i++) {
+            assertThat(secondChains.get(i)).isSameAs(firstChains.get(i));
+        }
+    }
+
+    @Test
+    public void shouldEvictPolicyChainsWhenFlowsAndPhasesExceedDefaultCacheSize() throws InterruptedException {
+        final List<Flow> flows = distinctFlows(20);
+        final CountDownLatch evicted = new CountDownLatch(1);
+        // The cache evicts asynchronously: wait for an eviction so the second pass deterministically misses.
+        cut.policyChains.addCacheListener(
+            new CacheListener<>() {
+                @Override
+                public void onEntryEvicted(String key, HttpPolicyChain value) {
+                    evicted.countDown();
+                }
+            }
+        );
+
+        final List<HttpPolicyChain> firstChains = createRequestAndResponseChains(cut, flows);
+        assertThat(evicted.await(5, TimeUnit.SECONDS)).isTrue();
+        final List<HttpPolicyChain> secondChains = createRequestAndResponseChains(cut, flows);
+
+        assertThat(IntStream.range(0, firstChains.size())).anyMatch(i -> secondChains.get(i) != firstChains.get(i));
+    }
+
+    private static List<Flow> distinctFlows(int count) {
+        return IntStream.range(0, count)
+            .<Flow>mapToObj(i -> Flow.builder().name("flow-" + i).build())
+            .toList();
+    }
+
+    private static List<HttpPolicyChain> createRequestAndResponseChains(HttpPolicyChainFactory factory, List<Flow> flows) {
+        final List<HttpPolicyChain> chains = new ArrayList<>();
+        for (Flow flow : flows) {
+            chains.add(factory.create("flowchain-test", flow, ExecutionPhase.REQUEST));
+            chains.add(factory.create("flowchain-test", flow, ExecutionPhase.RESPONSE));
+        }
+        return chains;
     }
 }
