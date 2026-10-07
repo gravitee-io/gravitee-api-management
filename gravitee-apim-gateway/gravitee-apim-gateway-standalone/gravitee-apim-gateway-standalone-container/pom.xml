@@ -372,6 +372,58 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Libraries that plugins declare provided and load from lib/ext: removing one breaks the listed plugins -->
+        <!-- Jackson: llm-proxy, oas-validation, azure-service-bus (also jackson-annotations, jackson-core, jackson-databind, declared above) -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+        </dependency>
+        <!-- Reactive: llm-proxy, endpoint-kafka, endpoint-rabbitmq, azure-service-bus (also reactor-core, declared above) -->
+        <dependency>
+            <groupId>io.reactivex.rxjava3</groupId>
+            <artifactId>rxjava</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams</artifactId>
+        </dependency>
+        <!-- Kafka and compression codecs: endpoint-kafka, transform-protobuf-json (also kafka-clients, declared above) -->
+        <dependency>
+            <groupId>com.github.luben</groupId>
+            <artifactId>zstd-jni</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>at.yawk.lz4</groupId>
+            <artifactId>lz4-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+        </dependency>
+        <!-- transform-protobuf-json (also commons-lang3, declared above) -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+        <!-- BouncyCastle: generate-wssecurity -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcutil-jdk18on</artifactId>
+        </dependency>
+        <!-- Jakarta APIs: oas-validation (also jakarta.activation-api, jakarta.xml.bind-api, declared above) -->
+        <dependency>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+        </dependency>
+
         <!-- Unit Tests -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
