@@ -419,6 +419,59 @@ class ApisResourceTest extends AbstractResourceTest {
         }
     }
 
+    @Nested
+    class IgnoreGroups {
+
+        @BeforeEach
+        void setUp() {
+            when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenReturn(
+                new ImportApiCRDUseCase.Output(
+                    ApiCRDStatus.builder().id("api-id").organizationId(ORGANIZATION).environmentId(ENVIRONMENT).build()
+                )
+            );
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+        }
+
+        @Test
+        void should_pass_ignore_groups_to_the_use_case() {
+            put("api-with-hrid.json", false, true);
+
+            var input = ArgumentCaptor.forClass(ImportApiCRDUseCase.Input.class);
+            verify(importApiCRDUseCase).execute(input.capture());
+            assertThat(input.getValue().spec().isIgnoreGroups()).isTrue();
+        }
+
+        @Test
+        void should_not_ignore_groups_by_default() {
+            put("api-with-hrid.json", false, null);
+
+            var input = ArgumentCaptor.forClass(ImportApiCRDUseCase.Input.class);
+            verify(importApiCRDUseCase).execute(input.capture());
+            assertThat(input.getValue().spec().isIgnoreGroups()).isFalse();
+        }
+
+        @Test
+        void should_pass_ignore_groups_to_the_dry_run_validation() {
+            put("api-with-hrid.json", true, true);
+
+            var input = ArgumentCaptor.forClass(ValidateApiCRDDomainService.Input.class);
+            verify(validateApiCRDDomainService).validateAndSanitize(input.capture());
+            assertThat(input.getValue().spec().isIgnoreGroups()).isTrue();
+        }
+
+        private void put(String spec, boolean dryRun, Boolean ignoreGroups) {
+            var target = rootTarget().queryParam("dryRun", dryRun);
+            if (ignoreGroups != null) {
+                target = target.queryParam("ignoreGroups", ignoreGroups);
+            }
+            try (var response = target.request().accept(MediaType.APPLICATION_JSON_TYPE).put(Entity.json(readJSON(spec)))) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+        }
+    }
+
     @Override
     protected String contextPath() {
         return "/organizations/" + ORGANIZATION + "/environments/" + ENVIRONMENT + "/apis";

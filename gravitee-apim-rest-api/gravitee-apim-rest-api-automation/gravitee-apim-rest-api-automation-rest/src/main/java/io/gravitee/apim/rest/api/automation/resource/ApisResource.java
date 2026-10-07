@@ -76,7 +76,8 @@ public class ApisResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull LegacyAPIV4Spec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @QueryParam("ignoreGroups") boolean ignoreGroups
     ) {
         var executionContext = GraviteeContext.getExecutionContext();
         var userDetails = getAuthenticatedUserDetails();
@@ -104,6 +105,8 @@ public class ApisResource extends AbstractResource {
             CrdIdHelper.generatePlanIds(apiCRDSpec.getPlans(), apiCRDSpec.getHrid(), auditInfo);
             CrdIdHelper.generatePageIds(apiCRDSpec.getPages(), apiCRDSpec.getHrid(), auditInfo);
         }
+
+        apiCRDSpec.setIgnoreGroups(ignoreGroups);
 
         if (dryRun) {
             var statusBuilder = ApiCRDStatus.builder();
