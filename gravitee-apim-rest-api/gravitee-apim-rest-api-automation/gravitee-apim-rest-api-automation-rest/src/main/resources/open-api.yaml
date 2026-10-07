@@ -242,6 +242,7 @@ paths:
         - $ref: "#/components/parameters/envIdParam"
         - $ref: "#/components/parameters/dryRunQueryParam"
         - $ref: "#/components/parameters/hridContainsUUIDQueryParam"
+        - $ref: "#/components/parameters/ignoreMembersQueryParam"
       requestBody:
         description: Group specification
         content:
@@ -3999,6 +4000,16 @@ components:
         On update, the resource keeps the groups it has on the platform. On create, it receives
         the environment's default groups, as a Console create does.
         The answer echoes the request; read the group assignment back with GET.
+      schema:
+        type: boolean
+        default: false
+    ignoreMembersQueryParam:
+      name: ignoreMembers
+      in: query
+      description: |
+        When true, `members` in the group spec is not applied: no member is added and none is removed.
+        Name, `notifyMembers` and `defaultMemberRoles` still converge.
+        Use it for groups whose members an identity provider manages through group mapping.
       schema:
         type: boolean
         default: false
