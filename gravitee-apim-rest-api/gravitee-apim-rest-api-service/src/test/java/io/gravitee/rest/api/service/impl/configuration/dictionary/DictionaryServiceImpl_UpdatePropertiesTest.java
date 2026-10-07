@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
+import static io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryAuditPatch.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,6 +26,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -52,6 +55,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -66,6 +70,9 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();
+
+    @Spy
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Mock
     private DictionaryRepository dictionaryRepository;
@@ -408,13 +415,50 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
 
         dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
 
+        JsonNode patch = auditedPatch();
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"replace","path":"/properties/plain","value":"new"}
+                """
+            )
+        );
+        assertThat(patch).noneMatch(operation -> operation.get("path").asText().startsWith("/encryption"));
+    }
+
+    @Test
+    public void should_not_audit_encrypted_values_on_a_dynamic_refresh() throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = startedDynamicDictionaryWith(
+            Map.of("secret", new DictionaryProperty("previous-cipher", true), "plain", new DictionaryProperty("previous-value", false))
+        );
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        given_environment();
+        when(dataEncryptor.decrypt("previous-cipher")).thenReturn("previous-secret");
+        when(dataEncryptor.encrypt("fetched-secret")).thenReturn("ENC(fetched-secret)");
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "fetched-secret", "plain", "fetched-plain"));
+
+        JsonNode patch = auditedPatch();
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"replace","path":"/properties/plain","value":"fetched-plain"}
+                """
+            )
+        );
+        assertThat(patch).noneMatch(operation -> operation.get("path").asText().startsWith("/properties/secret"));
+        assertThat(patch.toString()).doesNotContain("previous-cipher").doesNotContain("previous-secret").doesNotContain("fetched-secret");
+
+        ArgumentCaptor<Dictionary> published = ArgumentCaptor.forClass(Dictionary.class);
+        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), published.capture());
+        assertThat(published.getValue().getProperties()).containsEntry("secret", new DictionaryProperty("ENC(fetched-secret)", true));
+    }
+
+    private JsonNode auditedPatch() {
         ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
         verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
-        Dictionary oldValue = (Dictionary) auditLogData.getValue().getOldValue();
-        Dictionary newValue = (Dictionary) auditLogData.getValue().getNewValue();
-        assertThat(oldValue.getProperties()).isEqualTo(Map.of("plain", new DictionaryProperty("old", false)));
-        assertThat(newValue.getProperties()).isEqualTo(Map.of("plain", new DictionaryProperty("new", false)));
-        assertThat(oldValue.getEncryption().isEncryptOnFetch()).isEqualTo(newValue.getEncryption().isEncryptOnFetch());
+        return DictionaryAuditPatch.of(auditLogData.getValue());
     }
 
     @Test

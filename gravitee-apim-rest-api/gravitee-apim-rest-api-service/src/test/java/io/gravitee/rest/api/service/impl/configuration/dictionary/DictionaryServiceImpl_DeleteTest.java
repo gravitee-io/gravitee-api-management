@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_DELETED;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
@@ -33,13 +35,16 @@ import io.gravitee.repository.management.model.Dictionary;
 import io.gravitee.repository.management.model.DictionaryType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Map;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -53,6 +58,9 @@ public class DictionaryServiceImpl_DeleteTest {
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();
+
+    @Spy
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Mock
     private DictionaryRepository dictionaryRepository;
@@ -115,6 +123,18 @@ public class DictionaryServiceImpl_DeleteTest {
         );
 
         verify(auditService, never()).createAuditLog(any(), any());
+    }
+
+    @Test
+    public void should_not_audit_the_value_of_an_encrypted_property_on_delete() throws Exception {
+        given_stored_dictionary(Map.of("secret", new DictionaryProperty("STORED-CIPHER", true)));
+
+        dictionaryService.delete(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
+
+        ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
+        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
+        assertThat(DictionaryAuditPatch.of(auditLogData.getValue()).toString()).doesNotContain("STORED-CIPHER");
+        assertThat(mapper.writeValueAsString(auditLogData.getValue().getOldValue())).doesNotContain("STORED-CIPHER");
     }
 
     private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
