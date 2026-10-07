@@ -73,10 +73,10 @@ todos:
     status: completed
   - id: STORY-23
     content: "Add a Documentation entry to the API sidebar, gated on documentation read permission."
-    status: pending
+    status: completed
   - id: STORY-24
     content: "Data layer for the documentation screen: service and query hooks."
-    status: pending
+    status: in_progress
   - id: STORY-25
     content: "Documentation list screen with an empty state, static tree and breadcrumbs."
     status: pending
@@ -1065,6 +1065,7 @@ Decided earlier, when PORTAL-231 was written, and now reflected in the stories:
 All of PHASE 6 can be built against a stand-in generated from STORY-11's contract, before the backend lands.
 
 #### STORY-23 — Documentation entry in the API sidebar
+**Status:** Done — merged to `master` as `7a5b5a8cfc` ("create documentation menu item for api"): the sidebar entry, the read-permission gate, the route and an empty `ApiDocumentationPage`. As merged, `documentation` is in the federated allow-list, so the entry **is** shown for federated APIs — the opposite of the default decision 7 asks to confirm.
 **Why:** the screen has to be reachable. The sidebar already carries a placeholder route for it, and the entry must respect permissions so users who cannot read an API's documentation do not see a screen that will only error.
 **Acceptance criteria:**
 - A Documentation entry appears in the API detail navigation and routes to the screen.
@@ -1077,6 +1078,13 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Size:** S · **Depends on:** nothing · **Blocked by:** decision 7
 
 #### STORY-24 — Data layer for the documentation screen
+**Status:** Implemented under [PORTAL-243](https://gravitee.atlassian.net/browse/PORTAL-243) on `feat/PORTAL-243-api-documentation-data-layer`, not yet merged. Written against the contract of the PORTAL-231 stack (update, delete and unpublish were still in open pull requests), with hand-written types in `GAMMA/features/apis/types/apiDocumentation.ts` — Gamma does not generate types from the OpenAPI spec.
+**Scope as built:** list, create, update (with `propagatePublishToChildren`), delete, import, publish locations, publish and unpublish. Left to the stories that first need them, each one service function and one hook:
+- a page's content read and save — STORY-26 and STORY-29, once STORY-12 Bis provides the endpoints;
+- refreshing a sourced item (`_fetch`) — STORY-34;
+- the single-item read — dropped: the list returns every field of every item, and the edit page needs the content type, which lives on the page content, not on the item.
+
+**Cache:** `apiDocumentationKeys.list(envId, apiId)` holds both the items and the API's `publications`; every write invalidates that key only, for the API it touched. Publish locations are a separate key and are not invalidated by publishing. Errors reach the screens as the shared client's `ApimApiError` (status and server message), unwrapped. STORY-31 and STORY-32 update the list key optimistically.
 **Why:** every screen in this phase reads and writes the same backend, so the calls and cache handling belong in one place. Without it each screen fetches its own way, and a change made on one screen — a page created, a visibility toggled — does not show up on the others.
 **Acceptance criteria:**
 - A service covering list, read, create, update, delete, import, publish, unpublish and publish-locations.
@@ -1100,7 +1108,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - Delete, with confirmation.
 - A single Publish or Unpublish action for the whole API, chosen by whether the API is currently in a portal, never both.
 **Files:**
-- *create* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx`
+- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx` — the empty, permission-gated page STORY-23 added
 - *create* `GAMMA/features/apis/components/detail/documentation/DocumentationTree.tsx` — static at this point; dragging arrives in STORY-32
 - *create* `GAMMA/features/apis/components/detail/documentation/DocumentationBreadcrumbs.tsx`
 **Size:** M · **Depends on:** STORY-24
@@ -1118,6 +1126,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - Title required; the page appears in the tree on success.
 **Files:**
 - *create* `GAMMA/features/apis/components/detail/documentation/CreateDocumentationDialog.tsx` — the shared dialog shell plus the page branch; STORY-27 and STORY-28 add their branches to it
+- *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — save a page's content under the API path, once STORY-12 Bis provides it; STORY-24 left it out
 **Size:** M · **Depends on:** STORY-25 · **Backend:** STORY-12 Bis, to save what was typed or uploaded
 **Subtasks:**
 1. The dialog shell and the what-to-add step, extensible for folders and links.
@@ -1148,6 +1157,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Files:**
 - *create* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx`
 - *create* `GAMMA/features/apis/components/detail/documentation/DocumentationEditor.tsx` — the editor pane and its mode selection
+- *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — read and save a page's content under the API path (STORY-12 Bis); the content carries the type the editor opens in, which the navigation item does not
 - *read only* the host's editor setup in the platform module — already available, do not add a second editor dependency
 **Size:** M · **Depends on:** STORY-25, STORY-22 · **Backend:** STORY-12 Bis
 **Subtasks:**
@@ -1236,6 +1246,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Files:**
 - *create* `GAMMA/features/apis/components/detail/documentation/ExternalSourceConfig.tsx` — fetcher choice, the schema-driven settings form and the raw-editor fallback
 - *create* `GAMMA/features/apis/services/fetchers.ts` and a hook beside it — the fetcher list comes from an older API surface than the rest of this screen
+- *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — the manual refresh (`POST {navId}/_fetch`), which STORY-24 left out; invalidate the documentation list like the other writes
 - *edit* `GAMMA/features/apis/components/detail/documentation/CreateDocumentationDialog.tsx` — the external-source branch, for a page and for a whole folder
 - *edit* `GAMMA/package.json` — the schema-form dependency
 **Size:** L · **Depends on:** STORY-25, STORY-17
