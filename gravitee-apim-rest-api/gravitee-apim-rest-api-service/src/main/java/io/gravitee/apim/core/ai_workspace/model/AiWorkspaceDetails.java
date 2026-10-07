@@ -15,4 +15,11 @@
  */
 package io.gravitee.apim.core.ai_workspace.model;
 
-public record AiWorkspaceDetails(String id, String name, String description, AiWorkspaceBudget budget, String endpointUrl) {}
+public record AiWorkspaceDetails(
+    String id,
+    String name,
+    String description,
+    AiWorkspaceBudget budget,
+    String endpointUrl,
+    AiWorkspaceKey key
+) {}

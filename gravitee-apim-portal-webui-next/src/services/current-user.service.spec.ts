@@ -59,4 +59,19 @@ describe('CurrentUserService', () => {
     service.clear();
     expect(service.user()).toEqual({});
   });
+
+  it('should update profile and refresh user signal', done => {
+    const updated = fakeUser({ first_name: 'Updated' });
+    service
+      .updateProfile({ id: 'user-1', avatar: 'data:image/png;base64,abc' })
+      .subscribe(user => {
+        expect(user).toEqual(updated);
+        expect(service.user()).toEqual(updated);
+        done();
+      });
+
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/user`);
+    expect(req.request.method).toBe('PUT');
+    req.flush(updated);
+  });
 });

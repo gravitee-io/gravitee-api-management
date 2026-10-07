@@ -108,6 +108,74 @@ paths:
                                 $ref: "#/components/schemas/ErrorResponse"
                 500:
                     $ref: "#/components/responses/InternalServerError"
+    /ai-workspaces/{aiWorkspaceId}/consumption:
+        get:
+            tags:
+                - AI Workspace
+            summary: Get the caller's consumption of one Gamma AI Workspace
+            description: |
+                Tokens, requests and cost for the last 30 days, limited to the caller's own traffic.
+                A workspace the caller is not mapped to returns 404.
+                When there is no traffic, or analytics cannot be read, the counts are zero and the call still succeeds.
+            operationId: getAiWorkspaceConsumption
+            parameters:
+                - name: aiWorkspaceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                200:
+                    description: Consumption over the stated window
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AiWorkspaceConsumption"
+                401:
+                    $ref: "#/components/responses/UnauthorizedError"
+                404:
+                    description: The workspace does not exist, is not an AI workspace, or the caller is not mapped to it.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
+    /ai-workspaces/{aiWorkspaceId}/models:
+        get:
+            tags:
+                - AI Workspace
+            summary: List models available in one of the caller's Gamma AI Workspaces
+            description: |
+                Model name and input/output prices from the workspace LLM proxy endpoint configuration.
+                Provider credentials and other endpoint fields are never returned.
+                An empty list is returned when the workspace has no proxy or no models.
+            operationId: listAiWorkspaceModels
+            parameters:
+                - name: aiWorkspaceId
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+                - $ref: "#/components/parameters/pageNumberParam"
+                - $ref: "#/components/parameters/pageSizeParam"
+            responses:
+                200:
+                    description: Models available in the workspace
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/AiWorkspaceModelsResponse"
+                401:
+                    $ref: "#/components/responses/UnauthorizedError"
+                404:
+                    description: The workspace does not exist, is not an AI workspace, or the caller is not mapped to it.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ErrorResponse"
+                500:
+                    $ref: "#/components/responses/InternalServerError"
     /apis:
         get:
             tags:
@@ -4946,6 +5014,80 @@ components:
                 endpointUrl:
                     type: string
                     description: Listener path of the workspace LLM proxy, as stored. Absent when the workspace has no proxy.
+                key:
+                    description: The caller's own API key for this workspace. Absent when the subscription has no usable key.
+                    allOf:
+                        - $ref: "#/components/schemas/AiWorkspaceKey"
+        AiWorkspaceKey:
+            type: object
+            description: API key of the caller's accepted subscription. Revoked and expired keys are omitted.
+            required:
+                - value
+                - status
+            properties:
+                value:
+                    type: string
+                status:
+                    type: string
+                    enum:
+                        - ACTIVE
+                        - PAUSED
+                createdAt:
+                    type: string
+                    format: date-time
+        AiWorkspaceConsumption:
+            type: object
+            description: |
+                The caller's own traffic for this workspace over the window from `from` to `to`.
+                Tokens and cost are the analytics totals. Requests is the HTTP request count.
+            required:
+                - tokens
+                - requests
+                - cost
+                - from
+                - to
+            properties:
+                tokens:
+                    type: integer
+                    format: int64
+                requests:
+                    type: integer
+                    format: int64
+                cost:
+                    type: number
+                    format: double
+                    description: Cost in US dollars, the same unit as the workspace budget amount.
+                from:
+                    type: string
+                    format: date-time
+                to:
+                    type: string
+                    format: date-time
+        AiWorkspaceModel:
+            type: object
+            required:
+                - name
+            properties:
+                name:
+                    type: string
+                inputPrice:
+                    type: string
+                    description: Input price per million tokens, as stored. Absent when not configured.
+                outputPrice:
+                    type: string
+                    description: Output price per million tokens, as stored. Absent when not configured.
+        AiWorkspaceModelsResponse:
+            properties:
+                data:
+                    description: Models available in the workspace.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AiWorkspaceModel"
+                metadata:
+                    $ref: "#/components/schemas/MetadataMap"
+                links:
+                    $ref: "#/components/schemas/Links"
+
         AiWorkspaceBudget:
             type: object
             description: Allocated budget for the plan window. The amount is in US dollars.

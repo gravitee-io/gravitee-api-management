@@ -1,0 +1,81 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="workspaces-list__header">
+  <div class="workspaces-list__header__title">
+    <div class="title next-gen-h3" i18n="@@myWorkspaceTitle">My Workspace</div>
+    <p class="next-gen-body" i18n="@@myWorkspaceDescription">
+      AI workspaces you are a member of, with access credentials and getting-started guidance
+    </p>
+  </div>
+</div>
+
+<div class="workspaces-list__content">
+  <app-search-bar class="workspaces-list__search" (searchTerm)="onSearchTermChange($event)" />
+
+  @if (!loadingPage() && workspacePaginator().totalResults > 0) {
+    <div class="workspaces-list__count next-gen-body">
+      @if (workspacePaginator().totalResults === 1) {
+        <span i18n="@@workspacesCountSingular">1 workspace</span>
+      } @else {
+        <span i18n="@@workspacesCountPlural">{{ workspacePaginator().totalResults }} workspaces</span>
+      }
+    </div>
+  }
+
+  <app-cards-grid class="workspaces-list__grid" [cards]="workspacePaginator().data" [showEmptyState]="!loadingPage()">
+    <ng-template #cardTemplate let-workspace>
+      <app-workspace-card
+        [workspaceId]="workspace.id"
+        [title]="workspace.name"
+        [description]="workspace.description"
+        [budget]="workspace.budget"
+        (cardSelect)="navigateToWorkspace($event)"
+      />
+    </ng-template>
+
+    <ng-container slot="empty-state">
+      @if (loadError()) {
+        <span class="material-icons icon-with-background" aria-hidden="true">error_outline</span>
+        <h2 class="next-gen-h5" i18n="@@workspacesLoadErrorTitle">Unable to load workspaces</h2>
+        <p class="next-gen-body" i18n="@@workspacesLoadErrorDescription">
+          The Portal could not reach the AI workspaces API. Sign in and confirm the Management API includes /ai-workspaces.
+        </p>
+      } @else {
+        <span class="material-icons icon-with-background" aria-hidden="true">hub</span>
+        <h2 class="next-gen-h5" i18n="@@noWorkspacesAvailable">No workspaces available yet</h2>
+        <p class="next-gen-body" i18n="@@noWorkspacesDescription">You are not a member of any AI workspace yet.</p>
+      }
+    </ng-container>
+  </app-cards-grid>
+
+  @if (loadingPage()) {
+    <app-loader class="workspaces-list__loader" />
+  }
+
+  @if (workspacePaginator().totalResults > 0) {
+    <app-pagination
+      class="list-page__pagination"
+      [totalResults]="workspacePaginator().totalResults"
+      [currentPage]="workspacePaginator().page"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      (selectPage)="onPageChange($event)"
+      (selectPageSize)="onPageSizeChange($event)"
+    />
+  }
+</div>

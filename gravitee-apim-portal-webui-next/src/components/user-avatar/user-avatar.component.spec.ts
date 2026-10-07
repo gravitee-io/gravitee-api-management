@@ -14,36 +14,67 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatDialog } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
 import { UserAvatarComponent } from './user-avatar.component';
 import { fakeUser } from '../../entities/user/user.fixtures';
+import { ConfigService } from '../../services/config.service';
+import { ConfigServiceStub } from '../../testing/app-testing.module';
+import { AccountDetailsDialogComponent } from '../account-details-dialog/account-details-dialog.component';
 
 describe('UserAvatarComponent', () => {
   let fixture: ComponentFixture<UserAvatarComponent>;
+  let matDialogOpen: jest.SpyInstance;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [UserAvatarComponent, NoopAnimationsModule],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: ConfigService, useClass: ConfigServiceStub }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(UserAvatarComponent);
     fixture.componentRef.setInput('user', fakeUser());
     fixture.detectChanges();
+    matDialogOpen = jest.spyOn(TestBed.inject(MatDialog), 'open').mockReturnValue({} as never);
+  });
+
+  async function openMenu(): Promise<string[]> {
+    (fixture.nativeElement as HTMLElement).querySelector('.user-avatar')?.dispatchEvent(new MouseEvent('click'));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const panel = document.querySelector('.mat-mdc-menu-panel');
+    return Array.from(panel?.querySelectorAll('.mat-mdc-menu-item') ?? []).map(el => el.textContent?.trim() ?? '');
+  }
+
+  it('should show My account menu item', async () => {
+    const labels = await openMenu();
+    expect(labels).toContain('My account');
+  });
+
+  it('should open account details dialog from My account', async () => {
+    await openMenu();
+    const myAccount = Array.from(document.querySelectorAll('.mat-mdc-menu-item')).find(el => el.textContent?.trim() === 'My account') as
+      | HTMLElement
+      | undefined;
+    myAccount?.click();
+    fixture.detectChanges();
+
+    expect(matDialogOpen).toHaveBeenCalledWith(
+      AccountDetailsDialogComponent,
+      expect.objectContaining({
+        data: { user: fakeUser() },
+        width: '420px',
+      }),
+    );
   });
 
   it('should not show Analytics menu item when analyticsEnabled is false', async () => {
     fixture.componentRef.setInput('analyticsEnabled', false);
     fixture.detectChanges();
 
-    (fixture.nativeElement as HTMLElement).querySelector('.user-avatar')?.dispatchEvent(new MouseEvent('click'));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const panel = document.querySelector('.mat-mdc-menu-panel');
-    const labels = Array.from(panel?.querySelectorAll('.mat-mdc-menu-item') ?? []).map(el => el.textContent?.trim());
+    const labels = await openMenu();
     expect(labels.some(t => t === 'Analytics')).toBe(false);
   });
 
@@ -51,12 +82,7 @@ describe('UserAvatarComponent', () => {
     fixture.componentRef.setInput('analyticsEnabled', true);
     fixture.detectChanges();
 
-    (fixture.nativeElement as HTMLElement).querySelector('.user-avatar')?.dispatchEvent(new MouseEvent('click'));
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    const panel = document.querySelector('.mat-mdc-menu-panel');
-    const labels = Array.from(panel?.querySelectorAll('.mat-mdc-menu-item') ?? []).map(el => el.textContent?.trim());
+    const labels = await openMenu();
     expect(labels).toContain('Analytics');
   });
 });

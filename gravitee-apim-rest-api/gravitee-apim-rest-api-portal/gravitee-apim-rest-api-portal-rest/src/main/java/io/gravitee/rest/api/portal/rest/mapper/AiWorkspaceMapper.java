@@ -16,7 +16,10 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceConsumption;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceKey;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceModel;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceSummary;
 import java.math.BigDecimal;
 import org.mapstruct.Mapper;
@@ -32,6 +35,10 @@ public interface AiWorkspaceMapper {
 
     io.gravitee.rest.api.portal.rest.model.AiWorkspace toDetails(AiWorkspaceDetails details);
 
+    io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption toConsumption(AiWorkspaceConsumption consumption);
+
+    io.gravitee.rest.api.portal.rest.model.AiWorkspaceModel toModel(AiWorkspaceModel model);
+
     @Mapping(target = "amount", source = "amount", qualifiedByName = "toDollars")
     @Mapping(target = "period", source = "period", qualifiedByName = "toPeriod")
     io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget toBudget(AiWorkspaceBudget budget);
@@ -44,5 +51,13 @@ public interface AiWorkspaceMapper {
     @Named("toPeriod")
     default io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget.PeriodEnum toPeriod(String period) {
         return period == null ? null : io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget.PeriodEnum.fromValue(period);
+    }
+
+    @Mapping(target = "status", source = "status", qualifiedByName = "toKeyStatus")
+    io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey toKey(AiWorkspaceKey key);
+
+    @Named("toKeyStatus")
+    default io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey.StatusEnum toKeyStatus(String status) {
+        return status == null ? null : io.gravitee.rest.api.portal.rest.model.AiWorkspaceKey.StatusEnum.fromValue(status);
     }
 }

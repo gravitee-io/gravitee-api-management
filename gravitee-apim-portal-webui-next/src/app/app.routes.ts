@@ -45,6 +45,7 @@ import { RegistrationConfirmationComponent } from './registration/registration-c
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
 import { analyticsEnabledGuard } from '../guards/analytics-enabled.guard';
+import { aiWorkspacesEnabledGuard } from '../guards/ai-workspaces-enabled.guard';
 import { applicationInvitationsEnabledGuard, applicationMembershipEnabledGuard } from '../guards/application-membership-enabled.guard';
 import { redirectGuard } from '../guards/redirect.guard';
 import { registrationEnabledGuard } from '../guards/registration-enabled.guard';
@@ -239,6 +240,20 @@ export const routes: Routes = [
           {
             path: ':dashboardId',
             loadComponent: () => import('./dashboard/analytics/analytics-details/analytics-details.component'),
+          },
+        ],
+      },
+      {
+        path: 'workspaces',
+        canActivate: [aiWorkspacesEnabledGuard],
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./dashboard/workspaces/workspaces.component'),
+          },
+          {
+            path: ':workspaceId',
+            loadComponent: () => import('./dashboard/workspaces/workspace-details/workspace-details.component'),
           },
         ],
       },

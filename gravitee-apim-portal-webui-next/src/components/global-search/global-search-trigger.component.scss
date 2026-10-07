@@ -1,0 +1,89 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/theme' as theme;
+
+:host {
+  display: block;
+  flex-shrink: 0;
+}
+
+.global-search-trigger {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 200px;
+  max-width: 100%;
+  height: auto;
+  padding: 8px 10px;
+  border: 1px solid theme.$search-bar-border-color;
+  border-radius: 4px;
+  background: theme.$background-color;
+  cursor: pointer;
+  color: #575757;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible {
+    border-color: theme.$search-bar-border-color;
+    outline: none;
+    background: #fafafa;
+  }
+
+  &--compact {
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+  }
+}
+
+.global-search-trigger__icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  flex-shrink: 0;
+  color: theme.$search-bar-shortcut-text-color;
+}
+
+.global-search-trigger__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #575757;
+  font-size: 14px;
+  line-height: 24px;
+}
+
+.global-search-trigger__shortcut {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.global-search-trigger__key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 21px;
+  padding: 0 5px;
+  color: #465055;
+  background-color: #e1e5ed;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 27px;
+}

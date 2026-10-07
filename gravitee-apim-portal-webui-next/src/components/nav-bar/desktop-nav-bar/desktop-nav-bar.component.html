@@ -37,6 +37,8 @@
   }
 </div>
 
+<app-global-search-trigger class="nav-search" />
+
 @if (isLoggedIn()) {
   <div class="actions">
     <app-user-avatar [user]="currentUser()" [analyticsEnabled]="analyticsEnabled()" />

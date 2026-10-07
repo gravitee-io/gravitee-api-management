@@ -16,13 +16,21 @@
 
 -->
 <button mat-stroked-button color="primary" class="user-avatar m3-title-medium" [matMenuTriggerFor]="user">
-  {{ initials }}
+  @if (showAvatarImage()) {
+    <img class="user-avatar__image" [src]="avatarUrl()" alt="" (error)="onAvatarError()" />
+  } @else {
+    {{ initials }}
+  }
 </button>
 <mat-menu #user="matMenu">
+  <button i18n="@@userAvatarMenuMyAccount" mat-menu-item (click)="openAccountDetails()">My account</button>
   @if (analyticsEnabled()) {
     <button i18n="@@analyticsTitle" mat-menu-item [routerLink]="['/dashboard', 'analytics']">Analytics</button>
   }
   <button i18n="@@applications" mat-menu-item [routerLink]="['/dashboard', 'applications']">Applications</button>
   <button i18n="@@subscriptions" mat-menu-item [routerLink]="['/dashboard', 'subscriptions']">Subscriptions</button>
+  @if (aiWorkspacesEnabled()) {
+    <button i18n="@@myWorkspaceTitle" mat-menu-item [routerLink]="['/dashboard', 'workspaces']">My Workspace</button>
+  }
   <button i18n="@@userAvatarMenuLogOut" mat-menu-item [routerLink]="['/log-out']">Log out</button>
 </mat-menu>

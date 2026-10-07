@@ -45,8 +45,12 @@ const LOGIN_METHODS_FRESH_MS = 30_000;
 
 let latestLoginMethodsRefreshId = 0;
 
-function sanitizeBaseURL(url: string): string {
-    return url.endsWith('/') ? url.slice(0, -1) : url;
+function sanitizeBaseURL(url: string | undefined | null, fallback = ''): string {
+    const value = (url ?? fallback).trim();
+    if (!value) {
+        return fallback;
+    }
+    return value.endsWith('/') ? value.slice(0, -1) : value;
 }
 
 function organizationManagementUrl(managementBaseURL: string, organizationId: string): string {
@@ -146,7 +150,9 @@ export const useBootstrapStore = create<BootstrapState>()(
 
                     const managementBaseURL = sanitizeBaseURL(bootstrap.managementBaseURL);
                     const organizationId = bootstrap.organizationId as string;
-                    const consoleUrl = sanitizeBaseURL(bootstrap.consoleUrl);
+                    // Docker/older Management APIs may omit consoleUrl; match InstallationAccessQueryService.DEFAULT_CONSOLE_URL
+                    // but prefer the local console port used by gio_apim_management_ui (host:4001).
+                    const consoleUrl = sanitizeBaseURL(bootstrap.consoleUrl, 'http://localhost:4001');
                     const loginMethods = await loadLoginMethods(managementBaseURL, organizationId);
                     const loginMethodsFetchedAt =
                         loginMethods.identityProviders !== undefined && loginMethods.consoleSettings !== undefined ? Date.now() : null;

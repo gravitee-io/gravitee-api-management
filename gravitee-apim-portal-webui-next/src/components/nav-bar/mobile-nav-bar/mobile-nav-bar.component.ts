@@ -16,6 +16,7 @@
 import { Component, computed, ElementRef, HostListener, inject, input, InputSignal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIcon } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { isEmpty } from 'lodash';
@@ -24,13 +25,16 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
+import { ConfigService } from '../../../services/config.service';
 import { PortalService } from '../../../services/portal.service';
+import { AccountDetailsDialogComponent } from '../../account-details-dialog/account-details-dialog.component';
+import { GlobalSearchTriggerComponent } from '../../global-search/global-search-trigger.component';
 
 @Component({
   selector: 'app-mobile-nav-bar',
   templateUrl: './mobile-nav-bar.component.html',
   styleUrl: './mobile-nav-bar.component.scss',
-  imports: [RouterLink, RouterLinkActive, MatIcon, MatButton],
+  imports: [RouterLink, RouterLinkActive, MatIcon, MatButton, GlobalSearchTriggerComponent],
 })
 export class MobileNavBarComponent {
   currentUser: InputSignal<User> = input({});
@@ -48,8 +52,11 @@ export class MobileNavBarComponent {
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });
+  protected readonly aiWorkspacesEnabled = computed(() => this.configService.configuration.portalNext?.aiWorkspaces?.enabled !== false);
   protected isMobileMenuOpened = false;
   private readonly elementRef = inject(ElementRef);
+  private readonly matDialog = inject(MatDialog);
+  private readonly configService = inject(ConfigService);
 
   @HostListener('document:click', ['$event'])
   handleClickOutside(event: MouseEvent) {
@@ -60,5 +67,13 @@ export class MobileNavBarComponent {
 
   closeMenu() {
     this.isMobileMenuOpened = false;
+  }
+
+  openAccountDetails(): void {
+    this.closeMenu();
+    this.matDialog.open(AccountDetailsDialogComponent, {
+      data: { user: this.currentUser() },
+      width: '420px',
+    });
   }
 }

@@ -20,7 +20,7 @@ import { catchError, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
-import { User } from '../entities/user/user';
+import { User, UserInput } from '../entities/user/user';
 
 @Injectable({
   providedIn: 'root',
@@ -56,5 +56,13 @@ export class CurrentUserService {
 
   public clear(): void {
     this.user.set({});
+  }
+
+  public updateProfile(input: UserInput): Observable<User> {
+    return this.http.put<User>(`${this.configuration.baseURL}/user`, input).pipe(
+      tap(user => {
+        this.user.set(user);
+      }),
+    );
   }
 }

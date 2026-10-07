@@ -16,6 +16,7 @@
 
 -->
 <div class="actions">
+  <app-global-search-trigger [compact]="true" />
   <button class="mobile-menu__button" mat-stroked-button i18n="@@navigationButton" (click)="isMobileMenuOpened = !isMobileMenuOpened">
     <span class="mobile-menu__icon"
       ><mat-icon>{{ isMobileMenuOpened ? 'close' : 'menu' }}</mat-icon></span
@@ -56,6 +57,7 @@
     <div class="mobile-menu__hr"></div>
 
     @if (isLoggedIn()) {
+      <button class="mobile-menu__link" type="button" i18n="@@userAvatarMenuMyAccount" (click)="openAccountDetails()">My account</button>
       @if (analyticsEnabled()) {
         <a
           class="mobile-menu__link"
@@ -82,6 +84,16 @@
         (click)="closeMenu()"
         >Subscriptions</a
       >
+      @if (aiWorkspacesEnabled()) {
+        <a
+          class="mobile-menu__link"
+          i18n="@@myWorkspaceTitle"
+          [routerLink]="['/dashboard', 'workspaces']"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+          >My Workspace</a
+        >
+      }
       <a class="mobile-menu__link" i18n="@@userAvatarMenuLogOut" [routerLink]="['/log-out']" routerLinkActive="active" (click)="closeMenu()"
         >Log out</a
       >

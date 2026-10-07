@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, input, InputSignal } from '@angular/core';
+import { Component, computed, effect, inject, input, InputSignal, linkedSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 
 import { User } from '../../entities/user/user';
+import { ConfigService } from '../../services/config.service';
+import { AccountDetailsDialogComponent } from '../account-details-dialog/account-details-dialog.component';
 
 @Component({
   selector: 'app-user-avatar',
@@ -31,6 +34,18 @@ export class UserAvatarComponent {
   analyticsEnabled: InputSignal<boolean> = input(false);
   initials: string = '';
 
+  private readonly matDialog = inject(MatDialog);
+  private readonly configService = inject(ConfigService);
+
+  readonly aiWorkspacesEnabled = computed(() => this.configService.configuration.portalNext?.aiWorkspaces?.enabled !== false);
+
+  readonly avatarUrl = computed(() => this.user()._links?.avatar);
+  readonly avatarLoadFailed = linkedSignal<string | undefined, boolean>({
+    source: () => this.avatarUrl(),
+    computation: () => false,
+  });
+  readonly showAvatarImage = computed(() => !!this.avatarUrl() && !this.avatarLoadFailed());
+
   constructor() {
     effect(() => {
       if (!!this.user().first_name || !!this.user().last_name) {
@@ -40,6 +55,17 @@ export class UserAvatarComponent {
       } else {
         this.initials = this.user().display_name?.[0] ?? '';
       }
+    });
+  }
+
+  onAvatarError(): void {
+    this.avatarLoadFailed.set(true);
+  }
+
+  openAccountDetails(): void {
+    this.matDialog.open(AccountDetailsDialogComponent, {
+      data: { user: this.user() },
+      width: '420px',
     });
   }
 }

@@ -1,0 +1,90 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<h2 mat-dialog-title i18n="@@accountDetailsDialogTitle">My account</h2>
+
+<mat-dialog-content class="account-details">
+  <div class="account-details__avatar-section">
+    <div class="account-details__avatar-wrap">
+      @if (showAvatarImage()) {
+        <img
+          class="account-details__avatar"
+          [src]="avatarPreviewUrl()"
+          alt=""
+          data-testid="account-details-avatar"
+          (error)="onAvatarError()"
+        />
+      } @else {
+        <span class="account-details__avatar-fallback m3-title-medium" data-testid="account-details-avatar-fallback">{{
+          firstName !== '—' ? firstName[0] : username[0] || '?'
+        }}</span>
+      }
+    </div>
+    @if (profileEditable) {
+      <div class="account-details__avatar-actions">
+        <input
+          #avatarFileInput
+          type="file"
+          accept="image/png,image/jpeg,image/gif,image/webp"
+          class="account-details__upload-input"
+          data-testid="account-details-avatar-input"
+          (change)="onAvatarFileSelected($event)"
+        />
+        <button mat-stroked-button type="button" data-testid="account-details-change-avatar" (click)="avatarFileInput.click()">
+          <span i18n="@@accountDetailsChangeAvatar">Change picture</span>
+        </button>
+        @if (canSaveAvatar()) {
+          <button mat-flat-button color="primary" type="button" data-testid="account-details-save-avatar" (click)="saveAvatar()">
+            @if (isSaving()) {
+              <span i18n="@@accountDetailsSavingAvatar">Saving…</span>
+            } @else {
+              <span i18n="@@accountDetailsSaveAvatar">Save picture</span>
+            }
+          </button>
+        }
+      </div>
+    } @else {
+      <p class="account-details__avatar-hint m3-body-small" i18n="@@accountDetailsAvatarReadOnly">
+        Profile picture is managed by your identity provider.
+      </p>
+    }
+    @if (saveError()) {
+      <p class="account-details__error m3-body-small" data-testid="account-details-avatar-error">{{ saveError() }}</p>
+    }
+  </div>
+
+  <div class="account-details__row">
+    <div class="account-details__label m3-title-small" i18n="@@accountDetailsUsername">Username</div>
+    <div class="account-details__value" data-testid="account-details-username">{{ username }}</div>
+  </div>
+  <div class="account-details__row">
+    <div class="account-details__label m3-title-small" i18n="@@accountDetailsFirstName">First name</div>
+    <div class="account-details__value" data-testid="account-details-first-name">{{ firstName }}</div>
+  </div>
+  <div class="account-details__row">
+    <div class="account-details__label m3-title-small" i18n="@@accountDetailsLastName">Last name</div>
+    <div class="account-details__value" data-testid="account-details-last-name">{{ lastName }}</div>
+  </div>
+  <div class="account-details__row">
+    <div class="account-details__label m3-title-small" i18n="@@accountDetailsEmail">Email</div>
+    <div class="account-details__value" data-testid="account-details-email">{{ email }}</div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-flat-button color="primary" mat-dialog-close i18n="@@accountDetailsClose" cdkFocusInitial>Close</button>
+</mat-dialog-actions>

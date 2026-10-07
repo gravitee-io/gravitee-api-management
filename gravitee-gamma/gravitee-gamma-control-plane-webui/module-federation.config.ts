@@ -29,10 +29,14 @@ const config: ModuleFederationConfig = {
         ],
     ],
     shared: (libraryName, sharedConfig) => {
+        // graphene-core's package exports hide package.json, so MF often mis-detects its
+        // version (e.g. 3.22.1 vs required 3.26.2). strictVersion:true then refuses the
+        // host fallback and the bootstrap chunk hangs forever → blank page on :4200.
+        // Match gamma module remotes: singleton without strict version checks.
         if (['react', 'react-dom', 'react-router-dom', 'zustand', '@gravitee/graphene-core'].includes(libraryName)) {
             return {
                 singleton: true,
-                strictVersion: true,
+                strictVersion: false,
                 requiredVersion: sharedConfig.requiredVersion,
             };
         }

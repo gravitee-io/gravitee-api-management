@@ -74,3 +74,16 @@ body {
     }
   }
 }
+
+.global-search-dialog-panel {
+  .mat-mdc-dialog-container .mdc-dialog__surface {
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+}
+
+.global-search-dialog-backdrop {
+  backdrop-filter: blur(2px);
+}

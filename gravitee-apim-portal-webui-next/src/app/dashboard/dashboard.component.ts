@@ -30,6 +30,7 @@ const MENU_ITEMS: MenuItem[] = [
   { path: 'analytics', title: $localize`:@@analyticsTitle:Analytics` },
   { path: 'applications', title: $localize`:@@applicationsTitle:Applications` },
   { path: 'subscriptions', title: $localize`:@@subscriptionsTitle:Subscriptions` },
+  { path: 'workspaces', title: $localize`:@@myWorkspaceTitle:My Workspace` },
 ];
 
 @Component({
@@ -45,7 +46,16 @@ export class DashboardComponent {
 
   readonly menuItems = computed(() => {
     const analyticsEnabled = this.configService.configuration.portalNext?.analytics?.enabled ?? false;
-    return analyticsEnabled ? MENU_ITEMS : MENU_ITEMS.filter(item => item.path !== 'analytics');
+    const aiWorkspacesEnabled = this.configService.configuration.portalNext?.aiWorkspaces?.enabled !== false;
+    return MENU_ITEMS.filter(item => {
+      if (item.path === 'analytics') {
+        return analyticsEnabled;
+      }
+      if (item.path === 'workspaces') {
+        return aiWorkspacesEnabled;
+      }
+      return true;
+    });
   });
 
   constructor() {

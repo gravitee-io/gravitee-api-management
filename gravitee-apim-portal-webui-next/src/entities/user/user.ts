@@ -29,6 +29,14 @@ export interface UserLinks {
   notifications?: string;
 }
 
+export interface UserInput {
+  id: string;
+  avatar?: string;
+  first_name?: string;
+  last_name?: string;
+  customFields?: { [key: string]: object };
+}
+
 export interface User {
   /**
    * Unique identifier of a user.

@@ -22,13 +22,14 @@ import { isEmpty } from 'lodash';
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
 import { UserAvatarComponent } from '../../user-avatar/user-avatar.component';
+import { GlobalSearchTriggerComponent } from '../../global-search/global-search-trigger.component';
 import { NavBarButtonComponent } from '../nav-bar-button/nav-bar-button.component';
 
 @Component({
   selector: 'app-desktop-nav-bar',
   templateUrl: './desktop-nav-bar.component.html',
   styleUrl: './desktop-nav-bar.component.scss',
-  imports: [NavBarButtonComponent, UserAvatarComponent, MatAnchor, MatButton, RouterLink, MatIcon],
+  imports: [NavBarButtonComponent, GlobalSearchTriggerComponent, UserAvatarComponent, MatAnchor, MatButton, RouterLink, MatIcon],
 })
 export class DesktopNavBarComponent {
   currentUser: InputSignal<User> = input({});

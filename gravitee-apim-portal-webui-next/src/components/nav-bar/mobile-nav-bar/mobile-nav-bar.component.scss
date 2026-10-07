@@ -57,10 +57,15 @@
 
   &__link {
     display: flex;
+    width: 100%;
     height: 32px;
     align-items: center;
     padding: 0 8px;
+    border: none;
+    background: transparent;
     color: app-theme.$default-text-color;
+    cursor: pointer;
+    font: inherit;
     text-align: left;
     text-decoration: none;
 

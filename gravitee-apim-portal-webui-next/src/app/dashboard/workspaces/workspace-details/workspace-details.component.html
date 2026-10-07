@@ -1,0 +1,207 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+@if (loading()) {
+  <app-loader />
+} @else if (workspace(); as ws) {
+  <div class="workspace-details">
+    <h1 class="workspace-details__title next-gen-h3" i18n="@@aiWorkspaceDetailsTitle">AI Workspace Details</h1>
+
+    <mat-card class="workspace-details__card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="next-gen-h5" i18n="@@aiWorkspaceInformation">AI workspace Information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="workspace-details__rows">
+        <div class="workspace-details__row">
+          <span class="workspace-details__label next-gen-body" i18n="@@aiWorkspaceLabel">AI workspace</span>
+          <span class="workspace-details__value next-gen-body">{{ ws.name }}</span>
+        </div>
+        <div class="workspace-details__row">
+          <span class="workspace-details__label next-gen-body" i18n="@@budgetAllocated">Budget allocated</span>
+          <span class="workspace-details__value next-gen-body">{{ formatBudget(ws.budget) }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="workspace-details__card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="next-gen-h5" i18n="@@budgetConsumed">Budget consumed</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="workspace-details__rows">
+        <div class="workspace-details__row">
+          <span class="workspace-details__label next-gen-body" i18n="@@tokensConsumed">Tokens consumed</span>
+          <span class="workspace-details__value next-gen-body">{{ consumption().tokens }}</span>
+        </div>
+        <div class="workspace-details__row">
+          <span class="workspace-details__label next-gen-body" i18n="@@requestsLabel">Requests</span>
+          <span class="workspace-details__value next-gen-body">{{ consumption().requests }}</span>
+        </div>
+        <div class="workspace-details__row">
+          <span class="workspace-details__label next-gen-body" i18n="@@budgetConsumedAmount">Budget consumed</span>
+          <span class="workspace-details__value next-gen-body">{{ formatCost(consumption().cost) }}</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="workspace-details__card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="next-gen-h5" i18n="@@endpointUrlTitle">Endpoint URL</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-form-field appearance="outline" class="workspace-details__endpoint" subscriptSizing="dynamic">
+          <mat-label i18n="@@endpointUrlLabel">Endpoint URL</mat-label>
+          <input matInput [value]="ws.endpointUrl || ''" readonly />
+          @if (ws.endpointUrl) {
+            <app-copy-code-icon matSuffix [contentToCopy]="ws.endpointUrl" i18n-label="@@copyEndpointUrl" label="Copy endpoint URL" />
+          }
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    @if (showCallSnippet()) {
+      <mat-card class="workspace-details__card" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title class="next-gen-h5" i18n="@@howToCallAModelTitle">How to call a model</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="workspace-details__call-snippet">
+          <p class="workspace-details__call-snippet-help next-gen-body" i18n="@@howToCallAModelHelp">
+            Pick a model. This snippet sends an OpenAI-compatible chat request to the workspace endpoint with your key.
+          </p>
+
+          @if (snippetModels().length > 0) {
+            <mat-form-field appearance="outline" class="workspace-details__model-select" subscriptSizing="dynamic">
+              <mat-label i18n="@@snippetModelLabel">Model</mat-label>
+              <mat-select [value]="selectedModelName()" (selectionChange)="onSnippetModelChange($event.value)">
+                @for (model of snippetModels(); track model.name) {
+                  <mat-option [value]="model.name">{{ model.name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            @if (codeSnippet(); as snippet) {
+              <pre class="workspace-details__snippet next-gen-body">{{ snippet }}</pre>
+              <button
+                mat-stroked-button
+                type="button"
+                color="primary"
+                class="workspace-details__copy-snippet"
+                [cdkCopyToClipboard]="snippet"
+                (cdkCopyToClipboardCopied)="onSnippetCopied()"
+                i18n-aria-label="@@copySnippetAria"
+                aria-label="Copy snippet"
+              >
+                <mat-icon>{{ snippetCopied() ? 'check' : 'content_copy' }}</mat-icon>
+                <span i18n="@@copySnippet">Copy snippet</span>
+              </button>
+            }
+          } @else {
+            <p class="workspace-details__empty next-gen-body" i18n="@@noModelsForSnippet">
+              No models available yet. Add models to this workspace to generate a call snippet.
+            </p>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <mat-card class="workspace-details__card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="next-gen-h5" i18n="@@aiWorkspaceKeyTitle">AI workspace key</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="workspace-details__section-subtitle next-gen-body" i18n="@@aiWorkspaceKeys">AI workspace keys</div>
+        @if (keys().length > 0) {
+          <table mat-table [dataSource]="pagedKeys()" class="workspace-details__table">
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef i18n="@@keyStatus">Status</th>
+              <td mat-cell *matCellDef="let key">
+                <mat-icon class="workspace-details__status-icon" [class.workspace-details__status-icon--active]="key.status === 'ACTIVE'">
+                  {{ keyStatusIcon(key) }}
+                </mat-icon>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="key">
+              <th mat-header-cell *matHeaderCellDef i18n="@@keyValue">Key</th>
+              <td mat-cell *matCellDef="let key" class="workspace-details__key-cell">
+                <span>{{ key.value }}</span>
+                <app-copy-code-icon [contentToCopy]="key.value" i18n-label="@@copyWorkspaceKey" label="Copy workspace key" />
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef i18n="@@keyCreatedAt">Created At</th>
+              <td mat-cell *matCellDef="let key">
+                @if (key.createdAt) {
+                  {{ key.createdAt | date: 'medium' }}
+                }
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="keyColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: keyColumns"></tr>
+          </table>
+          <app-pagination
+            class="workspace-details__pagination"
+            [totalResults]="keys().length"
+            [currentPage]="keysPage()"
+            [pageSize]="keysPageSize"
+            [pageSizeOptions]="keysPageSizeOptions"
+            (selectPage)="onKeysPageChange($event)"
+          />
+        } @else {
+          <p class="workspace-details__empty next-gen-body" i18n="@@noWorkspaceKeys">No API key available for this workspace.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="workspace-details__card" appearance="outlined">
+      <mat-card-header>
+        <mat-card-title class="next-gen-h5" i18n="@@modelsTitle">Models</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (models().length > 0) {
+          <table mat-table [dataSource]="models()" class="workspace-details__table">
+            <ng-container matColumnDef="model">
+              <th mat-header-cell *matHeaderCellDef i18n="@@modelName">Model</th>
+              <td mat-cell *matCellDef="let model">{{ model.name }}</td>
+            </ng-container>
+            <ng-container matColumnDef="inputPrice">
+              <th mat-header-cell *matHeaderCellDef i18n="@@modelInputPrice">Input price</th>
+              <td mat-cell *matCellDef="let model">{{ model.inputPrice || '—' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="outputPrice">
+              <th mat-header-cell *matHeaderCellDef i18n="@@modelOutputPrice">Output price</th>
+              <td mat-cell *matCellDef="let model">{{ model.outputPrice || '—' }}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="modelColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: modelColumns"></tr>
+          </table>
+          @if (modelsTotal() > 0) {
+            <app-pagination
+              class="workspace-details__pagination"
+              [totalResults]="modelsTotal()"
+              [currentPage]="modelsCurrentPage()"
+              [pageSize]="modelsPageSize()"
+              [pageSizeOptions]="modelsPageSizeOptions"
+              (selectPage)="onModelsPageChange($event)"
+              (selectPageSize)="onModelsPageSizeChange($event)"
+            />
+          }
+        } @else {
+          <p class="workspace-details__empty next-gen-body" i18n="@@noWorkspaceModels">No models available for this workspace yet.</p>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

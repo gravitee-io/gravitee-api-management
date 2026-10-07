@@ -1,0 +1,98 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../scss/theme/index' as app-theme;
+
+.account-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: min(360px, 80vw);
+  padding-top: 8px;
+}
+
+.account-details__avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid app-theme.$nav-bar-border-color;
+}
+
+.account-details__avatar-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1px solid app-theme.$user-avatar-border-color;
+  background: app-theme.$nav-bar-background-color;
+}
+
+.account-details__avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.account-details__avatar-fallback {
+  color: app-theme.$user-avatar-text-color;
+  text-transform: uppercase;
+}
+
+.account-details__avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.account-details__upload-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.account-details__avatar-hint {
+  margin: 0;
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+}
+
+.account-details__error {
+  margin: 0;
+  color: var(--mat-sys-error);
+  text-align: center;
+}
+
+.account-details__row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.account-details__label {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.account-details__value {
+  word-break: break-word;
+}

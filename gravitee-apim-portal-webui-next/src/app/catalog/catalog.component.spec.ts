@@ -245,17 +245,15 @@ describe('CatalogComponent', () => {
     expectCatalogRequest(1, 40).flush(createCatalogResponse());
   });
 
-  it('should preserve URL-backed search navigation', async () => {
-    await init();
-    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+  it('should load catalog items from a URL-backed search query', async () => {
+    await initWithQueryParams({ query: 'workspace' });
 
-    fixture.componentInstance.onSearchResults('workspace');
+    flushCategories();
+    fixture.detectChanges();
+    expectCatalogRequest(1, 20, undefined, 'workspace').flush(createCatalogResponse());
+    fixture.detectChanges();
 
-    expect(navigate).toHaveBeenCalledWith([], {
-      relativeTo: expect.anything(),
-      queryParams: { query: 'workspace' },
-      queryParamsHandling: 'merge',
-    });
+    expect(await harnessLoader.getAllHarnesses(ApiProductCardHarness)).toHaveLength(1);
   });
 
   it('should show the generalized empty state when no catalog items are returned', async () => {
@@ -373,23 +371,9 @@ describe('CatalogComponent', () => {
       });
     });
 
-    it('should preserve the selected category when the search query changes', async () => {
-      await init();
-      const router = TestBed.inject(Router);
-      const route = TestBed.inject(ActivatedRoute);
-      const navigateSpy = jest.spyOn(router, 'navigate');
-
-      fixture.componentInstance.onSearchResults('weather');
-
-      expect(navigateSpy).toHaveBeenCalledWith([], {
-        relativeTo: route,
-        queryParams: { query: 'weather' },
-        queryParamsHandling: 'merge',
-      });
-    });
   });
 
-  function expectCatalogRequest(page = 1, size = 20, categoryId?: string) {
+  function expectCatalogRequest(page = 1, size = 20, categoryId?: string, query?: string) {
     return httpTestingController.expectOne(
       request =>
         request.method === 'GET' &&
@@ -398,7 +382,8 @@ describe('CatalogComponent', () => {
         request.params.getAll('include')?.join(',') === 'api,api_product' &&
         request.params.get('page') === `${page}` &&
         request.params.get('size') === `${size}` &&
-        request.params.get('categoryId') === (categoryId ?? null),
+        request.params.get('categoryId') === (categoryId ?? null) &&
+        request.params.get('query') === (query ?? null),
     );
   }
 
