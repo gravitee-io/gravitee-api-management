@@ -15,11 +15,13 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -31,6 +33,7 @@ import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiTagService;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,6 +128,38 @@ public class ApiTagServiceImplTest {
 
         verify(apiRepository, times(1)).update(argThat(apiUpdate -> !apiUpdate.getDefinition().contains("intranet")));
         verify(apiNotificationService, times(1)).triggerUpdateNotification(any(), any(Api.class));
-        verify(auditService, times(1)).createApiAuditLog(any(), any(), any());
+        verify(auditService, times(1)).createApiAuditLog(any(), argThat(auditLogData -> auditLogData.getProperties().isEmpty()), any());
+    }
+
+    @Test
+    public void shouldMarkTheAuditWhenDeletingTagsFromV4ApiHoldingAnEncryptedProperty() throws TechnicalException, JsonProcessingException {
+        final ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
+
+        final EnvironmentEntity environment = new EnvironmentEntity();
+        environment.setId("DEFAULT");
+
+        final Api api = new Api();
+        api.setId("api-id");
+        api.setDefinitionVersion(DefinitionVersion.V4);
+        api.setDefinition("{\"tags\": [\"intranet\"]}");
+
+        final io.gravitee.definition.model.v4.Api apiDefinition = new io.gravitee.definition.model.v4.Api();
+        apiDefinition.setTags(new HashSet<>(Set.of("intranet")));
+        apiDefinition.setProperties(List.of(new Property("secret", "ciphertext", true)));
+
+        when(environmentService.findByOrganization("DEFAULT")).thenReturn(List.of(environment));
+        when(apiRepository.search(any(), isNull(), isA(ApiFieldFilter.class))).thenReturn(Stream.of(api));
+        when(apiRepository.update(any())).then(invocation -> invocation.getArgument(0));
+
+        when(objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.AbstractApi.class)).thenReturn(apiDefinition);
+        when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+        apiTagService.deleteTagFromAPIs(executionContext, "intranet");
+
+        verify(auditService, times(1)).createApiAuditLog(
+            any(),
+            argThat(auditLogData -> auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true"))),
+            eq("api-id")
+        );
     }
 }
