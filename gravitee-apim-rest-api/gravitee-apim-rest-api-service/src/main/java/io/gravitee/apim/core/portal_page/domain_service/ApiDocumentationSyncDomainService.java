@@ -67,8 +67,13 @@ public class ApiDocumentationSyncDomainService {
     private final PortalNavigationItemsQueryService navigationItemsQueryService;
     private final PortalNavigationItemValidatorService validatorService;
 
-    public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
-        materialize(auditInfo, pageContent, null);
+    /** Re-syncs an already-materialized item without a caller-supplied visibility — keeps its stored value, unlike {@link #materialize}. */
+    public void rematerialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
+        var automationMetadata = pageContent.getAutomationMetadata();
+        var pageId = PortalNavigationItemId.forApiDocumentation(auditInfo, automationMetadata.referenceId(), pageContent.getId());
+        var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), pageId);
+        var storedVisibility = existing != null ? existing.getVisibility() : null;
+        materialize(auditInfo, pageContent, storedVisibility);
     }
 
     public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent, PortalVisibility callerVisibility) {
@@ -186,10 +191,7 @@ public class ApiDocumentationSyncDomainService {
     ) {
         final var envId = auditInfo.environmentId();
         var parentId = parent == null ? null : parent.getId();
-        var fallbackVisibility = Optional.ofNullable(existing)
-            .map(PortalNavigationItem::getVisibility)
-            .or(() -> Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility))
-            .orElse(null);
+        var fallbackVisibility = Optional.ofNullable(parent).map(PortalNavigationItemContainer::getVisibility).orElse(null);
         var visibility = PortalVisibility.resolve(callerVisibility, fallbackVisibility);
 
         if (existing instanceof PortalNavigationPage page && page.getArea() == API_DOCUMENTATION_AREA) {

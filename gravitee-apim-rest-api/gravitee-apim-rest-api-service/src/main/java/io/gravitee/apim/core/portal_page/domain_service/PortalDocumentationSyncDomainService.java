@@ -75,7 +75,8 @@ public class PortalDocumentationSyncDomainService {
         validate(plan, auditInfo, pageContent, targetArea, navigationItemId, existing);
     }
 
-    public void materialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
+    /** Re-syncs an already-materialized item without a caller-supplied visibility — keeps its stored value, unlike {@link #materialize}. */
+    public void rematerialize(AuditInfo auditInfo, PortalPageContent<?> pageContent) {
         var navigationItemId = PortalNavigationItemId.forPortalDocumentationContent(auditInfo, pageContent);
         var existing = navigationItemsQueryService.findByIdAndEnvironmentId(auditInfo.environmentId(), navigationItemId);
         var targetArea = existing instanceof PortalNavigationPage page ? page.getArea() : PortalArea.TOP_NAVBAR;
