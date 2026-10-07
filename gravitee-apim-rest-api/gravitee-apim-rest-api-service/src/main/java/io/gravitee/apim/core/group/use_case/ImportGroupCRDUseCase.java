@@ -108,7 +108,9 @@ public class ImportGroupCRDUseCase {
                 input.spec.getApiProductRole()
             );
         }
-        membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
+        if (!input.spec.isIgnoreMembers()) {
+            membersService.updateGroupMembers(input.auditInfo, input.spec.getId(), input.spec.getMembers());
+        }
         return GroupCRDStatus.builder().id(input.spec.getId()).members(input.spec.getMembers().size()).build();
     }
 }
