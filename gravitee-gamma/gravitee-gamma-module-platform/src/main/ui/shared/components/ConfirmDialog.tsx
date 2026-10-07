@@ -48,6 +48,7 @@ export interface ConfirmDialogProps {
     confirmKeyword?: string;
     /** Optional leading icon for the confirm button (e.g. a trash icon for destructive actions). */
     icon?: ReactNode;
+    contentClassName?: string;
     children?: ReactNode;
     onConfirm: () => void;
 }
@@ -76,6 +77,7 @@ function ConfirmDialogContent({
     confirmDisabled = false,
     confirmKeyword,
     icon,
+    contentClassName,
     children,
     onConfirm,
 }: Readonly<ConfirmDialogProps>) {
@@ -95,7 +97,7 @@ function ConfirmDialogContent({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent showCloseButton={false}>
+            <DialogContent showCloseButton={false} className={contentClassName}>
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     {description ? <DialogDescription>{description}</DialogDescription> : null}
