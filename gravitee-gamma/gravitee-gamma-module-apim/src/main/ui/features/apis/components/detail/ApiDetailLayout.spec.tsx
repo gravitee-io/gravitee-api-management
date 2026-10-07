@@ -710,6 +710,35 @@ describe('ApiInfoHeader', () => {
         expect(screen.queryByText('Payment Gateway')).not.toBeInTheDocument();
     });
 
+    it('shows Started and Out of sync together when a started API needs redeploy', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'Payment Gateway', state: 'STARTED', deploymentState: 'NEED_REDEPLOY' },
+            isLoading: false,
+        });
+        renderLayout();
+        renderSidebar();
+        expect(screen.getByText('Started')).toBeInTheDocument();
+        expect(screen.getByText('Out of sync')).toBeInTheDocument();
+    });
+
+    it('shows Stopped and Out of sync together when a stopped API needs redeploy', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'Payment Gateway', state: 'STOPPED', deploymentState: 'NEED_REDEPLOY' },
+            isLoading: false,
+        });
+        renderLayout();
+        renderSidebar();
+        expect(screen.getByText('Stopped')).toBeInTheDocument();
+        expect(screen.getByText('Out of sync')).toBeInTheDocument();
+    });
+
+    it('does not leave Loading… in the breadcrumb when the API fails to load', () => {
+        (useApiDetail as jest.Mock).mockReturnValue({ data: undefined, isLoading: false, isError: true });
+        renderLayout();
+        const crumbs = (mockCapturedLayoutConfig?.breadcrumbs ?? []) as { label: string }[];
+        expect(crumbs.map(crumb => crumb.label)).not.toContain('Loading…');
+    });
+
     it('renders the API name when the API detail request succeeded', () => {
         (useApiDetail as jest.Mock).mockReturnValue({ data: { id: 'abc-123', name: 'Payment Gateway' }, isLoading: false });
         renderLayout();

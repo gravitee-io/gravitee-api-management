@@ -20,10 +20,11 @@ import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { buildModuleNavPath, resolveModulePath } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig, type NavGroup } from '@gravitee/graphene-core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { Navigate, Outlet, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { ApimToaster } from './ApimToaster';
+import { detailPageOwnsBreadcrumbs, moduleShellLayout } from './detailPageOwnsBreadcrumbs';
 import { OnboardingProvider, OnboardingTourHost } from './onboarding';
 import { NAV_GROUPS } from '../config/navigation';
 import { observability } from '../config/observability';
@@ -127,30 +128,44 @@ function ModuleLayout() {
     const activeNavKey = useMemo(() => getActiveNavKey(location.pathname, modulePrefix), [location.pathname, modulePrefix]);
     const navGroups = useLicenseAwareNavGroups();
 
+    const pathnameRef = useRef(location.pathname);
+    pathnameRef.current = location.pathname;
+
     const handleNavSelect = useCallback(
         (key: string) => {
-            navigate(buildModuleNavPath(modulePrefix, ROUTES[key as RouteKey].path, location.pathname));
+            navigate(buildModuleNavPath(modulePrefix, ROUTES[key as RouteKey].path, pathnameRef.current));
         },
-        [navigate, modulePrefix, location.pathname],
+        [navigate, modulePrefix],
     );
 
+    const detailOwnsBreadcrumbs = detailPageOwnsBreadcrumbs(location.pathname);
+    const observeSegments = observability.breadcrumbSegments(activeNavKey);
+    // breadcrumbSegments can return a new array each call. Key the memo on the labels so that does not rebuild the layout.
+    const observeSegmentKey = observeSegments?.map(segment => `${segment.label}\0${segment.routeKey ?? ''}`).join('\n') ?? '';
+    const observeSegmentsRef = useRef(observeSegments);
+    observeSegmentsRef.current = observeSegments;
+
+    const breadcrumbPath = observeSegments ? location.pathname : activeNavKey;
     const breadcrumbs = useMemo(() => {
-        const observeSegments = observability.breadcrumbSegments(activeNavKey);
-        if (observeSegments) {
-            return buildLinearBreadcrumbs(navigate, [
-                ...observeSegments.map(segment => buildObserveBreadcrumbItem(segment, modulePrefix, location.pathname)),
-            ]);
+        const segments = observeSegmentsRef.current;
+        if (segments) {
+            return buildLinearBreadcrumbs(
+                navigate,
+                segments.map(segment => buildObserveBreadcrumbItem(segment, modulePrefix, breadcrumbPath)),
+            );
         }
         return buildLinearBreadcrumbs(navigate, [{ label: ROUTES[activeNavKey].label }]);
-    }, [activeNavKey, navigate, modulePrefix, location.pathname]);
+    }, [activeNavKey, navigate, modulePrefix, observeSegmentKey, breadcrumbPath]);
 
-    useLayoutConfig(
-        {
-            navigation: <SidebarNavigation groups={navGroups} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
-            breadcrumbs,
-        },
-        [activeNavKey, breadcrumbs, handleNavSelect, navGroups],
-    );
+    const layoutBreadcrumbs = detailOwnsBreadcrumbs ? null : breadcrumbs;
+    const navigation = <SidebarNavigation groups={navGroups} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />;
+
+    useLayoutConfig(moduleShellLayout(detailOwnsBreadcrumbs, navigation, breadcrumbs), [
+        activeNavKey,
+        layoutBreadcrumbs,
+        handleNavSelect,
+        navGroups,
+    ]);
 
     return <Outlet />;
 }

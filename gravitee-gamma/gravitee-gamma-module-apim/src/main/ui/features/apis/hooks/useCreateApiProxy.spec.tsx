@@ -43,7 +43,7 @@ const DRAFT: ApiProxyDraft = {
     authType: 'keyless',
     apiKeyPlanName: 'Default API Key plan',
     jwtPlanName: 'Default JWT plan',
-    jwtSignature: 'RS256',
+    jwtSignature: 'RSA_RS256',
     jwtJwksResolver: 'JWKS_URL',
     jwtResolverParameter: '',
     oauth2PlanName: 'Default OAuth2 plan',

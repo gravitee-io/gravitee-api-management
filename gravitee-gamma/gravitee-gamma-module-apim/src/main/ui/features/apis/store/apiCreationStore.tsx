@@ -25,6 +25,7 @@ import type {
     ValidationErrors,
     VirtualHostEntry,
 } from '../types/apiCreation';
+import { validateVirtualHostPath } from '../utils/apiCreationValidation';
 
 // ─── Initial state ────────────────────────────────────────────────────────────
 
@@ -44,7 +45,7 @@ const INITIAL_FORM: ApiProxyDraft = {
     authType: 'keyless',
     apiKeyPlanName: 'Default API Key plan',
     jwtPlanName: 'Default JWT plan',
-    jwtSignature: 'RS256',
+    jwtSignature: 'RSA_RS256',
     jwtJwksResolver: 'JWKS_URL',
     jwtResolverParameter: '',
     oauth2PlanName: 'Default OAuth2 plan',
@@ -84,9 +85,25 @@ type ApiCreationAction =
     | { type: 'SET_VALIDATION_ERRORS'; errors: ValidationErrors }
     | { type: 'CLEAR_VALIDATION_ERRORS' }
     | { type: 'SET_PATH_VERIFYING'; value: boolean }
-    | { type: 'SET_FIELD_ERROR'; field: string; message: string };
+    | { type: 'SET_FIELD_ERROR'; field: string; message: string }
+    | { type: 'CLEAR_FIELD_ERROR'; field: string };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
+
+function virtualHostFieldError(hosts: VirtualHostEntry[]): string | undefined {
+    const invalidPath = hosts.map(row => validateVirtualHostPath(row.path)).find(message => message !== null);
+    if (invalidPath) return invalidPath;
+    if (hosts.some(row => !row.host.trim())) return 'All virtual hosts must have a host value.';
+    return undefined;
+}
+
+function applyVirtualHostError(errors: ValidationErrors, hosts: VirtualHostEntry[]): ValidationErrors {
+    const next = { ...errors };
+    const message = virtualHostFieldError(hosts);
+    if (message) next['virtualHosts'] = message;
+    else delete next['virtualHosts'];
+    return next;
+}
 
 function apiCreationReducer(state: ApiCreationState, action: ApiCreationAction): ApiCreationState {
     switch (action.type) {
@@ -183,26 +200,26 @@ function apiCreationReducer(state: ApiCreationState, action: ApiCreationAction):
                 },
             };
 
-        case 'REMOVE_VIRTUAL_HOST':
+        case 'REMOVE_VIRTUAL_HOST': {
+            const virtualHosts =
+                state.form.virtualHosts.length === 1
+                    ? state.form.virtualHosts
+                    : state.form.virtualHosts.filter((_, i) => i !== action.index);
             return {
                 ...state,
-                form: {
-                    ...state.form,
-                    virtualHosts:
-                        state.form.virtualHosts.length === 1
-                            ? state.form.virtualHosts
-                            : state.form.virtualHosts.filter((_, i) => i !== action.index),
-                },
+                form: { ...state.form, virtualHosts },
+                validationErrors: applyVirtualHostError(state.validationErrors, virtualHosts),
             };
+        }
 
-        case 'UPDATE_VIRTUAL_HOST':
+        case 'UPDATE_VIRTUAL_HOST': {
+            const virtualHosts = state.form.virtualHosts.map((row, i) => (i === action.index ? { ...row, ...action.patch } : row));
             return {
                 ...state,
-                form: {
-                    ...state.form,
-                    virtualHosts: state.form.virtualHosts.map((row, i) => (i === action.index ? { ...row, ...action.patch } : row)),
-                },
+                form: { ...state.form, virtualHosts },
+                validationErrors: applyVirtualHostError(state.validationErrors, virtualHosts),
             };
+        }
 
         case 'ADD_TCP_HOST':
             return {
@@ -248,6 +265,13 @@ function apiCreationReducer(state: ApiCreationState, action: ApiCreationAction):
 
         case 'SET_FIELD_ERROR':
             return { ...state, validationErrors: { ...state.validationErrors, [action.field]: action.message } };
+
+        case 'CLEAR_FIELD_ERROR': {
+            if (!(action.field in state.validationErrors)) return state;
+            const validationErrors = { ...state.validationErrors };
+            delete validationErrors[action.field];
+            return { ...state, validationErrors };
+        }
 
         default:
             return state;

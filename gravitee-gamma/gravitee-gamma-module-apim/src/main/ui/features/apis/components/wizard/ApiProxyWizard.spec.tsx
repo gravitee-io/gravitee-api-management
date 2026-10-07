@@ -32,9 +32,25 @@ jest.mock('../../hooks/useApiReviewEnabled', () => ({
 }));
 
 const mockDispatch = jest.fn();
+const cleanForm = {
+    apiName: '',
+    apiVersion: '1.0.0',
+    apiDescription: '',
+    protocol: 'HTTP',
+    contextPath: '/',
+    virtualHostsEnabled: false,
+    virtualHosts: [{ id: '1', host: '', path: '/', overrideAccess: false }],
+    targetUrl: '',
+    tcpHosts: [{ id: '1', host: '' }],
+    tcpTargetHost: '',
+    tcpTargetPort: '',
+    deployImmediately: true,
+    askForReview: false,
+};
+
 const mockState = {
     step: 1,
-    form: { apiName: 'Flights', deployImmediately: true, askForReview: false },
+    form: { ...cleanForm, apiName: 'Flights' },
     validationErrors: {},
     isPathVerifying: false,
     creationMode: 'template',
@@ -132,5 +148,46 @@ describe('ApiProxyWizard — after the creation call', () => {
         fireEvent.click(screen.getByRole('button', { name: /back/i }));
 
         expect(mockReset).toHaveBeenCalled();
+    });
+});
+
+describe('ApiProxyWizard — Cancel', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseCreateApiProxy.mockReturnValue(mutationState());
+        mockState.step = 0;
+        mockState.form = { ...cleanForm };
+    });
+
+    afterEach(() => {
+        mockState.step = 1;
+        mockState.form = { ...cleanForm, apiName: 'Flights' };
+    });
+
+    it('leaves immediately when the form is untouched', () => {
+        renderWizard();
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+        expect(screen.queryByRole('button', { name: 'Discard changes' })).not.toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith('..');
+    });
+
+    it('asks before leaving a dirty form, and Keep creating stays on the page', () => {
+        mockState.form = { ...cleanForm, apiName: 'Orders' };
+        renderWizard();
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+        expect(screen.getByRole('button', { name: 'Discard changes' })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole('button', { name: 'Keep creating' }));
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates away when Discard changes is confirmed', () => {
+        mockState.form = { ...cleanForm, apiName: 'Orders' };
+        renderWizard();
+        fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Discard changes' }));
+
+        expect(mockNavigate).toHaveBeenCalledWith('..');
     });
 });

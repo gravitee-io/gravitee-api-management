@@ -167,6 +167,7 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                         <div className="space-y-2">
                             <Label htmlFor="jwt-resolver-parameter">
                                 {RESOLVER_PARAM_LABELS[state.form.jwtJwksResolver] ?? 'Resolver parameter'}
+                                {state.form.jwtJwksResolver !== 'GATEWAY_KEYS' ? <span className="text-destructive"> *</span> : null}
                             </Label>
                             <Input
                                 id="jwt-resolver-parameter"
@@ -179,8 +180,14 @@ export function SecurityPlanFields({ showAuthSelector = true }: SecurityPlanFiel
                                 }
                                 value={state.form.jwtResolverParameter}
                                 onChange={e => update({ jwtResolverParameter: e.target.value })}
+                                aria-invalid={Boolean(errors['jwtResolverParameter'])}
+                                disabled={state.form.jwtJwksResolver === 'GATEWAY_KEYS'}
                             />
-                            <p className="text-xs text-muted-foreground">Supports Expression Language.</p>
+                            {errors['jwtResolverParameter'] ? (
+                                <p className="text-xs text-destructive">{errors['jwtResolverParameter']}</p>
+                            ) : (
+                                <p className="text-xs text-muted-foreground">Supports Expression Language.</p>
+                            )}
                         </div>
                     </div>
                 </div>

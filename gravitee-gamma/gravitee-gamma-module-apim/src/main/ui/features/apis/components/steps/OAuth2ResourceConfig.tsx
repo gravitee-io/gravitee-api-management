@@ -47,8 +47,8 @@ function OAuth2SchemaFields({ schema }: { schema: JsonSchema }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [schema],
     );
-    const form = useForm<FieldValues>({ resolver, mode: 'onChange', defaultValues });
-    const { isValid } = form.formState;
+    const form = useForm<FieldValues>({ resolver, mode: 'onTouched', defaultValues });
+    const showFieldErrors = Boolean(state.validationErrors['oauth2ResourceConfig'] || state.validationErrors['oauth2ResourceType']);
 
     useEffect(() => {
         const sub = form.watch(values =>
@@ -58,11 +58,20 @@ function OAuth2SchemaFields({ schema }: { schema: JsonSchema }) {
     }, [form, dispatch]);
 
     useEffect(() => {
-        void form.trigger();
-    }, [form]);
+        let cancelled = false;
+        void Promise.resolve(resolver(form.getValues(), undefined, { fields: {}, shouldUseNativeValidation: false })).then(result => {
+            if (!cancelled) {
+                dispatch({ type: 'UPDATE_FORM', patch: { oauth2ResourceValid: Object.keys(result.errors).length === 0 } });
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [resolver, form, storedConfig, dispatch]);
+
     useEffect(() => {
-        dispatch({ type: 'UPDATE_FORM', patch: { oauth2ResourceValid: isValid } });
-    }, [isValid, dispatch]);
+        if (showFieldErrors) void form.trigger();
+    }, [showFieldErrors, form]);
 
     return <JsonSchemaForm schema={schema} control={form.control} name="configuration" />;
 }

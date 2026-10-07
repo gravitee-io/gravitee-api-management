@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig } from '@gravitee/graphene-core';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useEnvHrid } from '../../features/environment/environment.utils';
@@ -37,7 +37,13 @@ export function RouteLayout() {
         [navigate, envHrid],
     );
 
-    const breadcrumbs = useMemo(() => buildLinearBreadcrumbs(navigate, [...breadcrumbSegments]), [breadcrumbSegments, navigate]);
+    // Every API page resolves to the same Home segment, but resolveHostRoute returns a new array.
+    // Re-pushing that array resets the layout slots and wipes the API name the module just set.
+    // The memo depends on the label key; the ref holds the segments that key was built from.
+    const breadcrumbKey = breadcrumbSegments.map(segment => `${segment.label}\0${segment.to ?? ''}`).join('\n');
+    const breadcrumbSegmentsRef = useRef(breadcrumbSegments);
+    breadcrumbSegmentsRef.current = breadcrumbSegments;
+    const breadcrumbs = useMemo(() => buildLinearBreadcrumbs(navigate, [...breadcrumbSegmentsRef.current]), [breadcrumbKey, navigate]);
 
     useLayoutConfig(
         {

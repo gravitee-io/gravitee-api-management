@@ -45,7 +45,7 @@ export const PROXY_TEMPLATES: ProxyTemplate[] = [
         defaults: {
             authType: 'jwt',
             jwtPlanName: 'Default JWT plan',
-            jwtSignature: 'RS256',
+            jwtSignature: 'RSA_RS256',
             jwtJwksResolver: 'JWKS_URL',
             jwtResolverParameter: '',
         },
