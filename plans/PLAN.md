@@ -76,7 +76,7 @@ todos:
     status: completed
   - id: STORY-24
     content: "Data layer for the documentation screen: service and query hooks."
-    status: in_progress
+    status: completed
   - id: STORY-25
     content: "Documentation list screen with an empty state, static tree and breadcrumbs."
     status: pending
@@ -1078,7 +1078,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Size:** S · **Depends on:** nothing · **Blocked by:** decision 7
 
 #### STORY-24 — Data layer for the documentation screen
-**Status:** Implemented under [PORTAL-243](https://gravitee.atlassian.net/browse/PORTAL-243) on `feat/PORTAL-243-api-documentation-data-layer`, not yet merged. Written against the contract of the PORTAL-231 stack (update, delete and unpublish were still in open pull requests), with hand-written types in `GAMMA/features/apis/types/apiDocumentation.ts` — Gamma does not generate types from the OpenAPI spec.
+**Status:** Done under [PORTAL-243](https://gravitee.atlassian.net/browse/PORTAL-243), as [#20886](https://github.com/gravitee-io/gravitee-api-management/pull/20886). Types are hand-written in `GAMMA/features/apis/types/apiDocumentation.ts`, because Gamma does not generate types from the OpenAPI spec.
 **Scope as built:** list, create, update (with `propagatePublishToChildren`), delete, import, publish locations, publish and unpublish. Left to the stories that first need them, each one service function and one hook:
 - a page's content read and save — STORY-26 and STORY-29, once STORY-12 Bis provides the endpoints;
 - refreshing a sourced item (`_fetch`) — STORY-34;
