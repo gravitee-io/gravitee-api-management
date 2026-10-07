@@ -1100,4 +1100,181 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         );
         assertTrue(page3.isEmpty());
     }
+
+    private static final String SYNC_ENV = "env-sync-queries";
+    private static final long SYNC_NOW = 5_000_000_000_000L;
+
+    private Subscription syncSubscription(String id, String plan, Subscription.Status status, Long endingAt, long updatedAt, String env) {
+        Subscription subscription = new Subscription();
+        subscription.setId(id);
+        subscription.setEnvironmentId(env);
+        subscription.setApi("api-sync");
+        subscription.setReferenceId("api-sync");
+        subscription.setReferenceType(SubscriptionReferenceType.API);
+        subscription.setPlan(plan);
+        subscription.setApplication("app-sync");
+        subscription.setApplicationName("app-sync name");
+        subscription.setStatus(status);
+        subscription.setEndingAt(endingAt == null ? null : new Date(endingAt));
+        subscription.setCreatedAt(new Date(updatedAt));
+        subscription.setUpdatedAt(new Date(updatedAt));
+        return subscription;
+    }
+
+    private List<Subscription> createSyncSubscriptions() throws TechnicalException {
+        long future = SYNC_NOW + 1_000_000L;
+        long past = SYNC_NOW - 1_000_000L;
+        List<Subscription> subscriptions = List.of(
+            syncSubscription("sync-b2", "plan-sync-b", Subscription.Status.ACCEPTED, null, 1000, SYNC_ENV),
+            syncSubscription("sync-b1", "plan-sync-b", Subscription.Status.ACCEPTED, future, 2000, SYNC_ENV),
+            syncSubscription("sync-a2", "plan-sync-a", Subscription.Status.ACCEPTED, future, 3000, SYNC_ENV),
+            syncSubscription("sync-a1", "plan-sync-a", Subscription.Status.ACCEPTED, null, 4000, SYNC_ENV),
+            syncSubscription("sync-a3", "plan-sync-a", Subscription.Status.ACCEPTED, past, 5000, SYNC_ENV),
+            syncSubscription("sync-a4", "plan-sync-a", Subscription.Status.CLOSED, null, 6000, SYNC_ENV),
+            syncSubscription("sync-a5", "plan-sync-a", Subscription.Status.REJECTED, null, 7000, SYNC_ENV),
+            syncSubscription("sync-c1", "plan-sync-c", Subscription.Status.ACCEPTED, null, 8000, SYNC_ENV),
+            syncSubscription("sync-a6", "plan-sync-a", Subscription.Status.ACCEPTED, null, 9000, "env-sync-other")
+        );
+        for (Subscription subscription : subscriptions) {
+            subscriptionRepository.create(subscription);
+        }
+        return subscriptions;
+    }
+
+    private void deleteSyncSubscriptions(List<Subscription> subscriptions) throws TechnicalException {
+        for (Subscription subscription : subscriptions) {
+            subscriptionRepository.delete(subscription.getId());
+        }
+    }
+
+    private List<String> searchAllAfter(SubscriptionCriteria criteria, String sortField, int pageSize) throws TechnicalException {
+        var sortable = new SortableBuilder().field(sortField).order(Order.ASC).build();
+        List<String> ids = new java.util.ArrayList<>();
+        SubscriptionCursor cursor = null;
+        int guard = 20;
+        while (guard-- > 0) {
+            List<Subscription> page = subscriptionRepository.searchAfter(criteria, sortable, cursor, pageSize);
+            if (page.isEmpty()) {
+                break;
+            }
+            page.forEach(s -> ids.add(s.getId()));
+            Subscription last = page.getLast();
+            cursor = "plan".equals(sortField)
+                ? SubscriptionCursor.byPlanAndId(last.getPlan(), last.getId())
+                : SubscriptionCursor.byUpdatedAt(last.getUpdatedAt().getTime(), last.getId());
+            if (page.size() < pageSize) {
+                break;
+            }
+        }
+        return ids;
+    }
+
+    @Test
+    public void searchAfter_gatewayInitialSync_shouldReturnActiveAcceptedSubscriptionsOrderedByPlanThenId() throws TechnicalException {
+        List<Subscription> created = createSyncSubscriptions();
+        try {
+            // SubscriptionAppender.loadSubscriptions(initialSync = true)
+            SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .plans(List.of("plan-sync-a", "plan-sync-b"))
+                .environments(singleton(SYNC_ENV))
+                .statuses(List.of(Subscription.Status.ACCEPTED.name()))
+                .endingAtAfter(SYNC_NOW)
+                .includeWithoutEnd(true)
+                .build();
+
+            // page size 2 forces the (plan, id) keyset to cross plan boundaries
+            assertEquals(List.of("sync-a1", "sync-a2", "sync-b1", "sync-b2"), searchAllAfter(criteria, "plan", 2));
+        } finally {
+            deleteSyncSubscriptions(created);
+        }
+    }
+
+    @Test
+    public void searchAfter_gatewayInitialSyncOnManyPlans_shouldReturnOnlyActiveAcceptedSubscriptions() throws TechnicalException {
+        List<Subscription> created = createSyncSubscriptions();
+        try {
+            // Initial sync as run by a gateway sharded on a plan list: no environment filter and a page size large
+            // enough to read everything in one call. Most subscriptions of those plans (closed, rejected, expired)
+            // do not match, which is the case the {status, plan, _id} index serves.
+            SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .plans(List.of("plan-sync-a", "plan-sync-b"))
+                .statuses(List.of(Subscription.Status.ACCEPTED.name()))
+                .endingAtAfter(SYNC_NOW)
+                .includeWithoutEnd(true)
+                .build();
+
+            assertEquals(List.of("sync-a1", "sync-a2", "sync-a6", "sync-b1", "sync-b2"), searchAllAfter(criteria, "plan", 2000));
+        } finally {
+            deleteSyncSubscriptions(created);
+        }
+    }
+
+    @Test
+    public void searchAfter_gatewayInitialSync_shouldExcludeSubscriptionsWithoutEndWhenNotIncluded() throws TechnicalException {
+        List<Subscription> created = createSyncSubscriptions();
+        try {
+            SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .plans(List.of("plan-sync-a", "plan-sync-b"))
+                .environments(singleton(SYNC_ENV))
+                .statuses(List.of(Subscription.Status.ACCEPTED.name()))
+                .endingAtAfter(SYNC_NOW)
+                .includeWithoutEnd(false)
+                .build();
+
+            assertEquals(List.of("sync-a2", "sync-b1"), searchAllAfter(criteria, "plan", 1));
+        } finally {
+            deleteSyncSubscriptions(created);
+        }
+    }
+
+    @Test
+    public void searchAfter_gatewayIncrementalSync_shouldReturnAllSyncedStatusesIncludingExpiredOrderedByPlanThenId()
+        throws TechnicalException {
+        List<Subscription> created = createSyncSubscriptions();
+        try {
+            // SubscriptionAppender.loadSubscriptions(initialSync = false): no endingAt filter
+            SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .plans(List.of("plan-sync-a", "plan-sync-b"))
+                .environments(singleton(SYNC_ENV))
+                .statuses(
+                    List.of(
+                        Subscription.Status.ACCEPTED.name(),
+                        Subscription.Status.CLOSED.name(),
+                        Subscription.Status.PAUSED.name(),
+                        Subscription.Status.PENDING.name()
+                    )
+                )
+                .build();
+
+            assertEquals(List.of("sync-a1", "sync-a2", "sync-a3", "sync-a4", "sync-b1", "sync-b2"), searchAllAfter(criteria, "plan", 4));
+        } finally {
+            deleteSyncSubscriptions(created);
+        }
+    }
+
+    @Test
+    public void searchAfter_gatewayFetchLatest_shouldReturnTimeWindowOrderedByUpdatedAtThenId() throws TechnicalException {
+        List<Subscription> created = createSyncSubscriptions();
+        try {
+            // SubscriptionFetcher.fetchLatest: statuses + [from, to[ on updatedAt + environments
+            SubscriptionCriteria criteria = SubscriptionCriteria.builder()
+                .statuses(
+                    List.of(
+                        Subscription.Status.ACCEPTED.name(),
+                        Subscription.Status.CLOSED.name(),
+                        Subscription.Status.PAUSED.name(),
+                        Subscription.Status.PENDING.name()
+                    )
+                )
+                .from(2000)
+                .to(8000)
+                .environments(singleton(SYNC_ENV))
+                .build();
+
+            // from is inclusive, to exclusive; REJECTED (7000) is filtered out by status
+            assertEquals(List.of("sync-b1", "sync-a2", "sync-a1", "sync-a3", "sync-a4"), searchAllAfter(criteria, "updatedAt", 2));
+        } finally {
+            deleteSyncSubscriptions(created);
+        }
+    }
 }
