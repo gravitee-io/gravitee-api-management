@@ -66,36 +66,80 @@ public class ObservabilityFilterValidator {
         if (conditions == null) {
             return;
         }
-        Map<String, FilterSpec> specsByName = filterRegistry
-            .getFilters(Set.of(), Set.of())
-            .stream()
-            .collect(Collectors.toMap(FilterSpec::name, spec -> spec, (a, b) -> b));
-
+        Map<String, FilterSpec> specsByName = specsByName();
         for (FilterCondition condition : conditions) {
-            FilterSpec spec = specsByName.get(condition.name());
-            if (spec == null) {
-                throw UnsupportedObservabilityFilterException.unknownName(condition.name());
-            }
-            if (!spec.signals().contains(signal)) {
-                throw UnsupportedObservabilityFilterException.signalMismatch(condition.name(), signal);
-            }
-            if (!spec.operators().contains(condition.operator())) {
-                throw UnsupportedObservabilityFilterException.unsupportedOperator(condition.name(), condition.operator().name());
-            }
+            FilterSpec spec = applicableSpec(condition, signal, specsByName);
             // No value narrows nothing, and every translator downstream skips a clause it cannot
             // build: the caller would get the unfiltered set back under an active filter chip. Holds
             // for every type, since every advertised operator takes at least one value.
             if (condition.values() == null || condition.values().isEmpty()) {
                 throw UnsupportedObservabilityFilterException.blankValue(condition.name());
             }
-            validateArity(condition);
-            if (spec.type() == FilterType.STRING && hasOnlyBlankValues(condition)) {
-                throw UnsupportedObservabilityFilterException.blankValue(condition.name());
-            }
-            validateEnumValues(condition, spec);
-            validateNumberValues(condition, spec);
+            validateValues(condition, spec);
         }
         validateRepetition(conditions, specsByName);
+    }
+
+    /**
+     * The save-time check of a dashboard's own filters: refuses what every widget query would refuse later.
+     * A dashboard renders analytics widgets, so its filters are checked against the ANALYTICS signal. Two
+     * differences with a search, both from how the library reads a dashboard (OBS-52): a filter with no value
+     * is the open "Any" slot a reader fills, accepted whatever its {@code editable} flag says; and a field is
+     * filtered once, since the library keys its chips by field.
+     *
+     * <p>The library's JSON tab accepts a name its catalog does not know, because that catalog may be partial
+     * or missing; the server holds the whole catalog, so here an unknown name is refused.
+     */
+    public void validateDashboardFilters(List<FilterCondition> conditions) {
+        Map<String, FilterSpec> specsByName = specsByName();
+        for (FilterCondition condition : conditions) {
+            FilterSpec spec = applicableSpec(condition, Signal.ANALYTICS, specsByName);
+            if (condition.values() != null && !condition.values().isEmpty()) {
+                validateValues(condition, spec);
+            }
+        }
+        validateOneFilterPerField(conditions);
+    }
+
+    private Map<String, FilterSpec> specsByName() {
+        return filterRegistry
+            .getFilters(Set.of(), Set.of())
+            .stream()
+            .collect(Collectors.toMap(FilterSpec::name, spec -> spec, (a, b) -> b));
+    }
+
+    private static FilterSpec applicableSpec(FilterCondition condition, Signal signal, Map<String, FilterSpec> specsByName) {
+        FilterSpec spec = specsByName.get(condition.name());
+        if (spec == null) {
+            throw UnsupportedObservabilityFilterException.unknownName(condition.name());
+        }
+        if (!spec.signals().contains(signal)) {
+            throw UnsupportedObservabilityFilterException.signalMismatch(condition.name(), signal);
+        }
+        if (!spec.operators().contains(condition.operator())) {
+            throw UnsupportedObservabilityFilterException.unsupportedOperator(condition.name(), condition.operator().name());
+        }
+        return spec;
+    }
+
+    private static void validateValues(FilterCondition condition, FilterSpec spec) {
+        validateArity(condition);
+        if (spec.type() == FilterType.STRING && hasOnlyBlankValues(condition)) {
+            throw UnsupportedObservabilityFilterException.blankValue(condition.name());
+        }
+        validateEnumValues(condition, spec);
+        validateNumberValues(condition, spec);
+    }
+
+    private static void validateOneFilterPerField(List<FilterCondition> conditions) {
+        conditions
+            .stream()
+            .collect(Collectors.groupingBy(FilterCondition::name, LinkedHashMap::new, Collectors.counting()))
+            .forEach((name, count) -> {
+                if (count > 1) {
+                    throw UnsupportedObservabilityFilterException.repeatedOnDashboard(name, count);
+                }
+            });
     }
 
     // A single-value operator handed several values was read as its first value by analytics and as IN by
