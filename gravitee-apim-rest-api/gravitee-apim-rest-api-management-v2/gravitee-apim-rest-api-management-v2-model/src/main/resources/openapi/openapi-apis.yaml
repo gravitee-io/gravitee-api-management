@@ -9985,7 +9985,10 @@ components:
                     type: string
         auditEncrypted:
             name: encrypted
-            description: Filter on audit entries that involve an encrypted property. Only 'true' is supported.
+            description: |-
+                Only return audit entries of a V4 API whose recorded change can contain an encrypted property value: entries that record the API definition while it holds an encrypted property.
+                Entries of V2 APIs, entries of changes that leave the definition untouched (such as start, stop or a picture change), and entries written before this filter existed are not returned.
+                Only 'true' is supported.
             in: query
             required: false
             schema:
