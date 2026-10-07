@@ -16,7 +16,7 @@
 import { AppContextBar, AppLayout, AppSidebar, ContentHeader, LayoutSlotsProvider, useLayoutSlots } from '@gravitee/graphene-core';
 import { Globe } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { Suspense, useCallback, useMemo } from 'react';
+import { Suspense, useCallback, useEffect, useMemo } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { ContentSkeleton } from './ContentSkeleton';
@@ -39,6 +39,7 @@ import { useBootstrapStore } from '../config/bootstrap.store';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
 
 const GAMMA_APP_KEY = 'gamma-console';
+const DOCUMENT_TITLE_SUFFIX = 'Gravitee Gamma';
 
 const hostAppDefinition = {
     key: GAMMA_APP_KEY,
@@ -83,6 +84,25 @@ function resolveActiveAppKey(pathname: string, envHrid: string, modules: readonl
     return GAMMA_APP_KEY;
 }
 
+/** Most specific first, so a tab truncated by the browser still shows which page it holds. */
+function buildDocumentTitle(breadcrumbLabels: readonly string[], appLabel: string | undefined): string {
+    const segments = [...breadcrumbLabels].reverse();
+    if (appLabel) {
+        segments.push(appLabel);
+    }
+    return [...segments, DOCUMENT_TITLE_SUFFIX].join(' · ');
+}
+
+function useDocumentTitle(title: string) {
+    useEffect(() => {
+        const previousTitle = document.title;
+        document.title = title;
+        return () => {
+            document.title = previousTitle;
+        };
+    }, [title]);
+}
+
 function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[] }) {
     const user = useUser();
     const logout = useLogout();
@@ -97,6 +117,15 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
 
     const apps = useMemo(() => buildAppDefinitions(modules), [modules]);
     const activeAppKey = useMemo(() => resolveActiveAppKey(pathname, envHrid, modules), [pathname, envHrid, modules]);
+
+    // Home is the host, not a product: its pages are titled by their breadcrumbs alone.
+    const activeAppLabel = activeAppKey === GAMMA_APP_KEY ? undefined : apps.find(app => app.key === activeAppKey)?.label;
+    useDocumentTitle(
+        buildDocumentTitle(
+            slots.breadcrumbs.map(crumb => crumb.label),
+            activeAppLabel,
+        ),
+    );
 
     const envItems = useMemo(
         () => environments.map(env => ({ key: getPrimaryHrid(env), label: env.name ?? getPrimaryHrid(env) })),
