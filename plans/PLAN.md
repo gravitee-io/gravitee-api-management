@@ -123,7 +123,7 @@ isProject: false
 
 ## Summary
 
-> **Update — 2026-10-07:** most of PHASE 3 is implemented under [PORTAL-231](https://gravitee.atlassian.net/browse/PORTAL-231) as ten stacked pull requests, four of them merged. What was built, where it differs from this plan, the decisions taken during review and what is still open are collected in [PHASE 3 — implementation record](#phase-3--implementation-record-portal-231). Story statuses in the front matter and a status line under each affected story are updated to match.
+> **Update — 2026-10-07:** most of PHASE 3 is implemented under [PORTAL-231](https://gravitee.atlassian.net/browse/PORTAL-231) as ten stacked pull requests, four of them merged. What was built, where it differs from this plan, the decisions taken during review and what is still open are collected in [PHASE 3 — implementation record](#phase-3--implementation-record-portal-231). Story statuses in the front matter are updated to match.
 >
 > **Update — 2026-10-06:** [STORY-02a](#story-02a--keep-api-owned-documentation-out-of-api-product-navigation) adds an API Product documentation isolation requirement. Existing story identifiers, overview lists and diagrams are preserved; this additional story and all implications for existing work are documented together in that section.
 
@@ -532,7 +532,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 ### PHASE 1 — Unblock the ownership model
 
 #### STORY-01 — Saving an API-owned item must not detach it from its API
-**Status (2026-10-07):** done — merged to `master` as `e20f15d5d1` ("preserve API-owned documentation structure on update", PORTAL-230).
 **Why:** every rename, visibility toggle and drag in the classic portal editor currently detaches an API's page from the API. Today this only bites automation-created documentation; once all documentation is API-owned it happens on nearly every edit, which makes the whole model unusable.
 **Acceptance criteria:**
 - Given a page owned by an API and shown under that API's listing row, when the client sends back the parent it was shown and changes only the visibility, then the stored parent is still empty and the page is still owned by the API.
@@ -680,7 +679,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Size:** S · **Depends on:** STORY-05 · **Blocked by:** decision 9
 
 #### STORY-08 — Carry API ownership into the contents of an imported folder
-**Status (2026-10-07):** partly done, in review. The explicit-owner half is in [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698): `ImportPortalNavigationUseCase.Input` takes an optional owner, set on the root folder, and `PortalNavigationBulkImportDomainService` passes the root's owner to every folder and page it creates, including on re-import. Still to do here: inheriting the owner from the parent when importing through the portal editor, which depends on STORY-03.
 **Why:** linking an external folder creates the folder and then a page per file. Two creation paths bypass owner assignment entirely, so only the outer folder would belong to the API and everything inside would belong to the portal.
 **Acceptance criteria:**
 - Importing a folder into an API's documentation leaves **every** descendant owned by the API, not just the root.
@@ -722,7 +720,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 ### PHASE 3 — The Gamma backend API
 
 #### STORY-11 — Publish the OpenAPI contract for the API documentation endpoints
-**Status (2026-10-07):** in progress. The contract was not published up front as one change: each endpoint added its own operation to `openapi-apis.yaml` in its pull request. Merged: list, create, read, publish locations. In open pull requests: import, publish, update, delete, refresh, unpublish. Not written: a page's content (STORY-12 Bis). See the [implementation record](#phase-3--implementation-record-portal-231) for the paths and schemas.
 **Why:** repository convention is contract-first, and this is what lets the frontend start against a stand-in instead of waiting for the backend.
 **Acceptance criteria:**
 - Paths and schemas for the API-scoped documentation operations, a page's content (STORY-12 Bis), the documentation list and the publish-locations list are in the spec.
@@ -741,7 +738,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 4. Publish and unpublish paths.
 
 #### STORY-12 — Expose documentation operations under an API-scoped path
-**Status (2026-10-07):** in progress. Create ([#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695)) and read ([#20697](https://github.com/gravitee-io/gravitee-api-management/pull/20697)) are merged; update ([#20700](https://github.com/gravitee-io/gravitee-api-management/pull/20700)) and delete ([#20701](https://github.com/gravitee-io/gravitee-api-management/pull/20701)) are in review. Import ([#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698)) was added under the same mount. Differences from the criteria below are listed in the [implementation record](#phase-3--implementation-record-portal-231).
 **Why:** today these operations require permission over the whole environment's documentation. Re-exposing them per API is what allows API-level permission.
 **Acceptance criteria:**
 - Create, read, update and delete for pages, folders and links are available under a path naming the API.
@@ -765,7 +761,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** the single-item read has no identified caller yet, because the list (STORY-14) returns the same item. Keep it only if STORY-24 uses it.
 
 #### STORY-12 Bis — Read and save a page's content under the API-scoped path
-**Status (2026-10-07):** not started. It is not part of PORTAL-231; until it lands, a Gamma user with only API documentation permission can create a page but cannot read or save its text.
 **Why:** a page's text is stored apart from the page, and reading or saving it goes through `/portal-page-contents/{id}`, which needs `ENVIRONMENT_DOCUMENTATION`. Without this story, a Gamma user with only API documentation permission can create, move and publish pages, but can never read or write what they say.
 **Acceptance criteria:**
 - A page's content can be read and saved under that page's API-scoped path, with API documentation READ and UPDATE respectively.
@@ -779,7 +774,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** security-sensitive, because it is a new authorization path. Addressing content by its own id under an API permission was rejected: the permission check reads only the URL, and a content id does not say which API it belongs to. Blocks STORY-26 and STORY-29 on the backend side.
 
 #### STORY-13 — Reject a request whose body targets a different API than the URL
-**Status (2026-10-07):** in progress. The guard itself is merged with [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695) and is applied on create and read; update, delete, import and refresh apply it in their open pull requests. It was implemented as `ApiOwnedNavigationDomainService.requireOwnedItem`, checking the item's own `reference`, and **not** with `PortalNavigationEnclosingApiDomainService` as the file list below says — see the [implementation record](#phase-3--implementation-record-portal-231) for why.
 **Why:** permission is worked out from the URL only and cannot consult the database. Without this check, someone with permission on one API could pass an item or parent belonging to another.
 **Acceptance criteria:**
 - A request under API A carrying an item id belonging to API B is rejected.
@@ -792,7 +786,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** security control — keep as its own story so it cannot be quietly folded in and skipped. Not splittable.
 
 #### STORY-14 — List one API's documentation
-**Status (2026-10-07):** done — merged as [#20694](https://github.com/gravitee-io/gravitee-api-management/pull/20694). The publish state is returned as a list of publications, not a single one; see the [implementation record](#phase-3--implementation-record-portal-231).
 **Why:** there is currently no way to ask what documentation an API has — API-owned items are deliberately hidden from every general listing.
 **Acceptance criteria:**
 - Returns pages, folders **and** links, with title, type, visibility, parent, order, source and URL.
@@ -809,7 +802,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 2. Publish state: whether a listing row exists and under which section.
 
 #### STORY-15 — List the portal sections an API can be published to
-**Status (2026-10-07):** done — merged as [#20696](https://github.com/gravitee-io/gravitee-api-management/pull/20696).
 **Why:** publishing means choosing an existing top-level section, but reading the portal's structure needs environment-wide permission, which these users will not have.
 **Acceptance criteria:**
 - Returns the id and name of each top-level section of the portal's main navigation, and nothing else.
@@ -823,7 +815,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 **Note:** deliberately narrow — ids and names only, never the tree, so it cannot become a way around environment permission.
 
 #### STORY-16 — Publish and unpublish an API under API documentation permission
-**Status (2026-10-07):** in review, and **behind this story's current wording**. Publish ([#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699)) and unpublish ([#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703)) were written against the earlier version of this story: publish rejects an API that already has a hidden listing row, and unpublish deletes the row. #20699 has changes requested to reuse a hidden row, as the criteria below now say; unpublish still has to be changed to hide the row instead of deleting it. No `ApiPortalPublicationResource` was created: both actions sit on the collection resource.
 **Why:** publishing creates the API's entry in a portal menu. Today that needs environment-wide permission; the product wants API-level permission to be enough.
 **Acceptance criteria:**
 - With only API documentation permission, the API can be published into an existing section and unpublished again.
@@ -844,7 +835,6 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 3. Unpublish, asserting the row is hidden rather than deleted and the documentation survives.
 
 #### STORY-17 — Refresh an externally sourced page from the API-scoped path
-**Status (2026-10-07):** in review — [#20702](https://github.com/gravitee-io/gravitee-api-management/pull/20702).
 **Why:** refreshing a page from its external source currently needs environment-wide permission.
 **Acceptance criteria:**
 - An externally sourced page in an API's documentation can be refreshed with only API documentation permission.
@@ -859,6 +849,21 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 ### PHASE 3 — implementation record (PORTAL-231)
 
 **Added 2026-10-07.** PHASE 3 was implemented as one Jira story, [PORTAL-231](https://gravitee.atlassian.net/browse/PORTAL-231), split into ten tasks, one per endpoint action, each delivered as its own pull request in a single stack. Each task was built domain first and test first, then REST, with its part of the contract written before its resource code. This section records what exists, where it differs from the stories above, and what was decided in review. Where it disagrees with a story's text, the story's text is the target and the difference is listed under [Still open](#still-open).
+
+#### Story status
+
+| Story | Status | Detail |
+|---|---|---|
+| 01 — Bug A | Done | Merged to `master` as `e20f15d5d1` ("preserve API-owned documentation structure on update"). Not part of this work; recorded here because PHASE 3's item endpoints rely on it. |
+| 08 — Import ownership | Partly done, in review | The explicit-owner half is in [#20698](https://github.com/gravitee-io/gravitee-api-management/pull/20698). Inheriting the owner from the parent when importing through the portal editor remains, and depends on STORY-03. |
+| 11 — Contract | In progress | Not published up front as one change: each endpoint added its own operation in its pull request. Merged: list, create, read, publish locations. In open pull requests: import, publish, update, delete, refresh, unpublish. Not written: a page's content (STORY-12 Bis). |
+| 12 — API-scoped operations | In progress | Create and read are merged; update and delete are in review. Import was added under the same mount. |
+| 12 Bis — Page content | Not started | Not part of PORTAL-231. Until it lands, a Gamma user with only API documentation permission can create a page but cannot read or save its text. |
+| 13 — Body-target check | In progress | The guard is merged with [#20695](https://github.com/gravitee-io/gravitee-api-management/pull/20695) and applied on create and read; update, delete, import and refresh apply it in their open pull requests. |
+| 14 — List documentation | Done | Merged as [#20694](https://github.com/gravitee-io/gravitee-api-management/pull/20694). |
+| 15 — Publish locations | Done | Merged as [#20696](https://github.com/gravitee-io/gravitee-api-management/pull/20696). |
+| 16 — Publish and unpublish | In review, behind the story's current wording | [#20699](https://github.com/gravitee-io/gravitee-api-management/pull/20699) and [#20703](https://github.com/gravitee-io/gravitee-api-management/pull/20703) were written against the earlier version of the story: publish rejects an API that already has a hidden listing row, and unpublish deletes the row. See [Still open](#still-open). |
+| 17 — Refresh | In review | [#20702](https://github.com/gravitee-io/gravitee-api-management/pull/20702). |
 
 #### Endpoints and their state
 
