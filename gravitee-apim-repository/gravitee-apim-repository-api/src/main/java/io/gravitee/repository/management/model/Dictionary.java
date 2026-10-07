@@ -31,6 +31,7 @@ public class Dictionary {
         DICTIONARY_CREATED,
         DICTIONARY_UPDATED,
         DICTIONARY_DELETED,
+        DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED,
     }
 
     /**

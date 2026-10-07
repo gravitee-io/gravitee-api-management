@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.data.domain.MetadataPage;
@@ -129,6 +130,16 @@ public class AuditResourceTest extends AbstractResourceTest {
         final Response response = envTarget().queryParam("encrypted", false).request().get();
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void should_list_the_encrypted_properties_accessed_events() {
+        final Response response = envTarget().path("events").request().get();
+
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+        String events = response.readEntity(String.class);
+        assertTrue(events.contains("\"API_ENCRYPTED_PROPERTIES_ACCESSED\""));
+        assertTrue(events.contains("\"DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED\""));
     }
 
     @Test

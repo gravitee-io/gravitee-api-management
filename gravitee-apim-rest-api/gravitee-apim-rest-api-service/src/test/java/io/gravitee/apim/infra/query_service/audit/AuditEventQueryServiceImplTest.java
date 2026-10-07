@@ -27,7 +27,14 @@ class AuditEventQueryServiceImplTest {
     void should_return_all_audit_events_names_sorted() {
         var result = service.listAllApiAuditEvents();
 
-        Assertions.assertThat(result).hasSize(49).isSortedAccordingTo(Comparator.naturalOrder());
+        Assertions.assertThat(result).hasSize(51).isSortedAccordingTo(Comparator.naturalOrder());
+    }
+
+    @Test
+    void should_list_the_encrypted_properties_accessed_events() {
+        var result = service.listAllApiAuditEvents();
+
+        Assertions.assertThat(result).contains("API_ENCRYPTED_PROPERTIES_ACCESSED", "DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED");
     }
 
     @Test
