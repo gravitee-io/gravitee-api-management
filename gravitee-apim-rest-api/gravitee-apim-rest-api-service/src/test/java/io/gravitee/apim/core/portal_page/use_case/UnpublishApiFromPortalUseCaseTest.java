@@ -53,7 +53,17 @@ class UnpublishApiFromPortalUseCaseTest {
     private static final String API_ID = "api-a";
     private static final String OTHER_API_ID = "api-b";
 
-    private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory();
+    private PortalNavigationItemId failingUpdateOf;
+
+    private final PortalNavigationItemsCrudServiceInMemory crudService = new PortalNavigationItemsCrudServiceInMemory() {
+        @Override
+        public PortalNavigationItem update(PortalNavigationItem portalNavigationItem) {
+            if (portalNavigationItem.getId().equals(failingUpdateOf)) {
+                throw new IllegalStateException("update failed");
+            }
+            return super.update(portalNavigationItem);
+        }
+    };
     private final PortalNavigationItemsQueryServiceInMemory queryService = new PortalNavigationItemsQueryServiceInMemory(
         crudService.storage()
     );
@@ -75,43 +85,32 @@ class UnpublishApiFromPortalUseCaseTest {
             apiCrudService,
             sourceDomainService
         );
-        useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, domainService);
-        publishUseCase = new PublishApiToPortalUseCase(
-            apiOwnedNavigationDomainService,
-            new PortalNavigationItemValidatorService(
-                queryService,
-                pageContentQueryService,
-                new ApiProductQueryServiceInMemory(),
-                sourceDomainService
-            ),
-            domainService
+        var validatorService = new PortalNavigationItemValidatorService(
+            queryService,
+            pageContentQueryService,
+            new ApiProductQueryServiceInMemory(),
+            sourceDomainService
         );
+        useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
+        publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));
     }
 
     @Test
-    void should_delete_the_listing_row() {
+    void should_hide_the_listing_row_instead_of_deleting_it() {
         var section = aSection();
         var listing = aListing(section, API_ID);
         queryService.initWith(List.of(section, listing));
 
         unpublish();
 
-        assertThat(crudService.storage()).containsExactly(section);
-    }
-
-    @Test
-    void should_delete_every_standalone_listing_row_of_the_api() {
-        var section = aSection();
-        var otherSection = aFolder("Partners");
-        otherSection.markAsRoot();
-        var listing = aListing(section, API_ID);
-        var otherListing = aListing(otherSection, API_ID);
-        queryService.initWith(List.of(section, otherSection, listing, otherListing));
-
-        unpublish();
-
-        assertThat(crudService.storage()).containsExactlyInAnyOrder(section, otherSection);
+        assertThat(stored(listing.getId())).satisfies(hidden -> {
+            assertThat(hidden.getPublished()).isFalse();
+            assertThat(hidden.getParentId()).isEqualTo(section.getId());
+            assertThat(hidden.getOrder()).isEqualTo(listing.getOrder());
+            assertThat(hidden.getSegment()).isEqualTo(listing.getSegment());
+        });
+        assertThat(stored(section.getId()).getPublished()).isTrue();
     }
 
     @Test
@@ -126,13 +125,31 @@ class UnpublishApiFromPortalUseCaseTest {
 
         unpublish();
 
-        assertThat(crudService.storage())
-            .extracting(PortalNavigationItem::getId)
-            .containsExactlyInAnyOrder(section.getId(), folder.getId(), nestedPage.getId());
+        assertThat(crudService.storage()).hasSize(4);
         assertThat(stored(folder.getId()).getPublished()).isFalse();
         assertThat(stored(nestedPage.getId()).getPublished()).isFalse();
         assertThat(stored(nestedPage.getId()).getParentId()).isEqualTo(folder.getId());
         assertThat(stored(folder.getId()).getReference()).isEqualTo(ownedBy(API_ID));
+    }
+
+    /**
+     * Pages the portal editor stored as real children of the listing row are descendants of it. They are
+     * hidden with the row and stay where they are.
+     */
+    @Test
+    void should_keep_and_hide_what_is_stored_under_the_listing_row() {
+        var section = aSection();
+        var listing = aListing(section, API_ID);
+        var storedUnderListing = aPage("Legacy page", listing.getId());
+        storedUnderListing.updateParent(listing);
+        queryService.initWith(List.of(section, listing, storedUnderListing));
+
+        unpublish();
+
+        assertThat(stored(storedUnderListing.getId())).satisfies(page -> {
+            assertThat(page.getPublished()).isFalse();
+            assertThat(page.getParentId()).isEqualTo(listing.getId());
+        });
     }
 
     @Test
@@ -146,12 +163,12 @@ class UnpublishApiFromPortalUseCaseTest {
 
         unpublish();
 
-        assertThat(stored(otherListing.getId())).isNotNull();
+        assertThat(stored(otherListing.getId()).getPublished()).isTrue();
         assertThat(stored(foreign.getId()).getPublished()).isTrue();
     }
 
     @Test
-    void should_not_delete_a_listing_row_under_an_api_product() {
+    void should_not_touch_a_listing_row_under_an_api_product() {
         var section = aSection();
         var listing = aListing(section, API_ID);
         var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id");
@@ -162,20 +179,8 @@ class UnpublishApiFromPortalUseCaseTest {
 
         unpublish();
 
-        assertThat(stored(productListing.getId())).isNotNull();
-        assertThat(stored(listing.getId())).isNull();
-    }
-
-    @Test
-    void should_delete_a_listing_row_the_editor_already_unpublished() {
-        var section = aSection();
-        var listing = aListing(section, API_ID);
-        listing.setPublished(false);
-        queryService.initWith(List.of(section, listing));
-
-        unpublish();
-
-        assertThat(stored(listing.getId())).isNull();
+        assertThat(stored(productListing.getId()).getPublished()).isTrue();
+        assertThat(stored(listing.getId()).getPublished()).isFalse();
     }
 
     @Test
@@ -189,6 +194,21 @@ class UnpublishApiFromPortalUseCaseTest {
         assertThat(stored(page.getId()).getPublished()).isTrue();
     }
 
+    /**
+     * A hidden listing means the API is not published, whoever hid it.
+     */
+    @Test
+    void should_reject_when_the_listing_row_is_already_hidden() {
+        var section = aSection();
+        var listing = aListing(section, API_ID);
+        listing.setPublished(false);
+        queryService.initWith(List.of(section, listing));
+
+        assertThatThrownBy(this::unpublish).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+
+        assertThat(stored(listing.getId())).isNotNull();
+    }
+
     @Test
     void should_reject_when_api_is_listed_only_under_an_api_product() {
         var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id");
@@ -199,40 +219,48 @@ class UnpublishApiFromPortalUseCaseTest {
 
         assertThatThrownBy(this::unpublish).isInstanceOf(InvalidPortalNavigationItemDataException.class);
 
-        assertThat(stored(productListing.getId())).isNotNull();
+        assertThat(stored(productListing.getId()).getPublished()).isTrue();
     }
 
     @Test
-    void should_allow_publishing_again_after_unpublish() {
+    void should_publish_again_by_showing_the_same_listing_row() {
         var section = aSection();
         var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).published(false).build();
         page.markAsRoot();
         queryService.initWith(List.of(section, page));
         var input = new PublishApiToPortalUseCase.Input(ORG_ID, ENV_ID, API_ID, section.getId());
 
-        publishUseCase.execute(input);
+        var published = publishUseCase.execute(input);
         unpublish();
         var republished = publishUseCase.execute(input);
 
-        assertThat(stored(republished.listing().getId())).isInstanceOf(PortalNavigationApi.class);
+        assertThat(republished.listing().getId()).isEqualTo(published.listing().getId());
+        assertThat(stored(republished.listing().getId()).getPublished()).isTrue();
         assertThat(stored(page.getId()).getPublished()).isTrue();
+        assertThat(crudService.storage()).hasSize(3);
     }
 
     /**
-     * Pages the portal editor stored as real children of the listing row are descendants of it, unlike
-     * the documentation the API owns: they go with the row.
+     * Nothing here is transactional. The items are hidden before the listing, so that a failure leaves
+     * the API still published, and unpublishing again finishes the job.
      */
     @Test
-    void should_delete_portal_owned_children_stored_under_the_listing_row() {
+    void should_leave_the_listing_visible_when_hiding_the_items_fails_so_that_a_retry_succeeds() {
         var section = aSection();
         var listing = aListing(section, API_ID);
-        var storedUnderListing = aPage("Legacy page", listing.getId());
-        storedUnderListing.updateParent(listing);
-        queryService.initWith(List.of(section, listing, storedUnderListing));
+        var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+        page.markAsRoot();
+        queryService.initWith(List.of(section, listing, page));
+        failingUpdateOf = page.getId();
 
+        assertThatThrownBy(this::unpublish).isInstanceOf(IllegalStateException.class);
+        assertThat(stored(listing.getId()).getPublished()).isTrue();
+
+        failingUpdateOf = null;
         unpublish();
 
-        assertThat(crudService.storage()).containsExactly(section);
+        assertThat(stored(listing.getId()).getPublished()).isFalse();
+        assertThat(stored(page.getId()).getPublished()).isFalse();
     }
 
     private void unpublish() {

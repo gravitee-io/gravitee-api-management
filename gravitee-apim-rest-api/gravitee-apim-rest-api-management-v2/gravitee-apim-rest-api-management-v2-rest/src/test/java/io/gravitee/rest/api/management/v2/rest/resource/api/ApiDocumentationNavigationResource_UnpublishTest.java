@@ -82,7 +82,7 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
     }
 
     @Test
-    void should_unpublish_the_api_and_keep_its_documentation_unpublished() {
+    void should_unpublish_the_api_by_hiding_its_listing_and_its_documentation() {
         var section = aSection();
         var listing = aListing(section);
         var page = aPublishedPageOwnedByTheApi();
@@ -93,8 +93,10 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
         assertThat(response).hasStatus(NO_CONTENT_204);
         assertThat(portalNavigationItemCrudService.storage())
             .extracting(PortalNavigationItem::getId)
-            .containsExactlyInAnyOrder(section.getId(), page.getId());
+            .containsExactlyInAnyOrder(section.getId(), listing.getId(), page.getId());
+        assertThat(listing.getPublished()).isFalse();
         assertThat(page.getPublished()).isFalse();
+        assertThat(section.getPublished()).isTrue();
     }
 
     @Test
@@ -106,6 +108,18 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
         assertThat(page.getPublished()).isTrue();
+    }
+
+    @Test
+    void should_return_400_when_the_listing_is_already_hidden() {
+        var section = aSection();
+        var listing = aListing(section);
+        listing.setPublished(false);
+        portalNavigationItemCrudService.initWith(List.of(section, listing));
+
+        Response response = unpublish();
+
+        assertThat(response).hasStatus(BAD_REQUEST_400);
     }
 
     @Test
@@ -125,7 +139,7 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
         Response response = unpublish();
 
         assertThat(response).hasStatus(FORBIDDEN_403);
-        assertThat(portalNavigationItemCrudService.storage()).containsExactly(section, listing);
+        assertThat(listing.getPublished()).isTrue();
     }
 
     @Test

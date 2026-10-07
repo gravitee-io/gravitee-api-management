@@ -1425,9 +1425,14 @@ public class ResourceContextConfiguration {
     @Bean
     public UnpublishApiFromPortalUseCase unpublishApiFromPortalUseCase(
         ApiOwnedNavigationDomainService apiOwnedNavigationDomainService,
+        PortalNavigationItemValidatorService portalNavigationItemValidatorService,
         PortalNavigationItemDomainService portalNavigationItemDomainService
     ) {
-        return new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, portalNavigationItemDomainService);
+        return new UnpublishApiFromPortalUseCase(
+            apiOwnedNavigationDomainService,
+            portalNavigationItemValidatorService,
+            portalNavigationItemDomainService
+        );
     }
 
     @Bean

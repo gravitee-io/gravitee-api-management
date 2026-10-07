@@ -49,7 +49,7 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         return new InvalidPortalNavigationItemDataException("The navigation item %s is not a page and has no content.".formatted(itemId));
     }
 
-    public static InvalidPortalNavigationItemDataException apiIsNotListed(String apiId) {
+    public static InvalidPortalNavigationItemDataException apiIsNotPublished(String apiId) {
         return new InvalidPortalNavigationItemDataException("The API %s is not published to the portal.".formatted(apiId));
     }
 

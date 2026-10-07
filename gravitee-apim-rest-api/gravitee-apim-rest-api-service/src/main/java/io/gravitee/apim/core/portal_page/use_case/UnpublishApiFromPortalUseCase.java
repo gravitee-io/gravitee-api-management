@@ -18,29 +18,56 @@ package io.gravitee.apim.core.portal_page.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Removes an API from every portal listing it. Its documentation is kept, unpublished, against the API,
- * ready to be published again; only the navigation entries listing the API are deleted.
+ * Takes an API out of every portal listing it, without removing anything: the navigation entries listing
+ * the API are hidden, and so is its documentation, ready to be published again.
  */
 @UseCase
 @RequiredArgsConstructor
 public class UnpublishApiFromPortalUseCase {
 
     private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
+    private final PortalNavigationItemValidatorService validatorService;
     private final PortalNavigationItemDomainService domainService;
 
     public void execute(Input input) {
-        var listings = apiOwnedNavigationDomainService.findStandaloneListings(input.environmentId(), input.apiId());
-        if (listings.isEmpty()) {
-            throw InvalidPortalNavigationItemDataException.apiIsNotListed(input.apiId());
+        // A hidden listing means the API is not published, so only the visible ones count
+        var visibleListings = apiOwnedNavigationDomainService
+            .findStandaloneListings(input.environmentId(), input.apiId())
+            .stream()
+            .filter(listing -> Boolean.TRUE.equals(listing.getPublished()))
+            .toList();
+        if (visibleListings.isEmpty()) {
+            throw InvalidPortalNavigationItemDataException.apiIsNotPublished(input.apiId());
         }
 
-        // The documentation is shared by every portal listing the API, so unpublishing it leaves no listing behind
-        listings.forEach(domainService::deleteWithDescendants);
+        // Nothing here is transactional. The items are hidden before the listings, so that a failure leaves the
+        // API still published and unpublishing again finishes the job.
         apiOwnedNavigationDomainService.setPublished(input.environmentId(), input.apiId(), false);
+        visibleListings.forEach(this::hide);
+    }
+
+    private void hide(PortalNavigationApi listing) {
+        var listingToUpdate = UpdatePortalNavigationItem.builder()
+            .type(PortalNavigationItemType.API)
+            .title(listing.getTitle())
+            .parentId(listing.getParentId())
+            .order(listing.getOrder())
+            .segment(listing.getSegment())
+            .categoryIds(listing.getCategoryIds())
+            .visibility(listing.getVisibility())
+            .published(false)
+            .build();
+        validatorService.validateToUpdate(listingToUpdate, listing);
+        // Hiding an item hides what is stored under it, which stays in place
+        domainService.update(listingToUpdate, listing);
     }
 
     public record Input(String environmentId, String apiId) {}
