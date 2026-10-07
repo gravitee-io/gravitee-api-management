@@ -78,7 +78,7 @@ function renderDangerZone() {
 }
 
 async function openDeleteDialog(user: ReturnType<typeof userEvent.setup>) {
-    const deleteButton = screen.getByRole('button', { name: 'Delete Integration' });
+    const deleteButton = screen.getByRole('button', { name: 'Delete integration' });
     await waitFor(() => expect(deleteButton).toBeEnabled());
     await user.click(deleteButton);
     return screen.getByRole('dialog', { name: 'Delete integration' });
@@ -115,32 +115,24 @@ describe('IntegrationDangerZone', () => {
         jest.clearAllMocks();
     });
 
-    it('titles its card Danger Zone', () => {
-        renderDangerZone();
-
-        expect(screen.getByText('Danger Zone')).toBeInTheDocument();
-    });
-
-    it('disables Delete Integration and explains why when the integration has a federated API', async () => {
+    it('disables Delete integration and explains why outside the button when the integration has a federated API', async () => {
         mockHasFederatedApis.mockResolvedValue(true);
 
         renderDangerZone();
 
-        const deleteButton = screen.getByRole('button', { name: 'Delete Integration' });
-        await waitFor(() =>
-            expect(deleteButton).toHaveAccessibleDescription(
-                'An integration with federated APIs cannot be deleted. Delete its federated APIs first.',
-            ),
-        );
+        const deleteButton = screen.getByRole('button', { name: 'Delete integration' });
+        const reason = 'Delete its federated APIs first. An integration with federated APIs can’t be deleted.';
+        await waitFor(() => expect(deleteButton).toHaveAccessibleDescription(reason));
         expect(deleteButton).toBeDisabled();
+        expect(screen.getByText(reason).closest('button')).toBeNull();
     });
 
-    it('enables Delete Integration when the integration has no federated APIs', async () => {
+    it('enables Delete integration when the integration has no federated APIs', async () => {
         renderDangerZone();
 
-        const deleteButton = screen.getByRole('button', { name: 'Delete Integration' });
+        const deleteButton = screen.getByRole('button', { name: 'Delete integration' });
         await waitFor(() => expect(deleteButton).toBeEnabled());
-        expect(deleteButton).toHaveAccessibleDescription('Permanently deletes the integration. This action cannot be undone.');
+        expect(deleteButton).toHaveAccessibleDescription('Permanently deletes the integration. This can’t be undone.');
     });
 
     it.each([
@@ -157,19 +149,19 @@ describe('IntegrationDangerZone', () => {
         {
             scenario: 'the integration has not loaded yet',
             arrange: () => mockGetIntegration.mockReturnValue(neverResolve()),
-            description: 'Permanently deletes the integration. This action cannot be undone.',
+            description: 'Permanently deletes the integration. This can’t be undone.',
         },
-    ])('keeps Delete Integration disabled while $scenario', async ({ arrange, description }) => {
+    ])('keeps Delete integration disabled while $scenario', async ({ arrange, description }) => {
         arrange();
 
         renderDangerZone();
 
-        const deleteButton = screen.getByRole('button', { name: 'Delete Integration' });
+        const deleteButton = screen.getByRole('button', { name: 'Delete integration' });
         await waitFor(() => expect(deleteButton).toHaveAccessibleDescription(description));
         expect(deleteButton).toBeDisabled();
     });
 
-    it('opens the Delete integration confirmation dialog when Delete Integration is selected', async () => {
+    it('opens the Delete integration confirmation dialog when Delete integration is selected', async () => {
         const user = userEvent.setup();
         renderDangerZone();
 
@@ -262,7 +254,7 @@ describe('IntegrationDangerZone', () => {
 
             renderDangerZone();
 
-            await waitFor(() => expect(screen.getByRole('button', { name: 'Delete Integration' })).toBeEnabled());
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Delete integration' })).toBeEnabled());
             expect(mockGetEnvironmentPermissions).toHaveBeenCalledWith('env-1');
             expect(screen.queryByRole('button', { name: 'Delete APIs' })).toBeNull();
         });
@@ -273,7 +265,7 @@ describe('IntegrationDangerZone', () => {
             const deleteApisButton = await screen.findByRole('button', { name: 'Delete APIs' });
             await waitFor(() => expect(deleteApisButton).toBeEnabled());
             expect(deleteApisButton).toHaveAccessibleDescription(
-                'Deletes the federated APIs of this integration. Published APIs are not deleted.',
+                'Deletes the APIs imported from this integration. Published APIs are kept.',
             );
         });
 
@@ -330,14 +322,14 @@ describe('IntegrationDangerZone', () => {
             expect(mockDeleteFederatedApis).toHaveBeenCalledWith('env-1', INTEGRATION.id);
         });
 
-        it('enables Delete Integration once the confirmed delete leaves no federated APIs', async () => {
+        it('enables Delete integration once the confirmed delete leaves no federated APIs', async () => {
             const user = userEvent.setup();
             mockHasFederatedApis.mockResolvedValueOnce(true).mockResolvedValue(false);
             renderDangerZone();
 
             await confirmDeleteApis(user);
 
-            await waitFor(() => expect(screen.getByRole('button', { name: 'Delete Integration' })).toBeEnabled());
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Delete integration' })).toBeEnabled());
             expect(mockHasFederatedApis).toHaveBeenCalledTimes(2);
         });
 
