@@ -23,6 +23,19 @@ export function isFederatedAgentApi(api: ApiDetailDto | null | undefined): boole
     return api?.definitionVersion === 'FEDERATED_AGENT';
 }
 
+export interface SourceIntegration {
+    integrationId: string;
+    integrationName: string | undefined;
+}
+
+export function getSourceIntegration(api: ApiDetailDto | null | undefined): SourceIntegration | null {
+    const origin = api?.originContext;
+    if (!isFederatedApi(api) || origin?.origin !== 'INTEGRATION' || !origin.integrationId) {
+        return null;
+    }
+    return { integrationId: origin.integrationId, integrationName: origin.integrationName };
+}
+
 // Keyed on the row's own `definitionVersion` rather than on `originContext.origin`, which a
 // FEDERATED_AGENT row also carries as INTEGRATION and which therefore cannot tell the two apart.
 export function isFederatedApiListItem(api: ApiListItem): boolean {
