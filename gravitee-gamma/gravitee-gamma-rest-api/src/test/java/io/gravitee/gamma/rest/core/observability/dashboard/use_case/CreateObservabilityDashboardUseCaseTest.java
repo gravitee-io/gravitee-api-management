@@ -26,8 +26,11 @@ import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardConten
 import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRange;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRangeType;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -50,7 +53,10 @@ class CreateObservabilityDashboardUseCaseTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final InMemoryDashboardRepository dashboardRepository = new InMemoryDashboardRepository();
-    private final CreateObservabilityDashboardUseCase useCase = new CreateObservabilityDashboardUseCase(dashboardRepository);
+    private final CreateObservabilityDashboardUseCase useCase = new CreateObservabilityDashboardUseCase(
+        dashboardRepository,
+        new ObservabilityFilterValidator(new SpiFilterRegistry())
+    );
 
     @BeforeAll
     static void freezeClock() {
@@ -105,5 +111,21 @@ class CreateObservabilityDashboardUseCaseTest {
         assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, " ", content))).isInstanceOf(
             InvalidDashboardException.class
         );
+    }
+
+    @Test
+    void should_refuse_a_dashboard_filter_the_catalog_would_refuse_at_query_time() {
+        var content = new DashboardContent(
+            "Performance overview",
+            null,
+            List.of(new DashboardFilter(new FilterCondition("REQUEST_ID", FilterOperator.IN, List.of()), "Request ID", true)),
+            null,
+            null
+        );
+
+        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, content)))
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("REQUEST_ID");
+        assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
     }
 }
