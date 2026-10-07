@@ -269,6 +269,18 @@ public class PageMapperTest {
     }
 
     @Test
+    public void should_not_report_a_viewer_when_page_configuration_has_none() {
+        PageEntity pageEntity = new PageEntity();
+        pageEntity.setType(PAGE_TYPE);
+        pageEntity.setLastModificationDate(new Date());
+        pageEntity.setConfiguration(Map.of(PageConfigurationKeys.SWAGGER_SWAGGERUI_TRY_IT, "true"));
+
+        Page responsePage = pageMapper.convert(pageEntity);
+
+        assertNull(responsePage.getConfiguration().getViewer());
+    }
+
+    @Test
     public void testPageLinks() {
         String basePath = "/" + PAGE_ID;
         String parentPath = "/" + PAGE_PARENT;
