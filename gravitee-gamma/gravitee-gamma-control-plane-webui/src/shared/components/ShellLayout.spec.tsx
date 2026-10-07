@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useLayoutConfig } from '@gravitee/graphene-core';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useNavigate, type NavigateFunction } from 'react-router-dom';
 
 import { ShellLayout } from './ShellLayout';
@@ -235,5 +237,78 @@ describe('ShellLayout app switcher', () => {
 
         expect(open).toHaveBeenCalledWith('http://console.test/#!/env-1/_portal/navigation', '_blank', 'noopener,noreferrer');
         open.mockRestore();
+    });
+});
+
+describe('ShellLayout document title', () => {
+    beforeEach(() => {
+        resetAllStores();
+        seedBootstrap();
+        seedEnvironments();
+        document.title = 'Gravitee Gamma';
+    });
+
+    function PageWithBreadcrumbs({ labels }: { readonly labels: readonly string[] }) {
+        useLayoutConfig({ breadcrumbs: labels.map(label => ({ label })) }, [labels]);
+        return null;
+    }
+
+    function renderShellAt(path: string, page: ReactNode) {
+        return render(
+            <MemoryRouter initialEntries={[path]}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES} />}>
+                        <Route path="*" element={page} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+    }
+
+    it('should name the tab after the page, most specific first, then the app', async () => {
+        renderShellAt('/environments/env-1/apim/apis/api-1/overview', <PageWithBreadcrumbs labels={['API Proxies', 'Badge Demo']} />);
+
+        await waitFor(() => expect(document.title).toBe('Badge Demo · API Proxies · API Management · Gravitee Gamma'));
+    });
+
+    it('should name the tab after the app while the module has not set breadcrumbs yet', async () => {
+        renderShellAt('/environments/env-1/apim', null);
+
+        await waitFor(() => expect(document.title).toBe('API Management · Gravitee Gamma'));
+    });
+
+    it('should leave the Home app out of host page titles', async () => {
+        renderShellAt('/environments/env-1/tasks', <PageWithBreadcrumbs labels={['Tasks']} />);
+
+        await waitFor(() => expect(document.title).toBe('Tasks · Gravitee Gamma'));
+    });
+
+    it('should follow in-app navigation without remounting the shell', async () => {
+        let navigate!: NavigateFunction;
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/apim']}>
+                <NavigateHandle onReady={n => (navigate = n)} />
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES} />}>
+                        <Route path="apim/*" element={<PageWithBreadcrumbs labels={['API Proxies']} />} />
+                        <Route path="tasks" element={<PageWithBreadcrumbs labels={['Tasks']} />} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+        await waitFor(() => expect(document.title).toBe('API Proxies · API Management · Gravitee Gamma'));
+
+        act(() => navigate('/environments/env-1/tasks'));
+
+        await waitFor(() => expect(document.title).toBe('Tasks · Gravitee Gamma'));
+    });
+
+    it('should restore the previous title when the shell goes away', async () => {
+        const { unmount } = renderShellAt('/environments/env-1/apim', <PageWithBreadcrumbs labels={['API Proxies']} />);
+        await waitFor(() => expect(document.title).toBe('API Proxies · API Management · Gravitee Gamma'));
+
+        unmount();
+
+        expect(document.title).toBe('Gravitee Gamma');
     });
 });
