@@ -132,7 +132,8 @@ public class ApiTagServiceImplTest {
     }
 
     @Test
-    public void shouldMarkTheAuditWhenDeletingTagsFromV4ApiHoldingAnEncryptedProperty() throws TechnicalException, JsonProcessingException {
+    public void should_mark_the_audit_when_removing_a_tag_from_a_v4_api_holding_an_encrypted_property()
+        throws TechnicalException, JsonProcessingException {
         final ExecutionContext executionContext = new ExecutionContext("DEFAULT", null);
 
         final EnvironmentEntity environment = new EnvironmentEntity();
