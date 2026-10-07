@@ -22,8 +22,10 @@ import io.gravitee.gamma.rest.core.observability.dashboard.exception.DashboardVe
 import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardContent;
+import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.VersionPrecondition;
 import io.gravitee.gamma.rest.core.observability.dashboard.port.repository.DashboardRepository;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 
@@ -63,6 +65,7 @@ import lombok.AllArgsConstructor;
 public class UpdateObservabilityDashboardUseCase {
 
     private final DashboardRepository dashboardRepository;
+    private final ObservabilityFilterValidator filterValidator;
 
     public record Input(String environmentId, String dashboardId, VersionPrecondition precondition, DashboardContent content) {}
 
@@ -70,6 +73,7 @@ public class UpdateObservabilityDashboardUseCase {
 
     public Output execute(Input input) {
         input.content().validate();
+        filterValidator.validateDashboardFilters(input.content().filters().stream().map(DashboardFilter::condition).toList());
         if (input.precondition() == null) {
             throw new InvalidDashboardException("The revision this edit is based on must be stated");
         }

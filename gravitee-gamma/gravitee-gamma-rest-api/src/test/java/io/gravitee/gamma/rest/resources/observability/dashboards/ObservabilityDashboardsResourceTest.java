@@ -28,8 +28,10 @@ import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRange;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRangeType;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import io.gravitee.gamma.rest.resource.AbstractResourceTest;
 import io.gravitee.gamma.rest.resources.observability.dashboards.ObservabilityDashboardsResourceTest.DashboardsTestConfiguration;
 import io.gravitee.gamma.rest.spring.ResourceContextConfiguration;
@@ -214,6 +216,27 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
     class CreateDashboard {
 
         @Test
+        void should_return_400_naming_a_filter_the_catalog_would_refuse_at_query_time() {
+            Response response = rootTarget()
+                .request()
+                .post(
+                    Entity.json(
+                        """
+                        {
+                          "id": "dash-new",
+                          "title": "Performance overview",
+                          "filters": [{ "name": "REQUEST_ID", "operator": "IN", "value": [], "editable": true }]
+                        }
+                        """
+                    )
+                );
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.BAD_REQUEST_400);
+            assertThat(response.readEntity(JsonNode.class).get("message").asText()).contains("REQUEST_ID");
+            assertThat(dashboardRepository.findByIdAndEnvironmentId("dash-new", ENVIRONMENT)).isEmpty();
+        }
+
+        @Test
         void should_return_201_with_location_and_the_created_dashboard() {
             Response response = rootTarget()
                 .request()
@@ -226,7 +249,7 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
                           "description": "desc",
                           "filters": [
                             { "name": "API_TYPE", "label": "API Type", "operator": "eq", "value": "MCP" },
-                            { "name": "HTTP_STATUS", "label": "Status Code", "operator": "IN", "value": [], "editable": true }
+                            { "name": "HTTP_STATUS", "label": "Status Code", "operator": "EQ", "value": [], "editable": true }
                           ],
                           "timeRange": { "type": "relative", "period": "24h" },
                           "widgets": [{ "id": "w1", "type": "metric" }]
@@ -761,6 +784,11 @@ class ObservabilityDashboardsResourceTest extends AbstractResourceTest {
         @Bean
         InMemoryDashboardRepository dashboardRepository() {
             return new InMemoryDashboardRepository();
+        }
+
+        @Bean
+        ObservabilityFilterValidator observabilityFilterValidator() {
+            return new ObservabilityFilterValidator(new SpiFilterRegistry());
         }
     }
 }
