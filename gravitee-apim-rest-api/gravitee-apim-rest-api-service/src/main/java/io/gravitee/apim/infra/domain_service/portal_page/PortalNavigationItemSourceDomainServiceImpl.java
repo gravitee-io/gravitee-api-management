@@ -69,6 +69,13 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
     /** The fields in which the fetcher plugins carry the address they fetch from. */
     private static final Pattern ADDRESS_FIELD = Pattern.compile("repository|.*[uU]rl");
 
+    /**
+     * The GitHub and Bitbucket fetchers put a repository name where the git fetcher puts an address. A value
+     * with no separator cannot designate a host, whereas anything holding one, scp-style git addresses included,
+     * is treated as an address.
+     */
+    private static final Pattern PLAIN_NAME = Pattern.compile("[A-Za-z0-9._-]+");
+
     private final FetcherConfigurationFactory fetcherConfigurationFactory;
     private final PluginManager<FetcherPlugin<?>> pluginManager;
     private final ApplicationContext applicationContext;
@@ -275,8 +282,12 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
             if (!ADDRESS_FIELD.matcher(field.getKey()).matches() || !field.getValue().isTextual()) {
                 continue;
             }
+            var address = field.getValue().textValue();
+            if (PLAIN_NAME.matcher(address).matches()) {
+                continue;
+            }
             try {
-                UrlSanitizerUtils.checkAllowed(field.getValue().textValue(), importConfiguration.getImportWhitelist(), false);
+                UrlSanitizerUtils.checkAllowed(address, importConfiguration.getImportWhitelist(), false);
             } catch (UrlForbiddenException | InvalidDataException e) {
                 throw InvalidPortalNavigationItemSourceException.sourceAddressNotAllowed(source.getSourceType());
             }

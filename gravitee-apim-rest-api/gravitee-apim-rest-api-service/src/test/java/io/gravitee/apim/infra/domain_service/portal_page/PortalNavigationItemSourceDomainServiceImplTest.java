@@ -344,6 +344,64 @@ class PortalNavigationItemSourceDomainServiceImplTest {
             );
         }
 
+        /**
+         * The GitHub and Bitbucket fetchers carry the repository name, not its address, in the same field the
+         * git fetcher uses for an address.
+         */
+        @ParameterizedTest
+        @ValueSource(strings = { "noon", "gravitee-api-management", "my_repo.v2" })
+        void should_accept_a_repository_name_next_to_an_allowed_address(String repositoryName) {
+            forbidPrivateAddresses();
+            mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
+
+            cut.validateSourceConfiguration(aGithubSource(PUBLIC_URL, repositoryName));
+        }
+
+        @Test
+        void should_accept_a_repository_name_next_to_a_whitelisted_address() {
+            forbidPrivateAddresses(PUBLIC_URL);
+            mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
+
+            cut.validateSourceConfiguration(aGithubSource(PUBLIC_URL, "noon"));
+        }
+
+        @Test
+        void should_still_reject_a_private_address_next_to_a_repository_name() {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(aGithubSource(PRIVATE_URL, "noon"))).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "git@10.0.0.1:docs.git", "ssh://git@10.0.0.1/docs.git", "10.0.0.1:docs.git", "//10.0.0.1/docs" })
+        void should_reject_a_repository_that_is_an_address_in_any_form(String repository) {
+            forbidPrivateAddresses();
+
+            assertThatThrownBy(() -> cut.validateSourceConfiguration(sourceWith("repository", repository))).isInstanceOf(
+                InvalidPortalNavigationItemSourceException.class
+            );
+        }
+
+        @Test
+        void should_fetch_from_a_stored_source_that_names_its_repository() {
+            forbidPrivateAddresses();
+            mockDummyFetcherPlugin(new DummyFetcherConfiguration("data", "secret"));
+            DummyFetcher.nextStream.set(new ByteArrayInputStream("# fetched markdown".getBytes()));
+
+            assertThat(cut.fetchContent(aGithubSource(PUBLIC_URL, "noon"))).isEqualTo("# fetched markdown");
+        }
+
+        private static PortalNavigationItemSource aGithubSource(String githubUrl, String repositoryName) {
+            return dummySource(
+                "{\"githubUrl\":\"%s\",\"owner\":\"gravitee-io\",\"repository\":\"%s\",\"branchOrTag\":\"master\"}".formatted(
+                    githubUrl,
+                    repositoryName
+                )
+            );
+        }
+
         @Test
         void should_reject_a_private_address_hidden_behind_an_allowed_one() {
             forbidPrivateAddresses();
