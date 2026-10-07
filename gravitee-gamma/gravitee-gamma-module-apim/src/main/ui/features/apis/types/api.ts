@@ -419,6 +419,7 @@ export interface ApiDetailDto {
         origin?: 'MANAGEMENT' | 'KUBERNETES';
         syncFrom?: string;
     };
+    originContext?: ApiListOriginContext;
 }
 
 export interface ApiEvent {

@@ -143,6 +143,8 @@ jest.mock('@gravitee/graphene-core', () => ({
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
+jest.mock('@gravitee/gamma-modules-sdk/routing', () => jest.requireActual('../../../../../testing/buildModuleNavPathForTests'));
+
 jest.mock('../../../context/ApiDetailContext', () => ({
     useApiDetailContext: jest.fn(),
 }));
@@ -264,12 +266,12 @@ function LocationProbe() {
     return <div data-testid="location-probe" data-pathname={pathname} />;
 }
 
-function renderPage(apiId = 'api-1', client = makeClient()) {
+function renderPage(apiId = 'api-1', client = makeClient(), hostPathPrefix = '') {
     return render(
         <QueryClientProvider client={client}>
-            <MemoryRouter initialEntries={[`/apis/${apiId}/general`]}>
+            <MemoryRouter initialEntries={[`${hostPathPrefix}/apis/${apiId}/general`]}>
                 <Routes>
-                    <Route path="apis">
+                    <Route path={`${hostPathPrefix}/apis`}>
                         <Route index element={<div data-testid="apis-list" />} />
                         <Route path=":apiId">
                             <Route path="general" element={<ApiGeneralPage />} />
@@ -329,6 +331,48 @@ describe('ApiGeneralPage', () => {
         expect(screen.queryByText('Allow in API Products')).toBeNull();
         // The Switch is the page's only checkbox outside the export/duplicate sheets, which are closed here
         expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
+    });
+
+    it('links a federated API back to the integration overview page of the integration that produced it', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: {
+                ...FEDERATED_API,
+                originContext: { origin: 'INTEGRATION', integrationId: 'int-1', integrationName: 'My Solace env' },
+            },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage('federated-api-1', makeClient(), '/environments/DEFAULT/apim');
+
+        expect(screen.getByText('Source')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'My Solace env' })).toHaveAttribute(
+            'href',
+            '/environments/DEFAULT/platform/integrations/int-1',
+        );
+    });
+
+    it('shows a dash and no link in the Source row when the integration name is unavailable', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...FEDERATED_API, originContext: { origin: 'INTEGRATION', integrationId: 'int-1' } },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage('federated-api-1');
+
+        expect(screen.getByText('Source').closest('div')).toHaveTextContent('Source—');
+        expect(screen.queryByRole('link')).toBeNull();
+    });
+
+    it.each([
+        ['an API created in the platform', { ...STUB_API, originContext: { origin: 'MANAGEMENT' } }],
+        ['an API discovered through Kubernetes', { ...STUB_API, originContext: { origin: 'KUBERNETES' } }],
+        ['a federated API missing its integration id', { ...FEDERATED_API, originContext: { origin: 'INTEGRATION' } }],
+    ])('renders no Source row and no link for %s', (_label, api) => {
+        mockUseApiDetailContext.mockReturnValue({ api, isLoading: false, permissionsReady: true });
+        renderPage(api.id);
+
+        expect(screen.queryByText('Source')).toBeNull();
+        expect(screen.queryByRole('link')).toBeNull();
     });
 
     it('keeps the Allow in API Products switch bound to the form and dirty-tracking for a natively-managed API', () => {
