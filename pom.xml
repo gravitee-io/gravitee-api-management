@@ -195,7 +195,7 @@
     <gravitee-policy-dynamic-routing.version>3.0.0</gravitee-policy-dynamic-routing.version>
     <gravitee-policy-generate-http-signature.version>2.0.0</gravitee-policy-generate-http-signature.version>
     <gravitee-policy-generate-jwt.version>1.8.0</gravitee-policy-generate-jwt.version>
-    <gravitee-policy-generate-wssecurity.version>1.0.1</gravitee-policy-generate-wssecurity.version>
+    <gravitee-policy-generate-wssecurity.version>1.0.2</gravitee-policy-generate-wssecurity.version>
     <gravitee-policy-geoip-filtering.version>2.2.3</gravitee-policy-geoip-filtering.version>
     <gravitee-policy-groovy.version>5.1.0</gravitee-policy-groovy.version>
     <gravitee-policy-html-json.version>1.6.3</gravitee-policy-html-json.version>
@@ -218,7 +218,7 @@
     <gravitee-policy-mock.version>1.15.0</gravitee-policy-mock.version>
     <gravitee-policy-mtls.version>3.0.0</gravitee-policy-mtls.version>
     <gravitee-policy-oauth2.version>6.0.0</gravitee-policy-oauth2.version>
-    <gravitee-policy-oas-validation.version>3.0.0</gravitee-policy-oas-validation.version>
+    <gravitee-policy-oas-validation.version>3.0.1</gravitee-policy-oas-validation.version>
     <gravitee-policy-openid-connect-userinfo.version>1.8.0</gravitee-policy-openid-connect-userinfo.version>
     <gravitee-policy-override-http-method.version>2.2.1</gravitee-policy-override-http-method.version>
     <!--    Version of policy-ratelimit is also used for policy-quota, policy-spikearrest,
@@ -239,7 +239,7 @@
     <gravitee-policy-traffic-shadowing.version>3.0.3</gravitee-policy-traffic-shadowing.version>
     <gravitee-policy-transform-avro-json.version>5.2.5</gravitee-policy-transform-avro-json.version>
     <gravitee-policy-transform-avro-protobuf.version>1.0.9</gravitee-policy-transform-avro-protobuf.version>
-    <gravitee-policy-transform-protobuf-json.version>2.0.1</gravitee-policy-transform-protobuf-json.version>
+    <gravitee-policy-transform-protobuf-json.version>2.0.2</gravitee-policy-transform-protobuf-json.version>
     <gravitee-policy-transformheaders.version>5.2.0</gravitee-policy-transformheaders.version>
     <gravitee-policy-transformqueryparams.version>2.0.0</gravitee-policy-transformqueryparams.version>
     <gravitee-policy-transform-status-code.version>1.0.2</gravitee-policy-transform-status-code.version>
@@ -304,11 +304,11 @@
     <gravitee-entrypoint-agent-to-agent.version>2.0.0</gravitee-entrypoint-agent-to-agent.version>
     <gravitee-entrypoint-mcp-tool-server.version>2.0.3</gravitee-entrypoint-mcp-tool-server.version>
     <gravitee-endpoint-jms.version>2.0.3</gravitee-endpoint-jms.version>
-    <gravitee-endpoint-kafka.version>6.1.5</gravitee-endpoint-kafka.version>
+    <gravitee-endpoint-kafka.version>6.1.6</gravitee-endpoint-kafka.version>
     <gravitee-endpoint-mqtt5.version>5.0.0</gravitee-endpoint-mqtt5.version>
-    <gravitee-endpoint-rabbitmq.version>4.0.0</gravitee-endpoint-rabbitmq.version>
+    <gravitee-endpoint-rabbitmq.version>4.0.1</gravitee-endpoint-rabbitmq.version>
     <gravitee-endpoint-solace.version>4.1.1</gravitee-endpoint-solace.version>
-    <gravitee-endpoint-azure-service-bus.version>2.0.2</gravitee-endpoint-azure-service-bus.version>
+    <gravitee-endpoint-azure-service-bus.version>2.0.3</gravitee-endpoint-azure-service-bus.version>
     <gravitee-endpoint-agent-to-agent.version>2.0.0</gravitee-endpoint-agent-to-agent.version>
     <gravitee-policy-graphql-rate-limit.version>1.0.2</gravitee-policy-graphql-rate-limit.version>
     <gravitee-resource-schema-registry-confluent.version>5.1.0</gravitee-resource-schema-registry-confluent.version>
@@ -316,8 +316,8 @@
     <gravitee-resource-storage-azure-blob.version>1.1.0</gravitee-resource-storage-azure-blob.version>
     <gravitee-reactor-message.version>11.0.0</gravitee-reactor-message.version>
     <gravitee-reactor-native-kafka.version>7.1.4</gravitee-reactor-native-kafka.version>
-    <gravitee-reactor-mcp-proxy.version>3.1.8</gravitee-reactor-mcp-proxy.version>
-    <gravitee-reactor-llm-proxy.version>3.3.13</gravitee-reactor-llm-proxy.version>
+    <gravitee-reactor-mcp-proxy.version>3.1.9</gravitee-reactor-mcp-proxy.version>
+    <gravitee-reactor-llm-proxy.version>3.3.14</gravitee-reactor-llm-proxy.version>
     <gravitee-reactor-a2a-proxy.version>2.1.2</gravitee-reactor-a2a-proxy.version>
     <gravitee-reactor-authz.version>1.2.1</gravitee-reactor-authz.version>
     <gravitee-reactor-edge.version>1.0.1</gravitee-reactor-edge.version>
