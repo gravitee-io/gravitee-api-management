@@ -18,8 +18,7 @@ package io.gravitee.apim.core.api.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -28,7 +27,7 @@ import static org.mockito.Mockito.when;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.read.ListAppender;
 import fixtures.core.model.ApiFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -130,14 +129,18 @@ class UpdateDynamicPropertiesUseCaseTest {
         apiStateDomainService = mock(ApiStateDomainService.class);
         auditDomainService = spy(new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()));
         environmentCrudServiceInMemory.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).build()));
-        cut = new UpdateDynamicPropertiesUseCase(
+        cut = useCaseWith(DATA_ENCRYPTOR);
+    }
+
+    private UpdateDynamicPropertiesUseCase useCaseWith(DataEncryptor dataEncryptor) {
+        return new UpdateDynamicPropertiesUseCase(
             apiCrudServiceInMemory,
             apiStateDomainService,
             environmentCrudServiceInMemory,
             auditDomainService,
             apiEventQueryServiceInMemory,
             categoryDomainService,
-            new PropertyDomainService(DATA_ENCRYPTOR)
+            new PropertyDomainService(dataEncryptor)
         );
     }
 
@@ -558,6 +561,19 @@ class UpdateDynamicPropertiesUseCaseTest {
             .build();
     }
 
+    private static List<String> logsOfPropertyDomainServiceDuring(Runnable action) {
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        Logger logger = (Logger) LoggerFactory.getLogger(PropertyDomainService.class);
+        logger.addAppender(appender);
+        try {
+            action.run();
+        } finally {
+            logger.detachAppender(appender);
+        }
+        return appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+    }
+
     private String auditPatch() {
         assertThat(auditCrudServiceInMemory.storage()).hasSize(1);
         return auditCrudServiceInMemory.storage().getFirst().getPatch();
@@ -710,14 +726,11 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
 
         @Test
-        void should_not_log_the_fetched_value_when_it_cannot_be_encrypted() {
-            Appender<ILoggingEvent> appender = mock(Appender.class);
-            Logger logger = (Logger) LoggerFactory.getLogger(PropertyDomainService.class);
-            logger.addAppender(appender);
-            try {
-                var corrupted = Property.builder().key("secret").value("not-a-ciphertext!").encrypted(true).dynamic(true).build();
-                var api = givenApi(buildApiWithProperties(List.of(corrupted, fetched("other", "v1"))));
+        void should_not_log_the_fetched_value_when_the_stored_value_cannot_be_decrypted() {
+            var corrupted = Property.builder().key("secret").value("not-a-ciphertext!").encrypted(true).dynamic(true).build();
+            var api = givenApi(buildApiWithProperties(List.of(corrupted, fetched("other", "v1"))));
 
+            var logs = logsOfPropertyDomainServiceDuring(() ->
                 cut.execute(
                     new UpdateDynamicPropertiesUseCase.Input(
                         api.getId(),
@@ -725,14 +738,39 @@ class UpdateDynamicPropertiesUseCaseTest {
                         List.of(fetched("secret", "super-secret-value"), fetched("other", "v2")),
                         false
                     )
-                );
+                )
+            );
 
-                verify(appender, atLeastOnce()).doAppend(any());
-                verify(appender, never()).doAppend(argThat(event -> event.getFormattedMessage().contains("super-secret-value")));
-                assertThat(auditPatch()).doesNotContain("super-secret-value");
-            } finally {
-                logger.detachAppender(appender);
-            }
+            assertThat(logs)
+                .isNotEmpty()
+                .noneMatch(message -> message.contains("super-secret-value"));
+            assertThat(auditPatch()).doesNotContain("super-secret-value");
+        }
+
+        @Test
+        void should_keep_the_stored_value_without_logging_nor_auditing_the_fetched_value_when_it_cannot_be_encrypted()
+            throws GeneralSecurityException {
+            var failingEncryptor = spy(DATA_ENCRYPTOR);
+            doThrow(new GeneralSecurityException("broken encryption secret")).when(failingEncryptor).encrypt(any());
+            var stored = encryptedDynamic("secret", "s3cret");
+            var api = givenApi(buildApiWithProperties(List.of(stored)));
+
+            var logs = logsOfPropertyDomainServiceDuring(() ->
+                useCaseWith(failingEncryptor).execute(
+                    new UpdateDynamicPropertiesUseCase.Input(
+                        api.getId(),
+                        HTTP_DYNAMIC_PROPERTIES,
+                        List.of(fetched("secret", "super-secret-value")),
+                        false
+                    )
+                )
+            );
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(stored);
+            assertThat(logs)
+                .isNotEmpty()
+                .noneMatch(message -> message.contains("super-secret-value"));
+            assertThat(auditCrudServiceInMemory.storage()).isEmpty();
         }
 
         private static Property encryptedDynamic(String key, String plaintext) throws GeneralSecurityException {
