@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.group.use_case;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.SoftAssertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -175,6 +176,87 @@ class ImportGroupCRDUseCaseTest {
             soft.assertThat(membersService.getGroupApplicationRole(GROUP_ID)).isEqualTo("USER");
             soft.assertThat(membersService.getGroupApiProductRole(GROUP_ID)).isEqualTo("USER");
         });
+    }
+
+    @Test
+    void should_converge_default_member_roles_on_the_declared_map() {
+        givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
+        givenRole(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "USER");
+        givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT, "USER");
+        var declared = Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER");
+
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(declared).build()));
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(declared).build()));
+
+        assertSoftly(soft -> {
+            soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isEqualTo("USER");
+            soft.assertThat(membersService.getGroupApplicationRole(GROUP_ID)).isEqualTo("USER");
+            soft.assertThat(membersService.getGroupApiProductRole(GROUP_ID)).isEqualTo("USER");
+        });
+    }
+
+    @Test
+    void should_clear_default_member_roles_absent_from_the_declared_map() {
+        givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API, "USER");
+        givenRole(io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION, "USER");
+        cut.execute(
+            new ImportGroupCRDUseCase.Input(
+                AUDIT_INFO,
+                aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER")).build()
+            )
+        );
+
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "USER")).build()));
+
+        assertSoftly(soft -> {
+            soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isEqualTo("USER");
+            soft.assertThat(membersService.getGroupApplicationRole(GROUP_ID)).isNull();
+        });
+
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of()).build()));
+
+        assertThat(membersService.getGroupApiRole(GROUP_ID)).isNull();
+    }
+
+    @Test
+    void should_leave_default_roles_untouched_when_the_map_is_not_declared() {
+        givenRole(io.gravitee.rest.api.model.permissions.RoleScope.API, "OWNER");
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().apiRole("OWNER").build()));
+
+        cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().build()));
+
+        assertThat(membersService.getGroupApiRole(GROUP_ID)).isEqualTo("OWNER");
+    }
+
+    @Test
+    void should_warn_and_clear_an_unknown_default_member_role() {
+        var result = cut.execute(
+            new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of(RoleScope.API, "UNKNOWN")).build())
+        );
+
+        assertSoftly(soft -> {
+            soft.assertThat(membersService.getGroupApiRole(GROUP_ID)).isNull();
+            soft.assertThat(result.status().getErrors().warning()).containsExactly("default api role [UNKNOWN] doesn't exist");
+        });
+    }
+
+    @Test
+    void should_reject_a_scope_that_is_not_a_group_default_role_scope() {
+        assertThatThrownBy(() ->
+            cut.execute(
+                new ImportGroupCRDUseCase.Input(AUDIT_INFO, aGroupSpec().defaultMemberRoles(Map.of(RoleScope.INTEGRATION, "USER")).build())
+            )
+        )
+            .isInstanceOf(ValidationDomainException.class)
+            .hasMessageContaining("scope [INTEGRATION] is not a group default role scope");
+    }
+
+    private static GroupCRDSpec.GroupCRDSpecBuilder aGroupSpec() {
+        return GroupCRDSpec.builder().id(GROUP_ID).name("kubernetes-spec").notifyMembers(true);
+    }
+
+    private void givenRole(io.gravitee.rest.api.model.permissions.RoleScope scope, String name) {
+        when(roleService.findByScopeAndName(scope, name, ORGANIZATION_ID)).thenReturn(Optional.of(RoleEntity.builder().name(name).build()));
     }
 
     @Test

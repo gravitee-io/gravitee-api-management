@@ -17,7 +17,9 @@ package io.gravitee.apim.core.member.domain_service;
 
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.group.model.crd.GroupCRDSpec;
+import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.apim.core.member.model.crd.MemberCRD;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -30,4 +32,10 @@ public interface CRDMembersDomainService {
     void updateGroupMembers(AuditInfo auditInfo, String groupId, Set<GroupCRDSpec.Member> members);
 
     void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, String apiRole, String applicationRole, String apiProductRole);
+
+    /**
+     * Converge the group's default roles on the declared map: each of API, APPLICATION and API_PRODUCT is set to the
+     * declared role, or cleared when the map has no entry for it.
+     */
+    void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, Map<RoleScope, String> defaultMemberRoles);
 }

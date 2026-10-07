@@ -1,0 +1,10 @@
+{
+  "hrid": "my-group",
+  "name": "my-group",
+  "notifyMembers": false,
+  "defaultMemberRoles": {
+    "API": "USER",
+    "APPLICATION": "USER",
+    "API_PRODUCT": "USER"
+  }
+}

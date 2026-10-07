@@ -44,6 +44,10 @@ public interface GroupMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "origin", expression = "java(io.gravitee.definition.model.Origin.KUBERNETES.name())")
+    @Mapping(target = "defaultMemberRoles", qualifiedByName = "declaredDefaultMemberRoles")
+    @Mapping(target = "apiRole", ignore = true)
+    @Mapping(target = "applicationRole", ignore = true)
+    @Mapping(target = "apiProductRole", ignore = true)
     GroupCRDSpec groupSpecToGroupCRDSpec(GroupSpec groupSpec);
 
     @Mapping(target = "id", ignore = true)
@@ -74,7 +78,12 @@ public interface GroupMapper {
     @Mapping(target = "memberCount", ignore = true)
     void mapSpecToState(GroupSpec spec, @MappingTarget GroupState state);
 
-    default GroupState groupToGroupState(Group group, Set<GroupCRDSpec.Member> members, ExecutionContext executionContext) {
+    default GroupState groupToGroupState(
+        Group group,
+        Set<GroupCRDSpec.Member> members,
+        Map<String, String> defaultMemberRoles,
+        ExecutionContext executionContext
+    ) {
         var state = new GroupState(
             group.getId(),
             executionContext.getEnvironmentId(),
@@ -84,6 +93,7 @@ public interface GroupMapper {
         );
         mapGroupToState(group, state);
         state.setMembers(members != null ? members.stream().map(this::memberToGroupMember).toList() : null);
+        state.setDefaultMemberRoles(defaultMemberRoles == null || defaultMemberRoles.isEmpty() ? null : defaultMemberRoles);
         return state;
     }
 
@@ -93,8 +103,18 @@ public interface GroupMapper {
     @Mapping(target = "errors", ignore = true)
     @Mapping(target = "memberCount", ignore = true)
     @Mapping(target = "members", ignore = true)
+    @Mapping(target = "defaultMemberRoles", ignore = true)
     @Mapping(target = "notifyMembers", expression = "java(!group.isDisableMembershipNotifications())")
     void mapGroupToState(Group group, @MappingTarget GroupState state);
+
+    /**
+     * The generated model initialises every map, so an omitted {@code defaultMemberRoles} cannot be told apart from {}.
+     * Both mean "not declared": the group's default roles are left untouched.
+     */
+    @Named("declaredDefaultMemberRoles")
+    default Map<RoleScope, String> declaredDefaultMemberRoles(Map<String, String> roles) {
+        return roles == null || roles.isEmpty() ? null : stringMapToRoleScopeMap(roles);
+    }
 
     @Named("stringMapToRoleScopeMap")
     default Map<RoleScope, String> stringMapToRoleScopeMap(Map<String, String> roles) {
