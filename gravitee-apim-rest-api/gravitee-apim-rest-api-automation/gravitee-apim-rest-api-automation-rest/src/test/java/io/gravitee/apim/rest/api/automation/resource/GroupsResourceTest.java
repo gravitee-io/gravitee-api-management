@@ -143,7 +143,7 @@ class GroupsResourceTest extends AbstractResourceTest {
     }
 
     @Nested
-    class DefaultMemberRoles {
+    class DefaultMemberRolesAndIgnoreMembers {
 
         @BeforeEach
         void setUp() {
@@ -195,6 +195,29 @@ class GroupsResourceTest extends AbstractResourceTest {
                 assertThat(response.getStatus()).isEqualTo(400);
                 assertThat(response.readEntity(String.class)).contains("scope [INTEGRATION] is not a group default role scope");
             }
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_pass_ignore_members_to_the_use_case(boolean dryRun) {
+            try (
+                var response = rootTarget()
+                    .queryParam("dryRun", dryRun)
+                    .queryParam("ignoreMembers", true)
+                    .request()
+                    .accept(MediaType.APPLICATION_JSON_TYPE)
+                    .put(Entity.json(readJSON("group-with-members.json")))
+            ) {
+                assertThat(response.getStatus()).isEqualTo(200);
+            }
+
+            var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
+            if (dryRun) {
+                verify(validateGroupCRDUseCase).execute(input.capture());
+            } else {
+                verify(importGroupCRDUseCase).execute(input.capture());
+            }
+            assertThat(input.getValue().spec().isIgnoreMembers()).isTrue();
         }
     }
 

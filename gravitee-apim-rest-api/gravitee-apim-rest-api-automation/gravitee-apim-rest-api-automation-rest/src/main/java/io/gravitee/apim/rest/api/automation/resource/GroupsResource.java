@@ -70,7 +70,8 @@ public class GroupsResource extends AbstractResource {
     public Response createOrUpdate(
         @Valid @NotNull GroupSpec spec,
         @QueryParam("dryRun") boolean dryRun,
-        @QueryParam("hridContainsUUID") boolean hridContainsUUID
+        @QueryParam("hridContainsUUID") boolean hridContainsUUID,
+        @QueryParam("ignoreMembers") boolean ignoreMembers
     ) {
         checkDefaultMemberRolesScopes(spec);
 
@@ -86,6 +87,8 @@ public class GroupsResource extends AbstractResource {
         }
 
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        groupCRDSpec.setIgnoreMembers(ignoreMembers);
 
         if (dryRun) {
             var status = validateGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();

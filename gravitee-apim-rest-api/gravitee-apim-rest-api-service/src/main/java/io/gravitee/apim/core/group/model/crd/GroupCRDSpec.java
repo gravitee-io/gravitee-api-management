@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.group.model.crd;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.member.model.RoleScope;
 import io.gravitee.definition.model.Origin;
@@ -58,6 +59,13 @@ public class GroupCRDSpec {
      * The flat {@code apiRole}, {@code applicationRole} and {@code apiProductRole} remain for the Management API import.
      */
     private Map<RoleScope, String> defaultMemberRoles;
+
+    /**
+     * Set by the Automation API from the {@code ignoreMembers} query parameter, never read from the payload.
+     * When true, {@code members} is not applied: the group's memberships are left as the platform holds them.
+     */
+    @JsonIgnore
+    private boolean ignoreMembers;
 
     @Builder.Default
     private String origin = Origin.KUBERNETES.name();

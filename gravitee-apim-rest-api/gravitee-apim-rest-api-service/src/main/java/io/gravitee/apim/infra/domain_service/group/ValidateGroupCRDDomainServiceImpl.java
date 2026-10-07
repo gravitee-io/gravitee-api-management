@@ -162,7 +162,7 @@ public class ValidateGroupCRDDomainServiceImpl implements ValidateGroupCRDDomain
     }
 
     private Result<SequencedSet<GroupCRDSpec.Member>> validateAndSanitizeMembers(ValidateGroupCRDDomainService.Input input) {
-        if (CollectionUtils.isEmpty(input.spec().getMembers())) {
+        if (input.spec().isIgnoreMembers() || CollectionUtils.isEmpty(input.spec().getMembers())) {
             return Result.ofBoth(new LinkedHashSet<>(), List.of());
         }
 
