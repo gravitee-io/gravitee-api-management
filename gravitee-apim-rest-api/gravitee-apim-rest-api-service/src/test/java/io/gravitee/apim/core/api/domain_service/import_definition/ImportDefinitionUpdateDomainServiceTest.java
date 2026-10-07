@@ -295,6 +295,42 @@ class ImportDefinitionUpdateDomainServiceTest {
     }
 
     @Test
+    public void should_reject_native_import_of_a_changed_plaintext_flagged_encrypted_without_auditing() throws GeneralSecurityException {
+        var baseNativeApi = ApiFixtures.aNativeApi();
+        ((NativeApi) baseNativeApi.getApiDefinitionValue()).setProperties(
+            List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build())
+        );
+        var existingApi = baseNativeApi
+            .toBuilder()
+            .id(PROMOTED_API_ID)
+            .crossId(PROMOTED_API_CROSS_ID)
+            .environmentId(TARGET_ENVIRONMENT_ID)
+            .build();
+        apiCrudServiceInMemory.initWith(List.of(existingApi));
+        apiQueryServiceInMemory.initWith(List.of(existingApi));
+        when(importDefinitionUpdateInitializer.dataEncryptor.decrypt("plaintext-from-source-env")).thenThrow(
+            new GeneralSecurityException("bad padding")
+        );
+
+        var importDefinition = ImportDefinition.builder()
+            .apiExport(
+                ApiExport.builder()
+                    .id(PROMOTED_API_ID)
+                    .crossId(PROMOTED_API_CROSS_ID)
+                    .name("updated name")
+                    .properties(List.of(Property.builder().key("secret").value("plaintext-from-source-env").encrypted(true).build()))
+                    .type(ApiType.NATIVE)
+                    .build()
+            )
+            .build();
+
+        var throwable = catchThrowable(() -> service.update(importDefinition, existingApi, AUDIT_INFO));
+
+        assertThat(throwable).isInstanceOf(ApiPropertyNotCiphertextException.class);
+        assertThat(importDefinitionUpdateInitializer.auditCrudServiceInMemory.storage()).isEmpty();
+    }
+
+    @Test
     public void should_preserve_existing_properties_when_proxy_api_updated_with_oas_import_having_no_properties() {
         List<Property> existingProperties = new ArrayList<>(
             List.of(Property.builder().key("existing-key").value("existing-value").build())
