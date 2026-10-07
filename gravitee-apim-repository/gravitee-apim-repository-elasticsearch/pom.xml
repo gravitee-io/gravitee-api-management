@@ -169,6 +169,17 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
             <scope>test</scope>
+            <!-- The BOM manages the native classifiers in runtime scope, which would ship the QUIC codec in the plugin zip -->
+            <exclusions>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-native-quic</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-codec-classes-quic</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
