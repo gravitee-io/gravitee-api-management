@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.flow.AbstractFlow;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.AbstractListener;
 import io.gravitee.definition.model.v4.nativeapi.NativeFlow;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.Collections;
@@ -105,6 +106,7 @@ public class CreatePlanDomainService {
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiId(api.getId())
+                .validation(validationOrDefault(plan))
                 .apiType(api.getType())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
@@ -133,6 +135,7 @@ public class CreatePlanDomainService {
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiId(api.getId())
+                .validation(validationOrDefault(plan))
                 .apiType(api.getType())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
@@ -170,6 +173,7 @@ public class CreatePlanDomainService {
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
                 .apiId(api.getId())
+                .validation(validationOrDefault(plan))
                 .apiType(api.getType())
                 .createdAt(TimeProvider.now())
                 .updatedAt(TimeProvider.now())
@@ -181,6 +185,20 @@ public class CreatePlanDomainService {
         createAuditLog(createdPlan, auditInfo);
 
         return new PlanWithFlows(createdPlan, flows);
+    }
+
+    /**
+     * Imports and other programmatic callers may omit the validation; persisting null breaks every later read of the plan.
+     * KEY_LESS plans need no human validation, so they default to AUTO.
+     */
+    private static Plan.PlanValidationType validationOrDefault(Plan plan) {
+        if (plan.getValidation() != null) {
+            return plan.getValidation();
+        }
+        var security = plan.getPlanSecurity();
+        return security != null && PlanSecurityType.valueOfLabel(security.getType()) == PlanSecurityType.KEY_LESS
+            ? Plan.PlanValidationType.AUTO
+            : Plan.PlanValidationType.MANUAL;
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
