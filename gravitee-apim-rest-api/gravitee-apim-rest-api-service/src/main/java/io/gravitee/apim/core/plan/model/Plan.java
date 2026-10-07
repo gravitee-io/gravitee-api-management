@@ -331,7 +331,7 @@ public class Plan implements GenericPlanEntity {
             .excludedGroups(updated.excludedGroups)
             .characteristics(updated.characteristics)
             .crossId(updated.crossId == null ? crossId : updated.crossId)
-            .validation(updated.validation)
+            .validation(updated.validation == null ? validation : updated.validation)
             .referenceId(updated.referenceId)
             .referenceType(updated.referenceType)
             .build();
