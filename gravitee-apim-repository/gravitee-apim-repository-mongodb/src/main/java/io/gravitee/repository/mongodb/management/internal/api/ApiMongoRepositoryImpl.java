@@ -70,6 +70,24 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
     }
 
     @Override
+    public List<ApiMongo> searchAfter(ApiCriteria criteria, ApiFieldFilter apiFieldFilter, String afterName, String afterId, int limit) {
+        final Query query = buildQuery(apiFieldFilter, criteria == null ? emptyList() : List.of(criteria));
+
+        if (afterId != null) {
+            query.addCriteria(
+                new Criteria().orOperator(
+                    where("name").gt(afterName),
+                    new Criteria().andOperator(where("name").is(afterName), where("id").gt(afterId))
+                )
+            );
+        }
+
+        // Same order as buildSort(null), so the {name, _id} index serves both the seek and the sort
+        query.with(buildSort(null)).limit(limit);
+        return mongoTemplate.find(query, ApiMongo.class);
+    }
+
+    @Override
     public Page<String> searchIds(List<ApiCriteria> apiCriteria, Pageable pageable, Sortable sortable) {
         Objects.requireNonNull(pageable, "Pageable must not be null");
 
