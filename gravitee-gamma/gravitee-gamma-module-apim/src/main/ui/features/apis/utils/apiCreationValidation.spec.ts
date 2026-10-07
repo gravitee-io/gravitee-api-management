@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import {
+    isCreationDraftDirty,
     validateContextPath,
     validateDetails,
     validateEntrypoints,
@@ -40,7 +41,7 @@ const BASE: ApiProxyDraft = {
     authType: 'keyless',
     apiKeyPlanName: 'Default API Key plan',
     jwtPlanName: 'Default JWT plan',
-    jwtSignature: 'RS256',
+    jwtSignature: 'RSA_RS256',
     jwtJwksResolver: 'JWKS_URL',
     jwtResolverParameter: '',
     oauth2PlanName: 'Default OAuth2 plan',
@@ -100,9 +101,67 @@ describe('validateDetails', () => {
     it('returns no errors when all required fields are filled', () => {
         expect(validateDetails(form())).toEqual({});
     });
+
+    it('rejects a name longer than 50 characters and a version longer than 32', () => {
+        expect(validateDetails(form({ apiName: 'n'.repeat(51) }))).toEqual({ apiName: 'API name must be 50 characters or fewer.' });
+        expect(validateDetails(form({ apiVersion: 'v'.repeat(33) }))).toEqual({
+            apiVersion: 'Version must be 32 characters or fewer.',
+        });
+        expect(validateDetails(form({ apiName: 'n'.repeat(50), apiVersion: 'v'.repeat(32) }))).toEqual({});
+    });
+});
+
+describe('isCreationDraftDirty', () => {
+    const clean = form({
+        apiName: '',
+        apiDescription: '',
+        apiVersion: '1.0.0',
+        targetUrl: '',
+        contextPath: '/',
+        virtualHostsEnabled: false,
+        virtualHosts: [{ id: '1', host: '', path: '/', overrideAccess: false }],
+        tcpHosts: [{ id: '1', host: '' }],
+        tcpTargetHost: '',
+        tcpTargetPort: '',
+    });
+
+    it('is false for an untouched form', () => {
+        expect(isCreationDraftDirty(clean)).toBe(false);
+    });
+
+    it('is true when the version, path, a virtual host, or a TCP field leaves the default', () => {
+        expect(isCreationDraftDirty(form({ ...clean, apiVersion: '2.0.0' }))).toBe(true);
+        expect(isCreationDraftDirty(form({ ...clean, contextPath: '/orders' }))).toBe(true);
+        expect(
+            isCreationDraftDirty(
+                form({
+                    ...clean,
+                    virtualHostsEnabled: true,
+                    virtualHosts: [{ id: '1', host: 'api.example.com', path: '/', overrideAccess: false }],
+                }),
+            ),
+        ).toBe(true);
+        expect(isCreationDraftDirty(form({ ...clean, protocol: 'TCP', tcpTargetPort: '443' }))).toBe(true);
+    });
 });
 
 describe('validateEntrypoints', () => {
+    it('accepts a non-blank target, including expression language, and rejects a blank one', () => {
+        expect(validateEntrypoints(form({ targetUrl: "{#api.properties['backend']}" }))).not.toHaveProperty('targetUrl');
+        expect(validateEntrypoints(form({ targetUrl: '  ' }))).toHaveProperty('targetUrl');
+    });
+
+    it('rejects an invalid virtual-host path with the Classic message', () => {
+        expect(
+            validateEntrypoints(
+                form({
+                    virtualHostsEnabled: true,
+                    virtualHosts: [{ id: '1', host: 'vh.example.com', path: 'no slash', overrideAccess: false }],
+                }),
+            )['virtualHosts'],
+        ).toBe('Context path is not valid.');
+    });
+
     it('returns errors for missing targetUrl and invalid path / virtual-host values', () => {
         expect(validateEntrypoints(form({ targetUrl: '' }))).toHaveProperty('targetUrl');
 
@@ -229,7 +288,19 @@ describe('validateSecurity', () => {
     it('returns no errors when auth is keyless or the plan name is filled', () => {
         expect(validateSecurity(form({ authType: 'keyless' }))).toEqual({});
         expect(validateSecurity(form({ authType: 'api-key', apiKeyPlanName: 'My Plan' }))).toEqual({});
-        expect(validateSecurity(form({ authType: 'jwt', jwtPlanName: 'My JWT Plan' }))).toEqual({});
+        expect(
+            validateSecurity(form({ authType: 'jwt', jwtPlanName: 'My JWT Plan', jwtResolverParameter: 'https://idp.example.com/jwks' })),
+        ).toEqual({});
+    });
+
+    it('requires a JWKS URL or given key for a JWT plan', () => {
+        expect(validateSecurity(form({ authType: 'jwt', jwtJwksResolver: 'JWKS_URL', jwtResolverParameter: '' }))).toEqual({
+            jwtResolverParameter: 'JWKS URL is required.',
+        });
+        expect(validateSecurity(form({ authType: 'jwt', jwtJwksResolver: 'GIVEN_KEY', jwtResolverParameter: '  ' }))).toEqual({
+            jwtResolverParameter: 'Public key is required.',
+        });
+        expect(validateSecurity(form({ authType: 'jwt', jwtJwksResolver: 'GATEWAY_KEYS', jwtResolverParameter: '' }))).toEqual({});
     });
 
     it('requires an OAuth2 provider to be selected', () => {

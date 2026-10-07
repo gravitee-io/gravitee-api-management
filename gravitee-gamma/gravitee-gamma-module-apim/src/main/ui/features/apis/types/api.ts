@@ -36,6 +36,7 @@ export interface VerifyApiHostsResponse {
 
 export interface HttpPath {
     path: string;
+    host?: string;
     overrideAccess?: boolean;
 }
 

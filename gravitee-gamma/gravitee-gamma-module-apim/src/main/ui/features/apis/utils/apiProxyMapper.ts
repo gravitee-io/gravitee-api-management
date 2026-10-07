@@ -68,7 +68,7 @@ function buildHttpListener(form: ApiProxyDraft): HttpListener {
     if (form.virtualHostsEnabled && form.virtualHosts.length > 0) {
         return {
             type: 'HTTP',
-            hosts: form.virtualHosts.map(vh => ({
+            paths: form.virtualHosts.map(vh => ({
                 host: vh.host,
                 path: vh.path,
                 overrideAccess: vh.overrideAccess,

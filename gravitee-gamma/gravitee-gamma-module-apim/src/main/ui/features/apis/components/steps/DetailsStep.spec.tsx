@@ -83,6 +83,14 @@ describe('DetailsStep — proxy kind gating', () => {
         expect(screen.getByTestId('current-protocol')).toHaveTextContent('HTTP');
     });
 
+    it('caps the name at 50 characters and the version at 32', () => {
+        mockListEntrypointPlugins.mockResolvedValue([plugin('http-proxy')]);
+        renderStep();
+
+        expect(screen.getByLabelText(/API Name/i)).toHaveAttribute('maxLength', '50');
+        expect(screen.getByLabelText(/^Version/i)).toHaveAttribute('maxLength', '32');
+    });
+
     it('fails closed once loaded: disables an option whose plugin is missing from the response entirely', async () => {
         // Only http-proxy comes back — tcp-proxy isn't in the list at all, not just deployed: false.
         mockListEntrypointPlugins.mockResolvedValue([plugin('http-proxy')]);

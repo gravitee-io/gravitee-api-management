@@ -57,9 +57,11 @@ export function useDebouncedUniquenessCheck({
     const { dispatch } = useApiCreation();
     const env = useEnvironment();
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const requestId = useRef(0);
 
     useEffect(() => {
         if (timerRef.current) clearTimeout(timerRef.current);
+        const currentRequest = ++requestId.current;
 
         dispatch({ type: 'SET_PATH_VERIFYING', value: false });
 
@@ -70,6 +72,7 @@ export function useDebouncedUniquenessCheck({
         timerRef.current = setTimeout(async () => {
             try {
                 const result = await verify(env.id);
+                if (currentRequest !== requestId.current) return;
                 if (!result.ok) {
                     dispatch({ type: 'SET_FIELD_ERROR', field, message: result.reason ?? fallbackMessage });
                 } else {
@@ -78,7 +81,9 @@ export function useDebouncedUniquenessCheck({
             } catch {
                 // Network/server error: don't block the user — backend enforces on submit.
             } finally {
-                dispatch({ type: 'SET_PATH_VERIFYING', value: false });
+                if (currentRequest === requestId.current) {
+                    dispatch({ type: 'SET_PATH_VERIFYING', value: false });
+                }
             }
         }, DEBOUNCE_MS);
 

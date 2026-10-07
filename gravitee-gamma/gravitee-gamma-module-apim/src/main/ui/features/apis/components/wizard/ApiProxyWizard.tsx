@@ -25,18 +25,26 @@ import {
     ZapIcon,
 } from '@gravitee/graphene-core/icons';
 import type { ComponentType } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { ProxyFlowVisualization } from './ProxyFlowVisualization';
 import type { StepConfig } from './StepProgress';
 import { StepProgress } from './StepProgress';
+import { ConfirmDialog } from '../../../../shared/components/ConfirmDialog';
 import { notify } from '../../../../shared/notify';
 import { useApiReviewEnabled } from '../../hooks/useApiReviewEnabled';
 import { useCreateApiProxy } from '../../hooks/useCreateApiProxy';
 import { useApiCreation } from '../../store/apiCreationStore';
 import type { ApiProxyDraft, ValidationErrors } from '../../types/apiCreation';
 import { creationButtonLabel, resolveCreationOutcome } from '../../utils/apiCreationOutcome';
-import { validateDetails, validateEntrypoints, validateEssentials, validateSecurity } from '../../utils/apiCreationValidation';
+import {
+    isCreationDraftDirty,
+    validateDetails,
+    validateEntrypoints,
+    validateEssentials,
+    validateSecurity,
+} from '../../utils/apiCreationValidation';
 import { DetailsStep } from '../steps/DetailsStep';
 import { EntrypointsStep } from '../steps/EntrypointsStep';
 import { EssentialsStep } from '../steps/EssentialsStep';
@@ -92,6 +100,7 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     const { enabled: apiReviewEnabled } = useApiReviewEnabled();
     const outcome = resolveCreationOutcome(state.form, apiReviewEnabled);
 
+    const [confirmCancel, setConfirmCancel] = useState(false);
     const steps = mode === 'scratch' ? SCRATCH_STEPS : TEMPLATE_STEPS;
     const contentMap = mode === 'scratch' ? SCRATCH_CONTENT : TEMPLATE_CONTENT;
     const validatorMap = mode === 'scratch' ? SCRATCH_VALIDATORS : TEMPLATE_VALIDATORS;
@@ -117,6 +126,10 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
     function handleBack() {
         reset();
         if (activeStep === 0) {
+            if (isCreationDraftDirty(state.form)) {
+                setConfirmCancel(true);
+                return;
+            }
             navigate('..');
         } else {
             dispatch({ type: 'CLEAR_VALIDATION_ERRORS' });
@@ -188,6 +201,16 @@ export function ApiProxyWizard({ mode }: ApiProxyWizardProps) {
                     </Button>
                 )}
             </div>
+            <ConfirmDialog
+                open={confirmCancel}
+                onOpenChange={setConfirmCancel}
+                title="Are you sure?"
+                description="You still need to create your API. If you leave this page, you will lose any info you added."
+                confirmLabel="Discard changes"
+                cancelLabel="Keep creating"
+                destructive
+                onConfirm={() => navigate('..')}
+            />
         </div>
     );
 }

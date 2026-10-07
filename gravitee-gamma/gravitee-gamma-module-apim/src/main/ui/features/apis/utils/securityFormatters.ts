@@ -87,14 +87,17 @@ export const AUTH_OPTIONS: AuthOption[] = [
     },
 ];
 
+/** Management API `PlanSecurity.configuration.signature` enum. Shared by the creation wizard and the Plans page. */
 export const JWT_SIGNATURES = [
-    { value: 'RS256', label: 'RS256 (RSA + SHA-256)' },
-    { value: 'RS384', label: 'RS384 (RSA + SHA-384)' },
-    { value: 'RS512', label: 'RS512 (RSA + SHA-512)' },
-    { value: 'HS256', label: 'HS256 (HMAC + SHA-256)' },
-    { value: 'HS384', label: 'HS384 (HMAC + SHA-384)' },
-    { value: 'HS512', label: 'HS512 (HMAC + SHA-512)' },
+    { value: 'RSA_RS256', label: 'RS256 — RSA signature with SHA-256' },
+    { value: 'RSA_RS384', label: 'RS384 — RSA signature with SHA-384' },
+    { value: 'RSA_RS512', label: 'RS512 — RSA signature with SHA-512' },
+    { value: 'HMAC_HS256', label: 'HS256 — HMAC with SHA-256' },
+    { value: 'HMAC_HS384', label: 'HS384 — HMAC with SHA-384' },
+    { value: 'HMAC_HS512', label: 'HS512 — HMAC with SHA-512' },
 ] as const;
+
+export type JwtSignature = (typeof JWT_SIGNATURES)[number]['value'];
 
 export const JWKS_RESOLVERS = [
     { value: 'GIVEN_KEY', label: 'Given key (PEM, single key)' },

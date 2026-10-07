@@ -91,7 +91,7 @@ describe('useVerifyContextPath', () => {
         expect(mockVerifyContextPath).not.toHaveBeenCalled();
     });
 
-    it('does not call the API when virtualHostsEnabled is true', async () => {
+    it('does not call the API for a virtual host until host and path are valid', async () => {
         const { result } = renderHook(() => useHook(), { wrapper });
 
         act(() => {
@@ -214,5 +214,60 @@ describe('useVerifyContextPath', () => {
 
         expect(mockVerifyContextPath).toHaveBeenCalledTimes(1);
         expect(mockVerifyContextPath).toHaveBeenCalledWith('env-1', [{ path: '/path-three' }]);
+    });
+
+    it('verifies a virtual host path together with its host', async () => {
+        const { result } = renderHook(() => useHook(), { wrapper });
+
+        act(() => {
+            result.current.dispatch({
+                type: 'UPDATE_FORM',
+                patch: {
+                    virtualHostsEnabled: true,
+                    virtualHosts: [{ id: '1', host: 'vh.example.com', path: '/vh-test', overrideAccess: false }],
+                },
+            });
+        });
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        expect(mockVerifyContextPath).toHaveBeenCalledWith('env-1', [{ path: '/vh-test', host: 'vh.example.com' }]);
+    });
+
+    it('keeps a host typed after the path check has started', async () => {
+        let resolveVerify: (result: { ok: boolean }) => void = () => undefined;
+        mockVerifyContextPath.mockImplementation(
+            () =>
+                new Promise(resolve => {
+                    resolveVerify = resolve;
+                }),
+        );
+        const { result } = renderHook(() => useHook(), { wrapper });
+
+        act(() => {
+            result.current.dispatch({
+                type: 'UPDATE_FORM',
+                patch: {
+                    virtualHostsEnabled: true,
+                    virtualHosts: [{ id: '1', host: 'old.example.com', path: '/vh-test', overrideAccess: false }],
+                },
+            });
+        });
+
+        await act(async () => {
+            jest.advanceTimersByTime(500);
+        });
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_VIRTUAL_HOST', index: 0, patch: { host: 'newer.example.com' } });
+        });
+
+        await act(async () => {
+            resolveVerify({ ok: true });
+        });
+
+        expect(result.current.state.form.virtualHosts[0]?.host).toBe('newer.example.com');
     });
 });
