@@ -160,7 +160,7 @@
     <!--    <gravitee-policy-spikearrest.version>5.0.2</gravitee-policy-spikearrest.version>    -->
     <!--
     <gravitee-policy-token-bucket-ratelimit.version>5.0.0</gravitee-policy-token-bucket-ratelimit.version>    -->
-    <gravitee-policy-ratelimit.version>5.0.2</gravitee-policy-ratelimit.version>
+    <gravitee-policy-ratelimit.version>5.0.3</gravitee-policy-ratelimit.version>
     <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
     <gravitee-policy-request-content-limit.version>1.8.1</gravitee-policy-request-content-limit.version>
     <gravitee-policy-request-validation.version>1.16.0</gravitee-policy-request-validation.version>
@@ -275,8 +275,8 @@
     <gravitee-policy-kafka-rules.version>1.1.2</gravitee-policy-kafka-rules.version>
     <gravitee-policy-kafka-namespace.version>1.0.1</gravitee-policy-kafka-namespace.version>
     <gravitee-policy-offloading.version>1.2.0</gravitee-policy-offloading.version>
-    <gravitee-policy-token-ratelimit.version>2.0.0</gravitee-policy-token-ratelimit.version>
-    <gravitee-policy-cost-ratelimit.version>2.0.0</gravitee-policy-cost-ratelimit.version>
+    <gravitee-policy-token-ratelimit.version>2.0.1</gravitee-policy-token-ratelimit.version>
+    <gravitee-policy-cost-ratelimit.version>2.0.1</gravitee-policy-cost-ratelimit.version>
     <gravitee-policy-mcp-acl.version>2.0.3</gravitee-policy-mcp-acl.version>
     <gravitee-policy-oauth2-token-exchange.version>1.0.0</gravitee-policy-oauth2-token-exchange.version>
     <gravitee-policy-pii-filtering.version>3.0.1</gravitee-policy-pii-filtering.version>
