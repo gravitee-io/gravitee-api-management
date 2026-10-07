@@ -359,4 +359,88 @@ class ObservabilityFilterValidatorTest {
                 .isEqualTo("observability.filter.repeated");
         }
     }
+
+    @Nested
+    class DashboardFilters {
+
+        @Test
+        void should_accept_an_empty_slot_on_an_analytics_filter() {
+            var conditions = List.of(
+                new FilterCondition("GATEWAY", FilterOperator.IN, List.of()),
+                new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of())
+            );
+
+            assertThatCode(() -> validator.validateDashboardFilters(conditions)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_accept_valued_analytics_filters() {
+            var conditions = List.of(
+                new FilterCondition("GATEWAY", FilterOperator.IN, List.of("gw-1", "gw-2")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("500"))
+            );
+
+            assertThatCode(() -> validator.validateDashboardFilters(conditions)).doesNotThrowAnyException();
+        }
+
+        @Test
+        void should_refuse_a_filter_the_catalog_does_not_know() {
+            var conditions = List.of(new FilterCondition("REQEUST_ID", FilterOperator.IN, List.of()));
+
+            assertThatThrownBy(() -> validator.validateDashboardFilters(conditions))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("REQEUST_ID")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.unknown_name");
+        }
+
+        // An empty slot is refused too: once a reader fills it, the dashboard page drops the value it cannot query.
+        @ParameterizedTest
+        @ValueSource(booleans = { true, false })
+        void should_refuse_a_filter_the_analytics_signal_does_not_cover(boolean valued) {
+            var conditions = List.of(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, valued ? List.of("error") : List.of()));
+
+            assertThatThrownBy(() -> validator.validateDashboardFilters(conditions))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("PAYLOAD")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.signal_mismatch");
+        }
+
+        @Test
+        void should_refuse_an_operator_the_filter_does_not_advertise_even_on_an_empty_slot() {
+            var conditions = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.IN, List.of()));
+
+            assertThatThrownBy(() -> validator.validateDashboardFilters(conditions))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.unsupported_operator");
+        }
+
+        @Test
+        void should_check_a_value_as_search_does() {
+            var conditions = List.of(new FilterCondition("HTTP_STATUS", FilterOperator.EQ, List.of("700")));
+
+            assertThatThrownBy(() -> validator.validateDashboardFilters(conditions))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.value_out_of_range");
+        }
+
+        // Unlike a search, a dashboard holds one filter per field: the library keys its chips by field.
+        @Test
+        void should_refuse_a_field_filtered_twice_even_as_a_closed_range() {
+            var conditions = List.of(
+                new FilterCondition("HTTP_STATUS", FilterOperator.GTE, List.of("400")),
+                new FilterCondition("HTTP_STATUS", FilterOperator.LTE, List.of("499"))
+            );
+
+            assertThatThrownBy(() -> validator.validateDashboardFilters(conditions))
+                .isInstanceOf(UnsupportedObservabilityFilterException.class)
+                .hasMessageContaining("HTTP_STATUS")
+                .hasMessageContaining("one filter per field")
+                .extracting("technicalCode")
+                .isEqualTo("observability.filter.repeated_on_dashboard");
+        }
+    }
 }

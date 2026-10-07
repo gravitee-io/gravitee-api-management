@@ -28,9 +28,8 @@ import java.util.Locale;
  * normalized by {@link FilterValues}; an empty array is the legal "all values" placeholder.
  * {@code editable} is a boxed {@link Boolean} defaulting to {@code false} (locked) when absent — the
  * restrictive default, which can never widen a scope by accident — then narrowed to the primitive
- * the core model carries. The name is deliberately not checked against the filter catalogue: a
- * dashboard is declarative configuration, validated at query time, and catalogue coupling would make
- * dashboards non-importable across environments.
+ * the core model carries. Only the shape is checked here; the save use cases check the filter against
+ * the catalog ({@code ObservabilityFilterValidator#validateDashboardFilters}).
  */
 public record SaveDashboardFilterDto(String name, String label, String operator, Object value, Boolean editable) {
     public DashboardFilter toCore() {

@@ -26,9 +26,15 @@ import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDash
 import io.gravitee.gamma.rest.core.observability.dashboard.inmemory.InMemoryDashboardRepository;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardContent;
+import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRange;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.TimeRangeType;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.VersionPrecondition;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
+import io.gravitee.gamma.rest.core.observability.filter.exception.UnsupportedObservabilityFilterException;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.infra.adapter.SpiFilterRegistry;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -51,7 +57,10 @@ class UpdateObservabilityDashboardUseCaseTest {
     private static final Instant NOW = Instant.parse("2026-08-07T10:00:00Z");
 
     private final InMemoryDashboardRepository dashboardRepository = new InMemoryDashboardRepository();
-    private final UpdateObservabilityDashboardUseCase useCase = new UpdateObservabilityDashboardUseCase(dashboardRepository);
+    private final UpdateObservabilityDashboardUseCase useCase = new UpdateObservabilityDashboardUseCase(
+        dashboardRepository,
+        new ObservabilityFilterValidator(new SpiFilterRegistry())
+    );
 
     @BeforeAll
     static void freezeClock() {
@@ -276,5 +285,25 @@ class UpdateObservabilityDashboardUseCaseTest {
             CREATED_AT,
             CREATED_AT
         );
+    }
+
+    @Test
+    void should_refuse_a_dashboard_filter_the_catalog_would_refuse_at_query_time() {
+        Dashboard existing = existingDashboard(3);
+        dashboardRepository.givenDashboard(existing);
+        var content = new DashboardContent(
+            "New title",
+            null,
+            List.of(new DashboardFilter(new FilterCondition("PAYLOAD", FilterOperator.CONTAINS, List.of("error")), "Payload", false)),
+            null,
+            null
+        );
+
+        assertThatThrownBy(() ->
+            useCase.execute(new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(3), content))
+        )
+            .isInstanceOf(UnsupportedObservabilityFilterException.class)
+            .hasMessageContaining("PAYLOAD");
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).contains(existing);
     }
 }

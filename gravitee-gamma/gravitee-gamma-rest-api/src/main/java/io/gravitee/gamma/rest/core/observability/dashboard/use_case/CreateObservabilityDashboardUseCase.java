@@ -19,7 +19,9 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardContent;
+import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter;
 import io.gravitee.gamma.rest.core.observability.dashboard.port.repository.DashboardRepository;
+import io.gravitee.gamma.rest.core.observability.filter.domain_service.ObservabilityFilterValidator;
 import java.time.Instant;
 import lombok.AllArgsConstructor;
 
@@ -39,6 +41,7 @@ public class CreateObservabilityDashboardUseCase {
     private static final int INITIAL_VERSION = 1;
 
     private final DashboardRepository dashboardRepository;
+    private final ObservabilityFilterValidator filterValidator;
 
     public record Input(String environmentId, String createdBy, String dashboardId, DashboardContent content) {}
 
@@ -46,6 +49,7 @@ public class CreateObservabilityDashboardUseCase {
 
     public Output execute(Input input) {
         input.content().validate();
+        filterValidator.validateDashboardFilters(input.content().filters().stream().map(DashboardFilter::condition).toList());
         Instant now = TimeProvider.instantNow();
         Dashboard dashboard = new Dashboard(
             input.dashboardId(),
