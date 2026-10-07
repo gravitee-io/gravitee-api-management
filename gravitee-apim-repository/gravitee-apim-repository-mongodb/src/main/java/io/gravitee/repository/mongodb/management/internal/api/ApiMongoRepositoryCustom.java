@@ -32,6 +32,13 @@ public interface ApiMongoRepositoryCustom {
     Page<ApiMongo> search(ApiCriteria criteria, Sortable sortable, Pageable pageable, ApiFieldFilter apiFieldFilter);
 
     /**
+     * Keyset page of the default API order ({@code name}, then {@code _id}): the APIs strictly after the given
+     * {@code (afterName, afterId)} position, or the first page when {@code afterId} is {@code null}.
+     * Unlike an offset page, its cost does not grow with the page number and it needs no count.
+     */
+    List<ApiMongo> searchAfter(ApiCriteria criteria, ApiFieldFilter apiFieldFilter, String afterName, String afterId, int limit);
+
+    /**
      * Find ids of APIs matching the given criteria.
      *
      * @param apiCriteria the search criteria
