@@ -48,6 +48,7 @@ public interface GroupMapper {
     @Mapping(target = "apiRole", ignore = true)
     @Mapping(target = "applicationRole", ignore = true)
     @Mapping(target = "apiProductRole", ignore = true)
+    @Mapping(target = "ignoreMembers", ignore = true)
     GroupCRDSpec groupSpecToGroupCRDSpec(GroupSpec groupSpec);
 
     @Mapping(target = "id", ignore = true)

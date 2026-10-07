@@ -251,6 +251,22 @@ class ImportGroupCRDUseCaseTest {
             .hasMessageContaining("scope [INTEGRATION] is not a group default role scope");
     }
 
+    @Test
+    void should_not_touch_members_when_ignoring_members() {
+        var spec = aGroupSpec()
+            .ignoreMembers(true)
+            .members(new LinkedHashSet<>(Set.of(GroupCRDSpec.Member.builder().source("memory").sourceId("unknown").build())));
+
+        var result = cut.execute(new ImportGroupCRDUseCase.Input(AUDIT_INFO, spec.build()));
+
+        assertSoftly(soft -> {
+            soft.assertThat(membersService.getGroupMembers(GROUP_ID)).isEmpty();
+            soft.assertThat(result.status().getMembers()).isZero();
+            soft.assertThat(result.status().getErrors().warning()).isEmpty();
+            soft.assertThat(groupCrudService.storage().get(GROUP_ID).getName()).isEqualTo("kubernetes-spec");
+        });
+    }
+
     private static GroupCRDSpec.GroupCRDSpecBuilder aGroupSpec() {
         return GroupCRDSpec.builder().id(GROUP_ID).name("kubernetes-spec").notifyMembers(true);
     }
