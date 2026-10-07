@@ -124,16 +124,37 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     }
 
     @Test
-    void should_return_400_when_api_is_already_listed_even_by_an_unpublished_listing() {
+    void should_return_400_when_api_is_already_published() {
         var section = aSection("APIs");
         var listing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
         listing.setEnvironmentId(ENVIRONMENT);
-        listing.setPublished(false);
+        listing.updateParent(section);
         portalNavigationItemCrudService.initWith(List.of(section, listing));
 
         Response response = publishTo(section.getId());
 
         assertThat(response).hasStatus(BAD_REQUEST_400);
+        assertThat(portalNavigationItemCrudService.storage()).hasSize(2);
+    }
+
+    @Test
+    void should_publish_by_reusing_a_listing_the_portal_editor_left_hidden() {
+        var section = aSection("APIs");
+        var hiddenListing = PortalNavigationItemFixtures.anApi(PortalNavigationItemId.random().json(), "My API", section.getId(), API_ID);
+        hiddenListing.setEnvironmentId(ENVIRONMENT);
+        hiddenListing.updateParent(section);
+        hiddenListing.setPublished(false);
+        portalNavigationItemCrudService.initWith(List.of(section, hiddenListing));
+
+        Response response = publishTo(section.getId());
+
+        assertThat(response)
+            .hasStatus(OK_200)
+            .asEntity(ApiPortalPublication.class)
+            .satisfies(publication -> {
+                assertThat(publication.getPortalNavigationItem().getId()).isEqualTo(hiddenListing.getId().id());
+                assertThat(publication.getPortalNavigationItem().getPublished()).isTrue();
+            });
         assertThat(portalNavigationItemCrudService.storage()).hasSize(2);
     }
 
@@ -210,6 +231,7 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
     private static PortalNavigationFolder aSection(String title) {
         var section = PortalNavigationItemFixtures.aFolder(title);
         section.setEnvironmentId(ENVIRONMENT);
+        section.markAsRoot();
         return section;
     }
 

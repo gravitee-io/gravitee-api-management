@@ -3475,8 +3475,10 @@ paths:
                 Lists the API under the chosen section of the portal's main navigation and publishes every page,
                 folder and link the API owns, including those that were hidden individually.
 
-                The section must be one returned by `_publish-locations`. An API that is already listed, even by
-                an unpublished listing, cannot be published again: unpublish it first.
+                The section must be one returned by `_publish-locations`. When the API already has a hidden
+                listing, for example one added in the portal editor, that listing is reused: it is moved to the
+                chosen section if it is elsewhere, and made visible together with what is stored under it. An API
+                whose listing is visible is already published and cannot be published again.
 
                 User must have the API_DOCUMENTATION[CREATE] permission.
             operationId: publishApiToPortal
@@ -3494,7 +3496,7 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ApiPortalPublication"
                 "400":
-                    description: The API is already listed, or the section is not a publish location
+                    description: The API is already published, or the section is not a publish location
                     content:
                         application/json:
                             schema:
