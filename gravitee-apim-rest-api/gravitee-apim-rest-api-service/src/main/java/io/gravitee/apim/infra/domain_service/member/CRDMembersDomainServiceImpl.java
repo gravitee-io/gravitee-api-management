@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -56,6 +57,8 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
     private final MembershipService membershipService;
     private final RoleService roleService;
+
+    private static final List<RoleScope> GROUP_DEFAULT_ROLE_SCOPES = List.of(RoleScope.API, RoleScope.APPLICATION, RoleScope.API_PRODUCT);
 
     @Override
     public void updateApiMembers(AuditInfo auditInfo, String apiId, Set<MemberCRD> members) {
@@ -106,6 +109,28 @@ public class CRDMembersDomainServiceImpl implements CRDMembersDomainService {
 
         if (!StringUtils.isEmpty(apiProductRole)) {
             updateDefaultRole(executionContext, groupId, apiProductRole, RoleScope.API_PRODUCT);
+        }
+    }
+
+    @Override
+    public void updateGroupDefaultRoles(AuditInfo auditInfo, String groupId, Map<RoleScope, String> defaultMemberRoles) {
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+
+        for (var roleScope : GROUP_DEFAULT_ROLE_SCOPES) {
+            var roleName = defaultMemberRoles.get(roleScope);
+            if (StringUtils.isEmpty(roleName)) {
+                clearDefaultRole(executionContext, groupId, roleScope);
+            } else {
+                updateDefaultRole(executionContext, groupId, roleName, roleScope);
+            }
+        }
+    }
+
+    private void clearDefaultRole(ExecutionContext executionContext, String groupId, RoleScope roleScope) {
+        var referenceType = MembershipReferenceType.valueOf(roleScope.name());
+        var hasDefaultRole = !membershipService.getRoles(referenceType, null, MembershipMemberType.GROUP, groupId).isEmpty();
+        if (hasDefaultRole) {
+            membershipService.deleteReferenceMember(executionContext, referenceType, null, MembershipMemberType.GROUP, groupId);
         }
     }
 
