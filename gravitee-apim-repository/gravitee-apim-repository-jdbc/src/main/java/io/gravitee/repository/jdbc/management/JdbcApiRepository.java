@@ -214,9 +214,13 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
 
         final StringBuilder sbQuery = new StringBuilder("select distinct a.id");
 
-        if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
-            sbQuery.append(",").append(sortable.field());
+        if (sortable == null || sortable.field() == null || sortable.field().isEmpty()) {
+            // Same default order as findByCriteria: name (case-insensitive), then id.
+            // MongoDB compares names case-sensitively, so mixed-case names can come back in a different order there.
+            sortable = new SortableBuilder().field("name").setAsc(true).build();
         }
+        // "select distinct" requires the order by expression to be part of the select list
+        sbQuery.append(",").append(sortExpression(FieldUtils.toSnakeCase(sortable.field())));
         sbQuery.append(" from ").append(this.tableName).append(" a ");
         Optional<ApiCriteria> hasCategory = criteria
             .stream()
@@ -475,15 +479,17 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         return apis;
     }
 
+    private static String sortExpression(String field) {
+        if ("created_at".equals(field) || "updated_at".equals(field)) {
+            return "a." + field + " ";
+        }
+        return " lower(a." + field + ") ";
+    }
+
     private void applySortable(Sortable sortable, StringBuilder query) {
         if (sortable != null && sortable.field() != null && sortable.field().length() > 0) {
             String field = FieldUtils.toSnakeCase(sortable.field());
-            query.append("order by ");
-            if ("created_at".equals(field) || "updated_at".equals(field)) {
-                query.append("a.").append(field);
-            } else {
-                query.append(" lower(a.").append(field).append(") ");
-            }
+            query.append("order by ").append(sortExpression(field));
 
             query.append(sortable.order() == null || sortable.order().equals(Order.ASC) ? " asc " : " desc ");
             query.append(", a.id asc ");
