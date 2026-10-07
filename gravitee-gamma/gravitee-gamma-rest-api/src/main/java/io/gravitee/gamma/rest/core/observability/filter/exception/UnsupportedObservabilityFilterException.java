@@ -120,6 +120,13 @@ public class UnsupportedObservabilityFilterException extends ValidationDomainExc
         );
     }
 
+    public static UnsupportedObservabilityFilterException repeatedOnDashboard(String filterName, long count) {
+        return new UnsupportedObservabilityFilterException(
+            "Dashboard filter '" + filterName + "' appears " + count + " times. A dashboard holds one filter per field.",
+            "observability.filter.repeated_on_dashboard"
+        );
+    }
+
     public static UnsupportedObservabilityFilterException requiresDecisionRecordType(String filterName) {
         return new UnsupportedObservabilityFilterException(
             "Filter '" + filterName + "' applies to authorization decision records only: add the condition RECORD_TYPE = AUTHZ_DECISION",

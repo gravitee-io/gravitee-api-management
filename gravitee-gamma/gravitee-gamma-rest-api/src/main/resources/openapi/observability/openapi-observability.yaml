@@ -1408,14 +1408,23 @@ paths:
                         The dashboard could not be saved. The message names the problem: a missing
                         title, more than 50 widgets, a widgets payload above 1 MB, a widget with a
                         missing or duplicated `id`, a time range without the fields its `type`
-                        requires, or an unknown filter operator.
+                        requires, or a dashboard filter the catalog refuses (see `SaveDashboardFilter`).
                     content:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/Error"
-                            example:
-                                http_status: 400
-                                message: "Dashboard cannot hold more than 50 widgets"
+                            examples:
+                                too-many-widgets:
+                                    summary: Too many widgets
+                                    value:
+                                        http_status: 400
+                                        message: "Dashboard cannot hold more than 50 widgets"
+                                filter-outside-analytics:
+                                    summary: A dashboard filter no analytics query accepts
+                                    value:
+                                        http_status: 400
+                                        message: "Filter 'REQUEST_ID' does not apply to signal ANALYTICS"
+                                        technicalCode: "observability.filter.signal_mismatch"
                 "403":
                     description: The caller cannot create dashboards in this environment.
                     content:
@@ -1586,8 +1595,8 @@ paths:
                         The dashboard could not be saved. The message names the problem: an
                         `If-Match` that is not an ETag this API issued, a missing title, more than 50
                         widgets, a widgets payload above 1 MB, a widget with a missing or duplicated
-                        `id`, a time range without the fields its `type` requires, or an unknown
-                        filter operator.
+                        `id`, a time range without the fields its `type` requires, or a dashboard
+                        filter the catalog refuses (see `SaveDashboardFilter`).
                     content:
                         application/json:
                             schema:
@@ -3043,9 +3052,18 @@ components:
             description: |
                 One filter applied to every widget of the dashboard.
 
-                Filter names are accepted as given, so a dashboard can be moved between
-                environments where the available filters differ; a name that no environment
-                recognises is reported when the dashboard is queried, not when it is saved.
+                Checked against the filter catalog when the dashboard is saved, so a filter every
+                widget query would refuse is refused up front, with a 400 naming it:
+
+                - `name` is in the catalog and applies to the `ANALYTICS` signal, since a dashboard
+                  renders analytics widgets;
+                - `operator` is one the filter advertises;
+                - a non-empty `value` follows the same rules as a `FilterCondition`;
+                - a field is filtered once per dashboard, with no `GTE` + `LTE` exception
+                  (`observability.filter.repeated_on_dashboard`).
+
+                An empty `value` is the open "Any" slot a reader fills, accepted whatever `editable`
+                says. Widget filters are not checked here; each widget query checks its own.
             required: [name, operator]
             properties:
                 name:
@@ -3069,7 +3087,9 @@ components:
                 editable:
                     type: boolean
                     default: false
-                    description: Whether the viewer may change the value. Absent means `false` (locked).
+                    description: |
+                        Whether the viewer may change the value. Absent means `false`, which locks a
+                        valued filter; a filter with no value stays an open slot either way.
 
         SaveDashboardRequest:
             type: object
