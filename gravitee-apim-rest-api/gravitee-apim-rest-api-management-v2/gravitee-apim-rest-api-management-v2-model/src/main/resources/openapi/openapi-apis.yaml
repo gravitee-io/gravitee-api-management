@@ -3611,6 +3611,34 @@ paths:
                                 $ref: "#/components/schemas/Error"
                 default:
                     $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - API Documentation
+            summary: Delete a portal documentation item owned by an API
+            description: |-
+                Delete a page, a folder or a link owned by the API. Deleting a folder deletes everything below it.
+
+                The navigation item listing the API in the portal cannot be deleted here: unpublish the API instead.
+
+                User must have the API_DOCUMENTATION[DELETE] permission.
+            operationId: deleteApiPortalNavigationItem
+            responses:
+                "204":
+                    description: Portal documentation item deleted
+                "400":
+                    description: The item is fetched from an external source, or sits below one, and cannot be deleted
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The item does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:

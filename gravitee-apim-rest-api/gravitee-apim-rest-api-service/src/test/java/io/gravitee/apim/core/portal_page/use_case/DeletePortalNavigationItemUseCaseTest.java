@@ -27,6 +27,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedItemsDomainService;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
@@ -95,6 +96,35 @@ public class DeletePortalNavigationItemUseCaseTest {
 
         // Then
         assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_delete_an_api_owned_folder_with_its_contents_and_nothing_else_the_api_owns() {
+        var apiReference = new NavigationItemReference.ApiReference("api-id");
+        var folder = PortalNavigationItemFixtures.aFolder("Auth").toBuilder().reference(apiReference).order(0).build();
+        folder.markAsRoot();
+        var nestedPage = PortalNavigationItemFixtures.aPage("Setup", folder.getId()).toBuilder().reference(apiReference).build();
+        nestedPage.updateParent(folder);
+        var otherPage = PortalNavigationItemFixtures.aPage("Overview", null).toBuilder().reference(apiReference).order(1).build();
+        otherPage.markAsRoot();
+        var portalSection = PortalNavigationItemFixtures.aFolder("APIs").toBuilder().order(0).build();
+        portalSection.markAsRoot();
+        portalNavigationItemsCrudService.initWith(List.of(folder, nestedPage, otherPage, portalSection));
+
+        deletePortalNavigationItemUseCase.execute(
+            new DeletePortalNavigationItemUseCase.Input(
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                folder.getId()
+            )
+        );
+
+        assertThat(portalNavigationItemsCrudService.storage())
+            .extracting(PortalNavigationItem::getId)
+            .containsExactlyInAnyOrder(otherPage.getId(), portalSection.getId());
+        // Only the API's own siblings close the gap: the portal section keeps its position
+        assertThat(otherPage.getOrder()).isZero();
+        assertThat(portalSection.getOrder()).isZero();
     }
 
     @Test
