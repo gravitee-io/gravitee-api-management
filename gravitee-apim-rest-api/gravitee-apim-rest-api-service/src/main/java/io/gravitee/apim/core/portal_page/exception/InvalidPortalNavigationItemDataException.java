@@ -45,6 +45,10 @@ public class InvalidPortalNavigationItemDataException extends ValidationDomainEx
         );
     }
 
+    public static InvalidPortalNavigationItemDataException notAPage(String itemId) {
+        return new InvalidPortalNavigationItemDataException("The navigation item %s is not a page and has no content.".formatted(itemId));
+    }
+
     public static InvalidPortalNavigationItemDataException apiMustBeInTopNavbar() {
         return new InvalidPortalNavigationItemDataException("API items can only be added to TOP_NAVBAR area.");
     }

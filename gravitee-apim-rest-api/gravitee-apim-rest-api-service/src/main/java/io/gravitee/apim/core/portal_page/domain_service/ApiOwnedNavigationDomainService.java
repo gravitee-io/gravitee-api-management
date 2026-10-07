@@ -30,6 +30,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -150,6 +151,17 @@ public class ApiOwnedNavigationDomainService {
             throw new PortalNavigationItemNotFoundException(itemId.json());
         }
         return item;
+    }
+
+    /**
+     * A page's content has no owner of its own and is reached through the page, so that the API named in
+     * the request URL is the one the content is checked against.
+     */
+    public PortalNavigationPage requireOwnedPage(String environmentId, String apiId, PortalNavigationItemId itemId) {
+        if (requireOwnedItem(environmentId, apiId, itemId) instanceof PortalNavigationPage page) {
+            return page;
+        }
+        throw InvalidPortalNavigationItemDataException.notAPage(itemId.json());
     }
 
     /**

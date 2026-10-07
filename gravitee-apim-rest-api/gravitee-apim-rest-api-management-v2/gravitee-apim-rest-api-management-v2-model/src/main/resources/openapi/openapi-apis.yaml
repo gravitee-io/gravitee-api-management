@@ -3677,6 +3677,72 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}/content:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        get:
+            tags:
+                - API Documentation
+            summary: Get the content of a portal documentation page owned by an API
+            description: |-
+                Get the content of a page owned by the API. The content is reached through the page: no content
+                id is taken from the caller.
+
+                User must have the API_DOCUMENTATION[READ] permission.
+            operationId: getApiPortalNavigationPageContent
+            responses:
+                "200":
+                    $ref: "./openapi-environments.yaml#/components/responses/PortalPageContentResponse"
+                "400":
+                    description: The item is a folder or a link, which has no content
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The page does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - API Documentation
+            summary: Update the content of a portal documentation page owned by an API
+            description: |-
+                Save the content of a page owned by the API. The content of a page fetched from an external source,
+                or stored below a folder that is, is read-only.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: updateApiPortalNavigationPageContent
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: "./openapi-environments.yaml#/components/schemas/UpdatePortalPageContent"
+            responses:
+                "200":
+                    $ref: "./openapi-environments.yaml#/components/responses/PortalPageContentResponse"
+                "400":
+                    description: Invalid content, a read-only content, or an item that is a folder or a link
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The page does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
         parameters:

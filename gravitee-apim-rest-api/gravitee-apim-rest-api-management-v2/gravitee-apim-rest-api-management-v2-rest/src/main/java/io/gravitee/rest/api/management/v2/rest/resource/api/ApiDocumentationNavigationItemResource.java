@@ -20,12 +20,17 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.GetPortalPageContentUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UpdatePortalPageContentUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
+import io.gravitee.rest.api.management.v2.rest.mapper.PortalPageContentMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.PortalPageContent;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePortalPageContent;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -60,6 +65,12 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
     @Inject
     private FetchPortalNavigationItemUseCase fetchPortalNavigationItemUseCase;
+
+    @Inject
+    private GetPortalPageContentUseCase getPortalPageContentUseCase;
+
+    @Inject
+    private UpdatePortalPageContentUseCase updatePortalPageContentUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -135,5 +146,47 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
         var output = fetchPortalNavigationItemUseCase.execute(new FetchPortalNavigationItemUseCase.Input(environmentId, navigationItemId));
         return mapper.map(output);
+    }
+
+    @Path("content")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
+    public PortalPageContent getApiPortalNavigationPageContent(
+        @PathParam("apiId") String apiId,
+        @PathParam("navId") String navigationItemId
+    ) {
+        var page = apiOwnedNavigationDomainService.requireOwnedPage(
+            GraviteeContext.getCurrentEnvironment(),
+            apiId,
+            PortalNavigationItemId.of(navigationItemId)
+        );
+
+        var output = getPortalPageContentUseCase.execute(new GetPortalPageContentUseCase.Input(page.getPortalPageContentId()));
+        return PortalPageContentMapper.INSTANCE.map(output.content());
+    }
+
+    @Path("content")
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public PortalPageContent updateApiPortalNavigationPageContent(
+        @PathParam("apiId") String apiId,
+        @PathParam("navId") String navigationItemId,
+        @Valid @NotNull final UpdatePortalPageContent updatePortalPageContent
+    ) {
+        var environmentId = GraviteeContext.getCurrentEnvironment();
+        var page = apiOwnedNavigationDomainService.requireOwnedPage(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+
+        var output = updatePortalPageContentUseCase.execute(
+            new UpdatePortalPageContentUseCase.Input(
+                GraviteeContext.getCurrentOrganization(),
+                environmentId,
+                page.getPortalPageContentId().json(),
+                PortalPageContentMapper.INSTANCE.map(updatePortalPageContent)
+            )
+        );
+        return PortalPageContentMapper.INSTANCE.map(output.portalPageContent());
     }
 }
