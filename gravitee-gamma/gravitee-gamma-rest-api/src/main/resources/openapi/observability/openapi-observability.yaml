@@ -37,6 +37,10 @@ tags:
           entity ids as values; use the `resolve` endpoint to hydrate them into display labels.
           `ENTRYPOINT` lists the entrypoint ids present in the store, followed by the synthetic
           `(none)` value for requests recorded without an entrypoint.
+
+          An explicit `ENTRYPOINT` condition is exact on every signal: only the given values match,
+          `(none)` selecting the requests recorded without an entrypoint. Without one, each signal
+          applies its default scope, described on the *Logs* and *Analytics* tags.
     - name: Logs
       description: |
           Environment-wide log search returning light rows from the `v4-metrics` index. Results
@@ -45,9 +49,9 @@ tags:
           Filter conditions reference the shared filter catalog narrowed to the `LOGS` signal.
           Entrypoint scope: rows are returned unless their entrypoint is declared outside the logs
           scope; an entrypoint the registry does not know and a request refused before an entrypoint
-          was selected are both kept. An explicit `ENTRYPOINT` condition is exact, `(none)` selecting
-          the requests recorded without an entrypoint. Query
-          `GET /observability/filters/ENTRYPOINT/values` for the values present in your own data.
+          was selected are both kept. An explicit `ENTRYPOINT` condition is exact (see *Filters*).
+          Query `GET /observability/filters/ENTRYPOINT/values` for the values present in your own
+          data.
     - name: Analytics
       description: |
           Environment-wide analytics computation: aggregate measures, faceted breakdowns, and
@@ -58,9 +62,12 @@ tags:
           Entrypoint scope, on the request metrics: a request is counted unless its entrypoint is
           declared outside the HTTP scope; an entrypoint the registry does not know and a request
           refused before an entrypoint was selected are both counted. An explicit `ENTRYPOINT`
-          condition is exact, `(none)` selecting the requests recorded without an entrypoint. Message
+          condition is exact (see *Filters*). Message
           metrics count the messages of every connection of the API, whatever the entrypoint carried
           them, unless the query names one.
+
+          A filter condition the queried metric does not carry, such as a Kafka filter on an HTTP
+          metric, is not applied to that metric: its result is not narrowed by that condition.
 
           All three endpoints return opaque JSON produced by the APIM analytics engine — the
           response schemas below document the stable structure but additional fields may appear.
@@ -739,8 +746,8 @@ paths:
 
                 **Entrypoint scope**: without an explicit `ENTRYPOINT` condition, rows are returned
                 unless their entrypoint is declared outside the logs scope, which keeps unknown
-                entrypoints and requests refused before an entrypoint was selected; with one, only the
-                given values match, `(none)` standing for requests recorded without an entrypoint.
+                entrypoints and requests refused before an entrypoint was selected; with one, the scope
+                is exact (see the *Filters* tag).
                 The logs scope is wider than the analytics one — it serves connections the dashboards
                 leave out — so an unfiltered logs total can exceed the dashboard total on a mixed
                 environment. Not applied to decision rows, which carry no entrypoint.
@@ -1833,8 +1840,10 @@ components:
 
         FilterOperator:
             type: string
-            description: Comparison operator supported by a filter.
-            enum: [EQ, IN, NOT_IN, GTE, LTE]
+            description: |
+                Comparison operator. Each filter advertises the ones it supports in the `operators` of
+                its catalog entry; any other is refused. Read case-insensitively on input.
+            enum: [EQ, IN, GTE, LTE, CONTAINS]
 
         EnumValue:
             type: object
