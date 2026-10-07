@@ -16,23 +16,33 @@
 import { useDebouncedUniquenessCheck } from './useDebouncedUniquenessCheck';
 import { verifyContextPath } from '../services/apiProxy';
 import { useApiCreation } from '../store/apiCreationStore';
-import { validateContextPath } from '../utils/apiCreationValidation';
+import { validateContextPath, validateVirtualHostPath } from '../utils/apiCreationValidation';
 
 /**
- * Watches `form.contextPath` and, when virtual hosts are disabled, fires a
- * debounced uniqueness check against the gateway (matching legacy console
- * webui behaviour). Writes the result directly into store validation errors.
+ * Watches the context path, or each virtual host, and fires a debounced uniqueness
+ * check against `POST /apis/_verify/paths` (Classic does the same before Next).
  */
 export function useVerifyContextPath() {
     const { state, dispatch } = useApiCreation();
-    const { contextPath, virtualHostsEnabled } = state.form;
+    const { contextPath, virtualHostsEnabled, virtualHosts } = state.form;
+    const virtualHostKey = virtualHosts.map(vh => `${vh.host}\n${vh.path}`).join('\n');
+    const virtualHostsReady =
+        virtualHosts.length > 0 && virtualHosts.every(vh => vh.host.trim() !== '' && validateVirtualHostPath(vh.path) === null);
 
     useDebouncedUniquenessCheck({
-        depsKey: contextPath,
-        skip: virtualHostsEnabled || validateContextPath(contextPath) !== null,
-        field: 'contextPath',
+        depsKey: virtualHostsEnabled ? virtualHostKey : contextPath,
+        skip: virtualHostsEnabled ? !virtualHostsReady : validateContextPath(contextPath) !== null,
+        field: virtualHostsEnabled ? 'virtualHosts' : 'contextPath',
         fallbackMessage: 'This context path is already in use by another API.',
-        onVerified: () => dispatch({ type: 'UPDATE_FORM', patch: { contextPath } }),
-        verify: environmentId => verifyContextPath(environmentId, [{ path: contextPath }]),
+        onVerified: () =>
+            dispatch({
+                type: 'CLEAR_FIELD_ERROR',
+                field: virtualHostsEnabled ? 'virtualHosts' : 'contextPath',
+            }),
+        verify: environmentId =>
+            verifyContextPath(
+                environmentId,
+                virtualHostsEnabled ? virtualHosts.map(vh => ({ path: vh.path, host: vh.host })) : [{ path: contextPath }],
+            ),
     });
 }

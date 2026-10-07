@@ -16,6 +16,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { notify } from '../../../shared/notify';
 import { ApiProxyWizard } from '../components/wizard/ApiProxyWizard';
 import { ApiCreationProvider } from '../store/apiCreationStore';
 import { PROXY_TEMPLATES } from '../templates/proxyTemplates';
@@ -26,7 +27,10 @@ export function TemplateWizardPage() {
     const template = PROXY_TEMPLATES.find(t => t.id === id);
 
     useEffect(() => {
-        if (!template) navigate('..', { replace: true });
+        if (!template) {
+            notify.error('Template not found');
+            navigate('..', { replace: true });
+        }
     }, [template, navigate]);
 
     if (!template) return null;

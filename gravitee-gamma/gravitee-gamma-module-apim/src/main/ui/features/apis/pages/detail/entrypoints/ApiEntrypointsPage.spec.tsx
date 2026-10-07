@@ -319,6 +319,28 @@ describe('ApiEntrypointsPage', () => {
         );
     });
 
+    it('shows virtual hosts when the host is stored on the listener path', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: {
+                id: 'api-1',
+                name: 'VH API',
+                listeners: [
+                    {
+                        type: 'HTTP' as const,
+                        paths: [{ host: 'vh-parity.example.com', path: '/zz-parity-vhost/', overrideAccess: false }],
+                        entrypoints: [{ type: 'http-proxy' }],
+                    },
+                ],
+            },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage();
+        expect(screen.getByDisplayValue('vh-parity.example.com')).toBeInTheDocument();
+        expect(screen.getByDisplayValue('/zz-parity-vhost/')).toBeInTheDocument();
+        expect(screen.queryByText(/entrypoint context-paths/i)).not.toBeInTheDocument();
+    });
+
     it('shows virtual hosts card when API is in virtual host mode', () => {
         mockUseApiDetailContext.mockReturnValue({ api: API_WITH_VIRTUAL_HOSTS, isLoading: false, permissionsReady: true });
         renderPage();

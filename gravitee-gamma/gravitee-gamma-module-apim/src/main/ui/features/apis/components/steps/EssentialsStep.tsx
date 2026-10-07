@@ -21,6 +21,7 @@ import { SecurityPlanFields } from './SecurityPlanFields';
 import { useGatewayPrefix } from '../../hooks/useGatewayPrefix';
 import { useVerifyContextPath } from '../../hooks/useVerifyContextPath';
 import { useApiCreation } from '../../store/apiCreationStore';
+import { API_NAME_MAX_LENGTH, API_VERSION_MAX_LENGTH } from '../../utils/apiCreationValidation';
 import { AUTH_LABEL } from '../../utils/securityFormatters';
 
 export function EssentialsStep() {
@@ -52,6 +53,7 @@ export function EssentialsStep() {
                         <Input
                             id="essentials-api-name"
                             placeholder="e.g. Payment Service API"
+                            maxLength={API_NAME_MAX_LENGTH}
                             value={form.apiName}
                             onChange={e => update({ apiName: e.target.value })}
                             aria-invalid={Boolean(errors['apiName'])}
@@ -66,6 +68,7 @@ export function EssentialsStep() {
                         <Input
                             id="essentials-api-version"
                             placeholder="1.0.0"
+                            maxLength={API_VERSION_MAX_LENGTH}
                             value={form.apiVersion}
                             onChange={e => update({ apiVersion: e.target.value })}
                             aria-invalid={Boolean(errors['apiVersion'])}
@@ -137,7 +140,7 @@ export function EssentialsStep() {
                         />
                     </div>
                     {errors['targetUrl'] && <p className="text-xs text-destructive">{errors['targetUrl']}</p>}
-                    <p className="text-xs text-muted-foreground">The upstream backend the gateway will forward requests to.</p>
+                    <p className="text-xs text-muted-foreground">The target url to use to contact the backend. (Supports EL and secrets)</p>
                 </div>
 
                 {/* Security — pre-configured from template */}

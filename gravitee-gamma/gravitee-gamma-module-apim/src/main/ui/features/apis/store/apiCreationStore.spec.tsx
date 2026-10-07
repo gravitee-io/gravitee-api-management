@@ -236,6 +236,25 @@ describe('ApiCreationProvider — reducer actions', () => {
 
         expect(result.current.state.form.virtualHosts[0]!.host).toBe('api.example.com');
         expect(result.current.state.form.virtualHosts[1]!.host).toBe('');
+        expect(result.current.state.validationErrors['virtualHosts']).toBe('All virtual hosts must have a host value.');
+    });
+
+    it('UPDATE_VIRTUAL_HOST marks an invalid path immediately and clears it once the path is valid', () => {
+        const { result } = renderHook(() => useApiCreation(), { wrapper: defaultWrapper });
+
+        act(() => {
+            result.current.dispatch({
+                type: 'UPDATE_VIRTUAL_HOST',
+                index: 0,
+                patch: { host: 'api.example.com', path: 'no-slash' },
+            });
+        });
+        expect(result.current.state.validationErrors['virtualHosts']).toBe('Context path is not valid.');
+
+        act(() => {
+            result.current.dispatch({ type: 'UPDATE_VIRTUAL_HOST', index: 0, patch: { path: '/ok' } });
+        });
+        expect(result.current.state.validationErrors).not.toHaveProperty('virtualHosts');
     });
 
     it('UPDATE_FORM with protocol clears HTTP and TCP field errors but keeps others', () => {

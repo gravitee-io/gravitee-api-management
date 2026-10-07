@@ -23,6 +23,7 @@ import { policyStudioKeys } from '../../hooks/usePolicyStudioData';
 import { listEntrypointPlugins } from '../../services/policyStudioService';
 import { useApiCreation } from '../../store/apiCreationStore';
 import type { ApiProtocol } from '../../types/apiCreation';
+import { API_NAME_MAX_LENGTH, API_VERSION_MAX_LENGTH } from '../../utils/apiCreationValidation';
 
 interface ProxyKindOption {
     id: ApiProtocol;
@@ -93,6 +94,7 @@ export function DetailsStep() {
                             placeholder="e.g. Payment Service API"
                             value={form.apiName}
                             onChange={e => update({ apiName: e.target.value })}
+                            maxLength={API_NAME_MAX_LENGTH}
                             aria-invalid={Boolean(errors['apiName'])}
                         />
                         {errors['apiName'] && <p className="text-xs text-destructive">{errors['apiName']}</p>}
@@ -107,6 +109,7 @@ export function DetailsStep() {
                             placeholder="e.g. 1.0.0"
                             value={form.apiVersion}
                             onChange={e => update({ apiVersion: e.target.value })}
+                            maxLength={API_VERSION_MAX_LENGTH}
                             aria-invalid={Boolean(errors['apiVersion'])}
                         />
                         {errors['apiVersion'] && <p className="text-xs text-destructive">{errors['apiVersion']}</p>}
