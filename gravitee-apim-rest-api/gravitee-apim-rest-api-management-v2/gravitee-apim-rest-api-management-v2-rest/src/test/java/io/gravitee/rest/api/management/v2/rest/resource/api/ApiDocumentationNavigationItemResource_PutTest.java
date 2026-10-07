@@ -131,6 +131,27 @@ class ApiDocumentationNavigationItemResource_PutTest extends AbstractResourceTes
         assertThat(stored(page.getId()).getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
     }
 
+    /**
+     * With no parent in the request there is nothing to check ownership against: the item goes to the top
+     * level of whoever owns it already, so it stays documentation of the API and never becomes a portal root.
+     */
+    @Test
+    void should_move_an_item_back_to_the_top_level_of_the_api_when_no_parent_is_sent() {
+        var folder = aFolderOwnedBy(API_ID);
+        var page = aPageOwnedBy(API_ID, "Overview", 0);
+        page.updateParent(folder);
+        portalNavigationItemCrudService.initWith(List.of(folder, page));
+
+        Response response = put(page.getId(), anUpdateOf(page));
+
+        assertThat(response).hasStatus(OK_200);
+        assertThat(stored(page.getId())).satisfies(moved -> {
+            assertThat(moved.getParentId()).isNull();
+            assertThat(moved.getRootId()).isEqualTo(page.getId());
+            assertThat(moved.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
+        });
+    }
+
     @Test
     void should_reject_an_item_id_belonging_to_another_api() {
         var foreign = aPageOwnedBy(OTHER_API_ID, "Other overview", 0);
