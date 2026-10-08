@@ -35,7 +35,8 @@ export default {
     },
     resolve: {
         alias: {
-            '@gravitee/gamma-modules-sdk': gammaModulesSdkEntry,
+            // `$` keeps subpaths such as `/routing` on the real package.
+            '@gravitee/gamma-modules-sdk$': gammaModulesSdkEntry,
         },
     },
     experiments: {
