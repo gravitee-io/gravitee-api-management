@@ -372,6 +372,9 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     // which an async executor thread does not carry.
     @Override
     public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+        if (auditLogData.getPatch() != null && (auditLogData.getOldValue() != null || auditLogData.getNewValue() != null)) {
+            throw new IllegalArgumentException("An audit log takes either a patch or the values to diff, not both");
+        }
         if (auditLogData.getReferenceType() == null) {
             if (executionContext.hasEnvironmentId()) {
                 auditLogData.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);

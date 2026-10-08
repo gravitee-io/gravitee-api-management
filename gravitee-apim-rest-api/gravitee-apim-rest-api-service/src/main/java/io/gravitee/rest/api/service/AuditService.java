@@ -48,6 +48,11 @@ public interface AuditService {
         Object oldValue;
         Object newValue;
         List<String> pathsToAnonymize;
+
+        /**
+         * A patch stored as is, instead of the diff of {@code oldValue} and {@code newValue}. It is not redacted, so it must not
+         * carry a secret. It cannot be combined with {@code oldValue} or {@code newValue}.
+         */
         String patch;
     }
 

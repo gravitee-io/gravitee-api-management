@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -156,18 +158,6 @@ class AuditServiceImplTest {
             assertThat(capturedPatch()).doesNotContain("\"path\":\"/definition\"").doesNotContain("CIPHER").contains("\"path\":\"/id\"");
         }
 
-        @Test
-        void should_store_a_given_patch_instead_of_a_diff() throws Exception {
-            var patch = """
-                [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}}]""";
-            var audit = anApiAudit(null, null);
-            audit.setPatch(patch);
-
-            auditService.createAuditLog(EXECUTION_CONTEXT, audit);
-
-            assertThat(capturedPatch()).isEqualTo(patch);
-        }
-
         private static Api anApi(String definition) {
             var api = new Api();
             api.setId("api-id");
@@ -185,12 +175,6 @@ class AuditServiceImplTest {
                 .build();
         }
 
-        private String capturedPatch() throws TechnicalException {
-            var audit = ArgumentCaptor.forClass(Audit.class);
-            verify(auditRepository).create(audit.capture());
-            return audit.getValue().getPatch();
-        }
-
         private JsonNode auditedDefinition() throws Exception {
             var definitionOperation = StreamSupport.stream(mapper.readTree(capturedPatch()).spliterator(), false)
                 .filter(operation -> operation.get("path").asText().equals("/definition"))
@@ -198,6 +182,42 @@ class AuditServiceImplTest {
                 .orElseThrow();
             return mapper.readTree(definitionOperation.get("value").textValue());
         }
+    }
+
+    @Nested
+    class PrebuiltPatch {
+
+        private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("DEFAULT", "DEFAULT");
+        private static final String PATCH = """
+            [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}}]""";
+
+        @Test
+        void should_store_a_given_patch_instead_of_a_diff() throws Exception {
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().patch(PATCH).build());
+
+            assertThat(capturedPatch()).isEqualTo(PATCH);
+        }
+
+        @Test
+        void should_reject_a_given_patch_combined_with_audited_values() throws Exception {
+            var audit = anApiAudit().patch(PATCH).newValue(Map.of("key", "value")).build();
+
+            assertThatThrownBy(() -> auditService.createAuditLog(EXECUTION_CONTEXT, audit)).isInstanceOf(IllegalArgumentException.class);
+            verify(auditRepository, never()).create(any());
+        }
+
+        private static AuditService.AuditLogData.AuditLogDataBuilder anApiAudit() {
+            return AuditService.AuditLogData.builder()
+                .referenceType(Audit.AuditReferenceType.API)
+                .referenceId("api-id")
+                .event(Api.AuditEvent.API_ENCRYPTED_PROPERTIES_ACCESSED);
+        }
+    }
+
+    private String capturedPatch() throws TechnicalException {
+        var audit = ArgumentCaptor.forClass(Audit.class);
+        verify(auditRepository).create(audit.capture());
+        return audit.getValue().getPatch();
     }
 
     @Nested
