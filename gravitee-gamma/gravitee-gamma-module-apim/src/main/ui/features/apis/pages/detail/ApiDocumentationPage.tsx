@@ -36,6 +36,7 @@ import { CreatePageDialog } from '../../components/detail/documentation/CreatePa
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
+import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
 import type { ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
 import { type DocumentationRow, getPublishedSection } from '../../utils/documentationTree';
 
@@ -59,7 +60,8 @@ export function ApiDocumentationPage() {
         );
     }
 
-    return <ApiDocumentationContent apiId={apiId ?? ''} />;
+    // Keyed so that moving to another API starts from that API's own open folders.
+    return <ApiDocumentationContent key={apiId} apiId={apiId ?? ''} />;
 }
 
 // Split from the page so the list is only requested once the user is known to be allowed to read it.
@@ -69,6 +71,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const canAdd = useHasPermission({ allOf: ['api-documentation-c', 'api-documentation-u'] });
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
+    const expandedFolders = useExpandedDocumentationFolders(apiId);
     const navigate = useNavigate();
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
     // `parent` is absent for a page added at the top level.
@@ -124,6 +127,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 <DocumentationTree
                     items={items}
                     isLoading={isLoading}
+                    expandedIds={expandedFolders.expandedIds}
+                    onToggle={expandedFolders.toggle}
                     canDelete={canDelete}
                     onDelete={openDeleteDialog}
                     canAdd={canAdd}
@@ -149,7 +154,11 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 apiId={apiId}
                 parent={pageToAdd?.parent}
                 onClose={() => setPageToAdd(null)}
-                onCreated={pageId => navigate(`${pageId}/edit`)}
+                onCreated={pageId => {
+                    // So the new page shows when coming back from it.
+                    if (pageToAdd?.parent) expandedFolders.expand(pageToAdd.parent.id);
+                    navigate(`${pageId}/edit`);
+                }}
             />
         </div>
     );
