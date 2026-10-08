@@ -168,6 +168,15 @@ beforeEach(() => {
     }));
 });
 
+beforeAll(() => {
+    // The tooltips on the badges measure their trigger, which jsdom cannot do.
+    global.ResizeObserver = class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    } as typeof ResizeObserver;
+});
+
 describe('ApiDocumentationEditPage', () => {
     // The shell's default content area is only as tall as the page, so the editor could not fill the window.
     it('asks the shell for a content area as tall as the window, for the editor to fill', async () => {
@@ -226,6 +235,14 @@ describe('ApiDocumentationEditPage', () => {
             expect(await screen.findByText('Gravitee Markdown')).toBeInTheDocument();
             expect(screen.getByText('Unpublished')).toBeInTheDocument();
             expect(screen.getByText('Public')).toBeInTheDocument();
+        });
+
+        it('explains who can view the page', async () => {
+            renderPage();
+
+            await userEvent.hover(await screen.findByText('Public'));
+
+            expect((await screen.findByRole('tooltip')).textContent).toBe("Users don't need to sign in to view this page.");
         });
 
         it('edits Gravitee Markdown next to a preview of it', async () => {

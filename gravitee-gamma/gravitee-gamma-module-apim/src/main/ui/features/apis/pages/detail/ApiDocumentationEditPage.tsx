@@ -21,6 +21,7 @@ import { useDeferredValue, useEffect, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { notify } from '../../../../shared/notify';
+import { ItemAccessBadge, ItemPublishedBadge } from '../../components/detail/documentation/DocumentationItemBadges';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
@@ -174,12 +175,8 @@ function PageEditor({
                         <h1 className="min-w-0 text-balance">{page.title}</h1>
                         <div className="flex flex-wrap gap-2">
                             <Badge variant="outline">{PAGE_CONTENT_TYPE_LABELS[saved.type]}</Badge>
-                            {page.published ? <Badge variant="success">Published</Badge> : <Badge variant="outline">Unpublished</Badge>}
-                            {page.visibility === 'PRIVATE' ? (
-                                <Badge variant="secondary">Private</Badge>
-                            ) : (
-                                <Badge variant="outline">Public</Badge>
-                            )}
+                            <ItemPublishedBadge published={page.published} itemType="PAGE" />
+                            <ItemAccessBadge visibility={page.visibility} itemType="PAGE" />
                         </div>
                     </div>
                     {ancestors.length > 0 ? (

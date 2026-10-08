@@ -36,6 +36,7 @@ import {
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
 import type { ApiDocumentationItem } from '../../../types/apiDocumentation';
 import { buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
 
@@ -98,19 +99,13 @@ function buildColumns({
             id: 'status',
             header: 'Status',
             size: 120,
-            cell: ({ row }: ColCell) =>
-                row.original.item.published ? <Badge variant="success">Published</Badge> : <Badge variant="outline">Unpublished</Badge>,
+            cell: ({ row }: ColCell) => <ItemPublishedBadge published={row.original.item.published} itemType={row.original.item.type} />,
         },
         {
             id: 'access',
             header: 'Access',
             size: 120,
-            cell: ({ row }: ColCell) =>
-                row.original.item.visibility === 'PRIVATE' ? (
-                    <Badge variant="secondary">Private</Badge>
-                ) : (
-                    <Badge variant="outline">Public</Badge>
-                ),
+            cell: ({ row }: ColCell) => <ItemAccessBadge visibility={row.original.item.visibility} itemType={row.original.item.type} />,
         },
     ];
 
