@@ -98,6 +98,17 @@ const TCP_PROXY_API = {
     listeners: [{ type: 'TCP', hosts: ['orders.example.com'] }],
 };
 
+const MIXED_HTTP_TCP_API = {
+    id: 'api-1',
+    name: 'Orders mixed API',
+    definitionVersion: 'V4',
+    type: 'PROXY',
+    listeners: [
+        { type: 'HTTP', paths: [{ path: '/orders' }] },
+        { type: 'TCP', hosts: ['orders.example.com'] },
+    ],
+};
+
 const FEDERATED_API = {
     id: 'api-1',
     name: 'Federated Orders API',
@@ -183,6 +194,15 @@ describe('ApiPlansPage', () => {
         expect(screen.getByRole('button', { name: /create plan/i })).toBeInTheDocument();
         expect(screen.getAllByRole('menuitem')).toHaveLength(1);
         expect(screen.getByRole('menuitem', { name: /keyless/i })).toBeInTheDocument();
+    });
+
+    it('keeps the full plan menu when the API has both HTTP and TCP listeners', () => {
+        renderPlansPage(MIXED_HTTP_TCP_API);
+
+        expect(screen.getByRole('menuitem', { name: /api key/i })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /oauth2/i })).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', { name: /keyless/i })).toBeInTheDocument();
+        expect(screen.getAllByRole('menuitem').length).toBeGreaterThan(1);
     });
 
     it.each<[string, object | null]>([

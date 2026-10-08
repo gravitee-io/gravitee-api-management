@@ -36,13 +36,22 @@ function hasTcpEndpointGroup(api: ApiWithListeners): boolean {
     return Boolean(api.endpointGroups?.some(group => group.type === 'tcp-proxy'));
 }
 
-/** Classic console parity (`api-v4-menu.service.ts`, `api-list.component.ts` `getLabelType`). */
+export function hasTcpListener(api: ApiWithListeners | null | undefined): boolean {
+    return Boolean(api?.listeners?.some(listener => isTcpListenerType(listener.type)));
+}
+
 export function hasTcpListeners(api: ApiWithListeners | null | undefined): boolean {
     if (!api) return false;
-    if (api.listeners?.some(l => isTcpListenerType(l.type) || listenerUsesTcpProxyEntrypoint(l))) {
+    if (api.listeners?.some(listener => isTcpListenerType(listener.type) || listenerUsesTcpProxyEntrypoint(listener))) {
         return true;
     }
     return hasTcpEndpointGroup(api);
+}
+
+export function areAllListenersTcp(api: ApiWithListeners | null | undefined): boolean {
+    const listeners = api?.listeners;
+    if (!listeners?.length) return false;
+    return listeners.every(listener => isTcpListenerType(listener.type));
 }
 
 /** Classic `api-list.component.ts` `getLabelType` for V4 PROXY APIs. */

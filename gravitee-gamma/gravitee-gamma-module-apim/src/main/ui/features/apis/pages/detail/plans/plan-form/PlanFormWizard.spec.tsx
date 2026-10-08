@@ -236,6 +236,21 @@ describe('PlanFormWizard edit submit', () => {
         expect(stepLabels()).toEqual(['General', 'Restrictions']);
     });
 
+    it('omits the Restrictions step when skipRestrictions is set', async () => {
+        mockGetPlan.mockResolvedValue({ ...V4_PLAN, security: { type: 'KEY_LESS' } });
+        render(
+            <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })}>
+                <MemoryRouter initialEntries={['/apis/api-1/plans/plan-1']}>
+                    <PlanFormWizard ctx={API_CTX} securityType="KEY_LESS" planId="plan-1" skipRestrictions />
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        await screen.findByLabelText(/^Name/);
+
+        expect(stepLabels()).toEqual(['General']);
+    });
+
     it('still requires an OAuth2 resource on a natively managed OAuth2 plan', async () => {
         const user = userEvent.setup();
         renderEditWizard(V4_OAUTH2_PLAN);

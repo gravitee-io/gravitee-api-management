@@ -62,9 +62,18 @@ interface PlanFormWizardProps {
     readOnly?: boolean;
     /** Sharding tags of the parent API / API Product — a plan's tags must be a subset of these. */
     referenceTags?: string[];
+    /** Classic console skips the Restrictions step for TCP Proxy APIs. */
+    skipRestrictions?: boolean;
 }
 
-export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, referenceTags }: Readonly<PlanFormWizardProps>) {
+export function PlanFormWizard({
+    ctx,
+    securityType,
+    planId,
+    readOnly = false,
+    referenceTags,
+    skipRestrictions = false,
+}: Readonly<PlanFormWizardProps>) {
     const navigate = useNavigate();
     const isEdit = Boolean(planId);
 
@@ -105,7 +114,7 @@ export function PlanFormWizard({ ctx, securityType, planId, readOnly = false, re
     const isPending = createMutation.isPending || updateMutation.isPending;
 
     const isFederatedPlan = existingPlan?.definitionVersion === 'FEDERATED';
-    const steps = buildWizardSteps(securityType, ctx.type, stepIndex, isFederatedPlan);
+    const steps = buildWizardSteps(securityType, ctx.type, stepIndex, isFederatedPlan, skipRestrictions);
     const totalSteps = steps.length;
     const securityStepIndex = steps.findIndex(step => step.label === 'Security');
 
