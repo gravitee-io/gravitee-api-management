@@ -35,6 +35,16 @@
     @case ('NATIVE') {
       <reporter-settings-native [api]="api"></reporter-settings-native>
     }
+    @case ('AUTHZ') {
+      <reporter-settings-proxy [api]="api"></reporter-settings-proxy>
+    }
+    @default {
+      <gio-card-empty-state
+        icon="shield-alert"
+        title="Report settings not available"
+        subtitle="The reporter settings are not available for your API."
+      ></gio-card-empty-state>
+    }
   }
 } @else {
   <gio-card-empty-state

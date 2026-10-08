@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ApiType } from '../api';
+import { FlowApiType } from '../api';
 import { FlowPhase } from '../plugin';
 
 export interface SharedPolicyGroupPolicyPlugin {
@@ -24,6 +24,6 @@ export interface SharedPolicyGroupPolicyPlugin {
   description?: string;
   prerequisiteMessage?: string;
   version?: string;
-  apiType: ApiType;
+  apiType: FlowApiType;
   phase: FlowPhase;
 }

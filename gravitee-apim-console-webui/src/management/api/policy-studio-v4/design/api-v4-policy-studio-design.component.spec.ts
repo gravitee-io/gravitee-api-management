@@ -93,9 +93,6 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
 
-    (fixture.debugElement.query(By.directive(GioPolicyStudioComponent)).componentInstance as GioPolicyStudioComponent).enableSavingTimer =
-      false;
-
     httpTestingController = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
 
@@ -116,6 +113,8 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     });
 
     fixture.detectChanges();
+    (fixture.debugElement.query(By.directive(GioPolicyStudioComponent)).componentInstance as GioPolicyStudioComponent).enableSavingTimer =
+      false;
   });
 
   afterEach(() => {
@@ -814,6 +813,29 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
         expect(result).toEqual({ planIndex: 1, flowIndex: 0 });
       });
+    });
+  });
+
+  describe('AUTHZ API type', () => {
+    beforeEach(() => {
+      expectEntrypointsGetRequest([]);
+      expectEndpointsGetRequest([]);
+      expectGetPolicies();
+      expectGetSharedPolicyGroupPolicyPluginRequest(httpTestingController);
+      expectListApiPlans(API_ID, []);
+      expectGetApi(fakeProxyApiV4({ id: API_ID, type: 'AUTHZ' }));
+    });
+
+    it('should display an empty state instead of the policy studio', async () => {
+      expect(await loader.getHarnessOrNull(GioPolicyStudioHarness)).toBeNull();
+      expect(fixture.nativeElement.querySelector('gio-card-empty-state')?.textContent).toContain('Policies not available');
+    });
+
+    it('should display the policy studio again when a reload returns an API with flows', async () => {
+      routeParams$.next({ planIndex: 0, flowIndex: 0 });
+      expectPolicyStudioReload(fakeProxyApiV4({ id: API_ID }), fakePlanV4({ name: 'Keyless' }));
+
+      expect(await loader.getHarnessOrNull(GioPolicyStudioHarness)).not.toBeNull();
     });
   });
 

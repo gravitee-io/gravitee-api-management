@@ -25,11 +25,11 @@ import { GioFormFocusInvalidModule } from '@gravitee/ui-particles-angular';
 import { map, startWith } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-import { ApiV4, SharedPolicyGroup, FlowPhase, toReadableFlowPhase } from '../../../../entities/management-api-v2';
+import { FlowApiType, SharedPolicyGroup, FlowPhase, toReadableFlowPhase } from '../../../../entities/management-api-v2';
 
 export type SharedPolicyGroupAddEditDialogData =
   | {
-      apiType: ApiV4['type'];
+      apiType: FlowApiType;
     }
   | {
       sharedPolicyGroup: SharedPolicyGroup;
@@ -39,7 +39,7 @@ export type SharedPolicyGroupAddEditDialogResult =
   | undefined
   | { name: string; description?: string; prerequisiteMessage?: string; phase: FlowPhase };
 
-const PHASE_BY_API_TYPE: Record<ApiV4['type'], FlowPhase[]> = {
+const PHASE_BY_API_TYPE: Record<FlowApiType, FlowPhase[]> = {
   PROXY: ['REQUEST', 'RESPONSE'],
   A2A_PROXY: ['REQUEST', 'RESPONSE'],
   LLM_PROXY: ['REQUEST', 'RESPONSE'],
