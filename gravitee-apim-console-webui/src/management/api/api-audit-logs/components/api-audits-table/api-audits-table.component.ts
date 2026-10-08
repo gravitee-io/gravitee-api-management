@@ -16,8 +16,11 @@
 
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Audit, Pagination } from '../../../../../entities/management-api-v2';
+import { Audit, AuditProperty, Pagination } from '../../../../../entities/management-api-v2';
+import { isAuditTarget } from '../../../../../entities/audit/auditTargets';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+
+type AuditRow = Audit & { targets: AuditProperty[] };
 
 @Component({
   selector: 'api-audits-table',
@@ -33,9 +36,12 @@ export class ApiAuditsTableComponent {
     searchTerm: '',
   };
   protected total = 0;
+  protected auditRows: AuditRow[];
 
   @Input()
-  public audits: Audit[];
+  public set audits(audits: Audit[]) {
+    this.auditRows = audits?.map(audit => ({ ...audit, targets: extractTargets(audit) }));
+  }
 
   @Input()
   public isLoading: boolean;
@@ -61,4 +67,8 @@ export class ApiAuditsTableComponent {
       },
     };
   }
+}
+
+function extractTargets(audit: Audit): AuditProperty[] {
+  return (audit.properties ?? []).filter(property => isAuditTarget(property.key));
 }

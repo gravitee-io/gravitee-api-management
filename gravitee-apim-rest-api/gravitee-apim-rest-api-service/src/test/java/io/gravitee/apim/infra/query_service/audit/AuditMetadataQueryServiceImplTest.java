@@ -202,6 +202,13 @@ class AuditMetadataQueryServiceImplTest {
         public static final AuditEntity AUDIT = AuditEntity.builder().build();
         public static final String USER_ID = "user-id";
 
+        @Test
+        void should_return_the_value_for_the_encrypted_marker() {
+            var result = service.fetchPropertyMetadata(AUDIT, AuditProperties.ENCRYPTED.name(), "true");
+
+            Assertions.assertThat(result).isEqualTo("true");
+        }
+
         @Nested
         class ApiProperty {
 

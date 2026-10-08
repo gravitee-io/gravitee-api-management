@@ -328,7 +328,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             createdApi = apiRepository.create(repositoryApi);
             log.debug("API {} imported", createdApi.getId());
         } catch (TechnicalException ex) {
-            String errorMsg = String.format("An error occurs while trying to create '%s' for user '%s'", apiEntity, userId);
+            String errorMsg = String.format("An error occurs while trying to create API '%s' for user '%s'", apiEntity.getId(), userId);
             log.error(errorMsg, ex);
             throw new TechnicalManagementException(errorMsg, ex);
         }
@@ -337,7 +337,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         auditService.createApiAuditLog(
             executionContext,
             AuditService.AuditLogData.builder()
-                .properties(Collections.emptyMap())
+                .properties(EncryptedPropertyAuditProperties.of(null, apiEntity.getProperties()))
                 .event(API_CREATED)
                 .createdAt(createdApi.getCreatedAt())
                 .oldValue(null)
@@ -564,7 +564,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
-                    .properties(Collections.emptyMap())
+                    .properties(EncryptedPropertyAuditProperties.of(existingApiEntity.getProperties(), updateApiEntity.getProperties()))
                     .event(API_UPDATED)
                     .createdAt(updatedApi.getUpdatedAt())
                     .oldValue(apiToUpdate)
@@ -743,7 +743,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             auditService.createApiAuditLog(
                 executionContext,
                 AuditService.AuditLogData.builder()
-                    .properties(Collections.emptyMap())
+                    .properties(EncryptedPropertyAuditProperties.of(apiEntity.getProperties(), null))
                     .event(API_DELETED)
                     .createdAt(new Date())
                     .oldValue(api)

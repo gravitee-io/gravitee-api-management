@@ -55,6 +55,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.property.EncryptableProperty;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -391,6 +392,75 @@ public class UpdateNativeApiUseCaseTest {
         assertThat(apiCrudService.get(existingApi.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
             Property.builder().key("secret").value("ciphertext").encrypted(true).build()
         );
+        assertThat(auditCrudService.storage()).isEmpty();
+    }
+
+    @Test
+    void should_not_audit_the_value_of_an_encrypted_property_and_mark_the_entry() throws GeneralSecurityException {
+        var existingApi = ApiFixtures.aNativeApi();
+        apiCrudService.initWith(List.of(existingApi));
+        when(dataEncryptor.encrypt("plain-secret")).thenReturn("ciphertext");
+        givenValidationKeepsTheUpdatedApi();
+        var apiToUpdate = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(List.of(EncryptableProperty.builder().key("secret").value("plain-secret").encryptable(true).build()))
+            .build();
+
+        cut.execute(
+            new UpdateNativeApiUseCase.Input(
+                apiToUpdate,
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")
+            )
+        );
+
+        var audit = auditCrudService.storage().getFirst();
+        assertThat(audit.getPatch()).doesNotContain("ciphertext").doesNotContain("plain-secret");
+        assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
+    }
+
+    @Test
+    void should_not_mark_the_audit_when_no_property_is_encrypted() {
+        var existingApi = ApiFixtures.aNativeApi();
+        apiCrudService.initWith(List.of(existingApi));
+        givenValidationKeepsTheUpdatedApi();
+        var apiToUpdate = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(List.of(EncryptableProperty.builder().key("plain").value("value").build()))
+            .build();
+
+        cut.execute(
+            new UpdateNativeApiUseCase.Input(
+                apiToUpdate,
+                AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")
+            )
+        );
+
+        assertThat(auditCrudService.storage().getFirst().getProperties()).doesNotContainKey("ENCRYPTED");
+    }
+
+    @Test
+    void should_not_audit_when_encryption_fails() throws GeneralSecurityException {
+        var existingApi = ApiFixtures.aNativeApi();
+        apiCrudService.initWith(List.of(existingApi));
+        when(dataEncryptor.encrypt(any())).thenThrow(new GeneralSecurityException("broken encryption secret"));
+        givenValidationKeepsTheUpdatedApi();
+        var apiToUpdate = anUpdateNativeApi()
+            .toBuilder()
+            .id(existingApi.getId())
+            .properties(List.of(EncryptableProperty.builder().key("secret").value("plain-secret").encryptable(true).build()))
+            .build();
+
+        assertThatExceptionOfType(TechnicalDomainException.class).isThrownBy(() ->
+            cut.execute(
+                new UpdateNativeApiUseCase.Input(
+                    apiToUpdate,
+                    AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, "user-does-not-exist")
+                )
+            )
+        );
+        assertThat(auditCrudService.storage()).isEmpty();
     }
 
     @Test
@@ -438,6 +508,12 @@ public class UpdateNativeApiUseCaseTest {
 
         assertThatExceptionOfType(ApiPropertyEncryptedToPlainException.class).isThrownBy(() ->
             cut.execute(new UpdateNativeApiUseCase.Input(apiToUpdate, auditInfo))
+        );
+    }
+
+    private void givenValidationKeepsTheUpdatedApi() {
+        when(validateApiDomainService.validateAndSanitizeForUpdate(any(), any(), any(), any(), any())).thenAnswer(invocation ->
+            invocation.getArgument(1)
         );
     }
 

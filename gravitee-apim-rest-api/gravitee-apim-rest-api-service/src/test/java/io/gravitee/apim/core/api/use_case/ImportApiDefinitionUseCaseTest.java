@@ -451,6 +451,28 @@ class ImportApiDefinitionUseCaseTest {
         }
 
         @Test
+        void should_mark_the_creation_audit_when_the_definition_declares_an_encrypted_property() {
+            var definition = anApiProxyImportDefinition();
+            var importDefinition = definition
+                .toBuilder()
+                .apiExport(
+                    definition
+                        .getApiExport()
+                        .toBuilder()
+                        .properties(List.of(Property.builder().key("secret").value("ciphertext").encrypted(true).build()))
+                        .build()
+                )
+                .build();
+
+            useCase.execute(new ImportApiDefinitionUseCase.Input(importDefinition, AUDIT_INFO));
+
+            assertThat(importDefinitionCreateDomainServiceTestInitializer.auditCrudService.storage())
+                .filteredOn(audit -> audit.getEvent().equals("API_CREATED"))
+                .singleElement()
+                .satisfies(audit -> assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true"));
+        }
+
+        @Test
         void should_create_a_new_api_without_sub_entities() {
             // Given
             var importDefinition = anApiProxyImportDefinition();

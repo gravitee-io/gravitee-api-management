@@ -22,3 +22,7 @@ const CLASSIFICATION_PROPERTIES = ['ENCRYPTED'];
 export function toAuditTargets(properties: Record<string, string>, metadata: Record<string, unknown>): Record<string, string> {
   return mapValues(omit(properties, CLASSIFICATION_PROPERTIES), (value, key) => metadata[`${key}:${value}:name`] as string);
 }
+
+export function isAuditTarget(propertyKey: string): boolean {
+  return !CLASSIFICATION_PROPERTIES.includes(propertyKey);
+}
