@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.use_case;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -35,9 +36,13 @@ import io.gravitee.apim.core.membership.domain_service.ApiPortalMembershipDomain
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiProductVisibilityDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationApiVisibilityDomainService;
+import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationApiProduct;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -47,10 +52,13 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ListPortalNavigationItemsUseCaseTest {
@@ -73,27 +81,31 @@ class ListPortalNavigationItemsUseCaseTest {
         subscriptionQueryService = new SubscriptionQueryServiceInMemory();
         apiQueryService = new ApiQueryServiceInMemory();
         apiPortalSearchQueryService = new ApiPortalSearchQueryServiceInMemory();
+        apiProductAccessibleIdsDomainService = spy(
+            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
+        );
+        useCase = createUseCase();
+        queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
+    }
+
+    private ListPortalNavigationItemsUseCase createUseCase() {
         var apiMembershipDomainService = new ApiPortalMembershipDomainService(
             membershipQueryService,
             subscriptionQueryService,
             apiQueryService
         );
         var apiVisibilityDomainService = new PortalNavigationApiVisibilityDomainService(queryService, apiMembershipDomainService);
-        apiProductAccessibleIdsDomainService = spy(
-            new ApiProductAccessibleIdsDomainService(new ApiProductQueryServiceInMemory(), membershipQueryService)
-        );
         var apiProductVisibilityDomainService = new PortalNavigationApiProductVisibilityDomainService(
             queryService,
             apiProductAccessibleIdsDomainService
         );
-        useCase = new ListPortalNavigationItemsUseCase(
+        return new ListPortalNavigationItemsUseCase(
             queryService,
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiPortalSearchQueryService
+            apiPortalSearchQueryService,
+            new ApiOwnedNavigationDomainService(queryService)
         );
-
-        queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
     }
 
     @Test
@@ -1109,4 +1121,254 @@ class ListPortalNavigationItemsUseCaseTest {
             .extracting(PortalNavigationItem::getId)
             .doesNotContain(hiddenFolder.getId(), navApiRow.getId(), apiPage.getId());
     }
+
+    @ParameterizedTest
+    @MethodSource("documentationViewers")
+    void should_project_api_owned_documentation_only_under_the_standalone_row(PortalNavigationItemViewerContext viewer) {
+        queryService = spy(queryService);
+        useCase = createUseCase();
+        var fixture = seedApiListedStandaloneAndInProduct();
+
+        var items = listDocumentation(null, true, viewer);
+
+        for (var root : fixture.apiRoots()) {
+            assertThat(items)
+                .filteredOn(item -> item.getId().equals(root.getId()))
+                .singleElement()
+                .satisfies(item -> {
+                    assertThat(item.getParentId()).isEqualTo(fixture.standaloneApi().getId());
+                    assertThat(item.getRootId()).isEqualTo(fixture.catalog().getId());
+                });
+            assertThat(root.getParentId()).isNull();
+            assertThat(root.getRootId()).isEqualTo(root.getId());
+        }
+        assertThat(items)
+            .filteredOn(item -> item.getId().equals(fixture.nestedPage().getId()))
+            .hasSize(1);
+        assertThat(items).contains(fixture.productPage(), fixture.physicalApiPage(), fixture.productApi(), fixture.nestedProductApi());
+        verify(queryService).findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+            ENV_ID,
+            PortalArea.TOP_NAVBAR,
+            new NavigationItemReference.ApiReference(fixture.standaloneApi().getApiId())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("documentationViewers")
+    void should_keep_physical_product_documentation_without_querying_api_owned_documentation(PortalNavigationItemViewerContext viewer) {
+        queryService = spy(queryService);
+        useCase = createUseCase();
+        var fixture = seedApiListedStandaloneAndInProduct();
+
+        assertThat(listDocumentation(fixture.product().getId(), true, viewer)).containsExactlyInAnyOrder(
+            fixture.productFolder(),
+            fixture.productApi(),
+            fixture.nestedProductApi(),
+            fixture.productPage(),
+            fixture.physicalApiPage()
+        );
+        assertThat(listDocumentation(fixture.product().getId(), false, viewer)).containsExactlyInAnyOrder(
+            fixture.productFolder(),
+            fixture.productApi(),
+            fixture.productPage()
+        );
+        for (boolean recursive : List.of(false, true)) {
+            assertThat(listDocumentation(fixture.productFolder().getId(), recursive, viewer)).containsExactly(fixture.nestedProductApi());
+            assertThat(listDocumentation(fixture.productApi().getId(), recursive, viewer)).containsExactly(fixture.physicalApiPage());
+            assertThat(listDocumentation(fixture.nestedProductApi().getId(), recursive, viewer)).isEmpty();
+        }
+        verify(queryService, never()).findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
+            ENV_ID,
+            PortalArea.TOP_NAVBAR,
+            new NavigationItemReference.ApiReference(fixture.standaloneApi().getApiId())
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("documentationViewers")
+    void should_preserve_standalone_api_documentation_in_lazy_reads(PortalNavigationItemViewerContext viewer) {
+        var fixture = seedApiListedStandaloneAndInProduct();
+
+        assertThat(listDocumentation(fixture.standaloneApi().getId(), false, viewer))
+            .containsExactlyInAnyOrderElementsOf(fixture.apiRoots())
+            .allSatisfy(item -> assertThat(item.getParentId()).isEqualTo(fixture.standaloneApi().getId()));
+        assertThat(listDocumentation(fixture.standaloneApi().getId(), true, viewer))
+            .containsAll(fixture.apiRoots())
+            .contains(fixture.nestedPage())
+            .hasSize(4);
+    }
+
+    @Test
+    void should_refresh_product_ancestry_after_parent_changes_between_reads() {
+        var fixture = seedApiListedStandaloneAndInProduct();
+        var pageId = fixture.apiRoots().getFirst().getId();
+        var viewer = PortalNavigationItemViewerContext.forConsole();
+
+        assertThat(listDocumentation(null, true, viewer))
+            .filteredOn(item -> item.getId().equals(pageId))
+            .extracting(PortalNavigationItem::getParentId)
+            .containsExactly(fixture.standaloneApi().getId());
+
+        fixture.productFolder().updateParent(fixture.catalog());
+        assertThat(listDocumentation(null, true, viewer))
+            .filteredOn(item -> item.getId().equals(pageId))
+            .extracting(PortalNavigationItem::getParentId)
+            .containsExactlyInAnyOrder(fixture.standaloneApi().getId(), fixture.nestedProductApi().getId());
+
+        fixture.productFolder().updateParent(fixture.product());
+        assertThat(listDocumentation(null, true, viewer))
+            .filteredOn(item -> item.getId().equals(pageId))
+            .extracting(PortalNavigationItem::getParentId)
+            .containsExactly(fixture.standaloneApi().getId());
+    }
+
+    @Test
+    void should_preserve_api_documentation_when_ancestry_is_missing() {
+        var fixture = seedApiListedStandaloneAndInProduct();
+        queryService.initWith(
+            Stream.concat(fixture.apiRoots().stream(), Stream.of(fixture.productFolder(), fixture.nestedProductApi())).toList()
+        );
+
+        assertThat(
+            listDocumentation(fixture.nestedProductApi().getId(), false, PortalNavigationItemViewerContext.forConsole())
+        ).containsExactlyInAnyOrderElementsOf(fixture.apiRoots());
+    }
+
+    @Test
+    void should_reject_cyclic_ancestry_when_listing_api_documentation() {
+        var fixture = seedApiListedStandaloneAndInProduct();
+        fixture.productFolder().updateParent(fixture.productFolder());
+
+        assertThatThrownBy(() ->
+            listDocumentation(fixture.nestedProductApi().getId(), false, PortalNavigationItemViewerContext.forConsole())
+        ).isInstanceOf(InvalidPortalNavigationItemDataException.class);
+    }
+
+    private static Stream<PortalNavigationItemViewerContext> documentationViewers() {
+        return Stream.of(
+            PortalNavigationItemViewerContext.forConsole(),
+            PortalNavigationItemViewerContext.forPortal(false),
+            PortalNavigationItemViewerContext.forPortal("authenticated-user")
+        );
+    }
+
+    private List<PortalNavigationItem> listDocumentation(
+        PortalNavigationItemId parentId,
+        boolean recursive,
+        PortalNavigationItemViewerContext viewer
+    ) {
+        return useCase
+            .execute(
+                new ListPortalNavigationItemsUseCase.Input(
+                    ENV_ID,
+                    ORG_ID,
+                    PortalArea.TOP_NAVBAR,
+                    Optional.ofNullable(parentId),
+                    recursive,
+                    viewer,
+                    false
+                )
+            )
+            .items();
+    }
+
+    private DocumentationFixture seedApiListedStandaloneAndInProduct() {
+        var apiId = "shared-api-id";
+        var catalog = PortalNavigationItemFixtures.aFolder("Catalog");
+        catalog.markAsRoot();
+        var standaloneApi = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Standalone API",
+            catalog.getId(),
+            apiId
+        );
+        var product = PortalNavigationItemFixtures.anApiProduct(
+            PortalNavigationItemId.random().toString(),
+            "Product",
+            catalog.getId(),
+            "product-id"
+        );
+        var productFolder = PortalNavigationItemFixtures.aFolder("Product folder", product.getId());
+        var productApi = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Product API",
+            product.getId(),
+            apiId
+        );
+        var nestedProductApi = PortalNavigationItemFixtures.anApi(
+            PortalNavigationItemId.random().toString(),
+            "Nested product API",
+            productFolder.getId(),
+            apiId
+        );
+        var reference = new NavigationItemReference.ApiReference(apiId);
+        var page = PortalNavigationItemFixtures.aPage("API page", null).toBuilder().reference(reference).build();
+        var link = PortalNavigationLink.builder()
+            .id(PortalNavigationItemId.random())
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .title("API link")
+            .segment("api-link")
+            .area(PortalArea.TOP_NAVBAR)
+            .order(0)
+            .url("https://docs.example.com")
+            .published(true)
+            .visibility(PortalVisibility.PUBLIC)
+            .reference(reference)
+            .build();
+        var folder = PortalNavigationItemFixtures.aFolder("API folder").toBuilder().reference(reference).build();
+        var nestedPage = PortalNavigationItemFixtures.aPage("Nested API page", folder.getId()).toBuilder().reference(reference).build();
+        var productPage = PortalNavigationItemFixtures.aPage("Product documentation", product.getId());
+        var physicalApiPage = PortalNavigationItemFixtures.aPage("Physical API documentation", productApi.getId());
+        standaloneApi.updateParent(catalog);
+        product.updateParent(catalog);
+        productFolder.updateParent(product);
+        productApi.updateParent(product);
+        nestedProductApi.updateParent(productFolder);
+        Stream.of(page, link, folder).forEach(PortalNavigationItem::markAsRoot);
+        nestedPage.updateParent(folder);
+        productPage.updateParent(product);
+        physicalApiPage.updateParent(productApi);
+        queryService.initWith(
+            List.of(
+                catalog,
+                standaloneApi,
+                product,
+                productFolder,
+                productApi,
+                nestedProductApi,
+                page,
+                link,
+                folder,
+                nestedPage,
+                productPage,
+                physicalApiPage
+            )
+        );
+        return new DocumentationFixture(
+            catalog,
+            standaloneApi,
+            product,
+            productFolder,
+            productApi,
+            nestedProductApi,
+            List.of(page, link, folder),
+            nestedPage,
+            productPage,
+            physicalApiPage
+        );
+    }
+
+    private record DocumentationFixture(
+        PortalNavigationFolder catalog,
+        PortalNavigationApi standaloneApi,
+        PortalNavigationApiProduct product,
+        PortalNavigationFolder productFolder,
+        PortalNavigationApi productApi,
+        PortalNavigationApi nestedProductApi,
+        List<PortalNavigationItem> apiRoots,
+        PortalNavigationPage nestedPage,
+        PortalNavigationPage productPage,
+        PortalNavigationPage physicalApiPage
+    ) {}
 }

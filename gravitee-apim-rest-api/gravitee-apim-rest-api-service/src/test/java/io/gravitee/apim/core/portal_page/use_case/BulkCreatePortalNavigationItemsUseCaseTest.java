@@ -40,6 +40,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemCreationExpansionDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
@@ -94,7 +95,8 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             pageContentCrudService,
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            new ApiOwnedNavigationDomainService(queryService)
         );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
         defaultPageDomainService = new PortalNavigationDefaultPageDomainService(

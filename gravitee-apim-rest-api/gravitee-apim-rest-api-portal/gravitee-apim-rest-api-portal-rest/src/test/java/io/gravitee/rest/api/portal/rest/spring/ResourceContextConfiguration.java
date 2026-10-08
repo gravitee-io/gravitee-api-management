@@ -150,6 +150,7 @@ import io.gravitee.apim.core.plan.use_case.PatchPlanUseCase.PlanFlowsConverter;
 import io.gravitee.apim.core.plugin.crud_service.PolicyPluginCrudService;
 import io.gravitee.apim.core.plugin.domain_service.EndpointConnectorPluginDomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.CheckTypoToleranceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.OpenApiContentTransformer;
 import io.gravitee.apim.core.portal_page.domain_service.PortalCatalogNavigationVisibilityDomainService;
@@ -1326,7 +1327,8 @@ public class ResourceContextConfiguration {
             portalNavigationItemsQueryService,
             List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            apiPortalSearchQueryService
+            apiPortalSearchQueryService,
+            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService)
         );
     }
 

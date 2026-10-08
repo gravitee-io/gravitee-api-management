@@ -65,6 +65,7 @@ public class PortalNavigationItemDomainService {
     private final PortalPageContentQueryService pageContentQueryService;
     private final ApiCrudService apiCrudService;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
+    private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
 
     public PortalNavigationItem create(String organizationId, String environmentId, CreatePortalNavigationItem createPortalNavigationItem) {
         int sanitizedOrder = this.sanitizeOrderForInsertion(
@@ -418,7 +419,7 @@ public class PortalNavigationItemDomainService {
             parent,
             changedVisibility,
             changedPublished,
-            changedPublished != null && isInApiProductContext(parent),
+            changedPublished != null && apiOwnedNavigationDomainService.isInApiProductContext(parent.getEnvironmentId(), parent),
             new HashSet<>(),
             0
         );
@@ -486,23 +487,6 @@ public class PortalNavigationItemDomainService {
                 currentNestingLevel + 1
             );
         }
-    }
-
-    private boolean isInApiProductContext(PortalNavigationItem item) {
-        var current = item;
-        Set<PortalNavigationItemId> visited = new HashSet<>();
-        while (current != null) {
-            if (!visited.add(current.getId())) {
-                throw InvalidPortalNavigationItemDataException.cyclicParentHierarchy();
-            }
-            if (current instanceof PortalNavigationApiProduct) {
-                return true;
-            }
-            current = current.getParentId() == null
-                ? null
-                : queryService.findByIdAndEnvironmentId(item.getEnvironmentId(), current.getParentId());
-        }
-        return false;
     }
 
     private int sanitizeOrderForReordering(
