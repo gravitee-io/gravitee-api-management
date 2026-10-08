@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { lazy, type LazyExoticComponent, type ComponentType } from 'react';
+import { lazy, Suspense, type LazyExoticComponent, type ComponentType } from 'react';
 
+import { ModuleUnavailable } from './ModuleUnavailable';
+import { ContentSkeleton } from '../../../shared/components/ContentSkeleton';
+import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { useEnvironmentStore } from '../../environment/environment.store';
+import { getModuleLabel } from '../modules.labels';
 import { loadRemoteModule } from '../modules.remotes';
 import type { GammaModule } from '../modules.types';
 
@@ -25,7 +29,13 @@ export function getOrCreateLazyModule(module: GammaModule): LazyExoticComponent<
     const cacheKey = `${module.remoteName}/${module.exposedModule}`;
     let cached = lazyComponentCache.get(cacheKey);
     if (!cached) {
-        cached = lazy(() => loadRemoteModule(module));
+        cached = lazy(() =>
+            loadRemoteModule(module).catch((error: unknown) => {
+                // React keeps a failed lazy component failed: dropping it lets the next visit load the module again.
+                lazyComponentCache.delete(cacheKey);
+                throw error;
+            }),
+        );
         lazyComponentCache.set(cacheKey, cached);
     }
     return cached;
@@ -42,10 +52,26 @@ export function getOrCreateLazyModule(module: GammaModule): LazyExoticComponent<
  *
  * EnvironmentGuard only renders this once the store environment matches the URL, so the key is
  * always the environment the URL addresses.
+ *
+ * A module that cannot load or render shows a message in its own place, so the rest of the console
+ * stays usable. React Router renders every module route in the same slot, hence the boundary keyed by
+ * module: without it, the error of one module would stay on screen when the next one opens.
+ *
+ * The Suspense must stay inside the boundary: once the load settles, React retries from the closest
+ * Suspense with the same lazy component, so a failure reaches the boundary. Retrying from a Suspense
+ * above this route would render it again and create a new lazy component, the failed one being
+ * dropped from the cache, and the load would start over instead of showing the message.
  */
 export function RemoteModuleRoute({ module }: { readonly module: GammaModule }) {
     const environmentId = useEnvironmentStore(s => s.environmentId);
     const LazyModule = getOrCreateLazyModule(module);
+    const moduleName = getModuleLabel(module.id, module.name);
 
-    return <LazyModule key={environmentId} />;
+    return (
+        <ErrorBoundary key={module.id} fallback={(_error, reload) => <ModuleUnavailable moduleName={moduleName} onReload={reload} />}>
+            <Suspense fallback={<ContentSkeleton />}>
+                <LazyModule key={environmentId} />
+            </Suspense>
+        </ErrorBoundary>
+    );
 }
