@@ -35,6 +35,7 @@ import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationSourcedI
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -114,6 +115,21 @@ class FetchPortalNavigationItemUseCaseTest {
             assertThat(source).isNotNull();
             assertThat(source.getLastFetchedAt()).isNotNull();
             assertThat(source.getLastFetchError()).isNull();
+            assertThat(fetchedContentOf(page)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+        }
+
+        @Test
+        void should_refresh_a_page_owned_by_an_api_without_changing_its_owner_or_publishing_it() {
+            var apiReference = new NavigationItemReference.ApiReference("api-id");
+            var page = aPage("Sourced Page", null, aSource().build());
+            crudService.update(page.toBuilder().reference(apiReference).published(false).build());
+
+            execute(page);
+
+            var stored = queryService.findByIdAndEnvironmentId(ENV_ID, page.getId());
+            assertThat(stored.getReference()).isEqualTo(apiReference);
+            assertThat(stored.getPublished()).isFalse();
+            assertThat(stored.getParentId()).isNull();
             assertThat(fetchedContentOf(page)).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
         }
 

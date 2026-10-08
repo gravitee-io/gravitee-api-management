@@ -18,11 +18,13 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.use_case.DeletePortalNavigationItemUseCase;
+import io.gravitee.apim.core.portal_page.use_case.FetchPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.GetApiPortalNavigationItemUseCase;
 import io.gravitee.apim.core.portal_page.use_case.UpdatePortalNavigationItemUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.FetchPortalNavigationItemResponse;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -37,7 +39,9 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
@@ -53,6 +57,9 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
 
     @Inject
     private DeletePortalNavigationItemUseCase deletePortalNavigationItemUseCase;
+
+    @Inject
+    private FetchPortalNavigationItemUseCase fetchPortalNavigationItemUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -113,5 +120,20 @@ public class ApiDocumentationNavigationItemResource extends AbstractResource {
             new DeletePortalNavigationItemUseCase.Input(GraviteeContext.getCurrentOrganization(), environmentId, itemId)
         );
         return Response.noContent().build();
+    }
+
+    @Path("_fetch")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public FetchPortalNavigationItemResponse fetchApiPortalNavigationItem(
+        @PathParam("apiId") String apiId,
+        @PathParam("navId") String navigationItemId
+    ) {
+        var environmentId = GraviteeContext.getCurrentEnvironment();
+        apiOwnedNavigationDomainService.requireOwnedItem(environmentId, apiId, PortalNavigationItemId.of(navigationItemId));
+
+        var output = fetchPortalNavigationItemUseCase.execute(new FetchPortalNavigationItemUseCase.Input(environmentId, navigationItemId));
+        return mapper.map(output);
     }
 }

@@ -3640,6 +3640,43 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/{navId}/_fetch:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/portalNavigationItemIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Refresh a portal documentation item owned by an API from its external source
+            description: |-
+                Fetch the content of a page from its external source, or refresh every sourced page below a folder,
+                as the environment-level fetch does. Neither the owner nor the published state of an item changes.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: fetchApiPortalNavigationItem
+            responses:
+                "200":
+                    description: The refreshed item, or a summary when a folder was refreshed
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "./openapi-environments.yaml#/components/schemas/FetchPortalNavigationItemResponse"
+                "400":
+                    description: The item has no external source to fetch from
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                "404":
+                    description: The item does not exist or is not owned by the API
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API SpecGen
     /environments/{envId}/apis/{apiId}/spec-gen/_state:
         parameters:
