@@ -63,6 +63,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     private static final String SCAN_BATCH_SIZE = "1000";
     private static final int DELETE_BATCH_SIZE = 500;
     private static final String KEY_FIELD = "__key";
+    private static final int SEARCH_TIMEOUT_MS = 30_000;
+    private static final int CURSOR_MAX_IDLE_MS = 120_000;
     // Keep well below the redis client waiting queue (max-waiting-handlers) to leave room for other commands
     private static final int UPDATE_MAX_CONCURRENCY = 32;
 
@@ -331,7 +333,20 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             return send(redisAPI ->
                 cursorId.get() == NO_CURSOR
                     ? redisAPI.ftAggregate(
-                        List.of(REDIS_INDEX_NAME, query, "LOAD", "1", "@" + KEY_FIELD, "WITHCURSOR", "COUNT", SCAN_BATCH_SIZE)
+                        List.of(
+                            REDIS_INDEX_NAME,
+                            query,
+                            "TIMEOUT",
+                            String.valueOf(SEARCH_TIMEOUT_MS),
+                            "LOAD",
+                            "1",
+                            "@" + KEY_FIELD,
+                            "WITHCURSOR",
+                            "COUNT",
+                            SCAN_BATCH_SIZE,
+                            "MAXIDLE",
+                            String.valueOf(CURSOR_MAX_IDLE_MS)
+                        )
                     )
                     : redisAPI.ftCursor(List.of("READ", REDIS_INDEX_NAME, String.valueOf(cursorId.get())))
             )
@@ -507,6 +522,10 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         args.add(REDIS_INDEX_NAME);
         // add query
         args.add(buildSearchQuery(criteria));
+        // A timed-out query returns a partial result: make the reply explicit to the caller instead of silently
+        // returning a subset of the catalog.
+        args.add("TIMEOUT");
+        args.add(String.valueOf(SEARCH_TIMEOUT_MS));
         // add sort
         args.add("SORTBY");
         args.add(DistributedEvent.Fields.updatedAt);
@@ -523,6 +542,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         return List.of(
             REDIS_INDEX_NAME,
             buildSearchQuery(criteria),
+            "TIMEOUT",
+            String.valueOf(SEARCH_TIMEOUT_MS),
             "LOAD",
             "5",
             "@" + DistributedEvent.Fields.id,
@@ -532,7 +553,9 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             "@" + DistributedEvent.Fields.updatedAt,
             "WITHCURSOR",
             "COUNT",
-            String.valueOf(batchSize)
+            String.valueOf(batchSize),
+            "MAXIDLE",
+            String.valueOf(CURSOR_MAX_IDLE_MS)
         );
     }
 
