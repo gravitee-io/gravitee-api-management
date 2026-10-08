@@ -48,6 +48,7 @@ import io.gravitee.apim.core.portal_page.exception.ParentTypeMismatchException;
 import io.gravitee.apim.core.portal_page.model.AutomationMetadata;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.GraviteeMarkdownPageContent;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
@@ -518,6 +519,58 @@ class CreatePortalNavigationItemValidatorServiceTest {
             // Then
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("The apiId shared-api-id is already used by another API navigation item.");
+        }
+    }
+
+    @Nested
+    class ApiOwnedDocumentationArea {
+
+        private static final String TOP_NAVBAR_ONLY = "API-attached documentation can only be added to TOP_NAVBAR area.";
+
+        @BeforeEach
+        void setUp() {
+            // No homepage yet, so the homepage uniqueness rule does not answer first.
+            navigationItemsQueryService.initWith(List.of());
+        }
+
+        @Test
+        void should_reject_an_api_owned_folder_outside_top_navbar() {
+            final Executable throwing = () ->
+                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE), ENV_ID);
+
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo(TOP_NAVBAR_ONLY);
+        }
+
+        @Test
+        void should_reject_an_api_owned_link_outside_top_navbar() {
+            final Executable throwing = () ->
+                validatorService.validateOne(anApiOwned(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE), ENV_ID);
+
+            Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
+            assertThat(exception.getMessage()).isEqualTo(TOP_NAVBAR_ONLY);
+        }
+
+        @Test
+        void should_accept_an_api_owned_folder_and_link_in_top_navbar() {
+            assertDoesNotThrow(() ->
+                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID)
+            );
+            assertDoesNotThrow(() ->
+                validatorService.validateOne(anApiOwned(PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR), ENV_ID)
+            );
+        }
+
+        private CreatePortalNavigationItem anApiOwned(PortalNavigationItemType type, PortalArea area) {
+            return CreatePortalNavigationItem.builder()
+                .type(type)
+                .title("title")
+                .area(area)
+                .order(0)
+                .url(type == PortalNavigationItemType.LINK ? "https://example.com" : null)
+                .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+                .reference(new NavigationItemReference.ApiReference("api-id"))
+                .build();
         }
     }
 
