@@ -280,6 +280,22 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         }
 
         @Test
+        void should_restore_an_explicit_null_stored_value_when_the_address_changes() throws Exception {
+            mockDummyConfigurationClass();
+            var oldSource = dummySource("{\"url\":\"https://a.example\",\"sensitiveData\":null}");
+            var newSource = dummySource(
+                "{\"url\":\"https://b.example\",\"sensitiveData\":\"" +
+                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
+                    "\"}"
+            );
+
+            cut.mergeSensitiveData(oldSource, newSource);
+
+            JsonNode configuration = new ObjectMapper().readTree(newSource.getSourceConfiguration());
+            assertThat(configuration.get("sensitiveData").isNull()).isTrue();
+        }
+
+        @Test
         void should_keep_a_new_secret_when_the_address_changes() {
             mockDummyConfigurationClass();
             var oldSource = dummySource("{\"url\":\"https://a.example\",\"sensitiveData\":\"original-secret-token\"}");

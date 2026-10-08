@@ -65,6 +65,11 @@ class FetcherConfigurationAddressTest {
     }
 
     @Test
+    void should_not_be_the_same_address_when_a_configuration_is_not_an_object() {
+        assertThat(FetcherConfigurationAddress.sameAddress("[]", "[]")).isFalse();
+    }
+
+    @Test
     void should_not_be_the_same_address_when_a_configuration_cannot_be_read() {
         assertThat(FetcherConfigurationAddress.sameAddress("{\"url\":\"https://a.example\"}", "not json")).isFalse();
         assertThat(FetcherConfigurationAddress.sameAddress(null, "{\"url\":\"https://a.example\"}")).isFalse();

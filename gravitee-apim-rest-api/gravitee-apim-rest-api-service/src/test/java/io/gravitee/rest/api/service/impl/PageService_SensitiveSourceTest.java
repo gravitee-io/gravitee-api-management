@@ -165,12 +165,21 @@ class PageService_SensitiveSourceTest {
     }
 
     @Test
+    void should_restore_the_stored_secret_on_a_root_page_import_for_the_same_address() throws Exception {
+        givenStoredRootPage("{\"url\":\"https://a.example/docs\",\"token\":\"stored-secret\"}");
+        when(pageRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        var rootPage = new ImportPageEntity();
+        rootPage.setType(PageType.ROOT);
+        rootPage.setSource(pageSourceEntity("{\"url\":\"https://a.example/docs\",\"token\":\"" + MASKED + "\"}"));
+
+        pageService.importFiles(EXECUTION_CONTEXT, API_ID, rootPage);
+
+        assertThat(persistedToken()).isEqualTo("stored-secret");
+    }
+
+    @Test
     void should_reject_a_root_page_import_keeping_a_masked_secret_for_another_address() throws TechnicalException {
-        var storedRoot = new Page();
-        storedRoot.setId("root-id");
-        storedRoot.setType(PageType.ROOT.name());
-        storedRoot.setSource(pageSource("{\"url\":\"https://a.example/docs\",\"token\":\"stored-secret\"}"));
-        when(pageRepository.search(any())).thenReturn(List.of(storedRoot));
+        givenStoredRootPage("{\"url\":\"https://a.example/docs\",\"token\":\"stored-secret\"}");
         var rootPage = new ImportPageEntity();
         rootPage.setType(PageType.ROOT);
         rootPage.setSource(pageSourceEntity("{\"url\":\"https://b.example/docs\",\"token\":\"" + MASKED + "\"}"));
@@ -180,6 +189,14 @@ class PageService_SensitiveSourceTest {
             .hasMessageNotContaining("b.example")
             .hasMessageNotContaining("stored-secret");
         verify(pageRepository, never()).update(any());
+    }
+
+    private void givenStoredRootPage(String sourceConfiguration) throws TechnicalException {
+        var storedRoot = new Page();
+        storedRoot.setId("root-id");
+        storedRoot.setType(PageType.ROOT.name());
+        storedRoot.setSource(pageSource(sourceConfiguration));
+        when(pageRepository.search(any())).thenReturn(List.of(storedRoot));
     }
 
     private void givenStoredPage(String sourceConfiguration) throws TechnicalException {
