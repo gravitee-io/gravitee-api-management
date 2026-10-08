@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 import static io.gravitee.rest.api.service.impl.AbstractService.convert;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,8 +31,13 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.event.EventManager;
+import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.GroupRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.GroupCriteria;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Application;
 import io.gravitee.repository.management.model.Group;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
@@ -51,6 +57,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.StillApiProductPrimaryOwnerException;
 import io.gravitee.rest.api.service.exceptions.StillPrimaryOwnerException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -71,6 +78,12 @@ public class GroupServiceImplTest {
 
     @Mock
     private GroupRepository groupRepository;
+
+    @Mock
+    private ApiRepository apiRepository;
+
+    @Mock
+    private ApplicationRepository applicationRepository;
 
     @Mock
     private MembershipService membershipService;
@@ -673,5 +686,74 @@ public class GroupServiceImplTest {
         assertThatThrownBy(() -> service.assertGroupIsNotPrimaryOwner(executionContext, groupId, RoleScope.API_PRODUCT)).isInstanceOf(
             StillApiProductPrimaryOwnerException.class
         );
+    }
+
+    @Test
+    public void findGroupIdsAttachedToUserResources_returns_empty_for_a_blank_user() {
+        ExecutionContext executionContext = new ExecutionContext("org", "env");
+
+        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, null)).isEmpty();
+        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, " ")).isEmpty();
+    }
+
+    @Test
+    public void findGroupIdsAttachedToUserResources_ignores_other_environments_and_null_groups() throws Exception {
+        ExecutionContext executionContext = new ExecutionContext("org", "env");
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user", MembershipReferenceType.API)
+        ).thenReturn(Set.of("api-1"));
+        when(
+            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, "user", MembershipReferenceType.APPLICATION)
+        ).thenReturn(Set.of("app-1", "app-2"));
+
+        Api withGroups = new Api();
+        withGroups.setGroups(Set.of("g-api"));
+        Api withoutGroups = new Api();
+        when(apiRepository.search(any(ApiCriteria.class), any())).thenReturn(List.of(withGroups, withoutGroups));
+
+        Application inEnvironment = new Application();
+        inEnvironment.setId("app-1");
+        inEnvironment.setEnvironmentId("env");
+        inEnvironment.setGroups(Set.of("g-app"));
+        Application otherEnvironment = new Application();
+        otherEnvironment.setId("app-2");
+        otherEnvironment.setEnvironmentId("other-env");
+        otherEnvironment.setGroups(Set.of("g-other"));
+        Application nullGroups = new Application();
+        nullGroups.setId("app-3");
+        nullGroups.setEnvironmentId("env");
+        nullGroups.setGroups(null);
+        when(applicationRepository.findByIds(any())).thenReturn(new HashSet<>(List.of(inEnvironment, otherEnvironment, nullGroups)));
+
+        assertThat(service.findGroupIdsAttachedToUserResources(executionContext, "user")).containsExactlyInAnyOrder("g-api", "g-app");
+    }
+
+    @Test
+    public void retainGroupsTheCallerMayAssign_keeps_existing_and_member_groups_without_environment_group_read() throws Exception {
+        ExecutionContext executionContext = new ExecutionContext("org", "env");
+        when(permissionService.hasPermission(executionContext, "user", RolePermission.ENVIRONMENT_GROUP, "env", READ)).thenReturn(false);
+        MembershipEntity membership = new MembershipEntity();
+        membership.setReferenceId("member-group");
+        MembershipEntity otherEnvironmentMembership = new MembershipEntity();
+        otherEnvironmentMembership.setReferenceId("other-env-group");
+        when(
+            membershipService.getMembershipsByMemberAndReference(MembershipMemberType.USER, "user", MembershipReferenceType.GROUP)
+        ).thenReturn(new HashSet<>(List.of(membership, otherEnvironmentMembership)));
+        Group memberGroup = new Group();
+        memberGroup.setId("member-group");
+        memberGroup.setEnvironmentId("env");
+        Group otherEnvironmentGroup = new Group();
+        otherEnvironmentGroup.setId("other-env-group");
+        otherEnvironmentGroup.setEnvironmentId("other-env");
+        when(groupRepository.findByIds(any())).thenReturn(Set.of(memberGroup, otherEnvironmentGroup));
+
+        Set<String> retained = service.retainGroupsTheCallerMayAssign(
+            executionContext,
+            "user",
+            Set.of("already", "member-group", "other-env-group", "foreign"),
+            Set.of("already")
+        );
+
+        assertThat(retained).containsExactlyInAnyOrder("already", "member-group");
     }
 }
