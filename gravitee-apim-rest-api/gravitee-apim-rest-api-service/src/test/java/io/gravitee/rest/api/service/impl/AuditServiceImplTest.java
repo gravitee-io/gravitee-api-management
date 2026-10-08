@@ -28,10 +28,12 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AuditRepository;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.api.search.AuditCriteria;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Dashboard;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.audit.AuditQuery;
+import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -39,6 +41,7 @@ import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -46,6 +49,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,8 +67,123 @@ class AuditServiceImplTest {
     @Mock
     private PermissionService permissionService;
 
+    @Spy
+    private ObjectMapper mapper = new ObjectMapper();
+
     @InjectMocks
     private AuditServiceImpl auditService;
+
+    @Nested
+    class EncryptedPropertyValues {
+
+        private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("DEFAULT", "DEFAULT");
+
+        @Test
+        void should_not_audit_the_value_of_an_encrypted_property_of_a_v4_api() throws Exception {
+            var before = anApi(
+                """
+                {"definitionVersion":"V4","properties":[{"key":"plain","value":"plain-value","encrypted":false},{"key":"secret","value":"OLD-CIPHER","encrypted":true}]}"""
+            );
+            var after = anApi(
+                """
+                {"definitionVersion":"V4","properties":[{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","value":"NEW-CIPHER","encrypted":true}]}"""
+            );
+
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(before, after));
+
+            assertThat(capturedPatch()).doesNotContain("OLD-CIPHER").doesNotContain("NEW-CIPHER");
+            assertThat(auditedDefinition().get("properties")).isEqualTo(
+                mapper.readTree(
+                    """
+                    [{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","encrypted":true}]"""
+                )
+            );
+        }
+
+        @Test
+        void should_not_audit_the_value_of_an_encrypted_property_of_a_v2_api() throws Exception {
+            var created = anApi(
+                """
+                {"gravitee":"2.0.0","properties":[{"key":"secret","value":"CIPHER","encrypted":true}]}"""
+            );
+
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, created));
+
+            assertThat(capturedPatch()).doesNotContain("CIPHER");
+            assertThat(auditedDefinition().get("properties")).isEqualTo(
+                mapper.readTree(
+                    """
+                    [{"key":"secret","encrypted":true}]"""
+                )
+            );
+        }
+
+        @Test
+        void should_not_audit_the_value_of_an_encrypted_property_of_any_other_audited_value() throws Exception {
+            var created = Map.of("properties", List.of(Map.of("key", "secret", "value", "CIPHER", "encrypted", true)));
+
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, created));
+
+            assertThat(capturedPatch()).doesNotContain("CIPHER").contains("\"key\":\"secret\"");
+        }
+
+        @Test
+        void should_keep_the_ciphertext_in_the_audited_api() throws Exception {
+            var created = anApi(
+                """
+                {"definitionVersion":"V4","properties":[{"key":"secret","value":"CIPHER","encrypted":true}]}"""
+            );
+
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, created));
+
+            assertThat(created.getDefinition()).contains("CIPHER");
+        }
+
+        @Test
+        void should_audit_an_api_without_definition() throws Exception {
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, anApi(null)));
+
+            assertThat(capturedPatch()).contains("\"path\":\"/id\"");
+        }
+
+        @Test
+        void should_leave_out_a_definition_that_cannot_be_parsed() throws Exception {
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, anApi("not-json{\"value\":\"CIPHER\"")));
+
+            assertThat(capturedPatch()).doesNotContain("\"path\":\"/definition\"").doesNotContain("CIPHER").contains("\"path\":\"/id\"");
+        }
+
+        private static Api anApi(String definition) {
+            var api = new Api();
+            api.setId("api-id");
+            api.setDefinition(definition);
+            return api;
+        }
+
+        private static AuditService.AuditLogData anApiAudit(Object oldValue, Object newValue) {
+            return AuditService.AuditLogData.builder()
+                .referenceType(Audit.AuditReferenceType.API)
+                .referenceId("api-id")
+                .event(Api.AuditEvent.API_UPDATED)
+                .oldValue(oldValue)
+                .newValue(newValue)
+                .build();
+        }
+
+        private String capturedPatch() throws TechnicalException {
+            var audit = ArgumentCaptor.forClass(Audit.class);
+            verify(auditRepository).create(audit.capture());
+            return audit.getValue().getPatch();
+        }
+
+        private JsonNode auditedDefinition() throws Exception {
+            var definitionOperation = StreamSupport.stream(mapper.readTree(capturedPatch()).spliterator(), false)
+                .filter(operation -> operation.get("path").asText().equals("/definition"))
+                .findFirst()
+                .orElseThrow();
+            return mapper.readTree(definitionOperation.get("value").textValue());
+        }
+    }
 
     @Nested
     class AnonymizeData {

@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAuditRedaction;
 import io.gravitee.common.data.domain.MetadataPage;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -343,10 +344,27 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             return mapper.createObjectNode();
         }
         try {
-            return (ObjectNode) mapper.readTree(mapper.writeValueAsString(value));
+            ObjectNode node = (ObjectNode) mapper.readTree(mapper.writeValueAsString(value));
+            if (value instanceof Api) {
+                redactDefinition(node);
+            }
+            return EncryptedPropertyAuditRedaction.redact(node);
         } catch (JsonProcessingException e) {
             log.warn("Failed to serialize value for audit log diff, using empty node", e);
             return mapper.createObjectNode();
+        }
+    }
+
+    private void redactDefinition(ObjectNode api) {
+        JsonNode definition = api.path("definition");
+        if (!definition.isTextual()) {
+            return;
+        }
+        try {
+            api.put("definition", EncryptedPropertyAuditRedaction.redact(mapper.readTree(definition.textValue())).toString());
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse the API definition for the audit log diff, leaving it out", e);
+            api.remove("definition");
         }
     }
 
