@@ -19,6 +19,8 @@ import type { Subscription } from '../../../../types/subscription';
 import { formatDateTime } from '../../../../utils/formatDate';
 import { SubscriptionStatusBadge } from '../SubscriptionStatusBadge';
 
+const EMPTY_VALUE = '—';
+
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
     return (
         <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '1rem' }} className="py-2.5 border-b last:border-0">
@@ -93,17 +95,19 @@ export function SubscriptionInfoCard({ subscription: sub, isLoading }: Readonly<
                         )}
                     </Row>
                 )}
-                {sub.subscribedBy?.displayName && <Row label="Subscribed by">{sub.subscribedBy.displayName}</Row>}
+                {sub.failureCause && <Row label="Failure cause">{sub.failureCause}</Row>}
+                <Row label="Subscribed by">{sub.subscribedBy?.displayName || EMPTY_VALUE}</Row>
                 <Row label="Application">
                     <div>
                         <p>{sub.application.name}</p>
+                        {sub.application.description && <p className="text-xs text-muted-foreground">{sub.application.description}</p>}
                         {sub.application.primaryOwner?.displayName && (
                             <p className="text-xs text-muted-foreground">{sub.application.primaryOwner.displayName}</p>
                         )}
                     </div>
                 </Row>
-                {sub.publisherMessage && <Row label="Publisher message">{sub.publisherMessage}</Row>}
-                {sub.consumerMessage && <Row label="Subscriber message">{sub.consumerMessage}</Row>}
+                <Row label="Publisher message">{sub.publisherMessage || EMPTY_VALUE}</Row>
+                <Row label="Subscriber message">{sub.consumerMessage || EMPTY_VALUE}</Row>
                 <Row label="Created at">
                     <DateCell value={sub.createdAt} />
                 </Row>
@@ -113,22 +117,23 @@ export function SubscriptionInfoCard({ subscription: sub, isLoading }: Readonly<
                 <Row label="Processed at">
                     <DateCell value={sub.processedAt} />
                 </Row>
-                <Row label="Starting at">
-                    <DateCell value={sub.startingAt} />
-                </Row>
-                {sub.pausedAt && (
-                    <Row label="Paused at">
-                        <DateCell value={sub.pausedAt} />
-                    </Row>
+                {sub.status !== 'REJECTED' && (
+                    <>
+                        <Row label="Starting at">
+                            <DateCell value={sub.startingAt} />
+                        </Row>
+                        <Row label="Paused at">
+                            <DateCell value={sub.pausedAt} />
+                        </Row>
+                        <Row label="Ending at">
+                            <DateCell value={sub.endingAt} />
+                        </Row>
+                    </>
                 )}
-                <Row label="Ending at">
-                    <DateCell value={sub.endingAt} />
+                <Row label="Closed at">
+                    <DateCell value={sub.closedAt} />
                 </Row>
-                {sub.closedAt && (
-                    <Row label="Closed at">
-                        <DateCell value={sub.closedAt} />
-                    </Row>
-                )}
+                <Row label="Domain">{sub.application.domain || EMPTY_VALUE}</Row>
                 {sub.metadata && Object.keys(sub.metadata).length > 0 && (
                     <Row label="Metadata">
                         <div className="space-y-1">
