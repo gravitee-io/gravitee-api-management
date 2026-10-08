@@ -35,6 +35,7 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
     private final Set<PortalNavigationItemSource> notDueSources = Collections.newSetFromMap(new IdentityHashMap<>());
 
     private RuntimeException fetchFailure;
+    private Runnable duringNextFetch;
     private String lastValidatedConfiguration;
 
     private boolean filesCapable = false;
@@ -46,6 +47,11 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
         this.fetchFailure = failure;
     }
 
+    /** Runs while the next fetch is in flight, to simulate what happens concurrently to a remote call. */
+    public void duringNextFetch(Runnable action) {
+        this.duringNextFetch = action;
+    }
+
     /** Configuration the last validation was given, to assert what the plugin actually sees. */
     public String lastValidatedConfiguration() {
         return lastValidatedConfiguration;
@@ -53,6 +59,11 @@ public class PortalNavigationItemSourceDomainServiceInMemory implements PortalNa
 
     @Override
     public String fetchContent(PortalNavigationItemSource source) {
+        if (duringNextFetch != null) {
+            var action = duringNextFetch;
+            duringNextFetch = null;
+            action.run();
+        }
         if (fetchFailure != null) {
             var failure = fetchFailure;
             fetchFailure = null;

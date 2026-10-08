@@ -18,7 +18,10 @@ package io.gravitee.apim.infra.crud_service.portal_page;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -28,11 +31,14 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentId;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
+import java.time.Instant;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -383,6 +389,110 @@ class PortalNavigationItemsCrudServiceImplTest {
             assertThatThrownBy(() -> service.delete(itemId))
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurred while deleting portal navigation item with id 00000000-0000-0000-0000-000000000001")
+                .hasCauseInstanceOf(TechnicalException.class);
+        }
+    }
+
+    @Nested
+    class UpdateSourceFetchState {
+
+        private static final String ID = "00000000-0000-0000-0000-000000000007";
+        private static final String STORED_CONFIGURATION =
+            "{\"portalPageContentId\":\"00000000-0000-0000-0000-000000000070\",\"source\":{\"type\":\"http-fetcher\",\"configuration\":\"{}\",\"lastFetchedAt\":\"2026-10-01T10:00:00Z\"}}";
+        private static final PortalNavigationItemSource.FetchState FETCH_STATE = new PortalNavigationItemSource.FetchState(
+            Instant.parse("2026-10-08T10:00:00Z"),
+            Instant.parse("2026-10-08T10:00:00Z"),
+            null
+        );
+
+        private io.gravitee.repository.management.model.PortalNavigationItem storedPage() {
+            var page = PortalNavigationItemsRepositoryFixtures.aPage(ID, "Stored title", "00000000-0000-0000-0000-000000000070", null);
+            page.setConfiguration(STORED_CONFIGURATION);
+            return page;
+        }
+
+        @Test
+        void should_replace_only_the_configuration_of_the_stored_item() throws TechnicalException {
+            when(repository.findById(ID)).thenReturn(Optional.of(storedPage()));
+            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), any())).thenReturn(true);
+
+            var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCH_STATE);
+
+            verify(repository, never()).update(any());
+            var configurationCaptor = ArgumentCaptor.forClass(String.class);
+            verify(repository).updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), configurationCaptor.capture());
+            assertThat(configurationCaptor.getValue()).contains("\"lastFetchedAt\":\"2026-10-08T10:00:00Z\"");
+            assertThat(updated)
+                .get()
+                .satisfies(item -> {
+                    assertThat(item.getTitle()).isEqualTo("Stored title");
+                    assertThat(item.getSource().getLastFetchedAt()).isEqualTo(FETCH_STATE.lastFetchedAt());
+                    assertThat(item.getSource().getLastFetchAttemptAt()).isEqualTo(FETCH_STATE.lastFetchAttemptAt());
+                });
+        }
+
+        @Test
+        void should_retry_on_the_fresh_row_when_the_configuration_changed_meanwhile() throws TechnicalException {
+            var renamedSourceConfiguration = STORED_CONFIGURATION.replace(
+                "\"configuration\":\"{}\"",
+                "\"configuration\":\"{\\\"url\\\":\\\"x\\\"}\""
+            );
+            var fresh = storedPage();
+            fresh.setConfiguration(renamedSourceConfiguration);
+            when(repository.findById(ID)).thenReturn(Optional.of(storedPage()), Optional.of(fresh));
+            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(STORED_CONFIGURATION), any())).thenReturn(false);
+            when(repository.updateConfigurationIfUnchanged(eq(ID), eq(renamedSourceConfiguration), any())).thenReturn(true);
+
+            var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCH_STATE);
+
+            assertThat(updated)
+                .get()
+                .satisfies(item -> assertThat(item.getSource().getSourceConfiguration()).isEqualTo("{\"url\":\"x\"}"));
+        }
+
+        @Test
+        void should_return_empty_without_writing_when_the_item_no_longer_exists() throws TechnicalException {
+            when(repository.findById(ID)).thenReturn(Optional.empty());
+
+            var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCH_STATE);
+
+            assertThat(updated).isEmpty();
+            verify(repository, never()).updateConfigurationIfUnchanged(any(), any(), any());
+            verify(repository, never()).update(any());
+        }
+
+        @Test
+        void should_return_the_stored_item_without_writing_when_it_no_longer_carries_a_source() throws TechnicalException {
+            var sourceless = storedPage();
+            sourceless.setConfiguration("{\"portalPageContentId\":\"00000000-0000-0000-0000-000000000070\"}");
+            when(repository.findById(ID)).thenReturn(Optional.of(sourceless));
+
+            var updated = service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCH_STATE);
+
+            assertThat(updated)
+                .get()
+                .satisfies(item -> assertThat(item.getSource()).isNull());
+            verify(repository, never()).updateConfigurationIfUnchanged(any(), any(), any());
+        }
+
+        @Test
+        void should_give_up_when_the_row_keeps_changing() throws TechnicalException {
+            when(repository.findById(ID)).thenReturn(Optional.of(storedPage()));
+            when(repository.updateConfigurationIfUnchanged(any(), any(), any())).thenReturn(false);
+
+            assertThatThrownBy(() -> service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCH_STATE))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessageContaining(ID);
+            verify(repository, times(5)).updateConfigurationIfUnchanged(any(), any(), any());
+        }
+
+        @Test
+        void should_throw_technical_domain_exception_when_repository_throws_technical_exception() throws TechnicalException {
+            when(repository.findById(ID)).thenThrow(new TechnicalException("boom"));
+
+            assertThatThrownBy(() -> service.updateSourceFetchState(PortalNavigationItemId.of(ID), FETCH_STATE))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurred while updating the fetch state of portal navigation item with id " + ID)
                 .hasCauseInstanceOf(TechnicalException.class);
         }
     }

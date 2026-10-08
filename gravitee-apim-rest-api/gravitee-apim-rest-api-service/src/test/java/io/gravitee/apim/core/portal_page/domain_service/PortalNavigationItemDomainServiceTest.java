@@ -18,6 +18,7 @@ package io.gravitee.apim.core.portal_page.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
+import fixtures.core.model.PortalPageContentFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -216,6 +217,140 @@ public class PortalNavigationItemDomainServiceTest {
 
             assertThat(created.getSource()).isNull();
             assertThat(portalPageContentCrudService.storage()).hasSize(1);
+        }
+    }
+
+    @Nested
+    class FetchPageContent {
+
+        private static final Instant NOW = Instant.parse("2026-10-08T10:00:00Z");
+        private static final Instant EARLIER = Instant.parse("2026-10-01T10:00:00Z");
+        private static final String ORIGINAL_CONTENT = "# Original content";
+
+        private PortalNavigationPage page;
+
+        @BeforeEach
+        void setUp() {
+            TimeProvider.overrideClock(Clock.fixed(NOW, ZoneId.systemDefault()));
+            var content = PortalPageContentFixtures.aGraviteeMarkdownPageContent(
+                PortalPageContentId.random(),
+                PortalNavigationItemFixtures.ORG_ID,
+                PortalNavigationItemFixtures.ENV_ID,
+                ORIGINAL_CONTENT
+            );
+            portalPageContentCrudService.initWith(List.of(content));
+            page = PortalNavigationItemFixtures.aPage("00000000-0000-0000-0000-00000000f001", "Sourced Page", null)
+                .toBuilder()
+                .portalPageContentId(content.getId())
+                .source(
+                    PortalNavigationItemSource.builder()
+                        .sourceType("http-fetcher")
+                        .sourceConfiguration("{\"url\":\"https://example.com/doc.md\"}")
+                        .lastFetchedAt(EARLIER)
+                        .lastFetchAttemptAt(EARLIER)
+                        .build()
+                )
+                .build();
+            portalNavigationItemsCrudService.initWith(List.of(page));
+        }
+
+        @AfterEach
+        void unfreezeTime() {
+            TimeProvider.overrideClock(Clock.systemDefaultZone());
+        }
+
+        private PortalNavigationPage stored() {
+            return (PortalNavigationPage) portalNavigationItemsQueryService.findByIdAndEnvironmentId(
+                PortalNavigationItemFixtures.ENV_ID,
+                page.getId()
+            );
+        }
+
+        private String storedContent() {
+            return ((GraviteeMarkdownPageContent) portalPageContentCrudService.storage().getFirst()).getContent().value();
+        }
+
+        @Test
+        void should_overwrite_content_and_stamp_a_successful_fetch() {
+            domainService.fetchPageContent(page);
+
+            assertThat(storedContent()).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+            assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(NOW);
+            assertThat(stored().getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+            assertThat(stored().getSource().getLastFetchError()).isNull();
+        }
+
+        @Test
+        void should_keep_a_rename_done_while_the_fetch_was_in_flight() {
+            sourceDomainService.duringNextFetch(() ->
+                portalNavigationItemsCrudService.update(page.toBuilder().title("Renamed meanwhile").published(false).build())
+            );
+
+            domainService.fetchPageContent(page);
+
+            assertThat(stored().getTitle()).isEqualTo("Renamed meanwhile");
+            assertThat(stored().getPublished()).isFalse();
+            assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(NOW);
+            assertThat(storedContent()).isEqualTo(PortalNavigationItemSourceDomainServiceInMemory.MARKDOWN);
+        }
+
+        @Test
+        void should_not_overwrite_content_nor_stamp_a_success_when_the_source_was_removed_during_the_fetch() {
+            sourceDomainService.duringNextFetch(() -> portalNavigationItemsCrudService.update(page.toBuilder().source(null).build()));
+
+            domainService.fetchPageContent(page);
+
+            assertThat(storedContent()).isEqualTo(ORIGINAL_CONTENT);
+            assertThat(stored().getSource()).isNull();
+        }
+
+        @Test
+        void should_not_overwrite_content_nor_stamp_a_success_when_the_source_was_changed_during_the_fetch() {
+            var otherSource = page.getSource().toBuilder().sourceConfiguration("{\"url\":\"https://example.com/other.md\"}").build();
+            sourceDomainService.duringNextFetch(() ->
+                portalNavigationItemsCrudService.update(page.toBuilder().source(otherSource).build())
+            );
+
+            domainService.fetchPageContent(page);
+
+            assertThat(storedContent()).isEqualTo(ORIGINAL_CONTENT);
+            assertThat(stored().getSource().getSourceConfiguration()).isEqualTo(otherSource.getSourceConfiguration());
+            assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(EARLIER);
+        }
+
+        @Test
+        void should_neither_resurrect_the_item_nor_fail_when_it_was_deleted_during_the_fetch() {
+            sourceDomainService.duringNextFetch(() -> domainService.delete(page));
+
+            domainService.fetchPageContent(page);
+
+            assertThat(portalNavigationItemsCrudService.storage()).isEmpty();
+            assertThat(portalPageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_stamp_only_the_attempt_and_the_error_when_the_fetch_fails() {
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("fetch failed"));
+
+            domainService.fetchPageContent(page);
+
+            assertThat(storedContent()).isEqualTo(ORIGINAL_CONTENT);
+            assertThat(stored().getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+            assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(EARLIER);
+            assertThat(stored().getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+        }
+
+        @Test
+        void should_keep_a_rename_done_while_a_failing_fetch_was_in_flight() {
+            sourceDomainService.duringNextFetch(() ->
+                portalNavigationItemsCrudService.update(page.toBuilder().title("Renamed meanwhile").build())
+            );
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("fetch failed"));
+
+            domainService.fetchPageContent(page);
+
+            assertThat(stored().getTitle()).isEqualTo("Renamed meanwhile");
+            assertThat(stored().getSource().getLastFetchError()).isNotNull();
         }
     }
 

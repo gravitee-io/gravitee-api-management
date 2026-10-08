@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.PortalNavigationReferenceType;
 import io.gravitee.rest.api.service.common.HRIDToUUID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
@@ -466,6 +467,19 @@ class PortalNavigationItemApiOwnedRekeyUpgraderTest {
         @Override
         public void deleteByOrganizationId(String organizationId) {
             items.removeIf(item -> item.getOrganizationId().equals(organizationId));
+        }
+
+        @Override
+        public boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) {
+            return items
+                .stream()
+                .filter(item -> item.getId().equals(id) && Objects.equals(item.getConfiguration(), expectedConfiguration))
+                .findFirst()
+                .map(item -> {
+                    item.setConfiguration(configuration);
+                    return true;
+                })
+                .orElse(false);
         }
 
         @Override

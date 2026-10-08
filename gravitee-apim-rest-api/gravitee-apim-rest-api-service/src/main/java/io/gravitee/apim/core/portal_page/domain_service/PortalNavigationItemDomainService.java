@@ -148,11 +148,21 @@ public class PortalNavigationItemDomainService {
         // Stamped and persisted before surfacing the inconsistency: without it the broken page is retried on every tick
         final var pageContent = pageContentQueryService.findById(page.getPortalPageContentId()).orElse(null);
         if (pageContent == null) {
-            crudService.update(page);
+            persistFetchState(page);
             throw new PageContentNotFoundException(page.getPortalPageContentId().toString());
         }
         try {
             final var fetchedContent = sourceDomainService.fetchContent(source);
+            // The remote call takes time: by now the page may be gone, or point at another source
+            final var current = queryService.findByIdAndEnvironmentId(page.getEnvironmentId(), page.getId());
+            if (current == null) {
+                log.debug("Portal navigation page [id={}] was deleted while its content was being fetched", page.getId().json());
+                return page;
+            }
+            if (current.getSource() == null || !current.getSource().sameOriginAs(source)) {
+                log.debug("Source of portal navigation page [id={}] changed while its content was being fetched", page.getId().json());
+                return current;
+            }
             pageContent.update(UpdatePortalPageContent.builder().content(fetchedContent).build());
             pageContentCrudService.update(pageContent);
             source.setLastFetchedAt(TimeProvider.instantNow());
@@ -168,7 +178,12 @@ public class PortalNavigationItemDomainService {
             // API, and an arbitrary one may quote the configuration and its secrets.
             source.setLastFetchError("Unable to fetch content from source type %s.".formatted(source.getSourceType()));
         }
-        return crudService.update(page);
+        return persistFetchState(page);
+    }
+
+    /** Only the fetch state is written back: whatever else changed on the page since it was loaded must survive. */
+    private PortalNavigationItem persistFetchState(PortalNavigationPage page) {
+        return crudService.updateSourceFetchState(page.getId(), page.getSource().fetchState()).orElse(page);
     }
 
     /**

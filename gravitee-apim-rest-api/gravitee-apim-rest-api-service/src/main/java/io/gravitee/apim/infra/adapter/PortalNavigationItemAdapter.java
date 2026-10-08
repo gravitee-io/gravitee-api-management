@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
@@ -22,6 +23,7 @@ import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -260,6 +262,41 @@ public interface PortalNavigationItemAdapter {
         }
         if (source.isSubtreeImport()) {
             sourceNode.put(SUBTREE_IMPORT, true);
+        }
+    }
+
+    /**
+     * Rewrites the fetch state inside a stored configuration and leaves the rest of it as is. Empty when
+     * the configuration carries no source: there is nothing to stamp.
+     */
+    default Optional<String> configurationWithFetchState(String configuration, PortalNavigationItemSource.FetchState fetchState) {
+        if (configuration == null || configuration.isEmpty()) {
+            return Optional.empty();
+        }
+        try {
+            var config = OBJECT_MAPPER.readTree(configuration);
+            if (!(config.get(SOURCE) instanceof ObjectNode sourceNode)) {
+                return Optional.empty();
+            }
+            putOrRemove(sourceNode, LAST_FETCHED_AT, fetchState.lastFetchedAt() == null ? null : fetchState.lastFetchedAt().toString());
+            putOrRemove(
+                sourceNode,
+                LAST_FETCH_ATTEMPT_AT,
+                fetchState.lastFetchAttemptAt() == null ? null : fetchState.lastFetchAttemptAt().toString()
+            );
+            putOrRemove(sourceNode, LAST_FETCH_ERROR, fetchState.lastFetchError());
+            return Optional.of(OBJECT_MAPPER.writeValueAsString(config));
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid source in configuration for PortalNavigationItem", e);
+        }
+    }
+
+    // Mirrors writeSource: an absent value is an absent key, never an explicit null
+    private static void putOrRemove(ObjectNode node, String key, String value) {
+        if (value == null) {
+            node.remove(key);
+        } else {
+            node.put(key, value);
         }
     }
 

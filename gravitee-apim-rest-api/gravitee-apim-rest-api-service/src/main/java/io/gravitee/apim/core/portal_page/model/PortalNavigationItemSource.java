@@ -64,6 +64,13 @@ public class PortalNavigationItemSource {
         this.lastFetchAttemptAt = TimeProvider.instantNow();
     }
 
+    public FetchState fetchState() {
+        return new FetchState(lastFetchedAt, lastFetchAttemptAt, lastFetchError);
+    }
+
+    /** What a fetch writes back about itself, and nothing else of the source. */
+    public record FetchState(@Nullable Instant lastFetchedAt, @Nullable Instant lastFetchAttemptAt, @Nullable String lastFetchError) {}
+
     public boolean canUseAutoFetch() {
         return useAutoFetch && fetchCron != null;
     }
