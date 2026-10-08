@@ -455,7 +455,6 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
         assertThat(published.getValue().getProperties()).containsEntry("secret", new DictionaryProperty("ENC(fetched-secret)", true));
     }
 
-
     @Test
     public void should_publish_the_refreshed_properties() throws TechnicalException {
         Dictionary existing = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old", false)));

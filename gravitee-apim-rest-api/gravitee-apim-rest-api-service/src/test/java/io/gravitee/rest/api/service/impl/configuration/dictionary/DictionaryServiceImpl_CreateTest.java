@@ -347,7 +347,6 @@ public class DictionaryServiceImpl_CreateTest {
         assertThat(DictionaryAuditPatch.capturedPatch(auditService).toString()).doesNotContain("CIPHER-OF-S3CR3T").contains("db/pass~word");
     }
 
-
     @Test
     public void should_set_stopped_state_on_create() throws TechnicalException {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();

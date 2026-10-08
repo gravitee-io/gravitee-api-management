@@ -846,7 +846,11 @@ public class DictionaryServiceImpl_UpdateTest {
         given_stored_dictionary(stored);
         when(dataEncryptor.encrypt("renewed-plaintext")).thenReturn("NEW-CIPHER");
 
-        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, anUpdate(Map.of("secret", "renewed-plaintext"), null));
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("secret", "renewed-plaintext"), null)
+        );
 
         JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
         assertThat(patch).noneMatch(operation -> operation.get("path").asText().startsWith("/properties"));
@@ -929,7 +933,6 @@ public class DictionaryServiceImpl_UpdateTest {
             assertThat(operation.get("path").asText()).isEqualTo("/properties/c");
         });
     }
-
 
     private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
         given_stored_dictionary(properties, io.gravitee.repository.management.model.DictionaryType.MANUAL);
