@@ -26,6 +26,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.ApiFixtures;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.import_definition.ApiDescriptor;
@@ -33,6 +36,9 @@ import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.PlanDescriptor;
 import io.gravitee.apim.core.api.use_case.ExportApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpoint;
+import io.gravitee.definition.model.v4.nativeapi.NativeEndpointGroup;
+import io.gravitee.definition.model.v4.nativeapi.NativeEntrypoint;
 import io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener;
 import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
@@ -215,7 +221,32 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
             .crossId("source-cross-id")
             .name("source name")
             .apiVersion("1.0")
-            .listeners(List.of(KafkaListener.builder().host("source.kafka").port(9092).build()))
+            // real configurations, as every Kafka Service has: an empty definition hid that they did not survive
+            .listeners(
+                List.of(
+                    KafkaListener.builder()
+                        .host("source.kafka")
+                        .port(9092)
+                        .entrypoints(
+                            List.of(NativeEntrypoint.builder().type("native-kafka").configuration(ENTRYPOINT_CONFIGURATION).build())
+                        )
+                        .build()
+                )
+            )
+            .endpointGroups(
+                List.of(
+                    NativeEndpointGroup.builder()
+                        .name("default-group")
+                        .type("native-kafka")
+                        .sharedConfiguration(SHARED_CONFIGURATION)
+                        .endpoints(
+                            List.of(
+                                NativeEndpoint.builder().name("default").type("native-kafka").configuration(ENDPOINT_CONFIGURATION).build()
+                            )
+                        )
+                        .build()
+                )
+            )
             .build();
         // a port-routed plan: its range belongs to the source, so the copy cannot inherit it
         var sourcePlan = PlanDescriptor.Native.builder()
@@ -262,6 +293,11 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
             var listener = (io.gravitee.definition.model.v4.nativeapi.kafka.KafkaListener) imported.getListeners().getFirst();
             softly.assertThat(listener.getHost()).isEqualTo("copy.kafka");
             softly.assertThat(listener.getPort()).isEqualTo(9092);
+            // the configurations travel unchanged
+            softly.assertThat(json(listener.getEntrypoints().getFirst().getConfiguration())).isEqualTo(json(ENTRYPOINT_CONFIGURATION));
+            var group = (NativeEndpointGroup) imported.getEndpointGroups().getFirst();
+            softly.assertThat(json(group.getSharedConfiguration())).isEqualTo(json(SHARED_CONFIGURATION));
+            softly.assertThat(json(group.getEndpoints().getFirst().getConfiguration())).isEqualTo(json(ENDPOINT_CONFIGURATION));
         });
 
         // the plan keeps everything but its port range, which the source still owns
@@ -273,6 +309,20 @@ class ApiResource_DuplicateApiTest extends ApiResourceTest {
             softly.assertThat(planDefinition.getBrokerRangeEnd()).isNull();
             softly.assertThat(planDefinition.getName()).isEqualTo("source plan");
         });
+    }
+
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final String ENTRYPOINT_CONFIGURATION = "{\"maxMessageSize\":1048576}";
+    private static final String SHARED_CONFIGURATION = "{\"security\":{\"protocol\":\"PLAINTEXT\"}}";
+    private static final String ENDPOINT_CONFIGURATION = "{\"bootstrapServers\":\"broker:9092\"}";
+
+    /** Compares configurations as JSON trees, so key order and whitespace do not matter. */
+    private static JsonNode json(String configuration) {
+        try {
+            return JSON_MAPPER.readTree(configuration);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     private DuplicateApiOptions aDuplicateApiOptions() {
