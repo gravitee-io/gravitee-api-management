@@ -21,7 +21,7 @@ import { ContentSkeleton } from '../../../shared/components/ContentSkeleton';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { useEnvironmentStore } from '../../environment/environment.store';
 import { getModuleLabel } from '../modules.labels';
-import { loadRemoteModule } from '../modules.remotes';
+import { loadRemoteModule, retryModuleNow } from '../modules.remotes';
 import { useModulesStore } from '../modules.store';
 import type { GammaModule } from '../modules.types';
 
@@ -47,8 +47,9 @@ export function getOrCreateLazyModule(module: GammaModule): LazyExoticComponent<
 }
 
 function RemoteModuleLoading({ moduleId, moduleName }: { readonly moduleId: string; readonly moduleName: string }) {
-    const delayed = useModulesStore(s => s.moduleLoadStatuses[moduleId] !== undefined);
-    return delayed ? <ModuleUpdating moduleName={moduleName} /> : <ContentSkeleton />;
+    const status = useModulesStore(s => s.moduleLoadStatuses[moduleId]);
+    if (!status) return <ContentSkeleton />;
+    return <ModuleUpdating moduleName={moduleName} attempting={status === 'attempting'} onRetryNow={() => retryModuleNow(moduleId)} />;
 }
 
 /**
