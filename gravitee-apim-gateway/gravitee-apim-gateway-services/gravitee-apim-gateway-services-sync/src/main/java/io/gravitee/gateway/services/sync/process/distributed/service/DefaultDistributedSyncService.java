@@ -298,10 +298,15 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
 
     @Override
     public Single<Long> serverTime() {
-        if (leaseValue == null) {
-            return Single.just(System.currentTimeMillis());
-        }
-        return distributedEventRepository.serverTime();
+        // The Redis server clock is the single time source secondaries share with the primary, so the sync
+        // window cannot drift across nodes. It is queried directly in case a primary election races a lease
+        // renewal, and falls back to the local clock if the repository is temporarily unreachable.
+        return distributedEventRepository
+            .serverTime()
+            .onErrorResumeNext(throwable -> {
+                log.debug("Unable to read the distributed repository clock, using the local clock", throwable);
+                return Single.just(System.currentTimeMillis());
+            });
     }
 
     @Override

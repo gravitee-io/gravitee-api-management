@@ -492,8 +492,14 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             }
             args.add(DistributedEvent.Fields.updatedAt);
             args.add("0");
+            // evalsha relies on the server-side script cache, which is dropped when Redis restarts or the
+            // connection reconnects: resolve the sha locally and fall back to eval with the script source when it
+            // is not cached, reloading the cache on demand instead of failing the cycle.
             return writeGate.runGated(
                 send(redisAPI -> redisAPI.evalsha(args))
+                    .onErrorResumeNext(noscript ->
+                        isNoscript(noscript) ? send(redisAPI -> redisAPI.eval(evalArgs(args))) : Single.error(noscript)
+                    )
                     .ignoreElement()
                     .retryWhen(
                         RxHelper.retryExponentialBackoff(
@@ -514,6 +520,30 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                     )
             );
         });
+    }
+
+    private static boolean isNoscript(final Throwable throwable) {
+        for (Throwable current = throwable; current != null; current = current.getCause()) {
+            String message = current.getMessage();
+            if (message != null && message.toUpperCase(Locale.ROOT).contains("NOSCRIPT")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * The evalsha arg list starts with the script key; eval expects the script source in its place. The client
+     * stores the source keyed by the same key used for the sha.
+     */
+    private List<String> evalArgs(final List<String> evalshaArgs) {
+        String source = redisClient.scriptSource(evalshaArgs.get(0));
+        if (source == null) {
+            throw new IllegalStateException("Lua script source not loaded for " + evalshaArgs.get(0));
+        }
+        List<String> args = new ArrayList<>(evalshaArgs);
+        args.set(0, source);
+        return args;
     }
 
     private Completable createOrUpdateKey(final String key, final DistributedEvent distributedEvent, final boolean stampAtWriteTime) {
