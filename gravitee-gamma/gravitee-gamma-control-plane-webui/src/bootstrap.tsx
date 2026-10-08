@@ -24,38 +24,41 @@ import { AppRoutes } from './app/AppRoutes';
 import { runApplicationBootstrap } from './bootstrap-initialize';
 import { ErrorBoundary } from './shared/components/ErrorBoundary';
 import { resolveRouterBasename } from './shared/config/resolve-router-basename';
+import { showStartupError } from './startup-error';
 
-runApplicationBootstrap().then(() => {
-    const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
-    root.render(
-        <StrictMode>
-            <BrowserRouter basename={resolveRouterBasename()}>
-                <ThemeProvider defaultMode="system">
-                    {/* Single app-wide Toaster so toast() calls from federated module remotes render. */}
-                    <Toaster position="bottom-right" richColors closeButton />
-                    <ErrorBoundary
-                        fallback={(error, retry) => (
-                            <div>
-                                <h2>Bootstrap Failed</h2>
-                                <p>{error.message}</p>
-                                <button type="button" onClick={retry}>
-                                    Retry
-                                </button>
-                            </div>
-                        )}
-                    >
-                        <Suspense
-                            fallback={
-                                <div className="flex min-h-screen items-center justify-center">
-                                    <Spinner className="size-8" aria-label="Loading application" />
+runApplicationBootstrap()
+    .then(() => {
+        const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+        root.render(
+            <StrictMode>
+                <BrowserRouter basename={resolveRouterBasename()}>
+                    <ThemeProvider defaultMode="system">
+                        {/* Single app-wide Toaster so toast() calls from federated module remotes render. */}
+                        <Toaster position="bottom-right" richColors closeButton />
+                        <ErrorBoundary
+                            fallback={(error, retry) => (
+                                <div>
+                                    <h2>Bootstrap Failed</h2>
+                                    <p>{error.message}</p>
+                                    <button type="button" onClick={retry}>
+                                        Retry
+                                    </button>
                                 </div>
-                            }
+                            )}
                         >
-                            <AppRoutes />
-                        </Suspense>
-                    </ErrorBoundary>
-                </ThemeProvider>
-            </BrowserRouter>
-        </StrictMode>,
-    );
-});
+                            <Suspense
+                                fallback={
+                                    <div className="flex min-h-screen items-center justify-center">
+                                        <Spinner className="size-8" aria-label="Loading application" />
+                                    </div>
+                                }
+                            >
+                                <AppRoutes />
+                            </Suspense>
+                        </ErrorBoundary>
+                    </ThemeProvider>
+                </BrowserRouter>
+            </StrictMode>,
+        );
+    })
+    .catch(showStartupError);
