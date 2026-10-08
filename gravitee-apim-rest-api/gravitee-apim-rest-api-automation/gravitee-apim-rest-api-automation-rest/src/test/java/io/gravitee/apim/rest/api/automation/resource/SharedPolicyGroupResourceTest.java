@@ -253,6 +253,18 @@ class SharedPolicyGroupResourceTest extends AbstractResourceTest {
             }
 
             @Test
+            void should_accept_step_values_longer_than_64_characters() {
+                try (
+                    var response = rootTarget()
+                        .queryParam("dryRun", false)
+                        .request()
+                        .put(Entity.json(readJSON("shared-policy-group-with-long-fields.json")))
+                ) {
+                    assertThat(response.getStatus()).isEqualTo(200);
+                }
+            }
+
+            @Test
             void should_reject_with_cross_id_and_no_hrid() {
                 try (
                     var response = rootTarget()
