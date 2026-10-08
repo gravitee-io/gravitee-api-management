@@ -27,6 +27,38 @@ export function formatDate(iso: string): string {
     });
 }
 
+/** Synthetic event for the unpublished definition. Not a real event id, so rollback must stay hidden. */
+export const PENDING_DEPLOYMENT_EVENT_ID = 'to-be-deployed';
+
+export function pendingDeploymentEvent(definition: unknown): ApiEvent {
+    return {
+        id: PENDING_DEPLOYMENT_EVENT_ID,
+        createdAt: new Date().toISOString(),
+        payload: JSON.stringify(definition ?? {}),
+        initiator: { id: '', displayName: 'Pending changes' },
+        properties: { DEPLOYMENT_NUMBER: 'to be deployed' },
+    };
+}
+
+/**
+ * Classic hides compare-dialog rollback for the live deployment when the API is in sync,
+ * and for every side of a V4 native API (`hideRollback` in `api-history-v4.component.ts`).
+ */
+export function hideCompareRollback(
+    event: ApiEvent,
+    options: { liveEventId: string | null; needsRedeploy: boolean; isNative: boolean },
+): boolean {
+    if (event.id === PENDING_DEPLOYMENT_EVENT_ID) return true;
+    if (options.isNative) return true;
+    return !options.needsRedeploy && options.liveEventId !== null && event.id === options.liveEventId;
+}
+
+export function chronologicalEvents(events: readonly ApiEvent[]): [ApiEvent, ApiEvent] | null {
+    if (events.length !== 2) return null;
+    const [first, second] = events;
+    return first.createdAt <= second.createdAt ? [first, second] : [second, first];
+}
+
 export function extractDefinition(event: ApiEvent): string {
     try {
         const outer = JSON.parse(event.payload ?? '{}') as Record<string, unknown>;

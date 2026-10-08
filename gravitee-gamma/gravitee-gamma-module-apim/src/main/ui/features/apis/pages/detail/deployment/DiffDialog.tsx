@@ -147,8 +147,8 @@ export function DiffDialog({ left, right, onClose, onRollback, isRollingBack }: 
                     <DialogHeader>
                         <DialogTitle>Rollback to v{rightVersion}?</DialogTitle>
                         <DialogDescription>
-                            This will restore the API to version {rightVersion} and redeploy it to the gateway. This action cannot be
-                            undone.
+                            This will update the API to version {rightVersion}. The API stays out of sync until you deploy it. This action
+                            cannot be undone.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="gap-2 sm:justify-end">

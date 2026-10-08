@@ -21,6 +21,7 @@ import {
     API_PROXY_NAV_GROUPS,
     ApiDetailSidebarNav,
     withApiScoreEnabled,
+    withDeploymentPermissions,
     withFederatedRestrictions,
     withMetadataPermission,
     withObservabilityLinks,
@@ -375,6 +376,15 @@ describe('ApiDetailSidebarNav — HTTP proxy (master FOUND-304)', () => {
         expect(screen.queryByText('Gateway')).not.toBeInTheDocument();
         expect(screen.queryByText('Consumer Access')).not.toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /^deployment$/i })).not.toBeInTheDocument();
+    });
+});
+
+describe('withDeploymentPermissions', () => {
+    it('hides Deployment History without api-event-r and Sharding Tags without api-definition-r', () => {
+        renderNav(`${BASE}/overview`, withDeploymentPermissions(GROUPS, { canReadEvents: false, canReadDefinition: false }));
+        expect(screen.queryByRole('link', { name: /deployment history/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /sharding tags/i })).not.toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /reporter settings/i })).toBeInTheDocument();
     });
 });
 

@@ -49,7 +49,13 @@ export function LineDiffView({ lines, leftEvent, rightEvent, leftVersion, rightV
     const neutralTone = diffPaneToneClasses('neutral');
 
     return (
-        <table className={DEPLOYMENT_DIFF.table}>
+        <table className="w-max min-w-full border-collapse font-mono text-xs">
+            <colgroup>
+                <col className="w-10" />
+                <col className="w-10" />
+                <col className="w-5" />
+                <col />
+            </colgroup>
             <thead>
                 <tr className={DEPLOYMENT_DIFF.headerRow}>
                     <th colSpan={4} className="px-4 py-2.5 text-left font-normal">

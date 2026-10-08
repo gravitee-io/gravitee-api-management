@@ -72,6 +72,16 @@ export async function getApiEvents(
     );
 }
 
+/** Definition that would be deployed now. Classic `ApiV2Service.getCurrentDeployment`. */
+export async function getCurrentDeployment(environmentId: string, apiId: string): Promise<unknown> {
+    return apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/deployments/current`);
+}
+
+/** Classic `ApiV2Service.verifyDeploy`. `ok: false` means the licence blocks start. */
+export async function verifyApiDeploy(environmentId: string, apiId: string): Promise<{ ok?: boolean }> {
+    return apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/deployments/_verify`);
+}
+
 export async function rollbackApi(environmentId: string, apiId: string, eventId: string): Promise<void> {
     await apimFetchJsonV2(environmentId, `/apis/${encodeURIComponent(apiId)}/_rollback`, {
         method: 'POST',

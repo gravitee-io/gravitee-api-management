@@ -56,7 +56,7 @@ export function ExportApi({
         }
     }
 
-    const canExport = tab !== 'terraform' && !isExporting;
+    const canExport = tab !== 'terraform';
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -102,7 +102,7 @@ export function ExportApi({
                             To know how to export your API Definition as a Terraform HCL file and start using the Gravitee Terraform
                             provider to manage your API declaratively follow this link:{' '}
                             <a
-                                href="https://registry.terraform.io/providers/gravitee-io/apim/latest/docs/guides/docgen_export_tutorial"
+                                href="https://registry.terraform.io/providers/gravitee-io/apim/latest/docs/guides/docgen_export-tutorial"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1 text-primary hover:underline"

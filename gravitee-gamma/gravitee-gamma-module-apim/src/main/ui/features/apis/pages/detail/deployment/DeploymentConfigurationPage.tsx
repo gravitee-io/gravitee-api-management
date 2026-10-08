@@ -168,7 +168,7 @@ export function DeploymentConfigurationPage() {
             </Card>
 
             {isDirty ? (
-                <div className="flex items-center justify-end gap-3 border-t pt-4">
+                <div className="sticky bottom-0 z-10 flex items-center justify-end gap-3 border-t bg-background py-4">
                     <Button type="button" variant="outline" size="sm" onClick={handleDiscard} disabled={isSaving}>
                         Discard
                     </Button>
