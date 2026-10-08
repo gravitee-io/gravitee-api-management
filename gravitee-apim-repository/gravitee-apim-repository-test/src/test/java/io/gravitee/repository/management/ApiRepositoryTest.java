@@ -35,6 +35,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Api;
@@ -570,6 +571,25 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertEquals("api-to-update", apiIds.getContent().get(0));
         assertEquals("api-to-delete", apiIds.getContent().get(1));
+    }
+
+    @Test
+    public void shouldPageApisSharingTheSameNameInIdOrder() {
+        // The three APIs of ENV6 share the same name: only the id tie-breaker gives them a stable order across pages
+        List<ApiCriteria> criteria = List.of(new ApiCriteria.Builder().environmentId("ENV6").build());
+        for (Sortable sortable : Arrays.asList(null, new SortableBuilder().field("name").order(Order.ASC).build())) {
+            List<String> ids = new ArrayList<>();
+            for (int pageNumber = 0; pageNumber < 3; pageNumber++) {
+                Page<String> page = apiRepository.searchIds(
+                    criteria,
+                    new PageableBuilder().pageNumber(pageNumber).pageSize(1).build(),
+                    sortable
+                );
+                assertEquals(3, page.getTotalElements());
+                ids.addAll(page.getContent());
+            }
+            assertEquals(List.of("crossId-api", "duplicated-crossId-api-1", "duplicated-crossId-api-2"), ids);
+        }
     }
 
     @Test
