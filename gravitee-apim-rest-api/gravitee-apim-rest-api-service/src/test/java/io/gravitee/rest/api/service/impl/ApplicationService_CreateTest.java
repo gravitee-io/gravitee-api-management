@@ -17,11 +17,28 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_CERTIFICATE;
 import static io.gravitee.repository.management.model.Application.METADATA_CLIENT_ID;
+<<<<<<< HEAD
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+=======
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService;
+import io.gravitee.apim.core.application_certificate.domain_service.ClientCertificateValidationDomainService.CertificateInfo;
+import io.gravitee.definition.model.Origin;
+>>>>>>> dca7855 (fix(rest-api): keep owned groups visible without environment GROUP Read)
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -178,6 +195,7 @@ public class ApplicationService_CreateTest {
         );
     }
 
+<<<<<<< HEAD
     @Test(expected = IllegalStateException.class)
     public void shouldNotCreateBecauseClientRegistrationDisable() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
@@ -309,10 +327,15 @@ public class ApplicationService_CreateTest {
         Map<String, String> metadata = new HashMap<>();
         metadata.put("client_id", CLIENT_ID);
 
+=======
+    @Test
+    public void shouldRemoveAForeignGroupWhenCreateClaimsKubernetesOrigin() throws TechnicalException {
+>>>>>>> dca7855 (fix(rest-api): keep owned groups visible without environment GROUP Read)
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);
         settings.setApp(clientSettings);
+<<<<<<< HEAD
         when(newApplication.getSettings()).thenReturn(settings);
 
         when(applicationRepository.existsMetadataEntryForEnv(METADATA_CLIENT_ID, CLIENT_ID, "DEFAULT")).thenReturn(true);
@@ -322,6 +345,32 @@ public class ApplicationService_CreateTest {
 
     @Test(expected = ClientIdAlreadyExistsException.class)
     public void shouldNotCreateBecauseClientIdWasTakenConcurrently() throws TechnicalException {
+=======
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM).build());
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getGroups()).thenReturn(Set.of("foreign-group"));
+        when(newApplication.getOrigin()).thenReturn(Origin.KUBERNETES);
+        when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any())).thenReturn(Set.of());
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationRepository.create(any())).thenReturn(application);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+
+        verify(groupService).retainGroupsTheCallerMayAssign(any(), eq(USER_NAME), eq(Set.of("foreign-group")), eq(Set.of()));
+        verify(newApplication).setGroups(Set.of());
+    }
+
+    @Test
+    public void shouldCreateWithMultipleCertificates() throws TechnicalException {
+>>>>>>> dca7855 (fix(rest-api): keep owned groups visible without environment GROUP Read)
         ApplicationSettings settings = new ApplicationSettings();
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
         clientSettings.setClientId(CLIENT_ID);

@@ -31,12 +31,14 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -70,10 +72,11 @@ public class GroupsResource extends AbstractResource {
     @GET
     @Path("/{groupId}/members")
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getMembersByGroupId(@PathParam("groupId") String groupId, @BeanParam PaginationParam paginationParam) {
-        //check that group exists
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (!canReadGroupMembers(executionContext, groupId)) {
+            throw new ForbiddenAccessException();
+        }
         groupService.findById(executionContext, groupId);
 
         List<Member> groupsMembers = membershipService
@@ -91,5 +94,20 @@ public class GroupsResource extends AbstractResource {
             .collect(toList());
 
         return createListResponse(executionContext, groupsMembers, paginationParam);
+    }
+
+    private boolean canReadGroupMembers(ExecutionContext executionContext, String groupId) {
+        if (
+            hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                RolePermissionAction.READ
+            )
+        ) {
+            return true;
+        }
+        Set<String> attached = groupService.findGroupIdsAttachedToUserResources(executionContext, getAuthenticatedUser());
+        return attached != null && attached.contains(groupId);
     }
 }
