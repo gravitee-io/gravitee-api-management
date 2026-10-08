@@ -64,12 +64,28 @@ public class PortalNavigationItemSource {
         this.lastFetchAttemptAt = TimeProvider.instantNow();
     }
 
-    public FetchState fetchState() {
-        return new FetchState(lastFetchedAt, lastFetchAttemptAt, lastFetchError);
-    }
+    /**
+     * What a fetch writes back about itself, and nothing else of the source. A null {@code lastFetchedAt}
+     * leaves the stored one untouched: a failed fetch never erases a past success, not even one that
+     * another fetch stamped meanwhile.
+     */
+    public record FetchState(@Nonnull Instant lastFetchAttemptAt, @Nullable Instant lastFetchedAt, @Nullable String lastFetchError) {
+        public static FetchState succeeded(Instant attemptedAt, Instant fetchedAt) {
+            return new FetchState(attemptedAt, fetchedAt, null);
+        }
 
-    /** What a fetch writes back about itself, and nothing else of the source. */
-    public record FetchState(@Nullable Instant lastFetchedAt, @Nullable Instant lastFetchAttemptAt, @Nullable String lastFetchError) {}
+        public static FetchState failed(Instant attemptedAt, String error) {
+            return new FetchState(attemptedAt, null, error);
+        }
+
+        public void applyTo(PortalNavigationItemSource source) {
+            source.setLastFetchAttemptAt(lastFetchAttemptAt);
+            if (lastFetchedAt != null) {
+                source.setLastFetchedAt(lastFetchedAt);
+            }
+            source.setLastFetchError(lastFetchError);
+        }
+    }
 
     public boolean canUseAutoFetch() {
         return useAutoFetch && fetchCron != null;

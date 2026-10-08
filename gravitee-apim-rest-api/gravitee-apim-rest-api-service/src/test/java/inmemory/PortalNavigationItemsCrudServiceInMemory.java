@@ -56,6 +56,7 @@ public class PortalNavigationItemsCrudServiceInMemory
     @Override
     public Optional<PortalNavigationItem> updateSourceFetchState(
         PortalNavigationItemId id,
+        PortalNavigationItemSource fetchedSource,
         PortalNavigationItemSource.FetchState fetchState
     ) {
         var stored = storage
@@ -64,11 +65,8 @@ public class PortalNavigationItemsCrudServiceInMemory
             .findFirst();
         stored
             .map(PortalNavigationItem::getSource)
-            .ifPresent(source -> {
-                source.setLastFetchedAt(fetchState.lastFetchedAt());
-                source.setLastFetchAttemptAt(fetchState.lastFetchAttemptAt());
-                source.setLastFetchError(fetchState.lastFetchError());
-            });
+            .filter(source -> source.sameOriginAs(fetchedSource))
+            .ifPresent(fetchState::applyTo);
         return stored;
     }
 

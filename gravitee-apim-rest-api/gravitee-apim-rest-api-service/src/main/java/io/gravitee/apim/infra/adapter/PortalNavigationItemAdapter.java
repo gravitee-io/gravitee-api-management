@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
@@ -23,7 +25,6 @@ import io.gravitee.apim.core.portal_page.model.*;
 import io.gravitee.node.logging.NodeLoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -266,38 +267,30 @@ public interface PortalNavigationItemAdapter {
     }
 
     /**
-     * Rewrites the fetch state inside a stored configuration and leaves the rest of it as is. Empty when
-     * the configuration carries no source: there is nothing to stamp.
+     * Rewrites the fetch state inside a stored configuration and leaves the rest of it as is: the source
+     * keys, and the stored {@code lastFetchedAt} when the state carries none.
      */
-    default Optional<String> configurationWithFetchState(String configuration, PortalNavigationItemSource.FetchState fetchState) {
-        if (configuration == null || configuration.isEmpty()) {
-            return Optional.empty();
-        }
+    default String configurationWithFetchState(String configuration, PortalNavigationItemSource.FetchState fetchState) {
+        final JsonNode config;
         try {
-            var config = OBJECT_MAPPER.readTree(configuration);
-            if (!(config.get(SOURCE) instanceof ObjectNode sourceNode)) {
-                return Optional.empty();
-            }
-            putOrRemove(sourceNode, LAST_FETCHED_AT, fetchState.lastFetchedAt() == null ? null : fetchState.lastFetchedAt().toString());
-            putOrRemove(
-                sourceNode,
-                LAST_FETCH_ATTEMPT_AT,
-                fetchState.lastFetchAttemptAt() == null ? null : fetchState.lastFetchAttemptAt().toString()
-            );
-            putOrRemove(sourceNode, LAST_FETCH_ERROR, fetchState.lastFetchError());
-            return Optional.of(OBJECT_MAPPER.writeValueAsString(config));
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid source in configuration for PortalNavigationItem", e);
+            config = OBJECT_MAPPER.readTree(configuration);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem", e);
         }
-    }
-
-    // Mirrors writeSource: an absent value is an absent key, never an explicit null
-    private static void putOrRemove(ObjectNode node, String key, String value) {
-        if (value == null) {
-            node.remove(key);
+        if (!(config.get(SOURCE) instanceof ObjectNode sourceNode)) {
+            throw new IllegalArgumentException("PortalNavigationItem configuration carries no source to stamp a fetch state on");
+        }
+        if (fetchState.lastFetchedAt() != null) {
+            sourceNode.put(LAST_FETCHED_AT, fetchState.lastFetchedAt().toString());
+        }
+        sourceNode.put(LAST_FETCH_ATTEMPT_AT, fetchState.lastFetchAttemptAt().toString());
+        // Mirrors writeSource: an absent value is an absent key, never an explicit null
+        if (fetchState.lastFetchError() == null) {
+            sourceNode.remove(LAST_FETCH_ERROR);
         } else {
-            node.put(key, value);
+            sourceNode.put(LAST_FETCH_ERROR, fetchState.lastFetchError());
         }
+        return config.toString();
     }
 
     @Named("parsePortalPageContentId")

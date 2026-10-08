@@ -77,6 +77,7 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
     @Override
     public Optional<PortalNavigationItem> updateSourceFetchState(
         PortalNavigationItemId id,
+        PortalNavigationItemSource fetchedSource,
         PortalNavigationItemSource.FetchState fetchState
     ) {
         try {
@@ -85,12 +86,11 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 if (stored == null) {
                     return Optional.empty();
                 }
-                final var configuration = portalNavigationItemAdapter
-                    .configurationWithFetchState(stored.getConfiguration(), fetchState)
-                    .orElse(null);
-                if (configuration == null) {
+                final var storedSource = portalNavigationItemAdapter.sourceFromRepository(stored);
+                if (storedSource == null || !storedSource.sameOriginAs(fetchedSource)) {
                     return Optional.of(portalNavigationItemAdapter.toEntity(stored));
                 }
+                final var configuration = portalNavigationItemAdapter.configurationWithFetchState(stored.getConfiguration(), fetchState);
                 if (
                     portalNavigationItemRepository.updateConfigurationIfUnchanged(stored.getId(), stored.getConfiguration(), configuration)
                 ) {

@@ -251,7 +251,8 @@ public class PortalNavigationItemDomainServiceTest {
                         .build()
                 )
                 .build();
-            portalNavigationItemsCrudService.initWith(List.of(page));
+            // Storage holds its own copy: a stamp must reach it through the crud service, not through a shared reference
+            portalNavigationItemsCrudService.initWith(List.of(page.toBuilder().source(page.getSource().toBuilder().build()).build()));
         }
 
         @AfterEach
@@ -316,6 +317,7 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(storedContent()).isEqualTo(ORIGINAL_CONTENT);
             assertThat(stored().getSource().getSourceConfiguration()).isEqualTo(otherSource.getSourceConfiguration());
             assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(EARLIER);
+            assertThat(stored().getSource().getLastFetchError()).isNull();
         }
 
         @Test
@@ -338,6 +340,42 @@ public class PortalNavigationItemDomainServiceTest {
             assertThat(stored().getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
             assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(EARLIER);
             assertThat(stored().getSource().getLastFetchError()).isEqualTo("Unable to fetch content from source type http-fetcher.");
+        }
+
+        @Test
+        void should_keep_a_success_stamped_by_another_fetch_when_this_one_fails() {
+            var later = Instant.parse("2026-10-05T10:00:00Z");
+            sourceDomainService.duringNextFetch(() ->
+                portalNavigationItemsCrudService.update(
+                    page.toBuilder().source(page.getSource().toBuilder().lastFetchedAt(later).lastFetchAttemptAt(later).build()).build()
+                )
+            );
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("fetch failed"));
+
+            domainService.fetchPageContent(page);
+
+            assertThat(stored().getSource().getLastFetchedAt()).isEqualTo(later);
+            assertThat(stored().getSource().getLastFetchAttemptAt()).isEqualTo(NOW);
+            assertThat(stored().getSource().getLastFetchError()).isNotNull();
+        }
+
+        @Test
+        void should_not_stamp_the_failure_on_a_source_swapped_during_the_fetch() {
+            var otherSource = PortalNavigationItemSource.builder()
+                .sourceType("github-fetcher")
+                .sourceConfiguration("{\"repository\":\"docs\"}")
+                .build();
+            sourceDomainService.duringNextFetch(() ->
+                portalNavigationItemsCrudService.update(page.toBuilder().source(otherSource).build())
+            );
+            sourceDomainService.failNextFetchWith(new TechnicalDomainException("fetch failed"));
+
+            domainService.fetchPageContent(page);
+
+            assertThat(stored().getSource().getSourceType()).isEqualTo("github-fetcher");
+            assertThat(stored().getSource().getLastFetchAttemptAt()).isNull();
+            assertThat(stored().getSource().getLastFetchedAt()).isNull();
+            assertThat(stored().getSource().getLastFetchError()).isNull();
         }
 
         @Test

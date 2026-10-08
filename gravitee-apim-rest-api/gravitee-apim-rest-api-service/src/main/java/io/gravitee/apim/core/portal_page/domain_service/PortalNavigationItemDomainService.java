@@ -29,6 +29,7 @@ import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource.FetchState;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
@@ -145,12 +146,15 @@ public class PortalNavigationItemDomainService {
             throw InvalidPortalNavigationItemDataException.noSourceConfigured(page.getId().json());
         }
         source.registerFetchAttempt();
+        final var attemptedAt = source.getLastFetchAttemptAt();
         // Stamped and persisted before surfacing the inconsistency: without it the broken page is retried on every tick
         final var pageContent = pageContentQueryService.findById(page.getPortalPageContentId()).orElse(null);
         if (pageContent == null) {
-            persistFetchState(page);
+            // Not a fetch failure: the error, if any, stays the one of the last real attempt
+            recordFetchState(page, new FetchState(attemptedAt, null, source.getLastFetchError()));
             throw new PageContentNotFoundException(page.getPortalPageContentId().toString());
         }
+        FetchState outcome;
         try {
             final var fetchedContent = sourceDomainService.fetchContent(source);
             // The remote call takes time: by now the page may be gone, or point at another source
@@ -165,8 +169,7 @@ public class PortalNavigationItemDomainService {
             }
             pageContent.update(UpdatePortalPageContent.builder().content(fetchedContent).build());
             pageContentCrudService.update(pageContent);
-            source.setLastFetchedAt(TimeProvider.instantNow());
-            source.setLastFetchError(null);
+            outcome = FetchState.succeeded(attemptedAt, TimeProvider.instantNow());
         } catch (Exception e) {
             log.warn(
                 "Failed to fetch content of portal navigation page [id={}, sourceType={}]",
@@ -176,14 +179,16 @@ public class PortalNavigationItemDomainService {
             );
             // Built here rather than taken from the exception: the stored message is returned by the
             // API, and an arbitrary one may quote the configuration and its secrets.
-            source.setLastFetchError("Unable to fetch content from source type %s.".formatted(source.getSourceType()));
+            outcome = FetchState.failed(attemptedAt, "Unable to fetch content from source type %s.".formatted(source.getSourceType()));
         }
-        return persistFetchState(page);
+        return recordFetchState(page, outcome);
     }
 
     /** Only the fetch state is written back: whatever else changed on the page since it was loaded must survive. */
-    private PortalNavigationItem persistFetchState(PortalNavigationPage page) {
-        return crudService.updateSourceFetchState(page.getId(), page.getSource().fetchState()).orElse(page);
+    private PortalNavigationItem recordFetchState(PortalNavigationPage page, FetchState fetchState) {
+        final var source = page.getSource();
+        fetchState.applyTo(source);
+        return crudService.updateSourceFetchState(page.getId(), source, fetchState).orElse(page);
     }
 
     /**

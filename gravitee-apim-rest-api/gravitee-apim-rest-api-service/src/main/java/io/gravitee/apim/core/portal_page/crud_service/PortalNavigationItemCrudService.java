@@ -29,11 +29,16 @@ public interface PortalNavigationItemCrudService {
     /**
      * Persists the fetch state of the item's source and nothing else: every other attribute stays as
      * currently stored, so a concurrent change to the item is never overwritten. The state is dropped
-     * when the item no longer exists or no longer carries a source.
+     * when the item no longer exists, or when its stored source no longer has the origin of
+     * {@code fetchedSource}: a stamp belongs to the source it was fetched from.
      *
      * @return the item as stored afterwards, empty when it no longer exists
      */
-    Optional<PortalNavigationItem> updateSourceFetchState(PortalNavigationItemId id, PortalNavigationItemSource.FetchState fetchState);
+    Optional<PortalNavigationItem> updateSourceFetchState(
+        PortalNavigationItemId id,
+        PortalNavigationItemSource fetchedSource,
+        PortalNavigationItemSource.FetchState fetchState
+    );
 
     void delete(PortalNavigationItemId portalNavigationItemId);
 
