@@ -45,15 +45,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiAdapterTest {
@@ -254,32 +250,6 @@ class ApiAdapterTest {
         }
 
         @Test
-        void should_convert_from_federated_agent_repository_to_core_model() {
-            var repository = apiFederatedAgent().build();
-
-            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
-
-            assertThat(api.getApiDefinitionValue()).isInstanceOf(FederatedAgent.class);
-            assertThat(((FederatedAgent) api.getApiDefinitionValue()).getProvider().organization()).isEqualTo("Acme Robotics");
-        }
-
-        @ParameterizedTest(name = "{0}")
-        @MethodSource("rowsYieldingNoDefinition")
-        void should_yield_a_null_definition(String caseName, Api repository) {
-            var api = ApiAdapter.INSTANCE.toCoreModel(repository);
-
-            assertThat(api.getApiDefinitionValue()).isNull();
-        }
-
-        private static Stream<Arguments> rowsYieldingNoDefinition() {
-            return Stream.of(
-                Arguments.of("an agent row read without its definition column", apiFederatedAgent().definition(null).build()),
-                Arguments.of("a v4 row whose definition cannot be read", apiV4().definition("not-json").build()),
-                Arguments.of("an agent row whose definition cannot be read", apiFederatedAgent().definition("not-json").build())
-            );
-        }
-
-        @Test
         void should_not_fail_when_converting_v4_repository_with_null_type() {
             var repository = apiV4().type(null).build();
 
@@ -297,9 +267,6 @@ class ApiAdapterTest {
             assertThat(apiWithKubernetesContext).hasOriginContext(
                 new OriginContext.Kubernetes(OriginContext.Kubernetes.Mode.FULLY_MANAGED)
             );
-
-            var apiWithIntegrationContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("integration").integrationId("int-a").build());
-            assertThat(apiWithIntegrationContext).hasOriginContext(new OriginContext.Integration("int-a", null, null));
         }
     }
 
@@ -307,28 +274,21 @@ class ApiAdapterTest {
     class RepositoryToFederatedAgentEntity {
 
         @Test
-        void should_map_provider_and_capabilities_when_converting_to_federated_agent_entity() {
-            var agent = anAgent()
-                .provider(new FederatedAgent.Provider("Acme Robotics", "https://example.net"))
-                .capabilities(Map.of("streaming", true, "pushNotifications", false))
-                .build();
+        void should_map_only_enabled_capabilities_when_converting_to_federated_agent_entity() {
+            var agent = anAgent().capabilities(Map.of(FederatedAgent.STREAMING, true, FederatedAgent.PUSH_NOTIFICATIONS, false)).build();
 
             var entity = toFederatedAgentEntity(agent);
 
-            SoftAssertions.assertSoftly(soft -> {
-                soft.assertThat(entity.getProvider().organization()).isEqualTo("Acme Robotics");
-                soft.assertThat(entity.getProvider().url()).isEqualTo("https://example.net");
-                soft.assertThat(entity.getCapabilities()).containsExactly("streaming");
-            });
+            assertThat(entity.getCapabilities()).containsExactly(FederatedAgent.STREAMING);
         }
 
         @Test
-        void should_map_a_null_provider_when_the_agent_carries_none() {
-            var agent = anAgent().provider(null).capabilities(Map.of("streaming", true)).build();
+        void should_map_null_capabilities_when_the_agent_has_no_capabilities_map() {
+            var agent = anAgent().capabilities(null).build();
 
             var entity = toFederatedAgentEntity(agent);
 
-            assertThat(entity.getProvider()).isNull();
+            assertThat(entity.getCapabilities()).isNull();
         }
 
         @Test
@@ -338,7 +298,16 @@ class ApiAdapterTest {
             assertThat(entity.getCapabilities()).isNull();
         }
 
-        private static FederatedAgent.FederatedAgentBuilder anAgent() {
+        @Test
+        void should_map_empty_capabilities_when_the_agent_capabilities_map_is_empty() {
+            var agent = anAgent().capabilities(Map.of()).build();
+
+            var entity = toFederatedAgentEntity(agent);
+
+            assertThat(entity.getCapabilities()).isNotNull().isEmpty();
+        }
+
+        private FederatedAgent.FederatedAgentBuilder anAgent() {
             return FederatedAgent.builder()
                 .name("api-name")
                 .description("api-description")
@@ -346,9 +315,10 @@ class ApiAdapterTest {
                 .version("1.0.0");
         }
 
-        private static FederatedApiAgentEntity toFederatedAgentEntity(FederatedAgent agent) {
+        private FederatedApiAgentEntity toFederatedAgentEntity(FederatedAgent agent) {
+            var repository = apiV4().origin("integration").definitionVersion(DefinitionVersion.FEDERATED_AGENT).build();
             return ApiAdapter.INSTANCE.toFederatedAgentEntity(
-                apiFederatedAgent().build(),
+                repository,
                 agent,
                 PrimaryOwnerEntity.builder().id("primary-owner-id").build(),
                 new OriginContext.Integration("int-a")
@@ -486,22 +456,23 @@ class ApiAdapterTest {
         @Test
         void should_convert_federated_agent_to_repository() throws JsonProcessingException {
             var fixture = ApiFixtures.aFederatedAgent();
+            var skill = new FederatedAgent.Skill("skill-id", "skill-name", "skill-description", List.of("tag"), null, null, null);
             var agent = ((FederatedAgent) fixture.getApiDefinitionValue()).toBuilder()
                 .provider(new FederatedAgent.Provider("Acme Robotics", "https://example.net"))
+                .skills(List.of(skill))
                 .build();
             var model = fixture.toBuilder().apiDefinitionValue(agent).build();
 
             var api = ApiAdapter.INSTANCE.toRepository(model);
 
+            assertThat(api.getDefinition()).isNotNull();
             var persistedAgent = GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), FederatedAgent.class);
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(persistedAgent.getName()).isEqualTo("My agent");
-                soft.assertThat(persistedAgent.getDescription()).isEqualTo("a fake agent");
                 soft.assertThat(persistedAgent.getUrl()).isEqualTo("https://example.net");
                 soft.assertThat(persistedAgent.getVersion()).isEqualTo("1.0.0");
-                soft.assertThat(persistedAgent.getDocumentationUrl()).isEqualTo("https://example.net");
-                soft.assertThat(persistedAgent.getSkills()).isEmpty();
                 soft.assertThat(persistedAgent.getProvider().organization()).isEqualTo("Acme Robotics");
+                soft.assertThat(persistedAgent.getSkills()).containsExactly(skill);
                 soft.assertThat(persistedAgent.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED_AGENT);
             });
         }
@@ -674,7 +645,7 @@ class ApiAdapterTest {
         }
     }
 
-    private static Api.ApiBuilder apiV4() {
+    private Api.ApiBuilder apiV4() {
         return Api.builder()
             .id("my-id")
             .environmentId("env-id")
@@ -703,28 +674,6 @@ class ApiAdapterTest {
             .disableMembershipNotifications(true)
             .apiLifecycleState(ApiLifecycleState.PUBLISHED)
             .background("my-background");
-    }
-
-    private static Api.ApiBuilder apiFederatedAgent() {
-        return Api.builder()
-            .id("my-id")
-            .environmentId("env-id")
-            .crossId("cross-id")
-            .name("api-name")
-            .description("api-description")
-            .version("1.0.0")
-            .origin("integration")
-            .definitionVersion(DefinitionVersion.FEDERATED_AGENT)
-            .definition(
-                """
-                {"name": "api-name", "description": "api-description", "url": "https://example.net/agent", "version": "1.0.0", "definitionVersion": "FEDERATED_AGENT", "provider": {"organization": "Acme Robotics", "url": "https://example.net"}, "capabilities": {"streaming": true}, "skills": [], "defaultInputModes": ["text"], "defaultOutputModes": ["text"]}
-                """
-            )
-            .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-            .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-            .visibility(Visibility.PUBLIC)
-            .lifecycleState(LifecycleState.STARTED)
-            .apiLifecycleState(ApiLifecycleState.PUBLISHED);
     }
 
     private Api.ApiBuilder apiV2() {

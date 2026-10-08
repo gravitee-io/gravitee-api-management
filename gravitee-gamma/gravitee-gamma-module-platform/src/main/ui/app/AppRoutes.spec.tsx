@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import type { License } from '@gravitee/gamma-modules-sdk/types';
-import { dataTableHarness } from '@gravitee/graphene-core/testing';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentType } from 'react';
@@ -511,22 +510,10 @@ const GATEWAY_INTEGRATION = { id: 'integration-gateway', name: 'Payments gateway
 
 const A2A_INTEGRATION = { id: 'integration-a2a', name: 'Support agents', provider: 'A2A', agentStatus: 'CONNECTED' };
 
-const INGESTED_AGENT = {
-    id: 'agent-1',
-    name: 'Ticket triage agent',
-    agentCardUrl: 'https://agents.example.test/.well-known/agent-card.json',
-};
-
-const INGESTED_AGENTS_RESPONSE = {
-    data: [INGESTED_AGENT],
-    pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 },
-};
-
 function spyOnIntegrationOverviewFetch(
     integration: { id: string },
     permissionsResponse: () => Promise<Response>,
     detailResponse: () => Promise<Response> = () => jsonResponse(integration),
-    ingestedAgentsResponse?: () => Promise<Response>,
 ) {
     resetApimClientForTests();
     return jest.spyOn(global, 'fetch').mockImplementation(input => {
@@ -534,7 +521,6 @@ function spyOnIntegrationOverviewFetch(
         if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
         if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
         if (url.endsWith(`/integrations/${integration.id}/permissions`)) return permissionsResponse();
-        if (ingestedAgentsResponse && url.split('?')[0].endsWith(`/integrations/${integration.id}/apis`)) return ingestedAgentsResponse();
         if (url.endsWith(`/integrations/${integration.id}`)) return detailResponse();
         return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
     });
@@ -552,30 +538,6 @@ function spyOnIntegrationCreateAndListFetch(created: { id: string }) {
             return jsonResponse(created);
         }
         if (url === INTEGRATIONS_REQUEST_URL) {
-            return createRequested
-                ? jsonResponse({ data: [created], pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 } })
-                : okIntegrationsResponse();
-        }
-        if (url.endsWith(`/integrations/${created.id}/permissions`)) return jsonResponse({ DEFINITION: 'R' });
-        if (url.endsWith(`/integrations/${created.id}`)) return jsonResponse(created);
-        return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
-    });
-}
-
-const DEFAULT_ENVIRONMENT_INTEGRATIONS_URL = 'https://apim.test/management/v2/environments/DEFAULT/integrations';
-
-function spyOnA2aCreateFetch(created: { id: string }) {
-    resetApimClientForTests();
-    let createRequested = false;
-    return jest.spyOn(global, 'fetch').mockImplementation((input, init) => {
-        const url = String(input);
-        if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
-        if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
-        if (init?.method === 'POST' && url === DEFAULT_ENVIRONMENT_INTEGRATIONS_URL) {
-            createRequested = true;
-            return jsonResponse({ ...created, wellKnownUrls: [], groups: [] }, 201);
-        }
-        if (url.split('?')[0] === DEFAULT_ENVIRONMENT_INTEGRATIONS_URL) {
             return createRequested
                 ? jsonResponse({ data: [created], pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 1, totalCount: 1 } })
                 : okIntegrationsResponse();
@@ -1100,27 +1062,36 @@ describe('AppRoutes', () => {
         fetchSpy.mockRestore();
     });
 
-    it.each([
-        ['a gateway-style', GATEWAY_INTEGRATION, 'AWS API Gateway'],
-        ['an A2A', A2A_INTEGRATION, 'A2A Protocol'],
-    ])(
-        'opens %s integration overview on the shared integration id route, showing its name and provider',
-        async (_kind, integration, providerLabel) => {
-            const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R' }));
-            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
-            mockSetLicense(ENTITLED_LICENSE);
+    it('opens a gateway-style integration overview on the shared integration id route, showing its name and provider', async () => {
+        const integration = GATEWAY_INTEGRATION;
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
 
-            renderIntegrationOverviewUrl(integration.id);
+        renderIntegrationOverviewUrl(integration.id);
 
-            const overview = await screen.findByTestId('integration-overview-page');
-            expect(await within(overview).findByRole('heading', { name: integration.name })).not.toBeNull();
-            expect(within(overview).getByText(providerLabel)).not.toBeNull();
-            expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`);
-            fetchSpy.mockRestore();
-        },
-    );
+        const overview = await screen.findByTestId('integration-overview-page');
+        expect(await within(overview).findByRole('heading', { name: integration.name })).not.toBeNull();
+        expect(within(overview).getByText('AWS API Gateway')).not.toBeNull();
+        expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`);
+        fetchSpy.mockRestore();
+    });
 
-    it('opens the create-integration page on its provider-selection step at its provider create route', async () => {
+    it('redirects a direct visit to an A2A integration overview back to the Integrations list', async () => {
+        const fetchSpy = spyOnIntegrationOverviewFetch(A2A_INTEGRATION, () => jsonResponse({ DEFINITION: 'R' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationOverviewUrl(A2A_INTEGRATION.id);
+
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
+        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+        expect(screen.getByTestId('integrations-page')).not.toBeNull();
+        expect(screen.queryByText(A2A_INTEGRATION.name)).toBeNull();
+        fetchSpy.mockRestore();
+    });
+
+    it('opens the create-integration page on its provider-selection step instead of reading new as an integration id', async () => {
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
@@ -1129,10 +1100,8 @@ describe('AppRoutes', () => {
 
         expect(await screen.findByRole('heading', { name: 'Create a new integration' })).not.toBeNull();
         expect(
-            ['API gateways', 'Event brokers', 'AI agents'].flatMap(group =>
-                within(screen.getByRole('region', { name: group })).getAllByRole('button'),
-            ),
-        ).toHaveLength(10);
+            ['API gateways', 'Event brokers'].flatMap(group => within(screen.getByRole('region', { name: group })).getAllByRole('button')),
+        ).toHaveLength(9);
         expect(screen.queryByTestId('integration-overview-page')).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/integrations/new');
         expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
@@ -1157,7 +1126,7 @@ describe('AppRoutes', () => {
         fetchSpy.mockRestore();
     });
 
-    it('redirects a direct /integrations/new visit to the Integrations list when the user lacks environment-integration-c', async () => {
+    it('redirects a direct create-integration visit to the Integrations list when the user lacks environment-integration-c', async () => {
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         mockSetLicense(ENTITLED_LICENSE);
@@ -1167,84 +1136,39 @@ describe('AppRoutes', () => {
         await act(async () => {});
 
         expect(screen.queryByRole('heading', { name: 'Create a new integration' })).toBeNull();
+        expect(screen.queryByRole('textbox', { name: 'Filter providers' })).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/integrations');
         fetchSpy.mockRestore();
     });
 
     // The list stays mounted while the create runs so only the create's invalidation, not a remount, can refetch it.
-    it.each([
-        [
-            'MuleSoft',
-            '/integrations/new',
-            'env-1',
-            { id: 'created-1', name: 'My integration', provider: 'mulesoft', agentStatus: 'CONNECTED' },
-            spyOnIntegrationCreateAndListFetch,
-            'https://apim.test/management/v2/environments/env-1/integrations',
-            'MuleSoft',
-            async (user: ReturnType<typeof userEvent.setup>, created: { name: string }) => {
-                await user.click(await screen.findByRole('button', { name: /^MuleSoft/ }));
-                await user.type(screen.getByRole('textbox', { name: /^Name/ }), created.name);
-            },
-        ],
-        [
-            'A2A',
-            '/integrations/new',
-            'DEFAULT',
-            { id: 'billing-agents-created', name: 'Billing Agents', description: 'Invoice agents', provider: 'A2A' },
-            spyOnA2aCreateFetch,
-            DEFAULT_ENVIRONMENT_INTEGRATIONS_URL,
-            'A2A Protocol',
-            async (user: ReturnType<typeof userEvent.setup>, created: { name: string; description?: string }) => {
-                await user.click(await screen.findByRole('button', { name: /^A2A Protocol/ }));
-                await user.click(screen.getByRole('textbox', { name: /^Name/ }));
-                await user.paste(created.name);
-                await user.click(screen.getByRole('textbox', { name: /^Description/ }));
-                await user.paste(created.description ?? '');
-                for (const url of [
-                    'https://billing.example.com/.well-known/agent-card.json',
-                    'https://search.example.com/.well-known/agent-card.json',
-                ]) {
-                    await user.click(screen.getByRole('button', { name: 'Add another URL' }));
-                    const urlInputs = screen.getAllByRole('textbox', { name: /^Well-known URL \d+$/ });
-                    await user.click(urlInputs[urlInputs.length - 1]);
-                    await user.paste(url);
-                }
-            },
-        ],
-    ])(
-        'shows the created %s integration in the Integrations list under the entered name after a successful create',
-        async (_provider, path, environmentId, created, spyOnFetch, createUrl, providerLabel, fillForm) => {
-            mockUseRealIntegrationsPage = true;
-            mockUseEnvironment.mockReturnValue({ id: environmentId });
-            const user = userEvent.setup();
-            const fetchSpy = spyOnFetch(created);
-            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
-            mockSetLicense(ENTITLED_LICENSE);
+    it('shows the created integration in the Integrations list under the entered name after a successful create', async () => {
+        mockUseRealIntegrationsPage = true;
+        const user = userEvent.setup();
+        const created = { id: 'created-1', name: 'My integration', provider: 'mulesoft', agentStatus: 'CONNECTED' };
+        const fetchSpy = spyOnIntegrationCreateAndListFetch(created);
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
 
-            const listView = render(
-                <MemoryRouter initialEntries={['/integrations']}>
-                    <AppRoutes />
-                </MemoryRouter>,
-            );
-            expect(await within(listView.container).findByText('No integrations yet')).not.toBeNull();
+        const listView = render(
+            <MemoryRouter initialEntries={['/integrations']}>
+                <AppRoutes />
+            </MemoryRouter>,
+        );
+        expect(await within(listView.container).findByText('No integrations yet')).not.toBeNull();
 
-            const createView = renderIntegrationPath(path);
-            await fillForm(user, created);
-            expect(screen.getByTestId('location').textContent).toBe(path);
-            await user.click(within(createView.container).getByRole('button', { name: 'Create integration' }));
-            await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${created.id}`));
+        const createView = renderIntegrationPath('/integrations/new');
+        await user.click(await screen.findByRole('button', { name: /^MuleSoft/ }));
+        await user.type(screen.getByRole('textbox', { name: /^Name/ }), created.name);
+        await user.click(within(createView.container).getByRole('button', { name: 'Create integration' }));
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${created.id}`));
 
-            expect(integrationCreateRequestUrls(fetchSpy)).toEqual([createUrl]);
-            expect(await within(listView.container).findByRole('link', { name: created.name })).not.toBeNull();
-            const listTable = dataTableHarness({ within: within(listView.container).getByRole('region', { name: 'Integrations' }) });
-            expect(listTable.getRow(created.name).getCellText('Provider')).toBe(providerLabel);
-            const requestedUrls = fetchSpy.mock.calls.map(([input]) => String(input).split('?')[0]);
-            expect(requestedUrls.filter(url => /\/_(preview|ingest)$/.test(url))).toEqual([]);
-            fetchSpy.mockRestore();
-        },
-    );
+        expect(integrationCreateRequestUrls(fetchSpy)).toEqual(['https://apim.test/management/v2/environments/env-1/integrations']);
+        expect(await within(listView.container).findByRole('link', { name: created.name })).not.toBeNull();
+        fetchSpy.mockRestore();
+    });
 
-    it('returns to the Integrations list from the /integrations/new Back button', async () => {
+    it('returns to the Integrations list from the create-integration page Back button', async () => {
         const user = userEvent.setup();
         const fetchSpy = spyOnApimFetch();
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
@@ -1266,18 +1190,13 @@ describe('AppRoutes', () => {
             () => jsonResponse({}),
         ],
         [
-            'an A2A integration without definition read',
-            { ...A2A_INTEGRATION, id: 'a2a-definition-create-only' },
+            'a gateway-style integration without definition read',
+            { ...GATEWAY_INTEGRATION, id: 'gateway-definition-create-only' },
             () => jsonResponse({ DEFINITION: 'C' }),
         ],
         [
             'a gateway-style integration whose permissions request fails',
             { ...GATEWAY_INTEGRATION, id: 'gateway-permissions-failed' },
-            forbiddenIntegrationsResponse,
-        ],
-        [
-            'an A2A integration whose permissions request fails',
-            { ...A2A_INTEGRATION, id: 'a2a-permissions-failed' },
             forbiddenIntegrationsResponse,
         ],
     ])(
@@ -1364,7 +1283,7 @@ describe('AppRoutes', () => {
     });
 
     it('does not warn when the overview permissions request resolves without definition read', async () => {
-        const integration = { ...A2A_INTEGRATION, id: 'a2a-definition-create-only-no-warning' };
+        const integration = { ...GATEWAY_INTEGRATION, id: 'gateway-definition-create-only-no-warning' };
         const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
         const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'C' }));
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
@@ -1387,15 +1306,8 @@ describe('AppRoutes', () => {
             ['environment-integration-r'],
         ],
         [
-            'an A2A integration when the user lacks environment-integration-r',
-            { ...A2A_INTEGRATION, id: 'a2a-no-environment-read' },
-            { federation: { enabled: true } },
-            ENTITLED_LICENSE,
-            ['environment-integration-r'],
-        ],
-        [
-            'an A2A integration when Federation is not enabled for the organization',
-            { ...A2A_INTEGRATION, id: 'a2a-federation-disabled' },
+            'a gateway-style integration when Federation is not enabled for the organization',
+            { ...GATEWAY_INTEGRATION, id: 'gateway-federation-disabled' },
             { federation: { enabled: false } },
             ENTITLED_LICENSE,
             [],
@@ -1425,60 +1337,8 @@ describe('AppRoutes', () => {
         },
     );
 
-    it('renders only the name and provider of an A2A integration with ingested agents, with no agent card, agent link or agents request', async () => {
-        const integration = { ...A2A_INTEGRATION, id: 'a2a-with-ingested-agents' };
-        const fetchSpy = spyOnIntegrationOverviewFetch(
-            integration,
-            () => jsonResponse({ DEFINITION: 'R' }),
-            () => jsonResponse(integration),
-            () => jsonResponse(INGESTED_AGENTS_RESPONSE),
-        );
-        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
-        mockSetLicense(ENTITLED_LICENSE);
-
-        renderIntegrationOverviewUrl(integration.id);
-
-        const overview = await screen.findByTestId('integration-overview-page');
-        await within(overview).findByRole('heading', { name: integration.name });
-        expect(overview.textContent).toBe(`${integration.name}A2A Protocol`);
-        expect(within(overview).queryAllByRole('link')).toEqual([]);
-        expect(overview.textContent).not.toContain(INGESTED_AGENT.name);
-        expect(overview.textContent).not.toContain(INGESTED_AGENT.agentCardUrl);
-        expect(integrationsRequestUrls(fetchSpy).filter(url => url.includes(`/integrations/${integration.id}/apis`))).toEqual([]);
-        fetchSpy.mockRestore();
-    });
-
-    it('resolves no agent detail view for a nested agent URL under an A2A integration', async () => {
-        const fetchSpy = spyOnIntegrationOverviewFetch(
-            A2A_INTEGRATION,
-            () => jsonResponse({ DEFINITION: 'R' }),
-            () => jsonResponse(A2A_INTEGRATION),
-            () => jsonResponse(INGESTED_AGENTS_RESPONSE),
-        );
-        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
-        mockSetLicense(ENTITLED_LICENSE);
-
-        const nestedAgentPath = `/integrations/${A2A_INTEGRATION.id}/agents/${INGESTED_AGENT.id}`;
-
-        // Nothing under the nested URL triggers the API client, so bootstrap it up front: once it is cached a matching
-        // route would fire its integration requests right after mount, and the flush below lets them land.
-        await loadApimBootstrap();
-        expect(fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => url.endsWith('/ui/bootstrap'))).toHaveLength(1);
-
-        renderIntegrationPath(nestedAgentPath);
-
-        await act(() => new Promise(resolve => setTimeout(resolve, 0)));
-        expect(screen.getByTestId('location').textContent).toBe(nestedAgentPath);
-        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
-        expect(screen.queryByTestId('integrations-page')).toBeNull();
-        expect(screen.queryByText(/skills|capabilities|agent card/i)).toBeNull();
-        expect(screen.queryByText(INGESTED_AGENT.name)).toBeNull();
-        expect(integrationsRequestUrls(fetchSpy).filter(url => url.includes(`/integrations/${A2A_INTEGRATION.id}`))).toEqual([]);
-        fetchSpy.mockRestore();
-    });
-
     it('raises one error notification and shows no name, provider or agent status when the overview details request returns 404', async () => {
-        const integration = { ...A2A_INTEGRATION, id: 'a2a-details-not-found' };
+        const integration = { ...GATEWAY_INTEGRATION, id: 'gateway-details-not-found' };
         const fetchSpy = spyOnIntegrationOverviewFetch(
             integration,
             () => jsonResponse({ DEFINITION: 'R' }),

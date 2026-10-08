@@ -418,14 +418,21 @@ public class ApiFixtures {
             .lifecycleState(null)
             .originContext(new OriginContext.Integration("integration-id"))
             .apiDefinitionValue(
-                FederatedAgent.builder()
-                    .name("My agent")
-                    .description("a fake agent")
-                    .url("https://example.net")
-                    .version("1.0.0")
-                    .documentationUrl("https://example.net")
-                    .skills(List.of())
-                    .build()
+                new FederatedAgent(
+                    "My agent",
+                    "a fake agent",
+                    "https://example.net",
+                    "1.0.0",
+                    "https://example.net",
+                    null,
+                    null,
+                    List.of(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+                )
             )
             .build();
     }

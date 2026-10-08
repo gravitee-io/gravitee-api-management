@@ -128,13 +128,8 @@ describe('IntegrationConfigurationPage', () => {
         expect(screen.queryByText(/Danger Zone/)).toBeNull();
     });
 
-    it('shows the Name field but no Danger Zone on the General tab of an A2A integration to a user who can update and delete it', async () => {
-        mockGetIntegration.mockResolvedValue({
-            id: 'int-1',
-            name: 'Agent Bridge',
-            provider: 'A2A',
-            wellKnownUrls: [{ url: 'https://agents.example.com/.well-known/agent.json' }],
-        });
+    it('redirects to the Integrations list without a toast when the integration is an A2A one', async () => {
+        mockGetIntegration.mockResolvedValue({ id: 'int-1', name: 'Agent Bridge', provider: 'A2A' });
         mockGetIntegrationPermissions.mockResolvedValue([
             INTEGRATION_DEFINITION_READ_PERMISSION,
             INTEGRATION_DEFINITION_UPDATE_PERMISSION,
@@ -143,9 +138,11 @@ describe('IntegrationConfigurationPage', () => {
 
         renderPage();
 
-        expect(await screen.findByRole('textbox', { name: /^Name/ })).toHaveValue('Agent Bridge');
-        await waitForIntegrationAndPermissionsToLoad();
-        expect(screen.queryByText(/Danger Zone/)).toBeNull();
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
+        expect(screen.getByText('Integrations list')).toBeInTheDocument();
+        expect(screen.queryByTestId('integration-configuration-page')).toBeNull();
+        expect(screen.queryByRole('textbox', { name: /^Name/ })).toBeNull();
+        expect(mockNotifyError).not.toHaveBeenCalled();
     });
 
     it('shows only the load failure message, with no Name field or Danger Zone, when the integration fails to load', async () => {
