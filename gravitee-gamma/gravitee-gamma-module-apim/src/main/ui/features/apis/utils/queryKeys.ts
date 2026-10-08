@@ -175,6 +175,7 @@ export const apiDocumentationKeys = {
     api: (envId: string, apiId: string) => [...apiDocumentationKeys.all, envId, apiId] as const,
     list: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'list'] as const,
     publishLocations: (envId: string, apiId: string) => [...apiDocumentationKeys.api(envId, apiId), 'publish-locations'] as const,
+    content: (envId: string, apiId: string, navId: string) => [...apiDocumentationKeys.api(envId, apiId), 'content', navId] as const,
 };
 
 export const apiPlanKeys = {

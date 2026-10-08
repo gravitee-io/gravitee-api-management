@@ -20,10 +20,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
     listApiPublishLocations,
     publishApiToPortal,
+    saveApiDocumentationPageContent,
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from '../services/apiDocumentation';
@@ -55,6 +57,17 @@ export function useApiPublishLocations(apiId: string | undefined, enabled = true
         queryKey: apiDocumentationKeys.publishLocations(envId, apiId ?? ''),
         queryFn: () => listApiPublishLocations(envId, apiId!),
         enabled: Boolean(env && apiId && enabled),
+    });
+}
+
+export function useApiDocumentationPageContent(apiId: string, navId: string, enabled = true) {
+    const env = useEnvironment();
+    const envId = env?.id ?? '';
+
+    return useQuery({
+        queryKey: apiDocumentationKeys.content(envId, apiId, navId),
+        queryFn: () => getApiDocumentationPageContent(envId, apiId, navId),
+        enabled: Boolean(env && enabled),
     });
 }
 
@@ -100,4 +113,17 @@ export function usePublishApiToPortal(apiId: string) {
 
 export function useUnpublishApiFromPortal(apiId: string) {
     return useApiDocumentationMutation(apiId, (envId, id, _variables: void) => unpublishApiFromPortal(envId, id));
+}
+
+export function useSaveApiDocumentationPageContent(apiId: string) {
+    const env = useEnvironment();
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ navId, content }: { navId: string; content: string }) =>
+            saveApiDocumentationPageContent(env!.id, apiId, navId, { content }),
+        onSuccess: (saved, { navId }) => {
+            queryClient.setQueryData(apiDocumentationKeys.content(env!.id, apiId, navId), saved);
+        },
+    });
 }
