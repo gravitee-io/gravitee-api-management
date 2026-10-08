@@ -76,7 +76,8 @@ class SearchApiAuditUseCaseTest {
                     ENVIRONMENT_ID,
                     Optional.of(0L),
                     Optional.of(Instant.now().toEpochMilli()),
-                    Set.of()
+                    Set.of(),
+                    false
                 )
             )
         );
@@ -109,7 +110,8 @@ class SearchApiAuditUseCaseTest {
                     ENVIRONMENT_ID,
                     Optional.of(0L),
                     Optional.of(Instant.now().toEpochMilli()),
-                    Set.of()
+                    Set.of(),
+                    false
                 )
             )
         );
@@ -140,7 +142,8 @@ class SearchApiAuditUseCaseTest {
                     ENVIRONMENT_ID,
                     Optional.of(0L),
                     Optional.of(Instant.now().toEpochMilli()),
-                    Set.of()
+                    Set.of(),
+                    false
                 ),
                 new PageableImpl(pageNumber, pageSize)
             )

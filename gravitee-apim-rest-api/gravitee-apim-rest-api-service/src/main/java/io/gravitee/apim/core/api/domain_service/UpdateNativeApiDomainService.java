@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.property.EncryptedPropertyAuditMarker;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -120,7 +121,13 @@ public class UpdateNativeApiDomainService {
                 .oldValue(currentApi)
                 .newValue(updatedApi)
                 .createdAt(updatedApi.getUpdatedAt())
-                .properties(Collections.emptyMap())
+                .properties(
+                    EncryptedPropertyAuditMarker.mark(
+                        Collections.emptyMap(),
+                        currentApi.getApiDefinitionValue(),
+                        updatedApi.getApiDefinitionValue()
+                    )
+                )
                 .build()
         );
     }

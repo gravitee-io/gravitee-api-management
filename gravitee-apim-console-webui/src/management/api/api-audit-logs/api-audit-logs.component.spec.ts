@@ -27,6 +27,7 @@ import { ApiAuditsFilterFormHarness, ApiAuditsTableHarness, ApiEventsTableHarnes
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import {
+  fakeAudit,
   fakeAuditResponse,
   fakeEvent,
   fakeEventsResponse,
@@ -78,6 +79,28 @@ describe('AuditLogsComponent', () => {
           targets: 'API_KEY:d2df9def-fd47-491b-90be-ebf1829adb5b',
         },
       ]);
+    });
+
+    it('should not display the encryption marker as a target', async () => {
+      expectAuditListRequest(
+        {},
+        { page: 1, perPage: 10 },
+        fakeAuditResponse({
+          data: [
+            fakeAudit({
+              properties: [
+                { key: 'API_KEY', value: 'd2df9def-fd47-491b-90be-ebf1829adb5b', name: 'd2df9def-fd47-491b-90be-ebf1829adb5b' },
+                { key: 'ENCRYPTED', value: 'true', name: 'true' },
+              ],
+            }),
+          ],
+        }),
+      );
+
+      const table = await loader.getHarness(ApiAuditsTableHarness);
+      const rows = await table.rows();
+
+      expect(rows[0].targets).toEqual('API_KEY:d2df9def-fd47-491b-90be-ebf1829adb5b');
     });
 
     it('should refresh audits logs when filtering on events', async () => {

@@ -62,6 +62,9 @@ public class AuditQueryServiceImpl implements AuditQueryService {
 
         query.from().ifPresent(criteria::from);
         query.to().ifPresent(criteria::to);
+        if (query.encryptedOnly()) {
+            criteria.property(Audit.AuditProperties.ENCRYPTED.name(), Boolean.TRUE.toString());
+        }
 
         return search(criteria, pageable);
     }
