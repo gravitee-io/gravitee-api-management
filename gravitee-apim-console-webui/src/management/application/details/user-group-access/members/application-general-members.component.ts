@@ -152,6 +152,10 @@ export class ApplicationGeneralMembersComponent {
           isVisible: true,
         }));
       }),
+      catchError(() => {
+        this.groupData = [];
+        return EMPTY;
+      }),
     );
   }
 
