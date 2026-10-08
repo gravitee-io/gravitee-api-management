@@ -20,11 +20,13 @@ import type { ReactNode } from 'react';
 
 import {
     useApiDocumentation,
+    useApiDocumentationPageContent,
     useApiPublishLocations,
     useCreateApiDocumentationItem,
     useDeleteApiDocumentationItem,
     useImportApiDocumentation,
     usePublishApiToPortal,
+    useSaveApiDocumentationPageContent,
     useUnpublishApiFromPortal,
     useUpdateApiDocumentationItem,
 } from './useApiDocumentation';
@@ -32,10 +34,12 @@ import { ApimApiError } from '../../../shared/api/apimClient';
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
     listApiPublishLocations,
     publishApiToPortal,
+    saveApiDocumentationPageContent,
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from '../services/apiDocumentation';
@@ -56,6 +60,8 @@ const mockDeleteApiDocumentationItem = jest.mocked(deleteApiDocumentationItem);
 const mockImportApiDocumentation = jest.mocked(importApiDocumentation);
 const mockPublishApiToPortal = jest.mocked(publishApiToPortal);
 const mockUnpublishApiFromPortal = jest.mocked(unpublishApiFromPortal);
+const mockSaveApiDocumentationPageContent = jest.mocked(saveApiDocumentationPageContent);
+const mockGetApiDocumentationPageContent = jest.mocked(getApiDocumentationPageContent);
 
 const API_DOCUMENTATION_LIST = { queryKey: ['api-documentation', 'env-1', 'api-1', 'list'] };
 
@@ -71,7 +77,7 @@ function renderWithQueryClient<T>(hook: () => T) {
     const invalidateQueries = jest.spyOn(queryClient, 'invalidateQueries');
     const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
     const { result } = renderHook(hook, { wrapper });
-    return { result, invalidateQueries };
+    return { result, invalidateQueries, queryClient };
 }
 
 describe('useApiDocumentation hooks', () => {
@@ -104,6 +110,25 @@ describe('useApiDocumentation hooks', () => {
 
             expect(result.current.fetchStatus).toBe('idle');
             expect(mockListApiDocumentation).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('useApiDocumentationPageContent', () => {
+        it('loads the content of the page in the current environment', async () => {
+            const content = { id: 'content-1', type: 'GRAVITEE_MARKDOWN' as const, content: '# Hello' };
+            mockGetApiDocumentationPageContent.mockResolvedValue(content);
+            const { result } = renderWithQueryClient(() => useApiDocumentationPageContent('api-1', 'nav-1'));
+
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+            expect(mockGetApiDocumentationPageContent).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1');
+            expect(result.current.data).toEqual(content);
+        });
+
+        it('does not load until it is enabled', () => {
+            const { result } = renderWithQueryClient(() => useApiDocumentationPageContent('api-1', 'nav-1', false));
+
+            expect(result.current.fetchStatus).toBe('idle');
+            expect(mockGetApiDocumentationPageContent).not.toHaveBeenCalled();
         });
     });
 
@@ -200,6 +225,36 @@ describe('useApiDocumentation hooks', () => {
 
             await waitFor(() => expect((result.current as AnyMutation).error).toBe(serverError));
             expect(invalidateQueries).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('useSaveApiDocumentationPageContent', () => {
+        it('saves the content of the page in the current environment', async () => {
+            mockSaveApiDocumentationPageContent.mockResolvedValue({ id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Hello' });
+            const { result } = renderWithQueryClient(() => useSaveApiDocumentationPageContent('api-1'));
+
+            await act(() => result.current.mutateAsync({ navId: 'nav-1', content: '# Hello' }));
+
+            expect(mockSaveApiDocumentationPageContent).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1', { content: '# Hello' });
+        });
+
+        it('leaves the documentation list alone, since it does not carry content', async () => {
+            mockSaveApiDocumentationPageContent.mockResolvedValue({ id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Hello' });
+            const { result, invalidateQueries } = renderWithQueryClient(() => useSaveApiDocumentationPageContent('api-1'));
+
+            await act(() => result.current.mutateAsync({ navId: 'nav-1', content: '# Hello' }));
+
+            expect(invalidateQueries).not.toHaveBeenCalled();
+        });
+
+        it('keeps the saved content as the content of the page, without loading it again', async () => {
+            const saved = { id: 'content-1', type: 'GRAVITEE_MARKDOWN' as const, content: '# Hello again' };
+            mockSaveApiDocumentationPageContent.mockResolvedValue(saved);
+            const { result, queryClient } = renderWithQueryClient(() => useSaveApiDocumentationPageContent('api-1'));
+
+            await act(() => result.current.mutateAsync({ navId: 'nav-1', content: '# Hello again' }));
+
+            expect(queryClient.getQueryData(['api-documentation', 'env-1', 'api-1', 'content', 'nav-1'])).toEqual(saved);
         });
     });
 });

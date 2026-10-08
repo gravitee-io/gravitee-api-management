@@ -173,3 +173,13 @@ export interface ImportPortalNavigationResponse {
     rootFolder: PortalNavigationFolder;
     summary: PortalNavigationItemsFetchSummary;
 }
+
+export interface PortalPageContent {
+    id: string;
+    type: PortalPageContentType;
+    content: string;
+}
+
+export interface UpdatePortalPageContent {
+    content: string;
+}

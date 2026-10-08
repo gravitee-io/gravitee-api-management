@@ -16,10 +16,12 @@
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
+    getApiDocumentationPageContent,
     importApiDocumentation,
     listApiDocumentation,
     listApiPublishLocations,
     publishApiToPortal,
+    saveApiDocumentationPageContent,
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from './apiDocumentation';
@@ -155,6 +157,36 @@ describe('apiDocumentation service', () => {
         it('POSTs with no body', async () => {
             await unpublishApiFromPortal('env-1', 'api-1');
             expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/_unpublish`, { method: 'POST' });
+        });
+    });
+
+    describe('getApiDocumentationPageContent', () => {
+        it("GETs the page's content", async () => {
+            const content = { id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Hello' };
+            mockApimFetchJsonV2.mockResolvedValueOnce(content);
+
+            await expect(getApiDocumentationPageContent('env-1', 'api-1', 'nav-1')).resolves.toBe(content);
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav-1/content`);
+        });
+
+        it('URL-encodes the page id', async () => {
+            await getApiDocumentationPageContent('env-1', 'api-1', 'nav/1');
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav%2F1/content`);
+        });
+    });
+
+    describe('saveApiDocumentationPageContent', () => {
+        it("PUTs the content to the page's content path", async () => {
+            await saveApiDocumentationPageContent('env-1', 'api-1', 'nav-1', { content: '# Hello' });
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav-1/content`, {
+                method: 'PUT',
+                body: JSON.stringify({ content: '# Hello' }),
+            });
+        });
+
+        it('URL-encodes the page id', async () => {
+            await saveApiDocumentationPageContent('env-1', 'api-1', 'nav/1', { content: '' });
+            expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', `${BASE_PATH}/nav%2F1/content`, expect.anything());
         });
     });
 });

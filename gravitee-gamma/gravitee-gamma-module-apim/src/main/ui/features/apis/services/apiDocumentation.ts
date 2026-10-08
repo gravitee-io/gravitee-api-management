@@ -23,8 +23,10 @@ import type {
     CreateApiDocumentationItem,
     ImportPortalNavigationRequest,
     ImportPortalNavigationResponse,
+    PortalPageContent,
     PublishApiToPortal,
     UpdateApiDocumentationItem,
+    UpdatePortalPageContent,
 } from '../types/apiDocumentation';
 
 const documentationPath = (apiId: string) => `/apis/${encodeURIComponent(apiId)}/portal-navigation-items`;
@@ -87,4 +89,20 @@ export async function publishApiToPortal(environmentId: string, apiId: string, r
 
 export async function unpublishApiFromPortal(environmentId: string, apiId: string): Promise<void> {
     return apimFetchJsonV2<void>(environmentId, `${documentationPath(apiId)}/_unpublish`, { method: 'POST' });
+}
+
+export async function getApiDocumentationPageContent(environmentId: string, apiId: string, navId: string): Promise<PortalPageContent> {
+    return apimFetchJsonV2<PortalPageContent>(environmentId, `${itemPath(apiId, navId)}/content`);
+}
+
+export async function saveApiDocumentationPageContent(
+    environmentId: string,
+    apiId: string,
+    navId: string,
+    payload: UpdatePortalPageContent,
+): Promise<PortalPageContent> {
+    return apimFetchJsonV2<PortalPageContent>(environmentId, `${itemPath(apiId, navId)}/content`, {
+        method: 'PUT',
+        body: JSON.stringify(payload),
+    });
 }
