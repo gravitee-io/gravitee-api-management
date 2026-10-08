@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCR
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAuditRedaction;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.util.DataEncryptor;
@@ -58,6 +59,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -547,8 +549,19 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .properties(auditProperties)
                 .event(Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED)
                 .createdAt(deployedDictionary.getDeployedAt())
+                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(deployedDictionary.getProperties())))
                 .build()
         );
+    }
+
+    private static Map<String, String> ciphertextByKey(Map<String, DictionaryProperty> properties) {
+        Map<String, String> ciphertextByKey = new HashMap<>();
+        properties
+            .entrySet()
+            .stream()
+            .filter(entry -> entry.getValue() != null && entry.getValue().encrypted())
+            .forEach(entry -> ciphertextByKey.put(entry.getKey(), entry.getValue().value()));
+        return ciphertextByKey;
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {

@@ -156,6 +156,18 @@ class AuditServiceImplTest {
             assertThat(capturedPatch()).doesNotContain("\"path\":\"/definition\"").doesNotContain("CIPHER").contains("\"path\":\"/id\"");
         }
 
+        @Test
+        void should_store_a_given_patch_instead_of_a_diff() throws Exception {
+            var patch = """
+                [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}}]""";
+            var audit = anApiAudit(null, null);
+            audit.setPatch(patch);
+
+            auditService.createAuditLog(EXECUTION_CONTEXT, audit);
+
+            assertThat(capturedPatch()).isEqualTo(patch);
+        }
+
         private static Api anApi(String definition) {
             var api = new Api();
             api.setId("api-id");

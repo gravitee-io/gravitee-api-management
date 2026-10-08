@@ -413,6 +413,16 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         audit.setReferenceId(auditLogData.getReferenceId());
         audit.setEvent(auditLogData.getEvent().name());
 
+        audit.setPatch(auditLogData.getPatch() != null ? auditLogData.getPatch() : diff(auditLogData));
+
+        try {
+            auditRepository.create(audit);
+        } catch (TechnicalException e) {
+            log.error("Error occurs during the creation of an Audit Log {}.", e);
+        }
+    }
+
+    private String diff(AuditLogData auditLogData) {
         ObjectNode oldNode = toObjectNode(auditLogData.getOldValue()).remove(Arrays.asList("updatedAt", "createdAt"));
         ObjectNode newNode = toObjectNode(auditLogData.getNewValue()).remove(Arrays.asList("updatedAt", "createdAt"));
 
@@ -421,14 +431,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         if (CollectionUtils.isNotEmpty(auditLogData.getPathsToAnonymize())) {
             anonymizeData(diff, auditLogData.getPathsToAnonymize());
         }
-
-        audit.setPatch(diff.toString());
-
-        try {
-            auditRepository.create(audit);
-        } catch (TechnicalException e) {
-            log.error("Error occurs during the creation of an Audit Log {}.", e);
-        }
+        return diff.toString();
     }
 
     void anonymizeData(JsonNode diff, List<String> pathsToAnonymize) {

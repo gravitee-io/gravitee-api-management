@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -229,7 +230,8 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     private void auditEncryptedPropertiesAccess(ExecutionContext executionContext, GenericApiEntity deployedApi, Date deployedAt) {
-        Map<Audit.AuditProperties, String> encryptedMarker = EncryptedPropertyAuditProperties.of(null, v4Properties(deployedApi));
+        List<Property> properties = v4Properties(deployedApi);
+        Map<Audit.AuditProperties, String> encryptedMarker = EncryptedPropertyAuditProperties.of(null, properties);
         if (encryptedMarker.isEmpty()) {
             return;
         }
@@ -239,9 +241,19 @@ public class ApiStateServiceImpl implements ApiStateService {
                 .properties(encryptedMarker)
                 .event(API_ENCRYPTED_PROPERTIES_ACCESSED)
                 .createdAt(deployedAt)
+                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
                 .build(),
             deployedApi.getId()
         );
+    }
+
+    private static Map<String, String> ciphertextByKey(List<Property> properties) {
+        Map<String, String> ciphertextByKey = new HashMap<>();
+        properties
+            .stream()
+            .filter(Property::isEncrypted)
+            .forEach(property -> ciphertextByKey.put(property.getKey(), property.getValue()));
+        return ciphertextByKey;
     }
 
     private static List<Property> v4Properties(GenericApiEntity api) {

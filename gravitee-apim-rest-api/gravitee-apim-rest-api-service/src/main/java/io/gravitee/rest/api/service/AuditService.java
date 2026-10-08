@@ -48,6 +48,7 @@ public interface AuditService {
         Object oldValue;
         Object newValue;
         List<String> pathsToAnonymize;
+        String patch;
     }
 
     default void createApiAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String apiId) {
