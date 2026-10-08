@@ -87,7 +87,7 @@ export function resetAllStores() {
     useBootstrapStore.setState({ config: null, loading: false, error: null });
     useAuthStore.setState({ user: null, loading: false, initialized: false, oauthRedirectUrl: null });
     useEnvironmentStore.getState().reset();
-    useModulesStore.setState({ modules: [] });
+    useModulesStore.setState({ modules: [], moduleLoadStatuses: {} });
     permissionService.reset();
     localStorage.clear();
 }
