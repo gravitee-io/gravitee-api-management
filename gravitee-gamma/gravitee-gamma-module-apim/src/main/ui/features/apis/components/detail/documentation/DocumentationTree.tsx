@@ -34,7 +34,7 @@ import {
     RefreshCwIcon,
     Trash2Icon,
 } from '@gravitee/graphene-core/icons';
-import { useMemo } from 'react';
+import { type ComponentType, type MouseEvent, useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
@@ -42,6 +42,19 @@ import type { ApiDocumentationItem, PortalNavigationFolder } from '../../../type
 import { buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
 
 type ColCell = { row: { original: DocumentationRow } };
+
+interface RowAction {
+    label: string;
+    icon: ComponentType<{ className?: string }>;
+    destructive?: boolean;
+    onSelect: () => void;
+}
+
+interface RowContextMenuState {
+    actions: RowAction[];
+    x: number;
+    y: number;
+}
 
 const TYPE_ICONS = { PAGE: FileTextIcon, FOLDER: FolderOpenIcon, LINK: Link2Icon } as const;
 
@@ -65,33 +78,68 @@ export function DocumentationTree({
     onAddPage: (folder: PortalNavigationFolder) => void;
 }>) {
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
-    const columns = useMemo(
-        () => buildColumns({ canDelete, onDelete, canAdd, onAddPage, onToggle }),
-        [canDelete, onDelete, canAdd, onAddPage, onToggle],
+    const [contextMenu, setContextMenu] = useState<RowContextMenuState | null>(null);
+
+    // The row button and the right-click menu offer the same actions, built here only.
+    const actionsFor = useCallback(
+        (row: DocumentationRow): RowAction[] => {
+            // The server refuses to add anything below a synced folder, or to delete what it syncs.
+            if (row.synced) return [];
+            const { item } = row;
+            const actions: RowAction[] = [];
+            if (canAdd && item.type === 'FOLDER') {
+                actions.push({ label: 'Add page', icon: PlusIcon, onSelect: () => onAddPage(item) });
+            }
+            if (canDelete) {
+                actions.push({ label: 'Delete', icon: Trash2Icon, destructive: true, onSelect: () => onDelete(row) });
+            }
+            return actions;
+        },
+        [canAdd, onAddPage, canDelete, onDelete],
     );
 
+    const columns = useMemo(
+        () => buildColumns({ hasActions: canAdd || canDelete, actionsFor, onToggle }),
+        [canAdd, canDelete, actionsFor, onToggle],
+    );
+
+    // DataTable takes no props for its rows, so the row is found from the title cell it contains.
+    function openContextMenu(event: MouseEvent<HTMLDivElement>) {
+        const itemId =
+            event.target instanceof Element
+                ? event.target.closest('tr')?.querySelector('[data-documentation-item]')?.getAttribute('data-documentation-item')
+                : undefined;
+        const row = rows.find(candidate => candidate.item.id === itemId);
+        const actions = row ? actionsFor(row) : [];
+        // Without an action, the browser keeps its own menu.
+        if (actions.length === 0) return;
+        event.preventDefault();
+        setContextMenu({ actions, x: event.clientX, y: event.clientY });
+    }
+
     return (
-        <DataTable
-            aria-label="Documentation"
-            columns={columns}
-            data={rows}
-            loading={isLoading}
-            tableOptions={{ getRowId: row => row.item.id }}
-        />
+        <div onContextMenu={openContextMenu}>
+            <DataTable
+                aria-label="Documentation"
+                columns={columns}
+                data={rows}
+                loading={isLoading}
+                tableOptions={{ getRowId: row => row.item.id }}
+            />
+            {contextMenu ? (
+                <RowContextMenu key={`${contextMenu.x},${contextMenu.y}`} menu={contextMenu} onClose={() => setContextMenu(null)} />
+            ) : null}
+        </div>
     );
 }
 
 function buildColumns({
-    canDelete,
-    onDelete,
-    canAdd,
-    onAddPage,
+    hasActions,
+    actionsFor,
     onToggle,
 }: {
-    canDelete: boolean;
-    onDelete: (row: DocumentationRow) => void;
-    canAdd: boolean;
-    onAddPage: (folder: PortalNavigationFolder) => void;
+    hasActions: boolean;
+    actionsFor: (row: DocumentationRow) => RowAction[];
     onToggle: (id: string) => void;
 }): DataTableProps<DocumentationRow>['columns'] {
     const columns: DataTableProps<DocumentationRow>['columns'] = [
@@ -114,17 +162,14 @@ function buildColumns({
         },
     ];
 
-    if (canDelete || canAdd) {
+    if (hasActions) {
         columns.push({
             id: 'actions',
             header: () => <span className="sr-only">Actions</span>,
             size: 56,
             cell: ({ row }: ColCell) => {
-                const { item, synced } = row.original;
-                // The server refuses to add anything below a synced folder, or to delete what it syncs.
-                if (synced) return null;
-                const targetFolder = canAdd && item.type === 'FOLDER' ? item : null;
-                if (!targetFolder && !canDelete) return null;
+                const actions = actionsFor(row.original);
+                if (actions.length === 0) return null;
                 return (
                     <div className="flex justify-end">
                         <DropdownMenu>
@@ -140,18 +185,7 @@ function buildColumns({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="min-w-48">
-                                {targetFolder ? (
-                                    <DropdownMenuItem onSelect={() => onAddPage(targetFolder)}>
-                                        <PlusIcon className="size-4" aria-hidden />
-                                        Add page
-                                    </DropdownMenuItem>
-                                ) : null}
-                                {canDelete ? (
-                                    <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original)}>
-                                        <Trash2Icon className="size-4" aria-hidden />
-                                        Delete
-                                    </DropdownMenuItem>
-                                ) : null}
+                                <RowActionItems actions={actions} />
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -163,12 +197,35 @@ function buildColumns({
     return columns;
 }
 
+function RowActionItems({ actions }: Readonly<{ actions: RowAction[] }>) {
+    return actions.map(({ label, icon: Icon, destructive, onSelect }) => (
+        <DropdownMenuItem key={label} variant={destructive ? 'destructive' : 'default'} onSelect={onSelect}>
+            <Icon className="size-4" aria-hidden />
+            {label}
+        </DropdownMenuItem>
+    ));
+}
+
+// The row's own button stays the way in for keyboard users; this only adds right-click.
+function RowContextMenu({ menu, onClose }: Readonly<{ menu: RowContextMenuState; onClose: () => void }>) {
+    return (
+        <DropdownMenu open modal={false} onOpenChange={open => !open && onClose()}>
+            <DropdownMenuTrigger asChild>
+                <span className="pointer-events-none fixed size-0" style={{ left: menu.x, top: menu.y }} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-48" onCloseAutoFocus={event => event.preventDefault()}>
+                <RowActionItems actions={menu.actions} />
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
+}
+
 function TitleCell({ row, onToggle }: Readonly<{ row: DocumentationRow; onToggle: (id: string) => void }>) {
     const { item, depth, hasChildren, expanded } = row;
     const TypeIcon = TYPE_ICONS[item.type];
 
     return (
-        <div className="flex min-w-0 items-center gap-2" style={{ paddingLeft: `${depth * 1.5}rem` }}>
+        <div className="flex min-w-0 items-center gap-2" style={{ paddingLeft: `${depth * 1.5}rem` }} data-documentation-item={item.id}>
             {hasChildren ? (
                 <Button
                     type="button"
