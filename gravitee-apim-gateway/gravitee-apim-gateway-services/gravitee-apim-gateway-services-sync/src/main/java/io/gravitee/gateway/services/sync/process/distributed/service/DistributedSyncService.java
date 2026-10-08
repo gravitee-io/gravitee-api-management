@@ -142,7 +142,6 @@ public interface DistributedSyncService {
      */
     default void inspectPrimaryState(final DistributedSyncState state) {}
 
-
     Completable distributeIfNeeded(final ApiReactorDeployable deployable);
 
     Completable distributeIfNeeded(final SingleSubscriptionDeployable deployable);
