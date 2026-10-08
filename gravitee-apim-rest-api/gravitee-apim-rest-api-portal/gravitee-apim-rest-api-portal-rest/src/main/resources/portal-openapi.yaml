@@ -7821,11 +7821,10 @@ components:
                     default: false
                 viewer:
                     type: string
-                    description: The type of viewer for OpenAPI specification. Default is 'Swagger'
+                    description: The type of viewer for OpenAPI specification. Absent when the page has no saved viewer; the portal then uses the environment default viewer.
                     enum:
                         - Swagger
                         - Redoc
-                    default: Swagger
         RatingAnswer:
             required:
                 - id
