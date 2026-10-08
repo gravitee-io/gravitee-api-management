@@ -1168,7 +1168,6 @@ components:
           examples:
             - 1.0.0
           minLength: 1
-          maxLength: 64
         type:
           $ref: "#/components/schemas/ApiType"
         description:
@@ -1182,7 +1181,6 @@ components:
           description: Sharding tags that restrict deployment to Gateways having those tags on. No tags means "always deploy".
           items:
             type: string
-            maxLength: 64
           default: [ ]
           uniqueItems: true
           examples:
@@ -1265,7 +1263,6 @@ components:
           description: Informative labels for this API.
           items:
             type: string
-            maxLength: 64
           uniqueItems: true
           default: [ ]
           examples:
@@ -2050,7 +2047,6 @@ components:
         name:
           type: string
           description: Name of the plan
-          maxLength: 64
         description:
           type: string
           description: A description for this plan.
@@ -2061,7 +2057,6 @@ components:
           description: Plan informative characteristics
           items:
             type: string
-            maxLength: 64
           default: []
         excludedGroups:
           description: Access-control, UUID of groups excluded from this plan
@@ -2080,7 +2075,6 @@ components:
           description: Sharding tags that restrict deployment to Gateways having those tags on. No tags means "always deploy". This tags list must be a subset of the API's tags list.
           items:
             type: string
-            maxLength: 64
           uniqueItems: true
           default: []
         type:
@@ -2773,7 +2767,6 @@ components:
             This field can be edited safely if you want to rename a page.
           examples:
             - My Page
-          maxLength: 64
         type:
           $ref: "#/components/schemas/PageType"
         content:
@@ -2848,7 +2841,6 @@ components:
             - gitlab-fetcher
             - github-fetcher
             - bitbucket-fetcher
-          maxLength: 64
         configuration:
           type: object
           description: JSON object configuration of the fetch plugin.
@@ -3152,7 +3144,6 @@ components:
         name:
           type: string
           description: The name of the step
-          maxLength: 64
         description:
           type: string
           description: A description for the step
@@ -3164,7 +3155,6 @@ components:
         policy:
           type: string
           description: The policy of the step (plugin ID)
-          maxLength: 64
         configuration:
           type: object
           description: JSON Object configuration of the policy used.
