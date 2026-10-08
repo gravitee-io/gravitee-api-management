@@ -3480,7 +3480,7 @@ paths:
                 chosen section if it is elsewhere, and made visible together with what is stored under it. An API
                 whose listing is visible is already published and cannot be published again.
 
-                User must have the API_DOCUMENTATION[CREATE] permission.
+                User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: publishApiToPortal
             requestBody:
                 content:
@@ -3503,6 +3503,36 @@ paths:
                                 $ref: "#/components/schemas/Error"
                 "404":
                     description: The section does not exist
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Error"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/portal-navigation-items/_unpublish:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Documentation
+            summary: Unpublish an API from the portal
+            description: |-
+                Hides every navigation item listing the API in a portal, with what is stored under it, and
+                unpublishes every page, folder and link the API owns. Nothing is deleted: publishing the API again
+                shows the same navigation item.
+
+                A listing under an API product is left untouched. An API with no visible listing is not published,
+                and the request is rejected.
+
+                User must have the API_DOCUMENTATION[UPDATE] permission.
+            operationId: unpublishApiFromPortal
+            responses:
+                "204":
+                    description: The API is no longer visible in the portal
+                "400":
+                    description: The API is not published to the portal
                     content:
                         application/json:
                             schema:

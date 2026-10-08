@@ -23,6 +23,7 @@ import io.gravitee.apim.core.portal_page.use_case.ImportPortalNavigationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiDocumentationUseCase;
 import io.gravitee.apim.core.portal_page.use_case.ListApiPublishLocationsUseCase;
 import io.gravitee.apim.core.portal_page.use_case.PublishApiToPortalUseCase;
+import io.gravitee.apim.core.portal_page.use_case.UnpublishApiFromPortalUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PortalNavigationItemsMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiPortalNavigationItemsResponse;
@@ -69,6 +70,9 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
 
     @Inject
     private PublishApiToPortalUseCase publishApiToPortalUseCase;
+
+    @Inject
+    private UnpublishApiFromPortalUseCase unpublishApiFromPortalUseCase;
 
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
@@ -126,7 +130,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public ApiPortalPublication publishApiToPortal(
         @PathParam("apiId") String apiId,
         @Valid @NotNull final PublishApiToPortal publishApiToPortal
@@ -141,6 +145,14 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
             )
         );
         return mapper.mapPublication(new ListApiDocumentationUseCase.Publication(output.listing(), output.section()));
+    }
+
+    @Path("_unpublish")
+    @POST
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
+    public Response unpublishApiFromPortal(@PathParam("apiId") String apiId) {
+        unpublishApiFromPortalUseCase.execute(new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
+        return Response.noContent().build();
     }
 
     @Path("_import")
