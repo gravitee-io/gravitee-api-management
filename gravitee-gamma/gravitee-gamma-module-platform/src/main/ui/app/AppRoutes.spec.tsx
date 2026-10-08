@@ -591,7 +591,7 @@ function renderIntegrationOverviewUrl(integrationId: string) {
 }
 
 function renderIntegrationPath(path: string) {
-    render(
+    return render(
         <MemoryRouter initialEntries={[path]}>
             <AppRoutes />
             <LocationProbe />
@@ -1128,7 +1128,11 @@ describe('AppRoutes', () => {
         renderIntegrationPath('/integrations/new');
 
         expect(await screen.findByRole('heading', { name: 'Create a new integration' })).not.toBeNull();
-        expect(within(screen.getByRole('radiogroup', { name: 'Provider' })).getAllByRole('radio')).toHaveLength(10);
+        expect(
+            ['API gateways', 'Event brokers', 'AI agents'].flatMap(group =>
+                within(screen.getByRole('region', { name: group })).getAllByRole('button'),
+            ),
+        ).toHaveLength(10);
         expect(screen.queryByTestId('integration-overview-page')).toBeNull();
         expect(screen.getByTestId('location').textContent).toBe('/integrations/new');
         expect(integrationsRequestUrls(fetchSpy)).toEqual([]);
@@ -1148,7 +1152,7 @@ describe('AppRoutes', () => {
         await act(async () => {});
 
         expect(screen.queryByRole('heading', { name: 'Create a new integration' })).toBeNull();
-        expect(screen.queryByRole('radiogroup', { name: 'Provider' })).toBeNull();
+        expect(screen.queryByRole('textbox', { name: 'Filter providers' })).toBeNull();
         expect(screen.getByTestId('location').textContent).not.toBe('/integrations/new');
         fetchSpy.mockRestore();
     });
@@ -1178,7 +1182,7 @@ describe('AppRoutes', () => {
             'https://apim.test/management/v2/environments/env-1/integrations',
             'MuleSoft',
             async (user: ReturnType<typeof userEvent.setup>, created: { name: string }) => {
-                await user.click(await screen.findByRole('radio', { name: 'MuleSoft' }));
+                await user.click(await screen.findByRole('button', { name: /^MuleSoft/ }));
                 await user.type(screen.getByRole('textbox', { name: /^Name/ }), created.name);
             },
         ],
@@ -1191,7 +1195,7 @@ describe('AppRoutes', () => {
             DEFAULT_ENVIRONMENT_INTEGRATIONS_URL,
             'A2A Protocol',
             async (user: ReturnType<typeof userEvent.setup>, created: { name: string; description?: string }) => {
-                await user.click(await screen.findByRole('radio', { name: 'A2A Protocol' }));
+                await user.click(await screen.findByRole('button', { name: /^A2A Protocol/ }));
                 await user.click(screen.getByRole('textbox', { name: /^Name/ }));
                 await user.paste(created.name);
                 await user.click(screen.getByRole('textbox', { name: /^Description/ }));
@@ -1224,10 +1228,10 @@ describe('AppRoutes', () => {
             );
             expect(await within(listView.container).findByText('No integrations yet')).not.toBeNull();
 
-            renderIntegrationPath(path);
+            const createView = renderIntegrationPath(path);
             await fillForm(user, created);
             expect(screen.getByTestId('location').textContent).toBe(path);
-            await user.click(screen.getByRole('button', { name: 'Create' }));
+            await user.click(within(createView.container).getByRole('button', { name: 'Create integration' }));
             await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${created.id}`));
 
             expect(integrationCreateRequestUrls(fetchSpy)).toEqual([createUrl]);

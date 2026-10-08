@@ -23,7 +23,10 @@ import { useCreateIntegration } from '../hooks/useCreateIntegration';
 import type { A2aIntegrationFormValues } from '../utils/a2aIntegrationForm';
 import { A2A_PROVIDER } from '../utils/integrationKind';
 
-export function CreateA2aIntegration({ onSubmittingChange }: Readonly<{ onSubmittingChange?: (isSubmitting: boolean) => void }>) {
+export function CreateA2aIntegration({
+    onCancel,
+    onSubmittingChange,
+}: Readonly<{ onCancel: () => void; onSubmittingChange?: (isSubmitting: boolean) => void }>) {
     const navigate = useNavigate();
     const createIntegration = useCreateIntegration();
 
@@ -49,5 +52,7 @@ export function CreateA2aIntegration({ onSubmittingChange }: Readonly<{ onSubmit
         }
     }
 
-    return <A2aIntegrationForm onSubmit={values => void handleSubmit(values)} isSubmitting={createIntegration.isPending} />;
+    return (
+        <A2aIntegrationForm onSubmit={values => void handleSubmit(values)} onCancel={onCancel} isSubmitting={createIntegration.isPending} />
+    );
 }
