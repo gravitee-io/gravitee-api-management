@@ -30,7 +30,7 @@ describe('endpointGroupBackendSecurity', () => {
         expect(
             hasBackendSecurityConfiguration({
                 http: { readTimeout: 10000 },
-                ssl: { hostnameVerifier: true, trustAll: false, clientAuthentication: 'NONE' },
+                ssl: { hostnameVerifier: true, trustAll: false },
                 proxy: { enabled: false },
                 headers: [],
             }),
@@ -39,7 +39,7 @@ describe('endpointGroupBackendSecurity', () => {
 
     it('detects proxy, SSL, and header security settings', () => {
         expect(hasBackendSecurityConfiguration({ proxy: { enabled: true, host: 'proxy.local' } })).toBe(true);
-        expect(hasBackendSecurityConfiguration({ ssl: { clientAuthentication: 'REQUIRED' } })).toBe(true);
+        expect(hasBackendSecurityConfiguration({ ssl: { trustStore: { type: 'PEM', path: '/certs/ca.pem' } } })).toBe(true);
         expect(hasBackendSecurityConfiguration({ ssl: { trustAll: true } })).toBe(true);
         expect(hasBackendSecurityConfiguration({ headers: [{ name: 'Authorization', value: 'Bearer x' }] })).toBe(true);
     });
@@ -49,7 +49,7 @@ describe('endpointGroupBackendSecurity', () => {
             id: 'api-1',
             endpointGroups: [
                 { name: 'default', type: 'http-proxy', sharedConfiguration: {} },
-                { name: 'other', type: 'http-proxy', sharedConfiguration: { ssl: { clientAuthentication: 'REQUIRED' } } },
+                { name: 'other', type: 'http-proxy', sharedConfiguration: { ssl: { trustStore: { type: 'JKS', path: '/a.jks' } } } },
             ],
         } as ApiDetailDto;
 

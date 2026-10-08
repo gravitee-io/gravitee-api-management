@@ -19,7 +19,7 @@ import { useParams } from 'react-router-dom';
 import { PlansPage } from './PlansPage';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import type { PlanContext } from '../../../types/plan';
-import { hasTcpListeners } from '../../../utils/apiHttpProxy';
+import { areAllListenersTcp } from '../../../utils/apiHttpProxy';
 
 export function ApiPlansPage() {
     const { apiId } = useParams<{ apiId: string }>();
@@ -36,7 +36,7 @@ export function ApiPlansPage() {
             canCreate={canCreate}
             canUpdate={canUpdate}
             canDelete={canDelete}
-            isTcpApi={hasTcpListeners(api)}
+            restrictToKeyless={areAllListenersTcp(api)}
         />
     );
 }

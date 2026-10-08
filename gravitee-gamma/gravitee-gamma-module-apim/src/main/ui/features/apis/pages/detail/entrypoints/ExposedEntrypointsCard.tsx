@@ -18,7 +18,8 @@ import { Card, CardContent, Skeleton } from '@gravitee/graphene-core';
 import { CopyButton } from './CopyButton';
 import { InfoTooltip } from './InfoTooltip';
 
-function entrypointLabel(index: number, virtualHostMode: boolean): string {
+function entrypointLabel(index: number, virtualHostMode: boolean, variant: 'http' | 'tcp'): string {
+    if (variant === 'tcp') return index === 0 ? 'Exposed host' : `Exposed host ${index + 1}`;
     if (virtualHostMode) return `Virtual host row ${index + 1}`;
     if (index === 0) return 'Gateway URL';
     if (index === 1) return 'Internal URL';
@@ -28,21 +29,34 @@ function entrypointLabel(index: number, virtualHostMode: boolean): string {
 interface ExposedEntrypointsCardProps {
     entrypoints: { value: string }[];
     isLoading: boolean;
-    virtualHostMode: boolean;
+    virtualHostMode?: boolean;
+    variant?: 'http' | 'tcp';
 }
 
-export function ExposedEntrypointsCard({ entrypoints, isLoading, virtualHostMode }: Readonly<ExposedEntrypointsCardProps>) {
+export function ExposedEntrypointsCard({
+    entrypoints,
+    isLoading,
+    virtualHostMode = false,
+    variant = 'http',
+}: Readonly<ExposedEntrypointsCardProps>) {
+    const tooltip =
+        variant === 'tcp'
+            ? 'Host and TCP port combinations the gateway exposes for this API—the same values consumers see in the Developer Portal.'
+            : 'URLs derived from your context paths or virtual hosts—the same values consumers see in the Developer Portal.';
+    const description =
+        variant === 'tcp'
+            ? 'Preview of the host:port values consumers use to reach this TCP API on the gateway.'
+            : 'Preview of gateway URLs for the paths configured above (plus internal routing where applicable).';
+
     return (
         <Card>
             <CardContent className="p-5 space-y-4">
                 <div>
                     <div className="text-sm font-semibold text-foreground flex items-center">
                         Exposed entrypoints
-                        <InfoTooltip text="URLs derived from your context paths or virtual hosts—the same values consumers see in the Developer Portal." />
+                        <InfoTooltip text={tooltip} />
                     </div>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                        Preview of gateway URLs for the paths configured above (plus internal routing where applicable).
-                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
                 </div>
 
                 {isLoading ? (
@@ -61,7 +75,7 @@ export function ExposedEntrypointsCard({ entrypoints, isLoading, virtualHostMode
                                 style={{ backgroundColor: 'color-mix(in oklab, var(--color-muted) 40%, transparent)' }}
                             >
                                 <div className="min-w-0">
-                                    <p className="text-xs text-muted-foreground">{entrypointLabel(index, virtualHostMode)}</p>
+                                    <p className="text-xs text-muted-foreground">{entrypointLabel(index, virtualHostMode, variant)}</p>
                                     <p className="text-sm font-medium font-mono truncate">{ep.value}</p>
                                 </div>
                                 <CopyButton value={ep.value} />

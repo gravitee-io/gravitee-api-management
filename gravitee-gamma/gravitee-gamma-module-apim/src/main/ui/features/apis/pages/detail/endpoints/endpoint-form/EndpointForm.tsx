@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { Button, Input, Label, Switch } from '@gravitee/graphene-core';
+import { Button, Input, Label } from '@gravitee/graphene-core';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
@@ -23,15 +23,13 @@ import { SwitchRow } from '../../../../components/CollapsibleSection';
 import { WizardStepIndicator } from '../../../../components/WizardStepIndicator';
 import { getTenants } from '../../../../services/tenants';
 import type { Tenant } from '../../../../types';
-import { validateTcpPort } from '../../../../utils/apiCreationValidation';
-import { validateDuplicateHost } from '../../../../utils/duplicateDialogValidation';
-import { validateHttpProxyOptions } from '../../../../utils/endpointSharedConfiguration';
 import type { HealthCheckConfigFormState, HealthCheckFormState } from '../../../../utils/healthCheckForm';
 import { validateHealthCheckForm } from '../../../../utils/healthCheckForm';
 import { tenantKeys } from '../../../../utils/queryKeys';
 import { ConfigurationStep } from '../group-form/ConfigurationStep';
 import { HealthCheckStep } from '../group-form/HealthCheckStep';
-import type { EndpointFormState, SharedConfigFormState } from '../types';
+import { EndpointConfigurationSchemaForm } from '../group-form/SharedConfigurationSchemaForm';
+import type { EndpointConfigurationFormState, EndpointFormState, SharedConfigFormState } from '../types';
 import { DEFAULT_SHARED_CONFIG, newEndpointRow, validateEndpointName } from '../types';
 
 const BASE_STEPS = [
@@ -49,7 +47,6 @@ interface GeneralStepProps {
     existingNames: string[];
     tenantsLoading: boolean;
     availableTenants: Tenant[];
-    isTcp?: boolean;
     isReadOnly?: boolean;
     /** Secondary only applies with health-check (HTTP proxy APIs). */
     showSecondary?: boolean;
@@ -61,7 +58,6 @@ function EndpointGeneralStep({
     existingNames,
     tenantsLoading,
     availableTenants,
-    isTcp = false,
     isReadOnly = false,
     showSecondary = false,
     onChange,
@@ -74,20 +70,13 @@ function EndpointGeneralStep({
         return null;
     })();
 
-    const targetError = !form.target.trim()
-        ? 'Target URL is required.'
-        : /\s/.test(form.target)
-          ? 'Target URL must not contain whitespace.'
-          : null;
-    const tcpHostError = validateDuplicateHost(form.tcpTargetHost);
-    const tcpPortError = validateTcpPort(form.tcpTargetPort);
     const weightError = form.weight < 1 ? 'Weight must be at least 1.' : null;
 
     return (
         <div className="space-y-4">
             <div className="space-y-2">
                 <Label htmlFor="ep-name" className="text-sm">
-                    Name <span className="text-destructive">*</span>
+                    Endpoint name <span className="text-destructive">*</span>
                 </Label>
                 <Input
                     id="ep-name"
@@ -100,69 +89,8 @@ function EndpointGeneralStep({
                 <p className="text-xs text-muted-foreground">Must be unique in this group. Colons are not allowed.</p>
             </div>
 
-            {isTcp ? (
-                <>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="ep-tcp-host" className="text-sm">
-                                Host <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="ep-tcp-host"
-                                value={form.tcpTargetHost}
-                                onChange={e => onChange('tcpTargetHost', e.target.value)}
-                                placeholder="postgres.internal.example.com"
-                                disabled={isReadOnly}
-                            />
-                            {tcpHostError && <p className="text-xs text-destructive">{tcpHostError}</p>}
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="ep-tcp-port" className="text-sm">
-                                Port <span className="text-destructive">*</span>
-                            </Label>
-                            <Input
-                                id="ep-tcp-port"
-                                type="number"
-                                min={0}
-                                max={65535}
-                                value={form.tcpTargetPort}
-                                onChange={e => onChange('tcpTargetPort', e.target.value)}
-                                placeholder="5432"
-                                disabled={isReadOnly}
-                            />
-                            {tcpPortError && <p className="text-xs text-destructive">{tcpPortError}</p>}
-                        </div>
-                    </div>
-                    <div className="flex items-center justify-between rounded-lg border px-4 py-3">
-                        <div>
-                            <p className="text-sm font-medium">Secured (TLS)</p>
-                            <p className="text-xs text-muted-foreground">Connect to the backend over TLS.</p>
-                        </div>
-                        <Switch
-                            checked={form.tcpTargetSecured}
-                            onCheckedChange={v => onChange('tcpTargetSecured', v)}
-                            aria-label="Enable TLS to the backend"
-                            disabled={isReadOnly}
-                        />
-                    </div>
-                </>
-            ) : (
-                <div className="space-y-2">
-                    <Label htmlFor="ep-target" className="text-sm">
-                        Target URL <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                        id="ep-target"
-                        value={form.target}
-                        onChange={e => onChange('target', e.target.value)}
-                        placeholder="https://backend.example.com"
-                        disabled={isReadOnly}
-                    />
-                    {targetError && <p className="text-xs text-destructive">{targetError}</p>}
-                </div>
-            )}
-
             <div className="space-y-2">
+                <p className="text-sm font-medium">Configure the load balancer</p>
                 <Label htmlFor="ep-weight" className="text-sm">
                     Weight
                 </Label>
@@ -182,6 +110,7 @@ function EndpointGeneralStep({
             </div>
 
             <div className="space-y-2">
+                <p className="text-sm font-medium">Configure tenants</p>
                 <Label className="text-sm">Tenants</Label>
                 <p className="text-xs text-muted-foreground">Restrict this endpoint to requests from specific gateway tenants.</p>
                 <TenantSelectInput
@@ -233,13 +162,15 @@ export function EndpointForm({
     onCancel,
 }: Readonly<EndpointFormProps>) {
     const env = useEnvironment();
+    const endpointType = isTcp ? 'tcp-proxy' : 'http-proxy';
     const steps = useMemo(() => (showHealthCheck ? [...BASE_STEPS, HEALTH_CHECK_STEP] : [...BASE_STEPS]), [showHealthCheck]);
 
     const [currentStep, setCurrentStep] = useState<StepId>('general');
     const [form, setForm] = useState<EndpointFormState>(initial ?? newEndpointRow(groupHealthCheck));
     const [configOverride, setConfigOverride] = useState<SharedConfigFormState>(initial?._configOverride ?? DEFAULT_SHARED_CONFIG);
     const [healthCheckErrors, setHealthCheckErrors] = useState<Record<string, string>>({});
-    const [proxyError, setProxyError] = useState<string | null>(null);
+    const [sharedConfigValid, setSharedConfigValid] = useState(form.inheritConfiguration);
+    const [endpointConfigurationValid, setEndpointConfigurationValid] = useState(false);
 
     const { data: availableTenants = [], isLoading: tenantsLoading } = useQuery({
         queryKey: tenantKeys.list(env?.id ?? ''),
@@ -289,13 +220,8 @@ export function EndpointForm({
         return null;
     })();
 
-    const generalValid = isTcp
-        ? !nameError &&
-          validateDuplicateHost(form.tcpTargetHost) === null &&
-          validateTcpPort(form.tcpTargetPort) === null &&
-          form.weight >= 1
-        : !nameError && form.target.trim().length > 0 && !/\s/.test(form.target) && form.weight >= 1;
-    const configurationValid = form.inheritConfiguration || validateHttpProxyOptions(configOverride.proxy) === null;
+    const generalValid = !nameError && form.weight >= 1 && endpointConfigurationValid;
+    const configurationValid = form.inheritConfiguration || sharedConfigValid;
     const healthCheckValid = !showHealthCheck || Object.keys(validateHealthCheckForm(form.healthCheck)).length === 0;
 
     const currentStepIndex = steps.findIndex(s => s.id === currentStep);
@@ -303,10 +229,8 @@ export function EndpointForm({
     const canGoBack = currentStepIndex > 0;
 
     function goNext() {
-        if (currentStep === 'configuration' && !form.inheritConfiguration) {
-            const err = validateHttpProxyOptions(configOverride.proxy);
-            setProxyError(err);
-            if (err) return;
+        if (currentStep === 'configuration' && !form.inheritConfiguration && !sharedConfigValid) {
+            return;
         }
         if (currentStep === 'health-check') {
             const errors = validateHealthCheckForm(form.healthCheck);
@@ -323,13 +247,9 @@ export function EndpointForm({
     }
 
     function handleSave() {
-        if (!form.inheritConfiguration) {
-            const proxyErr = validateHttpProxyOptions(configOverride.proxy);
-            setProxyError(proxyErr);
-            if (proxyErr) {
-                setCurrentStep('configuration');
-                return;
-            }
+        if (!form.inheritConfiguration && !sharedConfigValid) {
+            setCurrentStep('configuration');
+            return;
         }
         if (showHealthCheck) {
             const errors = validateHealthCheckForm(form.healthCheck);
@@ -357,52 +277,60 @@ export function EndpointForm({
             />
 
             <div>
-                {currentStep === 'general' && (
+                <div hidden={currentStep !== 'general'}>
                     <EndpointGeneralStep
                         form={form}
                         existingNames={existingNames}
                         tenantsLoading={tenantsLoading}
                         availableTenants={availableTenants}
-                        isTcp={isTcp}
                         isReadOnly={isReadOnly}
                         showSecondary={showHealthCheck}
                         onChange={setField}
                     />
-                )}
-                {currentStep === 'configuration' && (
-                    <div className="space-y-4">
-                        <SwitchRow
-                            id="endpoint-inherit-configuration"
-                            label="Inherit configuration from the endpoint group"
-                            desc="Use the endpoint group's shared connection configuration."
-                            checked={form.inheritConfiguration}
-                            onChange={value => setField('inheritConfiguration', value)}
+                    <EndpointConfigurationSchemaForm
+                        endpointType={endpointType}
+                        value={form.configuration}
+                        onChange={(next: EndpointConfigurationFormState) => setField('configuration', next)}
+                        onValidityChange={setEndpointConfigurationValid}
+                        disabled={isReadOnly}
+                    />
+                </div>
+                <div hidden={currentStep !== 'configuration'} className="space-y-4">
+                    <SwitchRow
+                        id="endpoint-inherit-configuration"
+                        label="Inherit configuration from the endpoint group"
+                        desc="Use the endpoint group's shared connection configuration."
+                        checked={form.inheritConfiguration}
+                        onChange={value => {
+                            setField('inheritConfiguration', value);
+                            setSharedConfigValid(value);
+                        }}
+                        disabled={isReadOnly}
+                    />
+                </div>
+                {!form.inheritConfiguration && (
+                    <div hidden={currentStep !== 'configuration'}>
+                        <ConfigurationStep
+                            config={configOverride}
+                            endpointType={endpointType}
                             disabled={isReadOnly}
+                            onChange={setConfigOverride}
+                            onSharedConfigValidityChange={setSharedConfigValid}
                         />
-                        {!form.inheritConfiguration && (
-                            <ConfigurationStep
-                                config={configOverride}
-                                proxyError={proxyError}
-                                isTcp={isTcp}
-                                disabled={isReadOnly}
-                                onChange={patch => {
-                                    setConfigOverride(prev => ({ ...prev, ...patch }));
-                                    setProxyError(null);
-                                }}
-                            />
-                        )}
                     </div>
                 )}
-                {currentStep === 'health-check' && showHealthCheck && (
-                    <HealthCheckStep
-                        mode="endpoint"
-                        healthCheck={form.healthCheck}
-                        groupHealthCheck={groupHealthCheck}
-                        errors={healthCheckErrors}
-                        readOnly={isReadOnly}
-                        onChange={patchHealthCheck}
-                        onConfigChange={patchHealthCheckConfig}
-                    />
+                {showHealthCheck && (
+                    <div hidden={currentStep !== 'health-check'}>
+                        <HealthCheckStep
+                            mode="endpoint"
+                            healthCheck={form.healthCheck}
+                            groupHealthCheck={groupHealthCheck}
+                            errors={healthCheckErrors}
+                            readOnly={isReadOnly}
+                            onChange={patchHealthCheck}
+                            onConfigChange={patchHealthCheckConfig}
+                        />
+                    </div>
                 )}
             </div>
 

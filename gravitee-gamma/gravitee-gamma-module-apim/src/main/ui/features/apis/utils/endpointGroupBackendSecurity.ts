@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DEFAULT_SSL, parseSharedConfigDto } from '../pages/detail/endpoints/types';
 import type { ApiDetailDto, EndpointGroupSharedConfiguration } from '../types';
 
 /** First endpoint group in the API definition — used as the default upstream group. */
@@ -29,24 +28,42 @@ export function hasDefaultEndpointGroupBackendSecurityConfigured(api: ApiDetailD
     return hasBackendSecurityConfiguration(getDefaultEndpointGroup(api)?.sharedConfiguration);
 }
 
+function storeConfigured(store: unknown): boolean {
+    if (!store || typeof store !== 'object') return false;
+    const type = String((store as { type?: unknown }).type ?? '').toUpperCase();
+    return type !== '' && type !== 'NONE';
+}
+
 export function hasBackendSecurityConfiguration(sharedConfiguration: EndpointGroupSharedConfiguration | undefined): boolean {
     if (!sharedConfiguration || Object.keys(sharedConfiguration).length === 0) {
         return false;
     }
 
-    const { proxy, ssl, headers } = parseSharedConfigDto(sharedConfiguration);
+    const proxy = (sharedConfiguration.proxy ?? {}) as {
+        enabled?: boolean;
+        host?: string;
+        username?: string;
+        password?: string;
+    };
+    const ssl = (sharedConfiguration.ssl ?? {}) as {
+        hostnameVerifier?: boolean;
+        trustAll?: boolean;
+        trustStore?: unknown;
+        keyStore?: unknown;
+    };
+    const headers = sharedConfiguration.headers ?? [];
 
-    if (proxy.enabled && (proxy.host.trim() || proxy.username.trim() || proxy.password.trim())) {
+    if (proxy.enabled && ((proxy.host ?? '').trim() || (proxy.username ?? '').trim() || (proxy.password ?? '').trim())) {
         return true;
     }
 
-    if (ssl.clientAuthentication !== 'NONE') {
+    if (storeConfigured(ssl.trustStore) || storeConfigured(ssl.keyStore)) {
         return true;
     }
 
-    if (ssl.trustAll !== DEFAULT_SSL.trustAll || ssl.hostnameVerifier !== DEFAULT_SSL.hostnameVerifier) {
+    if (ssl.trustAll === true || ssl.hostnameVerifier === false) {
         return true;
     }
 
-    return headers.some(h => h.name.trim() && h.value.trim());
+    return headers.some(h => (h.name ?? '').trim() && (h.value ?? '').trim());
 }

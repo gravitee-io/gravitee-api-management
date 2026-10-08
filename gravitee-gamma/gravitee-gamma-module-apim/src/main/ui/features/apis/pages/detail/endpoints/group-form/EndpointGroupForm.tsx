@@ -20,11 +20,10 @@ import { ConfigurationStep } from './ConfigurationStep';
 import { GeneralStep } from './GeneralStep';
 import { HealthCheckStep } from './HealthCheckStep';
 import { WizardStepIndicator } from '../../../../components/WizardStepIndicator';
-import { validateHttpProxyOptions } from '../../../../utils/endpointSharedConfiguration';
 import type { HealthCheckConfigFormState, HealthCheckFormState } from '../../../../utils/healthCheckForm';
 import { validateHealthCheckForm } from '../../../../utils/healthCheckForm';
-import type { EndpointGroupFormState, SharedConfigFormState } from '../types';
-import { validateEndpointTarget, validateGroupName } from '../types';
+import type { EndpointConfigurationFormState, EndpointGroupFormState, SharedConfigFormState } from '../types';
+import { validateGroupName } from '../types';
 
 const BASE_STEPS = [
     { id: 'general', label: 'General' },
@@ -41,7 +40,7 @@ interface EndpointGroupFormProps {
     existingGroupNames: string[];
     initialStep?: StepId;
     showHealthCheck?: boolean;
-    /** Create flow: Configuration step collects default endpoint target + group shared config. */
+    /** Create flow: Configuration step collects default endpoint configuration + group shared config. */
     isCreateMode?: boolean;
     isTcp?: boolean;
     isReadOnly?: boolean;
@@ -64,21 +63,21 @@ export function EndpointGroupForm({
     onSave,
     onCancel,
 }: Readonly<EndpointGroupFormProps>) {
+    const endpointType = isTcp ? 'tcp-proxy' : 'http-proxy';
     const steps = useMemo(() => (showHealthCheck ? [...BASE_STEPS, HEALTH_CHECK_STEP] : [...BASE_STEPS]), [showHealthCheck]);
 
     const [currentStep, setCurrentStep] = useState<StepId>(initialStep);
     const [form, setForm] = useState<EndpointGroupFormState>(initialForm);
     const [healthCheckErrors, setHealthCheckErrors] = useState<Record<string, string>>({});
-    const [proxyError, setProxyError] = useState<string | null>(null);
-    const [targetError, setTargetError] = useState<string | null>(null);
+    const [sharedConfigValid, setSharedConfigValid] = useState(false);
+    const [endpointConfigurationValid, setEndpointConfigurationValid] = useState(false);
 
     function patchForm(patch: Partial<EndpointGroupFormState>) {
         setForm(prev => ({ ...prev, ...patch }));
     }
 
-    function patchSharedConfig(patch: Partial<SharedConfigFormState>) {
-        setForm(prev => ({ ...prev, sharedConfig: { ...prev.sharedConfig, ...patch } }));
-        setProxyError(null);
+    function setSharedConfig(next: SharedConfigFormState) {
+        setForm(prev => ({ ...prev, sharedConfig: next }));
     }
 
     function patchHealthCheck(patch: Partial<HealthCheckFormState>) {
@@ -105,11 +104,9 @@ export function EndpointGroupForm({
         return null;
     })();
 
-    const endpointTargetError = isCreateMode ? validateEndpointTarget(form.defaultEndpointTarget ?? '') : null;
-
     const generalValid = !nameError && form.name.trim().length > 0;
-    const configurationValid =
-        validateHttpProxyOptions(form.sharedConfig.proxy) === null && (isTcp || !isCreateMode || endpointTargetError === null);
+    const createConfigurationValid = !isCreateMode || endpointConfigurationValid;
+    const configurationValid = sharedConfigValid && createConfigurationValid;
     const healthCheckValid = !showHealthCheck || Object.keys(validateHealthCheckForm(form.healthCheck)).length === 0;
 
     const currentStepIndex = steps.findIndex(s => s.id === currentStep);
@@ -118,13 +115,7 @@ export function EndpointGroupForm({
 
     function goNext() {
         if (currentStep === 'general' && !generalValid) return;
-        if (currentStep === 'configuration') {
-            const targetErr = !isTcp && isCreateMode ? validateEndpointTarget(form.defaultEndpointTarget ?? '') : null;
-            setTargetError(targetErr);
-            const proxyErr = validateHttpProxyOptions(form.sharedConfig.proxy);
-            setProxyError(proxyErr);
-            if (targetErr || proxyErr) return;
-        }
+        if (currentStep === 'configuration' && !configurationValid) return;
         if (currentStep === 'health-check') {
             const errors = validateHealthCheckForm(form.healthCheck);
             setHealthCheckErrors(errors);
@@ -140,11 +131,7 @@ export function EndpointGroupForm({
     }
 
     function handleSave() {
-        const targetErr = !isTcp && isCreateMode ? validateEndpointTarget(form.defaultEndpointTarget ?? '') : null;
-        setTargetError(targetErr);
-        const proxyErr = validateHttpProxyOptions(form.sharedConfig.proxy);
-        setProxyError(proxyErr);
-        if (targetErr || proxyErr) {
+        if (!configurationValid) {
             setCurrentStep('configuration');
             return;
         }
@@ -175,34 +162,35 @@ export function EndpointGroupForm({
             )}
 
             <div>
-                {currentStep === 'general' && (
+                <div hidden={currentStep !== 'general'}>
                     <GeneralStep form={form} existingGroupNames={existingGroupNames} onFormChange={patchForm} readOnly={isReadOnly} />
-                )}
-                {currentStep === 'configuration' && (
+                </div>
+                <div hidden={currentStep !== 'configuration'}>
                     <ConfigurationStep
                         config={form.sharedConfig}
-                        proxyError={proxyError}
-                        onChange={patchSharedConfig}
-                        showDefaultEndpointTarget={isCreateMode}
-                        defaultEndpointTarget={form.defaultEndpointTarget ?? ''}
-                        targetError={targetError}
-                        onTargetChange={value => {
-                            patchForm({ defaultEndpointTarget: value });
-                            setTargetError(null);
-                        }}
-                        isTcp={isTcp}
+                        onChange={setSharedConfig}
+                        onSharedConfigValidityChange={setSharedConfigValid}
+                        showDefaultEndpointConfiguration={isCreateMode}
+                        defaultEndpointConfiguration={form.defaultEndpointConfiguration ?? {}}
+                        onDefaultEndpointConfigurationChange={(next: EndpointConfigurationFormState) =>
+                            patchForm({ defaultEndpointConfiguration: next })
+                        }
+                        onEndpointConfigurationValidityChange={setEndpointConfigurationValid}
+                        endpointType={endpointType}
                         disabled={isReadOnly}
                     />
-                )}
-                {currentStep === 'health-check' && showHealthCheck && (
-                    <HealthCheckStep
-                        mode="group"
-                        healthCheck={form.healthCheck}
-                        errors={healthCheckErrors}
-                        readOnly={isReadOnly}
-                        onChange={patchHealthCheck}
-                        onConfigChange={patchHealthCheckConfig}
-                    />
+                </div>
+                {showHealthCheck && (
+                    <div hidden={currentStep !== 'health-check'}>
+                        <HealthCheckStep
+                            mode="group"
+                            healthCheck={form.healthCheck}
+                            errors={healthCheckErrors}
+                            readOnly={isReadOnly}
+                            onChange={patchHealthCheck}
+                            onConfigChange={patchHealthCheckConfig}
+                        />
+                    </div>
                 )}
             </div>
 

@@ -35,7 +35,7 @@ interface PlansPageProps {
     canCreate: boolean;
     canUpdate: boolean;
     canDelete: boolean;
-    isTcpApi?: boolean;
+    restrictToKeyless?: boolean;
 }
 
 function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; canUpdate: boolean }) {
@@ -99,7 +99,7 @@ function AllowMultiSubscriptionsToggle({ apiId, canUpdate }: { apiId: string; ca
     );
 }
 
-export function PlansPage({ ctx, canRead, canCreate, canUpdate, isTcpApi = false }: Readonly<PlansPageProps>) {
+export function PlansPage({ ctx, canRead, canCreate, canUpdate, restrictToKeyless = false }: Readonly<PlansPageProps>) {
     const counts = usePlanStatusCounts(ctx);
 
     if (!canRead) {
@@ -118,7 +118,7 @@ export function PlansPage({ ctx, canRead, canCreate, canUpdate, isTcpApi = false
                     <h1 className="text-2xl font-semibold tracking-tight">Plans</h1>
                     <p className="text-sm text-muted-foreground">Manage subscription plans and their lifecycle.</p>
                 </div>
-                {canCreate && <CreatePlanDropdown ctx={ctx} restrictToKeyless={isTcpApi} />}
+                {canCreate && <CreatePlanDropdown ctx={ctx} restrictToKeyless={restrictToKeyless} />}
             </div>
 
             {/* Allow multi JWT/OAuth2 subscriptions — API only */}

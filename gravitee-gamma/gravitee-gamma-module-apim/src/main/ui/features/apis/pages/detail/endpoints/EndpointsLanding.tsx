@@ -60,7 +60,7 @@ export function EndpointsLanding() {
                 <ul className="space-y-2">
                     {[
                         'Load balance traffic across multiple backend instances',
-                        'Configure timeouts, keep-alive, and HTTP version per endpoint group',
+                        'Configure connection timeouts and client options per endpoint group',
                         'Add SSL/TLS settings and proxy configuration for secure communication',
                     ].map(item => (
                         <li key={item} className="flex items-start gap-2 text-sm text-muted-foreground">
