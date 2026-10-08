@@ -57,8 +57,8 @@ public interface ApiStateService {
     );
 
     /**
-     * Redeploys an API right after its dynamic properties were synchronized. Unlike {@code deploy}, it records no
-     * {@code API_ENCRYPTED_PROPERTIES_ACCESSED} audit entry.
+     * Redeploys an API right after its dynamic properties were synchronized. Unlike {@code deploy}, it records an
+     * {@code API_ENCRYPTED_PROPERTIES_REFRESHED} audit entry instead of {@code API_ENCRYPTED_PROPERTIES_ACCESSED}.
      * @param executionContext the execution context containing organization and environment information
      * @param apiToDeploy is the API to deploy, carrying the synchronized dynamic properties
      * @param authenticatedUser user to reference in deployment properties

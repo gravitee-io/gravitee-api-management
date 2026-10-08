@@ -136,7 +136,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 EventType.PUBLISH_DICTIONARY,
                 dictionary
             );
-            auditEncryptedPropertiesAccess(executionContext, dictionary);
+            auditEncryptedPropertiesAccess(executionContext, dictionary, Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED);
             return convert(dictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
@@ -407,6 +407,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             beforeRefresh,
             updatedDictionary
         );
+        auditEncryptedPropertiesAccess(executionContext, updatedDictionary, Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED);
     }
 
     private static Dictionary copyOf(Dictionary dictionary) {
@@ -535,7 +536,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .map(Map.Entry::getKey);
     }
 
-    private void auditEncryptedPropertiesAccess(ExecutionContext executionContext, Dictionary deployedDictionary) {
+    private void auditEncryptedPropertiesAccess(
+        ExecutionContext executionContext,
+        Dictionary deployedDictionary,
+        Dictionary.AuditEvent event
+    ) {
         if (!hasEncryptedProperty(deployedDictionary)) {
             return;
         }
@@ -547,7 +552,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             executionContext,
             AuditService.AuditLogData.builder()
                 .properties(auditProperties)
-                .event(Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED)
+                .event(event)
                 .createdAt(deployedDictionary.getDeployedAt())
                 .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(deployedDictionary.getProperties())))
                 .build()

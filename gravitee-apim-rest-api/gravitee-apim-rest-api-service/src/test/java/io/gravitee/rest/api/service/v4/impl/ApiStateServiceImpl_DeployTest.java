@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_ACCESSED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_REFRESHED;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -457,7 +458,7 @@ public class ApiStateServiceImpl_DeployTest {
     }
 
     @Test
-    public void should_not_audit_a_redeploy_with_synced_dynamic_properties() throws TechnicalException {
+    public void should_audit_encrypted_properties_refresh_when_redeploying_with_synced_dynamic_properties() throws TechnicalException {
         given_deployable_api(ApiType.PROXY, ENCRYPTED_PROPERTY_DEFINITION);
         updatedApi.setType(ApiType.PROXY);
         updatedApi.setDefinition(ENCRYPTED_PROPERTY_DEFINITION);
@@ -470,6 +471,28 @@ public class ApiStateServiceImpl_DeployTest {
         );
 
         verify(eventService).createApiEvent(any(), anySet(), anyString(), eq(EventType.PUBLISH_API), same(updatedApi), anyMap());
+        verify_encrypted_properties_audited(API_ENCRYPTED_PROPERTIES_REFRESHED);
+        verify(auditService, never()).createApiAuditLog(
+            any(),
+            argThat(auditLogData -> auditLogData.getEvent() == API_ENCRYPTED_PROPERTIES_ACCESSED),
+            any()
+        );
+    }
+
+    @Test
+    public void should_not_audit_a_redeploy_with_synced_dynamic_properties_of_an_api_without_encrypted_property()
+        throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, PLAIN_PROPERTY_DEFINITION);
+        updatedApi.setType(ApiType.PROXY);
+        updatedApi.setDefinition(PLAIN_PROPERTY_DEFINITION);
+
+        apiStateService.redeployWithSyncedDynamicProperties(
+            GraviteeContext.getExecutionContext(),
+            updatedApi,
+            USER_NAME,
+            new ApiDeploymentEntity("http-dynamic-properties sync")
+        );
+
         verify(auditService, never()).createApiAuditLog(any(), any(), any());
     }
 
@@ -548,11 +571,15 @@ public class ApiStateServiceImpl_DeployTest {
     }
 
     private void verify_encrypted_properties_access_audited() {
+        verify_encrypted_properties_audited(API_ENCRYPTED_PROPERTIES_ACCESSED);
+    }
+
+    private void verify_encrypted_properties_audited(Api.AuditEvent event) {
         verify(auditService).createApiAuditLog(
             eq(GraviteeContext.getExecutionContext()),
             argThat(
                 auditLogData ->
-                    auditLogData.getEvent() == API_ENCRYPTED_PROPERTIES_ACCESSED &&
+                    auditLogData.getEvent() == event &&
                     auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true")) &&
                     auditLogData.getCreatedAt().equals(api.getDeployedAt()) &&
                     auditLogData.getOldValue() == null &&
