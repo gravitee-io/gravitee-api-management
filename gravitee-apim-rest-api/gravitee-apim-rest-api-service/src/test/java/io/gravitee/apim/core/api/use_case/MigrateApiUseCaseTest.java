@@ -826,6 +826,23 @@ class MigrateApiUseCaseTest {
     }
 
     @Test
+    void should_not_audit_the_value_of_an_encrypted_property_of_the_migrated_api() {
+        var v2Api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).build();
+        v2Api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
+        v2Api.getApiDefinition().setProperties(new Properties(List.of(new Property("secret", "ciphertext", true))));
+        v2Api
+            .getApiDefinition()
+            .getProxy()
+            .getGroups()
+            .forEach(group -> group.getEndpoints().forEach(e -> e.setInherit(false)));
+        apiCrudService.initWith(List.of(v2Api));
+
+        useCase.execute(new MigrateApiUseCase.Input(API_ID, null, AUDIT_INFO));
+
+        assertThat(auditCrudService.storage().getFirst().getPatch()).doesNotContain("ciphertext").contains("\"key\":\"secret\"");
+    }
+
+    @Test
     void should_migrate_api_with_null_dp_and_disable_dynamicProps() {
         var v2api = ApiFixtures.aProxyApiV2().toBuilder().id(API_ID).definitionVersion(DefinitionVersion.V2).build();
         v2api.getApiDefinition().setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
