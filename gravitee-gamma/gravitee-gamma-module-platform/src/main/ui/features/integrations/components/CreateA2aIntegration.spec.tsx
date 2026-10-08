@@ -96,7 +96,7 @@ beforeAll(() => {
 function renderPage() {
     renderWithGraphene(
         <MemoryRouter>
-            <CreateA2aIntegration />
+            <CreateA2aIntegration onCancel={jest.fn()} />
         </MemoryRouter>,
     );
     return userEvent.setup();
@@ -130,7 +130,7 @@ async function fillForm(user: UserEvent, { name, description, urls }: { name: st
 }
 
 async function submit(user: UserEvent) {
-    await user.click(screen.getByRole('button', { name: 'Create' }));
+    await user.click(screen.getByRole('button', { name: 'Create integration' }));
 }
 
 describe('CreateA2aIntegration', () => {

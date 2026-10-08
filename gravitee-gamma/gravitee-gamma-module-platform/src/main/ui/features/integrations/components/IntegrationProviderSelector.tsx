@@ -14,88 +14,73 @@
  * limitations under the License.
  */
 
-import { cn } from '@gravitee/graphene-core';
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+    Item,
+    ItemContent,
+    ItemDescription,
+    ItemGroup,
+    ItemMedia,
+    ItemTitle,
+} from '@gravitee/graphene-core';
+import { ChevronRightIcon, SearchIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 
-import { integrationProviderLabel, SELECTABLE_PROVIDER_TOKENS } from '../utils/providerLabels';
+import { ProviderMonogram } from './ProviderMonogram';
+import { PROVIDER_CATALOG, PROVIDER_GROUPS_IN_ORDER, type ProviderCatalogEntry } from '../utils/providerLabels';
 
-function nextProviderIndex(currentIndex: number, key: string, providerCount: number): number {
-    if (key === 'Home') return 0;
-    if (key === 'End') return providerCount - 1;
-    if (key === 'ArrowRight' || key === 'ArrowDown') return (currentIndex + 1) % providerCount;
-    if (key === 'ArrowLeft' || key === 'ArrowUp') return (currentIndex - 1 + providerCount) % providerCount;
-    return currentIndex;
+function matchesFilter(entry: ProviderCatalogEntry, filter: string): boolean {
+    const needle = filter.trim().toLowerCase();
+    return entry.label.toLowerCase().includes(needle) || entry.description.toLowerCase().includes(needle);
 }
 
-export function IntegrationProviderSelector({
-    value,
-    onChange,
-    disabled = false,
-}: Readonly<{
-    value: string | undefined;
-    onChange: (provider: string) => void;
-    disabled?: boolean;
-}>) {
-    const [focusedProvider, setFocusedProvider] = useState<string>(value ?? SELECTABLE_PROVIDER_TOKENS[0]);
-    const buttonRefs = useRef<Partial<Record<string, HTMLButtonElement | null>>>({});
+export function IntegrationProviderSelector({ onSelect }: Readonly<{ onSelect: (provider: ProviderCatalogEntry) => void }>) {
+    const [filter, setFilter] = useState('');
 
-    useEffect(() => {
-        if (value !== undefined) {
-            setFocusedProvider(value);
-        }
-    }, [value]);
-
-    function handleProviderKeyDown(event: KeyboardEvent<HTMLButtonElement>, provider: string) {
-        if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
-            return;
-        }
-        event.preventDefault();
-        const currentIndex = SELECTABLE_PROVIDER_TOKENS.indexOf(provider);
-        const next = SELECTABLE_PROVIDER_TOKENS[nextProviderIndex(currentIndex, event.key, SELECTABLE_PROVIDER_TOKENS.length)];
-        setFocusedProvider(next);
-        onChange(next);
-        buttonRefs.current[next]?.focus();
-    }
+    const matching = PROVIDER_CATALOG.filter(entry => matchesFilter(entry, filter));
+    const groups = PROVIDER_GROUPS_IN_ORDER.map(group => ({ group, providers: matching.filter(entry => entry.group === group) })).filter(
+        ({ providers }) => providers.length > 0,
+    );
 
     return (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" role="radiogroup" aria-label="Provider">
-            {SELECTABLE_PROVIDER_TOKENS.map(provider => {
-                const isSelected = value === provider;
-
-                return (
-                    <button
-                        key={provider}
-                        ref={element => {
-                            buttonRefs.current[provider] = element;
-                        }}
-                        type="button"
-                        role="radio"
-                        tabIndex={focusedProvider === provider ? 0 : -1}
-                        aria-checked={isSelected}
-                        disabled={disabled}
-                        className={cn(
-                            'relative flex items-center gap-3 rounded-xl border p-4 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary/40',
-                            isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/40',
-                        )}
-                        onKeyDown={event => handleProviderKeyDown(event, provider)}
-                        onClick={() => {
-                            setFocusedProvider(provider);
-                            onChange(provider);
-                        }}
-                    >
-                        <span
-                            className={cn(
-                                'flex size-4 shrink-0 items-center justify-center rounded-full border',
-                                isSelected ? 'border-primary' : 'border-muted-foreground',
-                            )}
-                            aria-hidden
-                        >
-                            {isSelected ? <span className="size-2 rounded-full bg-primary" /> : null}
-                        </span>
-                        <span className="text-sm font-medium">{integrationProviderLabel(provider)}</span>
-                    </button>
-                );
-            })}
+        <div className="space-y-6">
+            <div className="max-w-sm">
+                <InputGroup>
+                    <InputGroupAddon align="inline-start">
+                        <SearchIcon className="size-3.5 text-muted-foreground" aria-hidden />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                        aria-label="Filter providers"
+                        placeholder="Filter providers"
+                        value={filter}
+                        onChange={event => setFilter(event.target.value)}
+                    />
+                </InputGroup>
+            </div>
+            {groups.length === 0 ? <p className="text-sm text-muted-foreground">No providers match &quot;{filter.trim()}&quot;.</p> : null}
+            {groups.map(({ group, providers }) => (
+                <section key={group} aria-label={group} className="space-y-2">
+                    <h2 className="text-xs font-medium text-muted-foreground">{group}</h2>
+                    <ItemGroup className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {providers.map(provider => (
+                            <Item key={provider.token} variant="outline" asChild>
+                                <button type="button" className="text-left" onClick={() => onSelect(provider)}>
+                                    <ItemMedia>
+                                        <ProviderMonogram monogram={provider.monogram} />
+                                    </ItemMedia>
+                                    <ItemContent>
+                                        <ItemTitle>{provider.label}</ItemTitle>
+                                        <ItemDescription>{provider.description}</ItemDescription>
+                                    </ItemContent>
+                                    <ChevronRightIcon className="size-4 text-muted-foreground" aria-hidden />
+                                </button>
+                            </Item>
+                        ))}
+                    </ItemGroup>
+                </section>
+            ))}
         </div>
     );
 }

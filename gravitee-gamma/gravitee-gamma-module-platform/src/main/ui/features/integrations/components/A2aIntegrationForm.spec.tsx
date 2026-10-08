@@ -42,8 +42,9 @@ beforeAll(() => {
 
 function renderForm({ isSubmitting = false }: { isSubmitting?: boolean } = {}) {
     const onSubmit = jest.fn();
-    renderWithGraphene(<A2aIntegrationForm onSubmit={onSubmit} isSubmitting={isSubmitting} />);
-    return { onSubmit, user: userEvent.setup() };
+    const onCancel = jest.fn();
+    renderWithGraphene(<A2aIntegrationForm onSubmit={onSubmit} onCancel={onCancel} isSubmitting={isSubmitting} />);
+    return { onSubmit, onCancel, user: userEvent.setup() };
 }
 
 function nameInput(): HTMLElement {
@@ -84,7 +85,11 @@ async function addUrls(user: UserEvent, values: string[]) {
 }
 
 function createButton(): HTMLElement {
-    return screen.getByRole('button', { name: 'Create' });
+    return screen.getByRole('button', { name: 'Create integration' });
+}
+
+function cancelButton(): HTMLElement {
+    return screen.getByRole('button', { name: 'Cancel' });
 }
 
 async function submit(user: UserEvent) {
@@ -134,6 +139,30 @@ describe('A2aIntegrationForm', () => {
             await fillValidForm(user);
 
             expect(createButton()).toBeDisabled();
+        });
+    });
+
+    describe('Cancel button', () => {
+        it('cancels without submitting the form', async () => {
+            const { onCancel, onSubmit, user } = renderForm();
+            await fillValidForm(user);
+
+            await user.click(cancelButton());
+
+            expect(onCancel).toHaveBeenCalledTimes(1);
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('is disabled while a create request is pending', () => {
+            renderForm({ isSubmitting: true });
+
+            expect(cancelButton()).toBeDisabled();
+        });
+
+        it('is enabled while the form is still empty', () => {
+            renderForm();
+
+            expect(cancelButton()).toBeEnabled();
         });
     });
 

@@ -14,94 +14,102 @@
  * limitations under the License.
  */
 
-import { Button, Field, FieldError, FieldLabel, Input, PageFocused, Textarea } from '@gravitee/graphene-core';
+import { Button, PageFocused } from '@gravitee/graphene-core';
 import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { CreateA2aIntegration } from '../features/integrations/components/CreateA2aIntegration';
+import { CreateGatewayIntegration } from '../features/integrations/components/CreateGatewayIntegration';
 import { IntegrationProviderSelector } from '../features/integrations/components/IntegrationProviderSelector';
-import { useCreateIntegration } from '../features/integrations/hooks/useCreateIntegration';
-import { validateIntegrationForm } from '../features/integrations/utils/integrationForm';
+import { SelectedProviderHeader } from '../features/integrations/components/SelectedProviderHeader';
 import { A2A_PROVIDER } from '../features/integrations/utils/integrationKind';
-import { notify } from '../shared/notify';
+import { findProvider, type ProviderCatalogEntry } from '../features/integrations/utils/providerLabels';
+
+const PROVIDER_SEARCH_PARAM = 'provider';
+
+function useFocusOnChange(value: string | undefined, targetRef: RefObject<HTMLElement | null>): void {
+    const previousValue = useRef(value);
+    useEffect(() => {
+        if (previousValue.current === value) {
+            return;
+        }
+        previousValue.current = value;
+        targetRef.current?.focus();
+    }, [value, targetRef]);
+}
 
 export function CreateIntegrationPage() {
     const navigate = useNavigate();
-    const createIntegration = useCreateIntegration();
-    const [provider, setProvider] = useState<string | undefined>(undefined);
-    const [a2aSubmitting, setA2aSubmitting] = useState(false);
-    const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [nameTouched, setNameTouched] = useState(false);
-    const [descriptionTouched, setDescriptionTouched] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const providerToken = searchParams.get(PROVIDER_SEARCH_PARAM);
+    const provider = providerToken === null ? undefined : findProvider(providerToken);
+    const [submitting, setSubmitting] = useState(false);
+    const headingRef = useRef<HTMLHeadingElement>(null);
+    useFocusOnChange(provider?.token, headingRef);
 
-    const errors = validateIntegrationForm({ name, description });
-    const canCreate = Boolean(provider && !errors.name && !errors.description && !createIntegration.isPending);
+    function leaveToList() {
+        navigate('..');
+    }
 
-    async function handleSubmit(event: FormEvent) {
-        event.preventDefault();
-        if (!canCreate || !provider) return;
+    function selectProvider(selected: ProviderCatalogEntry) {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set(PROVIDER_SEARCH_PARAM, selected.token);
+            return next;
+        });
+    }
 
-        try {
-            const created = await createIntegration.mutateAsync({ name, description, provider });
-            notify.success(`Integration ${name} created successfully`);
-            navigate(`../${created.id}`);
-        } catch (error) {
-            notify.error(error, 'Failed to create integration.');
-        }
+    function backToProviders() {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.delete(PROVIDER_SEARCH_PARAM);
+            return next;
+        });
     }
 
     return (
         <PageFocused>
             <div className="space-y-6">
                 <div className="space-y-2">
-                    <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" onClick={() => navigate('..')}>
-                        <ArrowLeftIcon className="size-4" aria-hidden />
-                        Back to Integrations
-                    </Button>
-                    <h1 className="text-2xl font-semibold tracking-tight">Create a new integration</h1>
-                </div>
-                <IntegrationProviderSelector value={provider} onChange={setProvider} disabled={a2aSubmitting} />
-                {provider === A2A_PROVIDER ? <CreateA2aIntegration onSubmittingChange={setA2aSubmitting} /> : null}
-                {provider && provider !== A2A_PROVIDER ? (
-                    <form className="space-y-4" onSubmit={event => void handleSubmit(event)}>
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="integration-name" required>
-                                Name
-                            </FieldLabel>
-                            <Input
-                                id="integration-name"
-                                value={name}
-                                onChange={event => {
-                                    setNameTouched(true);
-                                    setName(event.target.value);
-                                }}
-                                onBlur={() => setNameTouched(true)}
-                                aria-invalid={nameTouched && Boolean(errors.name)}
-                            />
-                            {nameTouched && errors.name ? <FieldError>{errors.name}</FieldError> : null}
-                        </Field>
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FieldLabel htmlFor="integration-description">Description</FieldLabel>
-                            <Textarea
-                                id="integration-description"
-                                value={description}
-                                rows={3}
-                                onChange={event => {
-                                    setDescriptionTouched(true);
-                                    setDescription(event.target.value);
-                                }}
-                                onBlur={() => setDescriptionTouched(true)}
-                                aria-invalid={descriptionTouched && Boolean(errors.description)}
-                            />
-                            {descriptionTouched && errors.description ? <FieldError>{errors.description}</FieldError> : null}
-                        </Field>
-                        <Button type="submit" disabled={!canCreate}>
-                            Create
+                    {provider === undefined ? (
+                        <Button type="button" variant="ghost" className="gap-1.5 px-0 text-muted-foreground" onClick={leaveToList}>
+                            <ArrowLeftIcon className="size-4" aria-hidden />
+                            Back to Integrations
                         </Button>
-                    </form>
-                ) : null}
+                    ) : (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            className="gap-1.5 px-0 text-muted-foreground"
+                            disabled={submitting}
+                            onClick={backToProviders}
+                        >
+                            <ArrowLeftIcon className="size-4" aria-hidden />
+                            Back to providers
+                        </Button>
+                    )}
+                    <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-semibold tracking-tight outline-none">
+                        Create a new integration
+                    </h1>
+                    {provider === undefined && (
+                        <p className="text-sm text-muted-foreground">
+                            Choose the provider to connect. You&apos;ll set up the connection on the next step.
+                        </p>
+                    )}
+                </div>
+                {provider === undefined ? (
+                    <IntegrationProviderSelector onSelect={selectProvider} />
+                ) : (
+                    <>
+                        <SelectedProviderHeader provider={provider} onChange={backToProviders} disabled={submitting} />
+                        {provider.token === A2A_PROVIDER ? (
+                            <CreateA2aIntegration onCancel={leaveToList} onSubmittingChange={setSubmitting} />
+                        ) : (
+                            <CreateGatewayIntegration provider={provider.token} onCancel={leaveToList} onSubmittingChange={setSubmitting} />
+                        )}
+                    </>
+                )}
             </div>
         </PageFocused>
     );
