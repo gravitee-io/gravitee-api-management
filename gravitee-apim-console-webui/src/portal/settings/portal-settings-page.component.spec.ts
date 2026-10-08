@@ -89,6 +89,7 @@ describe('PortalSettingsPageComponent', () => {
     const settings = fakePortalSettings();
     settings.portalNext.mtls.enabled = true;
     settings.portalNext.analytics.enabled = false;
+    settings.portalNext.aiWorkspaces.enabled = true;
     settings.portalNext.catalog.fuzzySearch.enabled = true;
 
     await init(settings);
@@ -96,6 +97,7 @@ describe('PortalSettingsPageComponent', () => {
     expect(await harness.hasPortalCapabilitiesCard()).toBe(true);
     expect(await (await harness.getMtlsToggle()).isChecked()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isChecked()).toBe(false);
+    expect(await (await harness.getAiWorkspacesToggle()).isChecked()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isChecked()).toBe(true);
   });
 
@@ -213,9 +215,11 @@ describe('PortalSettingsPageComponent', () => {
   it('defaults missing application membership settings to disabled', async () => {
     const settings = fakePortalSettings();
     settings.portalNext.applications = undefined;
+    settings.portalNext.aiWorkspaces = undefined;
 
     await init(settings);
 
+    expect(await (await harness.getAiWorkspacesToggle()).isChecked()).toBe(false);
     expect(await (await harness.getApplicationMembershipToggle()).isChecked()).toBe(false);
     expect(await (await harness.getTransferOwnershipToggle()).isChecked()).toBe(false);
     expect(await (await harness.getMembershipInvitationsToggle()).isChecked()).toBe(false);
@@ -227,6 +231,11 @@ describe('PortalSettingsPageComponent', () => {
     { label: 'mTLS', getToggle: (page: PortalSettingsPageHarness) => page.getMtlsToggle(), capability: 'mtls' },
     { label: 'analytics', getToggle: (page: PortalSettingsPageHarness) => page.getAnalyticsToggle(), capability: 'analytics' },
     {
+      label: 'AI Workspaces',
+      getToggle: (page: PortalSettingsPageHarness) => page.getAiWorkspacesToggle(),
+      capability: 'aiWorkspaces',
+    },
+    {
       label: 'fuzzy search',
       getToggle: (page: PortalSettingsPageHarness) => page.getFuzzySearchToggle(),
       capability: 'fuzzySearch',
@@ -235,6 +244,7 @@ describe('PortalSettingsPageComponent', () => {
     const settings = fakePortalSettings();
     settings.portalNext.mtls.enabled = false;
     settings.portalNext.analytics.enabled = false;
+    settings.portalNext.aiWorkspaces.enabled = false;
     settings.portalNext.catalog.fuzzySearch.enabled = false;
     await init(settings);
 
@@ -250,6 +260,7 @@ describe('PortalSettingsPageComponent', () => {
 
     expect(savedSettings.portalNext.mtls.enabled).toBe(capability === 'mtls');
     expect(savedSettings.portalNext.analytics.enabled).toBe(capability === 'analytics');
+    expect(savedSettings.portalNext.aiWorkspaces.enabled).toBe(capability === 'aiWorkspaces');
     expect(savedSettings.portalNext.catalog.fuzzySearch.enabled).toBe(capability === 'fuzzySearch');
   });
 
@@ -261,6 +272,7 @@ describe('PortalSettingsPageComponent', () => {
 
     expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(false);
     expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(false);
+    expect(await (await harness.getAiWorkspacesToggle()).isDisabled()).toBe(false);
     expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(false);
   });
 
@@ -268,6 +280,7 @@ describe('PortalSettingsPageComponent', () => {
     const settings = fakePortalSettings();
     settings.portalNext.mtls.enabled = true;
     settings.portalNext.analytics.enabled = false;
+    settings.portalNext.aiWorkspaces.enabled = true;
     settings.portalNext.catalog.fuzzySearch.enabled = true;
     settings.portalNext.applications.membership.enabled = true;
     settings.portalNext.applications.membership.transferOwnership.enabled = true;
@@ -276,6 +289,7 @@ describe('PortalSettingsPageComponent', () => {
 
     await (await harness.getMtlsToggle()).toggle();
     await (await harness.getAnalyticsToggle()).toggle();
+    await (await harness.getAiWorkspacesToggle()).toggle();
     await (await harness.getFuzzySearchToggle()).toggle();
     await (await harness.getTransferOwnershipToggle()).toggle();
     await (await harness.getMembershipInvitationsToggle()).toggle();
@@ -286,6 +300,7 @@ describe('PortalSettingsPageComponent', () => {
 
     expect(await (await harness.getMtlsToggle()).isChecked()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isChecked()).toBe(false);
+    expect(await (await harness.getAiWorkspacesToggle()).isChecked()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isChecked()).toBe(true);
     expect(await (await harness.getApplicationMembershipToggle()).isChecked()).toBe(true);
     expect(await (await harness.getTransferOwnershipToggle()).isChecked()).toBe(true);
@@ -333,6 +348,7 @@ describe('PortalSettingsPageComponent', () => {
     expect(await (await harness.getRedocViewer()).isDisabled()).toBe(true);
     expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(true);
+    expect(await (await harness.getAiWorkspacesToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getApplicationMembershipToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getTransferOwnershipToggle()).isDisabled()).toBe(true);
@@ -362,6 +378,7 @@ describe('PortalSettingsPageComponent', () => {
           'portal.kafka.saslMechanisms',
           'portal.next.mtls.enabled',
           'portal.next.analytics.enabled',
+          'portal.next.aiWorkspaces.enabled',
           'portal.next.catalog.fuzzySearch.enabled',
           'portal.next.applications.membership.enabled',
         ],
@@ -375,6 +392,7 @@ describe('PortalSettingsPageComponent', () => {
     expect(await harness.isKafkaSaslMechanismsDisabled()).toBe(true);
     expect(await (await harness.getMtlsToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getAnalyticsToggle()).isDisabled()).toBe(true);
+    expect(await (await harness.getAiWorkspacesToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getFuzzySearchToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getApplicationMembershipToggle()).isDisabled()).toBe(true);
     expect(await (await harness.getTransferOwnershipToggle()).isDisabled()).toBe(false);

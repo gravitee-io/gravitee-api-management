@@ -145,6 +145,11 @@ public enum Key {
     PORTAL_NEXT_CATALOG_VIEW_MODE("portal.next.catalog.viewMode", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_MTLS_ENABLED("portal.next.mtls.enabled", new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_NEXT_ANALYTICS_ENABLED("portal.next.analytics.enabled", Boolean.FALSE.toString(), new HashSet<>(singletonList(ENVIRONMENT))),
+    PORTAL_NEXT_AI_WORKSPACES_ENABLED(
+        "portal.next.aiWorkspaces.enabled",
+        Boolean.FALSE.toString(),
+        new HashSet<>(singletonList(ENVIRONMENT))
+    ),
     PORTAL_NEXT_APPLICATIONS_MEMBERSHIP_ENABLED(
         "portal.next.applications.membership.enabled",
         Boolean.FALSE.toString(),

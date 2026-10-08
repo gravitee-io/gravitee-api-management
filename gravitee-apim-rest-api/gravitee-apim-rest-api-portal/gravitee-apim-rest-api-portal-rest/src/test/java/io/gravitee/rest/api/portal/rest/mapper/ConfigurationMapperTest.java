@@ -232,6 +232,26 @@ public class ConfigurationMapperTest {
     }
 
     @Test
+    public void convertPortalNextShouldMapAiWorkspacesEnabled() {
+        PortalNext portalNext = new PortalNext();
+        portalNext.setAccess(new Enabled(false));
+
+        portalNext.setAiWorkspaces(new Enabled(true));
+        ConfigurationPortalNext result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getAiWorkspaces());
+        Assertions.assertEquals(Boolean.TRUE, result.getAiWorkspaces().getEnabled());
+
+        portalNext.setAiWorkspaces(new Enabled(false));
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNotNull(result.getAiWorkspaces());
+        Assertions.assertEquals(Boolean.FALSE, result.getAiWorkspaces().getEnabled());
+
+        portalNext.setAiWorkspaces(null);
+        result = configurationMapper.convert(portalNext);
+        Assertions.assertNull(result.getAiWorkspaces());
+    }
+
+    @Test
     public void convertPortalNextShouldMapApplicationsMembershipEnabled() {
         PortalNext portalNext = new PortalNext();
         portalNext.setAccess(new Enabled(false));
