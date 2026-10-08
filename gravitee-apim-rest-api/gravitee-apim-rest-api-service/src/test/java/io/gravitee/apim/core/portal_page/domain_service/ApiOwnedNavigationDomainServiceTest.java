@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import static fixtures.core.model.PortalNavigationItemFixtures.ENV_ID;
+import static fixtures.core.model.PortalNavigationItemFixtures.ORG_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.aFolder;
 import static fixtures.core.model.PortalNavigationItemFixtures.aPage;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
@@ -26,6 +27,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
+import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.exception.ParentNotFoundException;
 import io.gravitee.apim.core.portal_page.exception.PortalNavigationItemNotFoundException;
@@ -34,6 +36,7 @@ import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.ArrayList;
 import java.util.List;
@@ -264,6 +267,79 @@ class ApiOwnedNavigationDomainServiceTest {
             queryService.initWith(List.of(section, listing));
 
             assertThatThrownBy(() -> service.requireOwnedItem(ENV_ID, API_ID, listing.getId())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+    }
+
+    @Nested
+    class RequireOwnedPage {
+
+        @Test
+        void should_return_a_page_owned_by_the_api() {
+            var page = aPage("Overview", null).toBuilder().reference(ownedBy(API_ID)).build();
+            queryService.initWith(List.of(page));
+
+            assertThat(service.requireOwnedPage(ENV_ID, API_ID, page.getId())).isEqualTo(page);
+        }
+
+        @Test
+        void should_reject_a_folder_owned_by_the_api() {
+            var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
+            queryService.initWith(List.of(folder));
+
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, folder.getId())).isInstanceOf(
+                InvalidPortalNavigationItemDataException.class
+            );
+        }
+
+        @Test
+        void should_reject_a_link_owned_by_the_api() {
+            var link = PortalNavigationLink.builder()
+                .id(PortalNavigationItemId.random())
+                .organizationId(ORG_ID)
+                .environmentId(ENV_ID)
+                .title("Status page")
+                .segment("status-page")
+                .area(PortalArea.TOP_NAVBAR)
+                .order(0)
+                .url("https://status.example.com")
+                .published(false)
+                .visibility(PortalVisibility.PUBLIC)
+                .reference(ownedBy(API_ID))
+                .build();
+            queryService.initWith(List.of(link));
+
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, link.getId())).isInstanceOf(
+                InvalidPortalNavigationItemDataException.class
+            );
+        }
+
+        @Test
+        void should_reject_a_page_owned_by_another_api() {
+            var foreign = aPage("Other overview", null).toBuilder().reference(ownedBy(OTHER_API_ID)).build();
+            queryService.initWith(List.of(foreign));
+
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, foreign.getId())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_reject_a_portal_owned_page() {
+            var portalPage = aPage("Home", null);
+            queryService.initWith(List.of(portalPage));
+
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, portalPage.getId())).isInstanceOf(
+                PortalNavigationItemNotFoundException.class
+            );
+        }
+
+        @Test
+        void should_reject_an_unknown_item() {
+            var unknownId = PortalNavigationItemId.random();
+
+            assertThatThrownBy(() -> service.requireOwnedPage(ENV_ID, API_ID, unknownId)).isInstanceOf(
                 PortalNavigationItemNotFoundException.class
             );
         }
