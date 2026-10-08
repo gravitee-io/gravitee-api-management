@@ -195,7 +195,7 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DOCUMENTATION),
                 eq(API_ID),
-                eq(RolePermissionAction.CREATE)
+                eq(RolePermissionAction.UPDATE)
             )
         ).thenReturn(false);
 
@@ -215,7 +215,7 @@ class ApiDocumentationNavigationResource_PublishTest extends AbstractResourceTes
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DOCUMENTATION),
                 eq(API_ID),
-                eq(RolePermissionAction.CREATE)
+                eq(RolePermissionAction.UPDATE)
             )
         ).thenReturn(true);
 

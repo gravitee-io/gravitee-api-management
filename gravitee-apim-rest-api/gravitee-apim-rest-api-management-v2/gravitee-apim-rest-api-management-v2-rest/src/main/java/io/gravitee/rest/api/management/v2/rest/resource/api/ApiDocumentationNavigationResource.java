@@ -130,7 +130,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public ApiPortalPublication publishApiToPortal(
         @PathParam("apiId") String apiId,
         @Valid @NotNull final PublishApiToPortal publishApiToPortal
@@ -149,7 +149,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
 
     @Path("_unpublish")
     @POST
-    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.DELETE }) })
+    @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public Response unpublishApiFromPortal(@PathParam("apiId") String apiId) {
         unpublishApiFromPortalUseCase.execute(new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
         return Response.noContent().build();

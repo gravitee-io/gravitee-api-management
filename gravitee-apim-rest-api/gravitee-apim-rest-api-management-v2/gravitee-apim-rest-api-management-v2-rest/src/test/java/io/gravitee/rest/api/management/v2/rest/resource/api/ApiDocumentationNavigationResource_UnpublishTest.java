@@ -132,7 +132,7 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DOCUMENTATION),
                 eq(API_ID),
-                eq(RolePermissionAction.DELETE)
+                eq(RolePermissionAction.UPDATE)
             )
         ).thenReturn(false);
 
@@ -153,7 +153,7 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
                 eq(GraviteeContext.getExecutionContext()),
                 eq(RolePermission.API_DOCUMENTATION),
                 eq(API_ID),
-                eq(RolePermissionAction.DELETE)
+                eq(RolePermissionAction.UPDATE)
             )
         ).thenReturn(true);
 

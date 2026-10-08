@@ -3480,7 +3480,7 @@ paths:
                 chosen section if it is elsewhere, and made visible together with what is stored under it. An API
                 whose listing is visible is already published and cannot be published again.
 
-                User must have the API_DOCUMENTATION[CREATE] permission.
+                User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: publishApiToPortal
             requestBody:
                 content:
@@ -3526,7 +3526,7 @@ paths:
                 A listing under an API product is left untouched. An API with no visible listing is not published,
                 and the request is rejected.
 
-                User must have the API_DOCUMENTATION[DELETE] permission.
+                User must have the API_DOCUMENTATION[UPDATE] permission.
             operationId: unpublishApiFromPortal
             responses:
                 "204":
