@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { RemoteModuleRoute } from './RemoteModuleRoute';
@@ -190,6 +190,141 @@ describe('RemoteModuleRoute', () => {
 
             expect(await screen.findByText('Remote module')).toBeTruthy();
             expect(screen.queryByText(/isn't ready yet/)).toBeNull();
+        });
+
+        it('should announce that the app is not ready yet, then that it is ready', async () => {
+            const chunkError = new Error('Loading chunk 8201 failed.');
+            mockLoadRemote
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockResolvedValue(mockRemoteExport);
+
+            render(<RemoteModuleRoute module={{ ...buildModule('aim'), remoteName: 'aim-announced' }} />);
+            const announcement = screen.getByRole('status');
+            expect(announcement.textContent).toBe('');
+
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+            });
+            expect(announcement.textContent).toContain("Agent Management isn't ready yet");
+
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[2]);
+            });
+            await screen.findByText('Remote module');
+            expect(screen.getByRole('status').textContent).toBe('Agent Management is ready.');
+        });
+
+        it('should go from the waiting message straight to the module, without the skeleton in between', async () => {
+            const chunkError = new Error('Loading chunk 8201 failed.');
+            mockLoadRemote
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockResolvedValue(mockRemoteExport);
+            const shown: string[] = [];
+            const show = (state: string) => {
+                if (shown[shown.length - 1] !== state) shown.push(state);
+            };
+            const isSkeleton = (node: Node) =>
+                node instanceof HTMLElement &&
+                (node.matches('[aria-label="Loading content"]') || !!node.querySelector('[aria-label="Loading content"]'));
+            const visible = () => {
+                if (document.body.textContent?.includes('Remote module')) return 'module';
+                if (document.querySelector('h1')?.textContent?.includes("isn't ready yet")) return 'message';
+                return screen.queryByLabelText('Loading content') ? 'skeleton' : 'empty';
+            };
+            // The records keep a skeleton that was added and removed before this callback runs.
+            const observer = new MutationObserver(records => {
+                records.forEach(record => record.addedNodes.forEach(node => isSkeleton(node) && show('skeleton')));
+                show(visible());
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+
+            render(<RemoteModuleRoute module={{ ...buildModule('aim'), remoteName: 'aim-no-flash' }} />);
+            show(visible());
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] + RETRY_DELAYS_MS[2]);
+            });
+            await screen.findByText('Remote module');
+            observer.disconnect();
+
+            expect(shown).toEqual(['skeleton', 'message', 'module']);
+        });
+
+        it('should show the loading skeleton, not the waiting message, when the opened module loads something of its own', async () => {
+            let openPage: () => void = () => undefined;
+            const PendingPage = lazy(() => new Promise<{ default: ComponentType }>(() => undefined));
+            function ModuleWithLazyPage() {
+                const [pageOpened, setPageOpened] = useState(false);
+                openPage = () => setPageOpened(true);
+                return pageOpened ? <PendingPage /> : <div>Remote module</div>;
+            }
+            const chunkError = new Error('Loading chunk 8201 failed.');
+            mockLoadRemote
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockResolvedValue({ default: ModuleWithLazyPage });
+
+            render(<RemoteModuleRoute module={{ ...buildModule('aim'), remoteName: 'aim-lazy-page' }} />);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] + RETRY_DELAYS_MS[2]);
+            });
+            await screen.findByText('Remote module');
+
+            act(() => openPage());
+
+            expect(screen.getByLabelText('Loading content')).toBeTruthy();
+            expect(screen.queryByRole('heading', { name: /isn't ready yet/ })).toBeNull();
+        });
+
+        it('should start the next visit of a module with an empty status region', async () => {
+            seedEnvironments();
+            const aim = { ...buildModule('aim'), remoteName: 'aim-revisited' };
+            const other = buildModule('other');
+            let aimAttempts = 0;
+            mockLoadRemote.mockImplementation((id: string) =>
+                id === 'aim-revisited/App' && ++aimAttempts <= 3
+                    ? Promise.reject(new Error('Loading chunk 8201 failed.'))
+                    : Promise.resolve(mockRemoteExport),
+            );
+
+            const router = renderTwoModulesUnderGuard(aim, other);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] + RETRY_DELAYS_MS[2]);
+            });
+            await screen.findByText('Remote module');
+            expect(screen.getByRole('status').textContent).toBe('Agent Management is ready.');
+
+            await openModule(router, other);
+            await openModule(router, aim);
+
+            expect(screen.getByRole('status').textContent).toBe('');
+        });
+
+        it('should move the focus to the module area when the module opens while the user was on Retry now', async () => {
+            let platformIsBack = false;
+            mockLoadRemote.mockImplementation(() =>
+                platformIsBack ? Promise.resolve(mockRemoteExport) : Promise.reject(new Error('Loading chunk 8201 failed.')),
+            );
+
+            render(<RemoteModuleRoute module={buildModule('focus-return')} />);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+            });
+            const retryNow = await screen.findByRole('button', { name: 'Retry now' });
+            retryNow.focus();
+
+            platformIsBack = true;
+            await act(async () => {
+                fireEvent.click(retryNow);
+                await jest.advanceTimersByTimeAsync(0);
+            });
+            await screen.findByText('Remote module');
+
+            await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('status')));
         });
 
         it('should load the module at once when the user clicks Retry now', async () => {
