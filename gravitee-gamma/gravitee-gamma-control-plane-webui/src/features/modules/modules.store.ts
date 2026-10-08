@@ -15,14 +15,26 @@
  */
 import { create } from 'zustand';
 
+import type { RemoteModuleLoadStatus } from './modules.remotes';
 import type { GammaModule } from './modules.types';
 
 interface ModulesState {
     modules: GammaModule[];
+    /** The modules whose load the user has been told about, and how it is going. */
+    moduleLoadStatuses: Record<string, RemoteModuleLoadStatus>;
     setModules: (modules: GammaModule[]) => void;
+    setModuleLoadStatus: (moduleId: string, status: RemoteModuleLoadStatus | undefined) => void;
 }
 
 export const useModulesStore = create<ModulesState>(set => ({
     modules: [],
+    moduleLoadStatuses: {},
     setModules: modules => set({ modules }),
+    setModuleLoadStatus: (moduleId, status) =>
+        set(state => {
+            const moduleLoadStatuses = { ...state.moduleLoadStatuses };
+            if (status) moduleLoadStatuses[moduleId] = status;
+            else delete moduleLoadStatuses[moduleId];
+            return { moduleLoadStatuses };
+        }),
 }));
