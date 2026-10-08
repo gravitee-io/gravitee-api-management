@@ -181,7 +181,8 @@ export type ApiType = 'PROXY' | 'MESSAGE' | 'NATIVE' | 'MCP_PROXY' | 'LLM_PROXY'
 export interface ApiListListener {
     type: string;
     paths?: { path: string; host?: string }[];
-    hosts?: VirtualHost[];
+    /** TCP listeners store host strings. HTTP virtual hosts store `{ host, path }`. */
+    hosts?: Array<string | VirtualHost>;
     host?: string;
     port?: number;
 }
@@ -200,6 +201,8 @@ export interface ApiListItem {
     listeners?: ApiListListener[];
     /** Sharding tags assigned to this API (controls gateway deployment). */
     tags?: string[];
+    /** Category keys. Classic resolves these to names for the list column. */
+    categories?: string[];
     primaryOwner?: { id?: string; displayName?: string; email?: string };
     originContext?: ApiListOriginContext;
     picture?: string | null;

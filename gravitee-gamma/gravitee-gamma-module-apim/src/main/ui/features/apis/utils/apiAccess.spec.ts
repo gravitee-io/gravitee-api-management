@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { getApiAccessPath } from './apiAccess';
+import { getApiAccessPath, getApiAccessPaths } from './apiAccess';
 import type { ApiListItem } from '../types';
 
 function makeApi(overrides: Partial<ApiListItem> = {}): ApiListItem {
@@ -43,9 +43,9 @@ describe('getApiAccessPath', () => {
         expect(getApiAccessPath(api)).toBe('/my-api');
     });
 
-    it('strips a trailing slash from the path', () => {
+    it('keeps a trailing slash, matching Classic getApiAccess', () => {
         const api = makeApi({ listeners: [{ type: 'HTTP', paths: [{ path: '/my-api/' }] }] });
-        expect(getApiAccessPath(api)).toBe('/my-api');
+        expect(getApiAccessPath(api)).toBe('/my-api/');
     });
 
     it('preserves a bare "/" path', () => {
@@ -58,15 +58,26 @@ describe('getApiAccessPath', () => {
         expect(getApiAccessPath(api)).toBe('api.example.com/v1');
     });
 
-    it('strips a trailing slash from host + path', () => {
+    it('keeps a trailing slash on host + path', () => {
         const api = makeApi({ listeners: [{ type: 'HTTP', paths: [{ host: 'api.example.com', path: '/v1/' }] }] });
-        expect(getApiAccessPath(api)).toBe('api.example.com/v1');
+        expect(getApiAccessPath(api)).toBe('api.example.com/v1/');
     });
 
-    it('uses only the first path when multiple paths are present', () => {
+    it('returns every HTTP path, with the first as the primary', () => {
         const api = makeApi({
-            listeners: [{ type: 'HTTP', paths: [{ path: '/first' }, { path: '/second' }] }],
+            listeners: [{ type: 'HTTP', paths: [{ path: '/first' }, { host: 'api.example.com', path: '/v2' }] }],
         });
+        expect(getApiAccessPaths(api)).toEqual(['/first', 'api.example.com/v2']);
         expect(getApiAccessPath(api)).toBe('/first');
+    });
+
+    it('uses TCP hosts when the API is TCP, matching Classic', () => {
+        const api = makeApi({
+            listeners: [
+                { type: 'TCP', hosts: ['tcp-host-a', 'tcp-host-b'] },
+                { type: 'HTTP', paths: [{ path: '/ignored' }] },
+            ],
+        });
+        expect(getApiAccessPaths(api)).toEqual(['tcp-host-a', 'tcp-host-b']);
     });
 });
