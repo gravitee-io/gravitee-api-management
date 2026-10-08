@@ -15,6 +15,7 @@
  */
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState, type ComponentProps } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { DocumentationTree } from './DocumentationTree';
@@ -85,7 +86,7 @@ function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelet
                 <Route
                     path="apis/:apiId/documentation"
                     element={
-                        <DocumentationTree
+                        <StatefulTree
                             items={overrides.items ?? ITEMS}
                             isLoading={overrides.isLoading ?? false}
                             canDelete={overrides.canDelete ?? true}
@@ -99,6 +100,18 @@ function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelet
         </MemoryRouter>,
     );
     return { onDelete, onAddPage };
+}
+
+// The page owns which folders are open; this stands in for it.
+function StatefulTree(props: Omit<ComponentProps<typeof DocumentationTree>, 'expandedIds' | 'onToggle'>) {
+    const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(new Set());
+    const toggle = (id: string) =>
+        setExpandedIds(previous => {
+            const next = new Set(previous);
+            if (!next.delete(id)) next.add(id);
+            return next;
+        });
+    return <DocumentationTree {...props} expandedIds={expandedIds} onToggle={toggle} />;
 }
 
 const rowOf = (title: string) => screen.getByText(title).closest('tr') as HTMLElement;

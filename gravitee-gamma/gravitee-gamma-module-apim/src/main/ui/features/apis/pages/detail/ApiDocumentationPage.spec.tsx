@@ -127,7 +127,7 @@ function EditRoute() {
 }
 
 function renderPage() {
-    render(
+    return render(
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
                 <Route path="apis/:apiId/documentation">
@@ -141,6 +141,7 @@ function renderPage() {
 
 beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
     mockUseHasPermission.mockReturnValue(true);
     mockUseApiDetailContext.mockReturnValue({ api: { id: 'api-1' }, isLoading: false, permissionsReady: true });
     givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [] });
@@ -218,6 +219,30 @@ describe('ApiDocumentationPage', () => {
             renderPage();
 
             expect(screen.queryByText(/published/i)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('open folders', () => {
+        it('stay open when coming back to the documentation', async () => {
+            const { unmount } = renderPage();
+            await userEvent.click(screen.getByRole('button', { name: 'Expand Guides' }));
+            unmount();
+
+            renderPage();
+
+            expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
+        });
+
+        it('include the folder a page was just added to', async () => {
+            const { unmount } = renderPage();
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Add page' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Created' }));
+            unmount();
+
+            renderPage();
+
+            expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
         });
     });
 
