@@ -78,8 +78,9 @@ class PublishApiToPortalUseCaseTest {
         var pageContentCrudService = new PortalPageContentCrudServiceInMemory();
         var pageContentQueryService = PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage());
         var sourceDomainService = new PortalNavigationItemSourceDomainServiceInMemory();
+        var apiOwnedNavigationDomainService = new ApiOwnedNavigationDomainService(queryService, crudService);
         useCase = new PublishApiToPortalUseCase(
-            new ApiOwnedNavigationDomainService(queryService, crudService),
+            apiOwnedNavigationDomainService,
             new PortalNavigationItemValidatorService(
                 queryService,
                 pageContentQueryService,
@@ -92,7 +93,8 @@ class PublishApiToPortalUseCaseTest {
                 pageContentCrudService,
                 pageContentQueryService,
                 apiCrudService,
-                sourceDomainService
+                sourceDomainService,
+                apiOwnedNavigationDomainService
             )
         );
         apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("Api A").environmentId(ENV_ID).build()));

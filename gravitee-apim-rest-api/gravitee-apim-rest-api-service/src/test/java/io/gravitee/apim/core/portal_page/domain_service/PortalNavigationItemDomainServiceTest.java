@@ -90,7 +90,7 @@ public class PortalNavigationItemDomainServiceTest {
             PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
             apiCrudService,
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService)
+            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemsCrudService)
         );
     }
 

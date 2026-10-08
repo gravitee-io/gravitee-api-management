@@ -103,7 +103,7 @@ class CreatePortalNavigationItemUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(queryService)
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
         var defaultPageDomainService = new PortalNavigationDefaultPageDomainService(

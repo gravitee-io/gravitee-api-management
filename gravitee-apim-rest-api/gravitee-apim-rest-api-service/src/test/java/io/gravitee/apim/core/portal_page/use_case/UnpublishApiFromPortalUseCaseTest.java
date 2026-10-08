@@ -83,7 +83,8 @@ class UnpublishApiFromPortalUseCaseTest {
             pageContentCrudService,
             pageContentQueryService,
             apiCrudService,
-            sourceDomainService
+            sourceDomainService,
+            apiOwnedNavigationDomainService
         );
         var validatorService = new PortalNavigationItemValidatorService(
             queryService,
