@@ -19,6 +19,7 @@ import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.ai_workspace.domain_service.AiWorkspaceBudgetReader;
 import io.gravitee.apim.core.ai_workspace.domain_service.AiWorkspaceEndpointReader;
 import io.gravitee.apim.core.ai_workspace.domain_service.AiWorkspaceMembershipQuery;
+import io.gravitee.apim.core.ai_workspace.domain_service.AiWorkspaceModelsReader;
 import io.gravitee.apim.core.ai_workspace.exception.AiWorkspaceNotFoundException;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
@@ -98,7 +99,8 @@ public class GetMyAiWorkspaceUseCase {
                 product.getDescription(),
                 budget(membership, flowsByPlan),
                 AiWorkspaceEndpointReader.read(input.executionContext().getEnvironmentId(), apis),
-                key(membership.subscriptionId())
+                key(membership.subscriptionId()),
+                AiWorkspaceModelsReader.read(input.executionContext().getEnvironmentId(), apis)
             )
         );
     }
