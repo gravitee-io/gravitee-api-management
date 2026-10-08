@@ -16,14 +16,16 @@
 import type { NavGroup } from '@gravitee/graphene-core';
 import { ClipboardCheck, Home } from 'lucide-react';
 
-import { HOST_NAV_LABELS } from './routes';
+import { HOME_NAV_KEY, HOST_NAV_LABELS, type HostNavKey, TASKS_NAV_KEY } from './routes';
 
-export const NAV_GROUPS: NavGroup[] = [
-    {
-        label: 'Overview',
-        items: [
-            { key: 'home', title: HOST_NAV_LABELS.home, icon: Home },
-            { key: 'tasks', title: HOST_NAV_LABELS.tasks, icon: ClipboardCheck },
-        ],
-    },
-];
+export function buildNavGroups(hrefFor: (key: HostNavKey) => string): NavGroup[] {
+    return [
+        {
+            label: 'Overview',
+            items: [
+                { key: HOME_NAV_KEY, title: HOST_NAV_LABELS.home, icon: Home, href: hrefFor(HOME_NAV_KEY) },
+                { key: TASKS_NAV_KEY, title: HOST_NAV_LABELS.tasks, icon: ClipboardCheck, href: hrefFor(TASKS_NAV_KEY) },
+            ],
+        },
+    ];
+}
