@@ -360,6 +360,59 @@ class UpdatePortalNavigationItemUseCaseTest {
         assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
     }
 
+    @ParameterizedTest
+    @CsvSource({ "API, 0", "API, 2", "API_PRODUCT, 0", "API_PRODUCT, 2" })
+    void should_reject_moving_api_or_api_product_under_persisted_api_owned_folder(PortalNavigationItemType type, int nestedFolderCount) {
+        var parent = PortalNavigationItemFixtures.aFolder("API documentation").toBuilder().reference(new ApiReference("api-1")).build();
+        parent.markAsRoot();
+        crudService.create(parent);
+        for (int depth = 0; depth < nestedFolderCount; depth++) {
+            var nestedFolder = PortalNavigationItemFixtures.aFolder("Section " + depth)
+                .toBuilder()
+                .reference(parent.getReference())
+                .build();
+            nestedFolder.updateParent(parent);
+            crudService.create(nestedFolder);
+            parent = nestedFolder;
+        }
+        PortalNavigationItem existing;
+        if (type == PortalNavigationItemType.API) {
+            existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API2_ID));
+        } else {
+            existing = PortalNavigationItemFixtures.anApiProduct(
+                API_PRODUCT_ID,
+                "Product",
+                PortalNavigationItemId.of(APIS_ID),
+                "product-id"
+            );
+            crudService.create(existing);
+        }
+        var originalParentId = existing.getParentId();
+        var originalRootId = existing.getRootId();
+        var toUpdate = UpdatePortalNavigationItem.builder()
+            .type(type)
+            .title(existing.getTitle())
+            .order(existing.getOrder())
+            .parentId(parent.getId())
+            .published(existing.getPublished())
+            .visibility(existing.getVisibility())
+            .build();
+        var input = UpdatePortalNavigationItemUseCase.Input.builder()
+            .organizationId(ORG_ID)
+            .environmentId(ENV_ID)
+            .navigationItemId(existing.getId().json())
+            .updatePortalNavigationItem(toUpdate)
+            .build();
+
+        var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () -> useCase.execute(input));
+
+        assertThat(exception.getMessage()).isEqualTo(InvalidPortalNavigationItemDataException.parentHierarchyContainsApi().getMessage());
+        assertThat(queryService.findByIdAndEnvironmentId(ENV_ID, existing.getId())).satisfies(item -> {
+            assertThat(item.getParentId()).isEqualTo(originalParentId);
+            assertThat(item.getRootId()).isEqualTo(originalRootId);
+        });
+    }
+
     @Test
     void should_update_title_when_item_exists_and_validation_succeeds() {
         // Given an existing PAGE item

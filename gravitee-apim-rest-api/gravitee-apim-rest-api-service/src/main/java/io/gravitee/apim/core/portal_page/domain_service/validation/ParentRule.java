@@ -27,6 +27,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemContainer;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.UpdatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -41,18 +42,21 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
 
     @Override
     public boolean appliesTo(CreatePortalNavigationItem item) {
-        return item.getParentId() != null;
+        return validationParentId(item) != null;
     }
 
     @Override
     public void validate(CreatePortalNavigationItem item, String environmentId, CreateValidationContext ctx) {
-        var pendingParent = ctx.pendingItemsById().get(item.getParentId());
+        var parentId = validationParentId(item);
+        ParentHierarchyValidation.ensureAcyclic(item.getId(), parentId, ctx.itemsById(), ctx.pendingItemsById());
+
+        var pendingParent = ctx.pendingItemsById().get(parentId);
         if (pendingParent != null) {
-            validatePendingParent(item, pendingParent, ctx);
+            validatePendingParent(item, pendingParent, environmentId, ctx);
             return;
         }
         validateParent(
-            item.getParentId(),
+            parentId,
             item.getArea(),
             environmentId,
             item.getPublished() != null ? item.getPublished() : false,
@@ -61,13 +65,16 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
         );
     }
 
+    private static PortalNavigationItemId validationParentId(CreatePortalNavigationItem item) {
+        return item.getRenderedParentId() != null ? item.getRenderedParentId() : item.getParentId();
+    }
+
     private void validatePendingParent(
         CreatePortalNavigationItem item,
         CreatePortalNavigationItem parentItem,
+        String environmentId,
         CreateValidationContext ctx
     ) {
-        ParentHierarchyValidation.ensureAcyclic(item.getId(), item.getParentId(), ctx.itemsById(), ctx.pendingItemsById());
-
         var parentId = parentItem.getId().toString();
         if (!parentItem.getType().isContainer()) {
             throw new ParentTypeMismatchException(parentId);
@@ -82,10 +89,43 @@ public class ParentRule implements CreatePortalNavigationItemValidationRule, Upd
             throw InvalidPortalNavigationItemDataException.parentMustBePublished(parentId);
         }
 
-        var parentVisibility = Optional.ofNullable(parentItem.getVisibility()).orElse(PortalVisibility.PUBLIC);
+        var parentVisibility = resolvePendingParentVisibility(parentItem, environmentId, ctx);
         var effectiveVisibility = PortalVisibility.resolve(item.getVisibility(), parentVisibility);
         if (PortalVisibility.PUBLIC.equals(effectiveVisibility) && PortalVisibility.PRIVATE.equals(parentVisibility)) {
             throw InvalidPortalNavigationItemDataException.parentMustBePublic(parentId);
+        }
+    }
+
+    private PortalVisibility resolvePendingParentVisibility(
+        CreatePortalNavigationItem parentItem,
+        String environmentId,
+        CreateValidationContext ctx
+    ) {
+        var visited = new HashSet<PortalNavigationItemId>();
+        var currentItem = parentItem;
+        while (true) {
+            if (!visited.add(currentItem.getId())) {
+                throw InvalidPortalNavigationItemDataException.cyclicParentHierarchy();
+            }
+            if (currentItem.getVisibility() != null) {
+                return currentItem.getVisibility();
+            }
+
+            var parentId = validationParentId(currentItem);
+            if (parentId == null) {
+                return PortalVisibility.PUBLIC;
+            }
+            var pendingParent = ctx.pendingItemsById().get(parentId);
+            if (pendingParent != null) {
+                currentItem = pendingParent;
+                continue;
+            }
+
+            var persistedParent = ctx.itemsById().get(parentId);
+            if (persistedParent == null) {
+                persistedParent = navigationItemsQueryService.findByIdAndEnvironmentId(environmentId, parentId);
+            }
+            return PortalVisibility.resolve(null, persistedParent != null ? persistedParent.getVisibility() : null);
         }
     }
 

@@ -26,6 +26,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.PortalNavigationItemsFixtures;
+import fixtures.core.model.PortalNavigationItemFixtures;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.use_case.BulkCreatePortalNavigationItemUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItems;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
@@ -34,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolde
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationItemsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.PortalNavigationPage;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -49,6 +52,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 /**
@@ -155,6 +159,47 @@ class PortalNavigationItemsResource_BulkCreateTest extends AbstractResourceTest 
                 .map(i -> ((BasePortalNavigationItem) i.getActualInstance()).getTitle())
                 .toList()
         ).containsExactly(page.getTitle(), folder.getTitle(), link.getTitle(), apiProduct.getTitle());
+    }
+
+    @Test
+    void should_return_canonical_api_documentation_from_the_bulk_use_case() {
+        final var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage();
+        final var request = new BaseCreatePortalNavigationItems().items(List.of(page));
+        final var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null)
+            .toBuilder()
+            .reference(new NavigationItemReference.ApiReference("api-id"))
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .published(false)
+            .build();
+        output.markAsRoot();
+        when(bulkCreatePortalNavigationItemUseCase.execute(any())).thenReturn(
+            new BulkCreatePortalNavigationItemUseCase.Output(List.of(output))
+        );
+
+        Response response = target.request().post(json(request));
+
+        assertThat(response).hasStatus(OK_200);
+        var captor = ArgumentCaptor.forClass(BulkCreatePortalNavigationItemUseCase.Input.class);
+        verify(bulkCreatePortalNavigationItemUseCase).execute(captor.capture());
+        assertThat(captor.getValue().items())
+            .singleElement()
+            .satisfies(item -> {
+                assertThat(item.getParentId().id()).isEqualTo(page.getParentId());
+                assertThat(item.getRenderedParentId()).isNull();
+                assertThat(item.getReference()).isEqualTo(NavigationItemReference.defaultReference());
+            });
+
+        final var body = response.readEntity(PortalNavigationItemsResponse.class);
+        assertThat(body.getItems())
+            .singleElement()
+            .satisfies(item -> {
+                var result = (PortalNavigationPage) item.getActualInstance();
+                assertThat(result.getId()).isEqualTo(output.getId().id());
+                assertThat(result.getParentId()).isNull();
+                assertThat(result.getRootId()).isEqualTo(output.getId().id());
+                assertThat(result.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
+            });
     }
 
     @Test

@@ -992,7 +992,9 @@ paths:
       tags:
         - Portal Navigation Items
       summary: Get portal navigation items
-      description: User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[read] permission.
+        Returns the rendered navigation hierarchy. API-owned documentation roots may be displayed under an API navigation item with rendered parentId and rootId values, while retaining their navigation item and page content IDs.
       operationId: getPortalNavigationItems
       parameters:
         - $ref: '#/components/parameters/portalArea'
@@ -1028,7 +1030,11 @@ paths:
       tags:
         - Portal Navigation Items
       summary: Create a portal navigation item
-      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items created under a standalone API navigation item or an API-owned documentation folder inherit the API documentation owner.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        The response returns the canonical stored hierarchy, not the rendered hierarchy returned by GET. An API-owned documentation root has no parentId and has its own ID as rootId; its navigation item and page content IDs are unchanged when rendered under an API navigation item.
       operationId: createPortalNavigationItem
       requestBody:
         content:
@@ -1038,7 +1044,7 @@ paths:
         required: true
       responses:
         "201":
-          description: Portal navigation item created. Newly created items are unpublished by default.
+          description: Portal navigation item created in its canonical stored hierarchy. Newly created items are unpublished by default.
           content:
             application/json:
               schema:
@@ -1069,7 +1075,11 @@ paths:
       tags:
         - Portal Navigation Items
       summary: Create portal navigation items in bulk
-      description: User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+      description: |
+        User must have the ENVIRONMENT_DOCUMENTATION[update] permission.
+        PAGE, FOLDER, and LINK items inherit API documentation ownership from a standalone API navigation item or an API-owned documentation folder, including a parent created in the same request. Parents must precede their children in the request.
+        An API navigation item is standalone only when it has no API Product ancestor, including through intermediate folders.
+        The response returns the canonical stored hierarchy, not the rendered hierarchy returned by GET. An API-owned documentation root has no parentId and has its own ID as rootId; its navigation item and page content IDs are unchanged when rendered under an API navigation item.
       operationId: createPortalNavigationItemsInBulk
       requestBody:
         content:

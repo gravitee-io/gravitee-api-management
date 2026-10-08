@@ -97,13 +97,27 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     }
 
     @Test
-    void should_create_an_item_and_return_it() {
+    void should_return_canonical_api_documentation_from_the_use_case() {
         var page = PortalNavigationItemsFixtures.aCreatePortalNavigationPage().parentId(null);
+        var output = PortalNavigationItemFixtures.aPage(page.getId().toString(), page.getTitle(), null)
+            .toBuilder()
+            .reference(new NavigationItemReference.ApiReference(API_ID))
+            .organizationId(ORGANIZATION)
+            .environmentId(ENVIRONMENT)
+            .published(false)
+            .build();
+        output.markAsRoot();
+        when(createPortalNavigationItemUseCase.execute(any())).thenReturn(new CreatePortalNavigationItemUseCase.Output(output));
 
         Response response = rootTarget().request().post(json(page));
 
         assertThat(response).hasStatus(CREATED_201);
-        assertThat(response.readEntity(PortalNavigationPage.class)).isNotNull().hasFieldOrPropertyWithValue("title", page.getTitle());
+        var item = response.readEntity(PortalNavigationPage.class);
+        assertThat(item.getTitle()).isEqualTo(page.getTitle());
+        assertThat(item.getId()).isEqualTo(output.getId().id());
+        assertThat(item.getParentId()).isNull();
+        assertThat(item.getRootId()).isEqualTo(output.getId().id());
+        assertThat(item.getPortalPageContentId()).isEqualTo(output.getPortalPageContentId().id());
     }
 
     @Test
@@ -115,6 +129,7 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
         var item = capturedItem();
         assertThat(item.getReference()).isEqualTo(new NavigationItemReference.ApiReference(API_ID));
         assertThat(item.getParentId()).isNull();
+        assertThat(item.getRenderedParentId()).isNull();
         assertThat(item.getPublished()).isFalse();
         assertThat(item.getArea()).isEqualTo(PortalArea.TOP_NAVBAR);
     }

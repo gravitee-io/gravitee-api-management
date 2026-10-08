@@ -22,6 +22,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.rest.api.management.v2.rest.model.BaseCreatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BasePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUpdatePortalNavigationItem;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi;
@@ -228,6 +229,27 @@ class PortalNavigationItemsMapperTest {
 
     @Nested
     class ResourceToDomain {
+
+        @Test
+        void should_map_create_parent_without_setting_server_resolved_parent() {
+            var parentId = UUID.fromString(PortalNavigationItemFixtures.API_ID);
+            List<BaseCreatePortalNavigationItem> requests = List.of(
+                PortalNavigationItemsFixtures.aCreatePortalNavigationPage(),
+                PortalNavigationItemsFixtures.aCreatePortalNavigationFolder(),
+                PortalNavigationItemsFixtures.aCreatePortalNavigationLink(),
+                PortalNavigationItemsFixtures.aCreatePortalNavigationApi(),
+                PortalNavigationItemsFixtures.aCreatePortalNavigationApiProduct()
+            );
+
+            for (var request : requests) {
+                request.setParentId(parentId);
+
+                var result = mapper.map(request);
+
+                assertThat(result.getParentId().id()).isEqualTo(parentId);
+                assertThat(result.getRenderedParentId()).isNull();
+            }
+        }
 
         @Test
         void should_map_requested_parent_without_setting_server_resolved_parent() {
