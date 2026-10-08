@@ -37,8 +37,10 @@ const mockUseModuleRouting = jest.fn(() => ({
     rootPath: '/platform',
 }));
 
+const mockHrefForKey = (key: string) => `/${key}`;
+
 jest.mock('@gravitee/gamma-modules-sdk/routing', () => ({
-    useModuleRouting: () => mockUseModuleRouting(),
+    useModuleRouting: () => ({ hrefForKey: mockHrefForKey, ...mockUseModuleRouting() }),
 }));
 
 const mockUseLayoutConfig = jest.fn();
@@ -405,10 +407,10 @@ function renderPlatform(path = '/applications') {
     );
 }
 
-type NavGroupProps = { label?: string; items: { key: string; access?: string }[] };
+type NavGroupProps = { label?: string; items: { key: string; title?: string; access?: string; href?: string }[] };
 
 type LayoutConfig = {
-    navigation?: { props?: { items?: { key: string; title: string }[]; onItemSelect?: (key: string) => void } };
+    navigation?: { props?: { groups?: NavGroupProps[]; onItemSelect?: (key: string) => void } };
     contextSidebar?: {
         props?: {
             groups?: NavGroupProps[];
@@ -463,8 +465,18 @@ function navItemAccess(key: string): string | undefined {
         .find(item => item.key === key)?.access;
 }
 
+function primaryNavItems() {
+    return primaryNav()?.props?.groups?.flatMap(group => group.items) ?? [];
+}
+
 function primaryNavKeys(): string[] {
-    return primaryNav()?.props?.items?.map(item => item.key) ?? [];
+    return primaryNavItems().map(item => item.key);
+}
+
+function navItemHref(key: string): string | undefined {
+    return contextGroups()
+        .flatMap(group => group.items)
+        .find(item => item.key === key)?.href;
 }
 
 const APIM_BOOTSTRAP = {
@@ -1499,7 +1511,33 @@ describe('AppRoutes', () => {
         renderPlatform();
 
         expect(primaryNavKeys()).toEqual(['organization', 'environment', 'team']);
-        expect(primaryNav()?.props?.items?.map(item => item.title)).toEqual(['Organization', 'Environment', 'Team']);
+        expect(primaryNavItems().map(item => item.title)).toEqual(['Organization', 'Environment', 'Team']);
+    });
+
+    it('groups the primary sidebar sections under a Manage heading', () => {
+        renderPlatform();
+
+        expect(primaryNav()?.props?.groups?.map(group => group.label)).toEqual(['Manage']);
+    });
+
+    it('links each primary section to its first visible item, the page selecting it opens, so it can be opened in a new tab', () => {
+        const navigateToKey = jest.fn();
+        mockUseModuleRouting.mockReturnValue({ activeNavKey: 'not-a-nav-item', navigateToKey, rootPath: '/platform' });
+        renderPlatform();
+
+        expect(primaryNavItems().map(item => item.href)).toEqual(['/tenants', '/applications', '/users']);
+        for (const item of primaryNavItems()) {
+            primaryNav()?.props?.onItemSelect?.(item.key);
+
+            expect(item.href).toBe(mockHrefForKey(navigateToKey.mock.lastCall?.[0]));
+        }
+    });
+
+    it('links each context sidebar item to its page, so it can be opened in a new tab', () => {
+        renderPlatform();
+
+        expect(navItemHref('applications')).toBe('/applications');
+        expect(navItemHref('metadata')).toBe('/metadata');
     });
 
     it('does not show a General primary nav item', () => {
