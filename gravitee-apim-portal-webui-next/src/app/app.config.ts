@@ -19,9 +19,8 @@ import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core'
 import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, Router, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { catchError, combineLatest, Observable, switchMap } from 'rxjs';
-import { of } from 'rxjs/internal/observable/of';
 
+import { initApp } from './app-initializer';
 import { routes } from './app.routes';
 import { csrfInterceptor } from '../interceptors/csrf.interceptor';
 import { httpRequestInterceptor } from '../interceptors/http-request.interceptor';
@@ -29,30 +28,6 @@ import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
 import { PortalMenuLinksService } from '../services/portal-menu-links.service';
 import { ThemeService } from '../services/theme.service';
-
-function initApp(
-  configService: ConfigService,
-  themeService: ThemeService,
-  currentUserService: CurrentUserService,
-  portalMenuLinksService: PortalMenuLinksService,
-  router: Router,
-): () => Observable<unknown> {
-  return () =>
-    configService.initBaseURL().pipe(
-      switchMap(_ =>
-        combineLatest([
-          themeService.loadTheme(),
-          currentUserService.loadUser(),
-          configService.loadConfiguration(),
-          portalMenuLinksService.loadCustomLinks(),
-        ]),
-      ),
-      catchError(error => {
-        router.navigate(['/503'], { state: error });
-        return of({});
-      }),
-    );
-}
 
 export const appConfig: ApplicationConfig = {
   providers: [
