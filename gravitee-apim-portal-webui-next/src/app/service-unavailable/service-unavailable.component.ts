@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 import { Component, inject, OnInit } from '@angular/core';
-import { MatCard, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
+import { MatButton } from '@angular/material/button';
+import { MatCard, MatCardActions, MatCardContent, MatCardHeader, MatCardTitle } from '@angular/material/card';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { get } from 'lodash';
+
+// Navigation state carried to /503: history.pushState must be able to clone it, so plain values only
+export interface ServiceUnavailableState {
+  status?: number;
+  errors?: { code: string; message: string }[];
+}
 
 @Component({
   selector: 'app-service-unavailable',
   standalone: true,
-  imports: [MatCard, MatCardTitle, MatCardContent, RouterModule, MatCardHeader],
+  imports: [MatCard, MatCardTitle, MatCardContent, RouterModule, MatCardHeader, MatCardActions, MatButton],
   templateUrl: './service-unavailable.component.html',
   styleUrl: './service-unavailable.component.scss',
 })
@@ -29,13 +35,19 @@ export class ServiceUnavailableComponent implements OnInit {
   public activatedRoute = inject(ActivatedRoute);
   public router = inject(Router);
 
-  public message = 'Portal API unreachable or error occurs, please check logs';
+  public message =
+    "Portal API unreachable or error occurs, please check logs. If the problem persists, try clearing this site's cookies and retry.";
 
   ngOnInit() {
-    const state = this.router.lastSuccessfulNavigation?.extras.state;
-    const error = get(state, 'errors[0]');
+    const state = this.router.lastSuccessfulNavigation?.extras.state as ServiceUnavailableState | undefined;
+    const error = state?.errors?.[0];
     if (error?.code === 'errors.maintenance.mode') {
       this.message = error.message;
     }
+  }
+
+  retry() {
+    // Reloading the current URL would only land on /503 again, so start over from the portal home
+    window.location.assign(document.baseURI);
   }
 }
