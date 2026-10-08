@@ -80,6 +80,14 @@ describe('ApiMetadataSheet', () => {
         expect(onSubmit).toHaveBeenCalledWith({ name: 'Team', format: 'STRING', value: 'Platform' });
     });
 
+    it('titles an override of global metadata and shows the global value as read-only', () => {
+        renderSheet({ mode: 'edit', metadata: { ...EXISTING, defaultValue: 'global@example.com' } });
+        expect(screen.getByRole('heading', { name: 'Override global metadata' })).toBeInTheDocument();
+        const globalValue = screen.getByLabelText('Global value') as HTMLInputElement;
+        expect(globalValue.value).toBe('global@example.com');
+        expect(globalValue).toBeDisabled();
+    });
+
     it('shows the key as read-only in edit mode', () => {
         renderSheet({ mode: 'edit', metadata: EXISTING });
         expect((screen.getByLabelText('Key') as HTMLInputElement).value).toBe('support-email');

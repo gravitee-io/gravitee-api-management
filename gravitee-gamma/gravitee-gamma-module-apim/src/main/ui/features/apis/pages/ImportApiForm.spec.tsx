@@ -117,7 +117,7 @@ describe('ImportApiForm', () => {
         const { container } = renderForm('gravitee');
         expect(screen.getByRole('button', { name: /create api/i })).toBeDisabled();
 
-        const definition = { api: { name: 'My API' } };
+        const definition = { api: { name: 'My API', definitionVersion: 'V4' } };
         const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
         fireEvent.change(fileInput, { target: { files: [fileWithText('api.json', JSON.stringify(definition), 'application/json')] } });
 
@@ -128,6 +128,35 @@ describe('ImportApiForm', () => {
             { format: 'gravitee', source: 'local', definition },
             expect.objectContaining({ onSuccess: expect.any(Function) }),
         );
+    });
+
+    it('loads a Gravitee definition dropped on the import zone', async () => {
+        renderForm('gravitee');
+        const definition = { api: { name: 'Dropped API', definitionVersion: 'V4' } };
+        const zone = screen.getByRole('button', { name: /drop file here/i });
+
+        fireEvent.drop(zone, { dataTransfer: { files: [fileWithText('dropped.json', JSON.stringify(definition), 'application/json')] } });
+
+        await waitFor(() => expect(screen.getByText('dropped.json')).toBeInTheDocument());
+        fireEvent.click(screen.getByRole('button', { name: /create api/i }));
+        expect(mutate).toHaveBeenCalledWith(
+            { format: 'gravitee', source: 'local', definition },
+            expect.objectContaining({ onSuccess: expect.any(Function) }),
+        );
+    });
+
+    it('rejects a raw API definition as soon as it is dropped, before Create API', async () => {
+        renderForm('gravitee');
+        const rawDefinition = { name: 'My First API', definitionVersion: 'V4', type: 'PROXY' };
+        const zone = screen.getByRole('button', { name: /drop file here/i });
+
+        fireEvent.drop(zone, {
+            dataTransfer: { files: [fileWithText('my-api.json', JSON.stringify(rawDefinition), 'application/json')] },
+        });
+
+        expect(await screen.findByText('The file does not match the selected API format')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /create api/i })).toBeDisabled();
+        expect(mutate).not.toHaveBeenCalled();
     });
 
     it('submits an OpenAPI descriptor once a spec file is picked', async () => {
@@ -160,7 +189,7 @@ describe('ImportApiForm', () => {
 
     it('navigates to the new API overview and shows a success toast once creation succeeds', async () => {
         const { container } = renderForm('gravitee');
-        const definition = { api: { name: 'My API' } };
+        const definition = { api: { name: 'My API', definitionVersion: 'V4' } };
         const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
         fireEvent.change(fileInput, { target: { files: [fileWithText('api.json', JSON.stringify(definition), 'application/json')] } });
 

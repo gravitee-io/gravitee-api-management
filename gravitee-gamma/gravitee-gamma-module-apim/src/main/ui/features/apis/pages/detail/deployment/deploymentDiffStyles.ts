@@ -65,8 +65,8 @@ export const DEPLOYMENT_DIFF = {
         },
     },
     unified: {
-        lineNum: 'select-none text-right pr-3 pl-2 tabular-nums text-xs leading-5 align-top border-r',
-        gutter: 'select-none text-center text-xs leading-5 align-top border-r font-semibold w-5',
+        lineNum: 'select-none w-10 text-right pr-2 pl-1 tabular-nums text-xs leading-5 align-top border-r',
+        gutter: 'select-none w-5 text-center text-xs leading-5 align-top border-r font-semibold',
         content: 'px-3 py-0 leading-5 whitespace-pre align-top',
     },
 } as const;
