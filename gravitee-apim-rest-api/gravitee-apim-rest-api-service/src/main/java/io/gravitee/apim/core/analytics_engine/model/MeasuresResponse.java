@@ -32,4 +32,13 @@ public record MeasuresResponse(List<MetricMeasuresResponse> metrics) {
                 .toList()
         );
     }
+
+    public MeasuresResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+        return new MeasuresResponse(
+            metrics
+                .stream()
+                .map(metric -> metric.withIgnoredFilters(ignoredFilters))
+                .toList()
+        );
+    }
 }

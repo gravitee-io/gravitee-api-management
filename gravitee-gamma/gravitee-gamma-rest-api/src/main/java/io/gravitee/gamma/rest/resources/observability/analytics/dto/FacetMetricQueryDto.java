@@ -17,17 +17,19 @@ package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsFacetMetricQuery;
 import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
+import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import java.util.List;
 
 /**
  * Wire shape for a metric query on the facets and time-series endpoints.
  */
-public record FacetMetricQueryDto(String name, List<String> measures, List<SortSpecDto> sorts) {
+public record FacetMetricQueryDto(String name, List<String> measures, List<SortSpecDto> sorts, List<FilterConditionDto> filters) {
     public AnalyticsFacetMetricQuery toCore() {
         return new AnalyticsFacetMetricQuery(
             name,
             measures != null ? measures : List.of(),
-            RequestEntries.map(sorts, "sorts", SortSpecDto::toCore)
+            RequestEntries.map(sorts, "sorts", SortSpecDto::toCore),
+            RequestEntries.map(filters, "metrics[].filters", FilterConditionDto::toCore)
         );
     }
 }

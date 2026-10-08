@@ -16,13 +16,19 @@
 package io.gravitee.gamma.rest.resources.observability.analytics.dto;
 
 import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsMetricQuery;
+import io.gravitee.gamma.rest.resources.observability.dto.RequestEntries;
+import io.gravitee.gamma.rest.resources.observability.logs.dto.FilterConditionDto;
 import java.util.List;
 
 /**
  * Wire shape for a metric query on the measures endpoint.
  */
-public record MetricQueryDto(String name, List<String> measures) {
+public record MetricQueryDto(String name, List<String> measures, List<FilterConditionDto> filters) {
     public AnalyticsMetricQuery toCore() {
-        return new AnalyticsMetricQuery(name, measures != null ? measures : List.of());
+        return new AnalyticsMetricQuery(
+            name,
+            measures != null ? measures : List.of(),
+            RequestEntries.map(filters, "metrics[].filters", FilterConditionDto::toCore)
+        );
     }
 }

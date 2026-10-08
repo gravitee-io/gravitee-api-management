@@ -15,10 +15,26 @@
  */
 package io.gravitee.apim.core.analytics_engine.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
 /**
+ * @param ignoredFilters top-level filters the search path skipped for this metric, so its values are
+ *     not filtered on them; empty when every filter applied, never null
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public record MetricFacetsResponse(MetricSpec.Name metric, MetricSpec.Unit unit, List<FacetBucketResponse> buckets) {}
+public record MetricFacetsResponse(
+    MetricSpec.Name metric,
+    MetricSpec.Unit unit,
+    List<FacetBucketResponse> buckets,
+    @JsonInclude(JsonInclude.Include.NON_EMPTY) List<FilterSpec.Name> ignoredFilters
+) {
+    public MetricFacetsResponse {
+        ignoredFilters = ignoredFilters == null ? List.of() : List.copyOf(ignoredFilters);
+    }
+
+    public MetricFacetsResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+        return new MetricFacetsResponse(metric, unit, buckets, ignoredFilters);
+    }
+}

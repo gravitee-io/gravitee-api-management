@@ -117,7 +117,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
             JsonNode fakeResponse = JsonNodeFactory.instance.objectNode().put("metrics", "ok");
             when(analyticsDataPort.computeMeasures(any())).thenReturn(fakeResponse);
 
-            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
+            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of()));
             var output = useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, metrics));
 
             assertThat(output.response()).isEqualTo(fakeResponse);
@@ -136,7 +136,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
         @Test
         void should_reject_unknown_filter() {
             var filters = List.of(new FilterCondition("UNKNOWN", FilterOperator.EQ, List.of("val")));
-            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
+            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of()));
 
             assertThatThrownBy(() ->
                 useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, metrics))
@@ -171,7 +171,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
             when(analyticsDataPort.computeMeasures(any())).thenReturn(fakeResponse);
 
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("api-1")));
-            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
+            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of()));
             useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, metrics));
 
             var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
@@ -188,7 +188,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
             when(analyticsDataPort.emptyMeasuresResponse()).thenReturn(emptyResponse);
 
             var filters = List.of(new FilterCondition("API", FilterOperator.IN, List.of("non-existent-api")));
-            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT")));
+            var metrics = List.of(new AnalyticsMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of()));
             var output = useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, filters, FROM, TO, metrics));
 
             assertThat(output.response()).isEqualTo(emptyResponse);
@@ -202,7 +202,7 @@ class ComputeObservabilityMeasuresUseCaseTest {
             doThrow(InvalidObservabilityQueryException.unknownMetric("BOGUS"))
                 .when(analyticsDataPort)
                 .validate(any(ObservabilityAnalyticsDataPort.MeasuresQuery.class));
-            var metrics = List.of(new AnalyticsMetricQuery("BOGUS", List.of("COUNT")));
+            var metrics = List.of(new AnalyticsMetricQuery("BOGUS", List.of("COUNT"), List.of()));
 
             assertThatThrownBy(() ->
                 useCase.execute(new ComputeObservabilityMeasuresUseCase.Input(ORG_ID, ENV_ID, List.of(), FROM, TO, metrics))

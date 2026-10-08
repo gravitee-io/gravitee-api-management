@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import io.gravitee.apim.core.analytics_engine.model.FacetMetricMeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsRequest;
 import io.gravitee.apim.core.analytics_engine.model.FacetsResponse;
+import io.gravitee.apim.core.analytics_engine.model.FilterSpec;
 import io.gravitee.apim.core.analytics_engine.model.Measure;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresRequest;
 import io.gravitee.apim.core.analytics_engine.model.MeasuresResponse;
@@ -82,7 +83,7 @@ public interface AnalyticsMeasuresAdapter {
 
     default MetricMeasuresResponse fromResult(MetricMeasuresResult result) {
         // The unit is set to null here, because it is populated later by a post processor according to the definition model.
-        return new MetricMeasuresResponse(fromResult(result.metric()), null, fromResult(result.measures()));
+        return new MetricMeasuresResponse(fromResult(result.metric()), null, fromResult(result.measures()), List.of());
     }
 
     default List<Measure> fromResult(Map<io.gravitee.repository.analytics.engine.api.metric.Measure, Number> result) {
@@ -95,6 +96,9 @@ public interface AnalyticsMeasuresAdapter {
             .map(entry -> new Measure(fromResult(entry.getKey()), entry.getValue()))
             .toList();
     }
+
+    /** Every engine filter has a catalog name; MapStruct fails the build if one is added without. */
+    FilterSpec.Name fromFilterName(Filter.Name name);
 
     default MetricSpec.Name fromResult(Metric result) {
         return MetricSpec.Name.valueOf(result.name());

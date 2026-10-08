@@ -107,7 +107,9 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
     public JsonNode computeMeasures(MeasuresQuery query) {
         var auditInfo = currentAuditInfo(query.organizationId(), query.environmentId());
         var response = computeMeasuresUseCase.execute(new ComputeMeasuresUseCase.Input(auditInfo, toApimRequest(query))).response();
-        return objectMapper.valueToTree(response);
+        JsonNode node = objectMapper.valueToTree(response);
+        ConditionsNotAppliedEnricher.enrichMeasures(node, query.conditionsNotApplied());
+        return node;
     }
 
     @Override
@@ -116,6 +118,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         var response = computeFacetsUseCase.execute(new ComputeFacetsUseCase.Input(auditInfo, toApimRequest(query))).response();
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichFacetsResponse(node);
+        ConditionsNotAppliedEnricher.enrichFacets(node, query.conditionsNotApplied());
         return node;
     }
 
@@ -125,6 +128,7 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         var response = computeTimeSeriesUseCase.execute(new ComputeTimeSeriesUseCase.Input(auditInfo, toApimRequest(query))).response();
         var node = (ObjectNode) objectMapper.valueToTree(response);
         AnalyticsBucketTypeEnricher.enrichTimeSeriesResponse(node);
+        ConditionsNotAppliedEnricher.enrichTimeSeries(node, query.conditionsNotApplied());
         return node;
     }
 
@@ -189,6 +193,8 @@ public class ObservabilityAnalyticsDataPortAdapter implements ObservabilityAnaly
         return new Filter(name, operator, value);
     }
 
+    // Metric-level conditions are not handed to the engine: the response names them as not applied
+    // (ConditionsNotAppliedEnricher) rather than pretending they filtered anything.
     private static List<MetricMeasuresRequest> toApimMetrics(List<AnalyticsMetricQuery> metrics) {
         if (metrics == null) {
             return List.of();

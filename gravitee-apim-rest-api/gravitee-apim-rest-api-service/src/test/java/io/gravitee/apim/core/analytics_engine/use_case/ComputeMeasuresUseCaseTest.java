@@ -196,8 +196,18 @@ class ComputeMeasuresUseCaseTest {
         var service1 = mock(AnalyticsEngineQueryService.class);
         var service2 = mock(AnalyticsEngineQueryService.class);
 
-        var measure1 = new MetricMeasuresResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
-        var measure2 = new MetricMeasuresResponse(MetricSpec.Name.MESSAGES, null, List.of(new Measure(MetricSpec.Measure.COUNT, 10)));
+        var measure1 = new MetricMeasuresResponse(
+            MetricSpec.Name.HTTP_REQUESTS,
+            null,
+            List.of(new Measure(MetricSpec.Measure.COUNT, 42)),
+            List.of()
+        );
+        var measure2 = new MetricMeasuresResponse(
+            MetricSpec.Name.MESSAGES,
+            null,
+            List.of(new Measure(MetricSpec.Measure.COUNT, 10)),
+            List.of()
+        );
 
         when(service1.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of(measure1)));
         when(service2.searchMeasures(any(), any())).thenReturn(new MeasuresResponse(List.of(measure2)));

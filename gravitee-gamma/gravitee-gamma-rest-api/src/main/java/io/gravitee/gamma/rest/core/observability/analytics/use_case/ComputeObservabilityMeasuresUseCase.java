@@ -53,8 +53,22 @@ public class ComputeObservabilityMeasuresUseCase {
         if (input.metrics == null || input.metrics.isEmpty()) {
             throw InvalidObservabilityQueryException.missingMetrics();
         }
+        // Before the scope is prepared: a refused condition never reaches the data.
+        var notApplied = pipeline.conditionsNotApplied(
+            input.filters,
+            input.metrics
+                .stream()
+                .map(metric -> new AnalyticsRequestPipeline.MetricConditions(metric.metricName(), metric.filters()))
+                .toList()
+        );
         var scope = pipeline.prepare(input.organizationId, input.environmentId, input.filters, input.from, input.to, analyticsDataPort);
-        var query = new ObservabilityAnalyticsDataPort.MeasuresQuery(input.organizationId, input.environmentId, scope, input.metrics);
+        var query = new ObservabilityAnalyticsDataPort.MeasuresQuery(
+            input.organizationId,
+            input.environmentId,
+            scope,
+            input.metrics,
+            notApplied
+        );
         analyticsDataPort.validate(query);
 
         if (scope.isEmpty()) {
