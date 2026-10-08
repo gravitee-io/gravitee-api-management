@@ -17,7 +17,6 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import {
     Badge,
     Button,
-    Card,
     Checkbox,
     DataTable,
     DataTableEmptyState,
@@ -35,12 +34,13 @@ import { useParams } from 'react-router-dom';
 
 import { DiffDialog } from './DiffDialog';
 import { SingleEventDialog } from './SingleEventDialog';
-import { canRollbackTo, isNativeApi } from './utils';
+import { canRollbackTo, chronologicalEvents, isNativeApi, PENDING_DEPLOYMENT_EVENT_ID, pendingDeploymentEvent } from './utils';
+import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiEvents, useLiveDeploymentEvent } from '../../../hooks/useApiEvents';
-import { rollbackApi } from '../../../services/apis';
+import { getCurrentDeployment, rollbackApi } from '../../../services/apis';
 import type { ApiEvent } from '../../../types';
-import { apiEventsKeys } from '../../../utils/queryKeys';
+import { apiDetailKeys, apiEventsKeys } from '../../../utils/queryKeys';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 
@@ -49,6 +49,8 @@ type Cell<T> = { row: { index: number; original: T } };
 export function DeploymentHistoryPage() {
     const { apiId } = useParams<{ apiId: string }>();
     const env = useEnvironment();
+    const { api } = useApiDetailContext();
+    const needsRedeploy = api?.deploymentState === 'NEED_REDEPLOY';
     const queryClient = useQueryClient();
 
     const [page, setPage] = useState(1);
@@ -56,9 +58,6 @@ export function DeploymentHistoryPage() {
     const [selectedEvents, setSelectedEvents] = useState<ApiEvent[]>([]);
     const [singleViewEvent, setSingleViewEvent] = useState<ApiEvent | null>(null);
     const [isRollingBack, setIsRollingBack] = useState(false);
-    const [rollbackError, setRollbackError] = useState<string | null>(null);
-
-    const { api } = useApiDetailContext();
 
     const { data, isLoading } = useApiEvents(apiId, page, pageSize);
     const events = useMemo(() => data?.data ?? [], [data]);
@@ -66,12 +65,16 @@ export function DeploymentHistoryPage() {
     const liveEvent = useLiveDeploymentEvent(apiId, page, events);
 
     const rollbackContext = useMemo(
-        () => ({ liveEventId: liveEvent?.id, isNative: isNativeApi(api), needsRedeploy: api?.deploymentState === 'NEED_REDEPLOY' }),
-        [api, liveEvent],
+        () => ({ liveEventId: liveEvent?.id, isNative: isNativeApi(api), needsRedeploy }),
+        [api, liveEvent, needsRedeploy],
     );
-    const canRollbackToEvent = useCallback((event: ApiEvent) => canRollbackTo(event, rollbackContext), [rollbackContext]);
+    const canRollbackToEvent = useCallback(
+        (event: ApiEvent) => event.id !== PENDING_DEPLOYMENT_EVENT_ID && canRollbackTo(event, rollbackContext),
+        [rollbackContext],
+    );
 
-    const showDiff = selectedEvents.length === 2;
+    const orderedSelection = chronologicalEvents(selectedEvents);
+    const showDiff = orderedSelection !== null;
     const selectionCount = selectedEvents.length;
 
     const toggleSelect = useCallback((event: ApiEvent) => {
@@ -96,19 +99,43 @@ export function DeploymentHistoryPage() {
         async (eventId: string) => {
             if (!apiId) return;
             setIsRollingBack(true);
-            setRollbackError(null);
+            setSelectedEvents([]);
+            setSingleViewEvent(null);
             try {
                 await rollbackApi(env!.id, apiId, eventId);
-                setSelectedEvents([]);
-                setSingleViewEvent(null);
+                notify.success('API updated to this version. Deploy the API to apply it on the gateway.');
                 await queryClient.invalidateQueries({ queryKey: apiEventsKeys.all });
+                await queryClient.invalidateQueries({ queryKey: apiDetailKeys.all });
             } catch (e) {
-                setRollbackError(e instanceof Error ? e.message : 'Rollback failed.');
+                notify.error(e, 'Rollback failed.');
             } finally {
                 setIsRollingBack(false);
             }
         },
         [apiId, env, queryClient],
+    );
+
+    const openPendingDefinition = useCallback(async () => {
+        if (!apiId || !env?.id) return;
+        try {
+            const current = await getCurrentDeployment(env.id, apiId);
+            setSingleViewEvent(pendingDeploymentEvent(current));
+        } catch (e) {
+            notify.error(e, 'Could not load the version to be deployed.');
+        }
+    }, [apiId, env?.id]);
+
+    const compareWithPending = useCallback(
+        async (event: ApiEvent) => {
+            if (!apiId || !env?.id) return;
+            try {
+                const current = await getCurrentDeployment(env.id, apiId);
+                setSelectedEvents([event, pendingDeploymentEvent(current)]);
+            } catch (e) {
+                notify.error(e, 'Could not load the version to be deployed.');
+            }
+        },
+        [apiId, env?.id],
     );
 
     const handlePageSizeChange = useCallback((size: number) => {
@@ -230,6 +257,12 @@ export function DeploymentHistoryPage() {
                                         Compare with live
                                     </DropdownMenuItem>
                                 ) : null}
+                                {needsRedeploy ? (
+                                    <DropdownMenuItem onSelect={() => void compareWithPending(event)}>
+                                        <GitBranchIcon className="size-3.5" />
+                                        Compare with pending changes
+                                    </DropdownMenuItem>
+                                ) : null}
                                 {canRollback ? (
                                     <DropdownMenuItem onSelect={() => setSingleViewEvent(event)}>
                                         <RefreshCwIcon className="size-3.5" />
@@ -251,13 +284,12 @@ export function DeploymentHistoryPage() {
                 <p className="text-sm text-muted-foreground">
                     All API deployments, newest first. Select two versions to diff, or use the actions menu to inspect a single version.
                 </p>
+                {needsRedeploy ? (
+                    <Button type="button" variant="outline" size="sm" onClick={() => void openPendingDefinition()}>
+                        <EyeIcon className="size-3.5" /> View version to be deployed
+                    </Button>
+                ) : null}
             </div>
-
-            {rollbackError ? (
-                <Card className="rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-                    <p className="text-sm text-destructive">{rollbackError}</p>
-                </Card>
-            ) : null}
 
             {!isLoading && totalCount === 0 ? (
                 <div className="rounded-lg border">
@@ -324,12 +356,12 @@ export function DeploymentHistoryPage() {
                 />
             ) : null}
 
-            {showDiff ? (
+            {showDiff && orderedSelection ? (
                 <DiffDialog
-                    left={selectedEvents[0]}
-                    right={selectedEvents[1]}
-                    canRollbackLeft={canRollbackToEvent(selectedEvents[0])}
-                    canRollbackRight={canRollbackToEvent(selectedEvents[1])}
+                    left={orderedSelection[0]}
+                    right={orderedSelection[1]}
+                    canRollbackLeft={canRollbackToEvent(orderedSelection[0])}
+                    canRollbackRight={canRollbackToEvent(orderedSelection[1])}
                     onClose={handleDiffClose}
                     onRollback={handleRollback}
                     isRollingBack={isRollingBack}

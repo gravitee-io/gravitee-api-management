@@ -23,6 +23,7 @@ import {
     deleteApiBackground,
     deleteApiPicture,
     duplicateApi,
+    getApiV4,
     getPendingPromotions,
     getPromotionTargets,
     promoteApi,
@@ -61,6 +62,15 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
 
     const saveMutation = useMutation({
         mutationFn: (patch: Partial<ApiDetailDto>) => updateApiGeneral(env!.id, apiId!, api!, patch),
+        onSuccess: invalidateDetail,
+    });
+
+    // Classic danger-zone loads the API again before publish, visibility, and deprecate.
+    const lifecycleMutation = useMutation({
+        mutationFn: async (patch: Partial<ApiDetailDto>) => {
+            const current = await getApiV4(env!.id, apiId!);
+            return updateApiGeneral(env!.id, apiId!, current, patch);
+        },
         onSuccess: invalidateDetail,
     });
 
@@ -156,6 +166,7 @@ export function useApiGeneralMutations(api: ApiDetailDto | null, sideEffects: Ap
 
     return {
         saveMutation,
+        lifecycleMutation,
         startMutation,
         stopMutation,
         deleteMutation,

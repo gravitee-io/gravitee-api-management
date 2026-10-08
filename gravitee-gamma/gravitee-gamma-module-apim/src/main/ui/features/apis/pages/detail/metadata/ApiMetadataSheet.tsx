@@ -127,7 +127,9 @@ export function ApiMetadataSheet({
         <Sheet open={open} onOpenChange={handleOpenChange}>
             <SheetContent side="right" className="flex max-h-full flex-col" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
-                    <SheetTitle>{mode === 'create' ? 'Add API Metadata' : 'Edit Metadata'}</SheetTitle>
+                    <SheetTitle>
+                        {mode === 'create' ? 'Add API Metadata' : metadata?.defaultValue ? 'Override global metadata' : 'Edit Metadata'}
+                    </SheetTitle>
                     <SheetDescription>
                         {mode === 'create'
                             ? 'Define metadata on this API that can be accessed through Markdown templating.'
@@ -143,6 +145,13 @@ export function ApiMetadataSheet({
                                 <Input id="api-metadata-key" value={metadata.key} disabled readOnly />
                             </Field>
                         )}
+
+                        {mode === 'edit' && metadata?.defaultValue ? (
+                            <Field orientation="vertical" className="gap-1.5">
+                                <FieldLabel htmlFor="api-metadata-global-value">Global value</FieldLabel>
+                                <Input id="api-metadata-global-value" value={metadata.defaultValue} disabled readOnly />
+                            </Field>
+                        ) : null}
 
                         <Field orientation="vertical" className="gap-1.5">
                             <FieldLabel htmlFor="api-metadata-name">

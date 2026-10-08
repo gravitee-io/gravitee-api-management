@@ -205,6 +205,23 @@ export function withFederatedRestrictions(groups: DetailNavGroup[], isFederated:
         .filter(group => group.items.length > 0);
 }
 
+/** Classic hides Deployment History without `api-event-r` and Sharding Tags without `api-definition-r`. */
+export function withDeploymentPermissions(
+    groups: DetailNavGroup[],
+    permissions: { canReadEvents: boolean; canReadDefinition: boolean },
+): DetailNavGroup[] {
+    return dropEmptyGroups(
+        groups.map(group => ({
+            ...group,
+            items: group.items.filter(item => {
+                if (item.path === 'deployment/history') return permissions.canReadEvents;
+                if (item.path === 'deployment/configuration') return permissions.canReadDefinition;
+                return true;
+            }),
+        })),
+    );
+}
+
 export function withMetadataPermission(groups: DetailNavGroup[], canReadMetadata: boolean): DetailNavGroup[] {
     if (canReadMetadata) return groups;
     return groups.map(group => ({

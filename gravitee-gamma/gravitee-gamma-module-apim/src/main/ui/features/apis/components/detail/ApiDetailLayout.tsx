@@ -51,6 +51,7 @@ import {
     withMetadataPermission,
     withObservabilityLinks,
     withResponseTemplatesPermission,
+    withDeploymentPermissions,
     withTcpRestrictions,
 } from './ApiDetailSidebarNav';
 import { ApiReviewBanner } from './ApiReviewBanner';
@@ -308,6 +309,8 @@ export function ApiDetailLayout() {
     const canDeploy = useHasPermission({ anyOf: ['api-definition-u'] });
     const isApiReviewer = useHasPermission({ anyOf: ['api-reviews-u'] });
     const canReadMetadata = useHasPermission({ anyOf: ['api-metadata-r'] });
+    const canReadDefinition = useHasPermission({ anyOf: ['api-definition-r'] });
+    const canReadEvents = useHasPermission({ anyOf: ['api-event-r'] });
     const canReadDocumentation = useHasPermission({ anyOf: ['api-documentation-r'] });
     const canReadResponseTemplates = useHasPermission({ anyOf: ['api-response_templates-r'] });
     const canAccessAlerts = useHasPermission({ anyOf: [...API_ALERT_PAGE_PERMISSIONS] });
@@ -369,26 +372,32 @@ export function ApiDetailLayout() {
     // The observability section hangs off the module root, one level above `/apis/:apiId`.
     const moduleRoot = basePath.slice(0, basePath.lastIndexOf('/apis/'));
     const navGroups = withFederatedRestrictions(
-        withApiAlertPermission(
-            withDocumentationPermission(
-                withMetadataPermission(
-                    withTcpRestrictions(
-                        withObservabilityLinks(
-                            withResponseTemplatesPermission(
-                                withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled),
-                                showResponseTemplates,
+        withDeploymentPermissions(
+            withApiAlertPermission(
+                withDocumentationPermission(
+                    withMetadataPermission(
+                        withTcpRestrictions(
+                            withObservabilityLinks(
+                                withResponseTemplatesPermission(
+                                    withApiScoreEnabled(API_PROXY_NAV_GROUPS, apiScoreEnabled),
+                                    showResponseTemplates,
+                                ),
+                                apiId
+                                    ? {
+                                          dashboardHref: buildApiDashboardHref(moduleRoot, apiId),
+                                          logsHref: buildApiLogsHref(moduleRoot, apiId),
+                                      }
+                                    : {},
                             ),
-                            apiId
-                                ? { dashboardHref: buildApiDashboardHref(moduleRoot, apiId), logsHref: buildApiLogsHref(moduleRoot, apiId) }
-                                : {},
+                            hasTcpListeners(api),
                         ),
-                        hasTcpListeners(api),
+                        canReadMetadata,
                     ),
-                    canReadMetadata,
+                    canReadDocumentation,
                 ),
-                canReadDocumentation,
+                canAccessAlerts,
             ),
-            canAccessAlerts,
+            { canReadEvents, canReadDefinition },
         ),
         isFederatedApi(api),
     );

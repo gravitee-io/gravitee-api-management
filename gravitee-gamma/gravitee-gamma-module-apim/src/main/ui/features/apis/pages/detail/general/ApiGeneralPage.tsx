@@ -47,6 +47,7 @@ import { downloadBlob } from '../../../../../shared/browser';
 import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
+import { useApiDeployVerify } from '../../../hooks/useApiDeployVerify';
 import { useApiGeneralMutations } from '../../../hooks/useApiGeneralMutations';
 import { useApiReviewEnabled } from '../../../hooks/useApiReviewEnabled';
 import { useAskForReviewDialog } from '../../../hooks/useAskForReviewDialog';
@@ -99,6 +100,12 @@ function resolvePromoteState(input: { cockpitNotAccepted: boolean; hasLoadError:
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+function lifecycleActionLabel(lifecycleState: 'PUBLISHED' | 'UNPUBLISHED' | 'DEPRECATED'): string {
+    if (lifecycleState === 'PUBLISHED') return 'Publish';
+    if (lifecycleState === 'UNPUBLISHED') return 'Unpublish';
+    return 'Deprecate';
+}
+
 export function ApiGeneralPage() {
     const { apiId } = useParams<{ apiId: string }>();
     const env = useEnvironment();
@@ -141,7 +148,11 @@ export function ApiGeneralPage() {
     const reviewClearsLifecycle = isReviewClearedForLifecycle(apiReviewEnabled, api?.workflowState);
     const showAskForReview = canEditDefinition && !isFederated && canAskForReview(apiReviewEnabled, api?.workflowState);
     const showStartStop = canEditDefinition && reviewClearsLifecycle && !isFederated;
-    const showApiEvents = showAskForReview || showStartStop || canDeleteDefinition;
+    const showApiEvents = showAskForReview || showStartStop || canDeleteDefinition || canEditDefinition;
+    const apiStarted = api?.state === 'STARTED';
+    const needsLicenseCheck = showStartStop && !apiStarted && api?.definitionVersion === 'V4' && api?.type !== 'PROXY';
+    const deployVerify = useApiDeployVerify(apiId, needsLicenseCheck);
+    const startBlockedByLicense = needsLicenseCheck && deployVerify.data?.ok === false;
     const askForReview = useAskForReviewDialog(apiId);
 
     const { data: envCategories = [], isLoading: categoriesLoading } = useEnvCategories();
@@ -158,6 +169,12 @@ export function ApiGeneralPage() {
     const [duplicateOpen, setDuplicateOpen] = useState(false);
     const [promoteOpen, setPromoteOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [lifecycleConfirm, setLifecycleConfirm] = useState<{
+        title: string;
+        description: string;
+        confirmLabel: string;
+        run: () => void;
+    } | null>(null);
 
     // Seed form once per API identity. Render-phase setState (not inside an effect) is
     // batched atomically by React 18 — the three calls below are a single update, so
@@ -183,6 +200,7 @@ export function ApiGeneralPage() {
 
     const {
         saveMutation,
+        lifecycleMutation,
         startMutation,
         stopMutation,
         deleteMutation,
@@ -314,22 +332,72 @@ export function ApiGeneralPage() {
 
     const duplicateEntryMode = getDuplicateEntryMode(api);
 
-    const apiStarted = api?.state === 'STARTED';
-
     const handleToggleApiState = useCallback(() => {
-        if (isReadOnly) return;
-        if (apiStarted) {
-            stopMutation.mutate(undefined, {
-                onSuccess: () => notify.success('API stopped'),
-                onError: e => notify.error(e, 'Failed to stop API.'),
+        if (isReadOnly || startBlockedByLicense) return;
+        setLifecycleConfirm(
+            apiStarted
+                ? {
+                      title: 'Stop API',
+                      description: 'Are you sure you want to stop the API?',
+                      confirmLabel: 'Stop',
+                      run: () =>
+                          stopMutation.mutate(undefined, {
+                              onSuccess: () => notify.success('API stopped'),
+                              onError: e => notify.error(e, 'Failed to stop API.'),
+                          }),
+                  }
+                : {
+                      title: 'Start API',
+                      description: 'Are you sure you want to start the API?',
+                      confirmLabel: 'Start',
+                      run: () =>
+                          startMutation.mutate(undefined, {
+                              onSuccess: () => notify.success('API started'),
+                              onError: e => notify.error(e, 'Failed to start API.'),
+                          }),
+                  },
+        );
+    }, [apiStarted, isReadOnly, startBlockedByLicense, startMutation, stopMutation]);
+
+    const confirmLifecycle = useCallback(
+        (lifecycleState: 'PUBLISHED' | 'UNPUBLISHED' | 'DEPRECATED') => {
+            const label = lifecycleActionLabel(lifecycleState);
+            setLifecycleConfirm({
+                title: `${label} API`,
+                description: `Are you sure you want to ${label.toLowerCase()} the API?`,
+                confirmLabel: label,
+                run: () =>
+                    lifecycleMutation.mutate(
+                        { lifecycleState },
+                        {
+                            onSuccess: () => notify.success(`The API has been ${lifecycleState.toLowerCase()} with success.`),
+                            onError: e => notify.error(e, `Failed to ${label.toLowerCase()} the API.`),
+                        },
+                    ),
             });
-        } else {
-            startMutation.mutate(undefined, {
-                onSuccess: () => notify.success('API started'),
-                onError: e => notify.error(e, 'Failed to start API.'),
+        },
+        [lifecycleMutation],
+    );
+
+    const confirmVisibility = useCallback(
+        (visibility: 'PUBLIC' | 'PRIVATE') => {
+            const label = visibility === 'PUBLIC' ? 'Make Public' : 'Make Private';
+            setLifecycleConfirm({
+                title: 'Change visibility',
+                description: `Are you sure you want to make the API ${visibility.toLowerCase()}?`,
+                confirmLabel: label,
+                run: () =>
+                    lifecycleMutation.mutate(
+                        { visibility },
+                        {
+                            onSuccess: () => notify.success(`The API has been made ${visibility.toLowerCase()} with success.`),
+                            onError: e => notify.error(e, 'Failed to change API visibility.'),
+                        },
+                    ),
             });
-        }
-    }, [apiStarted, isReadOnly, startMutation, stopMutation]);
+        },
+        [lifecycleMutation],
+    );
 
     const duplicateError = duplicateMutation.isError
         ? duplicateMutation.error instanceof Error
@@ -693,12 +761,12 @@ export function ApiGeneralPage() {
                                         type="button"
                                         className={cn(
                                             'flex items-center gap-3 rounded-lg border p-4 text-left transition-colors',
-                                            isReadOnly || startMutation.isPending || stopMutation.isPending
+                                            isReadOnly || startBlockedByLicense || startMutation.isPending || stopMutation.isPending
                                                 ? 'cursor-not-allowed opacity-50'
                                                 : 'cursor-pointer hover:bg-muted/50',
                                         )}
                                         onClick={handleToggleApiState}
-                                        disabled={isReadOnly || startMutation.isPending || stopMutation.isPending}
+                                        disabled={isReadOnly || startBlockedByLicense || startMutation.isPending || stopMutation.isPending}
                                     >
                                         <div className={cn('shrink-0 rounded-lg p-2', apiStarted ? 'bg-warning/10' : 'bg-success/10')}>
                                             {apiStarted ? (
@@ -720,11 +788,94 @@ export function ApiGeneralPage() {
                                             <p className="text-xs text-muted-foreground">
                                                 {apiStarted
                                                     ? 'Gateway stops accepting requests. Subscriptions are preserved.'
-                                                    : 'Start the API and make it available on all connected gateways.'}
+                                                    : startBlockedByLicense
+                                                      ? 'A license upgrade is required before this API can be started.'
+                                                      : 'Start the API and make it available on all connected gateways.'}
                                             </p>
                                         </div>
                                     </button>
                                 )}
+                                {canEditDefinition &&
+                                    reviewClearsLifecycle &&
+                                    api?.definitionVersion !== 'FEDERATED_AGENT' &&
+                                    (!api?.lifecycleState || api.lifecycleState === 'CREATED' || api.lifecycleState === 'UNPUBLISHED') && (
+                                        <button
+                                            type="button"
+                                            className="flex items-center gap-3 rounded-lg border p-4 text-left hover:bg-muted/50"
+                                            disabled={isReadOnly}
+                                            onClick={() => confirmLifecycle('PUBLISHED')}
+                                        >
+                                            <div>
+                                                <p className="text-sm font-medium">Publish the API</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Make this API visible in the Developer Portal.
+                                                </p>
+                                            </div>
+                                        </button>
+                                    )}
+                                {canEditDefinition && reviewClearsLifecycle && api?.lifecycleState === 'PUBLISHED' && (
+                                    <button
+                                        type="button"
+                                        className="flex items-center gap-3 rounded-lg border p-4 text-left hover:bg-muted/50"
+                                        disabled={isReadOnly}
+                                        onClick={() => confirmLifecycle('UNPUBLISHED')}
+                                    >
+                                        <div>
+                                            <p className="text-sm font-medium">Unpublish the API</p>
+                                            <p className="text-xs text-muted-foreground">Remove this API from the Developer Portal.</p>
+                                        </div>
+                                    </button>
+                                )}
+                                {canEditDefinition &&
+                                    api?.lifecycleState !== 'DEPRECATED' &&
+                                    api?.visibility === 'PRIVATE' &&
+                                    api?.definitionVersion !== 'FEDERATED_AGENT' && (
+                                        <button
+                                            type="button"
+                                            className="flex items-center gap-3 rounded-lg border p-4 text-left hover:bg-muted/50"
+                                            disabled={isReadOnly}
+                                            onClick={() => confirmVisibility('PUBLIC')}
+                                        >
+                                            <div>
+                                                <p className="text-sm font-medium">Make Public</p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    Anyone who can access the portal can see this API.
+                                                </p>
+                                            </div>
+                                        </button>
+                                    )}
+                                {canEditDefinition &&
+                                    api?.lifecycleState !== 'DEPRECATED' &&
+                                    api?.visibility === 'PUBLIC' &&
+                                    api?.definitionVersion !== 'FEDERATED_AGENT' && (
+                                        <button
+                                            type="button"
+                                            className="flex items-center gap-3 rounded-lg border p-4 text-left hover:bg-muted/50"
+                                            disabled={isReadOnly}
+                                            onClick={() => confirmVisibility('PRIVATE')}
+                                        >
+                                            <div>
+                                                <p className="text-sm font-medium">Make Private</p>
+                                                <p className="text-xs text-muted-foreground">Only members of this API can see it.</p>
+                                            </div>
+                                        </button>
+                                    )}
+                                {canDeleteDefinition &&
+                                    api?.lifecycleState !== 'DEPRECATED' &&
+                                    api?.definitionVersion !== 'FEDERATED' &&
+                                    api?.definitionVersion !== 'FEDERATED_AGENT' && (
+                                        <button
+                                            type="button"
+                                            className="flex items-center gap-3 rounded-lg border p-4 text-left hover:bg-muted/50"
+                                            disabled={isReadOnly}
+                                            onClick={() => confirmLifecycle('DEPRECATED')}
+                                        >
+                                            <div>
+                                                <p className="text-sm font-medium">Deprecate</p>
+                                                <p className="text-xs text-muted-foreground">Mark this API as deprecated.</p>
+                                            </div>
+                                        </button>
+                                    )}
                                 {canDeleteDefinition && (
                                     <button
                                         type="button"
@@ -756,6 +907,19 @@ export function ApiGeneralPage() {
 
             {/* ── Action sheets & dialogs ─────────────────────────────────── */}
             <ConfirmDialog {...askForReview.dialogProps} icon={<EyeIcon className="size-4" />} />
+            <ConfirmDialog
+                open={lifecycleConfirm !== null}
+                onOpenChange={open => {
+                    if (!open) setLifecycleConfirm(null);
+                }}
+                title={lifecycleConfirm?.title ?? ''}
+                description={lifecycleConfirm?.description}
+                confirmLabel={lifecycleConfirm?.confirmLabel ?? 'Confirm'}
+                onConfirm={() => {
+                    lifecycleConfirm?.run();
+                    setLifecycleConfirm(null);
+                }}
+            />
             <ExportApi
                 open={exportOpen}
                 onOpenChange={open => {

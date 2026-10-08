@@ -29,7 +29,8 @@ export function RollbackConfirmDialog({ version, isRollingBack, onConfirm, onCan
                 <DialogHeader>
                     <DialogTitle>Rollback to v{version}?</DialogTitle>
                     <DialogDescription>
-                        This will restore the API to version {version} and redeploy it to the gateway. This action cannot be undone.
+                        This will update the API to version {version}. The API stays out of sync until you deploy it. This action cannot be
+                        undone.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="gap-2 sm:justify-end">

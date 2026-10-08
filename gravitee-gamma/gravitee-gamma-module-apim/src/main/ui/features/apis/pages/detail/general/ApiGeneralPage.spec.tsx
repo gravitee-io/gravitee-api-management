@@ -150,6 +150,10 @@ jest.mock('../../../context/ApiDetailContext', () => ({
 }));
 
 jest.mock('../../../utils/queryKeys', () => ({
+    apiDeployVerifyKeys: {
+        all: ['api-deploy-verify'],
+        detail: (envId: string, apiId: string) => ['api-deploy-verify', envId, apiId],
+    },
     apiDetailKeys: {
         all: ['api-detail'],
         detail: (envId: string, apiId: string) => ['api-detail', envId, apiId],
@@ -508,7 +512,8 @@ describe('ApiGeneralPage', () => {
 
     it('calls startApi when Start button is clicked', async () => {
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /start/i }));
+        fireEvent.click(screen.getByRole('button', { name: /start api/i }));
+        fireEvent.click(screen.getByRole('button', { name: 'Start' }));
         await waitFor(() => expect(apiServices.startApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
     });
 
@@ -519,14 +524,16 @@ describe('ApiGeneralPage', () => {
             permissionsReady: true,
         });
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /stop/i }));
+        fireEvent.click(screen.getByRole('button', { name: /stop api/i }));
+        fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
         await waitFor(() => expect(apiServices.stopApi).toHaveBeenCalledWith('DEFAULT', 'api-1'));
     });
 
     it('shows an error toast when the start request is refused', async () => {
         jest.spyOn(apiServices, 'startApi').mockRejectedValue(new Error('Start refused'));
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /start/i }));
+        fireEvent.click(screen.getByRole('button', { name: /start api/i }));
+        fireEvent.click(screen.getByRole('button', { name: 'Start' }));
         await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Start refused', expect.anything()));
     });
 
@@ -538,8 +545,45 @@ describe('ApiGeneralPage', () => {
         });
         jest.spyOn(apiServices, 'stopApi').mockRejectedValue(new Error('Stop refused'));
         renderPage();
-        fireEvent.click(screen.getByRole('button', { name: /stop/i }));
+        fireEvent.click(screen.getByRole('button', { name: /stop api/i }));
+        fireEvent.click(screen.getByRole('button', { name: 'Stop' }));
         await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Stop refused', expect.anything()));
+    });
+
+    it('publishes from a fresh API load, not the object already on screen', async () => {
+        const fresh = { ...STUB_API, name: 'Fresh from server' };
+        jest.spyOn(apiServices, 'getApiV4').mockResolvedValue(fresh);
+        jest.spyOn(apiServices, 'updateApiGeneral').mockResolvedValue(fresh);
+        renderPage();
+        fireEvent.click(screen.getByRole('button', { name: /publish the api/i }));
+        fireEvent.click(screen.getByRole('button', { name: 'Publish' }));
+        await waitFor(() => expect(apiServices.updateApiGeneral).toHaveBeenCalled());
+        expect(apiServices.updateApiGeneral).toHaveBeenCalledWith('DEFAULT', 'api-1', fresh, { lifecycleState: 'PUBLISHED' });
+    });
+
+    it('disables Start when the licence check returns ok false', async () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, definitionVersion: 'V4', type: 'MESSAGE', state: 'STOPPED' },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        jest.spyOn(apiServices, 'verifyApiDeploy').mockResolvedValue({ ok: false });
+        renderPage();
+        const start = await screen.findByRole('button', { name: /start api/i });
+        await waitFor(() => expect(start).toBeDisabled());
+    });
+
+    it('leaves Start enabled when the licence check fails', async () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: { ...STUB_API, definitionVersion: 'V4', type: 'MESSAGE', state: 'STOPPED' },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        jest.spyOn(apiServices, 'verifyApiDeploy').mockRejectedValue(new Error('unavailable'));
+        renderPage();
+        const start = await screen.findByRole('button', { name: /start api/i });
+        await waitFor(() => expect(apiServices.verifyApiDeploy).toHaveBeenCalled());
+        expect(start).toBeEnabled();
     });
 
     // 'STARTED' is not a shape a federated API can really carry; it is here to prove the control is
@@ -577,8 +621,9 @@ describe('ApiGeneralPage', () => {
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-d'));
         renderPage('federated-api-1');
 
-        expect(screen.queryByText('API Events')).toBeNull();
-        expect(screen.queryByText(/alter the runtime state of your API/i)).toBeNull();
+        expect(screen.getByText('API Events')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /publish the api/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /make public/i })).toBeInTheDocument();
     });
 
     it('keeps the API Events card and its Start control for a natively-managed API when the user holds update but not delete permission', () => {
@@ -1018,7 +1063,7 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
         const dialog = screen.getByRole('dialog');
 
-        const definition = { api: { name: 'My Test API' } };
+        const definition = { api: { name: 'My Test API', definitionVersion: 'V4' } };
         const file = new File([JSON.stringify(definition)], 'api.json', { type: 'application/json' });
         Object.defineProperty(file, 'text', { value: () => Promise.resolve(JSON.stringify(definition)) });
         const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
@@ -1040,7 +1085,7 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
         const dialog = screen.getByRole('dialog');
 
-        const definition = { api: { name: 'Imported Name' } };
+        const definition = { api: { name: 'Imported Name', definitionVersion: 'V4' } };
         const file = new File([JSON.stringify(definition)], 'api.json', { type: 'application/json' });
         Object.defineProperty(file, 'text', { value: () => Promise.resolve(JSON.stringify(definition)) });
         const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
@@ -1065,7 +1110,7 @@ describe('ApiGeneralPage', () => {
         fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
         const dialog = screen.getByRole('dialog');
 
-        const definition = { api: { name: 'My Test API' } };
+        const definition = { api: { name: 'My Test API', definitionVersion: 'V4' } };
         const file = new File([JSON.stringify(definition)], 'api.json', { type: 'application/json' });
         Object.defineProperty(file, 'text', { value: () => Promise.resolve(JSON.stringify(definition)) });
         const fileInput = dialog.querySelector('input[type="file"]') as HTMLInputElement;
@@ -1481,6 +1526,8 @@ describe('ApiGeneralPage', () => {
             'div[Upload Picture]',
             'div[Upload Background]',
             'button:Delete this API',
+            'button:Publish the API',
+            'button:Make Public',
             'input[Filter categories…]',
             'input[type=file]',
             'input[type=file]',
@@ -1631,11 +1678,30 @@ describe('ApiGeneralPage — API review', () => {
         expect(screen.queryByRole('button', { name: /ask for a review/i })).not.toBeInTheDocument();
     });
 
-    it('hides the API Events card while the review is in progress when the user can edit but not delete', () => {
+    it('hides Publish while the review is in progress', () => {
+        mockUseApiReviewEnabled.mockReturnValue({ enabled: true, isFetched: true });
         mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-d'));
         withApi({ workflowState: 'IN_REVIEW' });
         renderPage();
-        expect(screen.queryByText('API Events')).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /publish the api/i })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /start api/i })).not.toBeInTheDocument();
+    });
+
+    it('shows Publish once the review is accepted', () => {
+        mockUseApiReviewEnabled.mockReturnValue({ enabled: true, isFetched: true });
+        withApi({ workflowState: 'REVIEW_OK', lifecycleState: 'CREATED' });
+        renderPage();
+        expect(screen.getByRole('button', { name: /publish the api/i })).toBeInTheDocument();
+    });
+
+    it('hides Deprecate without api-definition-d and shows it with that permission', () => {
+        mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-definition-d'));
+        renderPage();
+        expect(screen.queryByRole('button', { name: /deprecate/i })).not.toBeInTheDocument();
+
+        mockUseHasPermission.mockImplementation(() => true);
+        renderPage();
+        expect(screen.getByRole('button', { name: /deprecate/i })).toBeInTheDocument();
     });
 
     it('lets the author ask again after changes were requested', () => {
