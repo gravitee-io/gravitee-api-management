@@ -37,15 +37,16 @@ import {
 } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
+import { API_LIST_PAGE_SIZE_OPTIONS } from './apiListFilters';
 import { ShardingTagsCell } from '../../../../shared/components/ShardingTagsCell';
+import { useEnvCategories } from '../../hooks/useEnvCategories';
 import type { ApiDeploymentState, ApiListItem, ApiListOriginContext, ApiState } from '../../types';
 import { buildApiAnalyticsPath } from '../../utils/analyticsDeepLink';
-import { getApiAccessPath } from '../../utils/apiAccess';
+import { getApiAccessPaths } from '../../utils/apiAccess';
 import { getApiProxyTypeLabel } from '../../utils/apiHttpProxy';
 import { isFederatedApiListItem } from '../../utils/federatedApi';
 import { federatedProviderLabel } from '../../utils/federatedProviderLabels';
 import { ApiAvatar } from '../ApiAvatar';
-import { API_LIST_PAGE_SIZE_OPTIONS } from './apiListFilters';
 
 type ColCell<T> = { row: { original: T }; getValue: () => unknown };
 type ColHeader<T> = { column: DataTableColumnHeaderProps<T, unknown>['column'] };
@@ -175,7 +176,10 @@ function ApiActionsMenu({ api, onNavigate }: { api: ApiListItem; onNavigate: (pa
 
 // ─── Column definitions ───────────────────────────────────────────────────────
 
-function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<ApiListItem>['columns'] {
+function buildColumns(
+    navigate: ReturnType<typeof useNavigate>,
+    categoryNames: ReadonlyMap<string, string>,
+): DataTableProps<ApiListItem>['columns'] {
     return [
         {
             id: 'API Name',
@@ -236,24 +240,23 @@ function buildColumns(navigate: ReturnType<typeof useNavigate>): DataTableProps<
         },
         {
             id: 'access',
-            accessorFn: (row: ApiListItem) => getApiAccessPath(row),
+            accessorFn: (row: ApiListItem) => getApiAccessPaths(row)[0] ?? null,
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Access" />,
-            cell: ({ row }: ColCell<ApiListItem>) => {
-                const path = getApiAccessPath(row.original);
-                return path ? (
-                    <Badge variant="outline" className="font-mono text-xs">
-                        {path}
-                    </Badge>
-                ) : (
-                    <span className="text-muted-foreground text-xs">—</span>
-                );
-            },
+            cell: ({ row }: ColCell<ApiListItem>) => <ShardingTagsCell tags={getApiAccessPaths(row.original)} sort={false} firstAsCode />,
         },
         {
             id: 'Sharding Tags',
             accessorFn: (row: ApiListItem) => row.tags ?? [],
             header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Sharding Tags" />,
             cell: ({ row }: ColCell<ApiListItem>) => <ShardingTagsCell tags={row.original.tags} />,
+        },
+        {
+            id: 'Categories',
+            accessorFn: (row: ApiListItem) => row.categories ?? [],
+            header: ({ column }: ColHeader<ApiListItem>) => <DataTableColumnHeader column={column} title="Categories" />,
+            cell: ({ row }: ColCell<ApiListItem>) => (
+                <ShardingTagsCell tags={(row.original.categories ?? []).map(key => categoryNames.get(key) ?? key)} />
+            ),
         },
         {
             id: 'Owner',
@@ -334,7 +337,9 @@ export function ApiListTable({
     forbidden = false,
 }: ApiListTableProps) {
     const navigate = useNavigate();
-    const columns = buildColumns(navigate);
+    const { data: envCategories } = useEnvCategories();
+    const categoryNames = new Map((envCategories ?? []).map(category => [category.key, category.name]));
+    const columns = buildColumns(navigate, categoryNames);
 
     return (
         <DataTable

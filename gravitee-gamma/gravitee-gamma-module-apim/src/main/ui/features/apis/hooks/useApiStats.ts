@@ -17,6 +17,7 @@ import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
+import { retryUnlessClientError } from './retryUnlessClientError';
 import { ApimApiError } from '../../../shared/api/apimClient';
 import { useFederationEnabled } from '../../license/useFederationEnabled';
 import { searchApis } from '../services/apiList';
@@ -36,10 +37,10 @@ export interface ApiStats {
     isError: boolean;
 }
 
-function useWarnOnCountFailure(card: ApiStatKey, error: Error | null): void {
+function useWarnOnCountFailure(card: ApiStatKey, error: unknown): void {
     useEffect(() => {
         if (!error) return;
-        const failure = error instanceof ApimApiError ? `HTTP ${error.status}` : error.name;
+        const failure = error instanceof ApimApiError ? `HTTP ${error.status}` : error instanceof Error ? error.name : 'unknown';
         console.warn(`[ApiStats] ${card} count query failed (${failure}), count unavailable:`, error);
     }, [card, error]);
 }
@@ -55,6 +56,8 @@ export function useApiStats(query?: string): ApiStats {
         queryKey: apiListKeys.count(envId, { query }, includeFederated),
         queryFn: () => searchApis(envId, { query }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
         enabled: isEnabled,
+        retry: retryUnlessClientError,
+        retryDelay: 0,
         staleTime: 60_000,
     });
 
@@ -62,6 +65,8 @@ export function useApiStats(query?: string): ApiStats {
         queryKey: apiListKeys.count(envId, { query, visibilities: ['PRIVATE'] }, includeFederated),
         queryFn: () => searchApis(envId, { query, visibilities: ['PRIVATE'] }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
         enabled: isEnabled,
+        retry: retryUnlessClientError,
+        retryDelay: 0,
         staleTime: 60_000,
     });
 
@@ -69,6 +74,8 @@ export function useApiStats(query?: string): ApiStats {
         queryKey: apiListKeys.count(envId, { query, published: ['PUBLISHED'] }, includeFederated),
         queryFn: () => searchApis(envId, { query, published: ['PUBLISHED'] }, STATS_PAGE, STATS_PER_PAGE, undefined, includeFederated),
         enabled: isEnabled,
+        retry: retryUnlessClientError,
+        retryDelay: 0,
         staleTime: 60_000,
     });
 

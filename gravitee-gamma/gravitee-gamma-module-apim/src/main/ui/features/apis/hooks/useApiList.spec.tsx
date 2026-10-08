@@ -19,6 +19,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
 import { useApiList } from './useApiList';
+import { ApimApiError } from '../../../shared/api/apimClient';
 import { searchApis } from '../services/apiList';
 import { apiListKeys } from '../utils/queryKeys';
 
@@ -228,5 +229,25 @@ describe('useApiList', () => {
             undefined,
             false,
         );
+    });
+
+    it('does not retry a 403 from the list', async () => {
+        mockSearchApis.mockRejectedValue(new ApimApiError(403, 'forbidden'));
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 3 } } });
+        const { result } = renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_OFF }), {
+            wrapper: createWrapper(queryClient),
+        });
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(mockSearchApis).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries a 500 from the list', async () => {
+        mockSearchApis.mockRejectedValue(new ApimApiError(500, 'unavailable'));
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 3 } } });
+        const { result } = renderHook(() => useApiList({ query: '', page: 1, perPage: 25, ...FEDERATION_OFF }), {
+            wrapper: createWrapper(queryClient),
+        });
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(mockSearchApis).toHaveBeenCalledTimes(3);
     });
 });

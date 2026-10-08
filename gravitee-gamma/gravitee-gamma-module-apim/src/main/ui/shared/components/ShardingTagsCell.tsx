@@ -18,6 +18,8 @@ import { Badge, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from 
 interface ShardingTagsCellProps {
     /** Tag keys stored on the API / API Product `tags` set. */
     tags?: string[];
+    sort?: boolean;
+    firstAsCode?: boolean;
 }
 
 /**
@@ -26,15 +28,21 @@ interface ShardingTagsCellProps {
  * exactly as the classic API / API Product lists do. The tooltip uses `delayDuration={0}` so it
  * appears instantly on hover, matching classic's Material tooltip.
  */
-export function ShardingTagsCell({ tags }: Readonly<ShardingTagsCellProps>) {
+export function ShardingTagsCell({ tags, sort = true, firstAsCode = false }: Readonly<ShardingTagsCellProps>) {
     if (!tags || tags.length === 0) {
         return <span className="text-muted-foreground text-xs">—</span>;
     }
-    const sorted = [...tags].sort((a, b) => a.localeCompare(b));
-    const moreCount = sorted.length - 1;
+    const values = sort ? [...tags].sort((a, b) => a.localeCompare(b)) : [...tags];
+    const moreCount = values.length - 1;
     return (
         <div className="flex items-center gap-1">
-            <span className="text-sm">{sorted[0]}</span>
+            {firstAsCode ? (
+                <Badge variant="outline" className="font-mono text-xs">
+                    {values[0]}
+                </Badge>
+            ) : (
+                <span className="text-sm">{values[0]}</span>
+            )}
             {moreCount > 0 ? (
                 <TooltipProvider delayDuration={0}>
                     <Tooltip>
@@ -43,7 +51,7 @@ export function ShardingTagsCell({ tags }: Readonly<ShardingTagsCellProps>) {
                                 {moreCount} more
                             </Badge>
                         </TooltipTrigger>
-                        <TooltipContent>{sorted.join(', ')}</TooltipContent>
+                        <TooltipContent>{values.join(', ')}</TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
             ) : null}
