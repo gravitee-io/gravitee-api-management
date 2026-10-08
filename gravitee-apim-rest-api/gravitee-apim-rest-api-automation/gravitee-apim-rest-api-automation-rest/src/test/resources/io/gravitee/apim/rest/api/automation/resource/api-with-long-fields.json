@@ -1,0 +1,106 @@
+{
+    "name": "api-v4-with-apikey",
+    "hrid": "api-hrid",
+    "description": "API v4 CRD spec with values longer than 64 characters",
+    "version": "version-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "type": "PROXY",
+    "categories": [],
+    "listeners": [
+        {
+            "type": "HTTP",
+            "paths": [
+                {
+                    "path": "/test-hrid"
+                }
+            ],
+            "entrypoints": [
+                {
+                    "type": "http-proxy",
+                    "qos": "AUTO"
+                }
+            ]
+        }
+    ],
+    "endpointGroups": [
+        {
+            "name": "Default HTTP proxy group",
+            "type": "http-proxy",
+            "endpoints": [
+                {
+                    "name": "Default HTTP proxy",
+                    "type": "http-proxy",
+                    "inheritConfiguration": false,
+                    "configuration": {
+                        "target": "https://api.gravitee.io/echo"
+                    },
+                    "secondary": false
+                }
+            ]
+        }
+    ],
+    "flowExecution": {
+        "mode": "DEFAULT",
+        "matchRequired": false
+    },
+    "state": "STARTED",
+    "lifecycleState": "PUBLISHED",
+    "visibility": "PUBLIC",
+    "flows": [],
+    "pages": [
+        {
+            "hrid": "default-page",
+            "name": "page-name-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "type": "MARKDOWN",
+            "content": "Default page content",
+            "source": {
+                "type": "source-type-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                "configuration": {}
+            }
+        }
+    ],
+    "plans": [
+        {
+            "name": "plan-name-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "hrid": "KEY_LESS",
+            "description": "No authentication",
+            "type": "API",
+            "status": "PUBLISHED",
+            "validation": "AUTO",
+            "mode": "STANDARD",
+            "security": {
+                "type": "KEY_LESS"
+            },
+            "flows": [
+                {
+                    "enabled": true,
+                    "selectors": [
+                        {
+                            "type": "HTTP",
+                            "path": "/",
+                            "pathOperator": "STARTS_WITH"
+                        }
+                    ],
+                    "request": [
+                        {
+                            "name": "step-name-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                            "policy": "policy-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+                            "enabled": true
+                        }
+                    ]
+                }
+            ],
+            "characteristics": [
+                "characteristic-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            ],
+            "tags": [
+                "tag-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+            ]
+        }
+    ],
+    "tags": [
+        "tag-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    ],
+    "labels": [
+        "repro-18469-this-label-is-deliberately-longer-than-sixty-four-characters-0123456789"
+    ]
+}

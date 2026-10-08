@@ -116,6 +116,25 @@ class ApisResourceTest extends AbstractResourceTest {
             });
         }
 
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_accept_values_longer_than_64_characters(boolean dryRun) {
+            when(validateApiCRDDomainService.validateAndSanitize(any(ValidateApiCRDDomainService.Input.class))).thenAnswer(call ->
+                Validator.Result.ofValue(call.getArgument(0))
+            );
+
+            var state = expectEntity("api-with-long-fields.json", dryRun, false);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(state.getLabels())
+                    .containsExactly("repro-18469-this-label-is-deliberately-longer-than-sixty-four-characters-0123456789");
+                soft.assertThat(state.getVersion()).hasSize(65);
+                soft.assertThat(state.getPlans().getFirst().getName()).hasSize(65);
+                soft.assertThat(state.getPages().getFirst().getName()).hasSize(65);
+            });
+        }
+
         @Test
         void should_return_state_from_guid() {
             when(importApiCRDUseCase.execute(any(ImportApiCRDUseCase.Input.class))).thenAnswer(call ->
