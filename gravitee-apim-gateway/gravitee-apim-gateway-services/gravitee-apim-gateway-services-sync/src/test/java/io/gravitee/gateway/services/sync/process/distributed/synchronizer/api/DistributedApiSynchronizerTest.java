@@ -276,6 +276,34 @@ class DistributedApiSynchronizerTest {
 
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertError(TechnicalException.class);
         }
+
+        @Test
+        void should_not_reapply_an_event_already_applied_at_the_same_or_newer_timestamp() throws InterruptedException {
+            long now = Instant.now().toEpochMilli();
+            event.setUpdatedAt(new Date(now));
+
+            cut.synchronize(now, now).test().await().assertComplete();
+            verify(apiDeployer, times(1)).deploy(any());
+
+            // The same event re-fetched by the overlapping window is skipped.
+            cut.synchronize(now, now).test().await().assertComplete();
+            verify(apiDeployer, times(1)).deploy(any());
+
+            // A newer version of the same event is applied again.
+            event.setUpdatedAt(new Date(now + 1));
+            cut.synchronize(now, now).test().await().assertComplete();
+            verify(apiDeployer, times(2)).deploy(any());
+        }
+
+        @Test
+        void should_keep_applying_every_event_on_a_full_synchronization() throws InterruptedException {
+            long now = Instant.now().toEpochMilli();
+            event.setUpdatedAt(new Date(now));
+            cut.synchronize(now, now).test().await().assertComplete();
+
+            cut.synchronize(-1L, now).test().await().assertComplete();
+            verify(apiDeployer, times(2)).deploy(any());
+        }
     }
 
     @Nested

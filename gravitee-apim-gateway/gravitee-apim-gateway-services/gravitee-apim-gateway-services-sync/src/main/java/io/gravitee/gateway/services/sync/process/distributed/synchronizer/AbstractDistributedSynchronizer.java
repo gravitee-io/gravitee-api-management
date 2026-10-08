@@ -63,13 +63,22 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
     private final ThreadPoolExecutor syncDeployerExecutor;
     private final AtomicInteger consecutiveHeldAttempts = new AtomicInteger();
     private final AtomicBoolean holdRequested = new AtomicBoolean();
-    /** Schema version this node can decode; events with a higher version fail the cycle instead of being misread. */
+/** Schema version this node can decode; events with a higher version fail the cycle instead of being misread. */
     private final int supportedSchemaVersion =
         io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService.EVENT_SCHEMA_VERSION;
+    /** id -> last applied updatedAt, committed only when a cycle succeeds. An event whose timestamp is not newer
+     * than the committed watermark has already been applied on an overlapping window and is skipped. */
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> appliedWatermark = new java.util.concurrent.ConcurrentHashMap<>();
+    private final java.util.concurrent.ConcurrentHashMap<String, Long> pendingWatermark = new java.util.concurrent.ConcurrentHashMap<>();
 
     @Override
     public Completable synchronize(final Long from, final Long to) {
         boolean initialSync = from == null || from == -1;
+        if (initialSync) {
+            // A full synchronization re-applies the authoritative set idempotently; the watermark must not suppress it.
+            appliedWatermark.clear();
+        }
+        pendingWatermark.clear();
         AtomicLong launchTime = new AtomicLong();
         AtomicReference<Throwable> transientItemFailure = new AtomicReference<>();
         return distributedEventFetcher
@@ -89,8 +98,15 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
                         )
                     );
                 }
-                return mapTo(event);
+                return Maybe.just(event);
             })
+            .doOnNext(event -> {
+                if (event.getUpdatedAt() != null) {
+                    pendingWatermark.merge(event.getId(), event.getUpdatedAt().getTime(), Math::max);
+                }
+            })
+            .filter(distributedEvent -> shouldApply(distributedEvent, initialSync))
+            .flatMapMaybe(this::mapTo)
             // per deployable
             .compose(upstream -> {
                 Y deployer = createDeployer();
@@ -128,7 +144,25 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
                 }
             })
             .ignoreElement()
-            .doOnComplete(() -> requestHoldIfNeeded(transientItemFailure.get()));
+            .doOnComplete(() -> {
+                if (transientItemFailure.get() == null) {
+                    appliedWatermark.putAll(pendingWatermark);
+                }
+                requestHoldIfNeeded(transientItemFailure.get());
+            });
+    }
+
+    /**
+     * An event is skipped when it is not newer than the watermark already committed for its id: it was applied by
+     * an earlier overlapping window. A missing timestamp is always applied; a full synchronization applies every
+     * event regardless.
+     */
+    private boolean shouldApply(final DistributedEvent event, final boolean initialSync) {
+        if (initialSync || event.getUpdatedAt() == null) {
+            return true;
+        }
+        Long applied = appliedWatermark.get(event.getId());
+        return applied == null || applied < event.getUpdatedAt().getTime();
     }
 
     @Override

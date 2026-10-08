@@ -31,6 +31,7 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Flowable;
+import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -62,7 +63,7 @@ class DistributedEventFetcherTest {
     @BeforeEach
     public void beforeEach() {
         lenient().when(clusterManager.clusterId()).thenReturn(CLUSTER_ID);
-        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 1);
+        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 1, Map.of());
     }
 
     @Test
@@ -99,14 +100,14 @@ class DistributedEventFetcherTest {
 
     @Test
     void should_fetch_with_bulk_items_when_above_the_minimum_batch_size() {
-        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 50_000);
+        cut = new DistributedEventFetcher(distributedEventRepository, clusterManager, 50_000, Map.of());
         when(distributedEventRepository.searchAll(any(), eq(50_000L))).thenReturn(Flowable.empty());
         cut.fetchLatest(null, null, DistributedEventType.API, Set.of()).test().assertComplete();
     }
 
     @Test
     void should_reject_non_positive_bulk_items() {
-        assertThatThrownBy(() -> new DistributedEventFetcher(distributedEventRepository, clusterManager, 0)).isInstanceOf(
+        assertThatThrownBy(() -> new DistributedEventFetcher(distributedEventRepository, clusterManager, 0, Map.of())).isInstanceOf(
             IllegalArgumentException.class
         );
     }
