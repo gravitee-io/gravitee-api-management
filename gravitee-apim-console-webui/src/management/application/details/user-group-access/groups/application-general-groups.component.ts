@@ -111,8 +111,10 @@ export class ApplicationGeneralGroupsComponent implements OnInit, OnDestroy {
 
     const selectedGroupIds = this.application.groups ?? [];
     return combineLatest([
-      this.groupv2Service.list(1, this.pageSize),
-      selectedGroupIds.length > 0 ? this.groupv2Service.listById(selectedGroupIds, 1, selectedGroupIds.length) : of([]),
+      this.groupv2Service.list(1, this.pageSize).pipe(catchError(() => of({ data: [], pagination: null }))),
+      selectedGroupIds.length > 0
+        ? this.groupv2Service.listById(selectedGroupIds, 1, selectedGroupIds.length).pipe(catchError(() => of({ data: [] })))
+        : of([]),
     ]).pipe(
       map(([page1Res, selectedRes]: any) => {
         const page1Groups: Group[] = page1Res?.data ?? [];
