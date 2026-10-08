@@ -19,6 +19,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { ApiListFilterSelection } from '../components/list/apiListFilters';
 import { definedSearchList, resolveSearchApiTypes, searchApis } from '../services/apiList';
 import type { ApiListResponse, ApiSearchQuery } from '../types';
+import { retryUnlessClientError } from './retryUnlessClientError';
 import { apiListKeys } from '../utils/queryKeys';
 
 const EMPTY_LIST_RESPONSE: ApiListResponse = {
@@ -84,6 +85,9 @@ export function useApiList({
                 : searchApis(env!.id, searchQuery, page, perPage, effectiveSortBy, includeFederated),
         // Waiting for the gate keeps the list from showing federation-free rows it would replace milliseconds later.
         enabled: Boolean(env) && isFederationResolved,
+        // Same rule as the stat cards: a 4xx is not retried, a 5xx or network error is.
+        retry: retryUnlessClientError,
+        retryDelay: 0,
         placeholderData: keepPreviousData,
         // The spread below reads every field of react-query's tracked-properties proxy, which would
         // subscribe callers to all of them — including the ones every background refetch touches.

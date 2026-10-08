@@ -159,6 +159,16 @@ describe('useApiStats', () => {
         expect(result.current.isLoading).toBe(true);
     });
 
+    it('does not retry a 403 from the stat cards', async () => {
+        mockSearchApis.mockRejectedValue(new ApimApiError(403, 'forbidden'));
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 3 } } });
+        const { result } = renderHook(() => useApiStats(), {
+            wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>,
+        });
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        expect(mockSearchApis).toHaveBeenCalledTimes(3);
+    });
+
     it('does not flag a count still in flight as failed when a sibling count fails', async () => {
         jest.spyOn(console, 'warn').mockImplementation(() => {});
         mockSearchApis.mockImplementation((_envId, filters) =>

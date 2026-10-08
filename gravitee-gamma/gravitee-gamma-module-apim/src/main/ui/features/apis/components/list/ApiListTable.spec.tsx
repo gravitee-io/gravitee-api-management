@@ -25,6 +25,10 @@ jest.mock('react-router-dom', () => ({
     useNavigate: jest.fn(),
 }));
 
+jest.mock('../../hooks/useEnvCategories', () => ({
+    useEnvCategories: () => ({ data: [{ key: 'payments', name: 'Payments' }] }),
+}));
+
 jest.mock('@gravitee/gamma-lib-observability', () => ({
     DEFAULT_TIME_RANGE: { type: 'relative', period: '5m' },
     encodeObservabilityState: () => ({ q: 'ENCODED_Q', v: '1' }),
@@ -556,6 +560,7 @@ describe('ApiListTable', () => {
                 'Sync Status',
                 'Access',
                 'Sharding Tags',
+                'Categories',
                 'Owner',
                 'Actions',
             ]);
@@ -653,6 +658,22 @@ describe('ApiListTable', () => {
             const accessCell = cellUnderHeader(dataRow, 'Access');
             expect(accessCell.textContent).toBe('/my-api');
             expect(accessCell.querySelector('.font-mono')).not.toBeNull();
+        });
+
+        it('shows the first path and an N more badge when the API has several access paths', () => {
+            renderTable({
+                apis: [
+                    makeApi({
+                        listeners: [
+                            { type: 'HTTP', paths: [{ path: '/one' }, { path: '/two' }, { host: 'api.example.com', path: '/three' }] },
+                        ],
+                    }),
+                ],
+            });
+            const [, dataRow] = screen.getAllByRole('row');
+            const accessCell = cellUnderHeader(dataRow, 'Access');
+            expect(accessCell.textContent).toContain('/one');
+            expect(accessCell.textContent).toContain('2 more');
         });
 
         it.each<[string, Partial<ApiListItem>]>([
