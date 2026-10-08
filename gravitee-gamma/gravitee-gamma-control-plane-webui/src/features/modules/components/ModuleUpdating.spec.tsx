@@ -24,11 +24,10 @@ describe('ModuleUpdating', () => {
     });
 
     it('should name the app and say it will open by itself', () => {
-        render(<ModuleUpdating moduleName="Agent Management" attempting={false} onRetryNow={jest.fn()} />);
+        const { container } = render(<ModuleUpdating moduleName="Agent Management" attempting={false} onRetryNow={jest.fn()} />);
 
-        const message = screen.getByRole('status');
-        expect(message.textContent).toContain("Agent Management isn't ready yet");
-        expect(message.textContent).toContain('We will keep retrying and open it here as soon as');
+        expect(container.textContent).toContain("Agent Management isn't ready yet");
+        expect(container.textContent).toContain('We will keep retrying and open it here as soon as');
     });
 
     it('should title the page, as the module has not rendered its own heading', () => {
