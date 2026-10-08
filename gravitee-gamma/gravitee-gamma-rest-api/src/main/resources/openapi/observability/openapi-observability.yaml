@@ -67,7 +67,8 @@ tags:
           them, unless the query names one.
 
           A filter condition the queried metric does not carry, such as a Kafka filter on an HTTP
-          metric, is not applied to that metric: its result is not narrowed by that condition.
+          metric, is not applied to that metric: its result is not narrowed by that condition. Each
+          metric of the response names such conditions in `ignoredFilters`.
 
           All three endpoints return opaque JSON produced by the APIM analytics engine — the
           response schemas below document the stable structure but additional fields may appear.
@@ -2679,6 +2680,14 @@ components:
                     items:
                         type: string
                     example: ["COUNT"]
+                filters:
+                    type: array
+                    nullable: true
+                    description: |
+                        Conditions on this metric alone. Validated like the top-level `filters`, but
+                        not applied yet: each one is listed in the metric's `ignoredFilters`.
+                    items:
+                        $ref: "#/components/schemas/FilterCondition"
 
         SortSpec:
             type: object
@@ -2717,6 +2726,14 @@ components:
                     description: Sort directives for bucket ordering. Only applies to facets.
                     items:
                         $ref: "#/components/schemas/SortSpec"
+                filters:
+                    type: array
+                    nullable: true
+                    description: |
+                        Conditions on this metric alone. Validated like the top-level `filters`, but
+                        not applied yet: each one is listed in the metric's `ignoredFilters`.
+                    items:
+                        $ref: "#/components/schemas/FilterCondition"
 
         NumberRange:
             type: object
@@ -2856,6 +2873,19 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/MeasureValue"
+                ignoredFilters:
+                    type: array
+                    description: |
+                        Conditions of the request this metric was not filtered by, by filter name.
+                        The engine skips a condition the metric's search cannot carry (a Kafka client
+                        filter on an HTTP metric) instead of failing, so the values are not filtered on
+                        these fields. Also lists a `RECORD_TYPE` that does not select the metric's
+                        records, and every metric-level condition. `API` and `API_TYPE` scope every
+                        query and are never listed, nor is a condition that empties the result.
+                        Absent when every condition applied.
+                    items:
+                        type: string
+                    example: ["NATIVE_CLIENT_ID"]
 
         MeasuresResponse:
             type: object
@@ -2918,6 +2948,19 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/FacetBucket"
+                ignoredFilters:
+                    type: array
+                    description: |
+                        Conditions of the request this metric was not filtered by, by filter name.
+                        The engine skips a condition the metric's search cannot carry (a Kafka client
+                        filter on an HTTP metric) instead of failing, so the values are not filtered on
+                        these fields. Also lists a `RECORD_TYPE` that does not select the metric's
+                        records, and every metric-level condition. `API` and `API_TYPE` scope every
+                        query and are never listed, nor is a condition that empties the result.
+                        Absent when every condition applied.
+                    items:
+                        type: string
+                    example: ["NATIVE_CLIENT_ID"]
 
         FacetsResponse:
             type: object
@@ -2977,6 +3020,19 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/TimeSeriesBucket"
+                ignoredFilters:
+                    type: array
+                    description: |
+                        Conditions of the request this metric was not filtered by, by filter name.
+                        The engine skips a condition the metric's search cannot carry (a Kafka client
+                        filter on an HTTP metric) instead of failing, so the values are not filtered on
+                        these fields. Also lists a `RECORD_TYPE` that does not select the metric's
+                        records, and every metric-level condition. `API` and `API_TYPE` scope every
+                        query and are never listed, nor is a condition that empties the result.
+                        Absent when every condition applied.
+                    items:
+                        type: string
+                    example: ["NATIVE_CLIENT_ID"]
 
         TimeSeriesResponse:
             type: object

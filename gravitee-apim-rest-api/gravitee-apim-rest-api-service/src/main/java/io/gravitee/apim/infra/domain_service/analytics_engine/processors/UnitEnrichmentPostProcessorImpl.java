@@ -38,7 +38,8 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
                 new MetricMeasuresResponse(
                     metric.name(),
                     definitionQueryService.findMetric(metric.name()).map(MetricSpec::unit).orElse(null),
-                    metric.measures()
+                    metric.measures(),
+                    metric.ignoredFilters()
                 )
             )
             .toList();
@@ -54,7 +55,8 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
                 new MetricFacetsResponse(
                     metric.metric(),
                     definitionQueryService.findMetric(metric.metric()).map(MetricSpec::unit).orElse(null),
-                    metric.buckets()
+                    metric.buckets(),
+                    metric.ignoredFilters()
                 )
             )
             .toList();
@@ -70,7 +72,8 @@ public class UnitEnrichmentPostProcessorImpl implements UnitEnrichmentPostProces
                 new TimeSeriesMetricResponse(
                     metric.name(),
                     definitionQueryService.findMetric(metric.name()).map(MetricSpec::unit).orElse(null),
-                    metric.buckets()
+                    metric.buckets(),
+                    metric.ignoredFilters()
                 )
             )
             .toList();

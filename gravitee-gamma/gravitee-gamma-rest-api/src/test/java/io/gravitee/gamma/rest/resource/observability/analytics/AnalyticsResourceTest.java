@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +54,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.ContextConfiguration;
@@ -177,6 +179,34 @@ class AnalyticsResourceTest extends AbstractResourceTest {
             var response = post("measures", measures(List.of(filter("HTTP_STATUS", "GTE", 400), filter("HTTP_STATUS", "LTE", 499))));
 
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        }
+
+        @Test
+        void should_hand_a_metric_level_condition_over_as_not_applied() {
+            var metric = Map.of("name", "HTTP_REQUESTS", "measures", List.of("COUNT"), "filters", List.of(filter("PLAN", "EQ", "plan-1")));
+
+            var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", List.of(metric)));
+
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+            var captor = ArgumentCaptor.forClass(ObservabilityAnalyticsDataPort.MeasuresQuery.class);
+            verify(analyticsDataPort).computeMeasures(captor.capture());
+            assertThat(captor.getValue().conditionsNotApplied()).isEqualTo(Map.of("HTTP_REQUESTS", List.of("PLAN")));
+        }
+
+        @Test
+        void should_answer_400_to_a_metric_level_condition_the_catalog_refuses() {
+            var metric = Map.of(
+                "name",
+                "HTTP_REQUESTS",
+                "measures",
+                List.of("COUNT"),
+                "filters",
+                List.of(filter("HTTP_METHOD", "EQ", List.of("GET", "POST")))
+            );
+
+            var response = post("measures", Map.of("timeRange", TIME_RANGE, "metrics", List.of(metric)));
+
+            assertBadRequest(response, "observability.filter.invalid_arity");
         }
 
         private static Map<String, Object> measures(List<Map<String, Object>> filters) {

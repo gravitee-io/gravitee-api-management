@@ -195,9 +195,13 @@ class ComputeTimeSeriesUseCaseTest {
 
     @Test
     void should_return_post_processed_response() {
-        var rawResponse = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of())));
+        var rawResponse = new TimeSeriesResponse(
+            List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of()))
+        );
 
-        var mappedResponse = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of())));
+        var mappedResponse = new TimeSeriesResponse(
+            List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(), List.of()))
+        );
 
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(TimeSeriesResponse.class))).thenReturn(mappedResponse);
 
