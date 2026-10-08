@@ -76,8 +76,9 @@ const STATUS_PAGE: ApiDocumentationItem = {
 
 const ITEMS = [GUIDES, GETTING_STARTED, OAUTH, REFERENCE, ENDPOINTS, STATUS_PAGE];
 
-function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelete: boolean; isLoading: boolean }> = {}) {
+function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelete: boolean; canAdd: boolean; isLoading: boolean }> = {}) {
     const onDelete = jest.fn();
+    const onAddPage = jest.fn();
     render(
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
@@ -89,13 +90,15 @@ function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelet
                             isLoading={overrides.isLoading ?? false}
                             canDelete={overrides.canDelete ?? true}
                             onDelete={onDelete}
+                            canAdd={overrides.canAdd ?? true}
+                            onAddPage={onAddPage}
                         />
                     }
                 />
             </Routes>
         </MemoryRouter>,
     );
-    return { onDelete };
+    return { onDelete, onAddPage };
 }
 
 const rowOf = (title: string) => screen.getByText(title).closest('tr') as HTMLElement;
@@ -211,9 +214,49 @@ describe('DocumentationTree', () => {
         expect(screen.getByRole('button', { name: 'Actions for Status page' })).toBeInTheDocument();
     });
 
-    it('offers no delete without the permission', () => {
+    it('offers no delete without the permission', async () => {
+        const user = userEvent.setup();
         renderTree({ canDelete: false });
 
-        expect(screen.queryByRole('button', { name: /^Actions for/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Actions for Status page' })).not.toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+        expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
+    });
+
+    describe('adding a page to a folder', () => {
+        it('offers it from the folder and reports which one', async () => {
+            const user = userEvent.setup();
+            const { onAddPage } = renderTree();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Add page' }));
+
+            expect(onAddPage).toHaveBeenCalledWith(GUIDES);
+        });
+
+        it('offers it only on a folder', async () => {
+            const user = userEvent.setup();
+            renderTree();
+
+            await expand(user, 'Guides');
+            await user.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
+
+            expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
+        });
+
+        it('does not offer it on a synced folder, which the server refuses', () => {
+            renderTree({ canDelete: false });
+
+            expect(screen.queryByRole('button', { name: 'Actions for Reference' })).not.toBeInTheDocument();
+        });
+
+        it('does not offer it without the permission', async () => {
+            const user = userEvent.setup();
+            renderTree({ canAdd: false });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+
+            expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
+        });
     });
 });
