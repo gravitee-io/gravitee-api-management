@@ -17,4 +17,7 @@
 import './styles/layer-order.css';
 import '@gravitee/graphene-core/fonts';
 import '@gravitee/graphene-core/styles';
-import('./bootstrap').catch(err => console.error(err));
+
+import { showStartupError } from './startup-error';
+
+import('./bootstrap').catch(showStartupError);
