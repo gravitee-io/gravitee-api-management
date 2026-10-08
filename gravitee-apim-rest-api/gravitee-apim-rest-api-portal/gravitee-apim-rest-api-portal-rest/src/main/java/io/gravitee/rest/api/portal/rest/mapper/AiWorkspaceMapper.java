@@ -19,6 +19,7 @@ import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceBudget;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceConsumption;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceDetails;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceKey;
+import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceModel;
 import io.gravitee.apim.core.ai_workspace.model.AiWorkspaceSummary;
 import java.math.BigDecimal;
 import org.mapstruct.Mapper;
@@ -33,6 +34,8 @@ public interface AiWorkspaceMapper {
     io.gravitee.rest.api.portal.rest.model.AiWorkspaceSummary toSummary(AiWorkspaceSummary summary);
 
     io.gravitee.rest.api.portal.rest.model.AiWorkspace toDetails(AiWorkspaceDetails details);
+
+    io.gravitee.rest.api.portal.rest.model.AiWorkspaceModel toModel(AiWorkspaceModel model);
 
     io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption toConsumption(AiWorkspaceConsumption consumption);
 

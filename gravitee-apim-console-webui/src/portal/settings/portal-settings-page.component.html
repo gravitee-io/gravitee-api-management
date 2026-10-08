@@ -153,6 +153,20 @@
             />
           </gio-form-slide-toggle>
 
+          <gio-form-slide-toggle
+            formGroupName="aiWorkspaces"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isSystemReadonly('portal.next.aiWorkspaces.enabled')"
+          >
+            <gio-form-label>Enable AI Workspaces</gio-form-label>
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="AI Workspaces Enabled"
+              data-testid="portal-next-ai-workspaces-toggle"
+            />
+          </gio-form-slide-toggle>
+
           <div formGroupName="catalog">
             <gio-form-slide-toggle
               formGroupName="fuzzySearch"

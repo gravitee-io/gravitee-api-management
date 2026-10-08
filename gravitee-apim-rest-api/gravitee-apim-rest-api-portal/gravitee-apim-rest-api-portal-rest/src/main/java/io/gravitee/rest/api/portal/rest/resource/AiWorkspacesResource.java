@@ -35,13 +35,17 @@ import io.gravitee.apim.core.observability.model.FilterOperator;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.AiWorkspaceMapper;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -75,12 +79,16 @@ public class AiWorkspacesResource extends AbstractResource {
     @Inject
     private ApplicationService applicationService;
 
+    @Inject
+    private ParameterService parameterService;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response list(@BeanParam PaginationParam pagination, @QueryParam("name") String name) {
         if (!isAuthenticated()) {
             throw new UnauthorizedAccessException();
         }
+        requireEnabled();
         var executionContext = getExecutionContext();
         var workspaces = listMyAiWorkspacesUseCase
             .execute(new ListMyAiWorkspacesUseCase.Input(executionContext, applicationIds(), name))
@@ -98,6 +106,7 @@ public class AiWorkspacesResource extends AbstractResource {
         if (!isAuthenticated()) {
             throw new UnauthorizedAccessException();
         }
+        requireEnabled();
         var details = getMyAiWorkspaceUseCase
             .execute(new GetMyAiWorkspaceUseCase.Input(getExecutionContext(), applicationIds(), aiWorkspaceId))
             .details();
@@ -111,10 +120,27 @@ public class AiWorkspacesResource extends AbstractResource {
         if (!isAuthenticated()) {
             throw new UnauthorizedAccessException();
         }
+        requireEnabled();
         var access = getMyAiWorkspaceConsumptionUseCase.execute(
             new GetMyAiWorkspaceConsumptionUseCase.Input(getExecutionContext(), applicationIds(), aiWorkspaceId)
         );
         return Response.ok(AiWorkspaceMapper.INSTANCE.toConsumption(consumption(aiWorkspaceId, access))).build();
+    }
+
+    /**
+     * 404, not 403. The analytics capability returns 403 when it is off. AI workspaces return 404
+     * so a caller cannot tell the feature exists while it is disabled.
+     */
+    private void requireEnabled() {
+        if (
+            !parameterService.findAsBoolean(
+                getExecutionContext(),
+                Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED,
+                ParameterReferenceType.ENVIRONMENT
+            )
+        ) {
+            throw new NotFoundException();
+        }
     }
 
     private AiWorkspaceConsumption consumption(String workspaceId, GetMyAiWorkspaceConsumptionUseCase.Output access) {

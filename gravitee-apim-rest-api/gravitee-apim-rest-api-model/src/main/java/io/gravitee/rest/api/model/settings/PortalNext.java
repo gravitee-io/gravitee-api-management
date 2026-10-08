@@ -43,6 +43,9 @@ public class PortalNext {
     @ParameterKey(Key.PORTAL_NEXT_ANALYTICS_ENABLED)
     private Enabled analytics;
 
+    @ParameterKey(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED)
+    private Enabled aiWorkspaces;
+
     private Applications applications;
 
     private Banner banner;

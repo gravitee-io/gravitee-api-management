@@ -213,6 +213,9 @@ describe('PortalSettingsComponent', () => {
           analytics: {
             enabled: false,
           },
+          aiWorkspaces: {
+            enabled: false,
+          },
           applications: {
             membership: {
               enabled: false,

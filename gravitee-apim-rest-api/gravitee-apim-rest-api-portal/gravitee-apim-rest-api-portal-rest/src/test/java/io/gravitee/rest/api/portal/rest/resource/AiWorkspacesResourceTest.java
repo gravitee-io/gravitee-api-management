@@ -25,6 +25,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
@@ -42,6 +44,8 @@ import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -50,6 +54,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspace;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption;
@@ -99,6 +105,9 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
     void setUp() {
         resetAllMocks();
         GraviteeContext.setCurrentEnvironment("DEFAULT");
+        when(
+            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(true);
         doReturn(Set.of(application("app-1", USER_NAME))).when(applicationService).findByUser(any(ExecutionContext.class), eq(USER_NAME));
     }
 
@@ -111,6 +120,20 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         apiKeys.reset();
         reset(computeMeasuresUseCase);
         GraviteeContext.cleanContext();
+    }
+
+    @Test
+    void answers_404_when_ai_workspaces_are_disabled() {
+        when(
+            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(false);
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE).toBuilder().apiIds(Set.of("proxy-1")).build()));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+
+        assertThat(target().request().get().getStatus()).isEqualTo(404);
+        assertThat(target().path("ws-1").request().get().getStatus()).isEqualTo(404);
+        assertThat(target().path("ws-1").path("consumption").request().get().getStatus()).isEqualTo(404);
+        verify(computeMeasuresUseCase, never()).executeForApis(any(), any(), any());
     }
 
     @Test
@@ -315,6 +338,33 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         AiWorkspace body = response.readEntity(AiWorkspace.class);
         assertThat(body.getEndpointUrl()).isNull();
         assertThat(body.getBudget()).isNull();
+        assertThat(body.getModels()).isEmpty();
+    }
+
+    @Test
+    void returns_models_and_omits_provider_configuration() throws Exception {
+        String secret = "sk-live-do-not-leak";
+        String target = "https://provider.example/secret-target";
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE).toBuilder().apiIds(Set.of("api-1")).build()));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+        apis.initWith(List.of(proxyWithProviders("api-1", "/alpha/", secret, target)));
+
+        Response response = target().path("ws-1").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(200);
+        String raw = response.readEntity(String.class);
+        assertThat(raw).doesNotContain(secret).doesNotContain(target).doesNotContain("authentication").doesNotContain("OPEN_AI");
+        JsonNode models = new ObjectMapper().readTree(raw).get("models");
+        assertThat(models).hasSize(3);
+        assertThat(models.get(0).get("name").asText()).isEqualTo("gpt-4o");
+        assertThat(models.get(0).get("inputPrice").asDouble()).isEqualTo(2.5);
+        assertThat(models.get(0).get("outputPrice").asDouble()).isEqualTo(10.0);
+        assertThat(models.get(1).get("name").asText()).isEqualTo("draft");
+        assertThat(absent(models.get(1).get("inputPrice"))).isTrue();
+        assertThat(absent(models.get(1).get("outputPrice"))).isTrue();
+        assertThat(models.get(2).get("name").asText()).isEqualTo("claude");
+        assertThat(absent(models.get(2).get("inputPrice"))).isTrue();
+        assertThat(models.get(2).get("outputPrice").asDouble()).isEqualTo(0.5);
     }
 
     @Test
@@ -420,6 +470,47 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
             .plan("plan-1")
             .status(SubscriptionStatus.ACCEPTED)
             .createdAt(new Date(1_000))
+            .build();
+    }
+
+    private static boolean absent(JsonNode node) {
+        return node == null || node.isNull() || node.isMissingNode();
+    }
+
+    private static Api proxyWithProviders(String id, String path, String secret, String target) {
+        String openAi =
+            "{\"provider\":\"OPEN_AI\",\"target\":\"" +
+            target +
+            "\",\"authentication\":{\"apiKey\":\"" +
+            secret +
+            "\"},\"models\":[{\"name\":\"gpt-4o\",\"inputPrice\":2.5,\"outputPrice\":10},{\"name\":\"draft\"}]}";
+        String anthropic =
+            "{\"provider\":\"ANTHROPIC\",\"authentication\":{\"token\":\"" +
+            secret +
+            "\"},\"models\":[{\"name\":\"claude\",\"outputPrice\":0.5}]}";
+        return Api.builder()
+            .id(id)
+            .environmentId("DEFAULT")
+            .type(ApiType.LLM_PROXY)
+            .apiDefinitionHttpV4(
+                io.gravitee.definition.model.v4.Api.builder()
+                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build()))
+                    .endpointGroups(
+                        List.of(
+                            EndpointGroup.builder()
+                                .name("OpenAI")
+                                .type("llm")
+                                .endpoints(List.of(Endpoint.builder().name("openai").type("llm-proxy").configuration(openAi).build()))
+                                .build(),
+                            EndpointGroup.builder()
+                                .name("Anthropic")
+                                .type("llm")
+                                .endpoints(List.of(Endpoint.builder().name("anthropic").type("llm-proxy").configuration(anthropic).build()))
+                                .build()
+                        )
+                    )
+                    .build()
+            )
             .build();
     }
 
