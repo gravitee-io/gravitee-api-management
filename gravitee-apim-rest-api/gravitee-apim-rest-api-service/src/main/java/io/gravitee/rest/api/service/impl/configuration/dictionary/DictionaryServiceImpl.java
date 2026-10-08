@@ -65,6 +65,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -512,9 +513,16 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         }
         ObjectNode snapshot = mapper.valueToTree(dictionary);
         JsonNode properties = snapshot.path("properties");
-        // Naming the key keeps redacted nodes distinct, so the diff never records a copy or move between secrets.
-        encryptedPropertyKeys(dictionary).forEach(key -> ((ObjectNode) properties.get(key)).put("key", key).remove("value"));
+        encryptedPropertyKeys(dictionary).forEach(key -> {
+            ObjectNode property = (ObjectNode) properties.get(key);
+            property.put("value", fingerprint(property.get("value").asText()));
+        });
         return snapshot;
+    }
+
+    // Hashes the ciphertext, not the plaintext, so nobody without the encryption key can match the fingerprint against guessed secrets.
+    private static String fingerprint(String ciphertext) {
+        return "<sha256:" + DigestUtils.sha256Hex(ciphertext) + ">";
     }
 
     private static Stream<String> encryptedPropertyKeys(Dictionary dictionary) {

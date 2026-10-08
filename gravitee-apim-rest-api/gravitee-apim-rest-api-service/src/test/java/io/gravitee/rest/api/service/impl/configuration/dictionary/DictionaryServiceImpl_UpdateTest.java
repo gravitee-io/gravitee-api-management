@@ -840,7 +840,8 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test
-    public void should_not_audit_any_value_when_an_encrypted_value_is_renewed() throws TechnicalException, GeneralSecurityException {
+    public void should_audit_only_a_new_fingerprint_when_an_encrypted_value_is_renewed()
+        throws TechnicalException, GeneralSecurityException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("OLD-CIPHER", true));
         given_stored_dictionary(stored);
@@ -853,12 +854,19 @@ public class DictionaryServiceImpl_UpdateTest {
         );
 
         JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
-        assertThat(patch).noneMatch(operation -> operation.get("path").asText().startsWith("/properties"));
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"replace","path":"/properties/secret/value","value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>"}
+                """
+            )
+        );
         assertThat(patch.toString()).doesNotContain("OLD-CIPHER").doesNotContain("NEW-CIPHER").doesNotContain("renewed-plaintext");
     }
 
     @Test
-    public void should_not_audit_any_value_when_a_plain_property_becomes_encrypted() throws TechnicalException, GeneralSecurityException {
+    public void should_audit_only_the_fingerprint_when_a_plain_property_becomes_encrypted()
+        throws TechnicalException, GeneralSecurityException {
         Map<String, DictionaryProperty> stored = new HashMap<>();
         stored.put("secret", new DictionaryProperty("was-plain", false));
         given_stored_dictionary(stored);
@@ -874,7 +882,7 @@ public class DictionaryServiceImpl_UpdateTest {
         assertThat(patch).contains(
             json(
                 """
-                {"op":"replace","path":"/properties/secret","value":{"encrypted":true,"key":"secret"}}
+                {"op":"replace","path":"/properties/secret","value":{"value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>","encrypted":true}}
                 """
             )
         );
@@ -903,9 +911,42 @@ public class DictionaryServiceImpl_UpdateTest {
         assertThat(patch).anySatisfy(operation -> {
             assertThat(operation.get("op").asText()).isEqualTo("add");
             assertThat(operation.get("path").asText()).isEqualTo("/properties/b");
-            assertThat(operation.get("value").get("encrypted").asBoolean()).isTrue();
-            assertThat(operation.get("value").has("value")).isFalse();
+            assertThat(operation.get("value")).isEqualTo(
+                json(
+                    """
+                    {"value":"<sha256:d775e5602bbc188268eeaeeb5f5dd7351f2606e085cd2d480fcda487e883ace4>","encrypted":true}
+                    """
+                )
+            );
         });
+    }
+
+    @Test
+    public void should_audit_an_encrypted_property_sharing_an_existing_secret_as_a_copy_without_its_value()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("a", new DictionaryProperty("SHARED-CIPHER", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("shared-plaintext")).thenReturn("SHARED-CIPHER");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(
+                Map.of("a", ENCRYPTED_VALUE_MASK, "b", "shared-plaintext"),
+                Map.of("b", DictionaryPropertyOptions.builder().encryptable(true).build())
+            )
+        );
+
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"copy","from":"/properties/a","path":"/properties/b"}
+                """
+            )
+        );
+        assertThat(patch.toString()).doesNotContain("SHARED-CIPHER").doesNotContain("shared-plaintext");
     }
 
     @Test

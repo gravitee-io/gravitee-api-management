@@ -303,7 +303,7 @@ public class DictionaryServiceImpl_CreateTest {
     }
 
     @Test
-    public void should_not_audit_the_value_of_an_encrypted_property_on_create() throws Exception {
+    public void should_audit_only_the_fingerprint_of_an_encrypted_property_on_create() throws Exception {
         NewDictionaryEntity newDictionary = new NewDictionaryEntity();
         newDictionary.setName("my-dict");
         newDictionary.setType(DictionaryType.MANUAL);
@@ -320,7 +320,7 @@ public class DictionaryServiceImpl_CreateTest {
         assertThat(patch).contains(
             json(
                 """
-                {"op":"add","path":"/properties","value":{"secret":{"encrypted":true,"key":"secret"},"plain":"plain-value"}}
+                {"op":"add","path":"/properties","value":{"secret":{"value":"<sha256:e0b6daa9e5b1247e71610b26c5b48482b03daf2c445d853458ae04afce4af65b>","encrypted":true},"plain":"plain-value"}}
                 """
             )
         );

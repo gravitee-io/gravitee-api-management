@@ -427,7 +427,8 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
     }
 
     @Test
-    public void should_not_audit_encrypted_values_on_a_dynamic_refresh() throws TechnicalException, GeneralSecurityException {
+    public void should_audit_only_fingerprints_of_encrypted_values_on_a_dynamic_refresh()
+        throws TechnicalException, GeneralSecurityException {
         Dictionary existing = startedDynamicDictionaryWith(
             Map.of("secret", new DictionaryProperty("previous-cipher", true), "plain", new DictionaryProperty("previous-value", false))
         );
@@ -447,7 +448,13 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
                 """
             )
         );
-        assertThat(patch).noneMatch(operation -> operation.get("path").asText().startsWith("/properties/secret"));
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"replace","path":"/properties/secret/value","value":"<sha256:9d5b507ef83160e2ae0ec255c63eb668826c010bc7cf3ec4bb90180887707c93>"}
+                """
+            )
+        );
         assertThat(patch.toString()).doesNotContain("previous-cipher").doesNotContain("previous-secret").doesNotContain("fetched-secret");
 
         ArgumentCaptor<Dictionary> published = ArgumentCaptor.forClass(Dictionary.class);
