@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { Meta, StoryObj } from '@storybook/react';
+import { useState, type ComponentProps } from 'react';
 
 import { ModuleUpdating } from './ModuleUpdating';
 
@@ -22,6 +23,8 @@ const meta: Meta<typeof ModuleUpdating> = {
     component: ModuleUpdating,
     args: {
         moduleName: 'Agent Management',
+        attempting: false,
+        onRetryNow: () => window.alert('Retry now triggered'),
     },
     parameters: {
         docs: {
@@ -37,3 +40,28 @@ export default meta;
 type Story = StoryObj<typeof ModuleUpdating>;
 
 export const Default: Story = {};
+
+/** An attempt is running: the button stays focusable but does nothing until the attempt ends. */
+export const Attempting: Story = {
+    args: { attempting: true },
+};
+
+function FailingRightAwayDemo(args: ComponentProps<typeof ModuleUpdating>) {
+    const [attempting, setAttempting] = useState(false);
+
+    return (
+        <ModuleUpdating
+            {...args}
+            attempting={attempting}
+            onRetryNow={() => {
+                setAttempting(true);
+                setTimeout(() => setAttempting(false), 25);
+            }}
+        />
+    );
+}
+
+/** Click Retry now: the attempt fails after 25 ms, as on a missing file during a restart, and "Retrying…" still stays long enough to be read. */
+export const FailingRightAway: Story = {
+    render: args => <FailingRightAwayDemo {...args} />,
+};
