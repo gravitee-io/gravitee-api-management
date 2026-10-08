@@ -32,7 +32,15 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiType, ApiV4, FlowExecution, PlanV4, UpdateApiV4, UpdatePlanV4 } from '../../../../entities/management-api-v2';
+import {
+  ApiV4,
+  FlowApiType,
+  FlowExecution,
+  isFlowApiType,
+  PlanV4,
+  UpdateApiV4,
+  UpdatePlanV4,
+} from '../../../../entities/management-api-v2';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
@@ -55,7 +63,8 @@ export type FlowSelection = { planIndex: number; flowIndex: number };
 export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
 
-  public apiType: ApiType;
+  public apiType: FlowApiType;
+  public hasFlows = true;
   public flowExecution: FlowExecution;
   public entrypointsInfo: ConnectorInfo[];
   public endpointsInfo: ConnectorInfo[];
@@ -209,6 +218,13 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
       this.sharedPolicyGroupsService.getSharedPolicyGroupPolicyPlugin(),
     ]).pipe(
       tap(([api, entrypoints, endpoints, plans, policies, sharedPolicyGroupPolicyPlugins]) => {
+        if (!isFlowApiType(api.type)) {
+          this.hasFlows = false;
+          this.isLoading = false;
+          this.changeDetectorRef.detectChanges();
+          return;
+        }
+        this.hasFlows = true;
         this.apiType = api.type;
         this.flowExecution = api.flowExecution;
 

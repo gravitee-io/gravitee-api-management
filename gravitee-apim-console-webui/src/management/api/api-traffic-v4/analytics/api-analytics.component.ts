@@ -16,6 +16,7 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { GioCardEmptyStateModule } from '@gravitee/ui-particles-angular';
 
 import { ApiAnalyticsMessageComponent } from './api-analytics-message/api-analytics-message.component';
 import { ApiAnalyticsProxyComponent } from './api-analytics-proxy/api-analytics-proxy.component';
@@ -33,6 +34,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
     ApiAnalyticsProxyComponent,
     ApiAnalyticsNativeComponent,
     ApiAnalyticsMcpProxyComponent,
+    GioCardEmptyStateModule,
   ],
   template: `
     @if (api$ | async; as api) {
@@ -51,6 +53,16 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
         }
         @case ('MCP_PROXY') {
           <api-analytics-mcp-proxy />
+        }
+        @case ('AUTHZ') {
+          <api-analytics-proxy />
+        }
+        @default {
+          <gio-card-empty-state
+            icon="bar-chart-2"
+            title="API Traffic not available"
+            subtitle="API Traffic is not available for your API."
+          ></gio-card-empty-state>
         }
       }
     }
