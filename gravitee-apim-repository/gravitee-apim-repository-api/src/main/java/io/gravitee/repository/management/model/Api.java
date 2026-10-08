@@ -215,6 +215,7 @@ public class Api {
         API_LOGGING_DISABLED,
         API_LOGGING_UPDATED,
         API_ENCRYPTED_PROPERTIES_ACCESSED,
+        API_ENCRYPTED_PROPERTIES_REFRESHED,
     }
 
     public boolean addGroup(String group) {

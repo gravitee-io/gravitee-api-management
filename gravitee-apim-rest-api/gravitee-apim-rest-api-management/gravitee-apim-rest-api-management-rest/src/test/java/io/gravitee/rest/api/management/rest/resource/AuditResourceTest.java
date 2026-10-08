@@ -133,13 +133,15 @@ public class AuditResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void should_list_the_encrypted_properties_accessed_events() {
+    public void should_list_the_encrypted_properties_accessed_and_refreshed_events() {
         final Response response = envTarget().path("events").request().get();
 
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         String events = response.readEntity(String.class);
         assertTrue(events.contains("\"API_ENCRYPTED_PROPERTIES_ACCESSED\""));
         assertTrue(events.contains("\"DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED\""));
+        assertTrue(events.contains("\"API_ENCRYPTED_PROPERTIES_REFRESHED\""));
+        assertTrue(events.contains("\"DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED\""));
     }
 
     @Test
