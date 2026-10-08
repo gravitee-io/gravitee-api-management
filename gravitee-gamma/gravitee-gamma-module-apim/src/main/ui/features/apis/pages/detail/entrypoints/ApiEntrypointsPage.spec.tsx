@@ -352,6 +352,25 @@ describe('ApiEntrypointsPage', () => {
         expect(screen.getByText(/entrypoint context-paths/i)).toBeInTheDocument();
     });
 
+    it('keeps every existing context path as a virtual host row when virtual hosts are enabled', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: {
+                id: 'api-1',
+                name: 'Multi path API',
+                listeners: [{ type: 'HTTP', paths: [{ path: '/orders' }, { path: '/invoices' }], hosts: [], entrypoints: [] }],
+            },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage();
+
+        fireEvent.click(screen.getByRole('checkbox', { name: /enable virtual hosts/i }));
+
+        const paths = screen.getAllByRole('textbox', { name: /context path/i }).map(input => (input as HTMLInputElement).value);
+        expect(paths).toEqual(['/orders', '/invoices']);
+        expect(screen.getAllByRole('textbox', { name: /virtual host/i })).toHaveLength(2);
+    });
+
     // ── TCP entrypoints ────────────────────────────────────────────────────────
 
     describe('tcp-proxy entrypoints', () => {
