@@ -76,9 +76,9 @@ describe('IntegrationOverviewPage', () => {
     it('shows neither integration details nor the load failure message while the integration is loading', async () => {
         mockGetIntegration.mockReturnValue(new Promise(() => {}));
 
-        renderIntegrationOverviewPage('integration-a2a');
+        renderIntegrationOverviewPage('integration-1');
 
-        await waitFor(() => expect(mockGetIntegration).toHaveBeenCalledWith('env-1', 'integration-a2a'));
+        await waitFor(() => expect(mockGetIntegration).toHaveBeenCalledWith('env-1', 'integration-1'));
         const overview = screen.getByTestId('integration-overview-page');
         expect(within(overview).queryByRole('heading')).toBeNull();
         expect(overview.textContent).not.toContain('Integration could not be loaded');
@@ -88,7 +88,7 @@ describe('IntegrationOverviewPage', () => {
     it('sends no integration request and shows no details or error when there is no current environment', async () => {
         mockUseEnvironment.mockReturnValue(undefined);
 
-        renderIntegrationOverviewPage('integration-a2a');
+        renderIntegrationOverviewPage('integration-1');
 
         const overview = await screen.findByTestId('integration-overview-page');
         await act(() => new Promise(resolve => setTimeout(resolve, 0)));
@@ -102,17 +102,17 @@ describe('IntegrationOverviewPage', () => {
         const failure = new Error('integration unavailable');
         mockGetIntegration.mockRejectedValue(failure);
 
-        renderIntegrationOverviewPage('integration-a2a');
+        renderIntegrationOverviewPage('integration-1');
 
         await waitFor(() => expect(mockNotifyError).toHaveBeenCalledWith(failure, expect.stringMatching(/\S/)));
         expect(mockNotifyError).toHaveBeenCalledTimes(1);
-        expect(mockGetIntegration).toHaveBeenCalledWith('env-1', 'integration-a2a');
+        expect(mockGetIntegration).toHaveBeenCalledWith('env-1', 'integration-1');
     });
 
     it('shows only the load failure message, with no integration details, when the integration fails to load', async () => {
         mockGetIntegration.mockRejectedValue(new Error('integration unavailable'));
 
-        renderIntegrationOverviewPage('integration-a2a');
+        renderIntegrationOverviewPage('integration-1');
 
         const overview = screen.getByTestId('integration-overview-page');
         await waitFor(() => expect(overview.textContent).toBe('Integration could not be loaded. Please refresh and try again.'));
@@ -122,7 +122,7 @@ describe('IntegrationOverviewPage', () => {
     it('redirects to the Integrations list without a toast or load failure message when the integration request is forbidden', async () => {
         mockGetIntegration.mockRejectedValue(new ApimApiError(403, 'Forbidden'));
 
-        renderIntegrationOverviewPage('integration-a2a');
+        renderIntegrationOverviewPage('integration-1');
 
         await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
         expect(screen.getByText('Integrations list')).toBeInTheDocument();
@@ -136,11 +136,11 @@ describe('IntegrationOverviewPage', () => {
         const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
         mockGetIntegration.mockRejectedValue(new ApimApiError(403, 'Forbidden'));
 
-        renderIntegrationOverviewPage('integration-a2a');
+        renderIntegrationOverviewPage('integration-1');
 
         await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
         expect(warn).toHaveBeenCalledTimes(1);
-        expect(String(warn.mock.calls[0][0])).toContain('integration-a2a');
+        expect(String(warn.mock.calls[0][0])).toContain('integration-1');
         warn.mockRestore();
     });
 
@@ -202,21 +202,16 @@ describe('IntegrationOverviewPage', () => {
         },
     );
 
-    it.each([
-        ['without an agent status', {}],
-        ['even when the response carries a disconnected agent status', { agentStatus: 'DISCONNECTED' as const }],
-    ])('shows no agent connection section for an A2A integration %s', async (_variant, agentStatusField) => {
-        mockGetIntegration.mockResolvedValue({ id: 'integration-a2a', name: 'A2A integration', provider: 'A2A', ...agentStatusField });
+    it('redirects to the Integrations list without a toast when the integration is an A2A one', async () => {
+        mockGetIntegration.mockResolvedValue({ id: 'classic-a2a', name: 'Classic A2A integration', provider: 'A2A' });
 
-        renderIntegrationOverviewPage('integration-a2a');
+        renderIntegrationOverviewPage('classic-a2a');
 
-        expect(await screen.findByRole('heading', { name: 'A2A integration' })).toBeInTheDocument();
-        expect(screen.getByText('A2A Protocol')).toBeInTheDocument();
-        const overview = screen.getByTestId('integration-overview-page');
-        expect(screen.queryByTestId('integration-agent-connection')).toBeNull();
-        expect(within(overview).queryByRole('heading', { name: 'Agent connection' })).toBeNull();
-        expect(overview.textContent).not.toMatch(/Connected|Disconnected/);
-        expect(overview.textContent).not.toContain('Check your agent status');
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/integrations'));
+        expect(screen.getByText('Integrations list')).toBeInTheDocument();
+        expect(screen.queryByTestId('integration-overview-page')).toBeNull();
+        expect(screen.queryByRole('heading', { name: 'Classic A2A integration' })).toBeNull();
+        expect(mockNotifyError).not.toHaveBeenCalled();
     });
 
     it.each([
@@ -254,19 +249,6 @@ describe('IntegrationOverviewPage', () => {
         expect(mockCopyToClipboard).toHaveBeenCalledWith('integration-gw', 'Copied to clipboard');
     });
 
-    it('shows no integration id for an A2A integration', async () => {
-        mockGetIntegration.mockResolvedValue({ id: 'integration-a2a', name: 'A2A integration', provider: 'A2A' });
-
-        renderIntegrationOverviewPage('integration-a2a');
-
-        expect(await screen.findByRole('heading', { name: 'A2A integration' })).toBeInTheDocument();
-        const overview = screen.getByTestId('integration-overview-page');
-        expect(screen.queryByTestId('integration-id')).toBeNull();
-        expect(within(overview).queryByRole('heading', { name: 'Integration ID' })).toBeNull();
-        expect(overview.textContent).not.toContain('integration-a2a');
-        expect(within(overview).queryByRole('button', { name: 'Copy integration ID' })).toBeNull();
-    });
-
     it('shows the ingestion-in-progress indicator when a gateway-style integration has a pending ingestion job', async () => {
         mockGetIntegration.mockResolvedValue({
             id: 'integration-aws',
@@ -297,16 +279,6 @@ describe('IntegrationOverviewPage', () => {
 
         expect(await screen.findByRole('heading', { name: 'AWS integration' })).toBeInTheDocument();
         expect(screen.queryByTestId('integration-ingestion-in-progress')).toBeNull();
-    });
-
-    it('shows no ingestion indicator or ingestion text on the overview of an A2A integration', async () => {
-        mockGetIntegration.mockResolvedValue({ id: 'integration-a2a', name: 'A2A integration', provider: 'A2A' });
-
-        renderIntegrationOverviewPage('integration-a2a');
-
-        expect(await screen.findByRole('heading', { name: 'A2A integration' })).toBeInTheDocument();
-        expect(screen.queryByTestId('integration-ingestion-in-progress')).toBeNull();
-        expect(screen.getByTestId('integration-overview-page').textContent).not.toMatch(/ingest/i);
     });
 
     it.each([
@@ -350,12 +322,9 @@ describe('IntegrationOverviewPage', () => {
         expect(mockNotifyError).toHaveBeenCalledWith(expect.any(Error), expect.stringMatching(/\S/));
     });
 
-    it.each([
-        ['a gateway-style integration has no pending ingestion job', { provider: 'aws-api-gateway' }],
-        ['an A2A integration is loaded', { provider: 'A2A' }],
-    ])('does not refresh the integration when %s', async (_, variant) => {
+    it('does not refresh the integration when a gateway-style integration has no pending ingestion job', async () => {
         jest.useFakeTimers();
-        mockGetIntegration.mockResolvedValue({ id: 'integration-x', name: 'Some integration', ...variant });
+        mockGetIntegration.mockResolvedValue({ id: 'integration-x', name: 'Some integration', provider: 'aws-api-gateway' });
 
         renderIntegrationOverviewPage('integration-x');
 

@@ -56,26 +56,4 @@ describe('integration create service', () => {
 
         expect(sentRequest().body).toEqual(expectedBody);
     });
-
-    it('sends each well-known URL as a url object, unchanged and in the entered order', async () => {
-        await createIntegration('env-1', {
-            name: 'Billing Agents',
-            description: 'Invoice agents',
-            provider: 'A2A',
-            wellKnownUrls: [
-                'https://search.example.com/.well-known/agent-card.json',
-                'https://billing.example.com/agents/.well-known/agent.json',
-            ],
-        });
-
-        expect(sentRequest().body).toEqual({
-            name: 'Billing Agents',
-            description: 'Invoice agents',
-            provider: 'A2A',
-            wellKnownUrls: [
-                { url: 'https://search.example.com/.well-known/agent-card.json' },
-                { url: 'https://billing.example.com/agents/.well-known/agent.json' },
-            ],
-        });
-    });
 });

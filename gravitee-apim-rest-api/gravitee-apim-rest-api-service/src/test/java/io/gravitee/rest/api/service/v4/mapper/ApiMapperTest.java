@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.federation.FederatedAgent;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -52,6 +53,7 @@ import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.MembershipEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
@@ -86,6 +88,18 @@ import org.mockito.quality.Strictness;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.WARN)
 public class ApiMapperTest {
+
+    private static final String FEDERATED_AGENT_ENVIRONMENT_ID = "environment-id";
+    private static final String FEDERATED_AGENT_INTEGRATION_ID = "integration-id";
+    private static final FederatedAgent.Skill FEDERATED_AGENT_SKILL = new FederatedAgent.Skill(
+        "skill-id",
+        "skill-name",
+        "skill-description",
+        List.of("tag"),
+        List.of("example"),
+        List.of("text/plain"),
+        List.of("application/json")
+    );
 
     private ApiMapper apiMapper;
 
@@ -922,55 +936,96 @@ public class ApiMapperTest {
     }
 
     @Test
-    public void should_degrade_gracefully_when_federated_agent_definition_is_malformed() {
+    void should_map_federated_agent_definition_to_entity() throws Exception {
         // Given
-        var api = new Api();
-        api.setId("api-id");
-        api.setName("api-name");
-        api.setEnvironmentId("environment-id");
-        api.setIntegrationId("integration-id");
-        api.setDefinitionVersion(DefinitionVersion.FEDERATED_AGENT);
-        api.setDefinition("not-json");
-        api.setUpdatedAt(new Date());
-
-        var primaryOwner = PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build();
+        var api = aFederatedAgentApi(objectMapper.writeValueAsString(aFederatedAgent()));
+        when(categoryMapper.toCategoryKey(eq(FEDERATED_AGENT_ENVIRONMENT_ID), eq(api.getCategories()))).thenReturn(Set.of("category-key"));
 
         // When
-        var result = apiMapper.federatedAgentToEntity(api, primaryOwner);
+        var result = apiMapper.federatedAgentToEntity(api, aFederatedAgentPrimaryOwner());
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo("api-id");
-        assertThat(result.getName()).isEqualTo("api-name");
-        assertThat(result.getUpdatedAt()).isEqualTo(api.getUpdatedAt());
-        assertThat(result.getSkills()).isNull();
-        assertThat(result.getCapabilities()).isNull();
+        assertFederatedAgentEntity(result);
     }
 
     @Test
-    public void should_degrade_gracefully_when_federated_agent_definition_is_malformed_with_execution_context() {
+    void should_map_federated_agent_definition_to_entity_with_execution_context() throws Exception {
         // Given
+        var api = aFederatedAgentApi(objectMapper.writeValueAsString(aFederatedAgent()));
+        var executionContext = new ExecutionContext("organization-id", FEDERATED_AGENT_ENVIRONMENT_ID);
+        when(categoryMapper.toCategoryKey(eq(FEDERATED_AGENT_ENVIRONMENT_ID), eq(api.getCategories()))).thenReturn(Set.of("category-key"));
+
+        // When
+        var result = apiMapper.federatedAgentToEntity(executionContext, api, aFederatedAgentPrimaryOwner());
+
+        // Then
+        assertFederatedAgentEntity(result);
+    }
+
+    @Test
+    void should_return_null_when_federated_agent_definition_is_malformed() {
+        // Given
+        var api = aFederatedAgentApi("not-json");
+
+        // When
+        var result = apiMapper.federatedAgentToEntity(api, aFederatedAgentPrimaryOwner());
+
+        // Then
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void should_return_null_when_federated_agent_definition_is_malformed_with_execution_context() {
+        // Given
+        var api = aFederatedAgentApi("not-json");
+        var executionContext = new ExecutionContext("organization-id", FEDERATED_AGENT_ENVIRONMENT_ID);
+
+        // When
+        var result = apiMapper.federatedAgentToEntity(executionContext, api, aFederatedAgentPrimaryOwner());
+
+        // Then
+        assertThat(result).isNull();
+    }
+
+    private static FederatedAgent aFederatedAgent() {
+        return FederatedAgent.builder().name("agent-name").url("https://agent.example.com").skills(List.of(FEDERATED_AGENT_SKILL)).build();
+    }
+
+    private static Api aFederatedAgentApi(String definition) {
         var api = new Api();
         api.setId("api-id");
         api.setName("api-name");
-        api.setEnvironmentId("environment-id");
-        api.setIntegrationId("integration-id");
+        api.setEnvironmentId(FEDERATED_AGENT_ENVIRONMENT_ID);
+        api.setIntegrationId(FEDERATED_AGENT_INTEGRATION_ID);
         api.setDefinitionVersion(DefinitionVersion.FEDERATED_AGENT);
-        api.setDefinition("not-json");
-        api.setUpdatedAt(new Date());
+        api.setCategories(Set.of("category-id"));
+        api.setDefinition(definition);
+        return api;
+    }
 
-        var primaryOwner = PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build();
-        var executionContext = new ExecutionContext("organization-id", "environment-id");
+    private static PrimaryOwnerEntity aFederatedAgentPrimaryOwner() {
+        return PrimaryOwnerEntity.builder().id("po-id").displayName("a PO").build();
+    }
 
-        // When
-        var result = apiMapper.federatedAgentToEntity(executionContext, api, primaryOwner);
-
-        // Then
+    private static void assertFederatedAgentEntity(FederatedApiAgentEntity result) {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo("api-id");
         assertThat(result.getName()).isEqualTo("api-name");
-        assertThat(result.getUpdatedAt()).isEqualTo(api.getUpdatedAt());
-        assertThat(result.getSkills()).isNull();
-        assertThat(result.getCapabilities()).isNull();
+        assertThat(result.getCategories()).containsExactly("category-key");
+        assertThat(result.getSkills()).containsExactly(
+            new FederatedApiAgentEntity.Skill(
+                FEDERATED_AGENT_SKILL.id(),
+                FEDERATED_AGENT_SKILL.name(),
+                FEDERATED_AGENT_SKILL.description(),
+                FEDERATED_AGENT_SKILL.tags(),
+                FEDERATED_AGENT_SKILL.examples(),
+                FEDERATED_AGENT_SKILL.inputModes(),
+                FEDERATED_AGENT_SKILL.outputModes()
+            )
+        );
+        assertThat(result.getPrimaryOwner().getId()).isEqualTo("po-id");
+        assertThat(result.getPrimaryOwner().getDisplayName()).isEqualTo("a PO");
+        assertThat(result.getOriginContext().integrationId()).isEqualTo(FEDERATED_AGENT_INTEGRATION_ID);
+        assertThat(result.getOriginContext().provider()).isEqualTo("A2A");
     }
 }

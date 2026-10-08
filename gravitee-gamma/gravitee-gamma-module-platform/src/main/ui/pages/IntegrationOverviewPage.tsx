@@ -52,18 +52,14 @@ export function IntegrationOverviewPage() {
                     <h1 className="text-2xl font-semibold tracking-tight">{integration.name}</h1>
                     <IntegrationProviderLabel provider={integration.provider} />
                 </div>
-                {!isA2aIntegration(integration) && (
-                    <>
-                        <IntegrationAgentConnection agentStatus={integration.agentStatus} />
-                        <IntegrationId integrationId={integration.id} />
-                    </>
-                )}
+                <IntegrationAgentConnection agentStatus={integration.agentStatus} />
+                <IntegrationId integrationId={integration.id} />
                 {isIngestionInProgress(integration) && <IntegrationIngestionInProgress />}
             </>
         );
     }
 
-    if (isForbidden) return <Navigate to={integrationsListHref} replace />;
+    if (isForbidden || (integration && isA2aIntegration(integration))) return <Navigate to={integrationsListHref} replace />;
 
     return (
         <div className="space-y-6" data-testid="integration-overview-page">

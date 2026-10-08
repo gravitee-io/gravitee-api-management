@@ -19,11 +19,9 @@ import { ArrowLeftIcon } from '@gravitee/graphene-core/icons';
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { CreateA2aIntegration } from '../features/integrations/components/CreateA2aIntegration';
 import { CreateGatewayIntegration } from '../features/integrations/components/CreateGatewayIntegration';
 import { IntegrationProviderSelector } from '../features/integrations/components/IntegrationProviderSelector';
 import { SelectedProviderHeader } from '../features/integrations/components/SelectedProviderHeader';
-import { A2A_PROVIDER } from '../features/integrations/utils/integrationKind';
 import { findProvider, type ProviderCatalogEntry } from '../features/integrations/utils/providerLabels';
 
 const PROVIDER_SEARCH_PARAM = 'provider';
@@ -103,11 +101,7 @@ export function CreateIntegrationPage() {
                 ) : (
                     <>
                         <SelectedProviderHeader provider={provider} onChange={backToProviders} disabled={submitting} />
-                        {provider.token === A2A_PROVIDER ? (
-                            <CreateA2aIntegration onCancel={leaveToList} onSubmittingChange={setSubmitting} />
-                        ) : (
-                            <CreateGatewayIntegration provider={provider.token} onCancel={leaveToList} onSubmittingChange={setSubmitting} />
-                        )}
+                        <CreateGatewayIntegration provider={provider.token} onCancel={leaveToList} onSubmittingChange={setSubmitting} />
                     </>
                 )}
             </div>
