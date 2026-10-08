@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import { apimFetchBlobV2, apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type {
     ApiKey,
     ApiKeyPage,
@@ -43,28 +43,38 @@ const entityBase = (ctx: SubscriptionContext) =>
 
 const sub = (ctx: SubscriptionContext, subId: string) => `${entityBase(ctx)}/subscriptions/${encodeURIComponent(subId)}`;
 
-export async function listSubscriptions(
-    envId: string,
-    ctx: SubscriptionContext,
-    filters: {
-        statuses?: SubscriptionStatus[];
-        planIds?: string[];
-        applicationIds?: string[];
-        apiKey?: string;
-        page?: number;
-        perPage?: number;
-    },
-): Promise<SubscriptionPage> {
-    const q = buildQuery({
+interface SubscriptionListFilters {
+    statuses?: SubscriptionStatus[];
+    planIds?: string[];
+    applicationIds?: string[];
+    apiKey?: string;
+    page?: number;
+    perPage?: number;
+}
+
+function subscriptionFiltersQuery(filters: SubscriptionListFilters) {
+    return {
         statuses: filters.statuses,
         planIds: filters.planIds,
         applicationIds: filters.applicationIds,
         apiKey: filters.apiKey,
         page: filters.page ?? 1,
         perPage: filters.perPage ?? 10,
-        expands: 'plan,application',
-    });
+    };
+}
+
+export async function listSubscriptions(
+    envId: string,
+    ctx: SubscriptionContext,
+    filters: SubscriptionListFilters,
+): Promise<SubscriptionPage> {
+    const q = buildQuery({ ...subscriptionFiltersQuery(filters), expands: 'plan,application' });
     return apimFetchJsonV2<SubscriptionPage>(envId, `${entityBase(ctx)}/subscriptions${q}`);
+}
+
+export async function exportSubscriptionsCsv(envId: string, apiId: string, filters: SubscriptionListFilters): Promise<Blob> {
+    const q = buildQuery(subscriptionFiltersQuery(filters));
+    return apimFetchBlobV2(envId, `/apis/${encodeURIComponent(apiId)}/subscriptions/_export${q}`);
 }
 
 export async function getSubscription(envId: string, ctx: SubscriptionContext, subscriptionId: string): Promise<Subscription> {
@@ -195,14 +205,14 @@ interface ApiSubscribersPage {
 export async function listApiSubscribers(
     envId: string,
     apiId: string,
-    options?: { page?: number; perPage?: number; name?: string },
+    options?: { page?: number; perPage?: number; name?: string; signal?: AbortSignal },
 ): Promise<ApiSubscribersPage> {
     const q = buildQuery({
         page: options?.page ?? 1,
         perPage: options?.perPage ?? 100,
         name: options?.name,
     });
-    return apimFetchJsonV2<ApiSubscribersPage>(envId, `/apis/${encodeURIComponent(apiId)}/subscribers${q}`);
+    return apimFetchJsonV2<ApiSubscribersPage>(envId, `/apis/${encodeURIComponent(apiId)}/subscribers${q}`, { signal: options?.signal });
 }
 
 /** Fetches every subscriber page for alert filter pickers. */
