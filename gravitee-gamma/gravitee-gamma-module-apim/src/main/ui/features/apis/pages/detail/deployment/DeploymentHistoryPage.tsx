@@ -28,14 +28,16 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import { EyeIcon, GitBranchIcon, MoreVerticalIcon, XIcon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, GitBranchIcon, MoreVerticalIcon, RefreshCwIcon, XIcon } from '@gravitee/graphene-core/icons';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { DiffDialog } from './DiffDialog';
 import { SingleEventDialog } from './SingleEventDialog';
-import { useApiEvents } from '../../../hooks/useApiEvents';
+import { canRollbackTo, isNativeApi } from './utils';
+import { useApiDetailContext } from '../../../context/ApiDetailContext';
+import { useApiEvents, useLiveDeploymentEvent } from '../../../hooks/useApiEvents';
 import { rollbackApi } from '../../../services/apis';
 import type { ApiEvent } from '../../../types';
 import { apiEventsKeys } from '../../../utils/queryKeys';
@@ -56,10 +58,18 @@ export function DeploymentHistoryPage() {
     const [isRollingBack, setIsRollingBack] = useState(false);
     const [rollbackError, setRollbackError] = useState<string | null>(null);
 
+    const { api } = useApiDetailContext();
+
     const { data, isLoading } = useApiEvents(apiId, page, pageSize);
     const events = useMemo(() => data?.data ?? [], [data]);
     const totalCount = data?.pagination.totalCount ?? 0;
-    const liveEvent = useMemo(() => (page === 1 && events.length > 0 ? events[0] : null), [page, events]);
+    const liveEvent = useLiveDeploymentEvent(apiId, page, events);
+
+    const rollbackContext = useMemo(
+        () => ({ liveEventId: liveEvent?.id, isNative: isNativeApi(api), needsRedeploy: api?.deploymentState === 'NEED_REDEPLOY' }),
+        [api, liveEvent],
+    );
+    const canRollbackToEvent = useCallback((event: ApiEvent) => canRollbackTo(event, rollbackContext), [rollbackContext]);
 
     const showDiff = selectedEvents.length === 2;
     const selectionCount = selectedEvents.length;
@@ -135,7 +145,7 @@ export function DeploymentHistoryPage() {
             enableSorting: false,
             cell: ({ row }: Cell<ApiEvent>) => {
                 const event = row.original;
-                const isLive = row.index === 0 && page === 1;
+                const isLive = event.id === liveEvent?.id;
                 const version = event.properties.DEPLOYMENT_NUMBER;
                 return (
                     <div className="flex items-center gap-2 font-medium">
@@ -182,9 +192,10 @@ export function DeploymentHistoryPage() {
             enableHiding: false,
             cell: ({ row }: Cell<ApiEvent>) => {
                 const event = row.original;
-                const isLive = row.index === 0 && page === 1;
+                const isLive = event.id === liveEvent?.id;
                 const canCompareWithLive = !isLive && liveEvent !== null;
-                if (!canCompareWithLive) {
+                const canRollback = canRollbackToEvent(event);
+                if (!canCompareWithLive && !canRollback) {
                     return (
                         <div className="flex justify-end">
                             <Button
@@ -213,10 +224,18 @@ export function DeploymentHistoryPage() {
                                     <EyeIcon className="size-3.5" />
                                     View definition
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => handleCompareWithLive(event)}>
-                                    <GitBranchIcon className="size-3.5" />
-                                    Compare with live
-                                </DropdownMenuItem>
+                                {canCompareWithLive ? (
+                                    <DropdownMenuItem onSelect={() => handleCompareWithLive(event)}>
+                                        <GitBranchIcon className="size-3.5" />
+                                        Compare with live
+                                    </DropdownMenuItem>
+                                ) : null}
+                                {canRollback ? (
+                                    <DropdownMenuItem onSelect={() => setSingleViewEvent(event)}>
+                                        <RefreshCwIcon className="size-3.5" />
+                                        Rollback to v{event.properties.DEPLOYMENT_NUMBER ?? '—'}
+                                    </DropdownMenuItem>
+                                ) : null}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -298,6 +317,7 @@ export function DeploymentHistoryPage() {
             {singleViewEvent ? (
                 <SingleEventDialog
                     event={singleViewEvent}
+                    canRollback={canRollbackToEvent(singleViewEvent)}
                     onRollback={handleRollback}
                     onClose={() => setSingleViewEvent(null)}
                     isRollingBack={isRollingBack}
@@ -308,6 +328,8 @@ export function DeploymentHistoryPage() {
                 <DiffDialog
                     left={selectedEvents[0]}
                     right={selectedEvents[1]}
+                    canRollbackLeft={canRollbackToEvent(selectedEvents[0])}
+                    canRollbackRight={canRollbackToEvent(selectedEvents[1])}
                     onClose={handleDiffClose}
                     onRollback={handleRollback}
                     isRollingBack={isRollingBack}

@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    Button,
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@gravitee/graphene-core';
+import { Button, Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from '@gravitee/graphene-core';
 import { XIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, useState } from 'react';
 
 import { LineDiffView } from './LineDiffView';
+import { RollbackConfirmDialog } from './RollbackConfirmDialog';
 import { SideBySideView } from './SideBySideView';
 import type { DiffMode } from './types';
 import { computeSideBySideDiff, computeUnifiedDiff, extractDefinition, hasDiffChanges } from './utils';
@@ -35,6 +27,8 @@ import type { ApiEvent } from '../../../types';
 type Props = Readonly<{
     left: ApiEvent;
     right: ApiEvent;
+    canRollbackLeft: boolean;
+    canRollbackRight: boolean;
     onClose: () => void;
     onRollback: (eventId: string) => Promise<void>;
     isRollingBack: boolean;
@@ -45,9 +39,9 @@ const DIFF_MODES: { value: DiffMode; label: string }[] = [
     { value: 'line-by-line', label: 'Line-by-line' },
 ];
 
-export function DiffDialog({ left, right, onClose, onRollback, isRollingBack }: Props) {
+export function DiffDialog({ left, right, canRollbackLeft, canRollbackRight, onClose, onRollback, isRollingBack }: Props) {
     const [mode, setMode] = useState<DiffMode>('side-by-side');
-    const [showRollbackConfirm, setShowRollbackConfirm] = useState(false);
+    const [rollbackTarget, setRollbackTarget] = useState<ApiEvent | null>(null);
 
     const leftDef = useMemo(() => extractDefinition(left), [left]);
     const rightDef = useMemo(() => extractDefinition(right), [right]);
@@ -57,6 +51,7 @@ export function DiffDialog({ left, right, onClose, onRollback, isRollingBack }: 
 
     const leftVersion = left.properties.DEPLOYMENT_NUMBER ?? '—';
     const rightVersion = right.properties.DEPLOYMENT_NUMBER ?? '—';
+    const rollbackVersion = rollbackTarget?.properties.DEPLOYMENT_NUMBER ?? '—';
 
     return (
         <>
@@ -132,43 +127,33 @@ export function DiffDialog({ left, right, onClose, onRollback, isRollingBack }: 
                                 Close
                             </Button>
                         </DialogClose>
-                        {changed && (
-                            <Button size="sm" variant="destructive" onClick={() => setShowRollbackConfirm(true)}>
-                                Rollback to v{rightVersion}
-                            </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {canRollbackLeft && (
+                                <Button size="sm" variant="destructive" onClick={() => setRollbackTarget(left)}>
+                                    Rollback to v{leftVersion}
+                                </Button>
+                            )}
+                            {canRollbackRight && (
+                                <Button size="sm" variant="destructive" onClick={() => setRollbackTarget(right)}>
+                                    Rollback to v{rightVersion}
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
 
-            {/* ─── Rollback confirmation ────────────────────────────────────── */}
-            <Dialog open={showRollbackConfirm} onOpenChange={open => !open && !isRollingBack && setShowRollbackConfirm(false)}>
-                <DialogContent className="max-w-sm">
-                    <DialogHeader>
-                        <DialogTitle>Rollback to v{rightVersion}?</DialogTitle>
-                        <DialogDescription>
-                            This will restore the API to version {rightVersion} and redeploy it to the gateway. This action cannot be
-                            undone.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter className="gap-2 sm:justify-end">
-                        <Button variant="outline" size="sm" disabled={isRollingBack} onClick={() => setShowRollbackConfirm(false)}>
-                            Cancel
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="destructive"
-                            disabled={isRollingBack}
-                            onClick={async () => {
-                                await onRollback(right.id);
-                                setShowRollbackConfirm(false);
-                            }}
-                        >
-                            {isRollingBack ? 'Rolling back…' : 'Confirm rollback'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            {rollbackTarget ? (
+                <RollbackConfirmDialog
+                    version={rollbackVersion}
+                    isRollingBack={isRollingBack}
+                    onConfirm={async () => {
+                        await onRollback(rollbackTarget.id);
+                        setRollbackTarget(null);
+                    }}
+                    onCancel={() => setRollbackTarget(null)}
+                />
+            ) : null}
         </>
     );
 }
