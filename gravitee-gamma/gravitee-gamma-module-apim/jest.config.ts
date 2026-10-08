@@ -18,7 +18,7 @@ export default {
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['<rootDir>/src/main/ui/test-setup.ts'],
     transformIgnorePatterns: [
-        '/node_modules/(?!(until-async|@gravitee/(graphene-core|graphene-charts|gamma-lib-observability)|d3-[a-z-]+|internmap)/)',
+        '/node_modules/(?!(until-async|@gravitee/(graphene-core|graphene-charts|gamma-lib-observability|gamma-modules-sdk)|d3-[a-z-]+|internmap)/)',
     ],
     moduleNameMapper: {
         '^react$': '<rootDir>/../../node_modules/react/index.js',
