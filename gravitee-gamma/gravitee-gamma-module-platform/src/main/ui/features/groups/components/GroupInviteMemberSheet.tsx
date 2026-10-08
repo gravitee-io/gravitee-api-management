@@ -22,8 +22,8 @@ import { FormActionSubmitButton } from '../../../shared/components/FormActionSub
 import { useOpenRemountKey } from '../../../shared/hooks/useOpenRemountKey';
 import { STANDARD_SHEET_WIDTH } from '../../../shared/layout/sheetLayout';
 import { isValidEmail } from '../../../shared/utils/email';
+import { PRIMARY_OWNER_ROLE } from '../../shared/utils/memberRoles';
 import type { GroupMember, GroupRole } from '../types/group';
-import { PRIMARY_OWNER_ROLE } from '../types/group';
 import { getMemberRoleLockFlags } from '../utils/memberRoles';
 import { isPrimaryOwnerUnavailable, PRIMARY_OWNER_DISABLED_OPTIONS } from '../utils/primaryOwnership';
 

@@ -917,7 +917,10 @@ export function AppRoutes() {
                                                 <IntegrationConfigurationPage />
                                             </RequireIntegrationPermission>
                                         }
-                                    />
+                                    >
+                                        <Route index />
+                                        <Route path="members" />
+                                    </Route>
                                 </Route>
                             </Route>
                             <Route

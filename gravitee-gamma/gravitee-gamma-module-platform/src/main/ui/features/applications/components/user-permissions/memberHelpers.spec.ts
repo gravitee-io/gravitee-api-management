@@ -13,23 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-    formatAddMembersResultMessage,
-    formatRoleLabel,
-    getApplicationRole,
-    getGroupMemberRole,
-    isMemberPrimaryOwner,
-} from './memberHelpers';
+import { formatAddMembersResultMessage, getApplicationRole, isMemberPrimaryOwner } from './memberHelpers';
 import type { ApplicationUiMember } from '../../types/applicationMembers.types';
 
 describe('memberHelpers', () => {
-    describe('formatRoleLabel', () => {
-        it('formats underscore-separated roles', () => {
-            expect(formatRoleLabel('PRIMARY_OWNER')).toBe('Primary Owner');
-            expect(formatRoleLabel('USER')).toBe('User');
-        });
-    });
-
     describe('getApplicationRole', () => {
         it('prefers APPLICATION scope role', () => {
             const member: ApplicationUiMember = {
@@ -101,21 +88,6 @@ describe('memberHelpers', () => {
             expect(formatAddMembersResultMessage(1, 0, [{ user: alice, reason: 'Member already exists' }])).toBe(
                 'Failed to add member: Member already exists',
             );
-        });
-    });
-
-    describe('getGroupMemberRole', () => {
-        it('prefers GROUP scope role', () => {
-            expect(getGroupMemberRole({ roles: { GROUP: 'OWNER', APPLICATION: 'USER' } })).toBe('OWNER');
-        });
-
-        it('falls back to APPLICATION then first value', () => {
-            expect(getGroupMemberRole({ roles: { APPLICATION: 'USER' } })).toBe('USER');
-            expect(getGroupMemberRole({ roles: { OTHER: 'ADMIN' } })).toBe('ADMIN');
-        });
-
-        it('returns em dash when roles are empty', () => {
-            expect(getGroupMemberRole({ roles: {} })).toBe('—');
         });
     });
 });

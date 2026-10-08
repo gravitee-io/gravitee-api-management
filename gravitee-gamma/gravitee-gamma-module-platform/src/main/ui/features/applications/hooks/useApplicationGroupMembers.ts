@@ -18,8 +18,8 @@ import { useMemo } from 'react';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-import { getGroupMembers } from '../services/applicationMembers';
-import type { EnvironmentGroup, GroupMember } from '../types/applicationMembers.types';
+import { getGroupMembers } from '../../shared/services/groupMembers';
+import type { EnvironmentGroup, GroupMember } from '../../shared/types/groupMembers';
 import { applicationMemberKeys } from '../utils/queryKeys';
 
 export interface ApplicationGroupMembersView {

@@ -15,15 +15,13 @@
  */
 import { updateApplication, type UpdateApplicationPayload } from './applicationDetail';
 import { apimFetchJsonOrg, apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import type { GroupsPagedResponse } from '../../shared/types/groupMembers';
 import type { ApplicationListItem } from '../types/application';
 import type {
     ApplicationMemberEntity,
     ApplicationRole,
     ApplicationTransferOwnershipPayload,
     ApplicationUiMember,
-    EnvironmentGroup,
-    GroupMember,
-    GroupsPagedResponse,
 } from '../types/applicationMembers.types';
 import { mapApplicationMemberToUiMember } from '../utils/applicationMemberMapper';
 
@@ -100,30 +98,6 @@ export async function listApplicationRoles(): Promise<ApplicationRole[]> {
 
 export async function listEnvironmentGroups(environmentId: string): Promise<GroupsPagedResponse> {
     return apimFetchJsonV2<GroupsPagedResponse>(environmentId, '/groups?page=1&perPage=9999');
-}
-
-/** Resolves groups linked to an application by id (console GroupV2Service.listById). */
-export async function searchEnvironmentGroupsByIds(environmentId: string, ids: string[]): Promise<EnvironmentGroup[]> {
-    if (ids.length === 0) {
-        return [];
-    }
-    const response = await apimFetchJsonV2<GroupsPagedResponse>(environmentId, `/groups/_search?page=1&perPage=${ids.length}`, {
-        method: 'POST',
-        headers: JSON_HEADERS,
-        body: JSON.stringify({ ids }),
-    });
-    return response.data ?? [];
-}
-
-export async function getGroupMembers(environmentId: string, groupId: string): Promise<GroupMember[]> {
-    const response = await apimFetchJsonV2<{
-        data?: Array<{ id?: string; displayName?: string; roles?: Array<{ name?: string; scope?: string }> }>;
-    }>(environmentId, `/groups/${encodeURIComponent(groupId)}/members?page=1&perPage=100`);
-    return (response.data ?? []).map(m => ({
-        id: m.id ?? '',
-        displayName: m.displayName ?? '',
-        roles: Object.fromEntries((m.roles ?? []).map(r => [r.scope ?? '', r.name ?? ''])),
-    }));
 }
 
 export async function updateApplicationGroups(

@@ -35,10 +35,10 @@ import { ActivityIcon, CircleCheckIcon, CircleXIcon, GlobeIcon, MoreVerticalIcon
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
-import { NON_SORTABLE_COLUMN } from '../../applications/utils/dataTableHeaders';
 import type { ColCell, ColHeader } from '../../applications/utils/dataTableTypes';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../../applications/utils/paginationConstants';
 import type { TableSortingState } from '../../applications/utils/tableSort';
+import { NON_SORTABLE_COLUMN } from '../../shared/utils/dataTableHeaders';
 import { useEnvironmentHealthAvailability } from '../hooks/useEnvironmentHealthAvailability';
 import type { EnvironmentHealthApi } from '../types';
 import type { AvailabilityView } from '../utils/availability';

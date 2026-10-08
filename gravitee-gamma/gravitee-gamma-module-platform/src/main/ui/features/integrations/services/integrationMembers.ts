@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ChipInput } from './ChipInput';
-export { FeatureTile } from './FeatureTile';
-export { GroupMembersSection } from './GroupMembersSection';
-export { MemberAvatar } from './MemberAvatar';
+import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import type { IntegrationMember, IntegrationMembersResponse } from '../types/integrationMembers';
+
+export async function listIntegrationMembers(environmentId: string, integrationId: string): Promise<IntegrationMember[]> {
+    // The endpoint pages 10 members by default.
+    const response = await apimFetchJsonV2<IntegrationMembersResponse>(
+        environmentId,
+        `/integrations/${encodeURIComponent(integrationId)}/members?page=1&perPage=100`,
+    );
+    return response.data ?? [];
+}

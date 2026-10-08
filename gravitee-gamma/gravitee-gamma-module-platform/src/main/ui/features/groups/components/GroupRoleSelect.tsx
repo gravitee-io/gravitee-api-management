@@ -16,8 +16,8 @@
 
 import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@gravitee/graphene-core';
 
+import { PRIMARY_OWNER_ROLE } from '../../shared/utils/memberRoles';
 import type { GroupRole } from '../types/group';
-import { PRIMARY_OWNER_ROLE } from '../types/group';
 
 const NO_ROLE_VALUE = '__none__';
 

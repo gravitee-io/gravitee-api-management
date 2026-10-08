@@ -13,7 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ChipInput } from './ChipInput';
-export { FeatureTile } from './FeatureTile';
-export { GroupMembersSection } from './GroupMembersSection';
-export { MemberAvatar } from './MemberAvatar';
+
+export interface EnvironmentGroup {
+    id: string;
+    name: string;
+}
+
+export interface GroupsPagedResponse {
+    data: EnvironmentGroup[];
+}
+
+export interface GroupMember {
+    id: string;
+    displayName: string;
+    roles: Record<string, string>;
+}
