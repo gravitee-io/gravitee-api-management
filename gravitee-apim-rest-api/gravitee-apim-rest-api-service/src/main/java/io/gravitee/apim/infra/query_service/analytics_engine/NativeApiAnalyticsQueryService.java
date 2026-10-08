@@ -21,6 +21,7 @@ import io.gravitee.apim.core.analytics_engine.model.*;
 import io.gravitee.apim.core.analytics_engine.model.MetricSpec.Name;
 import io.gravitee.apim.core.analytics_engine.query_service.AnalyticsEngineQueryService;
 import io.gravitee.apim.infra.adapter.AnalyticsMeasuresAdapter;
+import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
@@ -50,13 +51,19 @@ public class NativeApiAnalyticsQueryService implements AnalyticsEngineQueryServi
     public FacetsResponse searchFacets(ExecutionContext context, FacetsRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchNativeApiFacets(context.getQueryContext(), query);
-        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
+        return IgnoredFilters.mark(
+            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.NATIVE, query)
+        );
     }
 
     @Override
     public TimeSeriesResponse searchTimeSeries(ExecutionContext context, TimeSeriesRequest request) {
         var query = AnalyticsMeasuresAdapter.INSTANCE.fromRequest(request);
         var result = analyticsRepository.searchNativeApiTimeSeries(context.getQueryContext(), query);
-        return AnalyticsMeasuresAdapter.INSTANCE.fromResult(result);
+        return IgnoredFilters.mark(
+            AnalyticsMeasuresAdapter.INSTANCE.fromResult(result),
+            IgnoredFilters.of(analyticsRepository, AnalyticsSearchPath.NATIVE, query)
+        );
     }
 }

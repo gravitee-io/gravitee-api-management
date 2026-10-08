@@ -135,7 +135,8 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
                         new MetricMeasuresResponse(
                             MetricSpec.Name.HTTP_REQUESTS,
                             MetricSpec.Unit.NUMBER,
-                            List.of(new Measure(MetricSpec.Measure.COUNT, 42))
+                            List.of(new Measure(MetricSpec.Measure.COUNT, 42)),
+                            List.of()
                         )
                     )
                 )
@@ -293,7 +294,9 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
         final var group = new FacetBucketResponse("APP-1", null, List.of(leaf), null);
         when(computeFacetsUseCase.execute(any())).thenReturn(
             new ComputeFacetsUseCase.Output(
-                new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(group))))
+                new FacetsResponse(
+                    List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(group), List.of()))
+                )
             )
         );
 
@@ -328,7 +331,7 @@ public class PortalAnalyticsComputationResourceTest extends AbstractResourceTest
         when(computeTimeSeriesUseCase.execute(any())).thenReturn(
             new ComputeTimeSeriesUseCase.Output(
                 new TimeSeriesResponse(
-                    List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(bucket)))
+                    List.of(new TimeSeriesMetricResponse(MetricSpec.Name.HTTP_REQUESTS, MetricSpec.Unit.NUMBER, List.of(bucket), List.of()))
                 )
             )
         );

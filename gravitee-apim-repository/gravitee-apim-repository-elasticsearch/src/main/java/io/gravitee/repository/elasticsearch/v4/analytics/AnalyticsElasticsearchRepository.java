@@ -18,9 +18,11 @@ package io.gravitee.repository.elasticsearch.v4.analytics;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.elasticsearch.model.SearchResponse;
 import io.gravitee.elasticsearch.utils.Type;
+import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
@@ -879,6 +881,11 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         }
 
         return searchMessageConnectionRequestIDs(query, httpIndex, nextAfterKey, accumulatedRequestIDs, iteration + 1);
+    }
+
+    @Override
+    public FilterOutcome filterOutcome(AnalyticsSearchPath path, Filter.Name filter) {
+        return FilterAdapter.outcome(path, filter);
     }
 
     @Override

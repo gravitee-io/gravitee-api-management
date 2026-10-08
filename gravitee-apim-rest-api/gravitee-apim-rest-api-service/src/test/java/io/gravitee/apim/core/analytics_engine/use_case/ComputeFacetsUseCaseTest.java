@@ -195,11 +195,13 @@ class ComputeFacetsUseCaseTest {
     @Test
     void should_return_post_processed_response() {
         var rawBucket = new FacetBucketResponse("api-1", "api-1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
-        var rawResponse = new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(rawBucket))));
+        var rawResponse = new FacetsResponse(
+            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(rawBucket), List.of()))
+        );
 
         var mappedBucket = new FacetBucketResponse("api-1", "My API 1", List.of(), List.of(new Measure(MetricSpec.Measure.COUNT, 42)));
         var mappedResponse = new FacetsResponse(
-            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(mappedBucket)))
+            List.of(new MetricFacetsResponse(MetricSpec.Name.HTTP_REQUESTS, null, List.of(mappedBucket), List.of()))
         );
 
         when(bucketNamesPostProcessor.mapBucketNames(any(), any(), any(FacetsResponse.class))).thenReturn(mappedResponse);

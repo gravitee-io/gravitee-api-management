@@ -80,7 +80,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
 
     MetricFacetsResponse mapFacetMetrics(AnalyticsQueryContext context, List<FacetSpec.Name> facets, MetricFacetsResponse metric) {
         var mappedBuckets = this.mapFacetBuckets(context, facets, metric.buckets());
-        return new MetricFacetsResponse(metric.metric(), metric.unit(), mappedBuckets);
+        return new MetricFacetsResponse(metric.metric(), metric.unit(), mappedBuckets, metric.ignoredFilters());
     }
 
     List<FacetBucketResponse> mapFacetBuckets(
@@ -167,7 +167,7 @@ public class BucketNamesPostProcessorImpl implements BucketNamesPostProcessor {
         TimeSeriesMetricResponse metric
     ) {
         var mappedBuckets = mapTimeSeriesBuckets(context, facets, metric.buckets());
-        return new TimeSeriesMetricResponse(metric.name(), metric.unit(), mappedBuckets);
+        return new TimeSeriesMetricResponse(metric.name(), metric.unit(), mappedBuckets, metric.ignoredFilters());
     }
 
     private List<TimeSeriesBucketResponse> mapTimeSeriesBuckets(

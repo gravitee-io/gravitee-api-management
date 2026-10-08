@@ -22,6 +22,7 @@ import io.gravitee.gamma.rest.core.observability.analytics.model.AnalyticsNumber
 import io.gravitee.gamma.rest.core.observability.analytics.use_case.AnalyticsRequestPipeline;
 import io.gravitee.gamma.rest.core.observability.logs.port.service_provider.ObservabilityLogsDataPort.AccessibleApi;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Core-side port onto the analytics computation engine. Uses only Gamma-native types so the core
@@ -31,6 +32,9 @@ import java.util.List;
  * <p>Responses are returned as {@link JsonNode} so the rich, nested APIM response hierarchy flows
  * through without requiring duplicate records in the Gamma core. Jackson serializes the node tree
  * directly to the HTTP response body.
+ *
+ * <p>Each query carries, by metric name, the conditions Gamma did not hand to the engine. A response
+ * lists them in each metric's {@code ignoredFilters}, after the ones the engine skipped.
  *
  * @author GraviteeSource Team
  */
@@ -43,7 +47,8 @@ public interface ObservabilityAnalyticsDataPort {
         String organizationId,
         String environmentId,
         AnalyticsRequestPipeline.PreparedScope scope,
-        List<AnalyticsMetricQuery> metrics
+        List<AnalyticsMetricQuery> metrics,
+        Map<String, List<String>> conditionsNotApplied
     ) {}
 
     JsonNode computeFacets(FacetsQuery query);
@@ -55,7 +60,8 @@ public interface ObservabilityAnalyticsDataPort {
         List<String> facets,
         Integer limit,
         List<AnalyticsFacetMetricQuery> metrics,
-        List<AnalyticsNumberRange> ranges
+        List<AnalyticsNumberRange> ranges,
+        Map<String, List<String>> conditionsNotApplied
     ) {}
 
     JsonNode computeTimeSeries(TimeSeriesQuery query);
@@ -68,7 +74,8 @@ public interface ObservabilityAnalyticsDataPort {
         List<String> facets,
         Integer facetSize,
         List<AnalyticsFacetMetricQuery> metrics,
-        List<AnalyticsNumberRange> ranges
+        List<AnalyticsNumberRange> ranges,
+        Map<String, List<String>> conditionsNotApplied
     ) {}
 
     /**

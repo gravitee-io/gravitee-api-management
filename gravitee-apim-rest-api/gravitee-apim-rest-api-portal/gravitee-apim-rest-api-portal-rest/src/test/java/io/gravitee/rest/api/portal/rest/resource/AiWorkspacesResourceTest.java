@@ -267,17 +267,20 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
                         new MetricMeasuresResponse(
                             MetricSpec.Name.LLM_PROMPT_TOTAL_TOKEN,
                             MetricSpec.Unit.NUMBER,
-                            List.of(new Measure(MetricSpec.Measure.COUNT, 12))
+                            List.of(new Measure(MetricSpec.Measure.COUNT, 12)),
+                            List.of()
                         ),
                         new MetricMeasuresResponse(
                             MetricSpec.Name.HTTP_REQUESTS,
                             MetricSpec.Unit.NUMBER,
-                            List.of(new Measure(MetricSpec.Measure.COUNT, 3))
+                            List.of(new Measure(MetricSpec.Measure.COUNT, 3)),
+                            List.of()
                         ),
                         new MetricMeasuresResponse(
                             MetricSpec.Name.LLM_PROMPT_TOKEN_TOTAL_COST,
                             MetricSpec.Unit.NUMBER,
-                            List.of(new Measure(MetricSpec.Measure.COUNT, 1.5))
+                            List.of(new Measure(MetricSpec.Measure.COUNT, 1.5)),
+                            List.of()
                         )
                     )
                 )

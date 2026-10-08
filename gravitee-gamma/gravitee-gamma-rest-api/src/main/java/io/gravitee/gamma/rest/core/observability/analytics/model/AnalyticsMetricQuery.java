@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.model;
 
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import java.util.List;
 
 /**
@@ -24,4 +25,8 @@ import java.util.List;
  * @param metricName  Metric identifier (e.g. "HTTP_REQUESTS", "LLM_PROMPT_TOKEN_SENT").
  * @param measures    Aggregation functions to compute (e.g. "COUNT", "AVG", "P99").
  */
-public record AnalyticsMetricQuery(String metricName, List<String> measures) {}
+public record AnalyticsMetricQuery(String metricName, List<String> measures, List<FilterCondition> filters) {
+    public AnalyticsMetricQuery {
+        filters = filters == null ? List.of() : List.copyOf(filters);
+    }
+}
