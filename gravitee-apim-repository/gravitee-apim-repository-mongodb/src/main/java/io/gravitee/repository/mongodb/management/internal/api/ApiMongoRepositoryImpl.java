@@ -54,10 +54,10 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
         Sort sort;
         if (sortable == null) {
-            sort = Sort.by(ASC, "name");
+            sort = Sort.by(ASC, "name", "id");
         } else {
             Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
-            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
+            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field())).and(Sort.by(ASC, "id"));
         }
 
         long total = mongoTemplate.count(query, ApiMongo.class);
@@ -82,10 +82,10 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
 
         Sort sort;
         if (sortable == null) {
-            sort = Sort.by(ASC, "name");
+            sort = Sort.by(ASC, "name", "id");
         } else {
             Sort.Direction sortOrder = sortable.order().equals(Order.ASC) ? ASC : Sort.Direction.DESC;
-            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field()));
+            sort = Sort.by(sortOrder, FieldUtils.toCamelCase(sortable.field())).and(Sort.by(ASC, "id"));
         }
 
         // Get total count before adding pagination to the query
