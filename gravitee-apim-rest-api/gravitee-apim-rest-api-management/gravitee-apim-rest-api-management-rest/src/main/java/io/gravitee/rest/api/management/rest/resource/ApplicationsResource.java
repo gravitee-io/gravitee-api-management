@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import io.gravitee.apim.core.application_certificate.domain_service.MtlsSubscriptionSyncDomainService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.wrapper.ApplicationListItemPagedResult;
@@ -231,6 +232,8 @@ public class ApplicationsResource extends AbstractResource {
             settings.setApp(simpleAppSettings);
             application.setSettings(settings);
         }
+
+        application.setOrigin(Origin.MANAGEMENT);
 
         ApplicationEntity newApplication = applicationService.create(
             GraviteeContext.getExecutionContext(),
