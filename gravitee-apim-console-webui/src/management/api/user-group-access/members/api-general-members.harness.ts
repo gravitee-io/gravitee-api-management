@@ -143,6 +143,10 @@ export class ApiGeneralMembersHarness extends ComponentHarness {
     return this.manageGroupsButtonSelector().then(btn => btn.click());
   }
 
+  async isManageGroupsButtonDisabled(): Promise<boolean> {
+    return this.manageGroupsButtonSelector().then(btn => btn.isDisabled());
+  }
+
   async isManageGroupsButtonVisible(): Promise<boolean> {
     return (await this.manageGroupsButtonOptionalSelector()) != null;
   }

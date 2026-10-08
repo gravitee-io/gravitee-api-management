@@ -106,7 +106,7 @@ public class GroupsResourceTest extends AbstractResourceTest {
     class ListGroups {
 
         @Test
-        public void should_control_permissions() {
+        public void should_return_only_groups_attached_to_the_caller_without_environment_group_read() {
             when(
                 permissionService.hasPermission(
                     GraviteeContext.getExecutionContext(),
@@ -115,9 +115,20 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     RolePermissionAction.READ
                 )
             ).thenReturn(false);
+            when(groupService.findAll(GraviteeContext.getExecutionContext())).thenReturn(
+                List.of(
+                    GroupEntity.builder().id("attached").name("Attached").build(),
+                    GroupEntity.builder().id("other").name("Other").build()
+                )
+            );
+            when(groupService.findGroupIdsAttachedToUserResources(any(), any())).thenReturn(Set.of("attached"));
 
             final Response response = target.queryParam("perPage", 10).queryParam("page", 1).request().get();
-            assertThat(response).hasStatus(FORBIDDEN_403);
+
+            assertThat(response).hasStatus(OK_200);
+            assertThat(response.readEntity(GroupsResponse.class).getData())
+                .extracting(group -> group.getId())
+                .containsExactly("attached");
         }
 
         @Test
@@ -224,10 +235,39 @@ public class GroupsResourceTest extends AbstractResourceTest {
                     RolePermissionAction.READ
                 )
             ).thenReturn(false);
+            when(groupService.findGroupIdsAttachedToUserResources(any(), any())).thenReturn(Set.of("some-other-group"));
 
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
+        public void should_return_members_when_the_group_is_attached_to_the_caller_resource() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.GROUP_MEMBER,
+                    GROUP_ID,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_GROUP,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            ).thenReturn(false);
+            when(groupService.findGroupIdsAttachedToUserResources(any(), any())).thenReturn(Set.of(GROUP_ID));
+            when(
+                membershipService.getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.GROUP, GROUP_ID)
+            ).thenReturn(Set.of());
+
+            final Response response = target.request().get();
+
+            assertThat(response).hasStatus(OK_200);
         }
 
         @Test
@@ -590,9 +630,25 @@ public class GroupsResourceTest extends AbstractResourceTest {
                 )
             ).thenReturn(false);
 
+            io.gravitee.apim.core.group.model.Group attached = io.gravitee.apim.core.group.model.Group.builder()
+                .id("group-1")
+                .name("Group 1")
+                .environmentId(ENVIRONMENT)
+                .build();
+            io.gravitee.apim.core.group.model.Group other = io.gravitee.apim.core.group.model.Group.builder()
+                .id("group-2")
+                .name("Group 2")
+                .environmentId(ENVIRONMENT)
+                .build();
+            givenExistingGroup(List.of(attached, other));
+            when(groupService.findGroupIdsAttachedToUserResources(any(), any())).thenReturn(Set.of("group-1"));
+
             final Response response = target.request().post(jakarta.ws.rs.client.Entity.json(Map.of("ids", Set.of("group-1", "group-2"))));
 
-            assertThat(response).hasStatus(FORBIDDEN_403);
+            assertThat(response).hasStatus(OK_200);
+            assertThat(response.readEntity(GroupsResponse.class).getData())
+                .extracting(group -> group.getId())
+                .containsExactly("group-1");
         }
 
         @Test

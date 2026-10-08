@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -80,6 +80,7 @@ export class ApiGeneralMembersComponent implements OnInit {
   displayedColumns = ['picture', 'displayName', 'role'];
   api: Api;
   groups: Group[];
+  groupsLoadFailed = false;
   canTransferOwnership: boolean;
 
   constructor(
@@ -121,11 +122,17 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   private getMembersWithPagination(page = 1, perPage = 10): void {
+    this.groupsLoadFailed = false;
     forkJoin([
       this.apiService.get(this.apiId),
       this.apiMemberService.getPagedMembers(this.apiId, page, perPage),
       this.roleService.list('API'),
-      this.groupService.list(1, 9999),
+      this.groupService.list(1, 9999).pipe(
+        catchError(() => {
+          this.groupsLoadFailed = true;
+          return of({ data: [] });
+        }),
+      ),
     ])
       .pipe(
         tap(([api, members, roles, groups]) => {
