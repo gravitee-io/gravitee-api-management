@@ -44,6 +44,13 @@ public class GammaDashboard {
 
     private String id;
     private String environmentId;
+
+    /**
+     * Gamma module that owns the dashboard, e.g. {@code aim}. {@code null} on dashboards created before the field
+     * existed: those stay reachable through {@link io.gravitee.repository.management.api.GammaDashboardRepository#findByEnvironmentId}.
+     */
+    private String module;
+
     private String title;
     private String description;
     private List<Filter> filters;

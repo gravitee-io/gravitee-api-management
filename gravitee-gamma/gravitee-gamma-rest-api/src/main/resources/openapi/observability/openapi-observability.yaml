@@ -81,6 +81,11 @@ tags:
           is an optimistic-locking counter: nothing enforces it yet, but it must round-trip so a
           future write can submit it back.
 
+          A dashboard can belong to a Gamma module (`module`, set once at creation), so each module
+          lists its own dashboards. This scoping is not an access-control boundary: every dashboard
+          of the environment stays readable and writable by anyone holding the
+          `ENVIRONMENT_DASHBOARD` permissions, whatever its module.
+
 paths:
     /organizations/{orgId}/environments/{envId}/observability/filters/definition:
         parameters:
@@ -1268,11 +1273,16 @@ paths:
             description: |
                 Returns the dashboards saved in this environment, oldest first, in pages.
 
+                With `module`, only the dashboards of that module are returned; repeat it to list
+                several modules in one call (`?module=aim&module=apim`). Without it, every dashboard
+                of the environment is, including those that belong to no module.
+
                 Walk the collection with `page` and `perPage`; `pagination.totalCount` in the
                 response tells you how many dashboards exist in total. Each entry is a complete
                 dashboard — no extra call is needed to render one from this list.
             operationId: listObservabilityDashboards
             parameters:
+                - $ref: "#/components/parameters/dashboardModulesParam"
                 - name: page
                   in: query
                   required: false
@@ -1303,6 +1313,7 @@ paths:
                                     value:
                                         data:
                                             - id: "d7e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                              module: "aim"
                                               title: "Performance overview"
                                               description: "MCP traffic health"
                                               filters:
@@ -1382,6 +1393,7 @@ paths:
                             $ref: "#/components/schemas/CreateDashboardRequest"
                         example:
                             id: "d7e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                            module: "aim"
                             title: "Performance overview"
                             description: "MCP traffic health"
                             filters:
@@ -1452,7 +1464,8 @@ paths:
             summary: Get a single saved dashboard
             description: |
                 Returns one dashboard with its filters, time range and widgets exactly as they were
-                saved — enough to render it without any further call.
+                saved — enough to render it without any further call. With `module`, a dashboard of
+                another module, or of none, is reported as not found.
             operationId: getObservabilityDashboard
             parameters:
                 - name: dashboardId
@@ -1462,6 +1475,7 @@ paths:
                   example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
                   schema:
                       type: string
+                - $ref: "#/components/parameters/dashboardModuleParam"
             responses:
                 "200":
                     description: The saved dashboard.
@@ -1482,6 +1496,7 @@ paths:
                                     summary: Dashboard with filters and a relative time range
                                     value:
                                         id: "d7e246cb-ab02-4da4-8f47-f9fa3e061d6b"
+                                        module: "aim"
                                         title: "Performance overview"
                                         description: "MCP traffic health"
                                         filters:
@@ -1764,6 +1779,30 @@ components:
             description: Environment id or hrid.
             schema:
                 type: string
+        dashboardModulesParam:
+            name: module
+            in: query
+            required: false
+            description: |
+                Only list dashboards of these Gamma modules. Repeat for several modules. Absent:
+                every dashboard of the environment. A value that is not a module id is refused with
+                `400`.
+            style: form
+            explode: true
+            schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/DashboardModule"
+            example: [aim, apim]
+        dashboardModuleParam:
+            name: module
+            in: query
+            required: false
+            description: |
+                Only consider the dashboard if it belongs to this Gamma module. A value that is not a
+                module id is refused with `400`.
+            schema:
+                $ref: "#/components/schemas/DashboardModule"
 
     schemas:
         MessageLog:
@@ -3013,6 +3052,14 @@ components:
                 id:
                     type: string
                     example: d7e246cb-ab02-4da4-8f47-f9fa3e061d6b
+                module:
+                    allOf:
+                        - $ref: "#/components/schemas/DashboardModule"
+                    readOnly: true
+                    description: |
+                        Gamma module the dashboard belongs to, set at creation and never changed.
+                        Absent for a dashboard created without one, including every dashboard
+                        created before this field existed.
                 title:
                     type: string
                     example: Performance overview
@@ -3044,6 +3091,15 @@ components:
                     format: int64
                     readOnly: true
                     description: Epoch milliseconds.
+
+        DashboardModule:
+            type: string
+            pattern: "^[a-z0-9-]{1,64}$"
+            description: |
+                Identifier of a Gamma module, e.g. `aim` or `apim`. Only its shape is checked, not
+                whether the module is installed. Scopes which dashboards a module shows; it is not an
+                access-control boundary.
+            example: aim
 
         DashboardsResponse:
             type: object
@@ -3146,6 +3202,14 @@ components:
                       A dashboard being created. You supply the `id`. The new dashboard starts at
                       version 1, returned in the response `ETag`.
                   required: [id]
+                  properties:
+                      module:
+                          allOf:
+                              - $ref: "#/components/schemas/DashboardModule"
+                          description: |
+                              Gamma module the dashboard belongs to. Optional for now: a dashboard
+                              created without one belongs to no module and is only listed when no
+                              `module` is requested. It cannot be changed afterwards.
 
         UpdateDashboardRequest:
             allOf:
@@ -3154,7 +3218,7 @@ components:
                   description: |
                       A dashboard being replaced. The revision your edit was based on travels in the
                       required `If-Match` header, not in this body. The `id` comes from the URL and
-                      is ignored here.
+                      is ignored here, and so is a `module`: it is set at creation only.
 
         DashboardConflict:
             type: object

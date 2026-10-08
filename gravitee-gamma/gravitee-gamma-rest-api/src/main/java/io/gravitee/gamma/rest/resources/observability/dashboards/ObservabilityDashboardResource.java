@@ -36,6 +36,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -54,7 +55,10 @@ import java.util.stream.Collectors;
  * existence cannot be probed.
  *
  * <p>On PUT the id comes from the path — a different id in the request body is ignored, like every
- * other server-owned field (see {@link SaveDashboardRequestDto}).
+ * other server-owned field and like {@code module}, which only creation sets (see
+ * {@link SaveDashboardRequestDto}).
+ *
+ * <p>GET takes an optional {@code module}: a dashboard of another module, or of none, is a 404.
  *
  * <h2>Concurrency (OBS-17)</h2>
  * The revision an edit is based on travels as an {@code ETag} / {@code If-Match} pair rather than a
@@ -97,9 +101,9 @@ public class ObservabilityDashboardResource {
 
     @GET
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = { RolePermissionAction.READ }) })
-    public Response get(@PathParam("dashboardId") String dashboardId) {
+    public Response get(@PathParam("dashboardId") String dashboardId, @QueryParam("module") String module) {
         var ctx = GraviteeContext.getExecutionContext();
-        var output = getDashboardUseCase.execute(new GetObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), dashboardId));
+        var output = getDashboardUseCase.execute(new GetObservabilityDashboardUseCase.Input(ctx.getEnvironmentId(), dashboardId, module));
         return DashboardEntityTag.withETag(Response.ok(), output.dashboard()).build();
     }
 

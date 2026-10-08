@@ -18,6 +18,7 @@ package io.gravitee.gamma.rest.core.observability.dashboard.use_case;
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.observability.dashboard.exception.DashboardNotFoundException;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
+import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardModule;
 import io.gravitee.gamma.rest.core.observability.dashboard.port.repository.DashboardRepository;
 import lombok.AllArgsConstructor;
 
@@ -25,7 +26,7 @@ import lombok.AllArgsConstructor;
  * Fetches a single dashboard, scoped to the caller's environment. A dashboard id from another
  * environment throws {@link DashboardNotFoundException} — 404, not 403 — via the same
  * environment-scoped repository lookup used by the list use case, so existence cannot be probed
- * across environments.
+ * across environments. A dashboard of another module than the one requested is not found either.
  *
  * @author GraviteeSource Team
  */
@@ -35,13 +36,15 @@ public class GetObservabilityDashboardUseCase {
 
     private final DashboardRepository dashboardRepository;
 
-    public record Input(String environmentId, String dashboardId) {}
+    public record Input(String environmentId, String dashboardId, String module) {}
 
     public record Output(Dashboard dashboard) {}
 
     public Output execute(Input input) {
+        DashboardModule.requireValidOrAbsent(input.module());
         Dashboard dashboard = dashboardRepository
             .findByIdAndEnvironmentId(input.dashboardId(), input.environmentId())
+            .filter(found -> input.module() == null || input.module().equals(found.module()))
             .orElseThrow(() -> new DashboardNotFoundException(input.dashboardId()));
         return new Output(dashboard);
     }

@@ -32,7 +32,7 @@ import lombok.AllArgsConstructor;
 /**
  * Replaces a dashboard's author-editable content, under optimistic locking (OBS-17). Starts from the
  * existing aggregate so the server-owned fields survive the write: {@code createdAt} and
- * {@code createdBy} are carried over, {@code updatedAt} is stamped now and {@code version} is
+ * {@code createdBy} are carried over, so is {@code module} (immutable), {@code updatedAt} is stamped now and {@code version} is
  * incremented.
  *
  * <p>The caller must state a {@link VersionPrecondition}, and a stored revision that fails it is
@@ -104,6 +104,7 @@ public class UpdateObservabilityDashboardUseCase {
         return new Dashboard(
             existing.id(),
             existing.environmentId(),
+            existing.module(),
             input.content().title(),
             input.content().description(),
             input.content().filters(),

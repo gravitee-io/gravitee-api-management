@@ -59,6 +59,14 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
             .containsExactly("gd-1", "gd-2", "gd-3");
     }
 
+    /** Every module of the environment, the dashboard stored without one ({@code gd-3}) included. */
+    @Test
+    public void shouldFindByEnvironmentIdWhateverTheModule() throws Exception {
+        assertThat(gammaDashboardRepository.findByEnvironmentId("DEFAULT"))
+            .extracting(GammaDashboard::getModule)
+            .containsExactly("aim", "apim", null);
+    }
+
     @Test
     public void shouldReturnEmptyListForUnknownEnvironmentId() throws Exception {
         var dashboards = gammaDashboardRepository.findByEnvironmentId("UNKNOWN");
@@ -72,6 +80,7 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
             assertThat(result.getTitle()).isEqualTo("Performance Overview");
             assertThat(result.getDescription()).isEqualTo("Latency and throughput");
             assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
+            assertThat(result.getModule()).isEqualTo("aim");
             assertThat(result.getCreatedBy()).isEqualTo("user-1");
             assertThat(compareDate(result.getCreatedAt(), new Date(1000000000000L))).isTrue();
             assertThat(compareDate(result.getUpdatedAt(), new Date(1111111111111L))).isTrue();
@@ -83,6 +92,12 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
     public void shouldRoundTripAbsentVersionAsNull() throws Exception {
         var dashboard = gammaDashboardRepository.findById("gd-3");
         assertThat(dashboard).hasValueSatisfying(result -> assertThat(result.getVersion()).isNull());
+    }
+
+    @Test
+    public void shouldRoundTripAbsentModuleAsNull() throws Exception {
+        var dashboard = gammaDashboardRepository.findById("gd-3");
+        assertThat(dashboard).hasValueSatisfying(result -> assertThat(result.getModule()).isNull());
     }
 
     @Test
@@ -181,6 +196,7 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
         var dashboard = GammaDashboard.builder()
             .id("new-gd")
             .environmentId("DEFAULT")
+            .module("apim")
             .title("New Dashboard")
             .description("Created by the TCK")
             .createdBy("user-new")
@@ -212,6 +228,7 @@ public class GammaDashboardRepositoryTest extends AbstractManagementRepositoryTe
         assertThat(saved).hasValueSatisfying(result -> {
             assertThat(result.getId()).isEqualTo("new-gd");
             assertThat(result.getEnvironmentId()).isEqualTo("DEFAULT");
+            assertThat(result.getModule()).isEqualTo("apim");
             assertThat(result.getTitle()).isEqualTo("New Dashboard");
             assertThat(result.getDescription()).isEqualTo("Created by the TCK");
             assertThat(result.getCreatedBy()).isEqualTo("user-new");

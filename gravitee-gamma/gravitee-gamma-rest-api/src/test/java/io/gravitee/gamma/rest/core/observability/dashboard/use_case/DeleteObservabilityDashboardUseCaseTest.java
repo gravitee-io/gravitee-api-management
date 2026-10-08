@@ -74,6 +74,7 @@ class DeleteObservabilityDashboardUseCaseTest {
         return new Dashboard(
             DASHBOARD_ID,
             environmentId,
+            null,
             "Performance overview",
             null,
             List.of(),

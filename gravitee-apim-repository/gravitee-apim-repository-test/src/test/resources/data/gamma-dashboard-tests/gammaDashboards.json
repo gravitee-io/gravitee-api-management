@@ -1,6 +1,7 @@
 [
   {
     "id": "gd-1",
+    "module": "aim",
     "environmentId": "DEFAULT",
     "title": "Performance Overview",
     "description": "Latency and throughput",
@@ -32,6 +33,7 @@
   },
   {
     "id": "gd-2",
+    "module": "apim",
     "environmentId": "DEFAULT",
     "title": "API Metrics",
     "createdBy": "user-2",
@@ -65,6 +67,7 @@
   },
   {
     "id": "gd-4",
+    "module": "aim",
     "environmentId": "OTHER_ENV",
     "title": "Other Env Dashboard",
     "createdBy": "user-3",
