@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { loadRemoteModule, registerModuleRemotes, RETRY_DELAYS_MS } from './modules.remotes';
+import { DELAY_REPORTED_AFTER_MS, loadRemoteModule, registerModuleRemotes, RETRY_DELAYS_MS } from './modules.remotes';
 import type { GammaModule } from './modules.types';
 
 const mockLoadRemote = jest.fn();
@@ -113,6 +113,51 @@ describe('loadRemoteModule', () => {
             expect.any(String),
             expect.objectContaining({ message: 'Failed to load remote module: aim/App' }),
         );
+    });
+
+    it('should not report a load that recovers within the first attempts', async () => {
+        const onStatus = jest.fn();
+        mockLoadRemote
+            .mockRejectedValueOnce(new Error('Loading chunk 8201 failed.'))
+            .mockRejectedValueOnce(new Error('Loading chunk 8201 failed.'))
+            .mockResolvedValue(REMOTE_EXPORT);
+
+        const loading = loadRemoteModule(MODULE, onStatus);
+        await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+
+        await expect(loading).resolves.toBe(REMOTE_EXPORT);
+        expect(onStatus).not.toHaveBeenCalled();
+    });
+
+    it('should report the load as delayed once the next attempt is at least 10 s away', async () => {
+        const onStatus = jest.fn();
+        mockLoadRemote.mockRejectedValue(new Error('Loading chunk 8201 failed.'));
+
+        void loadRemoteModule(MODULE, onStatus).catch(() => undefined);
+        await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] - 1);
+        expect(onStatus).not.toHaveBeenCalled();
+
+        await jest.advanceTimersByTimeAsync(1);
+
+        expect(mockLoadRemote).toHaveBeenCalledTimes(3);
+        expect(RETRY_DELAYS_MS[2]).toBeGreaterThanOrEqual(DELAY_REPORTED_AFTER_MS);
+        expect(onStatus).toHaveBeenCalledWith('delayed');
+    });
+
+    it('should report attempts that fail slowly, and then wait at least 10 s before the next one', async () => {
+        const onStatus = jest.fn();
+        mockLoadRemote.mockImplementation(
+            () => new Promise((_resolve, reject) => setTimeout(() => reject(new Error('Script load timed out')), DELAY_REPORTED_AFTER_MS)),
+        );
+
+        void loadRemoteModule(MODULE, onStatus).catch(() => undefined);
+        await jest.advanceTimersByTimeAsync(DELAY_REPORTED_AFTER_MS);
+
+        expect(onStatus).toHaveBeenCalledWith('delayed');
+        await jest.advanceTimersByTimeAsync(DELAY_REPORTED_AFTER_MS - 1);
+        expect(mockLoadRemote).toHaveBeenCalledTimes(1);
+        await jest.advanceTimersByTimeAsync(1);
+        expect(mockLoadRemote).toHaveBeenCalledTimes(2);
     });
 
     it('should give up with the last error once every retry has failed', async () => {

@@ -151,6 +151,47 @@ describe('RemoteModuleRoute', () => {
             });
         }
 
+        it('should keep the loading skeleton, without any message, when a retry succeeds right after a failure', async () => {
+            mockLoadRemote.mockRejectedValueOnce(new Error('Loading chunk 8201 failed.')).mockResolvedValue(mockRemoteExport);
+
+            render(<RemoteModuleRoute module={buildModule('blip')} />);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] - 1);
+            });
+
+            expect(screen.getByLabelText('Loading content')).toBeTruthy();
+            expect(screen.queryByText(/isn't ready yet/)).toBeNull();
+
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(1);
+            });
+
+            expect(await screen.findByText('Remote module')).toBeTruthy();
+        });
+
+        it("should tell the user the app isn't ready yet once failures last, then open it by itself", async () => {
+            const chunkError = new Error('Loading chunk 8201 failed.');
+            mockLoadRemote
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockResolvedValue(mockRemoteExport);
+
+            render(<RemoteModuleRoute module={{ ...buildModule('aim'), remoteName: 'aim-restarting' }} />);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+            });
+
+            expect(await screen.findByText("Agent Management isn't ready yet")).toBeTruthy();
+
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[2]);
+            });
+
+            expect(await screen.findByText('Remote module')).toBeTruthy();
+            expect(screen.queryByText(/isn't ready yet/)).toBeNull();
+        });
+
         it('should show a message in place of the module, and keep the rest of the page, once every attempt has failed', async () => {
             mockLoadRemote.mockRejectedValue(new Error('Loading chunk 8201 failed.'));
 
@@ -231,6 +272,28 @@ describe('RemoteModuleRoute', () => {
 
             expect(await screen.findByText('Remote module')).toBeTruthy();
             expect(screen.queryByRole('alert')).toBeNull();
+        });
+
+        it('should start with the loading skeleton when a module is opened again after a failure', async () => {
+            seedEnvironments();
+            const slow = buildModule('slow-after-failure');
+            const neighbor = buildModule('neighbor');
+            let slowIsBack = false;
+            mockLoadRemote.mockImplementation((id: string) => {
+                if (id !== 'slow-after-failure/App') return Promise.resolve(mockRemoteExport);
+                return slowIsBack ? new Promise(() => undefined) : Promise.reject(new Error('Loading chunk 8201 failed.'));
+            });
+
+            const router = renderTwoModulesUnderGuard(slow, neighbor);
+            await runAllRetries();
+            await screen.findByRole('alert');
+
+            slowIsBack = true;
+            await openModule(router, neighbor);
+            await openModule(router, slow);
+
+            expect(screen.getByLabelText('Loading content')).toBeTruthy();
+            expect(screen.queryByText(/isn't ready yet/)).toBeNull();
         });
     });
 });

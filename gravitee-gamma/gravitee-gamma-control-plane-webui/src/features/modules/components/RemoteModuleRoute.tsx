@@ -16,11 +16,13 @@
 import { lazy, Suspense, type LazyExoticComponent, type ComponentType } from 'react';
 
 import { ModuleUnavailable } from './ModuleUnavailable';
+import { ModuleUpdating } from './ModuleUpdating';
 import { ContentSkeleton } from '../../../shared/components/ContentSkeleton';
 import { ErrorBoundary } from '../../../shared/components/ErrorBoundary';
 import { useEnvironmentStore } from '../../environment/environment.store';
 import { getModuleLabel } from '../modules.labels';
 import { loadRemoteModule } from '../modules.remotes';
+import { useModulesStore } from '../modules.store';
 import type { GammaModule } from '../modules.types';
 
 const lazyComponentCache = new Map<string, LazyExoticComponent<ComponentType>>();
@@ -29,16 +31,24 @@ export function getOrCreateLazyModule(module: GammaModule): LazyExoticComponent<
     const cacheKey = `${module.remoteName}/${module.exposedModule}`;
     let cached = lazyComponentCache.get(cacheKey);
     if (!cached) {
-        cached = lazy(() =>
-            loadRemoteModule(module).catch((error: unknown) => {
-                // React keeps a failed lazy component failed: dropping it lets the next visit load the module again.
-                lazyComponentCache.delete(cacheKey);
-                throw error;
-            }),
-        );
+        cached = lazy(() => {
+            const { setModuleLoadStatus } = useModulesStore.getState();
+            return loadRemoteModule(module, status => setModuleLoadStatus(module.id, status))
+                .catch((error: unknown) => {
+                    // React keeps a failed lazy component failed: dropping it lets the next visit load the module again.
+                    lazyComponentCache.delete(cacheKey);
+                    throw error;
+                })
+                .finally(() => setModuleLoadStatus(module.id, undefined));
+        });
         lazyComponentCache.set(cacheKey, cached);
     }
     return cached;
+}
+
+function RemoteModuleLoading({ moduleId, moduleName }: { readonly moduleId: string; readonly moduleName: string }) {
+    const delayed = useModulesStore(s => s.moduleLoadStatuses[moduleId] !== undefined);
+    return delayed ? <ModuleUpdating moduleName={moduleName} /> : <ContentSkeleton />;
 }
 
 /**
@@ -69,7 +79,7 @@ export function RemoteModuleRoute({ module }: { readonly module: GammaModule }) 
 
     return (
         <ErrorBoundary key={module.id} fallback={(_error, reload) => <ModuleUnavailable moduleName={moduleName} onReload={reload} />}>
-            <Suspense fallback={<ContentSkeleton />}>
+            <Suspense fallback={<RemoteModuleLoading moduleId={module.id} moduleName={moduleName} />}>
                 <LazyModule key={environmentId} />
             </Suspense>
         </ErrorBoundary>

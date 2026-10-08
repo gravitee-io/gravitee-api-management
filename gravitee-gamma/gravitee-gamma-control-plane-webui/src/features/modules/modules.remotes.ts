@@ -25,6 +25,14 @@ import type { GammaModule } from './modules.types';
  */
 export const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, ...Array.from({ length: 11 }, () => 15_000)];
 
+/**
+ * A load that recovers sooner stays behind the loading skeleton, without a word on screen. Once a load is
+ * reported as delayed, the next attempt waits at least this long, so the message shown for it never flashes.
+ */
+export const DELAY_REPORTED_AFTER_MS = 10_000;
+
+export type RemoteModuleLoadStatus = 'delayed';
+
 type RemoteModuleExport = { default: ComponentType };
 
 const DEV_MODULE_ENTRIES: Record<string, string> = (process.env.DEV_MODULE_ENTRIES ?? '')
@@ -73,9 +81,14 @@ function wait(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function loadRemoteModule(module: GammaModule): Promise<RemoteModuleExport> {
+export async function loadRemoteModule(
+    module: GammaModule,
+    onStatus?: (status: RemoteModuleLoadStatus) => void,
+): Promise<RemoteModuleExport> {
     const id = `${module.remoteName}/${module.exposedModule}`;
     const attempts = RETRY_DELAYS_MS.length + 1;
+    const startedAt = Date.now();
+    let delayed = false;
 
     for (let attempt = 1; ; attempt++) {
         try {
@@ -87,7 +100,12 @@ export async function loadRemoteModule(module: GammaModule): Promise<RemoteModul
                 console.error(`[Modules] Could not load module "${module.id}" after ${attempts} attempts.`, error);
                 throw error;
             }
-            const delay = RETRY_DELAYS_MS[attempt - 1];
+            let delay = RETRY_DELAYS_MS[attempt - 1];
+            if (!delayed && (delay >= DELAY_REPORTED_AFTER_MS || Date.now() - startedAt >= DELAY_REPORTED_AFTER_MS)) {
+                delayed = true;
+                delay = Math.max(delay, DELAY_REPORTED_AFTER_MS);
+                onStatus?.('delayed');
+            }
             console.warn(
                 `[Modules] Could not load module "${module.id}" (attempt ${attempt} of ${attempts}). The platform may be updating; retrying in ${delay / 1000} s.`,
                 error,
