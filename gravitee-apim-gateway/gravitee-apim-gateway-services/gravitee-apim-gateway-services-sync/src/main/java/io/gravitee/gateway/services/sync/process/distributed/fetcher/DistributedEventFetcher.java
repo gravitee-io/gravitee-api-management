@@ -24,6 +24,7 @@ import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
 import io.reactivex.rxjava3.core.Flowable;
+import java.util.Map;
 import java.util.Set;
 import lombok.CustomLog;
 import lombok.Getter;
@@ -47,10 +48,15 @@ public class DistributedEventFetcher {
     @Accessors(fluent = true)
     private final int bulkItems;
 
+    /** Per-type batch size overrides, for types whose events are larger (e.g. API payloads). */
+    @Getter
+    private final Map<DistributedEventType, Integer> batchSizes;
+
     public DistributedEventFetcher(
         final DistributedEventRepository distributedEventRepository,
         final ClusterManager clusterManager,
-        final int bulkItems
+        final int bulkItems,
+        final Map<DistributedEventType, Integer> batchSizes
     ) {
         if (bulkItems <= 0) {
             throw new IllegalArgumentException("bulkItems must be > 0 (got " + bulkItems + ")");
@@ -58,6 +64,21 @@ public class DistributedEventFetcher {
         this.distributedEventRepository = distributedEventRepository;
         this.clusterManager = clusterManager;
         this.bulkItems = bulkItems;
+        this.batchSizes = batchSizes;
+    }
+
+    /**
+     * Returns the batch size for a given event type, capped at the minimum, or the default bulkItems when the
+     * type has no specific override. Types whose events carry large payloads (APIs) can be tuned down to fetch
+     * fewer events at a time into the memory of each secondary.
+     */
+    /**
+     * Returns the batch size for a given event type, capped at the minimum, or the default bulkItems when the
+     * type has no specific override. Types whose events carry large payloads (APIs) can be tuned down to fetch
+     * fewer events at a time into the memory of each secondary.
+     */
+    public int requestBatchSize(final DistributedEventType type) {
+        return Math.max(batchSizes.getOrDefault(type, bulkItems), MIN_FETCH_BATCH_SIZE);
     }
 
     public Flowable<DistributedEvent> fetchLatest(
@@ -78,6 +99,7 @@ public class DistributedEventFetcher {
             .type(type)
             .syncActions(syncActions)
             .build();
+
         return distributedEventRepository
             .searchAll(distributedEventCriteria, requestBatchSize(type))
             .doOnComplete(() -> recordSequenceSeen(type));
