@@ -17,12 +17,13 @@ export default {
     displayName: 'gravitee-gamma-control-plane-webui',
     testEnvironment: 'jest-fixed-jsdom',
     setupFilesAfterEnv: ['./src/test-setup.ts'],
-    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core)/)'],
+    transformIgnorePatterns: ['/node_modules/(?!(until-async|@gravitee/graphene-core|@gravitee/gamma-modules-sdk)/)'],
     moduleNameMapper: {
         '^@gravitee/graphene-core$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/index.js',
         // Subpath imports like `@gravitee/graphene-core/icons` resolve to `dist/<subpath>/index.js`.
         '^@gravitee/graphene-core/(.+)$': '<rootDir>/../../node_modules/@gravitee/graphene-core/dist/$1/index.js',
         '^@gravitee/gamma-modules-sdk$': '<rootDir>/src/shared/gamma-modules-sdk.ts',
+        '^@gravitee/gamma-modules-sdk/(.+)$': '<rootDir>/../../node_modules/@gravitee/gamma-modules-sdk/dist/$1.js',
         '^@gravitee/gamma-ui-shared/federation$': '<rootDir>/../gamma-ui-shared/src/federation/index.ts',
     },
     transform: {
