@@ -15,10 +15,15 @@
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { ApiDocumentationPage } from './ApiDocumentationPage';
+import { ApimApiError } from '../../../../shared/api/apimClient';
+import { notify } from '../../../../shared/notify';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
+import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
+import type { ApiDocumentationItem, ApiPortalNavigationItemsResponse, ApiPortalPublication } from '../../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     useHasPermission: jest.fn(() => true),
@@ -28,8 +33,64 @@ jest.mock('../../context/ApiDetailContext', () => ({
     useApiDetailContext: jest.fn(),
 }));
 
+jest.mock('../../hooks/useApiDocumentation', () => ({
+    useApiDocumentation: jest.fn(),
+    useDeleteApiDocumentationItem: jest.fn(),
+}));
+
+jest.mock('../../../../shared/notify', () => ({
+    notify: { success: jest.fn(), error: jest.fn() },
+}));
+
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
+const mockUseApiDocumentation = useApiDocumentation as jest.Mock;
+const mockUseDeleteApiDocumentationItem = useDeleteApiDocumentationItem as jest.Mock;
+const mockDelete = jest.fn();
+
+const BASE = { organizationId: 'DEFAULT', environmentId: 'DEFAULT', area: 'TOP_NAVBAR', published: false, visibility: 'PUBLIC' } as const;
+const GUIDES: ApiDocumentationItem = { ...BASE, id: 'guides', rootId: 'guides', title: 'Guides', type: 'FOLDER', order: 0 };
+const GETTING_STARTED: ApiDocumentationItem = {
+    ...BASE,
+    id: 'getting-started',
+    rootId: 'guides',
+    parentId: 'guides',
+    title: 'Getting started',
+    type: 'PAGE',
+    portalPageContentId: 'content-1',
+    order: 0,
+};
+const CHANGELOG: ApiDocumentationItem = {
+    ...BASE,
+    id: 'changelog',
+    rootId: 'changelog',
+    title: 'Changelog',
+    type: 'PAGE',
+    portalPageContentId: 'content-2',
+    order: 1,
+};
+
+function publication(published: boolean): ApiPortalPublication {
+    return {
+        portalId: 'DEFAULT',
+        sectionName: 'APIs',
+        portalNavigationItem: {
+            ...BASE,
+            id: 'listing',
+            rootId: 'apis',
+            parentId: 'apis',
+            title: 'Payment API',
+            order: 0,
+            published,
+            type: 'API',
+            apiId: 'api-1',
+        },
+    };
+}
+
+function givenDocumentation(data: ApiPortalNavigationItemsResponse) {
+    mockUseApiDocumentation.mockReturnValue({ data, isLoading: false, isError: false });
+}
 
 function renderPage() {
     render(
@@ -45,6 +106,9 @@ beforeEach(() => {
     jest.clearAllMocks();
     mockUseHasPermission.mockReturnValue(true);
     mockUseApiDetailContext.mockReturnValue({ api: { id: 'api-1' }, isLoading: false, permissionsReady: true });
+    givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [] });
+    mockDelete.mockResolvedValue(undefined);
+    mockUseDeleteApiDocumentationItem.mockReturnValue({ mutateAsync: mockDelete, isPending: false });
 });
 
 describe('ApiDocumentationPage', () => {
@@ -67,11 +131,119 @@ describe('ApiDocumentationPage', () => {
         renderPage();
 
         expect(screen.getByText(/don.t have permission to view/i)).toBeInTheDocument();
+        expect(mockUseApiDocumentation).not.toHaveBeenCalled();
     });
 
     it('asks for api-documentation-r, the same permission the nav entry is gated on', () => {
         renderPage();
 
         expect(mockUseHasPermission).toHaveBeenCalledWith({ anyOf: ['api-documentation-r'] });
+    });
+
+    it("lists the API's documentation", () => {
+        renderPage();
+
+        expect(mockUseApiDocumentation).toHaveBeenCalledWith('api-1');
+        expect(screen.getByText('Guides')).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'Changelog' })).toBeInTheDocument();
+    });
+
+    describe('publication status', () => {
+        it('names the section the API is published in', () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
+            renderPage();
+
+            expect(screen.getByText('Published in APIs')).toHaveAttribute('data-variant', 'success');
+        });
+
+        it('says the API is not published when it is not listed', () => {
+            renderPage();
+
+            expect(screen.getByText('Not published')).toBeInTheDocument();
+        });
+
+        it('says the API is not published when its listing is hidden', () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(false)] });
+            renderPage();
+
+            expect(screen.getByText('Not published')).toBeInTheDocument();
+        });
+    });
+
+    it('invites to write documentation when the API has none', () => {
+        givenDocumentation({ items: [], publications: [] });
+        renderPage();
+
+        expect(screen.getByText('No documentation yet')).toBeInTheDocument();
+        expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    });
+
+    it('reports a documentation list that failed to load', () => {
+        mockUseApiDocumentation.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+        renderPage();
+
+        expect(screen.getByText(/failed to load the documentation/i)).toBeInTheDocument();
+    });
+
+    describe('deleting an item', () => {
+        it('asks for confirmation, warning about the contents of a folder, then deletes it', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+
+            const dialog = screen.getByRole('dialog');
+            expect(dialog).toHaveTextContent('Delete "Guides"?');
+            expect(dialog).toHaveTextContent('The 1 item inside this folder is deleted too.');
+
+            await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+            expect(mockDelete).toHaveBeenCalledWith('guides');
+            expect(notify.success).toHaveBeenCalledWith("'Guides' deleted");
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('does not warn about contents when deleting a page', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+
+            expect(screen.getByRole('dialog')).not.toHaveTextContent(/inside this folder/);
+        });
+
+        it('deletes nothing when cancelled', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+            await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+            expect(mockDelete).not.toHaveBeenCalled();
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('reports why the server refused the delete', async () => {
+            const serverError = new ApimApiError(400, 'The item is fetched from an external source and cannot be deleted');
+            mockDelete.mockRejectedValue(serverError);
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+            await user.click(screen.getByRole('button', { name: 'Delete' }));
+
+            expect(notify.error).toHaveBeenCalledWith(serverError, "Failed to delete 'Changelog'");
+        });
+
+        it('offers no delete without api-documentation-d', () => {
+            mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-documentation-d'));
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /^Actions for/ })).not.toBeInTheDocument();
+        });
     });
 });
