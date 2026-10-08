@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.portal_page.use_case;
 
+import static fixtures.core.model.PortalNavigationItemFixtures.API1_FOLDER_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.API1_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.APIS_ID;
 import static fixtures.core.model.PortalNavigationItemFixtures.CATEGORY1_ID;
@@ -34,6 +35,7 @@ import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
+import io.gravitee.apim.core.portal.exception.PathConflictException;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationDefaultPageDomainService;
@@ -49,6 +51,7 @@ import io.gravitee.apim.core.portal_page.model.OpenApiPageContent;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.model.PortalPageContent;
@@ -65,6 +68,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreatePortalNavigationItemUseCaseTest {
@@ -103,7 +107,11 @@ class CreatePortalNavigationItemUseCaseTest {
             apiCrudService,
             new PortalNavigationItemSourceDomainServiceInMemory()
         );
-        creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
+        creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(
+            apiProductQueryService,
+            apiCrudService,
+            queryService
+        );
         var defaultPageDomainService = new PortalNavigationDefaultPageDomainService(
             queryService,
             domainService,
@@ -433,7 +441,7 @@ class CreatePortalNavigationItemUseCaseTest {
     class CreateItemWithApiAsParent {
 
         @Test
-        void should_create_page_with_parent_id_set_to_portal_navigation_item_type_api() {
+        void should_create_api_owned_page_at_canonical_root_under_standalone_api() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
                 .id(PortalNavigationItemId.random())
@@ -449,11 +457,13 @@ class CreatePortalNavigationItemUseCaseTest {
             final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
             // Then
-            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+            assertThat(output.item().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+            assertThat(output.item().getParentId()).isNull();
+            assertThat(output.item().getRootId()).isEqualTo(output.item().getId());
         }
 
         @Test
-        void should_create_link_with_parent_id_set_to_portal_navigation_item_type_api() {
+        void should_create_api_owned_link_at_canonical_root_under_standalone_api() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
                 .id(PortalNavigationItemId.random())
@@ -470,11 +480,13 @@ class CreatePortalNavigationItemUseCaseTest {
             final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
             // Then
-            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+            assertThat(output.item().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+            assertThat(output.item().getParentId()).isNull();
+            assertThat(output.item().getRootId()).isEqualTo(output.item().getId());
         }
 
         @Test
-        void should_create_folder_with_parent_id_set_to_portal_navigation_item_type_api() {
+        void should_create_api_owned_folder_at_canonical_root_under_standalone_api() {
             // Given
             final var createPortalNavigationItem = CreatePortalNavigationItem.builder()
                 .id(PortalNavigationItemId.random())
@@ -490,7 +502,9 @@ class CreatePortalNavigationItemUseCaseTest {
             final var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, createPortalNavigationItem));
 
             // Then
-            assertThat(output.item().getParentId()).isEqualTo(PortalNavigationItemId.of(API1_ID));
+            assertThat(output.item().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+            assertThat(output.item().getParentId()).isNull();
+            assertThat(output.item().getRootId()).isEqualTo(output.item().getId());
         }
 
         @Test
@@ -514,6 +528,227 @@ class CreatePortalNavigationItemUseCaseTest {
             Exception exception = assertThrows(InvalidPortalNavigationItemDataException.class, throwing);
             assertThat(exception.getMessage()).isEqualTo("Parent hierarchy cannot include API items.");
         }
+    }
+
+    @Nested
+    class DocumentationOwnership {
+
+        @ParameterizedTest
+        @CsvSource({ "API, 0", "API, 2", "API_PRODUCT, 0", "API_PRODUCT, 2" })
+        void should_reject_api_or_api_product_creation_under_persisted_api_owned_folder(
+            PortalNavigationItemType type,
+            int nestedFolderCount
+        ) {
+            var parent = PortalNavigationItemFixtures.aFolder("API documentation")
+                .toBuilder()
+                .reference(new NavigationItemReference.ApiReference("api-1"))
+                .build();
+            parent.markAsRoot();
+            crudService.create(parent);
+            for (int depth = 0; depth < nestedFolderCount; depth++) {
+                var nestedFolder = PortalNavigationItemFixtures.aFolder("Section " + depth)
+                    .toBuilder()
+                    .reference(parent.getReference())
+                    .build();
+                nestedFolder.updateParent(parent);
+                crudService.create(nestedFolder);
+                parent = nestedFolder;
+            }
+            apiProductQueryService.initWith(List.of(ApiProduct.builder().id("product-id").environmentId(ENV_ID).apiIds(Set.of()).build()));
+            var toCreate = CreatePortalNavigationItem.builder()
+                .type(type)
+                .title("Nested item")
+                .apiId(type == PortalNavigationItemType.API ? "apiId" : null)
+                .apiProductId(type == PortalNavigationItemType.API_PRODUCT ? "product-id" : null)
+                .area(PortalArea.TOP_NAVBAR)
+                .parentId(parent.getId())
+                .order(0)
+                .build();
+            var existingItems = List.copyOf(queryService.storage());
+
+            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate))
+            );
+
+            assertThat(exception.getMessage()).isEqualTo(
+                InvalidPortalNavigationItemDataException.parentHierarchyContainsApi().getMessage()
+            );
+            assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
+            assertThat(pageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_reject_segment_collision_in_canonical_api_root_namespace_before_writing() {
+            var existing = PortalNavigationItemFixtures.aFolder("Guides")
+                .toBuilder()
+                .reference(new NavigationItemReference.ApiReference("api-1"))
+                .segment("guides")
+                .build();
+            existing.markAsRoot();
+            queryService.storage().add(existing);
+            var toCreate = documentation(PortalNavigationItemType.FOLDER, PortalNavigationItemId.of(API1_ID))
+                .toBuilder()
+                .segment("guides")
+                .build();
+            var existingItems = List.copyOf(queryService.storage());
+
+            assertThrows(PathConflictException.class, () ->
+                useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate))
+            );
+
+            assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
+            assertThat(pageContentCrudService.storage()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = PortalNavigationItemType.class, names = { "PAGE", "FOLDER", "LINK" })
+        void should_inherit_api_ownership_and_keep_physical_parent_under_api_owned_folder(PortalNavigationItemType type) {
+            var folder = PortalNavigationItemFixtures.aFolder("API documentation")
+                .toBuilder()
+                .reference(new NavigationItemReference.ApiReference("api-1"))
+                .build();
+            folder.markAsRoot();
+            queryService.initWith(List.of(folder));
+
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, documentation(type, folder.getId())));
+
+            assertThat(output.item().getReference()).isEqualTo(folder.getReference());
+            assertThat(output.item().getParentId()).isEqualTo(folder.getId());
+            assertThat(output.item().getRootId()).isEqualTo(folder.getId());
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = PortalNavigationItemType.class, names = { "PAGE", "FOLDER", "LINK" })
+        void should_keep_portal_ownership_when_api_has_product_ancestor_above_a_folder(PortalNavigationItemType type) {
+            var product = PortalNavigationItemFixtures.anApiProduct(
+                PortalNavigationItemId.random().toString(),
+                "Product",
+                null,
+                "product-id"
+            );
+            product.markAsRoot();
+            var folder = PortalNavigationItemFixtures.aFolder("Product section", product.getId());
+            folder.updateParent(product);
+            var api = PortalNavigationItemFixtures.anApi(API1_ID, "API", folder.getId(), "api-1");
+            api.updateParent(folder);
+            queryService.initWith(List.of(product, folder, api));
+
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, documentation(type, api.getId())));
+
+            assertThat(output.item().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+            assertThat(output.item().getParentId()).isEqualTo(api.getId());
+            assertThat(output.item().getRootId()).isEqualTo(product.getId());
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = PortalNavigationItemType.class, names = { "PAGE", "FOLDER", "LINK" })
+        void should_keep_portal_ownership_under_legacy_portal_owned_folder_below_api(PortalNavigationItemType type) {
+            var parentId = PortalNavigationItemId.of(API1_FOLDER_ID);
+
+            var output = useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, documentation(type, parentId)));
+
+            assertThat(output.item().getReference()).isEqualTo(NavigationItemReference.defaultReference());
+            assertThat(output.item().getParentId()).isEqualTo(parentId);
+            assertThat(output.item().getRootId()).isEqualTo(PortalNavigationItemId.of(APIS_ID));
+        }
+
+        @Test
+        void should_inherit_private_visibility_from_rendered_api_parent_after_canonicalizing_parent() {
+            var api = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+            api.setVisibility(PortalVisibility.PRIVATE);
+
+            var output = useCase.execute(
+                new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, documentation(PortalNavigationItemType.PAGE, api.getId()))
+            );
+
+            assertThat(output.item().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+            assertThat(output.item().getParentId()).isNull();
+            assertThat(output.item().getVisibility()).isEqualTo(PortalVisibility.PRIVATE);
+        }
+
+        @Test
+        void should_reject_explicit_public_visibility_under_private_rendered_api_parent_before_writing() {
+            var api = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
+            api.setVisibility(PortalVisibility.PRIVATE);
+            var toCreate = documentation(PortalNavigationItemType.PAGE, api.getId())
+                .toBuilder()
+                .visibility(PortalVisibility.PUBLIC)
+                .build();
+            var existingItems = List.copyOf(queryService.storage());
+
+            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                useCase.execute(new CreatePortalNavigationItemUseCase.Input(ORG_ID, ENV_ID, toCreate))
+            );
+
+            assertThat(exception.getMessage()).isEqualTo(
+                InvalidPortalNavigationItemDataException.parentMustBePublic(api.getId().toString()).getMessage()
+            );
+            assertThat(queryService.storage()).containsExactlyElementsOf(existingItems);
+            assertThat(pageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_reject_creation_below_api_owned_sourced_folder_before_writing() {
+            var folder = PortalNavigationItemFixtures.aFolder("Sourced API documentation")
+                .toBuilder()
+                .reference(new NavigationItemReference.ApiReference("api-1"))
+                .source(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build())
+                .build();
+            folder.markAsRoot();
+            queryService.initWith(List.of(folder));
+
+            var exception = assertThrows(InvalidPortalNavigationItemDataException.class, () ->
+                useCase.execute(
+                    new CreatePortalNavigationItemUseCase.Input(
+                        ORG_ID,
+                        ENV_ID,
+                        documentation(PortalNavigationItemType.PAGE, folder.getId())
+                    )
+                )
+            );
+
+            assertThat(exception.getMessage()).isEqualTo(
+                InvalidPortalNavigationItemDataException.cannotCreateBelowSourcedItem(folder.getId().json()).getMessage()
+            );
+            assertThat(queryService.storage()).containsExactly(folder);
+            assertThat(pageContentCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_not_apply_portal_sourced_ancestor_to_canonical_api_documentation_root() {
+            var portalFolder = PortalNavigationItemFixtures.aFolder(APIS_ID, "APIs")
+                .toBuilder()
+                .source(PortalNavigationItemSource.builder().sourceType("http-fetcher").sourceConfiguration("{}").build())
+                .build();
+            portalFolder.markAsRoot();
+            var api = PortalNavigationItemFixtures.anApi(API1_ID, "API", portalFolder.getId(), "api-1");
+            api.updateParent(portalFolder);
+            queryService.initWith(List.of(portalFolder, api));
+
+            var output = useCase.execute(
+                new CreatePortalNavigationItemUseCase.Input(
+                    ORG_ID,
+                    ENV_ID,
+                    documentation(PortalNavigationItemType.PAGE, PortalNavigationItemId.of(API1_ID))
+                )
+            );
+
+            assertThat(output.item().getReference()).isEqualTo(new NavigationItemReference.ApiReference("api-1"));
+            assertThat(output.item().getParentId()).isNull();
+        }
+    }
+
+    private static CreatePortalNavigationItem documentation(PortalNavigationItemType type, PortalNavigationItemId parentId) {
+        return CreatePortalNavigationItem.builder()
+            .id(PortalNavigationItemId.random())
+            .type(type)
+            .title("Documentation")
+            .area(PortalArea.TOP_NAVBAR)
+            .parentId(parentId)
+            .order(0)
+            .url(type == PortalNavigationItemType.LINK ? "https://gravitee.io" : null)
+            .contentType(PortalPageContentType.GRAVITEE_MARKDOWN)
+            .build();
     }
 
     @Nested

@@ -117,6 +117,7 @@ public interface PortalNavigationItemsMapper {
     // No endpoint lets a client create a page content on its own, so an id sent here can only name the content of
     // another page: a page created through the Management API always gets a content of its own
     @Mapping(target = "portalPageContentId", ignore = true)
+    @Mapping(target = "renderedParentId", ignore = true)
     @Mapping(
         target = "contentType",
         expression = "java(page.getContentType() == null ? io.gravitee.apim.core.portal_page.model.PortalPageContentType.GRAVITEE_MARKDOWN : map(page.getContentType()))"
@@ -126,22 +127,26 @@ public interface PortalNavigationItemsMapper {
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationFolder folder
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationLink link
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(
         io.gravitee.rest.api.management.v2.rest.model.CreatePortalNavigationApi api
     );
 
     @Mapping(target = "contentType", constant = "GRAVITEE_MARKDOWN")
     @Mapping(target = "apiProductId", source = "apiProductId")
+    @Mapping(target = "renderedParentId", ignore = true)
     io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(CreatePortalNavigationApiProduct apiProduct);
 
     default io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem map(

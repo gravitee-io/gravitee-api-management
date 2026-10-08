@@ -17,13 +17,14 @@ package io.gravitee.apim.core.portal_page.domain_service.validation;
 
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
+import io.gravitee.apim.core.portal_page.model.NavigationItemReference.ApiReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import java.util.Map;
 
 /**
- * Shared validation: ensures no API item appears in the parent hierarchy (used by create and update API rules).
+ * Ensures the parent hierarchy contains neither API items nor API-owned documentation (used by API and API Product create/update rules).
  */
 public final class ApiAncestorValidation {
 
@@ -54,7 +55,7 @@ public final class ApiAncestorValidation {
         while (currentId != null) {
             var pendingItem = pendingItemsById.get(currentId);
             if (pendingItem != null) {
-                if (pendingItem.getType() == PortalNavigationItemType.API) {
+                if (pendingItem.getType() == PortalNavigationItemType.API || pendingItem.getReference() instanceof ApiReference) {
                     throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
                 }
                 currentId = pendingItem.getParentId();
@@ -64,7 +65,7 @@ public final class ApiAncestorValidation {
             if (currentItem == null) {
                 return;
             }
-            if (currentItem.getType() == PortalNavigationItemType.API) {
+            if (currentItem.getType() == PortalNavigationItemType.API || currentItem.getReference() instanceof ApiReference) {
                 throw InvalidPortalNavigationItemDataException.parentHierarchyContainsApi();
             }
             currentId = currentItem.getParentId();

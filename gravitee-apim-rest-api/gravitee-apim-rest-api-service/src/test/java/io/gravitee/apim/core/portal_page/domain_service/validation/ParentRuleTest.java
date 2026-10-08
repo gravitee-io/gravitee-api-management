@@ -146,6 +146,210 @@ class ParentRuleTest {
     }
 
     @Test
+    void should_apply_to_a_create_with_only_a_rendered_parent() {
+        assertThat(rule.appliesTo(renderedPageCreate(FOLDER_ID))).isTrue();
+    }
+
+    @Test
+    void should_prefer_the_rendered_parent_when_validating_a_create() {
+        navigationItemsQueryService.storage().add(publicPublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR));
+        var item = renderedPageCreate(FOLDER_ID).toBuilder().parentId(MISSING_ID).build();
+
+        assertThatCode(() -> rule.validate(item, ENV_ID, CreateValidationContext.empty())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_reject_a_create_when_the_rendered_parent_is_missing() {
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(MISSING_ID), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
+            ParentNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_reject_a_create_when_the_rendered_parent_is_in_another_environment() {
+        navigationItemsQueryService
+            .storage()
+            .add(publicPublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().environmentId("other-env").build());
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
+            ParentNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_validate_create_type_against_the_persisted_rendered_parent() {
+        navigationItemsQueryService.storage().add(pageExisting(FOLDER_ID, PortalArea.TOP_NAVBAR, null));
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
+            ParentTypeMismatchException.class
+        );
+    }
+
+    @Test
+    void should_validate_create_area_against_the_persisted_rendered_parent() {
+        navigationItemsQueryService.storage().add(publicPublishedFolder(FOLDER_ID, PortalArea.HOMEPAGE));
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, CreateValidationContext.empty())).isInstanceOf(
+            ParentAreaMismatchException.class
+        );
+    }
+
+    @Test
+    void should_validate_create_publication_against_the_persisted_rendered_parent() {
+        navigationItemsQueryService
+            .storage()
+            .add(publicPublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().published(false).build());
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, CreateValidationContext.empty()))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLISHED");
+    }
+
+    @Test
+    void should_validate_create_visibility_against_the_persisted_rendered_parent() {
+        navigationItemsQueryService.storage().add(privatePublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR));
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, CreateValidationContext.empty()))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void should_allow_inherited_create_visibility_below_a_private_rendered_parent() {
+        navigationItemsQueryService.storage().add(privatePublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR));
+        var item = renderedPageCreate(FOLDER_ID).toBuilder().visibility(null).build();
+
+        assertThatCode(() -> rule.validate(item, ENV_ID, CreateValidationContext.empty())).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_validate_a_create_with_a_pending_rendered_parent() {
+        var ctx = pendingCreateContext(folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR));
+        var item = renderedPageCreate(FOLDER_ID).toBuilder().parentId(MISSING_ID).build();
+
+        assertThatCode(() -> rule.validate(item, ENV_ID, ctx)).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_validate_create_type_against_a_pending_rendered_parent() {
+        var ctx = pendingCreateContext(pageCreate(null, PortalArea.TOP_NAVBAR, null).toBuilder().id(FOLDER_ID).build());
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, ctx)).isInstanceOf(ParentTypeMismatchException.class);
+    }
+
+    @Test
+    void should_validate_create_area_against_a_pending_rendered_parent() {
+        var ctx = pendingCreateContext(folderCreate(FOLDER_ID, PortalArea.HOMEPAGE));
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, ctx)).isInstanceOf(ParentAreaMismatchException.class);
+    }
+
+    @Test
+    void should_validate_create_publication_against_a_pending_rendered_parent() {
+        var ctx = pendingCreateContext(folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().published(false).build());
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, ctx))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLISHED");
+    }
+
+    @Test
+    void should_validate_create_visibility_against_a_pending_rendered_parent() {
+        var ctx = pendingCreateContext(
+            folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().visibility(PortalVisibility.PRIVATE).build()
+        );
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, ctx))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void should_resolve_pending_parent_visibility_from_a_persisted_ancestor() {
+        navigationItemsQueryService.storage().add(privatePublishedFolder(MISSING_ID, PortalArea.TOP_NAVBAR));
+        var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().parentId(MISSING_ID).visibility(null).build();
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, pendingCreateContext(pendingParent)))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void should_resolve_pending_parent_visibility_from_a_pending_ancestor() {
+        var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().parentId(MISSING_ID).visibility(null).build();
+        var pendingAncestor = folderCreate(MISSING_ID, PortalArea.TOP_NAVBAR).toBuilder().visibility(PortalVisibility.PRIVATE).build();
+        var ctx = new CreateValidationContext(
+            List.of(),
+            Map.of(),
+            Map.of(FOLDER_ID, pendingParent, MISSING_ID, pendingAncestor),
+            Map.of(),
+            List.of()
+        );
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, ctx))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void should_resolve_pending_parent_visibility_from_its_rendered_ancestor() {
+        var ancestor = privatePublishedFolder(MISSING_ID, PortalArea.TOP_NAVBAR);
+        var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR)
+            .toBuilder()
+            .renderedParentId(MISSING_ID)
+            .visibility(null)
+            .build();
+        var ctx = new CreateValidationContext(
+            List.of(ancestor),
+            Map.of(MISSING_ID, ancestor),
+            Map.of(FOLDER_ID, pendingParent),
+            Map.of(),
+            List.of()
+        );
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, ctx))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("must be PUBLIC");
+    }
+
+    @Test
+    void should_preserve_explicit_pending_parent_visibility() {
+        navigationItemsQueryService.storage().add(privatePublishedFolder(MISSING_ID, PortalArea.TOP_NAVBAR));
+        var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().parentId(MISSING_ID).build();
+
+        assertThatCode(() ->
+            rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, pendingCreateContext(pendingParent))
+        ).doesNotThrowAnyException();
+    }
+
+    @Test
+    void should_reject_a_create_with_itself_as_the_rendered_parent() {
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(ITEM_ID), ENV_ID, CreateValidationContext.empty()))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("Cyclic dependency");
+    }
+
+    @Test
+    void should_reject_a_create_cycle_through_a_pending_rendered_parent() {
+        var pendingParent = folderCreate(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().parentId(ITEM_ID).build();
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, pendingCreateContext(pendingParent)))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("Cyclic dependency");
+    }
+
+    @Test
+    void should_reject_a_create_cycle_through_a_persisted_rendered_parent() {
+        var parent = publicPublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR).toBuilder().parentId(ITEM_ID).build();
+        navigationItemsQueryService.storage().add(parent);
+        var ctx = new CreateValidationContext(List.of(parent), Map.of(FOLDER_ID, parent), Map.of(), Map.of(), List.of());
+
+        assertThatThrownBy(() -> rule.validate(renderedPageCreate(FOLDER_ID), ENV_ID, ctx))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("Cyclic dependency");
+    }
+
+    @Test
     void update_passes_when_parent_exists_in_db() {
         navigationItemsQueryService.storage().add(publicPublishedFolder(FOLDER_ID, PortalArea.TOP_NAVBAR));
         var existing = pageExisting(ITEM_ID, PortalArea.TOP_NAVBAR, null);
@@ -275,6 +479,14 @@ class ParentRuleTest {
         assertThatThrownBy(() -> rule.validate(pageUpdate(FOLDER_ID), existing, UpdateValidationContext.empty()))
             .isInstanceOf(io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException.class)
             .hasMessageContaining("must be PUBLIC");
+    }
+
+    private static CreatePortalNavigationItem renderedPageCreate(PortalNavigationItemId renderedParentId) {
+        return pageCreate(null, PortalArea.TOP_NAVBAR, null).toBuilder().renderedParentId(renderedParentId).build();
+    }
+
+    private static CreateValidationContext pendingCreateContext(CreatePortalNavigationItem parent) {
+        return new CreateValidationContext(List.of(), Map.of(), Map.of(parent.getId(), parent), Map.of(), List.of());
     }
 
     private static CreatePortalNavigationItem pageCreate(PortalNavigationItemId parentId, PortalArea area, AutomationMetadata meta) {
