@@ -18,8 +18,9 @@ import { useCallback, useMemo, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useEnvHrid } from '../../features/environment/environment.utils';
-import { NAV_GROUPS } from '../config/navigation';
+import { buildNavGroups } from '../config/navigation';
 import { hostNavPath, isHostNavKey, resolveHostRoute } from '../config/routes';
+import { useToHref } from '../config/useToHref';
 
 export function RouteLayout() {
     const navigate = useNavigate();
@@ -37,6 +38,9 @@ export function RouteLayout() {
         [navigate, envHrid],
     );
 
+    const toHref = useToHref();
+    const navGroups = useMemo(() => buildNavGroups(key => toHref(hostNavPath(key, envHrid))), [toHref, envHrid]);
+
     // Every API page resolves to the same Home segment, but resolveHostRoute returns a new array.
     // Re-pushing that array resets the layout slots and wipes the API name the module just set.
     // The memo depends on the label key; the ref holds the segments that key was built from.
@@ -47,10 +51,10 @@ export function RouteLayout() {
 
     useLayoutConfig(
         {
-            navigation: <SidebarNavigation groups={NAV_GROUPS} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
+            navigation: <SidebarNavigation groups={navGroups} activeItemKey={activeNavKey} onItemSelect={handleNavSelect} />,
             breadcrumbs,
         },
-        [activeNavKey, breadcrumbs, handleNavSelect],
+        [activeNavKey, breadcrumbs, handleNavSelect, navGroups],
     );
 
     return <Outlet />;
