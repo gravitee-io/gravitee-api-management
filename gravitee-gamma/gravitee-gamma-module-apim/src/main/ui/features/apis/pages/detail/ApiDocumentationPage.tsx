@@ -24,6 +24,7 @@ import { notify } from '../../../../shared/notify';
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
+import type { ApiPortalPublication } from '../../types/apiDocumentation';
 import { type DocumentationRow, getPublishedSection } from '../../utils/documentationTree';
 
 const DESCRIPTION = 'Pages, folders and links that describe this API in the developer portal.';
@@ -57,7 +58,6 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
 
     const items = data?.items ?? [];
-    const publishedSection = getPublishedSection(data?.publications ?? []);
     const isFirstUse = !isLoading && !isError && items.length === 0;
     const openDeleteDialog = useCallback((row: DocumentationRow) => setToDelete(row), []);
 
@@ -76,11 +76,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     return (
         <div className="flex flex-col gap-6">
             <PageHeader title="Documentation" description={DESCRIPTION}>
-                {publishedSection ? (
-                    <Badge variant="success">Published in {publishedSection}</Badge>
-                ) : (
-                    <Badge variant="outline">Not published</Badge>
-                )}
+                {data ? <PublicationBadge publications={data.publications} /> : null}
             </PageHeader>
 
             {isError ? (
@@ -113,6 +109,15 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 onConfirm={handleDelete}
             />
         </div>
+    );
+}
+
+function PublicationBadge({ publications }: Readonly<{ publications: ApiPortalPublication[] }>) {
+    const publishedSection = getPublishedSection(publications);
+    return publishedSection ? (
+        <Badge variant="success">Published in {publishedSection}</Badge>
+    ) : (
+        <Badge variant="outline">Not published</Badge>
     );
 }
 

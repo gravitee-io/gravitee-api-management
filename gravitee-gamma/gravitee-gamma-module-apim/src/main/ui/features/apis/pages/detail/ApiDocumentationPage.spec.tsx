@@ -168,6 +168,20 @@ describe('ApiDocumentationPage', () => {
 
             expect(screen.getByText('Not published')).toBeInTheDocument();
         });
+
+        it('claims no publication status while the documentation is loading', () => {
+            mockUseApiDocumentation.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+            renderPage();
+
+            expect(screen.queryByText(/published/i)).not.toBeInTheDocument();
+        });
+
+        it('claims no publication status when the documentation failed to load', () => {
+            mockUseApiDocumentation.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+            renderPage();
+
+            expect(screen.queryByText(/published/i)).not.toBeInTheDocument();
+        });
     });
 
     it('invites to write documentation when the API has none', () => {
