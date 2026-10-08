@@ -30,6 +30,8 @@ import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.api_product.model.ApiProductKind;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
+import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.step.Step;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -78,7 +80,7 @@ class GetMyAiWorkspaceUseCaseTest {
         products.initWith(List.of(product("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE, Set.of("api-1"))));
         subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
         flows.savePlanFlows("plan-1", List.of(budgetFlow()));
-        apis.initWith(List.of(proxy("api-1", ENV, "/alpha/")));
+        apis.initWith(List.of(proxy("api-1", ENV, "/alpha/", null)));
 
         var details = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details();
 
@@ -89,6 +91,7 @@ class GetMyAiWorkspaceUseCaseTest {
         assertThat(details.budget().period()).isEqualTo("DAY");
         assertThat(details.endpointUrl()).isEqualTo("/alpha/");
         assertThat(details.key()).isNull();
+        assertThat(details.models()).isEmpty();
     }
 
     @Test
@@ -127,6 +130,27 @@ class GetMyAiWorkspaceUseCaseTest {
 
         assertThat(details.endpointUrl()).isNull();
         assertThat(details.budget()).isNull();
+        assertThat(details.models()).isEmpty();
+    }
+
+    @Test
+    void returns_models_from_the_proxy_loaded_by_id() {
+        products.initWith(List.of(product("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE, Set.of("api-1"))));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+        apis.initWith(
+            List.of(
+                proxy(
+                    "api-1",
+                    ENV,
+                    "/alpha/",
+                    "{\"authentication\":{\"apiKey\":\"sk-secret\"},\"models\":[{\"name\":\"gpt-4o\",\"inputPrice\":1.5}]}"
+                )
+            )
+        );
+
+        var models = useCase.execute(new GetMyAiWorkspaceUseCase.Input(CONTEXT, Set.of("app-1"), "ws-1")).details().models();
+
+        assertThat(models).containsExactly(new io.gravitee.apim.core.ai_workspace.model.AiWorkspaceModel("gpt-4o", 1.5, null));
     }
 
     @Test
@@ -185,16 +209,21 @@ class GetMyAiWorkspaceUseCaseTest {
             .build();
     }
 
-    private static Api proxy(String id, String environmentId, String path) {
-        return Api.builder()
-            .id(id)
-            .environmentId(environmentId)
-            .type(ApiType.LLM_PROXY)
-            .apiDefinitionHttpV4(
-                io.gravitee.definition.model.v4.Api.builder()
-                    .listeners(List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build()))
-                    .build()
-            )
-            .build();
+    private static Api proxy(String id, String environmentId, String path, String configuration) {
+        var definition = io.gravitee.definition.model.v4.Api.builder().listeners(
+            List.of(HttpListener.builder().paths(List.of(Path.builder().path(path).build())).build())
+        );
+        if (configuration != null) {
+            definition.endpointGroups(
+                List.of(
+                    EndpointGroup.builder()
+                        .name("provider")
+                        .type("llm")
+                        .endpoints(List.of(Endpoint.builder().name("endpoint").type("llm-proxy").configuration(configuration).build()))
+                        .build()
+                )
+            );
+        }
+        return Api.builder().id(id).environmentId(environmentId).type(ApiType.LLM_PROXY).apiDefinitionHttpV4(definition.build()).build();
     }
 }

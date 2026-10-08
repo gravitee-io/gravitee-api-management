@@ -4983,6 +4983,27 @@ components:
                     description: The caller's own API key for this workspace. Absent when the subscription has no usable key.
                     allOf:
                         - $ref: "#/components/schemas/AiWorkspaceKey"
+                models:
+                    description: Models available on the workspace LLM proxy. Empty when the workspace has no proxy or no models.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/AiWorkspaceModel"
+        AiWorkspaceModel:
+            type: object
+            description: A model published by the workspace LLM proxy. Prices are per million tokens and are absent when not configured.
+            required:
+                - name
+            properties:
+                name:
+                    type: string
+                inputPrice:
+                    type: number
+                    format: double
+                    description: Input price per million tokens. Absent when the model has no input price.
+                outputPrice:
+                    type: number
+                    format: double
+                    description: Output price per million tokens. Absent when the model has no output price.
         AiWorkspaceKey:
             type: object
             description: API key of the caller's accepted subscription. Revoked and expired keys are omitted.
