@@ -30,6 +30,7 @@ import {
     FolderOpenIcon,
     Link2Icon,
     MoreVerticalIcon,
+    PlusIcon,
     RefreshCwIcon,
     Trash2Icon,
 } from '@gravitee/graphene-core/icons';
@@ -37,7 +38,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
-import type { ApiDocumentationItem } from '../../../types/apiDocumentation';
+import type { ApiDocumentationItem, PortalNavigationFolder } from '../../../types/apiDocumentation';
 import { buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
 
 type ColCell = { row: { original: DocumentationRow } };
@@ -49,11 +50,15 @@ export function DocumentationTree({
     isLoading,
     canDelete,
     onDelete,
+    canAdd,
+    onAddPage,
 }: Readonly<{
     items: ApiDocumentationItem[];
     isLoading: boolean;
     canDelete: boolean;
     onDelete: (row: DocumentationRow) => void;
+    canAdd: boolean;
+    onAddPage: (folder: PortalNavigationFolder) => void;
 }>) {
     const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(new Set());
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
@@ -66,8 +71,8 @@ export function DocumentationTree({
                 return next;
             });
         }
-        return buildColumns({ canDelete, onDelete, onToggle: toggle });
-    }, [canDelete, onDelete]);
+        return buildColumns({ canDelete, onDelete, canAdd, onAddPage, onToggle: toggle });
+    }, [canDelete, onDelete, canAdd, onAddPage]);
 
     return (
         <DataTable
@@ -83,10 +88,14 @@ export function DocumentationTree({
 function buildColumns({
     canDelete,
     onDelete,
+    canAdd,
+    onAddPage,
     onToggle,
 }: {
     canDelete: boolean;
     onDelete: (row: DocumentationRow) => void;
+    canAdd: boolean;
+    onAddPage: (folder: PortalNavigationFolder) => void;
     onToggle: (id: string) => void;
 }): DataTableProps<DocumentationRow>['columns'] {
     const columns: DataTableProps<DocumentationRow>['columns'] = [
@@ -109,13 +118,18 @@ function buildColumns({
         },
     ];
 
-    if (canDelete) {
+    if (canDelete || canAdd) {
         columns.push({
             id: 'actions',
             header: () => <span className="sr-only">Actions</span>,
             size: 56,
-            cell: ({ row }: ColCell) =>
-                row.original.synced ? null : (
+            cell: ({ row }: ColCell) => {
+                const { item, synced } = row.original;
+                // The server refuses to add anything below a synced folder, or to delete what it syncs.
+                if (synced) return null;
+                const targetFolder = canAdd && item.type === 'FOLDER' ? item : null;
+                if (!targetFolder && !canDelete) return null;
+                return (
                     <div className="flex justify-end">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -130,14 +144,23 @@ function buildColumns({
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="min-w-48">
-                                <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original)}>
-                                    <Trash2Icon className="size-4" aria-hidden />
-                                    Delete
-                                </DropdownMenuItem>
+                                {targetFolder ? (
+                                    <DropdownMenuItem onSelect={() => onAddPage(targetFolder)}>
+                                        <PlusIcon className="size-4" aria-hidden />
+                                        Add page
+                                    </DropdownMenuItem>
+                                ) : null}
+                                {canDelete ? (
+                                    <DropdownMenuItem variant="destructive" onSelect={() => onDelete(row.original)}>
+                                        <Trash2Icon className="size-4" aria-hidden />
+                                        Delete
+                                    </DropdownMenuItem>
+                                ) : null}
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
-                ),
+                );
+            },
         });
     }
 
