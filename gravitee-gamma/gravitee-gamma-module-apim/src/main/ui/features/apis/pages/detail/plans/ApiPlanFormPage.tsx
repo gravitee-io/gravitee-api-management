@@ -22,6 +22,7 @@ import { useApiDetail } from '../../../hooks/useApiDetail';
 import { usePlan } from '../../../hooks/usePlans';
 import { PLAN_TYPES_BY_CTX } from '../../../types/plan';
 import type { PlanContext, PlanSecurityType } from '../../../types/plan';
+import { areAllListenersTcp, hasTcpListener } from '../../../utils/apiHttpProxy';
 
 /**
  * Adapter for /apis/:apiId/plans/new/:securityType (create) and
@@ -33,19 +34,42 @@ export function ApiPlanFormPage() {
     const canCreate = useHasPermission({ anyOf: ['api-plan-c'] });
     const canUpdate = useHasPermission({ anyOf: ['api-plan-u'] });
     // Plan sharding tags are constrained to the parent API's tags (subset rule).
-    const { data: api } = useApiDetail(apiId);
+    const { data: api, isLoading } = useApiDetail(apiId);
+    const tcpListener = hasTcpListener(api);
+    const keylessOnly = areAllListenersTcp(api);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-4">
+                <Skeleton className="h-12 w-full rounded" />
+                <Skeleton className="h-64 w-full rounded" />
+            </div>
+        );
+    }
 
     if (securityType) {
         if (!(PLAN_TYPES_BY_CTX[ctx.type] as string[]).includes(securityType)) {
             return <Navigate to=".." replace />;
         }
+        if (keylessOnly && securityType !== 'KEY_LESS') {
+            return <Navigate to=".." replace />;
+        }
         if (!canCreate) {
             return <Navigate to=".." replace />;
         }
-        return <PlanFormWizard ctx={ctx} securityType={securityType as PlanSecurityType} referenceTags={api?.tags} />;
+        return (
+            <PlanFormWizard
+                ctx={ctx}
+                securityType={securityType as PlanSecurityType}
+                referenceTags={api?.tags}
+                skipRestrictions={tcpListener}
+            />
+        );
     }
 
-    return <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} referenceTags={api?.tags} />;
+    return (
+        <PlanEditWrapper ctx={ctx} planId={planId ?? ''} canUpdate={canUpdate} referenceTags={api?.tags} skipRestrictions={tcpListener} />
+    );
 }
 
 function PlanEditWrapper({
@@ -53,7 +77,8 @@ function PlanEditWrapper({
     planId,
     canUpdate,
     referenceTags,
-}: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean; referenceTags?: string[] }>) {
+    skipRestrictions,
+}: Readonly<{ ctx: PlanContext; planId: string; canUpdate: boolean; referenceTags?: string[]; skipRestrictions?: boolean }>) {
     const navigate = useNavigate();
     const { data: plan, isLoading, isError } = usePlan(ctx, planId);
 
@@ -84,6 +109,7 @@ function PlanEditWrapper({
             planId={planId}
             readOnly={plan.status === 'CLOSED' || !canUpdate}
             referenceTags={referenceTags}
+            skipRestrictions={skipRestrictions}
         />
     );
 }

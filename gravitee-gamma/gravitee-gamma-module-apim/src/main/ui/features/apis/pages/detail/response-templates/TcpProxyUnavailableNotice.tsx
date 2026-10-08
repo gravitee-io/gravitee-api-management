@@ -15,11 +15,8 @@
  */
 import { FeatureUnavailableNotice } from './FeatureUnavailableNotice';
 
-export function TcpProxyUnavailableNotice({ feature }: Readonly<{ feature: string }>) {
-    return (
-        <FeatureUnavailableNotice
-            heading={`${feature} are not available for TCP Proxy APIs`}
-            detail="TCP Proxy APIs forward raw traffic and do not support HTTP response template overrides."
-        />
-    );
+const DEFAULT_DETAIL = 'TCP Proxy APIs forward raw traffic and do not support this HTTP-only surface.';
+
+export function TcpProxyUnavailableNotice({ feature, detail = DEFAULT_DETAIL }: Readonly<{ feature: string; detail?: string }>) {
+    return <FeatureUnavailableNotice heading={`${feature} are not available for TCP Proxy APIs`} detail={detail} />;
 }

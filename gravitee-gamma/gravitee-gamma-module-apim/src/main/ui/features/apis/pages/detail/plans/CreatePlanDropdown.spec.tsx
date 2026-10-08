@@ -52,7 +52,7 @@ describe('CreatePlanDropdown', () => {
         expect(screen.getByRole('menuitem', { name: /keyless/i })).toBeInTheDocument();
     });
 
-    it('restricts the menu to Keyless only when restrictToKeyless is set (TCP Proxy parity)', () => {
+    it('restricts the menu to Keyless only when restrictToKeyless is set', () => {
         renderDropdown(true);
 
         expect(screen.getAllByRole('menuitem')).toHaveLength(1);

@@ -113,7 +113,12 @@ export function ApiResponseTemplatesPage() {
     }
 
     if (isTcp) {
-        return <TcpProxyUnavailableNotice feature="Response Templates" />;
+        return (
+            <TcpProxyUnavailableNotice
+                feature="Response Templates"
+                detail="TCP Proxy APIs forward raw traffic and do not support HTTP response template overrides."
+            />
+        );
     }
 
     if (!supportsResponseTemplates(api)) {

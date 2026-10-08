@@ -75,6 +75,21 @@ describe('TcpHostsCard row validation', () => {
         expect(screen.queryByText(/Duplicated hosts not allowed/)).not.toBeInTheDocument();
     });
 
+    it('shows a cross-API uniqueness error on the matching row', () => {
+        render(
+            <TcpHostsCard
+                rows={rows('db.example.com', 'cache.example.com')}
+                onAdd={noop}
+                onDelete={noop}
+                onHostChange={noop}
+                isReadOnly={false}
+                uniquenessErrors={{ 'row-0': 'Host already exists' }}
+            />,
+        );
+        expect(screen.getByText('Host already exists')).toBeInTheDocument();
+        expect(screen.getAllByRole('textbox', { name: /^host$/i })[0]).toHaveAttribute('aria-invalid', 'true');
+    });
+
     it('shows a required error for a blank host row', () => {
         render(<TcpHostsCard rows={rows('')} onAdd={noop} onDelete={noop} onHostChange={noop} isReadOnly={false} />);
         expect(screen.getByText('Host is required.')).toBeInTheDocument();

@@ -171,6 +171,12 @@ export const resourcePluginKeys = {
     schema: (resourceId: string) => [...resourcePluginKeys.all, 'schema', resourceId] as const,
 };
 
+export const endpointPluginKeys = {
+    all: ['endpoint-plugins'] as const,
+    configurationSchema: (endpointType: string) => [...endpointPluginKeys.all, 'configuration-schema', endpointType] as const,
+    sharedConfigurationSchema: (endpointType: string) => [...endpointPluginKeys.all, 'shared-configuration-schema', endpointType] as const,
+};
+
 export const apiHealthCheckKeys = {
     all: ['api-health-check'] as const,
     availability: (envId: string, apiId: string, field: HealthField, timeframe: Timeframe) =>
