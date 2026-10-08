@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ApiType, OriginContext, StepV4 } from '../api';
+import { FlowApiType, OriginContext, StepV4 } from '../api';
 import { FlowPhase } from '../plugin';
 
 export interface SharedPolicyGroup {
@@ -25,7 +25,7 @@ export interface SharedPolicyGroup {
   prerequisiteMessage?: string;
   lifecycleState?: 'DEPLOYED' | 'UNDEPLOYED' | 'PENDING';
   version?: number;
-  apiType: ApiType;
+  apiType: FlowApiType;
   phase: FlowPhase;
   steps: StepV4[];
   deployedAt?: Date;

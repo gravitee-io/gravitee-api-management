@@ -185,6 +185,7 @@ describe('ApiV4MenuService', () => {
       ['PROXY', undefined],
       ['MCP_PROXY', undefined],
       ['LLM_PROXY', undefined],
+      ['AUTHZ', undefined],
       ['MESSAGE', { title: 'API Traffic' }],
     ] as const)('apiType %s -> header %p', (type, expected) => {
       const apiTraffic = service.getMenu(fakeApiV4({ type })).subMenuItems.find(item => item.displayName === 'API Traffic');

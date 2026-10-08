@@ -42,7 +42,7 @@ import { SharedPolicyGroupsService } from '../../../services-ngx/shared-policy-g
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { ApiV4, SharedPolicyGroup, SharedPolicyGroupsSortByParam, toReadableFlowPhase } from '../../../entities/management-api-v2';
+import { FlowApiType, SharedPolicyGroup, SharedPolicyGroupsSortByParam, toReadableFlowPhase } from '../../../entities/management-api-v2';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -151,7 +151,7 @@ export class SharedPolicyGroupsComponent implements OnInit {
     this.refreshPageTableVM$.next();
   }
 
-  protected onAddEnvironmentFlow(apiType: ApiV4['type']) {
+  protected onAddEnvironmentFlow(apiType: FlowApiType) {
     return this.matDialog
       .open<SharedPolicyGroupsAddEditDialogComponent, SharedPolicyGroupAddEditDialogData, SharedPolicyGroupAddEditDialogResult>(
         SharedPolicyGroupsAddEditDialogComponent,
