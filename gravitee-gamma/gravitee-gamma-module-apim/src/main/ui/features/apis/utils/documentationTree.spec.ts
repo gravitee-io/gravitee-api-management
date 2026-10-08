@@ -115,6 +115,19 @@ describe('buildDocumentationRows', () => {
     it('returns no rows when the API has no documentation', () => {
         expect(buildDocumentationRows([], new Set())).toEqual([]);
     });
+
+    it('handles a folder hierarchy deeper than the call stack', () => {
+        const depth = 50_000;
+        const items = Array.from({ length: depth }, (_, level) =>
+            folder(`level-${level}`, 0, level === 0 ? undefined : `level-${level - 1}`),
+        );
+
+        const rows = buildDocumentationRows(items, new Set(items.map(item => item.id)));
+
+        expect(rows).toHaveLength(depth);
+        expect(rows[0]).toMatchObject({ depth: 0, descendantCount: depth - 1 });
+        expect(rows[depth - 1]).toMatchObject({ depth: depth - 1, descendantCount: 0 });
+    });
 });
 
 describe('getPublishedSection', () => {

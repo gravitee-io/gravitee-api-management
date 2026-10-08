@@ -53,21 +53,48 @@ export function buildDocumentationRows(items: ApiDocumentationItem[], expandedId
         siblings.sort((a, b) => a.order - b.order);
     }
 
-    const countDescendants = (id: string): number =>
-        (childrenByParent.get(id) ?? []).reduce((count, child) => count + 1 + countDescendants(child.id), 0);
+    const descendantCounts = countDescendants(childrenByParent);
 
+    // Walked with an explicit stack: recursion would exhaust the call stack on a deep enough hierarchy.
     const rows: DocumentationRow[] = [];
-    const visit = (item: ApiDocumentationItem, depth: number, underSource: boolean) => {
+    const toVisit = [...(childrenByParent.get(undefined) ?? [])].reverse().map(item => ({ item, depth: 0, underSource: false }));
+    let next = toVisit.pop();
+    while (next) {
+        const { item, depth, underSource } = next;
         const children = childrenByParent.get(item.id) ?? [];
         const synced = underSource || hasSource(item);
         const expanded = expandedIds.has(item.id);
-        rows.push({ item, depth, hasChildren: children.length > 0, expanded, synced, descendantCount: countDescendants(item.id) });
+        rows.push({ item, depth, hasChildren: children.length > 0, expanded, synced, descendantCount: descendantCounts.get(item.id) ?? 0 });
         if (expanded) {
-            children.forEach(child => visit(child, depth + 1, synced));
+            for (const child of [...children].reverse()) {
+                toVisit.push({ item: child, depth: depth + 1, underSource: synced });
+            }
         }
-    };
-    (childrenByParent.get(undefined) ?? []).forEach(root => visit(root, 0, false));
+        next = toVisit.pop();
+    }
     return rows;
+}
+
+/** Counts every item below each folder in one pass, by adding each item's count to its parent's, children first. */
+function countDescendants(childrenByParent: Map<string | undefined, ApiDocumentationItem[]>): Map<string, number> {
+    const parentsFirst: ApiDocumentationItem[] = [];
+    const toVisit = [...(childrenByParent.get(undefined) ?? [])];
+    let item = toVisit.pop();
+    while (item) {
+        parentsFirst.push(item);
+        for (const child of childrenByParent.get(item.id) ?? []) {
+            toVisit.push(child);
+        }
+        item = toVisit.pop();
+    }
+
+    const counts = new Map<string, number>();
+    for (const child of parentsFirst.reverse()) {
+        if (child.parentId !== undefined) {
+            counts.set(child.parentId, (counts.get(child.parentId) ?? 0) + 1 + (counts.get(child.id) ?? 0));
+        }
+    }
+    return counts;
 }
 
 export function hasSource(item: ApiDocumentationItem): boolean {
