@@ -19,12 +19,6 @@ import {
     ContextSidebar,
     ContextToggleButton,
     type NavGroup,
-    type NavItem,
-    SidebarGroup,
-    SidebarGroupContent,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
     SidebarNavigation,
     useLayoutConfig,
 } from '@gravitee/graphene-core';
@@ -280,40 +274,11 @@ function PlatformLandingOrNoAccess() {
     return <Navigate to={modulePathFor(location.pathname, landingNavKey)} replace />;
 }
 
-function PlatformPrimaryNavigation({
-    items,
-    activeItemKey,
-    onItemSelect,
-}: Readonly<{ items: NavItem[]; activeItemKey?: string; onItemSelect: (key: string) => void }>) {
-    return (
-        <SidebarGroup>
-            <SidebarGroupContent>
-                <SidebarMenu>
-                    {items.map(item => {
-                        const Icon = item.icon;
-                        return (
-                            <SidebarMenuItem key={item.key}>
-                                <SidebarMenuButton
-                                    isActive={item.key === activeItemKey}
-                                    tooltip={item.title}
-                                    onClick={() => onItemSelect(item.key)}
-                                >
-                                    {Icon ? <Icon /> : null}
-                                    <span>{item.title}</span>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        );
-                    })}
-                </SidebarMenu>
-            </SidebarGroupContent>
-        </SidebarGroup>
-    );
-}
-
 interface PlatformNavContextValue {
     readonly activeNavKey: string;
     readonly activeSection: PlatformNavSection | undefined;
     readonly navigateToKey: (key: string) => void;
+    readonly hrefForKey: (key: string) => string;
     readonly contextExpanded: boolean;
     readonly toggleContext: () => void;
     readonly permissionsReady: boolean;
@@ -368,7 +333,7 @@ function ModuleLayout() {
         }
     }, [federationEntitlementUnknown]);
 
-    const { activeNavKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
+    const { activeNavKey, hrefForKey, navigateToKey } = useModuleRouting(PLATFORM_ROUTE_CONFIG);
     const hasAlertEngine = useHasFeature(ALERT_ENGINE_FEATURE);
     const hasAuditTrail = useHasFeature(APIM_AUDIT_TRAIL_FEATURE);
     const hasDcrRegistration = useHasFeature(DCR_REGISTRATION_LICENSE_FEATURE);
@@ -453,14 +418,14 @@ function ModuleLayout() {
     useLayoutConfig(
         {
             navigation: (
-                <PlatformPrimaryNavigation
-                    items={platformPrimaryNavItems(visibleNavSections)}
+                <SidebarNavigation
+                    groups={[{ label: 'Manage', items: platformPrimaryNavItems(visibleNavSections, hrefForKey) }]}
                     activeItemKey={activeSectionKey}
                     onItemSelect={handleSectionSelect}
                 />
             ),
         },
-        [activeSectionKey, handleSectionSelect, visibleNavSections],
+        [activeSectionKey, handleSectionSelect, hrefForKey, visibleNavSections],
     );
 
     const navContext = useMemo(
@@ -468,12 +433,13 @@ function ModuleLayout() {
             activeNavKey,
             activeSection,
             navigateToKey,
+            hrefForKey,
             contextExpanded,
             toggleContext,
             permissionsReady,
             landingNavKey,
         }),
-        [activeNavKey, activeSection, contextExpanded, landingNavKey, navigateToKey, permissionsReady, toggleContext],
+        [activeNavKey, activeSection, contextExpanded, hrefForKey, landingNavKey, navigateToKey, permissionsReady, toggleContext],
     );
 
     return (
@@ -484,9 +450,16 @@ function ModuleLayout() {
 }
 
 function PlatformSectionLayout() {
-    const { activeNavKey, activeSection, navigateToKey, contextExpanded, toggleContext } = usePlatformNavContext();
+    const { activeNavKey, activeSection, navigateToKey, hrefForKey, contextExpanded, toggleContext } = usePlatformNavContext();
     const navigate = useNavigate();
-    const groups = activeSection?.groups ?? EMPTY_NAV_GROUPS;
+    const groups = useMemo(
+        () =>
+            (activeSection?.groups ?? EMPTY_NAV_GROUPS).map(group => ({
+                ...group,
+                items: group.items.map(item => ({ ...item, href: hrefForKey(item.key) })),
+            })),
+        [activeSection, hrefForKey],
+    );
     const breadcrumbs = useMemo(
         () => buildLinearBreadcrumbs(navigate, [{ label: PLATFORM_ROUTE_CONFIG.routes[activeNavKey]?.label ?? activeNavKey }]),
         [activeNavKey, navigate],
