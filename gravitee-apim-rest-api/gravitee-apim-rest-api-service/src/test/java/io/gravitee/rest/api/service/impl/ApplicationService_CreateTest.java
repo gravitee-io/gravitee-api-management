@@ -22,6 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.definition.model.Origin;
 import io.gravitee.repository.exceptions.DuplicateKeyException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApplicationRepository;
@@ -302,6 +303,34 @@ public class ApplicationService_CreateTest {
             )
         ).thenReturn(Boolean.TRUE);
         applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+    }
+
+    @Test
+    public void shouldRemoveAForeignGroupWhenCreateClaimsKubernetesOrigin() throws TechnicalException {
+        ApplicationSettings settings = new ApplicationSettings();
+        SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
+        clientSettings.setClientId(CLIENT_ID);
+        settings.setApp(clientSettings);
+        settings.setTls(TlsSettings.builder().clientCertificate(VALID_PEM).build());
+        when(newApplication.getSettings()).thenReturn(settings);
+        when(newApplication.getGroups()).thenReturn(Set.of("foreign-group"));
+        when(newApplication.getOrigin()).thenReturn(Origin.KUBERNETES);
+        when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any())).thenReturn(Set.of());
+        when(application.getName()).thenReturn(APPLICATION_NAME);
+        when(application.getType()).thenReturn(ApplicationType.SIMPLE);
+        when(application.getApiKeyMode()).thenReturn(ApiKeyMode.UNSPECIFIED);
+        when(application.getStatus()).thenReturn(ApplicationStatus.ACTIVE);
+        when(applicationRepository.create(any())).thenReturn(application);
+        when(newApplication.getName()).thenReturn(APPLICATION_NAME);
+        when(newApplication.getDescription()).thenReturn("My description");
+        when(groupService.findByEvent(eq(GraviteeContext.getCurrentEnvironment()), any())).thenReturn(Collections.emptySet());
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(mock(UserEntity.class));
+        when(applicationConverter.toApplication(any(NewApplicationEntity.class))).thenCallRealMethod();
+
+        applicationService.create(GraviteeContext.getExecutionContext(), newApplication, USER_NAME);
+
+        verify(groupService).retainGroupsTheCallerMayAssign(any(), eq(USER_NAME), eq(Set.of("foreign-group")), eq(Set.of()));
+        verify(newApplication).setGroups(Set.of());
     }
 
     @Test(expected = ClientIdAlreadyExistsException.class)
