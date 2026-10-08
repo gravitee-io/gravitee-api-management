@@ -219,9 +219,11 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
                     auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED &&
                     "true".equals(auditLogData.getProperties().get(ENCRYPTED)) &&
                     auditLogData.getCreatedAt().equals(dictionaryInDb.getDeployedAt()) &&
-                    auditLogData.getPatch().contains(
-                        "{\"op\":\"access\",\"path\":\"/properties/apiKey\",\"value\":{\"value\":\"<sha256:4841bcab77bdaabda76ea0b699c0a88a61a73bb3b2c5bd69f9d79e0848646fa0>\",\"encrypted\":true}}"
-                    )
+                    auditLogData
+                        .getPatch()
+                        .contains(
+                            "{\"op\":\"access\",\"path\":\"/properties/apiKey\",\"value\":{\"value\":\"<sha256:4841bcab77bdaabda76ea0b699c0a88a61a73bb3b2c5bd69f9d79e0848646fa0>\",\"encrypted\":true}}"
+                        )
             )
         );
     }

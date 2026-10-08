@@ -168,10 +168,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         String authenticatedUser,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
-        Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
-        GenericApiEntity deployedApi = deploy(executionContext, storedApi, apiToDeploy, authenticatedUser, apiDeploymentEntity);
-        auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), API_ENCRYPTED_PROPERTIES_ACCESSED);
-        return notifyDeployment(executionContext, deployedApi);
+        return deployAuditedAs(executionContext, apiToDeploy, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_ACCESSED);
     }
 
     @Override
@@ -181,9 +178,19 @@ public class ApiStateServiceImpl implements ApiStateService {
         String authenticatedUser,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
+        return deployAuditedAs(executionContext, apiToDeploy, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_REFRESHED);
+    }
+
+    private GenericApiEntity deployAuditedAs(
+        ExecutionContext executionContext,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity,
+        Api.AuditEvent accessEvent
+    ) {
         Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
         GenericApiEntity deployedApi = deploy(executionContext, storedApi, apiToDeploy, authenticatedUser, apiDeploymentEntity);
-        auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), API_ENCRYPTED_PROPERTIES_REFRESHED);
+        auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), accessEvent);
         return notifyDeployment(executionContext, deployedApi);
     }
 
@@ -255,12 +262,14 @@ public class ApiStateServiceImpl implements ApiStateService {
     }
 
     private static Map<String, String> ciphertextByKey(List<Property> properties) {
-        Map<String, String> ciphertextByKey = new HashMap<>();
-        properties
+        return properties
             .stream()
             .filter(Property::isEncrypted)
-            .forEach(property -> ciphertextByKey.put(property.getKey(), property.getValue()));
-        return ciphertextByKey;
+            .collect(
+                HashMap::new,
+                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
+                HashMap::putAll
+            );
     }
 
     private static List<Property> v4Properties(GenericApiEntity api) {

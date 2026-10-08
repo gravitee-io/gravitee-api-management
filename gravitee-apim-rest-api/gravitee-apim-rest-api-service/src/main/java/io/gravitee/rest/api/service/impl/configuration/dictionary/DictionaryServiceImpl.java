@@ -407,7 +407,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             beforeRefresh,
             updatedDictionary
         );
-        auditEncryptedPropertiesAccess(executionContext, updatedDictionary, Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED);
+        auditEncryptedPropertiesAccess(
+            executionContext,
+            updatedDictionary,
+            Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED
+        );
     }
 
     private static Dictionary copyOf(Dictionary dictionary) {
@@ -560,13 +564,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     private static Map<String, String> ciphertextByKey(Map<String, DictionaryProperty> properties) {
-        Map<String, String> ciphertextByKey = new HashMap<>();
-        properties
+        return properties
             .entrySet()
             .stream()
             .filter(entry -> entry.getValue() != null && entry.getValue().encrypted())
-            .forEach(entry -> ciphertextByKey.put(entry.getKey(), entry.getValue().value()));
-        return ciphertextByKey;
+            .collect(
+                HashMap::new,
+                (ciphertextByKey, entry) -> ciphertextByKey.put(entry.getKey(), entry.getValue().value()),
+                HashMap::putAll
+            );
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {
