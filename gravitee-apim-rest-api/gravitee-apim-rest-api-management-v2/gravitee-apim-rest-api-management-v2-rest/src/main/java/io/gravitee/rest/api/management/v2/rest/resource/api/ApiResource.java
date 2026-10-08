@@ -25,6 +25,7 @@ import io.gravitee.apim.core.api.exception.ApiInvalidDefinitionVersionException;
 import io.gravitee.apim.core.api.exception.ApiInvalidTypeException;
 import io.gravitee.apim.core.api.model.UpdateNativeApi;
 import io.gravitee.apim.core.api.model.crd.IDExportStrategy;
+import io.gravitee.apim.core.api.model.import_definition.GraviteeDefinition;
 import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.model.utils.MigrationResult;
 import io.gravitee.apim.core.api.use_case.DetachAutomatedApiUseCase;
@@ -184,6 +185,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
+import lombok.SneakyThrows;
 
 /**
  * Defines the REST resources to manage API v4.
@@ -1107,7 +1109,7 @@ public class ApiResource extends AbstractResource {
             .toList();
 
         var exported = exportApiUseCase.execute(ExportApiUseCase.Input.of(sourceApi.getId(), auditInfo, excluded));
-        var toImport = ImportExportApiMapper.INSTANCE.map(exported.definition());
+        var toImport = exportedForImport(exported.definition());
 
         var api = toImport.getApi();
         // a duplicate is a new API: let the platform generate its identifiers, and let the caller own it rather
@@ -1128,6 +1130,21 @@ public class ApiResource extends AbstractResource {
             new ImportApiDefinitionUseCase.Input(ImportExportApiMapper.INSTANCE.toImportDefinition(toImport), auditInfo)
         );
         return output.apiWithFlows().getId();
+    }
+
+    /**
+     * Turns the source's export into the payload the import reads, through its JSON text.
+     *
+     * <p>{@link ImportExportApiMapper#map(GraviteeDefinition)} shapes the export for its JSON output: it turns
+     * every entrypoint and endpoint configuration into a JSON tree. The import mappers only take a configuration
+     * as a map or a JSON string, and refuse a tree with "Configuration must be a JSON object", so handing them
+     * the mapped export directly failed every Kafka Service duplicate. Going through the JSON text is exactly
+     * what an export followed by an import does, and what a promotion does with its stored definition.
+     */
+    @SneakyThrows
+    private static ExportApiV4 exportedForImport(GraviteeDefinition definition) {
+        var json = ImportExportApiMapper.JSON_MAPPER.writeValueAsString(ImportExportApiMapper.INSTANCE.map(definition));
+        return ImportExportApiMapper.INSTANCE.definitionToExportApiV4(json);
     }
 
     /**
