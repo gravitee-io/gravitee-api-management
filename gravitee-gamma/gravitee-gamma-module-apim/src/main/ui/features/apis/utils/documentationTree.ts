@@ -97,6 +97,20 @@ function countDescendants(childrenByParent: Map<string | undefined, ApiDocumenta
     return counts;
 }
 
+/** The folders above an item, from the top level down. Stops at a parent missing from the list, or one already seen. */
+export function getAncestors(items: ApiDocumentationItem[], item: ApiDocumentationItem): ApiDocumentationItem[] {
+    const byId = new Map(items.map(candidate => [candidate.id, candidate]));
+    const ancestors: ApiDocumentationItem[] = [];
+    const seen = new Set<string>([item.id]);
+    let parent = item.parentId === undefined ? undefined : byId.get(item.parentId);
+    while (parent && !seen.has(parent.id)) {
+        seen.add(parent.id);
+        ancestors.unshift(parent);
+        parent = parent.parentId === undefined ? undefined : byId.get(parent.parentId);
+    }
+    return ancestors;
+}
+
 export function hasSource(item: ApiDocumentationItem): boolean {
     return item.type !== 'LINK' && item.source !== undefined;
 }

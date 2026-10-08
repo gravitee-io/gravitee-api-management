@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { buildDocumentationRows, getPublishedSection } from './documentationTree';
+import { buildDocumentationRows, getAncestors, getPublishedSection } from './documentationTree';
 import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationItemSource } from '../types/apiDocumentation';
 
 const SOURCE: PortalNavigationItemSource = { type: 'github-fetcher', configuration: {} };
@@ -127,6 +127,27 @@ describe('buildDocumentationRows', () => {
         expect(rows).toHaveLength(depth);
         expect(rows[0]).toMatchObject({ depth: 0, descendantCount: depth - 1 });
         expect(rows[depth - 1]).toMatchObject({ depth: depth - 1, descendantCount: 0 });
+    });
+});
+
+describe('getAncestors', () => {
+    const items = [folder('guides', 0), folder('auth', 0, 'guides'), page('oauth', 0, 'auth'), page('changelog', 1)];
+
+    it('lists the folders above an item, from the top level down', () => {
+        expect(getAncestors(items, items[2]!).map(item => item.id)).toEqual(['guides', 'auth']);
+    });
+
+    it('is empty for a top-level item', () => {
+        expect(getAncestors(items, items[3]!)).toEqual([]);
+    });
+
+    it('stops at a parent missing from the list', () => {
+        expect(getAncestors([page('orphan', 0, 'gone')], page('orphan', 0, 'gone'))).toEqual([]);
+    });
+
+    it('stops when the parents loop back on themselves', () => {
+        const loop = [folder('a', 0, 'b'), folder('b', 0, 'a')];
+        expect(getAncestors(loop, page('leaf', 0, 'a')).map(item => item.id)).toEqual(['b', 'a']);
     });
 });
 
