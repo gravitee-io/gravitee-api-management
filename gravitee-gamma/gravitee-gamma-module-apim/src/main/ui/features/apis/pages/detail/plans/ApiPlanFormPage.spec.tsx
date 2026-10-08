@@ -149,6 +149,13 @@ describe('ApiPlanFormPage edit form', () => {
         expect(screen.getByLabelText('Custom message to display to consumer')).toHaveValue('Tell us about your use case');
     });
 
+    it('does not show subscription settings for a keyless plan, which has no subscriptions', async () => {
+        await renderPlanEditPage({ ...FEDERATED_PLAN, security: { type: 'KEY_LESS' } });
+
+        expect(screen.queryByText('Subscriptions')).toBeNull();
+        expect(screen.queryByRole('switch', { name: /auto validate subscription/i })).toBeNull();
+    });
+
     it('opens a federated plan showing the groups it excludes from subscribing', async () => {
         mockUseGroups.mockReturnValue({ data: { data: [PARTNER_GROUP] } });
 

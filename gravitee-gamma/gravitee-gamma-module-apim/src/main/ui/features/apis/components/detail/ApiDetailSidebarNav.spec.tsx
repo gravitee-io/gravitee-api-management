@@ -33,6 +33,8 @@ const GROUPS = API_PROXY_NAV_GROUPS;
 const BASE = '/env/apis/abc-123';
 const OBSERVABILITY_LINKS = { dashboardHref: '/env/observe/dashboards/http-proxy-overview?q=a', logsHref: '/env/observe/logs?q=a' };
 
+const COMING_SOON_GROUPS = [{ label: 'General', items: [{ path: 'not-yet', label: 'Not yet', icon: DatabaseIcon, comingSoon: true }] }];
+
 function renderNav(currentPath: string, groups = GROUPS) {
     return render(
         <MemoryRouter initialEntries={[currentPath]}>
@@ -70,7 +72,6 @@ describe('API_PROXY_NAV_GROUPS', () => {
             'overview',
             'general',
             'user-permissions',
-            'authorization',
             'metadata',
             'documentation',
             'api-score',
@@ -137,12 +138,15 @@ describe('ApiDetailSidebarNav — flat links', () => {
         );
     });
 
-    it('renders "coming soon" items (Authorization) as disabled, non-navigable rows', () => {
+    it('does not list Authorization, which is not available in Gamma yet', () => {
         renderNav(`${BASE}/overview`);
-        for (const label of ['Authorization']) {
-            expect(screen.getByText(label)).toBeInTheDocument();
-            expect(screen.queryByRole('link', { name: new RegExp(`^${label}$`, 'i') })).not.toBeInTheDocument();
-        }
+        expect(screen.queryByText('Authorization')).not.toBeInTheDocument();
+    });
+
+    it('renders "coming soon" items as disabled, non-navigable rows', () => {
+        renderNav(`${BASE}/overview`, COMING_SOON_GROUPS);
+        expect(screen.getByText('Not yet')).toBeInTheDocument();
+        expect(screen.queryByRole('link', { name: /^not yet$/i })).not.toBeInTheDocument();
     });
 
     it('renders the Response Templates link with the correct href', () => {
@@ -151,8 +155,8 @@ describe('ApiDetailSidebarNav — flat links', () => {
     });
 
     it('makes "coming soon" rows reachable by keyboard, with their reason exposed for assistive tech', () => {
-        renderNav(`${BASE}/overview`);
-        const row = screen.getByText('Authorization').closest('[tabindex]');
+        renderNav(`${BASE}/overview`, COMING_SOON_GROUPS);
+        const row = screen.getByText('Not yet').closest('[tabindex]');
         expect(row).not.toBeNull();
         expect(row).toHaveAttribute('tabindex', '0');
         expect(row).toHaveAttribute('aria-disabled', 'true');
@@ -242,7 +246,6 @@ const FEDERATED_HIDDEN_PATHS = [
     'alerts',
     'deployment/configuration',
     'deployment/history',
-    'authorization',
     'response-templates',
 ];
 
