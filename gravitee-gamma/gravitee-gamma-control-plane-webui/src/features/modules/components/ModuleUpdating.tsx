@@ -31,7 +31,7 @@ export function ModuleUpdating({ moduleName, attempting, onRetryNow }: ModuleUpd
     const retrying = useMinimumDuration(attempting, RETRYING_SHOWN_FOR_AT_LEAST_MS);
 
     return (
-        <Empty role="status">
+        <Empty>
             <EmptyHeader>
                 <EmptyMedia variant="icon">
                     <Spinner aria-hidden="true" />
