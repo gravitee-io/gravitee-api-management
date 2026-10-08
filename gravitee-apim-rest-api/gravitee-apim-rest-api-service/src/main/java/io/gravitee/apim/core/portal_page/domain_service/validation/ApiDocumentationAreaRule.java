@@ -19,13 +19,12 @@ import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.exception.InvalidPortalNavigationItemDataException;
 import io.gravitee.apim.core.portal_page.model.CreatePortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
-import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 
 public class ApiDocumentationAreaRule implements CreatePortalNavigationItemValidationRule {
 
     @Override
     public boolean appliesTo(CreatePortalNavigationItem item) {
-        return item.getType() == PortalNavigationItemType.PAGE && item.getReference() instanceof NavigationItemReference.ApiReference;
+        return item.getReference() instanceof NavigationItemReference.ApiReference;
     }
 
     @Override

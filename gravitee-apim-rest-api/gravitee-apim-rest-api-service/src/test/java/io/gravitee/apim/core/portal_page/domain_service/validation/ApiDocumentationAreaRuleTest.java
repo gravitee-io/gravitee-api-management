@@ -46,9 +46,19 @@ class ApiDocumentationAreaRuleTest {
     }
 
     @Test
-    void does_not_apply_to_non_page_types() {
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR, apiRef()))).isFalse();
-        assertThat(rule.appliesTo(item(PortalNavigationItemType.API, PortalArea.TOP_NAVBAR, apiRef()))).isFalse();
+    void applies_to_folder_with_api_reference() {
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR, apiRef()))).isTrue();
+    }
+
+    @Test
+    void applies_to_link_with_api_reference() {
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR, apiRef()))).isTrue();
+    }
+
+    @Test
+    void does_not_apply_to_folder_or_link_with_portal_reference() {
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE, portalRef()))).isFalse();
+        assertThat(rule.appliesTo(item(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE, portalRef()))).isFalse();
     }
 
     @Test
@@ -61,6 +71,20 @@ class ApiDocumentationAreaRuleTest {
     @Test
     void rejects_homepage() {
         assertThatThrownBy(() -> rule.validate(item(PortalNavigationItemType.PAGE, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("TOP_NAVBAR");
+    }
+
+    @Test
+    void rejects_api_owned_folder_outside_top_navbar() {
+        assertThatThrownBy(() -> rule.validate(item(PortalNavigationItemType.FOLDER, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
+            .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+            .hasMessageContaining("TOP_NAVBAR");
+    }
+
+    @Test
+    void rejects_api_owned_link_outside_top_navbar() {
+        assertThatThrownBy(() -> rule.validate(item(PortalNavigationItemType.LINK, PortalArea.HOMEPAGE, apiRef()), "env-1", null))
             .isInstanceOf(InvalidPortalNavigationItemDataException.class)
             .hasMessageContaining("TOP_NAVBAR");
     }
