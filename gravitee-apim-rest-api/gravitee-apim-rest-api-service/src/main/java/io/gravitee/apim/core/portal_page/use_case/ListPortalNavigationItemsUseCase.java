@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiPortalSearchQueryService;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityEvaluator;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemVisibilityService;
@@ -55,9 +56,11 @@ public class ListPortalNavigationItemsUseCase {
     private final List<PortalNavigationItemVisibilityService> visibilityServices;
     private final PortalNavigationItemSourceDomainService sourceDomainService;
     private final ApiPortalSearchQueryService apiPortalSearchQueryService;
+    private final ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
     private static final Predicate<PortalNavigationItem> IS_CONTAINER_PREDICATE = i -> i instanceof PortalNavigationItemContainer;
 
     public Output execute(Input input) {
+        Map<PortalNavigationItemId, Boolean> productContextById = new HashMap<>();
         var visibilityEvaluator = new PortalNavigationItemVisibilityEvaluator(
             input.environmentId(),
             input.viewerContext(),
@@ -71,7 +74,7 @@ public class ListPortalNavigationItemsUseCase {
             if (parentItem == null) {
                 return new Output(List.of(), Map.of());
             }
-            rootItems = childrenOf(parentItem, input, visibilityEvaluator);
+            rootItems = childrenOf(parentItem, input, visibilityEvaluator, productContextById);
         } else {
             rootItems = searchItems(input, null, true, visibilityEvaluator);
         }
@@ -79,7 +82,7 @@ public class ListPortalNavigationItemsUseCase {
         List<PortalNavigationItem> allItems = new ArrayList<>(rootItems);
 
         if (input.loadChildren()) {
-            List<PortalNavigationItem> descendants = loadDescendants(rootItems, input, visibilityEvaluator);
+            List<PortalNavigationItem> descendants = loadDescendants(rootItems, input, visibilityEvaluator, productContextById);
             allItems.addAll(descendants);
         }
 
@@ -144,7 +147,8 @@ public class ListPortalNavigationItemsUseCase {
     private List<PortalNavigationItem> loadDescendants(
         List<PortalNavigationItem> initialItems,
         Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
+        PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
+        Map<PortalNavigationItemId, Boolean> productContextById
     ) {
         List<PortalNavigationItem> childrenAccumulator = new ArrayList<>();
         LinkedList<PortalNavigationItem> queue = new LinkedList<>();
@@ -154,7 +158,7 @@ public class ListPortalNavigationItemsUseCase {
         while (!queue.isEmpty()) {
             var currentFolder = queue.removeFirst();
 
-            var foundChildren = childrenOf(currentFolder, input, visibilityEvaluator);
+            var foundChildren = childrenOf(currentFolder, input, visibilityEvaluator, productContextById);
 
             if (!foundChildren.isEmpty()) {
                 childrenAccumulator.addAll(foundChildren);
@@ -188,7 +192,7 @@ public class ListPortalNavigationItemsUseCase {
         List<PortalNavigationItem> items = queryService.search(builder.build());
         if (isRootSearch) {
             // An API's subtree is materialized once, as a root, and spliced in under every portal's
-            // nav-api row by childrenOf(...) — it must never also surface at the portal's own top level.
+            // standalone nav-api row by childrenOf(...) — it must never also surface at the portal's own top level.
             items = items
                 .stream()
                 .filter(item -> !(item.getReference() instanceof NavigationItemReference.ApiReference))
@@ -198,19 +202,21 @@ public class ListPortalNavigationItemsUseCase {
     }
 
     /**
-     * A {@link PortalNavigationApi} row can have two kinds of children: ordinary console-authored
-     * sub-navigation, still physically parented under the row and found the usual way, and the API's
-     * own automation-owned subtree — materialized once, keyed on the API — reached here by reference
-     * rather than by the row's own parentId, so it renders identically under every portal row that
-     * lists the API. Both are real; this returns their union.
+     * A standalone {@link PortalNavigationApi} row combines its physical children with the API-owned
+     * subtree, materialized once and reached by reference. API rows beneath an API product keep only
+     * their physical children because product documentation has an independent lifecycle.
      */
     private List<PortalNavigationItem> childrenOf(
         PortalNavigationItem parent,
         Input input,
-        PortalNavigationItemVisibilityEvaluator visibilityEvaluator
+        PortalNavigationItemVisibilityEvaluator visibilityEvaluator,
+        Map<PortalNavigationItemId, Boolean> productContextById
     ) {
         if (parent instanceof PortalNavigationApi navApi) {
             var physicalChildren = searchItems(input, navApi.getId(), false, visibilityEvaluator);
+            if (apiOwnedNavigationDomainService.isInApiProductContext(input.environmentId(), navApi, productContextById)) {
+                return physicalChildren;
+            }
             var splicedRoots = queryService.findTopLevelItemsByEnvironmentIdAndPortalAreaAndReference(
                 input.environmentId(),
                 input.portalArea(),

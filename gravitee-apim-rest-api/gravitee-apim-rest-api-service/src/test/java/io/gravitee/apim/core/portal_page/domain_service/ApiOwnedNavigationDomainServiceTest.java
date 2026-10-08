@@ -23,6 +23,9 @@ import static fixtures.core.model.PortalNavigationItemFixtures.anApi;
 import static fixtures.core.model.PortalNavigationItemFixtures.anApiProduct;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
@@ -39,6 +42,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationLink;
 import io.gravitee.apim.core.portal_page.model.PortalPageContentType;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -48,6 +52,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class ApiOwnedNavigationDomainServiceTest {
@@ -215,6 +220,139 @@ class ApiOwnedNavigationDomainServiceTest {
             queryService.initWith(List.of(product, productListing, section, standaloneListing));
 
             assertThat(service.findStandaloneListings(ENV_ID, API_ID)).containsExactly(standaloneListing);
+        }
+
+        @Test
+        @Timeout(5)
+        void should_reject_a_listing_with_cyclic_parent_hierarchy() {
+            var folder = aFolder("Cyclic folder");
+            folder.updateParent(folder);
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", folder.getId(), API_ID);
+            queryService.initWith(List.of(folder, listing));
+
+            assertThatThrownBy(() -> service.findStandaloneListings(ENV_ID, API_ID))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessage(InvalidPortalNavigationItemDataException.cyclicParentHierarchy().getMessage());
+        }
+    }
+
+    @Nested
+    class IsInApiProductContext {
+
+        @Test
+        void should_include_the_api_product_itself() {
+            var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id");
+
+            assertThat(service.isInApiProductContext(ENV_ID, product)).isTrue();
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_recognize_direct_and_folder_nested_api_product_members(boolean nested) {
+            var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id");
+            var folder = aFolder("Members", product.getId());
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", nested ? folder.getId() : product.getId(), API_ID);
+            queryService.initWith(List.of(product, folder, listing));
+
+            assertThat(service.isInApiProductContext(ENV_ID, listing)).isTrue();
+        }
+
+        @Test
+        void should_return_false_for_an_item_without_a_parent() {
+            assertThat(service.isInApiProductContext(ENV_ID, aFolder("APIs"))).isFalse();
+        }
+
+        @Test
+        void should_return_false_when_the_parent_is_missing() {
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", PortalNavigationItemId.random(), API_ID);
+
+            assertThat(service.isInApiProductContext(ENV_ID, listing)).isFalse();
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        void should_cache_the_entire_chain_and_read_shared_ancestors_once(boolean productContext) {
+            PortalNavigationItem root = productContext
+                ? anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id")
+                : aFolder("APIs");
+            var sharedAncestor = aFolder("Shared ancestor", root.getId());
+            var sharedParent = aFolder("Shared parent", sharedAncestor.getId());
+            var first = anApi(PortalNavigationItemId.random().json(), "First listing", sharedParent.getId(), API_ID);
+            var second = anApi(PortalNavigationItemId.random().json(), "Second listing", sharedParent.getId(), API_ID);
+            var countingQueryService = spy(
+                new PortalNavigationItemsQueryServiceInMemory(List.of(root, sharedAncestor, sharedParent, first, second))
+            );
+            var countingService = new ApiOwnedNavigationDomainService(countingQueryService);
+            var contextById = new HashMap<PortalNavigationItemId, Boolean>();
+
+            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isEqualTo(productContext);
+            assertThat(countingService.isInApiProductContext(ENV_ID, second, contextById)).isEqualTo(productContext);
+            assertThat(countingService.isInApiProductContext(ENV_ID, sharedAncestor, contextById)).isEqualTo(productContext);
+            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isEqualTo(productContext);
+
+            assertThat(contextById)
+                .hasSize(5)
+                .containsEntry(root.getId(), productContext)
+                .containsEntry(sharedAncestor.getId(), productContext)
+                .containsEntry(sharedParent.getId(), productContext)
+                .containsEntry(first.getId(), productContext)
+                .containsEntry(second.getId(), productContext);
+            verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, sharedParent.getId());
+            verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, sharedAncestor.getId());
+            verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, root.getId());
+            verifyNoMoreInteractions(countingQueryService);
+        }
+
+        @Test
+        void should_cache_a_shared_missing_parent_as_non_product_context() {
+            var missingParentId = PortalNavigationItemId.random();
+            var first = aFolder("First", missingParentId);
+            var second = aFolder("Second", missingParentId);
+            var countingQueryService = spy(new PortalNavigationItemsQueryServiceInMemory(List.of(first, second)));
+            var countingService = new ApiOwnedNavigationDomainService(countingQueryService);
+            var contextById = new HashMap<PortalNavigationItemId, Boolean>();
+
+            assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isFalse();
+            assertThat(countingService.isInApiProductContext(ENV_ID, second, contextById)).isFalse();
+
+            assertThat(contextById)
+                .hasSize(3)
+                .containsEntry(first.getId(), false)
+                .containsEntry(second.getId(), false)
+                .containsEntry(missingParentId, false);
+            verify(countingQueryService).findByIdAndEnvironmentId(ENV_ID, missingParentId);
+            verifyNoMoreInteractions(countingQueryService);
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = { false, true })
+        @Timeout(5)
+        void should_reject_self_and_multi_node_cycles_without_caching_a_result(boolean multipleNodes) {
+            var first = aFolder("First");
+            var second = aFolder("Second", first.getId());
+            first.updateParent(multipleNodes ? second : first);
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", first.getId(), API_ID);
+            queryService.initWith(List.of(first, second, listing));
+            var contextById = new HashMap<PortalNavigationItemId, Boolean>();
+
+            assertThatThrownBy(() -> service.isInApiProductContext(ENV_ID, listing, contextById))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessage(InvalidPortalNavigationItemDataException.cyclicParentHierarchy().getMessage());
+            assertThat(contextById).isEmpty();
+        }
+
+        @Test
+        void should_resolve_current_ancestry_on_each_call_without_a_shared_cache() {
+            var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", null, "product-id");
+            var folder = aFolder("Members", product.getId());
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", folder.getId(), API_ID);
+            queryService.initWith(List.of(product, folder, listing));
+
+            assertThat(service.isInApiProductContext(ENV_ID, listing)).isTrue();
+            folder.markAsRoot();
+            assertThat(service.isInApiProductContext(ENV_ID, listing)).isFalse();
+            folder.updateParent(product);
+            assertThat(service.isInApiProductContext(ENV_ID, listing)).isTrue();
         }
     }
 

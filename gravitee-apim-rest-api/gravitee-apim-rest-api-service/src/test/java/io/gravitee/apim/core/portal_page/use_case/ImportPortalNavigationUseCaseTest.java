@@ -29,6 +29,7 @@ import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
+import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationBulkImportDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemDomainService;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemValidatorService;
@@ -85,7 +86,8 @@ class ImportPortalNavigationUseCaseTest {
             pageContentCrudService,
             pageContentQueryService,
             new ApiCrudServiceInMemory(),
-            sourceDomainService
+            sourceDomainService,
+            new ApiOwnedNavigationDomainService(queryService)
         );
         var validatorService = new PortalNavigationItemValidatorService(
             queryService,
@@ -851,7 +853,8 @@ class ImportPortalNavigationUseCaseTest {
                     pageContentCrudService,
                     PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
                     new ApiCrudServiceInMemory(),
-                    sourceDomainService
+                    sourceDomainService,
+                    new ApiOwnedNavigationDomainService(queryService)
                 ),
                 queryService,
                 crudService,

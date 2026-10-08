@@ -35,8 +35,10 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 
@@ -91,11 +93,12 @@ public class ApiOwnedNavigationDomainService {
             .type(PortalNavigationItemType.API)
             .apiIds(Set.of(apiId))
             .build();
+        Map<PortalNavigationItemId, Boolean> productContextById = new HashMap<>();
         return queryService
             .search(criteria)
             .stream()
             .map(PortalNavigationApi.class::cast)
-            .filter(listing -> !hasApiProductAncestor(environmentId, listing))
+            .filter(listing -> !isInApiProductContext(environmentId, listing, productContextById))
             .toList();
     }
 
@@ -183,14 +186,48 @@ public class ApiOwnedNavigationDomainService {
             .build();
     }
 
-    private boolean hasApiProductAncestor(String environmentId, PortalNavigationItem item) {
+    public boolean isInApiProductContext(String environmentId, PortalNavigationItem item) {
+        return isInApiProductContext(environmentId, item, new HashMap<>());
+    }
+
+    /**
+     * Includes the item itself. The cache must be scoped to one operation in a single environment so
+     * shared ancestors can be reused without retaining stale context after navigation changes.
+     */
+    public boolean isInApiProductContext(
+        String environmentId,
+        PortalNavigationItem item,
+        Map<PortalNavigationItemId, Boolean> productContextById
+    ) {
+        Set<PortalNavigationItemId> visited = new HashSet<>();
         var current = item;
-        while (current != null && current.getParentId() != null) {
-            current = queryService.findByIdAndEnvironmentId(environmentId, current.getParentId());
-            if (current instanceof PortalNavigationApiProduct) {
-                return true;
+        var currentId = item.getId();
+        boolean inProductContext = false;
+        while (currentId != null) {
+            if (!visited.add(currentId)) {
+                throw InvalidPortalNavigationItemDataException.cyclicParentHierarchy();
             }
+            var cachedContext = productContextById.get(currentId);
+            if (cachedContext != null) {
+                inProductContext = cachedContext;
+                break;
+            }
+            if (current == null) {
+                current = queryService.findByIdAndEnvironmentId(environmentId, currentId);
+            }
+            if (current == null) {
+                break;
+            }
+            if (current instanceof PortalNavigationApiProduct) {
+                inProductContext = true;
+                break;
+            }
+            currentId = current.getParentId();
+            current = null;
         }
-        return false;
+        for (var id : visited) {
+            productContextById.put(id, inProductContext);
+        }
+        return inProductContext;
     }
 }

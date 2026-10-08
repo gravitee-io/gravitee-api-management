@@ -1558,7 +1558,8 @@ public class ResourceContextConfiguration {
         PortalPageContentCrudService portalPageContentCrudService,
         PortalPageContentQueryService portalPageContentQueryService,
         ApiCrudService apiCrudService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService
     ) {
         return new PortalNavigationItemDomainService(
             portalNavigationItemCrudService,
@@ -1566,7 +1567,8 @@ public class ResourceContextConfiguration {
             portalPageContentCrudService,
             portalPageContentQueryService,
             apiCrudService,
-            portalNavigationItemSourceDomainService
+            portalNavigationItemSourceDomainService,
+            apiOwnedNavigationDomainService
         );
     }
 
@@ -1624,13 +1626,15 @@ public class ResourceContextConfiguration {
         PortalNavigationApiVisibilityDomainService portalNavigationApiVisibilityDomainService,
         PortalNavigationApiProductVisibilityDomainService portalNavigationApiProductVisibilityDomainService,
         PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
-        ApiPortalSearchQueryService apiPortalSearchQueryService
+        ApiPortalSearchQueryService apiPortalSearchQueryService,
+        ApiOwnedNavigationDomainService apiOwnedNavigationDomainService
     ) {
         return new ListPortalNavigationItemsUseCase(
             portalNavigationItemsQueryService,
             List.of(portalNavigationApiVisibilityDomainService, portalNavigationApiProductVisibilityDomainService),
             portalNavigationItemSourceDomainService,
-            apiPortalSearchQueryService
+            apiPortalSearchQueryService,
+            apiOwnedNavigationDomainService
         );
     }
 
