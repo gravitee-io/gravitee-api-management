@@ -438,4 +438,6 @@ databaseChangeLog:
     - include:
         - file: liquibase/changelogs/v4_13_0/25_add_registration_origin_to_users.yml
     - include:
+        - file: liquibase/changelogs/v4_13_0/26_add_module_to_gamma_dashboards.yml
+    - include:
         - file: liquibase/changelogs/v4_14_0/01_add_encrypt_on_fetch_to_dictionaries.yml

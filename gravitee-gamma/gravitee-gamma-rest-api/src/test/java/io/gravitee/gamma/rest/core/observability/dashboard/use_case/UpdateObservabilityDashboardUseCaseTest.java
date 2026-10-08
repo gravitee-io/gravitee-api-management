@@ -102,6 +102,22 @@ class UpdateObservabilityDashboardUseCaseTest {
         assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).contains(output.dashboard());
     }
 
+    /** {@code module} is not part of the update contract: the stored value survives every write. */
+    @Test
+    void should_keep_the_stored_module() {
+        dashboardRepository.givenDashboard(existingDashboard(3));
+        var content = new DashboardContent("New title", null, List.of(), null, null);
+
+        var output = useCase.execute(
+            new UpdateObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, VersionPrecondition.version(3), content)
+        );
+
+        assertThat(output.dashboard().module()).isEqualTo("aim");
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).hasValueSatisfying(stored ->
+            assertThat(stored.module()).isEqualTo("aim")
+        );
+    }
+
     /**
      * A stored version of {@code null} is not reachable through the API — every dashboard is created with 1 — but the
      * repository model still allows it. Such a dashboard advertises no ETag, so no version can match it and only an
@@ -211,6 +227,7 @@ class UpdateObservabilityDashboardUseCaseTest {
         Dashboard winner = new Dashboard(
             DASHBOARD_ID,
             ENV,
+            null,
             "Someone else's title",
             "desc",
             List.of(),
@@ -275,6 +292,7 @@ class UpdateObservabilityDashboardUseCaseTest {
         return new Dashboard(
             DASHBOARD_ID,
             ENV,
+            "aim",
             "Performance overview",
             "desc",
             List.of(),

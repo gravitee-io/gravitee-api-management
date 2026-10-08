@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.node.NullNode;
 import io.gravitee.gamma.rest.core.observability.dashboard.exception.DashboardNotFoundException;
+import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
 import io.gravitee.gamma.rest.core.observability.dashboard.inmemory.InMemoryDashboardRepository;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter;
@@ -55,6 +56,7 @@ class GetObservabilityDashboardUseCaseTest {
             new Dashboard(
                 DASHBOARD_ID,
                 ENV,
+                null,
                 "Performance overview",
                 "desc",
                 List.of(
@@ -70,7 +72,7 @@ class GetObservabilityDashboardUseCaseTest {
             )
         );
 
-        var output = useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID));
+        var output = useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, null));
 
         assertThat(output.dashboard().id()).isEqualTo(DASHBOARD_ID);
         assertThat(output.dashboard().filters()).hasSize(2);
@@ -81,7 +83,7 @@ class GetObservabilityDashboardUseCaseTest {
 
     @Test
     void should_throw_not_found_when_dashboard_does_not_exist() {
-        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, "unknown"))).isInstanceOf(
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, "unknown", null))).isInstanceOf(
             DashboardNotFoundException.class
         );
     }
@@ -92,6 +94,7 @@ class GetObservabilityDashboardUseCaseTest {
             new Dashboard(
                 DASHBOARD_ID,
                 OTHER_ENV,
+                null,
                 "Performance overview",
                 null,
                 List.of(),
@@ -104,8 +107,61 @@ class GetObservabilityDashboardUseCaseTest {
             )
         );
 
-        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID))).isInstanceOf(
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, null))).isInstanceOf(
             DashboardNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_return_the_dashboard_when_the_requested_module_matches() {
+        dashboardRepository.givenDashboard(moduleDashboard("aim"));
+
+        var output = useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "aim"));
+
+        assertThat(output.dashboard().module()).isEqualTo("aim");
+    }
+
+    @Test
+    void should_throw_not_found_when_the_requested_module_does_not_match() {
+        dashboardRepository.givenDashboard(moduleDashboard("apim"));
+
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "aim"))).isInstanceOf(
+            DashboardNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_throw_not_found_when_a_module_is_requested_for_a_dashboard_without_one() {
+        dashboardRepository.givenDashboard(moduleDashboard(null));
+
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "aim"))).isInstanceOf(
+            DashboardNotFoundException.class
+        );
+    }
+
+    @Test
+    void should_reject_an_invalid_module() {
+        dashboardRepository.givenDashboard(moduleDashboard("aim"));
+
+        assertThatThrownBy(() -> useCase.execute(new GetObservabilityDashboardUseCase.Input(ENV, DASHBOARD_ID, "a i m"))).isInstanceOf(
+            InvalidDashboardException.class
+        );
+    }
+
+    private static Dashboard moduleDashboard(String module) {
+        return new Dashboard(
+            DASHBOARD_ID,
+            ENV,
+            module,
+            "Performance overview",
+            null,
+            List.of(),
+            null,
+            NullNode.getInstance(),
+            1,
+            "user-1",
+            Instant.parse("2026-06-10T00:00:00Z"),
+            Instant.parse("2026-06-10T00:00:00Z")
         );
     }
 }

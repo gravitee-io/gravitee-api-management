@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
 import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -32,21 +33,21 @@ class DashboardTest {
     @Test
     void should_reject_blank_id() {
         assertThatThrownBy(() ->
-            new Dashboard("", "env-1", "title", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
+            new Dashboard("", "env-1", null, "title", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
         ).isInstanceOf(InvalidDashboardException.class);
     }
 
     @Test
     void should_reject_blank_environment_id() {
         assertThatThrownBy(() ->
-            new Dashboard("d-1", " ", "title", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
+            new Dashboard("d-1", " ", null, "title", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
         ).isInstanceOf(InvalidDashboardException.class);
     }
 
     @Test
     void should_reject_blank_title() {
         assertThatThrownBy(() ->
-            new Dashboard("d-1", "env-1", "", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
+            new Dashboard("d-1", "env-1", null, "", null, List.of(), null, NullNode.getInstance(), 1, "u", Instant.now(), Instant.now())
         ).isInstanceOf(InvalidDashboardException.class);
     }
 
@@ -55,6 +56,7 @@ class DashboardTest {
         var dashboard = new Dashboard(
             "d-1",
             "env-1",
+            null,
             "title",
             null,
             null,
@@ -67,5 +69,34 @@ class DashboardTest {
         );
 
         assertThat(dashboard.filters()).isEmpty();
+    }
+
+    @Test
+    void should_belong_to_a_selection_holding_its_module() {
+        assertThat(dashboardOfModule("aim").belongsToOneOf(Set.of("aim", "apim"))).isTrue();
+        assertThat(dashboardOfModule("portals").belongsToOneOf(Set.of("aim", "apim"))).isFalse();
+    }
+
+    /** {@code Set.of} rejects {@code contains(null)}: a module-less dashboard must answer without asking it. */
+    @Test
+    void should_not_belong_to_any_selection_without_a_module() {
+        assertThat(dashboardOfModule(null).belongsToOneOf(Set.of("aim"))).isFalse();
+    }
+
+    private static Dashboard dashboardOfModule(String module) {
+        return new Dashboard(
+            "d-1",
+            "env-1",
+            module,
+            "title",
+            null,
+            List.of(),
+            null,
+            NullNode.getInstance(),
+            1,
+            "u",
+            Instant.now(),
+            Instant.now()
+        );
     }
 }
