@@ -20,4 +20,8 @@ export const integrationKeys = {
     detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
     permissions: (envId: string, integrationId: string) => [...integrationKeys.all, 'permissions', envId, integrationId] as const,
     federatedApis: (envId: string, integrationId: string) => [...integrationKeys.all, 'federated-apis', envId, integrationId] as const,
+    members: (envId: string, integrationId: string) => [...integrationKeys.all, 'members', envId, integrationId] as const,
+    groupMembership: (envId: string, integrationId: string, groupId: string) =>
+        [...integrationKeys.all, 'group-membership', envId, integrationId, groupId] as const,
+    groups: (envId: string, groupIdsKey: string) => [...integrationKeys.all, 'groups', envId, groupIdsKey] as const,
 } as const;

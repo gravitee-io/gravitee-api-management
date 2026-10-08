@@ -94,7 +94,6 @@ export interface GroupRole {
     default?: boolean;
 }
 
-export const PRIMARY_OWNER_ROLE = 'PRIMARY_OWNER';
 export const OWNER_ROLE = 'OWNER';
 
 /** v1 `GroupMemberEntity` (GET .../configuration/groups/{id}/members...). */

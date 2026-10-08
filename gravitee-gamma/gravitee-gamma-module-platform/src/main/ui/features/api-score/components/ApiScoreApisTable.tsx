@@ -26,8 +26,8 @@ import {
 import { MoreVerticalIcon, ShieldCheckIcon } from '@gravitee/graphene-core/icons';
 import { Link } from 'react-router-dom';
 
-import { NON_SORTABLE_COLUMN } from '../../applications/utils/dataTableHeaders';
 import type { ColCell } from '../../applications/utils/dataTableTypes';
+import { NON_SORTABLE_COLUMN } from '../../shared/utils/dataTableHeaders';
 import type { EnvironmentApiScore } from '../types/scoring';
 import { TABLE_PAGE_SIZE_OPTIONS } from '../utils/paginationConstants';
 import { formatScorePercent, isScoreAvailable, SCORE_PILL_CLASS, scoreTone } from '../utils/scoring';

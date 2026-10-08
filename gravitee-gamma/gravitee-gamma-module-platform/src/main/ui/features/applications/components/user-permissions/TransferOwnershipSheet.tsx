@@ -35,10 +35,10 @@ import { SearchIcon, TriangleAlertIcon, XIcon } from '@gravitee/graphene-core/ic
 import { useQuery } from '@tanstack/react-query';
 import { useDeferredValue, useMemo, useState } from 'react';
 
-import { MemberAvatar } from './MemberAvatar';
 import { isMemberPrimaryOwner } from './memberHelpers';
 import { searchUsers } from '../../../../shared/services/userSearch';
 import type { SearchableUser } from '../../../../shared/types/userSearch';
+import { MemberAvatar } from '../../../shared/components';
 import type { ApplicationTransferOwnershipPayload, ApplicationUiMember } from '../../types/applicationMembers.types';
 import { applicationMemberKeys } from '../../utils/queryKeys';
 

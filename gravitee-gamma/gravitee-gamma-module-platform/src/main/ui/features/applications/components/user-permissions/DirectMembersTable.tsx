@@ -32,10 +32,11 @@ import {
 import { MoreHorizontalIcon, PencilIcon, ShieldCheckIcon, Trash2Icon, XIcon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
-import { MemberAvatar } from './MemberAvatar';
-import { formatRoleLabel, getApplicationRole, isMemberPrimaryOwner } from './memberHelpers';
+import { getApplicationRole, isMemberPrimaryOwner } from './memberHelpers';
+import { MemberAvatar } from '../../../shared/components';
+import { NON_SORTABLE_COLUMN } from '../../../shared/utils/dataTableHeaders';
+import { formatRoleLabel } from '../../../shared/utils/memberRoles';
 import type { ApplicationUiMember, EditState } from '../../types/applicationMembers.types';
-import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell } from '../../utils/dataTableTypes';
 
 function RoleBadge({ roleName, isPO }: Readonly<{ roleName: string; isPO: boolean }>) {

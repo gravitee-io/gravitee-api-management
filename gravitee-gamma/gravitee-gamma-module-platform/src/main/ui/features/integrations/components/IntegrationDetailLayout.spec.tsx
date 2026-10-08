@@ -59,6 +59,7 @@ describe('IntegrationDetailLayout', () => {
     it.each([
         ['update', 'integration-definition-u'],
         ['delete', 'integration-definition-d'],
+        ['read the members of', 'integration-member-r'],
     ])('lists a Configuration entry linking to the Configuration page when the user can %s the integration', (_case, permission) => {
         grantIntegrationPermissions(['integration-definition-r', permission]);
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { GroupMember } from '../../shared/types/groupMembers';
 
 /** v1 Management API member (GET/POST /applications/{id}/members). */
 export interface ApplicationMemberEntity {
@@ -42,21 +43,6 @@ export interface ApplicationRole {
     scope: string;
     system?: boolean;
     default?: boolean;
-}
-
-export interface EnvironmentGroup {
-    id: string;
-    name: string;
-}
-
-export interface GroupsPagedResponse {
-    data: EnvironmentGroup[];
-}
-
-export interface GroupMember {
-    id: string;
-    displayName: string;
-    roles: Record<string, string>;
 }
 
 export type GroupMembersMap = Record<string, GroupMember[]>;

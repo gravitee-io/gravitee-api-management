@@ -13,7 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ChipInput } from './ChipInput';
-export { FeatureTile } from './FeatureTile';
-export { GroupMembersSection } from './GroupMembersSection';
-export { MemberAvatar } from './MemberAvatar';
+
+import { useQuery } from '@tanstack/react-query';
+
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+
+import { listIntegrationMembers } from '../services/integrationMembers';
+import { integrationKeys } from '../utils/queryKeys';
+
+export function useIntegrationMembers(integrationId: string) {
+    const env = useEnvironment();
+
+    return useQuery({
+        queryKey: integrationKeys.members(env?.id ?? '', integrationId),
+        queryFn: () => listIntegrationMembers(env!.id, integrationId),
+        enabled: Boolean(env && integrationId),
+    });
+}
