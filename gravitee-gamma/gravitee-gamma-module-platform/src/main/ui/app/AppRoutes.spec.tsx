@@ -1428,6 +1428,35 @@ describe('AppRoutes', () => {
         fetchSpy.mockRestore();
     });
 
+    it('redirects a direct User Permissions visit to the Configuration page when the user can update the integration but not read its members', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'integration-definition-update-only' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'RU' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath(`/integrations/${integration.id}/configuration/members`);
+
+        await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}/configuration`));
+        expect(await screen.findByRole('tab', { name: 'General' })).not.toBeNull();
+        fetchSpy.mockRestore();
+    });
+
+    it('opens the User Permissions tab on a direct Configuration visit when the user can read the integration members but can neither update nor delete it', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'integration-definition-read-member-read' };
+        const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse({ DEFINITION: 'R', MEMBER: 'R' }));
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath(`/integrations/${integration.id}/configuration`);
+
+        await waitFor(() =>
+            expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}/configuration/members`),
+        );
+        expect(await screen.findByRole('tab', { name: 'User Permissions' })).not.toBeNull();
+        expect(screen.queryByRole('tab', { name: 'General' })).toBeNull();
+        fetchSpy.mockRestore();
+    });
+
     it('adds the Integrations nav item when the license lands after the first render', () => {
         mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
         renderPlatform();

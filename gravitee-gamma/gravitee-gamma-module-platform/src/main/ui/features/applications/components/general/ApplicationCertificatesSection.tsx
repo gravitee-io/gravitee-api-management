@@ -36,6 +36,7 @@ import { ApplicationCertificateDetailSheet } from './ApplicationCertificateDetai
 import { ApplicationRevokeCertificateDialog } from './ApplicationRevokeCertificateDialog';
 import { certificateStatusLabel, certificateStatusVariant } from './certificateUtils';
 import { notify } from '../../../../shared/notify';
+import { NON_SORTABLE_COLUMN } from '../../../shared/utils/dataTableHeaders';
 import { useApplicationCertificates } from '../../hooks/useApplicationCertificates';
 import {
     toGracePeriodUpdateFailure,
@@ -44,7 +45,6 @@ import {
 } from '../../hooks/useApplicationGeneralMutations';
 import type { ClientCertificate, UpdateClientCertificate } from '../../types/applicationCertificate';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
-import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell } from '../../utils/dataTableTypes';
 
 export interface ApplicationCertificatesSectionProps {

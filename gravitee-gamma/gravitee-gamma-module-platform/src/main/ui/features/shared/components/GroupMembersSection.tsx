@@ -25,45 +25,50 @@ import {
     type DataTableProps,
 } from '@gravitee/graphene-core';
 import { UsersIcon } from '@gravitee/graphene-core/icons';
+import { useMemo } from 'react';
 
 import { MemberAvatar } from './MemberAvatar';
-import { getGroupMemberRole } from './memberHelpers';
-import type { GroupMember } from '../../types/applicationMembers.types';
-import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
-import type { ColCell } from '../../utils/dataTableTypes';
+import type { ColCell } from '../../../shared/utils/dataTableTypes';
+import type { GroupMember } from '../types/groupMembers';
+import { NON_SORTABLE_COLUMN } from '../utils/dataTableHeaders';
+import { getGroupMemberRole } from '../utils/memberRoles';
 
-const GROUP_MEMBER_COLUMNS: DataTableProps<GroupMember>['columns'] = [
-    {
-        id: 'name',
-        accessorFn: (row: GroupMember) => row.displayName ?? '',
-        header: 'Name',
-        ...NON_SORTABLE_COLUMN,
-        cell: ({ row }: ColCell<GroupMember>) => (
-            <div className="flex items-center gap-3">
-                <MemberAvatar name={row.original.displayName ?? ''} />
-                <span className="text-sm font-medium">{row.original.displayName}</span>
-            </div>
-        ),
-    },
-    {
-        id: 'role',
-        accessorFn: (row: GroupMember) => getGroupMemberRole(row),
-        header: 'Role',
-        ...NON_SORTABLE_COLUMN,
-        cell: ({ row }: ColCell<GroupMember>) => (
-            <Badge variant="secondary" className="font-normal">
-                {getGroupMemberRole(row.original)}
-            </Badge>
-        ),
-    },
-];
+function groupMemberColumns(getRoleName: (member: GroupMember) => string): DataTableProps<GroupMember>['columns'] {
+    return [
+        {
+            id: 'name',
+            accessorFn: (row: GroupMember) => row.displayName ?? '',
+            header: 'Name',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<GroupMember>) => (
+                <div className="flex items-center gap-3">
+                    <MemberAvatar name={row.original.displayName ?? ''} />
+                    <span className="text-sm font-medium">{row.original.displayName}</span>
+                </div>
+            ),
+        },
+        {
+            id: 'role',
+            accessorFn: (row: GroupMember) => getRoleName(row),
+            header: 'Role',
+            ...NON_SORTABLE_COLUMN,
+            cell: ({ row }: ColCell<GroupMember>) => (
+                <Badge variant="secondary" className="font-normal">
+                    {getRoleName(row.original)}
+                </Badge>
+            ),
+        },
+    ];
+}
 
 export function GroupMembersSection({
     groupName,
     members,
     isLoading = false,
-}: Readonly<{ groupName: string; members: GroupMember[]; isLoading?: boolean }>) {
+    getRoleName = getGroupMemberRole,
+}: Readonly<{ groupName: string; members: GroupMember[]; isLoading?: boolean; getRoleName?: (member: GroupMember) => string }>) {
     const count = members.length;
+    const columns = useMemo(() => groupMemberColumns(getRoleName), [getRoleName]);
 
     return (
         <Card className="overflow-hidden">
@@ -87,7 +92,7 @@ export function GroupMembersSection({
                         ))}
                     </div>
                 ) : (
-                    <DataTable columns={GROUP_MEMBER_COLUMNS} data={members} emptyMessage="No members in this group." />
+                    <DataTable columns={columns} data={members} emptyMessage="No members in this group." />
                 )}
             </CardContent>
         </Card>

@@ -36,10 +36,10 @@ import { CircleCheckIcon, CircleXIcon, ClockIcon, CopyIcon, MoreVerticalIcon, Re
 import { useEffect, useMemo, useState } from 'react';
 
 import { copyTextToClipboardWithNotifyHandler } from '../../../../shared/copyToClipboard';
+import { NON_SORTABLE_COLUMN } from '../../../shared/utils/dataTableHeaders';
 import type { ApplicationSubscriptionApiKeyRow } from '../../types/applicationSubscription';
 import { DEFAULT_SUBSCRIPTION_PAGE_SIZE, SUBSCRIPTION_PAGE_SIZE_OPTIONS } from '../../utils/applicationSubscriptionConstants';
 import { SUBSCRIPTION_API_KEY_SORTABLE_IDS } from '../../utils/applicationTableSortParity';
-import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell, ColHeader } from '../../utils/dataTableTypes';
 import type { TableSortingState } from '../../utils/tableSort';
 import { toSortableTimestamp } from '../../utils/tableSort';

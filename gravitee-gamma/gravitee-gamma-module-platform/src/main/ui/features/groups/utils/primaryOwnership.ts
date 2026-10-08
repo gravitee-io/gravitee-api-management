@@ -15,8 +15,9 @@
  */
 
 import { buildMembershipRoles, type MemberRoleSelections, type RoleField } from './memberRoles';
+import { PRIMARY_OWNER_ROLE } from '../../shared/utils/memberRoles';
 import type { GroupMember, GroupMembershipPayload, GroupMembershipRole, GroupMemberRoleScope } from '../types/group';
-import { OWNER_ROLE, PRIMARY_OWNER_ROLE } from '../types/group';
+import { OWNER_ROLE } from '../types/group';
 
 const SCOPE_LABELS: Readonly<Record<string, string>> = {
     API: 'API',

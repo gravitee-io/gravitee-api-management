@@ -29,8 +29,8 @@ import {
 import { PencilIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useMemo } from 'react';
 
+import { NON_SORTABLE_COLUMN } from '../../../shared/utils/dataTableHeaders';
 import type { ApplicationNotificationRow } from '../../types/applicationNotification';
-import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell } from '../../utils/dataTableTypes';
 
 export function NotificationsSection({

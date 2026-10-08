@@ -26,11 +26,11 @@ import {
 import { CircleXIcon, EyeIcon } from '@gravitee/graphene-core/icons';
 import { useMemo, type ReactNode } from 'react';
 
+import { NON_SORTABLE_COLUMN } from '../../../shared/utils/dataTableHeaders';
 import type { ApplicationSubscriptionTableRow } from '../../types/applicationSubscription';
 import { formatApplicationDateTime } from '../../utils/applicationFormatters';
 import { SUBSCRIPTION_PAGE_SIZE_OPTIONS } from '../../utils/applicationSubscriptionConstants';
 import { canCloseSubscription } from '../../utils/applicationSubscriptionMapper';
-import { NON_SORTABLE_COLUMN } from '../../utils/dataTableHeaders';
 import type { ColCell } from '../../utils/dataTableTypes';
 
 function SubscriptionStatusBadge({ status }: { status: ApplicationSubscriptionTableRow['status'] }) {

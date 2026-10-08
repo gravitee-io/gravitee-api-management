@@ -29,7 +29,7 @@ import {
 import { SearchIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import type { EnvironmentGroup } from '../../types/applicationMembers.types';
+import type { EnvironmentGroup } from '../../../shared/types/groupMembers';
 
 export function ManageGroupsSheet({
     open,
