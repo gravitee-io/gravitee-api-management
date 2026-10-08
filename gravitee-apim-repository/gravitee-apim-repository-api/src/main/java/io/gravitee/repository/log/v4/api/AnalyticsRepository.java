@@ -15,7 +15,10 @@
  */
 package io.gravitee.repository.log.v4.api;
 
+import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.FacetsQuery;
+import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.MeasuresQuery;
 import io.gravitee.repository.analytics.engine.api.query.TimeSeriesQuery;
 import io.gravitee.repository.analytics.engine.api.result.FacetsResult;
@@ -114,4 +117,15 @@ public interface AnalyticsRepository {
     TimeSeriesResult searchAuthzTrafficTimeSeries(QueryContext queryContext, TimeSeriesQuery query);
 
     FilterValuesResult searchFilterValues(QueryContext queryContext, FilterValuesQuery query);
+
+    /**
+     * What the searches of the given path do with a top-level condition on the given filter. Depends on
+     * the path and the name only, never on the value or the data.
+     *
+     * <p>The default answers {@link FilterOutcome#APPLIED} for everything: an implementation that does
+     * not say is taken to skip nothing, so callers report nothing rather than something wrong.
+     */
+    default FilterOutcome filterOutcome(AnalyticsSearchPath path, Filter.Name filter) {
+        return FilterOutcome.APPLIED;
+    }
 }

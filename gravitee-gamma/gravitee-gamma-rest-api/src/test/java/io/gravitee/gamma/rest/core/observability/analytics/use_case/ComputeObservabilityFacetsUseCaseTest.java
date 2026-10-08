@@ -91,7 +91,7 @@ class ComputeObservabilityFacetsUseCaseTest {
             List.of(),
             Instant.parse("2026-06-10T00:00:00Z"),
             Instant.parse("2026-06-11T00:00:00Z"),
-            List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of())),
+            List.of(new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())),
             List.of("BOGUS"),
             null,
             List.of()

@@ -108,7 +108,8 @@ class NativeApiLogSummaryUseCaseTest {
                     new MetricFacetsResponse(
                         MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY,
                         null,
-                        List.of(new FacetBucketResponse(STATUS_CONNECTED, STATUS_CONNECTED, List.of(), List.of()))
+                        List.of(new FacetBucketResponse(STATUS_CONNECTED, STATUS_CONNECTED, List.of(), List.of())),
+                        List.of()
                     )
                 )
             )
@@ -136,6 +137,6 @@ class NativeApiLogSummaryUseCaseTest {
                 )
             )
             .toList();
-        return new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY, null, buckets)));
+        return new FacetsResponse(List.of(new MetricFacetsResponse(MetricSpec.Name.NATIVE_CONNECTIONS_SUMMARY, null, buckets, List.of())));
     }
 }

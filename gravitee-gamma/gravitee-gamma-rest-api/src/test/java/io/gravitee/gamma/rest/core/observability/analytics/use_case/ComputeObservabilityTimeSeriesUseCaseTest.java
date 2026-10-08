@@ -55,7 +55,7 @@ class ComputeObservabilityTimeSeriesUseCaseTest {
     private static final Instant FROM = Instant.parse("2026-06-10T00:00:00Z");
     private static final Instant TO = Instant.parse("2026-06-11T00:00:00Z");
     private static final List<AnalyticsFacetMetricQuery> METRICS = List.of(
-        new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of())
+        new AnalyticsFacetMetricQuery("HTTP_REQUESTS", List.of("COUNT"), List.of(), List.of())
     );
 
     @Mock

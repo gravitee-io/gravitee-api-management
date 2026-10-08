@@ -16,8 +16,10 @@
 package io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter;
 
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.repository.analytics.engine.api.query.AnalyticsSearchPath;
 import io.gravitee.repository.analytics.engine.api.query.Facet;
 import io.gravitee.repository.analytics.engine.api.query.Filter;
+import io.gravitee.repository.analytics.engine.api.query.FilterOutcome;
 import io.gravitee.repository.analytics.engine.api.query.ObservabilityEntrypoints;
 import io.gravitee.repository.analytics.engine.api.query.Query;
 import io.gravitee.repository.elasticsearch.v4.analytics.engine.adapter.api.FieldResolver;
@@ -198,6 +200,32 @@ public class FilterAdapter {
         Filter.Name.AUTHZ_SUBJECT_ID,
         Filter.Name.AUTHZ_RESOURCE_ID
     );
+
+    /**
+     * What the searches of {@code path} do with a top-level condition on {@code name}, read off the same
+     * lists the {@code adaptFor*} methods filter with. {@code FilterAdapterOutcomeTest} builds the query for
+     * every path and every name and checks it agrees.
+     */
+    public static FilterOutcome outcome(AnalyticsSearchPath path, Filter.Name name) {
+        return switch (path) {
+            case HTTP -> appliedIf(HTTP_FILTER_NAMES.contains(name));
+            case EDGE -> appliedIf(EDGE_FILTER_NAMES.contains(name));
+            // The join applies the HTTP list to the connections and the message list to the messages. The
+            // direct read only runs when every condition is in ENRICHED_MESSAGE, which both lists cover.
+            case MESSAGE -> appliedIf(MESSAGE_FILTER_NAMES.contains(name) || HTTP_FILTER_NAMES.contains(name));
+            case NATIVE -> appliedIf(NATIVE_FILTER_NAMES.contains(name));
+            case EVENT_METRICS -> appliedIf(EVENT_METRICS_FILTER_NAMES.contains(name));
+            case AUTHZ -> {
+                if (AUTHZ_FILTER_NAMES.contains(name)) yield FilterOutcome.APPLIED;
+                yield AUTHZ_TRAFFIC_FILTER_NAMES.contains(name) ? FilterOutcome.EMPTIES : FilterOutcome.IGNORED;
+            }
+            case AUTHZ_TRAFFIC -> AUTHZ_TRAFFIC_FILTER_NAMES.contains(name) ? FilterOutcome.APPLIED : FilterOutcome.EMPTIES;
+        };
+    }
+
+    private static FilterOutcome appliedIf(boolean applied) {
+        return applied ? FilterOutcome.APPLIED : FilterOutcome.IGNORED;
+    }
 
     private final FieldResolver fieldResolver;
 

@@ -49,7 +49,9 @@ class UnitEnrichmentPostProcessorTest {
         void should_enrich_unit_for_single_metric() {
             when(definitionQueryService.findMetric(HTTP_REQUESTS)).thenReturn(Optional.of(metricSpec(HTTP_REQUESTS, NUMBER)));
 
-            var response = new MeasuresResponse(List.of(new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 42)))));
+            var response = new MeasuresResponse(
+                List.of(new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 42)), List.of()))
+            );
 
             var enriched = processor.enrichUnits(response);
 
@@ -68,8 +70,8 @@ class UnitEnrichmentPostProcessorTest {
 
             var response = new MeasuresResponse(
                 List.of(
-                    new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 100))),
-                    new MetricMeasuresResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(new Measure(AVG, 45.6)))
+                    new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 100)), List.of()),
+                    new MetricMeasuresResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(new Measure(AVG, 45.6)), List.of())
                 )
             );
 
@@ -84,7 +86,9 @@ class UnitEnrichmentPostProcessorTest {
         void should_set_null_unit_for_unknown_metric() {
             when(definitionQueryService.findMetric(HTTP_REQUESTS)).thenReturn(Optional.empty());
 
-            var response = new MeasuresResponse(List.of(new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 10)))));
+            var response = new MeasuresResponse(
+                List.of(new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 10)), List.of()))
+            );
 
             var enriched = processor.enrichUnits(response);
 
@@ -99,7 +103,7 @@ class UnitEnrichmentPostProcessorTest {
             );
 
             var measures = List.of(new Measure(AVG, 45.6), new Measure(COUNT, 100));
-            var response = new MeasuresResponse(List.of(new MetricMeasuresResponse(HTTP_GATEWAY_RESPONSE_TIME, null, measures)));
+            var response = new MeasuresResponse(List.of(new MetricMeasuresResponse(HTTP_GATEWAY_RESPONSE_TIME, null, measures, List.of())));
 
             var enriched = processor.enrichUnits(response);
 
@@ -115,7 +119,7 @@ class UnitEnrichmentPostProcessorTest {
             when(definitionQueryService.findMetric(HTTP_REQUESTS)).thenReturn(Optional.of(metricSpec(HTTP_REQUESTS, NUMBER)));
 
             var bucket = new FacetBucketResponse("api-1", "API 1", null, List.of(new Measure(COUNT, 42)));
-            var response = new FacetsResponse(List.of(new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket))));
+            var response = new FacetsResponse(List.of(new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket), List.of())));
 
             var enriched = processor.enrichUnits(response);
 
@@ -136,8 +140,8 @@ class UnitEnrichmentPostProcessorTest {
             var bucket2 = new FacetBucketResponse("api-2", "API 2", null, List.of(new Measure(COUNT, 1024)));
             var response = new FacetsResponse(
                 List.of(
-                    new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket1)),
-                    new MetricFacetsResponse(HTTP_RESPONSE_CONTENT_LENGTH, null, List.of(bucket2))
+                    new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket1), List.of()),
+                    new MetricFacetsResponse(HTTP_RESPONSE_CONTENT_LENGTH, null, List.of(bucket2), List.of())
                 )
             );
 
@@ -153,7 +157,7 @@ class UnitEnrichmentPostProcessorTest {
             when(definitionQueryService.findMetric(HTTP_REQUESTS)).thenReturn(Optional.empty());
 
             var bucket = new FacetBucketResponse("api-1", "API 1", null, List.of(new Measure(COUNT, 42)));
-            var response = new FacetsResponse(List.of(new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket))));
+            var response = new FacetsResponse(List.of(new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket), List.of())));
 
             var enriched = processor.enrichUnits(response);
 
@@ -167,7 +171,7 @@ class UnitEnrichmentPostProcessorTest {
 
             var innerBucket = new FacetBucketResponse("200", "200", null, List.of(new Measure(COUNT, 10)));
             var bucket = new FacetBucketResponse("api-1", "API 1", List.of(innerBucket), null);
-            var response = new FacetsResponse(List.of(new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket))));
+            var response = new FacetsResponse(List.of(new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(bucket), List.of())));
 
             var enriched = processor.enrichUnits(response);
 
@@ -189,7 +193,9 @@ class UnitEnrichmentPostProcessorTest {
                 null,
                 List.of(new Measure(COUNT, 42))
             );
-            var response = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(HTTP_REQUESTS, null, List.of(timeBucket))));
+            var response = new TimeSeriesResponse(
+                List.of(new TimeSeriesMetricResponse(HTTP_REQUESTS, null, List.of(timeBucket), List.of()))
+            );
 
             var enriched = processor.enrichUnits(response);
 
@@ -222,8 +228,8 @@ class UnitEnrichmentPostProcessorTest {
             );
             var response = new TimeSeriesResponse(
                 List.of(
-                    new TimeSeriesMetricResponse(HTTP_REQUESTS, null, List.of(timeBucket1)),
-                    new TimeSeriesMetricResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(timeBucket2))
+                    new TimeSeriesMetricResponse(HTTP_REQUESTS, null, List.of(timeBucket1), List.of()),
+                    new TimeSeriesMetricResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(timeBucket2), List.of())
                 )
             );
 
@@ -245,7 +251,9 @@ class UnitEnrichmentPostProcessorTest {
                 null,
                 List.of(new Measure(COUNT, 42))
             );
-            var response = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(HTTP_REQUESTS, null, List.of(timeBucket))));
+            var response = new TimeSeriesResponse(
+                List.of(new TimeSeriesMetricResponse(HTTP_REQUESTS, null, List.of(timeBucket), List.of()))
+            );
 
             var enriched = processor.enrichUnits(response);
 
@@ -262,7 +270,7 @@ class UnitEnrichmentPostProcessorTest {
             var facetBucket = new FacetBucketResponse("api-1", "API 1", null, List.of(new Measure(AVG, 120)));
             var timeBucket = new TimeSeriesBucketResponse("2024-01-01T00:00:00.000Z", null, 1234567890L, List.of(facetBucket), null);
             var response = new TimeSeriesResponse(
-                List.of(new TimeSeriesMetricResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(timeBucket)))
+                List.of(new TimeSeriesMetricResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(timeBucket), List.of()))
             );
 
             var enriched = processor.enrichUnits(response);
@@ -278,7 +286,9 @@ class UnitEnrichmentPostProcessorTest {
         void should_enrich_with_number_unit() {
             when(definitionQueryService.findMetric(HTTP_REQUESTS)).thenReturn(Optional.of(metricSpec(HTTP_REQUESTS, NUMBER)));
 
-            var response = new MeasuresResponse(List.of(new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 1)))));
+            var response = new MeasuresResponse(
+                List.of(new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(new Measure(COUNT, 1)), List.of()))
+            );
 
             assertThat(processor.enrichUnits(response).metrics().get(0).unit()).isEqualTo(NUMBER);
         }
@@ -290,7 +300,7 @@ class UnitEnrichmentPostProcessorTest {
             );
 
             var response = new MeasuresResponse(
-                List.of(new MetricMeasuresResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(new Measure(AVG, 50))))
+                List.of(new MetricMeasuresResponse(HTTP_GATEWAY_RESPONSE_TIME, null, List.of(new Measure(AVG, 50)), List.of()))
             );
 
             assertThat(processor.enrichUnits(response).metrics().get(0).unit()).isEqualTo(MILLISECONDS);
@@ -303,7 +313,7 @@ class UnitEnrichmentPostProcessorTest {
             );
 
             var response = new MeasuresResponse(
-                List.of(new MetricMeasuresResponse(HTTP_RESPONSE_CONTENT_LENGTH, null, List.of(new Measure(AVG, 2048))))
+                List.of(new MetricMeasuresResponse(HTTP_RESPONSE_CONTENT_LENGTH, null, List.of(new Measure(AVG, 2048)), List.of()))
             );
 
             assertThat(processor.enrichUnits(response).metrics().get(0).unit()).isEqualTo(BYTES);
@@ -313,7 +323,9 @@ class UnitEnrichmentPostProcessorTest {
         void should_enrich_with_percent_unit() {
             when(definitionQueryService.findMetric(HTTP_ERROR_RATE)).thenReturn(Optional.of(metricSpec(HTTP_ERROR_RATE, PERCENT)));
 
-            var response = new MeasuresResponse(List.of(new MetricMeasuresResponse(HTTP_ERROR_RATE, null, List.of(new Measure(AVG, 5.2)))));
+            var response = new MeasuresResponse(
+                List.of(new MetricMeasuresResponse(HTTP_ERROR_RATE, null, List.of(new Measure(AVG, 5.2)), List.of()))
+            );
 
             assertThat(processor.enrichUnits(response).metrics().get(0).unit()).isEqualTo(PERCENT);
         }
@@ -321,5 +333,32 @@ class UnitEnrichmentPostProcessorTest {
 
     private static MetricSpec metricSpec(MetricSpec.Name name, MetricSpec.Unit unit) {
         return new MetricSpec(name, name.name(), null, unit, null, null, null);
+    }
+
+    @Nested
+    class IgnoredFilters {
+
+        private static final List<FilterSpec.Name> SKIPPED = List.of(FilterSpec.Name.NATIVE_CLIENT_ID);
+
+        @Test
+        void should_keep_them_on_measures() {
+            var response = new MeasuresResponse(List.of(new MetricMeasuresResponse(HTTP_REQUESTS, null, List.of(), SKIPPED)));
+
+            assertThat(processor.enrichUnits(response).metrics().get(0).ignoredFilters()).isEqualTo(SKIPPED);
+        }
+
+        @Test
+        void should_keep_them_on_facets() {
+            var response = new FacetsResponse(List.of(new MetricFacetsResponse(HTTP_REQUESTS, null, List.of(), SKIPPED)));
+
+            assertThat(processor.enrichUnits(response).metrics().get(0).ignoredFilters()).isEqualTo(SKIPPED);
+        }
+
+        @Test
+        void should_keep_them_on_time_series() {
+            var response = new TimeSeriesResponse(List.of(new TimeSeriesMetricResponse(HTTP_REQUESTS, null, List.of(), SKIPPED)));
+
+            assertThat(processor.enrichUnits(response).metrics().get(0).ignoredFilters()).isEqualTo(SKIPPED);
+        }
     }
 }

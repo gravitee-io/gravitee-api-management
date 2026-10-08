@@ -32,4 +32,13 @@ public record TimeSeriesResponse(List<TimeSeriesMetricResponse> metrics) {
                 .toList()
         );
     }
+
+    public TimeSeriesResponse withIgnoredFilters(List<FilterSpec.Name> ignoredFilters) {
+        return new TimeSeriesResponse(
+            metrics
+                .stream()
+                .map(metric -> metric.withIgnoredFilters(ignoredFilters))
+                .toList()
+        );
+    }
 }

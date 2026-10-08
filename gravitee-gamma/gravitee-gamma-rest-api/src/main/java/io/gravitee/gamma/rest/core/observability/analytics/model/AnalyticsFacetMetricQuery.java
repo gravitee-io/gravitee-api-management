@@ -15,6 +15,7 @@
  */
 package io.gravitee.gamma.rest.core.observability.analytics.model;
 
+import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import java.util.List;
 
 /**
@@ -25,4 +26,13 @@ import java.util.List;
  * @param measures    Aggregation functions to compute (e.g. "COUNT", "AVG").
  * @param sorts       Optional sort directives applied to facet buckets.
  */
-public record AnalyticsFacetMetricQuery(String metricName, List<String> measures, List<AnalyticsSortSpec> sorts) {}
+public record AnalyticsFacetMetricQuery(
+    String metricName,
+    List<String> measures,
+    List<AnalyticsSortSpec> sorts,
+    List<FilterCondition> filters
+) {
+    public AnalyticsFacetMetricQuery {
+        filters = filters == null ? List.of() : List.copyOf(filters);
+    }
+}

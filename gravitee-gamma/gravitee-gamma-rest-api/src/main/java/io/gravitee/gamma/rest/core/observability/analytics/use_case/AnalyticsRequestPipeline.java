@@ -22,11 +22,15 @@ import io.gravitee.gamma.rest.core.observability.filter.domain_service.Observabi
 import io.gravitee.gamma.rest.core.observability.filter.model.ApiType;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterCondition;
 import io.gravitee.gamma.rest.core.observability.filter.model.FilterOperator;
+import io.gravitee.gamma.rest.core.observability.filter.model.RecordType;
 import io.gravitee.gamma.rest.core.observability.filter.model.Signal;
 import io.gravitee.gamma.rest.core.observability.logs.domain_service.AccessibleApiScopeDomainService;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
@@ -46,6 +50,18 @@ import lombok.AllArgsConstructor;
 public class AnalyticsRequestPipeline {
 
     static final Set<ApiType> ANALYTICS_SUPPORTED_API_TYPES = ApiType.ALL;
+
+    private static final String RECORD_TYPE = "RECORD_TYPE";
+
+    /** The metrics served from authorization decision records; pinned to the engine's routing by a test. */
+    static final Set<String> AUTHZ_DECISION_METRICS = Set.of(
+        "AUTHZ_DECISIONS",
+        "AUTHZ_PERMITS",
+        "AUTHZ_FORBIDS",
+        "AUTHZ_NOT_APPLICABLE",
+        "AUTHZ_FAILURES",
+        "AUTHZ_EVAL_DURATION"
+    );
 
     private final ObservabilityFilterValidator filterValidator;
     private final AccessibleApiScopeDomainService accessibleApiScope;
@@ -96,6 +112,60 @@ public class AnalyticsRequestPipeline {
         return new PreparedScope(from, to, List.copyOf(allFilters), scope.apiIds());
     }
 
+    /**
+     * Per metric, the conditions Gamma never hands to the engine, which the response must still name as
+     * not applied:
+     *
+     * <ul>
+     *   <li>a {@code RECORD_TYPE} that does not select the metric's kind of record: {@link #prepare} strips
+     *       it whatever its value;</li>
+     *   <li>every metric-level condition: they are validated like the top-level ones, but not wired to the
+     *       engine yet.</li>
+     * </ul>
+     *
+     * Metrics with nothing to report are left out.
+     */
+    public Map<String, List<String>> conditionsNotApplied(List<FilterCondition> rawFilters, List<MetricConditions> metrics) {
+        metrics.forEach(metric -> filterValidator.validate(metric.conditions(), Signal.ANALYTICS));
+        var recordTypes = (rawFilters != null ? rawFilters : List.<FilterCondition>of()).stream()
+            .filter(c -> RECORD_TYPE.equals(c.name()))
+            .toList();
+
+        var notApplied = new LinkedHashMap<String, List<String>>();
+        for (var metric : metrics) {
+            var names = new LinkedHashSet<String>();
+            recordTypes
+                .stream()
+                .filter(condition -> !selects(condition, recordTypeOf(metric.metric())))
+                .forEach(condition -> names.add(condition.name()));
+            metric.conditions().forEach(condition -> names.add(condition.name()));
+            if (!names.isEmpty()) {
+                // A metric queried twice is one entry per name in the response: it carries both lists.
+                notApplied.merge(metric.metric(), List.copyOf(names), AnalyticsRequestPipeline::union);
+            }
+        }
+        return notApplied;
+    }
+
+    public record MetricConditions(String metric, List<FilterCondition> conditions) {}
+
+    /** The kind of record a metric counts: authorization decisions for the decision metrics, requests otherwise. */
+    static RecordType recordTypeOf(String metric) {
+        return AUTHZ_DECISION_METRICS.contains(metric) ? RecordType.AUTHZ_DECISION : RecordType.REQUEST;
+    }
+
+    private static boolean selects(FilterCondition recordType, RecordType kind) {
+        var values = recordType.values() != null ? recordType.values() : List.<String>of();
+        var named = values.stream().anyMatch(value -> RecordType.fromNameOrDefault(value) == kind);
+        return recordType.operator() == FilterOperator.NOT_IN || recordType.operator() == FilterOperator.NEQ ? !named : named;
+    }
+
+    private static List<String> union(List<String> first, List<String> second) {
+        var names = new LinkedHashSet<>(first);
+        names.addAll(second);
+        return List.copyOf(names);
+    }
+
     private static void validateTimeRange(Instant from, Instant to) {
         if (from == null) {
             throw InvalidObservabilityQueryException.missingTimeRangeBound("from");
@@ -126,7 +196,7 @@ public class AnalyticsRequestPipeline {
     private static List<FilterCondition> removeRecordTypeConditions(List<FilterCondition> conditions) {
         return conditions
             .stream()
-            .filter(c -> !"RECORD_TYPE".equals(c.name()))
+            .filter(c -> !RECORD_TYPE.equals(c.name()))
             .toList();
     }
 }
