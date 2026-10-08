@@ -27,10 +27,22 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 @AllArgsConstructor
@@ -40,6 +52,10 @@ public class UpdateApiGroupsUseCase {
     private final ApiCrudService apiCrudService;
     private final AuditDomainService auditService;
     private final ValidateGroupsDomainService validateGroupsDomainService;
+    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
+    private final PermissionDomainService permissionDomainService;
+    private final MembershipQueryService membershipQueryService;
+    private final GroupQueryService groupQueryService;
 
     public record Input(String apiId, Set<String> groups, AuditInfo auditInfo) {}
 
@@ -56,14 +72,18 @@ public class UpdateApiGroupsUseCase {
             throw new ValidationDomainException("Cannot update groups of a Kubernetes-managed API");
         }
 
+        Set<String> requestedGroups = groupsTheCallerMayAssign(input, api.getGroups());
         var validationInput = new ValidateGroupsDomainService.Input(
             input.auditInfo().environmentId(),
-            input.groups(),
+            requestedGroups,
             api.getDefinitionVersion().getLabel(),
             api.getOriginContext().name()
         );
         var validationResult = validateGroupsDomainService.validateAndSanitize(validationInput);
-        Set<String> sanitizedGroups = validationResult.value().map(ValidateGroupsDomainService.Input::groups).orElse(input.groups());
+        Set<String> sanitizedGroups = new HashSet<>(
+            validationResult.value().map(ValidateGroupsDomainService.Input::groups).orElse(input.groups())
+        );
+        primaryOwnerGroupId(input, api.getId()).ifPresent(sanitizedGroups::add);
 
         Set<String> oldGroups = api.getGroups();
 
@@ -73,6 +93,57 @@ public class UpdateApiGroupsUseCase {
         createAuditLog(oldGroups, updated.getGroups(), input.apiId(), input.auditInfo());
 
         return new Output(updated.getGroups());
+    }
+
+    private Set<String> groupsTheCallerMayAssign(Input input, Set<String> alreadyOnApi) {
+        Set<String> requested = input.groups();
+        if (requested == null || requested.isEmpty()) {
+            return requested;
+        }
+        String userId = input.auditInfo().actor().userId();
+        if (
+            permissionDomainService.hasPermission(
+                input.auditInfo().organizationId(),
+                userId,
+                RolePermission.ENVIRONMENT_GROUP,
+                input.auditInfo().environmentId(),
+                RolePermissionAction.READ
+            )
+        ) {
+            return requested;
+        }
+        Set<String> allowed = new HashSet<>();
+        if (alreadyOnApi != null) {
+            allowed.addAll(alreadyOnApi);
+        }
+        if (userId != null && !userId.isBlank()) {
+            Set<String> memberGroupIds = membershipQueryService
+                .findByMemberIdAndMemberTypeAndReferenceType(userId, Membership.Type.USER, Membership.ReferenceType.GROUP)
+                .stream()
+                .map(Membership::getReferenceId)
+                .collect(Collectors.toSet());
+            if (!memberGroupIds.isEmpty()) {
+                groupQueryService
+                    .findByIds(memberGroupIds)
+                    .stream()
+                    .filter(group -> input.auditInfo().environmentId().equals(group.getEnvironmentId()))
+                    .map(Group::getId)
+                    .forEach(allowed::add);
+            }
+        }
+        return requested.stream().filter(allowed::contains).collect(Collectors.toSet());
+    }
+
+    private Optional<String> primaryOwnerGroupId(Input input, String apiId) {
+        try {
+            PrimaryOwnerEntity primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(input.auditInfo().organizationId(), apiId);
+            if (primaryOwner != null && PrimaryOwnerEntity.Type.GROUP.equals(primaryOwner.type())) {
+                return Optional.of(primaryOwner.id());
+            }
+        } catch (ApiPrimaryOwnerNotFoundException ignored) {
+            return Optional.empty();
+        }
+        return Optional.empty();
     }
 
     private void createAuditLog(Set<String> groupsBeforeUpdate, Set<String> groupsAfterUpdate, String apiId, AuditInfo auditInfo) {

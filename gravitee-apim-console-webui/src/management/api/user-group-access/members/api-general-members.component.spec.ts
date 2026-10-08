@@ -119,6 +119,17 @@ describe('ApiGeneralMembersComponent', () => {
   });
 
   describe('List members', () => {
+    it('should disable Manage groups when the group list fails', async () => {
+      const api = fakeApiV4({ id: apiId });
+      expectApiGetRequest(api);
+      httpTestingController
+        .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
+        .flush({ message: 'forbidden' }, { status: 403, statusText: 'Forbidden' });
+      expectApiMembersGetRequest();
+
+      expect(await harness.isManageGroupsButtonDisabled()).toEqual(true);
+    });
+
     it('should show all api members with roles', async () => {
       const api = fakeApiV4({ id: apiId });
       const members: MembersResponse = {

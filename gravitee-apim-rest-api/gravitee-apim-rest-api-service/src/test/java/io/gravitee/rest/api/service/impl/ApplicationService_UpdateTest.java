@@ -140,6 +140,31 @@ public class ApplicationService_UpdateTest {
     @Mock
     private GroupService groupService;
 
+<<<<<<< HEAD
+=======
+    @Mock
+    private io.gravitee.apim.core.application_certificate.crud_service.ClientCertificateCrudService clientCertificateCrudService;
+
+    @Mock
+    private ClientCertificateValidationDomainService clientCertificateValidationDomainService;
+
+    @Mock
+    private MtlsSubscriptionSyncDomainService applicationCertificatesUpdateDomainService;
+
+    private static final CertificateInfo VALID_CERT_INFO = new CertificateInfo(new Date(), "CN=unit-tests", "CN=unit-tests", "SHA256:abc");
+
+    @BeforeEach
+    public void setUp() {
+        lenient().when(clientCertificateValidationDomainService.validateForCreation(any(), any(), any())).thenReturn(VALID_CERT_INFO);
+        lenient()
+            .when(clientCertificateValidationDomainService.validate(any()))
+            .thenAnswer(invocation -> new CertificateInfo(new Date(), "CN=test", "CN=issuer", "fp:" + invocation.getArgument(0)));
+        lenient()
+            .when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(2));
+    }
+
+>>>>>>> dca7855 (fix(rest-api): keep owned groups visible without environment GROUP Read)
     @Test
     public void shouldUpdate() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
@@ -223,7 +248,13 @@ public class ApplicationService_UpdateTest {
         settings.setApp(clientSettings);
         mockSubscriptions();
         mockPlans();
+<<<<<<< HEAD
         when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
+=======
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
+        when(configService.getConsoleConfig(executionContext)).thenReturn(config);
+>>>>>>> dca7855 (fix(rest-api): keep owned groups visible without environment GROUP Read)
 
         Exception exception = assertThrows(BadRequestException.class, () ->
             applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication)
