@@ -109,6 +109,15 @@ async function expand(user: ReturnType<typeof userEvent.setup>, folderTitle: str
     await user.click(screen.getByRole('button', { name: `Expand ${folderTitle}` }));
 }
 
+beforeAll(() => {
+    // The tooltips on the badges measure their trigger, which jsdom cannot do.
+    global.ResizeObserver = class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    } as typeof ResizeObserver;
+});
+
 describe('DocumentationTree', () => {
     it('starts with every folder collapsed, showing only the top-level items', () => {
         renderTree();
@@ -128,7 +137,16 @@ describe('DocumentationTree', () => {
         expect(within(rowOf('Guides')).getByText('Unpublished')).toBeInTheDocument();
         expect(within(rowOf('OAuth setup')).getByText('Private')).toBeInTheDocument();
         // Both access values are badges, so their text lines up in the column
-        expect(within(rowOf('Guides')).getByText('Public')).toHaveAttribute('data-slot', 'badge');
+        expect(within(rowOf('Guides')).getByText('Public')).toHaveAttribute('data-variant', 'outline');
+    });
+
+    it('explains what the status and access of an item mean, naming the kind of item', async () => {
+        const user = userEvent.setup();
+        renderTree();
+
+        await user.hover(within(rowOf('Guides')).getByText('Unpublished'));
+
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Not shown in the developer portal until the folder is published.');
     });
 
     it('collapses an expanded folder to hide its contents again', async () => {
