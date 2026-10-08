@@ -29,6 +29,7 @@ import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.ApiQueryServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
+import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.api_product.domain_service.ApiProductAccessibleIdsDomainService;
@@ -104,7 +105,7 @@ class ListPortalNavigationItemsUseCaseTest {
             List.of(apiVisibilityDomainService, apiProductVisibilityDomainService),
             new PortalNavigationItemSourceDomainServiceInMemory(),
             apiPortalSearchQueryService,
-            new ApiOwnedNavigationDomainService(queryService)
+            new ApiOwnedNavigationDomainService(queryService, new PortalNavigationItemsCrudServiceInMemory())
         );
     }
 

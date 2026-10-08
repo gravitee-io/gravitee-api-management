@@ -63,7 +63,7 @@ public class DeletePortalNavigationItemUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(portalPageContentCrudService.storage()),
             apiCrudService,
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService)
+            new ApiOwnedNavigationDomainService(portalNavigationItemsQueryService, portalNavigationItemsCrudService)
         );
 
         deletePortalNavigationItemUseCase = new DeletePortalNavigationItemUseCase(

@@ -87,7 +87,7 @@ class ImportPortalNavigationUseCaseTest {
             pageContentQueryService,
             new ApiCrudServiceInMemory(),
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService)
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         var validatorService = new PortalNavigationItemValidatorService(
             queryService,
@@ -854,7 +854,7 @@ class ImportPortalNavigationUseCaseTest {
                     PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
                     new ApiCrudServiceInMemory(),
                     sourceDomainService,
-                    new ApiOwnedNavigationDomainService(queryService)
+                    new ApiOwnedNavigationDomainService(queryService, crudService)
                 ),
                 queryService,
                 crudService,

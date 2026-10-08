@@ -121,7 +121,7 @@ class UpdatePortalNavigationItemUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService)
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         useCase = new UpdatePortalNavigationItemUseCase(queryService, validatorService, domainService, sourceDomainService);
 

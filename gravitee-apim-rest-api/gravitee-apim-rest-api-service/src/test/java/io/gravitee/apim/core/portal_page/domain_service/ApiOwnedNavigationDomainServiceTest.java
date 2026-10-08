@@ -282,7 +282,7 @@ class ApiOwnedNavigationDomainServiceTest {
             var countingQueryService = spy(
                 new PortalNavigationItemsQueryServiceInMemory(List.of(root, sharedAncestor, sharedParent, first, second))
             );
-            var countingService = new ApiOwnedNavigationDomainService(countingQueryService);
+            var countingService = new ApiOwnedNavigationDomainService(countingQueryService, crudService);
             var contextById = new HashMap<PortalNavigationItemId, Boolean>();
 
             assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isEqualTo(productContext);
@@ -309,7 +309,7 @@ class ApiOwnedNavigationDomainServiceTest {
             var first = aFolder("First", missingParentId);
             var second = aFolder("Second", missingParentId);
             var countingQueryService = spy(new PortalNavigationItemsQueryServiceInMemory(List.of(first, second)));
-            var countingService = new ApiOwnedNavigationDomainService(countingQueryService);
+            var countingService = new ApiOwnedNavigationDomainService(countingQueryService, crudService);
             var contextById = new HashMap<PortalNavigationItemId, Boolean>();
 
             assertThat(countingService.isInApiProductContext(ENV_ID, first, contextById)).isFalse();

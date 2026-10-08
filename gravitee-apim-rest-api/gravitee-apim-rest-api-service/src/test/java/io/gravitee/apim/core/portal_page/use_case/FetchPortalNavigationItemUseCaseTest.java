@@ -76,7 +76,7 @@ class FetchPortalNavigationItemUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             new ApiCrudServiceInMemory(),
             sourceDomainService,
-            new ApiOwnedNavigationDomainService(queryService)
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
             sourceDomainService,

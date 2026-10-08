@@ -96,7 +96,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
             PortalPageContentQueryServiceInMemory.sharing(pageContentCrudService.storage()),
             apiCrudService,
             new PortalNavigationItemSourceDomainServiceInMemory(),
-            new ApiOwnedNavigationDomainService(queryService)
+            new ApiOwnedNavigationDomainService(queryService, crudService)
         );
         creationExpansionDomainService = new PortalNavigationItemCreationExpansionDomainService(apiProductQueryService, apiCrudService);
         defaultPageDomainService = new PortalNavigationDefaultPageDomainService(
