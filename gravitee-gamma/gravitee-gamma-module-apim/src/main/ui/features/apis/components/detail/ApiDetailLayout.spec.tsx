@@ -15,7 +15,7 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useMutation } from '@tanstack/react-query';
-import { fireEvent, render, renderHook, screen } from '@testing-library/react';
+import { act, fireEvent, render, renderHook, screen } from '@testing-library/react';
 import type { ReactElement, ReactNode } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
@@ -424,6 +424,30 @@ describe('DeployBanner', () => {
         fireEvent.change(screen.getByLabelText(/deployment label/i), { target: { value: 'hotfix-cors' } });
         fireEvent.click(screen.getByRole('button', { name: /^deploy$/i }));
         expect(mutate).toHaveBeenCalledWith('hotfix-cors');
+    });
+
+    it('closes the deploy dialog and shows the backend error when deploy fails', () => {
+        let capturedOnError: ((error: unknown) => void) | undefined;
+        mockUseMutation.mockImplementation(({ onError }: { onError?: (error: unknown) => void }) => {
+            capturedOnError = onError;
+            return { mutate: jest.fn(), isPending: false };
+        });
+        (useApiDetail as jest.Mock).mockReturnValue({
+            data: { id: 'abc-123', name: 'My API', deploymentState: 'NEED_REDEPLOY' },
+            isLoading: false,
+        });
+        renderLayout();
+
+        fireEvent.click(screen.getByRole('button', { name: /deploy api/i }));
+        expect(screen.getByText(/deploy your api/i)).toBeInTheDocument();
+
+        const failure = { message: 'You must create at least one plan to deploy this API.' };
+        act(() => {
+            capturedOnError!(failure);
+        });
+
+        expect(screen.queryByText(/deploy your api/i)).not.toBeInTheDocument();
+        expect(notify.error).toHaveBeenCalledWith(failure, 'An error occurred while deploying the API.');
     });
 
     it('does not call deployApi when env is null (null-env guard)', async () => {

@@ -56,6 +56,7 @@ import { ApiReviewBanner } from './ApiReviewBanner';
 import { ApiReviewSheet } from './ApiReviewSheet';
 import { ConfirmDialog } from '../../../../shared/components';
 import { useDetailBasePath } from '../../../../shared/hooks/useDetailBasePath';
+import { notify } from '../../../../shared/notify';
 import { ApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDetail } from '../../hooks/useApiDetail';
 import { useApiPermissions } from '../../hooks/useApiPermissions';
@@ -332,6 +333,10 @@ export function ApiDetailLayout() {
             if (env && apiId) {
                 queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env.id, apiId) });
             }
+        },
+        onError: (error: unknown) => {
+            setShowDeployDialog(false);
+            notify.error(error, 'An error occurred while deploying the API.');
         },
     });
 

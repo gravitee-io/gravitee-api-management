@@ -345,7 +345,7 @@ export function ApiResourcesPage() {
                                                 <TableCell>{plugin?.name ?? resource.type}</TableCell>
                                                 <TableCell>
                                                     {resource.enabled ? (
-                                                        <Badge className="gap-1">
+                                                        <Badge variant="success" className="gap-1">
                                                             <CircleCheckIcon className="size-3" />
                                                             Enabled
                                                         </Badge>
