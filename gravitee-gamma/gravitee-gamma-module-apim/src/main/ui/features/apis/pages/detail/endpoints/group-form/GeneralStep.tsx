@@ -18,12 +18,7 @@ import { Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectV
 import type { EndpointGroupFormState, LoadBalancerType } from '../types';
 import { validateGroupName } from '../types';
 
-const LB_OPTIONS: { value: LoadBalancerType; label: string }[] = [
-    { value: 'ROUND_ROBIN', label: 'Round robin' },
-    { value: 'RANDOM', label: 'Random' },
-    { value: 'WEIGHTED_ROUND_ROBIN', label: 'Weighted round robin' },
-    { value: 'WEIGHTED_RANDOM', label: 'Weighted random' },
-];
+const LB_OPTIONS: LoadBalancerType[] = ['RANDOM', 'ROUND_ROBIN', 'WEIGHTED_RANDOM', 'WEIGHTED_ROUND_ROBIN'];
 
 interface GeneralStepProps {
     form: EndpointGroupFormState;
@@ -78,8 +73,8 @@ export function GeneralStep({ form, existingGroupNames, onFormChange, readOnly =
                     </SelectTrigger>
                     <SelectContent>
                         {LB_OPTIONS.map(opt => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
+                            <SelectItem key={opt} value={opt}>
+                                {opt}
                             </SelectItem>
                         ))}
                     </SelectContent>

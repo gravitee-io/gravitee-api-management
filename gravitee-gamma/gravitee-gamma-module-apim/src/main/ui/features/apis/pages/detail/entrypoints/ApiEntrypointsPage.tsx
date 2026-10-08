@@ -16,7 +16,7 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Button, Skeleton } from '@gravitee/graphene-core';
 import { CheckIcon, PlusIcon } from '@gravitee/graphene-core/icons';
-import { useCallback, useState } from 'react';
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 
 import { ContextPathsCard } from './ContextPathsCard';
 import { EntrypointsLanding } from './EntrypointsLanding';
@@ -28,6 +28,7 @@ import { validatePath } from './types';
 import { VirtualHostsCard } from './VirtualHostsCard';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiEntrypoints } from '../../../hooks/useApiEntrypoints';
+import { useTcpHostUniqueness } from '../../../hooks/useTcpHostUniqueness';
 import type { ApiDetailDto, HttpListener, TcpListener } from '../../../types';
 import type { TcpHostEntry } from '../../../types/apiCreation';
 import { validateTcpHosts } from '../../../utils/apiCreationValidation';
@@ -79,11 +80,12 @@ export function ApiEntrypointsPage() {
     const [contextPaths, setContextPaths] = useState<ContextPathRow[]>([{ id: newId(), path: '/' }]);
     const [virtualHosts, setVirtualHosts] = useState<VirtualHostRow[]>([{ id: newId(), host: '', path: '/', overrideAccess: false }]);
     const [tcpHosts, setTcpHosts] = useState<TcpHostEntry[]>([{ id: newId(), host: '' }]);
+    const hostUniqueness = useTcpHostUniqueness(api?.id, tcpHosts);
     const [isDirty, setIsDirty] = useState(false);
     const [switchModeDialogOpen, setSwitchModeDialogOpen] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
 
-    const { exposedQuery, saveMutation } = useApiEntrypoints(showConfig && !isTcp);
+    const { exposedQuery, saveMutation } = useApiEntrypoints(isTcp || showConfig);
 
     const initFromApi = useCallback(
         (apiData: ApiDetailDto | null) => {
@@ -126,14 +128,15 @@ export function ApiEntrypointsPage() {
         [], // state setters are stable
     );
 
-    // Initialize form once api data arrives; re-init only when API identity changes.
-    // Initialized to null (not api?.id) so the condition fires on first render even when
-    // data is already cached (e.g. in tests or when React Query has a warm cache).
-    const [seededApiId, setSeededApiId] = useState<string | null>(null);
-    if (api && api.id !== seededApiId) {
-        setSeededApiId(api.id ?? null);
-        initFromApi(api);
-    }
+    const apiForSeedRef = useRef(api);
+    apiForSeedRef.current = api;
+    const resetHostUniqueness = hostUniqueness.reset;
+    useLayoutEffect(() => {
+        const current = apiForSeedRef.current;
+        if (!current?.id) return;
+        resetHostUniqueness();
+        initFromApi(current);
+    }, [api?.id, initFromApi, resetHostUniqueness]);
 
     // ── validation ──
     const contextPathErrors = contextPaths.map(r => validatePath(r.path));
@@ -142,7 +145,8 @@ export function ApiEntrypointsPage() {
 
     const isContextPathValid = contextPathErrors.every(e => e === null) && !contextPathHasDupes;
     const isVirtualHostValid = virtualHostErrors.every(e => e === null);
-    const isTcpHostsValid = validateTcpHosts(tcpHosts) === null;
+    const tcpHostTaken = Object.keys(hostUniqueness.errorsById).length > 0;
+    const isTcpHostsValid = validateTcpHosts(tcpHosts) === null && !hostUniqueness.pending && !tcpHostTaken;
     const isFormValid = isTcp ? isTcpHostsValid : virtualHostMode ? isVirtualHostValid : isContextPathValid;
     const canSave = isDirty && isFormValid && !saveMutation.isPending;
 
@@ -195,6 +199,7 @@ export function ApiEntrypointsPage() {
     }
 
     function updateTcpHost(id: string, host: string) {
+        hostUniqueness.markDirty(id);
         setTcpHosts(prev => prev.map(r => (r.id === id ? { ...r, host } : r)));
         markDirty();
     }
@@ -228,6 +233,7 @@ export function ApiEntrypointsPage() {
 
     // ── discard ──
     function handleDiscard() {
+        hostUniqueness.reset();
         initFromApi(api);
     }
 
@@ -323,7 +329,10 @@ export function ApiEntrypointsPage() {
                     onDelete={deleteTcpHost}
                     onHostChange={updateTcpHost}
                     isReadOnly={isReadOnly}
+                    uniquenessErrors={hostUniqueness.errorsById}
                 />
+
+                <ExposedEntrypointsCard entrypoints={exposedQuery.data ?? []} isLoading={exposedQuery.isLoading} variant="tcp" />
             </div>
         );
     }
@@ -402,6 +411,7 @@ export function ApiEntrypointsPage() {
                         entrypoints={exposedQuery.data ?? []}
                         isLoading={exposedQuery.isLoading}
                         virtualHostMode={virtualHostMode}
+                        variant="http"
                     />
                 </>
             )}

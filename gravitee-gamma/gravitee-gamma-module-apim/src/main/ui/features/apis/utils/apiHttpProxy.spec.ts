@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 import {
+    areAllListenersTcp,
     formatEndpointTarget,
     getApiProxyTypeLabel,
+    hasTcpListener,
     hasTcpListeners,
     isHttpProxyApi,
     isTcpEndpointGroup,
@@ -54,6 +56,44 @@ describe('hasTcpListeners', () => {
                 endpointGroups: [{ type: 'tcp-proxy' }],
             }),
         ).toBe(true);
+    });
+});
+
+describe('hasTcpListener', () => {
+    it('is true only when a listener type is TCP', () => {
+        expect(hasTcpListener(null)).toBe(false);
+        expect(hasTcpListener({ listeners: [{ type: 'HTTP' }] })).toBe(false);
+        expect(hasTcpListener({ listeners: [{ type: 'HTTP' }], endpointGroups: [{ type: 'tcp-proxy' }] })).toBe(false);
+        expect(hasTcpListener({ listeners: [{ entrypoints: [{ type: 'tcp-proxy' }] }] })).toBe(false);
+        expect(hasTcpListener({ listeners: [{ type: 'HTTP', entrypoints: [{ type: 'tcp-proxy' }] }] })).toBe(false);
+        expect(hasTcpListener({ listeners: [{ type: 'TCP' }] })).toBe(true);
+        expect(hasTcpListener({ listeners: [{ type: 'HTTP' }, { type: 'TCP' }] })).toBe(true);
+    });
+});
+
+describe('areAllListenersTcp', () => {
+    it('returns false when there is no listener list, or it is empty', () => {
+        expect(areAllListenersTcp(null)).toBe(false);
+        expect(areAllListenersTcp(undefined)).toBe(false);
+        expect(areAllListenersTcp({})).toBe(false);
+        expect(areAllListenersTcp({ listeners: [] })).toBe(false);
+    });
+
+    it('returns false when any listener is not TCP', () => {
+        expect(areAllListenersTcp({ listeners: [{ type: 'HTTP' }] })).toBe(false);
+        expect(areAllListenersTcp({ listeners: [{ type: 'HTTP' }, { type: 'TCP' }] })).toBe(false);
+        expect(areAllListenersTcp({ listeners: [{ type: 'HTTP' }, { entrypoints: [{ type: 'tcp-proxy' }] }] })).toBe(false);
+        expect(areAllListenersTcp({ listeners: [{ entrypoints: [{ type: 'tcp-proxy' }] }] })).toBe(false);
+        expect(areAllListenersTcp({ listeners: [{ type: 'HTTP', entrypoints: [{ type: 'tcp-proxy' }] }] })).toBe(false);
+    });
+
+    it('returns false when TCP is only an endpoint group', () => {
+        expect(areAllListenersTcp({ listeners: [{ type: 'HTTP' }], endpointGroups: [{ type: 'tcp-proxy' }] })).toBe(false);
+    });
+
+    it('returns true when every listener type is TCP', () => {
+        expect(areAllListenersTcp({ listeners: [{ type: 'TCP' }] })).toBe(true);
+        expect(areAllListenersTcp({ listeners: [{ type: 'TCP' }, { type: 'tcp' }] })).toBe(true);
     });
 });
 

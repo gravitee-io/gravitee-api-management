@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { buildDefaultEndpointForGroup, validateEndpointName, validateEndpointTarget, validateGroupName } from './types';
+import {
+    buildDefaultEndpointForGroup,
+    parseSharedConfigDto,
+    validateEndpointName,
+    validateEndpointTarget,
+    validateGroupName,
+} from './types';
 
 describe('endpoint group types', () => {
-    it('buildDefaultEndpointForGroup includes required target (classic create parity)', () => {
-        expect(buildDefaultEndpointForGroup('my-group', 'https://api.example.com')).toEqual({
+    it('buildDefaultEndpointForGroup includes plugin configuration object', () => {
+        expect(buildDefaultEndpointForGroup('my-group', { target: 'https://api.example.com' }, 'http-proxy')).toEqual({
             name: 'my-group default endpoint',
             type: 'http-proxy',
             inheritConfiguration: true,
@@ -26,7 +32,19 @@ describe('endpoint group types', () => {
         });
     });
 
-    it('validates names like classic console (required, no colons — no min length)', () => {
+    it('buildDefaultEndpointForGroup supports tcp-proxy target object', () => {
+        expect(
+            buildDefaultEndpointForGroup('tcp-group', { target: { host: 'db.example.com', port: 5432, secured: true } }, 'tcp-proxy'),
+        ).toEqual({
+            name: 'tcp-group default endpoint',
+            type: 'tcp-proxy',
+            inheritConfiguration: true,
+            weight: 1,
+            configuration: { target: { host: 'db.example.com', port: 5432, secured: true } },
+        });
+    });
+
+    it('validates names (required, no colons — no min length)', () => {
         expect(validateGroupName('a')).toBeNull();
         expect(validateGroupName('a:b')).toBe('Name must not contain colons.');
         expect(validateEndpointName('')).toBe('Name is required.');
@@ -35,5 +53,13 @@ describe('endpoint group types', () => {
     it('requires endpoint target URL', () => {
         expect(validateEndpointTarget('')).toBe('Target URL is required.');
         expect(validateEndpointTarget('https://ok.example.com')).toBeNull();
+    });
+
+    it('parses shared configuration as a pass-through record for schema-driven forms', () => {
+        const sc = {
+            tcp: { connectTimeout: 3000 },
+            ssl: { trustStore: { type: 'JKS', content: 'base64-bytes', password: 'p' } },
+        };
+        expect(parseSharedConfigDto(sc)).toEqual(sc);
     });
 });

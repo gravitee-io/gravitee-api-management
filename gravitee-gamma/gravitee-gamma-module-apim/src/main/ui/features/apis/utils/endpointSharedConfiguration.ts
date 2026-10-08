@@ -13,137 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { HttpFormState, ProxyFormState, SharedConfigFormState, SslFormState, TcpFormState } from '../pages/detail/endpoints/types';
-import type {
-    EndpointGroupHeader,
-    EndpointGroupHttp,
-    EndpointGroupProxy,
-    EndpointGroupSharedConfiguration,
-    EndpointGroupSsl,
-    EndpointGroupTcp,
-} from '../types';
-
-/** Serializes HTTP client options for V4 shared configuration (plugin httpClientOptions oneOf schema). */
-export function serializeHttpClientOptions(http: HttpFormState): EndpointGroupHttp {
-    const base = {
-        version: http.version,
-        keepAlive: http.keepAlive,
-        keepAliveTimeout: http.keepAliveTimeout,
-        connectTimeout: http.connectTimeout,
-        pipelining: http.pipelining,
-        readTimeout: http.readTimeout,
-        useCompression: http.useCompression,
-        propagateClientAcceptEncoding: http.propagateClientAcceptEncoding,
-        propagateClientHost: http.propagateClientHost,
-        idleTimeout: http.idleTimeout,
-        followRedirects: http.followRedirects,
-        maxConcurrentConnections: http.maxConcurrentConnections,
-        maxWaitQueueSize: http.maxWaitQueueSize,
-        maxConnectionLifetime: http.maxConnectionLifetime,
-    };
-
-    if (http.version === 'HTTP_2') {
-        return {
-            ...base,
-            clearTextUpgrade: http.clearTextUpgrade,
-            http2MultiplexingLimit: http.http2MultiplexingLimit,
-            http2ConnectionWindowSize: http.http2ConnectionWindowSize,
-            http2StreamWindowSize: http.http2StreamWindowSize,
-            http2MaxFrameSize: http.http2MaxFrameSize,
-        };
-    }
-
-    return base;
-}
+import type { SharedConfigFormState } from '../pages/detail/endpoints/types';
+import type { EndpointGroupSharedConfiguration } from '../types';
 
 /**
- * Serializes HTTP proxy options for V4 shared configuration (gravitee-plugin-common-configurations oneOf schema).
- * When disabled or using system proxy, only `enabled` and `useSystemProxy` are sent (additionalProperties: false).
+ * Shared configuration is schema-driven: form values are already shaped by the
+ * endpoint plugin's shared-configuration JSON Schema. Persist as-is.
  */
-export function serializeHttpProxyOptions(proxy: ProxyFormState): EndpointGroupProxy {
-    if (!proxy.enabled) {
-        return { enabled: false, useSystemProxy: false };
-    }
-    if (proxy.useSystemProxy) {
-        return { enabled: true, useSystemProxy: true };
-    }
-
-    const port = proxy.port !== '' ? parseInt(proxy.port, 10) : undefined;
-    return {
-        enabled: true,
-        useSystemProxy: false,
-        type: proxy.type,
-        host: proxy.host.trim(),
-        port: port !== undefined && !Number.isNaN(port) ? port : undefined,
-        ...(proxy.username.trim() ? { username: proxy.username.trim() } : {}),
-        ...(proxy.password ? { password: proxy.password } : {}),
-    };
+export function serializeSharedConfiguration(config: SharedConfigFormState): EndpointGroupSharedConfiguration {
+    return { ...config } as EndpointGroupSharedConfiguration;
 }
 
-/** Serializes SSL options — only schema-allowed top-level fields; preserves trust/key stores from existing DTO. */
-export function serializeSslOptions(ssl: SslFormState, existing?: EndpointGroupSsl): EndpointGroupSsl {
-    return {
-        hostnameVerifier: ssl.hostnameVerifier,
-        trustAll: ssl.trustAll,
-        ...(existing?.trustStore ? { trustStore: existing.trustStore } : {}),
-        ...(existing?.keyStore ? { keyStore: existing.keyStore } : {}),
-    };
-}
-
-export function validateHttpProxyOptions(proxy: ProxyFormState): string | null {
-    if (!proxy.enabled || proxy.useSystemProxy) return null;
-    if (!proxy.host.trim()) return 'Proxy host is required when proxy is enabled.';
-    const port = proxy.port !== '' ? parseInt(proxy.port, 10) : NaN;
-    if (proxy.port === '' || Number.isNaN(port) || port <= 0) return 'Proxy port is required when proxy is enabled.';
-    return null;
-}
-
-export function serializeTcpClientOptions(tcp: TcpFormState): EndpointGroupTcp {
-    return {
-        connectTimeout: tcp.connectTimeout,
-        reconnectAttempts: tcp.reconnectAttempts,
-        reconnectInterval: tcp.reconnectInterval,
-        idleTimeout: tcp.idleTimeout,
-        readIdleTimeout: tcp.readIdleTimeout,
-        writeIdleTimeout: tcp.writeIdleTimeout,
-    };
-}
-
-export function serializeTcpSharedConfiguration(
-    config: SharedConfigFormState,
-    existing?: EndpointGroupSharedConfiguration,
-): EndpointGroupSharedConfiguration {
-    return {
-        tcp: serializeTcpClientOptions(config.tcp),
-        proxy: serializeHttpProxyOptions(config.proxy),
-        ssl: serializeSslOptions(config.ssl, existing?.ssl),
-    };
-}
-
-export function serializeSharedConfiguration(
-    config: SharedConfigFormState,
-    existing?: EndpointGroupSharedConfiguration,
-): EndpointGroupSharedConfiguration {
-    return {
-        http: serializeHttpClientOptions(config.http),
-        ssl: serializeSslOptions(config.ssl, existing?.ssl),
-        headers: config.headers.filter(h => h.name.trim()).map(h => ({ name: h.name, value: h.value }) as EndpointGroupHeader),
-        proxy: serializeHttpProxyOptions(config.proxy),
-    };
-}
-
-export function serializeSharedConfigurationOverride(
-    config: SharedConfigFormState | undefined,
-    existing?: EndpointGroupSharedConfiguration,
-): Record<string, unknown> {
+export function serializeSharedConfigurationOverride(config: SharedConfigFormState | undefined): Record<string, unknown> {
     if (!config) return {};
-    return serializeSharedConfiguration(config, existing) as Record<string, unknown>;
-}
-
-export function serializeTcpSharedConfigurationOverride(
-    config: SharedConfigFormState | undefined,
-    existing?: EndpointGroupSharedConfiguration,
-): Record<string, unknown> {
-    if (!config) return {};
-    return serializeTcpSharedConfiguration(config, existing) as Record<string, unknown>;
+    return serializeSharedConfiguration(config) as Record<string, unknown>;
 }
