@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { loadRemote } from '@module-federation/runtime';
 import { lazy, type LazyExoticComponent, type ComponentType } from 'react';
 
 import { useEnvironmentStore } from '../../environment/environment.store';
+import { loadRemoteModule } from '../modules.remotes';
 import type { GammaModule } from '../modules.types';
 
 const lazyComponentCache = new Map<string, LazyExoticComponent<ComponentType>>();
 
-export function getOrCreateLazyModule(remoteName: string, exposedModule: string): LazyExoticComponent<ComponentType> {
-    const cacheKey = `${remoteName}/${exposedModule}`;
+export function getOrCreateLazyModule(module: GammaModule): LazyExoticComponent<ComponentType> {
+    const cacheKey = `${module.remoteName}/${module.exposedModule}`;
     let cached = lazyComponentCache.get(cacheKey);
     if (!cached) {
-        cached = lazy(async () => {
-            const mod = await loadRemote<{ default: ComponentType }>(`${remoteName}/${exposedModule}`);
-            if (!mod) throw new Error(`Failed to load remote module: ${remoteName}/${exposedModule}`);
-            return mod;
-        });
+        cached = lazy(() => loadRemoteModule(module));
         lazyComponentCache.set(cacheKey, cached);
     }
     return cached;
@@ -49,7 +45,7 @@ export function getOrCreateLazyModule(remoteName: string, exposedModule: string)
  */
 export function RemoteModuleRoute({ module }: { readonly module: GammaModule }) {
     const environmentId = useEnvironmentStore(s => s.environmentId);
-    const LazyModule = getOrCreateLazyModule(module.remoteName, module.exposedModule);
+    const LazyModule = getOrCreateLazyModule(module);
 
     return <LazyModule key={environmentId} />;
 }
