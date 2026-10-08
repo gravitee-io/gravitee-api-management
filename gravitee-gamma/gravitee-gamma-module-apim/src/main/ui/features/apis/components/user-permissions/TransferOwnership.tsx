@@ -84,7 +84,8 @@ export function TransferOwnership({
     });
 
     const nonOwnerMembers = useMemo(() => members.filter(m => !isMemberPrimaryOwner(m)), [members]);
-    const canSubmit = selectedRole && (tab === 'member' ? !!selectedMemberId : !!selectedUser);
+    const hasTarget = tab === 'member' ? !!selectedMemberId : !!selectedUser;
+    const canSubmit = selectedRole && hasTarget;
 
     function handleSubmit() {
         if (!canSubmit) return;
@@ -190,7 +191,7 @@ export function TransferOwnership({
                                     <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
                                     <Input
                                         className="pl-9"
-                                        placeholder="Type at least 2 characters…"
+                                        placeholder="Search a user by name or email…"
                                         value={userSearch}
                                         onChange={e => setUserSearch(e.target.value)}
                                     />
@@ -249,16 +250,18 @@ export function TransferOwnership({
                         </Select>
                     </div>
 
-                    <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
-                        <TriangleAlertIcon className="size-4 shrink-0 mt-0.5 text-destructive" />
-                        <div className="text-sm leading-snug text-destructive">
-                            <p className="font-semibold">This action is irreversible</p>
-                            <p className="mt-1">
-                                The current Primary Owner will be reassigned to the{' '}
-                                <span className="font-semibold">{selectedRole || '—'}</span> role.
-                            </p>
+                    {hasTarget && (
+                        <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3">
+                            <TriangleAlertIcon className="size-4 shrink-0 mt-0.5 text-destructive" />
+                            <div className="text-sm leading-snug text-destructive">
+                                <p className="font-semibold">This action is irreversible</p>
+                                <p className="mt-1">
+                                    The current Primary Owner will be reassigned to the{' '}
+                                    <span className="font-semibold">{selectedRole || '—'}</span> role.
+                                </p>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
                 <SheetFooter className="flex-row justify-end border-t">
