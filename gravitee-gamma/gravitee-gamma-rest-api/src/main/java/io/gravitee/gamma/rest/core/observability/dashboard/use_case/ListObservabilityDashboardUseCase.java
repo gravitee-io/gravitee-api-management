@@ -17,17 +17,22 @@ package io.gravitee.gamma.rest.core.observability.dashboard.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.gamma.rest.core.observability.dashboard.model.Dashboard;
+import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardModule;
 import io.gravitee.gamma.rest.core.observability.dashboard.port.repository.DashboardRepository;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 
 /**
- * Lists every dashboard saved in the caller's environment, paginated.
+ * Lists the dashboards saved in the caller's environment, paginated: those of the given modules
+ * when there are any, otherwise every one of them — dashboards without a module included.
  *
  * <p>{@link DashboardRepository#findByEnvironmentId} has no native pagination (the OBS-14 SPI
  * returns the full, ordered list) — pagination is applied here by slicing the full result, matching
  * the "fetch, then slice" precedent used by {@code TracingPortAdapter} for the same reason. Fine for
- * a per-environment dashboard count, which is expected to stay small.
+ * a per-environment dashboard count, which is expected to stay small. The module filter is applied
+ * to that same list for the same reason: module scoping is not an access-control boundary, unlike
+ * the environment one, so it does not need to be a property of the query.
  *
  * @author GraviteeSource Team
  */
@@ -41,7 +46,12 @@ public class ListObservabilityDashboardUseCase {
 
     private final DashboardRepository dashboardRepository;
 
-    public record Input(String environmentId, Integer page, Integer perPage) {}
+    /** {@code modules} empty or {@code null} means every dashboard of the environment, whatever its module. */
+    public record Input(String environmentId, Set<String> modules, Integer page, Integer perPage) {
+        public Input {
+            modules = modules == null ? Set.of() : Set.copyOf(modules);
+        }
+    }
 
     public record Output(List<Dashboard> dashboards, long totalCount, int page, int perPage) {}
 
@@ -49,11 +59,22 @@ public class ListObservabilityDashboardUseCase {
         int page = resolvePage(input);
         int perPage = resolvePerPage(input);
 
-        List<Dashboard> all = dashboardRepository.findByEnvironmentId(input.environmentId());
+        List<Dashboard> all = findAll(input);
         int fromIndex = Math.min((page - 1) * perPage, all.size());
         int toIndex = Math.min(fromIndex + perPage, all.size());
 
         return new Output(all.subList(fromIndex, toIndex), all.size(), page, perPage);
+    }
+
+    private List<Dashboard> findAll(Input input) {
+        input.modules().forEach(DashboardModule::requireValidOrAbsent);
+        List<Dashboard> all = dashboardRepository.findByEnvironmentId(input.environmentId());
+        return input.modules().isEmpty()
+            ? all
+            : all
+                .stream()
+                .filter(dashboard -> dashboard.belongsToOneOf(input.modules()))
+                .toList();
     }
 
     private static int resolvePage(Input input) {

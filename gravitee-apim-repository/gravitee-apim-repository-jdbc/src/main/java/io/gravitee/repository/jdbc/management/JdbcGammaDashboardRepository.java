@@ -70,6 +70,7 @@ public class JdbcGammaDashboardRepository extends JdbcAbstractCrudRepository<Gam
         return JdbcObjectMapper.builder(GammaDashboard.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("environment_id", Types.NVARCHAR, String.class)
+            .addColumn("module", Types.NVARCHAR, String.class)
             .addColumn("title", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("created_by", Types.NVARCHAR, String.class)

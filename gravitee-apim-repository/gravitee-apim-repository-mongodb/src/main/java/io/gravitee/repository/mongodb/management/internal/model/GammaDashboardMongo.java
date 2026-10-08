@@ -38,6 +38,7 @@ public class GammaDashboardMongo {
     private String id;
 
     private String environmentId;
+    private String module;
     private String title;
     private String description;
     private List<Filter> filters;

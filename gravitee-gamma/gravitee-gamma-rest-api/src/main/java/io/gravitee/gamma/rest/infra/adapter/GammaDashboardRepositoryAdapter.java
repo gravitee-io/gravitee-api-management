@@ -108,6 +108,7 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         return new Dashboard(
             source.getId(),
             source.getEnvironmentId(),
+            source.getModule(),
             source.getTitle(),
             source.getDescription(),
             source.getFilters() == null ? List.of() : source.getFilters().stream().map(GammaDashboardRepositoryAdapter::toCore).toList(),
@@ -178,6 +179,7 @@ public class GammaDashboardRepositoryAdapter implements DashboardRepository {
         return GammaDashboard.builder()
             .id(source.id())
             .environmentId(source.environmentId())
+            .module(source.module())
             .title(source.title())
             .description(source.description())
             .filters(source.filters().stream().map(GammaDashboardRepositoryAdapter::toRepository).toList())

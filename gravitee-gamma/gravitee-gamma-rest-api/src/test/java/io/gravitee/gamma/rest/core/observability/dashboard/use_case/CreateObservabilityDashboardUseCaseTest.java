@@ -83,7 +83,7 @@ class CreateObservabilityDashboardUseCaseTest {
             MAPPER.readTree("[{\"id\":\"w1\",\"type\":\"metric\"}]")
         );
 
-        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, content));
+        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content));
 
         assertThat(output.dashboard().id()).isEqualTo(DASHBOARD_ID);
         assertThat(output.dashboard().environmentId()).isEqualTo(ENV);
@@ -99,7 +99,7 @@ class CreateObservabilityDashboardUseCaseTest {
         var content = new DashboardContent(" ", null, List.of(), null, null);
 
         assertThatThrownBy(() ->
-            useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, content))
+            useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content))
         ).isInstanceOf(InvalidDashboardException.class);
         assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
     }
@@ -108,9 +108,9 @@ class CreateObservabilityDashboardUseCaseTest {
     void should_reject_a_blank_dashboard_id() {
         var content = new DashboardContent("Performance overview", null, List.of(), null, null);
 
-        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, " ", content))).isInstanceOf(
-            InvalidDashboardException.class
-        );
+        assertThatThrownBy(() ->
+            useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, " ", null, content))
+        ).isInstanceOf(InvalidDashboardException.class);
     }
 
     @Test
@@ -123,9 +123,41 @@ class CreateObservabilityDashboardUseCaseTest {
             null
         );
 
-        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, content)))
+        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content)))
             .isInstanceOf(UnsupportedObservabilityFilterException.class)
             .hasMessageContaining("REQUEST_ID");
+        assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
+    }
+
+    @Test
+    void should_store_the_module() {
+        var content = new DashboardContent("Performance overview", null, List.of(), null, null);
+
+        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, "aim", content));
+
+        assertThat(output.dashboard().module()).isEqualTo("aim");
+        assertThat(dashboardRepository.findByIdAndEnvironmentId(DASHBOARD_ID, ENV)).hasValueSatisfying(stored ->
+            assertThat(stored.module()).isEqualTo("aim")
+        );
+    }
+
+    /** Optional until every host sends it; the follow-up of OBS-106 makes it required. */
+    @Test
+    void should_create_the_dashboard_without_a_module() {
+        var content = new DashboardContent("Performance overview", null, List.of(), null, null);
+
+        var output = useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, null, content));
+
+        assertThat(output.dashboard().module()).isNull();
+    }
+
+    @Test
+    void should_reject_an_invalid_module_before_touching_the_repository() {
+        var content = new DashboardContent("Performance overview", null, List.of(), null, null);
+
+        assertThatThrownBy(() -> useCase.execute(new CreateObservabilityDashboardUseCase.Input(ENV, USER, DASHBOARD_ID, "AIM", content)))
+            .isInstanceOf(InvalidDashboardException.class)
+            .hasMessageContaining("module");
         assertThat(dashboardRepository.findByEnvironmentId(ENV)).isEmpty();
     }
 }

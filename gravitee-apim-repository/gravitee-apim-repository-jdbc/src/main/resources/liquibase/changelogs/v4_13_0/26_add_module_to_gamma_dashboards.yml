@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.13.0_26_add_module_to_gamma_dashboards
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}gamma_dashboards
+            columns:
+              - column: {name: module, type: nvarchar(64), constraints: { nullable: true } }
