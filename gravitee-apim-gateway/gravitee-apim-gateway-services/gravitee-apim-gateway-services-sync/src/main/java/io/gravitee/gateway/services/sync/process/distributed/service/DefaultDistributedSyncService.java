@@ -159,6 +159,17 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                 "Distributed sync requires a non-blank cluster id from the cluster manager (configure Hazelcast cluster-name)."
             );
         }
+        // A standalone cluster manager has a single member (this node): no other gateway shares the distributed
+        // repository, so the primary/secondary split could never work. A distributed cluster manager can also
+        // transiently report a single member during a rolling restart, so this is a warning rather than a hard
+        // failure: fail-fast here would restart-loop the pod in that window.
+        if (clusterManager.members() != null && clusterManager.members().size() <= 1) {
+            log.warn(
+                "Distributed sync requires a distributed cluster manager (Hazelcast). The current cluster manager reports " +
+                    clusterManager.members().size() +
+                    " member(s), so no secondary gateway can synchronize from the distributed repository."
+            );
+        }
     }
 
     @Override

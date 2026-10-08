@@ -115,6 +115,7 @@ class DefaultDistributedSyncServiceTest {
         lenient().when(member.primary()).thenReturn(true);
         lenient().when(clusterManager.self()).thenReturn(member);
         lenient().when(clusterManager.clusterId()).thenReturn("clusterId");
+        lenient().when(clusterManager.members()).thenReturn(Set.of(member, mock(Member.class)));
         lenient().when(distributedSyncStateRepository.ready()).thenReturn(Completable.complete());
 
         SubscriptionMapper subscriptionMapper = new SubscriptionMapper(objectMapper);
@@ -196,6 +197,20 @@ class DefaultDistributedSyncServiceTest {
         void should_not_validate_when_cluster_id_is_blank() {
             when(clusterManager.clusterId()).thenReturn("   ");
             assertThrows(SyncException.class, () -> cut.validate());
+        }
+
+        @Test
+        void should_not_fail_validation_when_only_one_member_is_visible() {
+            // A distributed cluster manager can transiently report a single member during a rolling restart:
+            // validation must not fail the pod in that window.
+            when(clusterManager.members()).thenReturn(Set.of(member));
+            assertDoesNotThrow(() -> cut.validate());
+        }
+
+        @Test
+        void should_not_fail_validation_when_no_members_are_visible() {
+            when(clusterManager.members()).thenReturn(Set.of());
+            assertDoesNotThrow(() -> cut.validate());
         }
 
         @Test
