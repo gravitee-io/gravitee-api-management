@@ -158,23 +158,6 @@ describe('IntegrationGeneralInformationForm', () => {
             expectedRequest: { name: 'New name', description: 'Old description', groups: ['Platform Team'] },
         },
         {
-            kind: 'an A2A integration, keeping its well-known URLs',
-            loaded: {
-                id: 'int-a2a',
-                name: 'Old name',
-                description: 'Old description',
-                provider: 'A2A',
-                groups: ['Platform Team'],
-                wellKnownUrls: [{ url: 'https://agent.example.com/.well-known/agent.json' }],
-            },
-            expectedRequest: {
-                name: 'New name',
-                description: 'Old description',
-                groups: ['Platform Team'],
-                wellKnownUrls: [{ url: 'https://agent.example.com/.well-known/agent.json' }],
-            },
-        },
-        {
             kind: 'an integration without groups or description',
             loaded: { id: 'int-1', name: 'Old name', provider: 'solace' },
             expectedRequest: { name: 'New name', description: '', groups: [] },

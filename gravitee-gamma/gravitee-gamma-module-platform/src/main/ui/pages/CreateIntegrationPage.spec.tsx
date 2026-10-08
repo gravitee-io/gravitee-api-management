@@ -289,53 +289,32 @@ describe('CreateIntegrationPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith('..');
     });
 
-    it('asks for well-known URLs only for A2A Protocol', async () => {
-        const user = userEvent.setup();
-        renderPage();
-
+    it('locks Change, Back to providers and Cancel while a create is in flight', async () => {
+        const view = renderPage();
         await pickProvider('Solace');
-        expect(screen.queryByRole('button', { name: 'Add another URL' })).not.toBeInTheDocument();
 
-        await user.click(screen.getByRole('button', { name: 'Change' }));
-        await pickProvider('A2A Protocol');
+        setCreatePending(true);
+        view.rerender(pageElement());
 
-        expect(screen.getByRole('button', { name: 'Add another URL' })).toBeInTheDocument();
-        expect(nameInput()).toBeInTheDocument();
-        expect(screen.getByRole('textbox', { name: /^Description/ })).toBeInTheDocument();
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeDisabled());
+        expect(screen.getByRole('button', { name: 'Back to providers' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
     });
 
-    it.each([{ label: 'A2A Protocol' }, { label: 'Solace' }])(
-        'locks Change, Back to providers and Cancel while a $label create is in flight',
-        async ({ label }) => {
-            const view = renderPage();
-            await pickProvider(label);
+    it('unlocks Change, Back to providers and Cancel once a create ends', async () => {
+        const view = renderPage();
+        await pickProvider('Solace');
+        setCreatePending(true);
+        view.rerender(pageElement());
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeDisabled());
 
-            setCreatePending(true);
-            view.rerender(pageElement());
+        setCreatePending(false);
+        view.rerender(pageElement());
 
-            await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeDisabled());
-            expect(screen.getByRole('button', { name: 'Back to providers' })).toBeDisabled();
-            expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
-        },
-    );
-
-    it.each([{ label: 'A2A Protocol' }, { label: 'Solace' }])(
-        'unlocks Change, Back to providers and Cancel once a $label create ends',
-        async ({ label }) => {
-            const view = renderPage();
-            await pickProvider(label);
-            setCreatePending(true);
-            view.rerender(pageElement());
-            await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeDisabled());
-
-            setCreatePending(false);
-            view.rerender(pageElement());
-
-            await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeEnabled());
-            expect(screen.getByRole('button', { name: 'Back to providers' })).toBeEnabled();
-            expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled();
-        },
-    );
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeEnabled());
+        expect(screen.getByRole('button', { name: 'Back to providers' })).toBeEnabled();
+        expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled();
+    });
 
     it('opens on the connection step of the provider named in the URL', () => {
         renderPageAt(['/?provider=apigee']);

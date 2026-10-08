@@ -54,12 +54,14 @@ export function IntegrationConfigurationPage() {
         return (
             <>
                 {canUpdate ? <IntegrationGeneralInformationForm key={integration.id} integration={integration} /> : null}
-                {canDelete && !isA2aIntegration(integration) ? <IntegrationDangerZone integrationId={integrationId} /> : null}
+                {canDelete ? <IntegrationDangerZone integrationId={integrationId} /> : null}
             </>
         );
     }
 
-    if (isForbidden) return <Navigate to={integrationsListHref} replace />;
+    const shouldRedirect = isForbidden || (integration && isA2aIntegration(integration));
+
+    if (shouldRedirect) return <Navigate to={integrationsListHref} replace />;
 
     return (
         <Tabs defaultValue="general" data-testid="integration-configuration-page">

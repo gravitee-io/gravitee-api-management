@@ -86,20 +86,6 @@ describe('integration detail service', () => {
         expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/integrations/a%2Fb%20c');
     });
 
-    it('drops the agent status and pending ingestion job from an A2A integration', async () => {
-        mockApimFetchJsonV2.mockResolvedValueOnce({
-            id: 'int-a2a',
-            name: 'A2A integration',
-            provider: 'A2A',
-            agentStatus: 'DISCONNECTED',
-            pendingJob: { id: 'job-1', status: 'PENDING' },
-        });
-
-        const result = await getIntegration('env-1', 'int-a2a');
-
-        expect(result).toEqual({ id: 'int-a2a', name: 'A2A integration', provider: 'A2A' });
-    });
-
     it('keeps the agent status and pending ingestion job of a gateway-style integration', async () => {
         const integration: Integration = {
             id: 'int-aws',
