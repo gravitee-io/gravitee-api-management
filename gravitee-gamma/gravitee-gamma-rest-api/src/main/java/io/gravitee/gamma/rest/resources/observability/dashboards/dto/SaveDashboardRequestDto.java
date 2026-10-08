@@ -22,8 +22,9 @@ import io.gravitee.gamma.rest.core.observability.dashboard.model.DashboardFilter
 import java.util.List;
 
 /**
- * Request shape shared by POST and PUT (OBS-16). {@code id} is read on POST only (client-supplied,
- * AGENTS.md §9) — PUT takes the id from the path. Server-owned fields ({@code version},
+ * Request shape shared by POST and PUT (OBS-16). {@code id} and {@code module} are read on POST only:
+ * the id is client-supplied (AGENTS.md §9) and PUT takes it from the path, and the module is set
+ * once at creation — the update use case has no way to receive it. Server-owned fields ({@code version},
  * {@code createdAt}, {@code updatedAt}, {@code createdBy}, {@code environmentId}) are not declared
  * here and are silently dropped by Jackson ({@code GraviteeMapper} disables
  * {@code FAIL_ON_UNKNOWN_PROPERTIES}), so a client sending them cannot influence the write.
@@ -34,6 +35,7 @@ import java.util.List;
  */
 public record SaveDashboardRequestDto(
     String id,
+    String module,
     String title,
     String description,
     List<SaveDashboardFilterDto> filters,

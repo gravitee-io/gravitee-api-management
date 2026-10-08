@@ -163,6 +163,7 @@ class GammaDashboardRepositoryAdapterTest {
         Dashboard dashboard = new Dashboard(
             "dash-1",
             "env-1",
+            "aim",
             "Performance overview",
             "desc",
             List.of(new DashboardFilter(new FilterCondition("API_TYPE", FilterOperator.NOT_IN, List.of("MCP")), "API Type", true)),
@@ -182,6 +183,7 @@ class GammaDashboardRepositoryAdapterTest {
         GammaDashboard persisted = captor.getValue();
         assertThat(persisted.getId()).isEqualTo("dash-1");
         assertThat(persisted.getEnvironmentId()).isEqualTo("env-1");
+        assertThat(persisted.getModule()).isEqualTo("aim");
         assertThat(persisted.getTitle()).isEqualTo("Performance overview");
         var filter = persisted.getFilters().get(0);
         assertThat(filter.getField()).isEqualTo("API_TYPE");
@@ -203,6 +205,7 @@ class GammaDashboardRepositoryAdapterTest {
         Dashboard dashboard = new Dashboard(
             "dash-1",
             "env-1",
+            null,
             "Performance overview",
             null,
             List.of(),
@@ -270,6 +273,7 @@ class GammaDashboardRepositoryAdapterTest {
         return new Dashboard(
             "dash-1",
             "env-1",
+            null,
             "Performance overview",
             null,
             List.of(),

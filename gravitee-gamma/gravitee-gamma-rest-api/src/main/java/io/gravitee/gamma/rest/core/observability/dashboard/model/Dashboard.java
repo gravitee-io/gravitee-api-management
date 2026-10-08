@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.gamma.rest.core.observability.dashboard.exception.InvalidDashboardException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 
 /**
  * A dashboard saved by a Gamma Observability user, served by the read endpoints in this ticket
@@ -28,11 +29,15 @@ import java.util.List;
  * <p>{@code widgets} is deliberately opaque: never parsed, only returned verbatim (see
  * {@code GammaDashboard.widgets}).
  *
+ * <p>{@code module} is {@code null} on dashboards created before it existed, and is set once at creation: no write
+ * changes it afterwards (see {@link DashboardModule}).
+ *
  * @author GraviteeSource Team
  */
 public record Dashboard(
     String id,
     String environmentId,
+    String module,
     String title,
     String description,
     List<DashboardFilter> filters,
@@ -48,6 +53,12 @@ public record Dashboard(
         requireNonBlank(environmentId, "environmentId");
         requireNonBlank(title, "title");
         filters = filters == null ? List.of() : List.copyOf(filters);
+    }
+
+    /** A dashboard without a module belongs to none, whatever the selection. */
+    public boolean belongsToOneOf(Set<String> modules) {
+        // Checked first because an immutable set's contains(null) throws rather than answering false.
+        return module != null && modules.contains(module);
     }
 
     private static void requireNonBlank(String value, String fieldName) {
