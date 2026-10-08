@@ -79,7 +79,7 @@ class AuditServiceImplTest {
         private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("DEFAULT", "DEFAULT");
 
         @Test
-        void should_not_audit_the_value_of_an_encrypted_property_of_a_v4_api() throws Exception {
+        void should_audit_only_the_fingerprint_of_an_encrypted_property_of_a_v4_api() throws Exception {
             var before = anApi(
                 """
                 {"definitionVersion":"V4","properties":[{"key":"plain","value":"plain-value","encrypted":false},{"key":"secret","value":"OLD-CIPHER","encrypted":true}]}"""
@@ -95,13 +95,13 @@ class AuditServiceImplTest {
             assertThat(auditedDefinition().get("properties")).isEqualTo(
                 mapper.readTree(
                     """
-                    [{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","encrypted":true}]"""
+                    [{"key":"plain","value":"new-plain-value","encrypted":false},{"key":"secret","value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>","encrypted":true}]"""
                 )
             );
         }
 
         @Test
-        void should_not_audit_the_value_of_an_encrypted_property_of_a_v2_api() throws Exception {
+        void should_audit_only_the_fingerprint_of_an_encrypted_property_of_a_v2_api() throws Exception {
             var created = anApi(
                 """
                 {"gravitee":"2.0.0","properties":[{"key":"secret","value":"CIPHER","encrypted":true}]}"""
@@ -113,18 +113,21 @@ class AuditServiceImplTest {
             assertThat(auditedDefinition().get("properties")).isEqualTo(
                 mapper.readTree(
                     """
-                    [{"key":"secret","encrypted":true}]"""
+                    [{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}]"""
                 )
             );
         }
 
         @Test
-        void should_not_audit_the_value_of_an_encrypted_property_of_any_other_audited_value() throws Exception {
+        void should_audit_only_the_fingerprint_of_an_encrypted_property_of_any_other_audited_value() throws Exception {
             var created = Map.of("properties", List.of(Map.of("key", "secret", "value", "CIPHER", "encrypted", true)));
 
             auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit(null, created));
 
-            assertThat(capturedPatch()).doesNotContain("CIPHER").contains("\"key\":\"secret\"");
+            assertThat(capturedPatch())
+                .doesNotContain("CIPHER")
+                .contains("\"key\":\"secret\"")
+                .contains("<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>");
         }
 
         @Test

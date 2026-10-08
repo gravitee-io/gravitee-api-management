@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.json.jackson;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.codec.digest.DigestUtils;
 
 public final class EncryptedPropertyAuditRedaction {
 
@@ -24,10 +25,24 @@ public final class EncryptedPropertyAuditRedaction {
 
     public static <T extends JsonNode> T redact(T node) {
         if (isEncryptedProperty(node)) {
-            ((ObjectNode) node).remove("value");
+            redactValue((ObjectNode) node);
         }
         node.forEach(EncryptedPropertyAuditRedaction::redact);
         return node;
+    }
+
+    private static void redactValue(ObjectNode property) {
+        JsonNode value = property.path("value");
+        if (value.isTextual()) {
+            property.put("value", fingerprint(value.textValue()));
+        } else {
+            property.remove("value");
+        }
+    }
+
+    // Hashes the ciphertext, not the plaintext, so nobody without the encryption key can match the fingerprint against guessed secrets.
+    private static String fingerprint(String ciphertext) {
+        return "<sha256:" + DigestUtils.sha256Hex(ciphertext) + ">";
     }
 
     private static boolean isEncryptedProperty(JsonNode node) {

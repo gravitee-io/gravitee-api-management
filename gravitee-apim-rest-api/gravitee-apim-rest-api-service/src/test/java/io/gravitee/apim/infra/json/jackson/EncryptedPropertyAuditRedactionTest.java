@@ -27,7 +27,7 @@ class EncryptedPropertyAuditRedactionTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Test
-    void should_remove_the_value_of_an_encrypted_property_at_any_depth() {
+    void should_replace_the_value_of_an_encrypted_property_at_any_depth_by_its_fingerprint() {
         var node = json(
             """
             {"definition":{"properties":[{"key":"secret","value":"CIPHER","encrypted":true,"dynamic":false},{"key":"plain","value":"plain-value","encrypted":false}]}}"""
@@ -36,13 +36,13 @@ class EncryptedPropertyAuditRedactionTest {
         assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
             json(
                 """
-                {"definition":{"properties":[{"key":"secret","encrypted":true,"dynamic":false},{"key":"plain","value":"plain-value","encrypted":false}]}}"""
+                {"definition":{"properties":[{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true,"dynamic":false},{"key":"plain","value":"plain-value","encrypted":false}]}}"""
             )
         );
     }
 
     @Test
-    void should_remove_the_value_of_an_encrypted_property_in_a_top_level_array() {
+    void should_replace_the_value_of_an_encrypted_property_in_a_top_level_array_by_its_fingerprint() {
         var node = json(
             """
             [{"key":"secret","value":"CIPHER","encrypted":true}]"""
@@ -51,13 +51,13 @@ class EncryptedPropertyAuditRedactionTest {
         assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
             json(
                 """
-                [{"key":"secret","encrypted":true}]"""
+                [{"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":true}]"""
             )
         );
     }
 
     @Test
-    void should_remove_the_value_when_encrypted_is_written_as_text() {
+    void should_replace_the_value_by_its_fingerprint_when_encrypted_is_written_as_text() {
         var node = json(
             """
             {"key":"secret","value":"CIPHER","encrypted":"true"}"""
@@ -66,7 +66,22 @@ class EncryptedPropertyAuditRedactionTest {
         assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
             json(
                 """
-                {"key":"secret","encrypted":"true"}"""
+                {"key":"secret","value":"<sha256:e555a71f0ce4ab12bc3de31adda7979c753fa3f9edd36e8cd8929d5bd4b7e906>","encrypted":"true"}"""
+            )
+        );
+    }
+
+    @Test
+    void should_remove_a_null_value_of_an_encrypted_property() {
+        var node = json(
+            """
+            {"key":"secret","value":null,"encrypted":true}"""
+        );
+
+        assertThat(EncryptedPropertyAuditRedaction.redact(node)).isEqualTo(
+            json(
+                """
+                {"key":"secret","encrypted":true}"""
             )
         );
     }
