@@ -37,6 +37,7 @@ public class CredentialDeployable implements Deployable {
     private String environmentId;
     private String organizationId;
     private Set<String> allowedApiIds;
+    private Set<String> allowedTargets;
     private String encryptedSecret;
     private long updatedAt;
     private SyncAction syncAction;

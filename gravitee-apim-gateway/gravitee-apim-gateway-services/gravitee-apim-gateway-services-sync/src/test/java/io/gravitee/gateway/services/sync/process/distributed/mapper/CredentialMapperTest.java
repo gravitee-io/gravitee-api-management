@@ -74,6 +74,19 @@ class CredentialMapperTest {
     }
 
     @Test
+    void should_leave_targets_unrestricted_when_the_payload_has_none() {
+        DistributedEvent event = DistributedEvent.builder()
+            .id("credential-1")
+            .syncAction(DistributedSyncAction.DEPLOY)
+            .payload(
+                "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"organizationId\": \"org-1\", \"allowedApiIds\": [\"api-1\"], \"encryptedSecret\": \"ciphertext\", \"updatedAt\": 1234}"
+            )
+            .build();
+
+        assertThat(cut.to(event).blockingGet().allowedTargets()).isNull();
+    }
+
+    @Test
     void should_skip_a_deployed_credential_without_organization() {
         DistributedEvent event = cut.to(deployed().organizationId(null)).blockingGet();
 
@@ -95,6 +108,7 @@ class CredentialMapperTest {
             .environmentId("env-1")
             .organizationId("org-1")
             .allowedApiIds(Set.of("api-1", "api-2"))
+            .allowedTargets(Set.of("https://api.openai.com:443"))
             .encryptedSecret("ciphertext")
             .updatedAt(1234L)
             .syncAction(SyncAction.DEPLOY)

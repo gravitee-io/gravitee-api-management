@@ -33,6 +33,7 @@ class CredentialWireTest {
             .encryptedSecret("ciphertext")
             .updatedAt("2026-09-14T00:00:00Z")
             .allowedApiIds(Set.of("api-1", "api-2"))
+            .allowedTargets(Set.of("https://api.openai.com:443"))
             .build();
 
         Credential back = om.readValue(om.writeValueAsString(c), Credential.class);

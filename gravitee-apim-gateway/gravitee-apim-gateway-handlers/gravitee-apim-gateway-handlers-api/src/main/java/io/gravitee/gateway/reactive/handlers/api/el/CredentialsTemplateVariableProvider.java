@@ -19,6 +19,7 @@ import io.gravitee.el.TemplateContext;
 import io.gravitee.el.TemplateVariableProvider;
 import io.gravitee.el.TemplateVariableScope;
 import io.gravitee.el.annotations.TemplateVariable;
+import io.gravitee.gateway.handlers.api.manager.CredentialDestinations;
 import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 
 @TemplateVariable(scopes = { TemplateVariableScope.API })
@@ -28,11 +29,18 @@ public class CredentialsTemplateVariableProvider implements TemplateVariableProv
 
     private final String environmentId;
     private final String apiId;
+    private final CredentialDestinations apiDestinations;
     private final CredentialResolver credentialResolver;
 
-    public CredentialsTemplateVariableProvider(String environmentId, String apiId, CredentialResolver credentialResolver) {
+    public CredentialsTemplateVariableProvider(
+        String environmentId,
+        String apiId,
+        CredentialDestinations apiDestinations,
+        CredentialResolver credentialResolver
+    ) {
         this.environmentId = environmentId;
         this.apiId = apiId;
+        this.apiDestinations = apiDestinations;
         this.credentialResolver = credentialResolver;
     }
 
@@ -40,7 +48,7 @@ public class CredentialsTemplateVariableProvider implements TemplateVariableProv
     public void provide(TemplateContext templateContext) {
         templateContext.setDeferredFunctionHolderVariable(
             CREDENTIALS_VARIABLE,
-            new EvaluatedCredentialsMethods(environmentId, apiId, credentialResolver)
+            new EvaluatedCredentialsMethods(environmentId, apiId, apiDestinations, credentialResolver)
         );
     }
 }

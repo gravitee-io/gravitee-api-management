@@ -54,6 +54,23 @@ class CredentialMapperTest {
     }
 
     @Test
+    void should_carry_the_targets_the_credential_may_be_sent_to() {
+        Event event = event(
+            "evt-11",
+            "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\", \"allowedApiIds\": [\"api-1\"], \"allowedTargets\": [\"https://api.openai.com:443\"]}"
+        );
+
+        assertThat(mapper.toDeploy(event).blockingGet().allowedTargets()).containsExactly("https://api.openai.com:443");
+    }
+
+    @Test
+    void should_leave_targets_unrestricted_when_the_event_has_none() {
+        Event event = event("evt-12", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
+
+        assertThat(mapper.toDeploy(event).blockingGet().allowedTargets()).isNull();
+    }
+
+    @Test
     void should_default_updatedAt_to_zero_when_the_event_has_none() {
         Event event = event("evt-2", "{\"id\": \"credential-1\", \"environmentId\": \"env-1\", \"encryptedSecret\": \"ciphertext\"}");
 

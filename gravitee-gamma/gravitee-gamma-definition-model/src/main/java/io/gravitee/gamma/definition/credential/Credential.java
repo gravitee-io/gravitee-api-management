@@ -68,4 +68,12 @@ public class Credential implements Serializable {
     /** Ids of the APIs allowed to resolve this credential. The gateway refuses any other API; absent means none. */
     @JsonProperty
     private Set<String> allowedApiIds;
+
+    /**
+     * Origins ({@code scheme://host:port}) the credential may be sent to. The gateway refuses an allowed API whose
+     * endpoints referencing the credential point anywhere else. Absent means the publisher does not restrict where the
+     * credential goes, and every allowed API may resolve it.
+     */
+    @JsonProperty
+    private Set<String> allowedTargets;
 }

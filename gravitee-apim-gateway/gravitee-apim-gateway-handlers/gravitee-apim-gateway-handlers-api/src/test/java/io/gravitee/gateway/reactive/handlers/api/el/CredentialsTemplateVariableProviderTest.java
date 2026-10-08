@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.el.TemplateEngine;
 import io.gravitee.el.spel.context.SecuredResolver;
+import io.gravitee.gateway.handlers.api.manager.CredentialDestinations;
 import io.gravitee.gateway.handlers.api.manager.CredentialResolutionException;
 import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.secrets.api.el.FieldKind;
@@ -43,6 +44,7 @@ class CredentialsTemplateVariableProviderTest {
 
     private static final String EXPRESSION = "{#credentials.get('credential-1', 'clientSecret', #secret_field_access_control_var)}";
     private static final SecretFieldAccessControl SECRET_FIELD = new SecretFieldAccessControl(true, FieldKind.PASSWORD, "clientSecret");
+    private static final CredentialDestinations DESTINATIONS = CredentialDestinations.of(null);
     private static final String UNRELATED_ALLOW_LIST_ENTRY =
         "method io.gravitee.secrets.api.el.EvaluatedSecretsMethods get java.lang.String";
 
@@ -64,14 +66,18 @@ class CredentialsTemplateVariableProviderTest {
 
         @Test
         void should_resolve_a_credential_field_in_a_secret_field() {
-            when(credentialResolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
+            when(credentialResolver.resolve("env-1", "api-1", DESTINATIONS, "credential-1", "clientSecret", SECRET_FIELD)).thenReturn(
+                "s3cr3t"
+            );
 
             engine("env-1", "api-1", SECRET_FIELD).eval(EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertValue("s3cr3t");
         }
 
         @Test
         void should_resolve_a_credential_field_inside_a_larger_value() {
-            when(credentialResolver.resolve("env-1", "api-1", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
+            when(credentialResolver.resolve("env-1", "api-1", DESTINATIONS, "credential-1", "clientSecret", SECRET_FIELD)).thenReturn(
+                "s3cr3t"
+            );
 
             engine("env-1", "api-1", SECRET_FIELD)
                 .eval("Bearer " + EXPRESSION, String.class)
@@ -81,17 +87,19 @@ class CredentialsTemplateVariableProviderTest {
         }
 
         @Test
-        void should_resolve_for_the_api_and_its_environment() {
-            when(credentialResolver.resolve("env-2", "api-2", "credential-1", "clientSecret", SECRET_FIELD)).thenReturn("s3cr3t");
+        void should_resolve_for_the_api_its_endpoints_and_its_environment() {
+            when(credentialResolver.resolve("env-2", "api-2", DESTINATIONS, "credential-1", "clientSecret", SECRET_FIELD)).thenReturn(
+                "s3cr3t"
+            );
 
             engine("env-2", "api-2", SECRET_FIELD).eval(EXPRESSION, String.class).test().awaitDone(5, SECONDS).assertComplete();
 
-            verify(credentialResolver).resolve("env-2", "api-2", "credential-1", "clientSecret", SECRET_FIELD);
+            verify(credentialResolver).resolve("env-2", "api-2", DESTINATIONS, "credential-1", "clientSecret", SECRET_FIELD);
         }
 
         @Test
         void should_fail_when_the_resolution_is_refused() {
-            when(credentialResolver.resolve("env-1", "api-1", "credential-1", "clientSecret", null)).thenThrow(
+            when(credentialResolver.resolve("env-1", "api-1", DESTINATIONS, "credential-1", "clientSecret", null)).thenThrow(
                 new CredentialResolutionException("Credential [credential-1] can only be resolved in a secret field")
             );
 
@@ -127,7 +135,9 @@ class CredentialsTemplateVariableProviderTest {
 
     private TemplateEngine engine(String environmentId, String apiId, SecretFieldAccessControl accessControl) {
         TemplateEngine engine = TemplateEngine.templateEngine();
-        new CredentialsTemplateVariableProvider(environmentId, apiId, credentialResolver).provide(engine.getTemplateContext());
+        new CredentialsTemplateVariableProvider(environmentId, apiId, DESTINATIONS, credentialResolver).provide(
+            engine.getTemplateContext()
+        );
         engine.getTemplateContext().setVariable(SecretFieldAccessControl.EL_VARIABLE, accessControl);
         return engine;
     }

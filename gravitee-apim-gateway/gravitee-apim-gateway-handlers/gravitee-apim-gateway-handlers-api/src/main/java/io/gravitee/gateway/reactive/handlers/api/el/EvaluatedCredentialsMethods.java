@@ -16,13 +16,14 @@
 package io.gravitee.gateway.reactive.handlers.api.el;
 
 import io.gravitee.el.spel.context.DeferredFunctionHolder;
+import io.gravitee.gateway.handlers.api.manager.CredentialDestinations;
 import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.secrets.api.el.SecretFieldAccessControl;
 import io.gravitee.secrets.api.el.SecretFieldReferenceMethods;
 import io.reactivex.rxjava3.core.Single;
 
 /**
- * The {@code #credentials} EL variable, bound to one API and its environment:
+ * The {@code #credentials} EL variable, bound to one deployed API and its environment:
  * {@code {#credentials.get('<credential id>', '<field>', #secret_field_access_control_var)}}.
  *
  * <p>The third argument is the marker a plugin sets while it evaluates a secret field; the resolution is refused
@@ -33,16 +34,25 @@ public final class EvaluatedCredentialsMethods implements DeferredFunctionHolder
 
     private final String environmentId;
     private final String apiId;
+    private final CredentialDestinations apiDestinations;
     private final CredentialResolver credentialResolver;
 
-    public EvaluatedCredentialsMethods(String environmentId, String apiId, CredentialResolver credentialResolver) {
+    public EvaluatedCredentialsMethods(
+        String environmentId,
+        String apiId,
+        CredentialDestinations apiDestinations,
+        CredentialResolver credentialResolver
+    ) {
         this.environmentId = environmentId;
         this.apiId = apiId;
+        this.apiDestinations = apiDestinations;
         this.credentialResolver = credentialResolver;
     }
 
     @Override
     public Single<String> get(String credentialId, String field, SecretFieldAccessControl accessControl) {
-        return Single.fromCallable(() -> credentialResolver.resolve(environmentId, apiId, credentialId, field, accessControl));
+        return Single.fromCallable(() ->
+            credentialResolver.resolve(environmentId, apiId, apiDestinations, credentialId, field, accessControl)
+        );
     }
 }
