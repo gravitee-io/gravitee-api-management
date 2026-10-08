@@ -196,6 +196,9 @@ public class ApplicationService_UpdateTest {
         lenient()
             .when(clientCertificateValidationDomainService.validate(any()))
             .thenAnswer(invocation -> new CertificateInfo(new Date(), "CN=test", "CN=issuer", "fp:" + invocation.getArgument(0)));
+        lenient()
+            .when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(2));
     }
 
     @Test
@@ -259,7 +262,7 @@ public class ApplicationService_UpdateTest {
     }
 
     @Test
-    public void shouldThrowExceptionWhenUserGroupsRequiredButNotPresent() {
+    public void shouldThrowExceptionWhenUserGroupsRequiredButNotPresent() throws TechnicalException {
         ApplicationSettings settings = new ApplicationSettings();
         ConsoleConfigEntity config = getConsoleConfigEntity(true);
         SimpleApplicationSettings clientSettings = new SimpleApplicationSettings();
@@ -268,6 +271,7 @@ public class ApplicationService_UpdateTest {
         mockSubscriptions();
         mockPlans();
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(configService.getConsoleConfig(executionContext)).thenReturn(config);
 
         Exception exception = assertThrows(BadRequestException.class, () ->
@@ -365,10 +369,7 @@ public class ApplicationService_UpdateTest {
 
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        ConsoleConfigEntity config = getConsoleConfigEntity(false);
-
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
     }

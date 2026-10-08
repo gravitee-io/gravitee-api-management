@@ -17,11 +17,16 @@ package io.gravitee.apim.core.api.use_case;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -33,6 +38,10 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.domain_service.ValidateGroupsDomainService;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.permission.domain_service.PermissionDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -61,6 +70,9 @@ class UpdateApiGroupsUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService = mock(ApiPrimaryOwnerDomainService.class);
+    private final PermissionDomainService permissionDomainService = mock(PermissionDomainService.class);
+    private final MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
 
     private UpdateApiGroupsUseCase useCase;
 
@@ -78,7 +90,16 @@ class UpdateApiGroupsUseCaseTest {
     void setUp() {
         var auditDomainService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
         var validateGroupsDomainService = new ValidateGroupsDomainService(groupQueryService);
-        useCase = new UpdateApiGroupsUseCase(apiCrudService, auditDomainService, validateGroupsDomainService);
+        useCase = new UpdateApiGroupsUseCase(
+            apiCrudService,
+            auditDomainService,
+            validateGroupsDomainService,
+            apiPrimaryOwnerDomainService,
+            permissionDomainService,
+            membershipQueryService,
+            groupQueryService
+        );
+        lenient().when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(true);
         apiCrudService.initWith(
             List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).environmentId(ENV_ID).groups(Set.of("old-group")).build())
         );
@@ -92,7 +113,7 @@ class UpdateApiGroupsUseCaseTest {
 
     @AfterEach
     void tearDown() {
-        Stream.of(apiCrudService, auditCrudService, userCrudService, groupQueryService).forEach(s -> s.reset());
+        Stream.of(apiCrudService, auditCrudService, userCrudService, groupQueryService, membershipQueryService).forEach(s -> s.reset());
     }
 
     @Test
@@ -172,6 +193,52 @@ class UpdateApiGroupsUseCaseTest {
         // Only the valid group should be persisted
         var updatedApi = apiCrudService.get(API_ID);
         assertThat(updatedApi.getGroups()).containsExactly("group-1");
+        assertThat(output.groups()).containsExactly("group-1");
+    }
+
+    @Test
+    void should_keep_the_current_primary_owner_group_when_it_is_omitted() {
+        groupQueryService.initWith(
+            List.of(
+                Group.builder().id("po-group").name("Owners").environmentId(ENV_ID).apiPrimaryOwner("po-user").build(),
+                Group.builder().id("group-1").name("Group 1").environmentId(ENV_ID).build(),
+                Group.builder().id("other-po-group").name("Other owners").environmentId(ENV_ID).apiPrimaryOwner("other-user").build()
+            )
+        );
+        when(apiPrimaryOwnerDomainService.getApiPrimaryOwner(ORG_ID, API_ID)).thenReturn(
+            PrimaryOwnerEntity.builder().id("po-group").type(PrimaryOwnerEntity.Type.GROUP).build()
+        );
+
+        var output = useCase.execute(new UpdateApiGroupsUseCase.Input(API_ID, Set.of("group-1", "other-po-group"), anAuditInfo(ENV_ID)));
+
+        assertThat(output.groups()).containsExactlyInAnyOrder("group-1", "po-group");
+        assertThat(apiCrudService.get(API_ID).getGroups()).containsExactlyInAnyOrder("group-1", "po-group");
+    }
+
+    @Test
+    void should_drop_a_group_the_caller_may_not_assign() {
+        when(permissionDomainService.hasPermission(any(), any(), any(), any(), any())).thenReturn(false);
+        membershipQueryService.initWith(
+            List.of(
+                Membership.builder()
+                    .memberId(USER_ID)
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.GROUP)
+                    .referenceId("group-1")
+                    .build()
+            )
+        );
+        groupQueryService.initWith(
+            List.of(
+                Group.builder().id("group-1").name("Group 1").environmentId(ENV_ID).build(),
+                Group.builder().id("other-env-group").name("Other env").environmentId("other-env").build()
+            )
+        );
+
+        var output = useCase.execute(
+            new UpdateApiGroupsUseCase.Input(API_ID, Set.of("group-1", "foreign-group", "other-env-group"), anAuditInfo(ENV_ID))
+        );
+
         assertThat(output.groups()).containsExactly("group-1");
     }
 

@@ -21,6 +21,7 @@ import static io.gravitee.repository.management.model.Group.AuditEvent.GROUP_DEL
 import static io.gravitee.repository.management.model.Group.AuditEvent.GROUP_UPDATED;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.DELETE;
+import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
 import io.gravitee.common.event.EventManager;
@@ -651,6 +652,83 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         } catch (Throwable e) {
             log.error("An error occurs while trying to update group", e);
         }
+    }
+
+    @Override
+    public Set<String> findGroupIdsAttachedToUserResources(ExecutionContext executionContext, String userId) {
+        if (userId == null || userId.isBlank()) {
+            return Set.of();
+        }
+        try {
+            Set<String> groupIds = new HashSet<>();
+            Set<String> apiIds = membershipService.getReferenceIdsByMemberAndReference(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.API
+            );
+            if (apiIds != null && !apiIds.isEmpty()) {
+                apiRepository
+                    .search(
+                        new ApiCriteria.Builder().environmentId(executionContext.getEnvironmentId()).ids(apiIds).build(),
+                        ApiFieldFilter.defaultFields()
+                    )
+                    .stream()
+                    .map(Api::getGroups)
+                    .filter(groups -> groups != null)
+                    .forEach(groupIds::addAll);
+            }
+            Set<String> applicationIds = membershipService.getReferenceIdsByMemberAndReference(
+                MembershipMemberType.USER,
+                userId,
+                MembershipReferenceType.APPLICATION
+            );
+            if (applicationIds != null && !applicationIds.isEmpty()) {
+                applicationRepository
+                    .findByIds(applicationIds)
+                    .stream()
+                    .filter(application -> executionContext.getEnvironmentId().equals(application.getEnvironmentId()))
+                    .map(io.gravitee.repository.management.model.Application::getGroups)
+                    .filter(groups -> groups != null)
+                    .forEach(groupIds::addAll);
+            }
+            return groupIds;
+        } catch (TechnicalException ex) {
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find groups attached to resources of user " + userId,
+                ex
+            );
+        }
+    }
+
+    @Override
+    public Set<String> retainGroupsTheCallerMayAssign(
+        ExecutionContext executionContext,
+        String userId,
+        Set<String> requested,
+        Set<String> alreadyOnResource
+    ) {
+        if (requested == null || requested.isEmpty()) {
+            return requested;
+        }
+        if (
+            permissionService.hasPermission(
+                executionContext,
+                userId,
+                RolePermission.ENVIRONMENT_GROUP,
+                executionContext.getEnvironmentId(),
+                READ
+            )
+        ) {
+            return requested;
+        }
+        Set<String> allowed = new HashSet<>();
+        if (alreadyOnResource != null) {
+            allowed.addAll(alreadyOnResource);
+        }
+        if (userId != null && !userId.isBlank()) {
+            findByUserAndEnvironment(userId, executionContext.getEnvironmentId()).forEach(group -> allowed.add(group.getId()));
+        }
+        return requested.stream().filter(allowed::contains).collect(Collectors.toSet());
     }
 
     @Override
