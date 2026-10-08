@@ -15,13 +15,12 @@
  */
 
 import { renderWithGraphene } from '@gravitee/graphene-core/testing';
-import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router-dom';
+import { act, screen, waitFor } from '@testing-library/react';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
+import { createMemoryRouter, MemoryRouter, RouterProvider } from 'react-router-dom';
 
 import { CreateIntegrationPage } from './CreateIntegrationPage';
 import { useCreateIntegration } from '../features/integrations/hooks/useCreateIntegration';
-import { integrationProviderLabel } from '../features/integrations/utils/providerLabels';
 import { ApimApiError } from '../shared/api/apimClient';
 import { notify } from '../shared/notify';
 
@@ -72,18 +71,56 @@ function renderPage() {
     return renderWithGraphene(pageElement());
 }
 
+function renderPageAt(initialEntries: string[]) {
+    const router = createMemoryRouter([{ path: '/', element: <CreateIntegrationPage /> }], {
+        initialEntries,
+        initialIndex: initialEntries.length - 1,
+    });
+    renderWithGraphene(<RouterProvider router={router} />);
+    return router;
+}
+
 function setCreatePending(isPending: boolean) {
     mockUseCreateIntegration.mockReturnValue({ mutateAsync: mockMutateAsync, isPending } as unknown as ReturnType<
         typeof useCreateIntegration
     >);
 }
 
-function checkedProviderNames(): string[] {
-    return screen
-        .getAllByRole('radio')
-        .filter(radio => radio.getAttribute('aria-checked') === 'true')
-        .map(radio => radio.textContent ?? '');
+function pickProvider(label: string) {
+    return userEvent.click(screen.getByRole('button', { name: new RegExp(`^${label}`) }));
 }
+
+function nameInput() {
+    return screen.getByRole('textbox', { name: /^Name/ });
+}
+
+function descriptionInput() {
+    return screen.getByRole('textbox', { name: /^Description/ });
+}
+
+function createButton() {
+    return screen.getByRole('button', { name: 'Create integration' });
+}
+
+async function fillFields(user: UserEvent, { name, description }: { name: string; description: string }) {
+    await user.click(nameInput());
+    await user.paste(name);
+    await user.click(descriptionInput());
+    await user.paste(description);
+    await user.tab();
+}
+
+const INVALID_INPUTS = [
+    { invalidInput: 'an emptied name', name: '', description: '', field: /^Name/, invalidValue: '', message: 'Name is required.' },
+    {
+        invalidInput: 'a 251-character description',
+        name: 'My integration',
+        description: 'd'.repeat(251),
+        field: /^Description/,
+        invalidValue: 'd'.repeat(251),
+        message: 'Description can not exceed 250 characters.',
+    },
+];
 
 describe('CreateIntegrationPage', () => {
     beforeEach(() => {
@@ -94,21 +131,15 @@ describe('CreateIntegrationPage', () => {
         >);
     });
 
-    it('opens with no provider selected', () => {
+    it('opens on the provider choice, without any integration field', () => {
         renderPage();
 
-        expect(checkedProviderNames()).toEqual([]);
+        expect(screen.getByRole('textbox', { name: 'Filter providers' })).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: /^Name/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Create integration' })).not.toBeInTheDocument();
     });
 
-    it.each([{ provider: 'MuleSoft' }, { provider: 'A2A Protocol' }])('checks $provider when the user picks it', async ({ provider }) => {
-        renderPage();
-
-        await userEvent.click(screen.getByRole('radio', { name: provider }));
-
-        expect(checkedProviderNames()).toEqual([provider]);
-    });
-
-    it('goes back to the Integrations list', async () => {
+    it('goes back to the Integrations list from the provider choice', async () => {
         renderPage();
 
         await userEvent.click(screen.getByRole('button', { name: 'Back to Integrations' }));
@@ -116,25 +147,29 @@ describe('CreateIntegrationPage', () => {
         expect(mockNavigate).toHaveBeenCalledWith('..');
     });
 
+    it('shows the chosen provider with a Change button above its form once a provider is picked', async () => {
+        renderPage();
+
+        await pickProvider('Solace');
+
+        expect(screen.getByText('Solace')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Change' })).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: 'Filter providers' })).not.toBeInTheDocument();
+        expect(nameInput()).toBeInTheDocument();
+    });
+
     it.each([
         { label: 'AWS API Gateway', provider: 'aws-api-gateway' },
         { label: 'Solace', provider: 'solace' },
-        { label: 'Apigee', provider: 'apigee' },
-        { label: 'Azure API Management', provider: 'azure-api-management' },
-        { label: 'IBM API Connect', provider: 'ibm-api-connect' },
-        { label: 'Confluent Platform', provider: 'confluent-platform' },
-        { label: 'MuleSoft', provider: 'mulesoft' },
-        { label: 'Edge Stack', provider: 'edge-stack' },
-        { label: 'SAP Business Technology Platform', provider: 'sap-api-management' },
     ])(
         'creates a $label integration with the exact $provider provider token, notifies success, and opens the created integration',
         async ({ label, provider }) => {
             const user = userEvent.setup();
             renderPage();
 
-            await userEvent.click(screen.getByRole('radio', { name: label }));
-            await user.type(screen.getByRole('textbox', { name: /^Name/ }), 'My integration');
-            await user.click(screen.getByRole('button', { name: 'Create' }));
+            await pickProvider(label);
+            await user.type(nameInput(), 'My integration');
+            await user.click(createButton());
 
             await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
             expect(mockMutateAsync).toHaveBeenCalledTimes(1);
@@ -152,89 +187,64 @@ describe('CreateIntegrationPage', () => {
         const user = userEvent.setup();
         renderPage();
 
-        await user.click(screen.getByRole('radio', { name: integrationProviderLabel('solace') }));
-        await user.click(screen.getByRole('textbox', { name: /^Name/ }));
+        await pickProvider('Solace');
+        await user.click(nameInput());
         await user.paste(name);
-        if (description) {
-            await user.click(screen.getByRole('textbox', { name: /^Description/ }));
-            await user.paste(description);
-        }
-        await user.click(screen.getByRole('button', { name: 'Create' }));
+        await user.click(descriptionInput());
+        await user.paste(description);
+        await user.click(createButton());
 
         await waitFor(() => expect(mockMutateAsync).toHaveBeenCalledTimes(1));
         expect(mockMutateAsync).toHaveBeenCalledWith({ name, description, provider: 'solace' });
     });
 
-    it('blocks Create while the creation is in progress', async () => {
+    it('blocks Create integration while the creation is in progress', async () => {
         mockUseCreateIntegration.mockReturnValue({ mutateAsync: mockMutateAsync, isPending: true } as unknown as ReturnType<
             typeof useCreateIntegration
         >);
         const user = userEvent.setup();
         renderPage();
 
-        await user.click(screen.getByRole('radio', { name: integrationProviderLabel('solace') }));
-        await user.type(screen.getByRole('textbox', { name: /^Name/ }), 'My integration');
+        await pickProvider('Solace');
+        await user.type(nameInput(), 'My integration');
 
-        expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+        expect(createButton()).toBeDisabled();
     });
 
-    it.each([
-        { invalidInput: 'an emptied name', name: '', description: '', field: /^Name/, invalidValue: '', message: 'Name is required.' },
-        {
-            invalidInput: 'a 51-character name',
-            name: 'n'.repeat(51),
-            description: '',
-            field: /^Name/,
-            invalidValue: 'n'.repeat(51),
-            message: 'Name can not exceed 50 characters.',
-        },
-        {
-            invalidInput: 'a 251-character description',
-            name: 'My integration',
-            description: 'd'.repeat(251),
-            field: /^Description/,
-            invalidValue: 'd'.repeat(251),
-            message: 'Description can not exceed 250 characters.',
-        },
-    ])(
-        'flags $invalidInput on its field, keeps the full value, and blocks Create',
+    it.each(INVALID_INPUTS)(
+        'flags $invalidInput on its field and keeps the full value',
         async ({ name, description, field, invalidValue, message }) => {
             const user = userEvent.setup();
             renderPage();
+            await pickProvider('Solace');
 
-            await user.click(screen.getByRole('radio', { name: integrationProviderLabel('solace') }));
-            const nameInput = screen.getByRole('textbox', { name: /^Name/ });
-            await user.type(nameInput, 'x');
-            await user.clear(nameInput);
-            if (name) {
-                await user.paste(name);
-            }
-            await user.click(screen.getByRole('textbox', { name: /^Description/ }));
-            if (description) {
-                await user.paste(description);
-            }
-            await user.tab();
+            await fillFields(user, { name, description });
 
             const invalidField = screen.getByRole('textbox', { name: field });
             expect(invalidField).toHaveValue(invalidValue);
             expect(invalidField).toHaveAttribute('aria-invalid', 'true');
             expect(screen.getByText(message)).toBeInTheDocument();
-            const createButton = screen.getByRole('button', { name: 'Create' });
-            expect(createButton).toBeDisabled();
-            await user.click(createButton);
-            expect(mockMutateAsync).not.toHaveBeenCalled();
         },
     );
 
-    it('does not flag the empty Name before the user touches it, but blocks Create', async () => {
+    it.each(INVALID_INPUTS)('blocks Create integration for $invalidInput', async ({ name, description }) => {
         const user = userEvent.setup();
         renderPage();
+        await pickProvider('Solace');
 
-        await user.click(screen.getByRole('radio', { name: integrationProviderLabel('solace') }));
+        await fillFields(user, { name, description });
 
-        expect(screen.getByRole('textbox', { name: /^Name/ })).not.toHaveAttribute('aria-invalid', 'true');
+        expect(createButton()).toBeDisabled();
+    });
+
+    it('does not flag the empty Name before the user touches it, but blocks Create integration', async () => {
+        renderPage();
+
+        await pickProvider('Solace');
+
+        expect(nameInput()).not.toHaveAttribute('aria-invalid', 'true');
         expect(screen.queryByText('Name is required.')).not.toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Create' })).toBeDisabled();
+        expect(createButton()).toBeDisabled();
     });
 
     it.each([
@@ -245,83 +255,139 @@ describe('CreateIntegrationPage', () => {
         const user = userEvent.setup();
         renderPage();
 
-        await user.click(screen.getByRole('radio', { name: integrationProviderLabel('solace') }));
-        await user.type(screen.getByRole('textbox', { name: /^Name/ }), 'My integration');
+        await pickProvider('Solace');
+        await user.type(nameInput(), 'My integration');
         await user.type(screen.getByRole('textbox', { name: /^Description/ }), 'Ingests the EU gateways');
-        await user.click(screen.getByRole('button', { name: 'Create' }));
+        await user.click(createButton());
 
         await waitFor(() => expect(mockNotify.error).toHaveBeenCalledTimes(1));
         expect(mockNotify.error).toHaveBeenCalledWith(error, 'Failed to create integration.');
         expect(mockNotify.success).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(screen.getByRole('textbox', { name: /^Name/ })).toHaveValue('My integration');
+        expect(nameInput()).toHaveValue('My integration');
         expect(screen.getByRole('textbox', { name: /^Description/ })).toHaveValue('Ingests the EU gateways');
-        expect(screen.getByRole('radio', { name: integrationProviderLabel('solace') })).toBeChecked();
     });
 
-    it('locks the provider choice while an A2A create is in flight and unlocks it once the create ends', async () => {
+    it('starts the next form empty after Change', async () => {
         const user = userEvent.setup();
-        const view = renderPage();
-        await user.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
+        renderPage();
+        await pickProvider('Solace');
+        await user.type(nameInput(), 'Typed before changing');
+        await user.click(screen.getByRole('button', { name: 'Change' }));
 
-        setCreatePending(true);
-        view.rerender(pageElement());
+        await pickProvider('Apigee');
 
-        await waitFor(() => screen.getAllByRole('radio').forEach(radio => expect(radio).toBeDisabled()));
-        await user.click(screen.getByRole('radio', { name: 'MuleSoft' }));
-        expect(checkedProviderNames()).toEqual(['A2A Protocol']);
-
-        setCreatePending(false);
-        view.rerender(pageElement());
-
-        await waitFor(() => screen.getAllByRole('radio').forEach(radio => expect(radio).toBeEnabled()));
+        expect(nameInput()).toHaveValue('');
     });
 
-    it('asks for well-known URLs only once A2A Protocol is picked', async () => {
+    it('goes back to the Integrations list from Cancel', async () => {
+        renderPage();
+        await pickProvider('Solace');
+
+        await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
+        expect(mockNavigate).toHaveBeenCalledWith('..');
+    });
+
+    it('asks for well-known URLs only for A2A Protocol', async () => {
+        const user = userEvent.setup();
         renderPage();
 
-        await userEvent.click(screen.getByRole('radio', { name: 'Solace' }));
+        await pickProvider('Solace');
         expect(screen.queryByRole('button', { name: 'Add another URL' })).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
+        await user.click(screen.getByRole('button', { name: 'Change' }));
+        await pickProvider('A2A Protocol');
+
         expect(screen.getByRole('button', { name: 'Add another URL' })).toBeInTheDocument();
-        expect(screen.getByRole('textbox', { name: /^Name/ })).toBeInTheDocument();
+        expect(nameInput()).toBeInTheDocument();
         expect(screen.getByRole('textbox', { name: /^Description/ })).toBeInTheDocument();
     });
 
-    it('creates an A2A integration with provider A2A and its well-known URLs, notifies success, and opens it', async () => {
-        mockMutateAsync.mockResolvedValue({ id: 'a2a-created-id', name: 'Billing Agents', provider: 'A2A' });
-        const user = userEvent.setup();
-        renderPage();
+    it.each([{ label: 'A2A Protocol' }, { label: 'Solace' }])(
+        'locks Change, Back to providers and Cancel while a $label create is in flight',
+        async ({ label }) => {
+            const view = renderPage();
+            await pickProvider(label);
 
-        await user.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
-        await user.click(screen.getByRole('textbox', { name: /^Name/ }));
-        await user.paste('Billing Agents');
-        await user.click(screen.getByRole('button', { name: 'Add another URL' }));
-        await user.click(screen.getByRole('textbox', { name: 'Well-known URL 1' }));
-        await user.paste('https://billing.example.com/.well-known/agent-card.json');
-        await user.click(screen.getByRole('button', { name: 'Create' }));
+            setCreatePending(true);
+            view.rerender(pageElement());
 
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
-        expect(mockMutateAsync).toHaveBeenCalledTimes(1);
-        expect(mockMutateAsync).toHaveBeenCalledWith({
-            name: 'Billing Agents',
-            description: '',
-            provider: 'A2A',
-            wellKnownUrls: ['https://billing.example.com/.well-known/agent-card.json'],
-        });
-        expect(mockNotify.success).toHaveBeenCalledWith('Integration Billing Agents created successfully');
-        expect(mockNavigate).toHaveBeenCalledWith('../a2a-created-id');
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeDisabled());
+            expect(screen.getByRole('button', { name: 'Back to providers' })).toBeDisabled();
+            expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+        },
+    );
+
+    it.each([{ label: 'A2A Protocol' }, { label: 'Solace' }])(
+        'unlocks Change, Back to providers and Cancel once a $label create ends',
+        async ({ label }) => {
+            const view = renderPage();
+            await pickProvider(label);
+            setCreatePending(true);
+            view.rerender(pageElement());
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeDisabled());
+
+            setCreatePending(false);
+            view.rerender(pageElement());
+
+            await waitFor(() => expect(screen.getByRole('button', { name: 'Change' })).toBeEnabled());
+            expect(screen.getByRole('button', { name: 'Back to providers' })).toBeEnabled();
+            expect(screen.getByRole('button', { name: 'Cancel' })).toBeEnabled();
+        },
+    );
+
+    it('opens on the connection step of the provider named in the URL', () => {
+        renderPageAt(['/?provider=apigee']);
+
+        expect(screen.getByText('Apigee')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Change' })).toBeInTheDocument();
+        expect(nameInput()).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: 'Filter providers' })).not.toBeInTheDocument();
     });
 
-    it('drops back to the gateway form without well-known URLs when the user switches from A2A to another provider', async () => {
-        const user = userEvent.setup();
+    it('records the picked provider in the URL and returns to the provider choice on browser Back', async () => {
+        const router = renderPageAt(['/']);
+        await pickProvider('Apigee');
+
+        expect(new URLSearchParams(router.state.location.search).get('provider')).toBe('apigee');
+
+        await act(() => router.navigate(-1));
+
+        expect(screen.getByRole('textbox', { name: 'Filter providers' })).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: /^Name/ })).not.toBeInTheDocument();
+    });
+
+    it.each([{ action: 'Change' }, { action: 'Back to providers' }])('removes the provider from the URL on $action', async ({ action }) => {
+        const router = renderPageAt(['/?provider=solace']);
+
+        await userEvent.click(screen.getByRole('button', { name: action }));
+
+        expect(new URLSearchParams(router.state.location.search).has('provider')).toBe(false);
+        expect(screen.getByRole('textbox', { name: 'Filter providers' })).toBeInTheDocument();
+        expect(screen.queryByRole('textbox', { name: /^Name/ })).not.toBeInTheDocument();
+    });
+
+    it('moves focus to the page heading once a provider is picked', async () => {
         renderPage();
 
-        await user.click(screen.getByRole('radio', { name: 'A2A Protocol' }));
-        await user.click(screen.getByRole('radio', { name: 'Solace' }));
+        await pickProvider('Solace');
 
-        expect(screen.queryByRole('button', { name: 'Add another URL' })).not.toBeInTheDocument();
-        expect(checkedProviderNames()).toEqual(['Solace']);
+        expect(screen.getByRole('heading', { name: 'Create a new integration' })).toHaveFocus();
+    });
+
+    it.each([{ action: 'Change' }, { action: 'Back to providers' }])('moves focus to the page heading on $action', async ({ action }) => {
+        renderPageAt(['/?provider=solace']);
+
+        await userEvent.click(screen.getByRole('button', { name: action }));
+
+        expect(screen.getByRole('heading', { name: 'Create a new integration' })).toHaveFocus();
+    });
+
+    it.each([{ entry: '/' }, { entry: '/?provider=apigee' }])('leaves focus alone on first render at $entry', ({ entry }) => {
+        renderPageAt([entry]);
+
+        expect(screen.getByRole('heading', { name: 'Create a new integration' })).not.toHaveFocus();
+        expect(document.body).toHaveFocus();
     });
 });
