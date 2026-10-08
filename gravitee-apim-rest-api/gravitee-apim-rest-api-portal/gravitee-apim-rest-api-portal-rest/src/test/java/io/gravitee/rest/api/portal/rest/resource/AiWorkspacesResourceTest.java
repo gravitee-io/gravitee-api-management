@@ -54,6 +54,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspace;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspaceBudget;
 import io.gravitee.rest.api.portal.rest.model.AiWorkspaceConsumption;
@@ -103,6 +105,9 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
     void setUp() {
         resetAllMocks();
         GraviteeContext.setCurrentEnvironment("DEFAULT");
+        when(
+            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(true);
         doReturn(Set.of(application("app-1", USER_NAME))).when(applicationService).findByUser(any(ExecutionContext.class), eq(USER_NAME));
     }
 
@@ -115,6 +120,20 @@ class AiWorkspacesResourceTest extends AbstractResourceTest {
         apiKeys.reset();
         reset(computeMeasuresUseCase);
         GraviteeContext.cleanContext();
+    }
+
+    @Test
+    void answers_404_when_ai_workspaces_are_disabled() {
+        when(
+            parameterService.findAsBoolean(any(), eq(Key.PORTAL_NEXT_AI_WORKSPACES_ENABLED), eq(ParameterReferenceType.ENVIRONMENT))
+        ).thenReturn(false);
+        products.initWith(List.of(workspace("ws-1", "Alpha", ApiProductKind.AI_WORKSPACE).toBuilder().apiIds(Set.of("proxy-1")).build()));
+        subscriptions.initWith(List.of(subscription("app-1", "ws-1")));
+
+        assertThat(target().request().get().getStatus()).isEqualTo(404);
+        assertThat(target().path("ws-1").request().get().getStatus()).isEqualTo(404);
+        assertThat(target().path("ws-1").path("consumption").request().get().getStatus()).isEqualTo(404);
+        verify(computeMeasuresUseCase, never()).executeForApis(any(), any(), any());
     }
 
     @Test

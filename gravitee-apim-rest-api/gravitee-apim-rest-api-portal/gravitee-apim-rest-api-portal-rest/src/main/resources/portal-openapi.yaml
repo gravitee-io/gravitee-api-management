@@ -7630,6 +7630,8 @@ components:
                     $ref: "#/components/schemas/Enabled"
                 analytics:
                     $ref: "#/components/schemas/Enabled"
+                aiWorkspaces:
+                    $ref: "#/components/schemas/Enabled"
                 applications:
                     $ref: "#/components/schemas/ConfigurationPortalNextApplications"
         ConfigurationPortalNextApplications:

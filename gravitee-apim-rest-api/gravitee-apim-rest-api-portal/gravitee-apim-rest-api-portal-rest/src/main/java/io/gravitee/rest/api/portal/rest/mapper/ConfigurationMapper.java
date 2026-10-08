@@ -61,6 +61,9 @@ public class ConfigurationMapper {
         if (portalNext.getAnalytics() != null) {
             configuration.setAnalytics(convert(portalNext.getAnalytics()));
         }
+        if (portalNext.getAiWorkspaces() != null) {
+            configuration.setAiWorkspaces(convert(portalNext.getAiWorkspaces()));
+        }
         if (portalNext.getApplications() != null) {
             configuration.setApplications(convert(portalNext.getApplications()));
         }
