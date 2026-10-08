@@ -27,6 +27,11 @@ import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, combineLatest, map, of, switchMap, tap } from 'rxjs';
 
+import {
+  WORKSPACE_CALL_SNIPPET_FORMATS,
+  WorkspaceCallSnippetFormatId,
+  buildWorkspaceCallSnippet,
+} from './workspace-call-snippets';
 import { workspaceListBreadcrumb } from '../workspace-breadcrumbs';
 import { CopyCodeIconComponent } from '../../../../components/copy-code/copy-code-icon/copy-code-icon/copy-code-icon.component';
 import { LoaderComponent } from '../../../../components/loader/loader.component';
@@ -80,6 +85,8 @@ export default class WorkspaceDetailsComponent {
   protected readonly keysPage = signal(1);
   protected readonly modelsPage = signal(1);
   protected readonly selectedModelName = signal<string | null>(null);
+  protected readonly selectedSnippetFormat = signal<WorkspaceCallSnippetFormatId>('curl');
+  protected readonly snippetFormats = WORKSPACE_CALL_SNIPPET_FORMATS;
   protected readonly snippetCopied = signal(false);
 
   loading = signal(true);
@@ -161,19 +168,11 @@ export default class WorkspaceDetailsComponent {
     if (!ws?.endpointUrl || !modelName) {
       return '';
     }
-    const url = joinChatCompletionsUrl(ws.endpointUrl);
-    const apiKey = ws.key?.value?.trim() || 'YOUR_API_KEY';
-    const body = JSON.stringify({
-      model: modelName,
-      messages: [{ role: 'user', content: 'Hello' }],
+    return buildWorkspaceCallSnippet(this.selectedSnippetFormat(), {
+      endpointUrl: ws.endpointUrl,
+      apiKey: ws.key?.value ?? '',
+      modelName,
     });
-    return [
-      'curl --request POST \\',
-      `  --url '${escapeSingleQuotes(url)}' \\`,
-      `  --header 'Authorization: Bearer ${escapeSingleQuotes(apiKey)}' \\`,
-      `  --header 'Content-Type: application/json' \\`,
-      `  --data '${escapeSingleQuotes(body)}'`,
-    ].join('\n');
   });
 
   constructor() {
@@ -209,6 +208,10 @@ export default class WorkspaceDetailsComponent {
     this.selectedModelName.set(modelName);
   }
 
+  onSnippetFormatChange(format: WorkspaceCallSnippetFormatId) {
+    this.selectedSnippetFormat.set(format);
+  }
+
   onSnippetCopied() {
     this.snippetCopied.set(true);
     setTimeout(() => this.snippetCopied.set(false), 2000);
@@ -217,13 +220,4 @@ export default class WorkspaceDetailsComponent {
   keyStatusIcon(key: AiWorkspaceKey): string {
     return key.status === 'ACTIVE' ? 'check_circle' : 'pause_circle';
   }
-}
-
-function joinChatCompletionsUrl(endpointUrl: string): string {
-  const base = endpointUrl.replace(/\/+$/, '');
-  return `${base}/chat/completions`;
-}
-
-function escapeSingleQuotes(value: string): string {
-  return value.replace(/'/g, `'\\''`);
 }

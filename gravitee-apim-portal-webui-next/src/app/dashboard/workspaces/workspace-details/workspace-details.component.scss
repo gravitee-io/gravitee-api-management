@@ -69,9 +69,16 @@
     color: theme.$paragraph-color;
   }
 
-  &__model-select {
-    width: 100%;
+  &__snippet-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  &__snippet-select {
+    flex: 1 1 240px;
     max-width: 360px;
+    min-width: 200px;
   }
 
   &__snippet {

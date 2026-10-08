@@ -79,18 +79,29 @@
         </mat-card-header>
         <mat-card-content class="workspace-details__call-snippet">
           <p class="workspace-details__call-snippet-help next-gen-body" i18n="@@howToCallAModelHelp">
-            Pick a model. This snippet sends an OpenAI-compatible chat request to the workspace endpoint with your key.
+            Pick a model, then a client. The snippet uses your workspace endpoint and API key for the selected integration.
           </p>
 
           @if (snippetModels().length > 0) {
-            <mat-form-field appearance="outline" class="workspace-details__model-select" subscriptSizing="dynamic">
-              <mat-label i18n="@@snippetModelLabel">Model</mat-label>
-              <mat-select [value]="selectedModelName()" (selectionChange)="onSnippetModelChange($event.value)">
-                @for (model of snippetModels(); track model.name) {
-                  <mat-option [value]="model.name">{{ model.name }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
+            <div class="workspace-details__snippet-controls">
+              <mat-form-field appearance="outline" class="workspace-details__snippet-select" subscriptSizing="dynamic">
+                <mat-label i18n="@@snippetModelLabel">Model</mat-label>
+                <mat-select [value]="selectedModelName()" (selectionChange)="onSnippetModelChange($event.value)">
+                  @for (model of snippetModels(); track model.name) {
+                    <mat-option [value]="model.name">{{ model.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="workspace-details__snippet-select" subscriptSizing="dynamic">
+                <mat-label i18n="@@snippetFormatLabel">Client</mat-label>
+                <mat-select [value]="selectedSnippetFormat()" (selectionChange)="onSnippetFormatChange($event.value)">
+                  @for (format of snippetFormats; track format.id) {
+                    <mat-option [value]="format.id">{{ format.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
 
             @if (codeSnippet(); as snippet) {
               <pre class="workspace-details__snippet next-gen-body">{{ snippet }}</pre>
