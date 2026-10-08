@@ -161,6 +161,21 @@ describe('ShellLayout app switcher', () => {
         seedEnvironments();
     });
 
+    function renderPortalsSwitcher() {
+        const modules: GammaModule[] = [
+            { id: 'portals', name: 'Developer Portals', version: '1.0.0', remoteName: 'portals', exposedModule: 'Module' },
+        ];
+        render(
+            <MemoryRouter initialEntries={['/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={modules} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+    }
+
     it('should list the products in catalog order, whatever order the backend returns the modules in', async () => {
         const backendOrder: GammaModule[] = ['edge', 'aim', 'portals', 'apim', 'esm', 'platform', 'authz'].map(id => ({
             id,
@@ -237,6 +252,50 @@ describe('ShellLayout app switcher', () => {
 
         expect(open).toHaveBeenCalledWith('http://console.test/#!/env-1/_portal/navigation', '_blank', 'noopener,noreferrer');
         open.mockRestore();
+    });
+
+    it('should link Developer Portals to the classic console portal editor its click opens', async () => {
+        renderPortalsSwitcher();
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        expect((await screen.findByRole('menuitem', { name: /Developer Portals/ })).closest('a')?.getAttribute('href')).toBe(
+            'http://console.test/#!/env-1/_portal/navigation',
+        );
+    });
+
+    it('should not link Developer Portals when the classic console URL is not configured', async () => {
+        seedBootstrap({ consoleUrl: undefined });
+        renderPortalsSwitcher();
+
+        await userEvent.setup().click(screen.getByRole('button', { name: 'Home' }));
+
+        expect((await screen.findByRole('menuitem', { name: /Developer Portals/ })).closest('a')).toBeNull();
+    });
+
+    it('should link each app to its page under the router base path, so it can be opened in a new tab', async () => {
+        const user = userEvent.setup();
+        render(
+            <MemoryRouter basename="/console" initialEntries={['/console/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await user.click(await screen.findByRole('button', { name: 'Home' }));
+
+        expect((await screen.findByRole('menuitem', { name: /Home/ })).closest('a')?.getAttribute('href')).toBe(
+            '/console/environments/env-1/home',
+        );
+        expect(
+            screen
+                .getByRole('menuitem', { name: /API Management/ })
+                .closest('a')
+                ?.getAttribute('href'),
+        ).toBe('/console/environments/env-1/apim');
     });
 });
 
