@@ -168,11 +168,25 @@ describe('platform navigation config', () => {
         expect(teamGroup?.items[2]?.icon).toBe(ShieldIcon);
     });
 
-    it('builds unlabeled primary items from visible sections', () => {
-        const items = platformPrimaryNavItems(NAV_SECTIONS);
+    it('builds primary items from visible sections', () => {
+        const items = platformPrimaryNavItems(NAV_SECTIONS, itemKey => `/${itemKey}`);
         expect(items.map(item => item.key)).toEqual(['organization', 'environment', 'team']);
         expect(items.map(item => item.title)).toEqual(['Organization', 'Environment', 'Team']);
         expect(items.some(item => item.title === 'Platform')).toBe(false);
+    });
+
+    it('links each primary item to the first item of its section', () => {
+        const items = platformPrimaryNavItems(NAV_SECTIONS, itemKey => `/${itemKey}`);
+        expect(items.map(item => item.href)).toEqual(['/tenants', '/applications', '/users']);
+    });
+
+    it('leaves a primary item without a link when its section has no items', () => {
+        const emptySections = NAV_SECTIONS.map(section => ({ ...section, groups: [] }));
+        expect(platformPrimaryNavItems(emptySections, itemKey => `/${itemKey}`).map(item => item.href)).toEqual([
+            undefined,
+            undefined,
+            undefined,
+        ]);
     });
 
     it('resolves the section that owns a nav item', () => {
