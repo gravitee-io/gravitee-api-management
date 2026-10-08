@@ -17,4 +17,8 @@
 /**
  * API's type.
  */
-export type ApiType = 'MESSAGE' | 'A2A_PROXY' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'NATIVE';
+export type ApiType = 'MESSAGE' | 'A2A_PROXY' | 'LLM_PROXY' | 'MCP_PROXY' | 'PROXY' | 'NATIVE' | 'AUTHZ';
+
+export type FlowApiType = Exclude<ApiType, 'AUTHZ'>;
+
+export const isFlowApiType = (type: ApiType): type is FlowApiType => type !== 'AUTHZ';
