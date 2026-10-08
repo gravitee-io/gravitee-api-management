@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { applyTheme } from '@gravitee/ui-components/src/lib/theme';
 
 import { FeatureEnum } from '../model/feature.enum';
@@ -24,8 +25,10 @@ import { FeatureEnum } from '../model/feature.enum';
 })
 export class ConfigurationService {
   private http = inject(HttpClient);
+  private document = inject(DOCUMENT);
 
   private config: any;
+  private bootstrapFailed = false;
 
   public get(key: string, defaultValue?: any) {
     const value = key.split('.').reduce((prev, curr) => prev && prev[curr], this.config);
@@ -52,6 +55,7 @@ export class ConfigurationService {
           .get(`${bootstrapUrl}`)
           .toPromise()
           .then((bootstrapResponse: any) => {
+            this.bootstrapFailed = false;
             const environmentBaseUrl = `${bootstrapResponse.baseURL}/environments/${bootstrapResponse.environmentId}`;
             this.config = {};
             this.config.baseURL = environmentBaseUrl;
@@ -71,12 +75,39 @@ export class ConfigurationService {
               () => resolve(false),
             );
           })
-          .catch(() => {
-            // Do not block the application if the bootstrap fails
+          .catch(error => {
+            // Without the bootstrap response there is no API to talk to: show an error instead of running on defaults
+            this.bootstrapFailed = true;
+            this.showBootstrapError(error);
             resolve(false);
           });
       });
     });
+  }
+
+  public hasBootstrapFailed(): boolean {
+    return this.bootstrapFailed;
+  }
+
+  private showBootstrapError(error: HttpErrorResponse) {
+    const errorElement = this.document.getElementById('gravitee-bootstrap-error');
+    if (errorElement) {
+      errorElement.style.display = 'flex';
+    }
+    const maintenanceError = error?.error?.errors?.find(e => e.code === 'errors.maintenance.mode');
+    const messageElement = this.document.getElementById('gravitee-bootstrap-error-message');
+    if (maintenanceError && messageElement) {
+      messageElement.textContent = maintenanceError.message;
+    }
+    const retryElement = this.document.getElementById('gravitee-bootstrap-error-retry');
+    if (retryElement) {
+      // Through DOCUMENT rather than the window global, which is not replaceable under jsdom 26.
+      retryElement.onclick = () => this.document.location.reload();
+    }
+    const loaderElement = this.document.getElementById('loader');
+    if (loaderElement) {
+      loaderElement.style.display = 'none';
+    }
   }
 
   _sanitizeBaseURLs(config: any): string {
