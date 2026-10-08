@@ -34,7 +34,7 @@ import {
     RefreshCwIcon,
     Trash2Icon,
 } from '@gravitee/graphene-core/icons';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
@@ -48,6 +48,8 @@ const TYPE_ICONS = { PAGE: FileTextIcon, FOLDER: FolderOpenIcon, LINK: Link2Icon
 export function DocumentationTree({
     items,
     isLoading,
+    expandedIds,
+    onToggle,
     canDelete,
     onDelete,
     canAdd,
@@ -55,24 +57,18 @@ export function DocumentationTree({
 }: Readonly<{
     items: ApiDocumentationItem[];
     isLoading: boolean;
+    expandedIds: ReadonlySet<string>;
+    onToggle: (folderId: string) => void;
     canDelete: boolean;
     onDelete: (row: DocumentationRow) => void;
     canAdd: boolean;
     onAddPage: (folder: PortalNavigationFolder) => void;
 }>) {
-    const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(new Set());
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
-
-    const columns = useMemo(() => {
-        function toggle(id: string) {
-            setExpandedIds(previous => {
-                const next = new Set(previous);
-                if (!next.delete(id)) next.add(id);
-                return next;
-            });
-        }
-        return buildColumns({ canDelete, onDelete, canAdd, onAddPage, onToggle: toggle });
-    }, [canDelete, onDelete, canAdd, onAddPage]);
+    const columns = useMemo(
+        () => buildColumns({ canDelete, onDelete, canAdd, onAddPage, onToggle }),
+        [canDelete, onDelete, canAdd, onAddPage, onToggle],
+    );
 
     return (
         <DataTable
