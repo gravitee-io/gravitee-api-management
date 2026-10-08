@@ -192,6 +192,53 @@ describe('RemoteModuleRoute', () => {
             expect(screen.queryByText(/isn't ready yet/)).toBeNull();
         });
 
+        it('should announce that the app is not ready yet, then that it is ready', async () => {
+            const chunkError = new Error('Loading chunk 8201 failed.');
+            mockLoadRemote
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockRejectedValueOnce(chunkError)
+                .mockResolvedValue(mockRemoteExport);
+
+            render(<RemoteModuleRoute module={{ ...buildModule('aim'), remoteName: 'aim-announced' }} />);
+            const announcement = screen.getByRole('status');
+            expect(announcement.textContent).toBe('');
+
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+            });
+            expect(announcement.textContent).toContain("Agent Management isn't ready yet");
+
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[2]);
+            });
+            await screen.findByText('Remote module');
+            expect(screen.getByRole('status').textContent).toBe('Agent Management is ready.');
+        });
+
+        it('should move the focus to the module area when the module opens while the user was on Retry now', async () => {
+            let platformIsBack = false;
+            mockLoadRemote.mockImplementation(() =>
+                platformIsBack ? Promise.resolve(mockRemoteExport) : Promise.reject(new Error('Loading chunk 8201 failed.')),
+            );
+
+            render(<RemoteModuleRoute module={buildModule('focus-return')} />);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+            });
+            const retryNow = await screen.findByRole('button', { name: 'Retry now' });
+            retryNow.focus();
+
+            platformIsBack = true;
+            await act(async () => {
+                fireEvent.click(retryNow);
+                await jest.advanceTimersByTimeAsync(0);
+            });
+            await screen.findByText('Remote module');
+
+            await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('status')));
+        });
+
         it('should load the module at once when the user clicks Retry now', async () => {
             let platformIsBack = false;
             mockLoadRemote.mockImplementation(() =>

@@ -173,7 +173,7 @@ describe('loadRemoteModule', () => {
         await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] + RETRY_DELAYS_MS[2]);
         await loading;
 
-        expect(onStatus.mock.calls.map(([status]) => status)).toEqual(['delayed', 'attempting']);
+        expect(onStatus.mock.calls.map(([status]) => status)).toEqual(['delayed', 'attempting', 'ready']);
     });
 
     it('should start the next attempt at once when asked to retry now', async () => {

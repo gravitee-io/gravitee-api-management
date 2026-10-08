@@ -23,7 +23,7 @@ interface ModuleUpdatingProps {
 
 export function ModuleUpdating({ moduleName, attempting, onRetryNow }: ModuleUpdatingProps) {
     return (
-        <Empty role="status">
+        <Empty>
             <EmptyHeader>
                 <EmptyMedia variant="icon">
                     <Spinner aria-hidden="true" />

@@ -31,7 +31,7 @@ export const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, ...Array.from({ length: 11
  */
 export const DELAY_REPORTED_AFTER_MS = 10_000;
 
-export type RemoteModuleLoadStatus = 'delayed' | 'attempting';
+export type RemoteModuleLoadStatus = 'delayed' | 'attempting' | 'ready';
 
 type RemoteModuleExport = { default: ComponentType };
 
@@ -110,6 +110,7 @@ export async function loadRemoteModule(
         try {
             const loaded = await loadOnce(id);
             if (attempt > 1) console.info(`[Modules] Loaded module "${module.id}" after ${attempt} attempts.`);
+            if (delayed) onStatus?.('ready');
             return loaded;
         } catch (error) {
             if (attempt === attempts) {
