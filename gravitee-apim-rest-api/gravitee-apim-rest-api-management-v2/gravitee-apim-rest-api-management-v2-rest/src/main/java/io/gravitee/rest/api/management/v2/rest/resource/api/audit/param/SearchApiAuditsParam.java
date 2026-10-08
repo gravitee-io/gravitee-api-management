@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.audit.param;
 import io.gravitee.rest.api.management.v2.rest.validation.IntervalParamConstraint;
 import io.gravitee.rest.api.management.v2.rest.validation.TimeInterval;
 import jakarta.validation.constraints.Min;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.QueryParam;
 import java.util.Set;
 import lombok.Data;
@@ -29,6 +30,7 @@ public class SearchApiAuditsParam implements TimeInterval {
     public static final String FROM_QUERY_PARAM_NAME = "from";
     public static final String TO_QUERY_PARAM_NAME = "to";
     public static final String EVENTS_QUERY_PARAM_NAME = "events";
+    public static final String ENCRYPTED_QUERY_PARAM_NAME = "encrypted";
 
     @QueryParam(FROM_QUERY_PARAM_NAME)
     @Min(0)
@@ -40,4 +42,17 @@ public class SearchApiAuditsParam implements TimeInterval {
 
     @QueryParam(EVENTS_QUERY_PARAM_NAME)
     Set<String> events;
+
+    @QueryParam(ENCRYPTED_QUERY_PARAM_NAME)
+    Boolean encrypted;
+
+    public boolean isEncryptedOnly() {
+        if (encrypted == null) {
+            return false;
+        }
+        if (!encrypted) {
+            throw new BadRequestException("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
+        }
+        return true;
+    }
 }

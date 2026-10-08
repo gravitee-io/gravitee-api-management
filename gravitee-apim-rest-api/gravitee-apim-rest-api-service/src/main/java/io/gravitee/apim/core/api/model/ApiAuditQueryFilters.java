@@ -24,7 +24,8 @@ public record ApiAuditQueryFilters(
     String environmentId,
     Optional<Long> from,
     Optional<Long> to,
-    Set<String> events
+    Set<String> events,
+    boolean encryptedOnly
 ) {
     public ApiAuditQueryFilters {
         if (apiId == null) {

@@ -18,12 +18,16 @@ package io.gravitee.apim.core.api.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.SoftAssertions.assertSoftly;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import fixtures.core.model.ApiFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import inmemory.ApiCrudServiceInMemory;
@@ -72,6 +76,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.LoggerFactory;
 import org.springframework.mock.env.MockEnvironment;
 
 /**
@@ -124,14 +129,18 @@ class UpdateDynamicPropertiesUseCaseTest {
         apiStateDomainService = mock(ApiStateDomainService.class);
         auditDomainService = spy(new AuditDomainService(auditCrudServiceInMemory, userCrudServiceInMemory, new JacksonJsonDiffProcessor()));
         environmentCrudServiceInMemory.initWith(List.of(Environment.builder().id(ENVIRONMENT_ID).organizationId(ORGANIZATION_ID).build()));
-        cut = new UpdateDynamicPropertiesUseCase(
+        cut = useCaseWith(DATA_ENCRYPTOR);
+    }
+
+    private UpdateDynamicPropertiesUseCase useCaseWith(DataEncryptor dataEncryptor) {
+        return new UpdateDynamicPropertiesUseCase(
             apiCrudServiceInMemory,
             apiStateDomainService,
             environmentCrudServiceInMemory,
             auditDomainService,
             apiEventQueryServiceInMemory,
             categoryDomainService,
-            new PropertyDomainService(DATA_ENCRYPTOR)
+            new PropertyDomainService(dataEncryptor)
         );
     }
 
@@ -229,6 +238,27 @@ class UpdateDynamicPropertiesUseCaseTest {
                 Property.builder().key("key").value("value").dynamic(true).build()
             );
             assertAuditHasBeenCreated();
+            assertThat(auditPatch()).contains("/apiDefinitionValue/properties").contains("\"value\":\"key\"");
+        }
+
+        @Test
+        void should_persist_and_audit_a_sync_that_only_removes_a_dynamic_property() {
+            var api = givenApi(
+                buildApiWithProperties(
+                    List.of(
+                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
+                        Property.builder().key("gone").value("value").dynamic(true).build()
+                    )
+                )
+            );
+
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(
+                Property.builder().key("user-prop").value("value").dynamic(false).build()
+            );
+            assertAuditHasBeenCreated();
+            assertThat(auditPatch()).contains("{\"op\":\"remove\",\"path\":\"/apiDefinitionValue/properties/");
         }
 
         @Test
@@ -429,6 +459,28 @@ class UpdateDynamicPropertiesUseCaseTest {
                 Property.builder().key("key").value("value").dynamic(true).build()
             );
             assertAuditHasBeenCreated();
+            assertThat(auditPatch()).contains("/apiDefinitionValue/properties").contains("\"value\":\"key\"");
+        }
+
+        @Test
+        void should_persist_and_audit_a_native_sync_that_only_removes_a_dynamic_property() {
+            when(apiStateDomainService.isSynchronized(any(), any())).thenReturn(false);
+            var api = givenApi(
+                buildNativeApiWithProperties(
+                    List.of(
+                        Property.builder().key("user-prop").value("value").dynamic(false).build(),
+                        Property.builder().key("gone").value("value").dynamic(true).build()
+                    )
+                )
+            );
+
+            cut.execute(new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(), false));
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties()).containsExactly(
+                Property.builder().key("user-prop").value("value").dynamic(false).build()
+            );
+            assertAuditHasBeenCreated();
+            assertThat(auditPatch()).contains("{\"op\":\"remove\",\"path\":\"/apiDefinitionValue/properties/");
         }
 
         @Test
@@ -507,6 +559,24 @@ class UpdateDynamicPropertiesUseCaseTest {
             .services(new ApiServices(Service.builder().type(HTTP_DYNAMIC_PROPERTIES).enabled(true).build()))
             .properties(properties)
             .build();
+    }
+
+    private static List<String> logsOfPropertyDomainServiceDuring(Runnable action) {
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        Logger logger = (Logger) LoggerFactory.getLogger(PropertyDomainService.class);
+        logger.addAppender(appender);
+        try {
+            action.run();
+        } finally {
+            logger.detachAppender(appender);
+        }
+        return appender.list.stream().map(ILoggingEvent::getFormattedMessage).toList();
+    }
+
+    private String auditPatch() {
+        assertThat(auditCrudServiceInMemory.storage()).hasSize(1);
+        return auditCrudServiceInMemory.storage().getFirst().getPatch();
     }
 
     private void assertAuditHasBeenCreated() {
@@ -627,6 +697,92 @@ class UpdateDynamicPropertiesUseCaseTest {
             assertThat(auditCrudServiceInMemory.storage()).isEmpty();
         }
 
+        @Test
+        void should_not_audit_the_value_of_a_changed_encrypted_property() throws GeneralSecurityException {
+            var stored = encryptedDynamic("secret", "s3cret");
+            var api = givenApi(buildApiWithProperties(List.of(stored)));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false)
+            );
+
+            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            var audit = auditCrudServiceInMemory.storage().getFirst();
+            assertThat(audit.getPatch())
+                .doesNotContain(persisted.getValue())
+                .doesNotContain(stored.getValue())
+                .doesNotContain("n3w")
+                .doesNotContain("s3cret");
+            assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
+        }
+
+        @Test
+        void should_not_audit_the_value_of_a_changed_encrypted_property_on_a_native_api() throws GeneralSecurityException {
+            var stored = encryptedDynamic("secret", "s3cret");
+            var api = givenApi(buildNativeApiWithProperties(List.of(stored)));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false)
+            );
+
+            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties().getFirst();
+            var audit = auditCrudServiceInMemory.storage().getFirst();
+            assertThat(audit.getPatch())
+                .doesNotContain(persisted.getValue())
+                .doesNotContain(stored.getValue())
+                .doesNotContain("n3w")
+                .doesNotContain("s3cret");
+            assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
+        }
+
+        @Test
+        void should_not_log_the_fetched_value_when_the_stored_value_cannot_be_decrypted() {
+            var corrupted = Property.builder().key("secret").value("not-a-ciphertext!").encrypted(true).dynamic(true).build();
+            var api = givenApi(buildApiWithProperties(List.of(corrupted, fetched("other", "v1"))));
+
+            var logs = logsOfPropertyDomainServiceDuring(() ->
+                cut.execute(
+                    new UpdateDynamicPropertiesUseCase.Input(
+                        api.getId(),
+                        HTTP_DYNAMIC_PROPERTIES,
+                        List.of(fetched("secret", "super-secret-value"), fetched("other", "v2")),
+                        false
+                    )
+                )
+            );
+
+            assertThat(logs)
+                .isNotEmpty()
+                .noneMatch(message -> message.contains("super-secret-value"));
+            assertThat(auditPatch()).doesNotContain("super-secret-value");
+        }
+
+        @Test
+        void should_keep_the_stored_value_without_logging_nor_auditing_the_fetched_value_when_it_cannot_be_encrypted()
+            throws GeneralSecurityException {
+            var failingEncryptor = spy(DATA_ENCRYPTOR);
+            doThrow(new GeneralSecurityException("broken encryption secret")).when(failingEncryptor).encrypt(any());
+            var stored = encryptedDynamic("secret", "s3cret");
+            var api = givenApi(buildApiWithProperties(List.of(stored)));
+
+            var logs = logsOfPropertyDomainServiceDuring(() ->
+                useCaseWith(failingEncryptor).execute(
+                    new UpdateDynamicPropertiesUseCase.Input(
+                        api.getId(),
+                        HTTP_DYNAMIC_PROPERTIES,
+                        List.of(fetched("secret", "super-secret-value")),
+                        false
+                    )
+                )
+            );
+
+            assertThat(apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties()).containsExactly(stored);
+            assertThat(logs)
+                .isNotEmpty()
+                .noneMatch(message -> message.contains("super-secret-value"));
+            assertThat(auditCrudServiceInMemory.storage()).isEmpty();
+        }
+
         private static Property encryptedDynamic(String key, String plaintext) throws GeneralSecurityException {
             return Property.builder().key(key).value(DATA_ENCRYPTOR.encrypt(plaintext)).encrypted(true).dynamic(true).build();
         }
@@ -678,6 +834,42 @@ class UpdateDynamicPropertiesUseCaseTest {
             var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
             assertThat(persisted.isEncrypted()).isTrue();
             assertThat(DATA_ENCRYPTOR.decrypt(persisted.getValue())).isEqualTo("s3cret");
+        }
+
+        @Test
+        void should_not_audit_the_value_of_a_property_encrypted_on_fetch() {
+            var api = givenApi(buildApiWithProperties(List.of()));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()),
+                    true
+                )
+            );
+
+            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
+            assertThat(auditPatch()).doesNotContain(persisted.getValue()).doesNotContain("s3cret").contains("\"key\":\"secret\"");
+            assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties()).containsEntry("ENCRYPTED", "true");
+        }
+
+        @Test
+        void should_not_audit_the_value_of_a_property_encrypted_on_fetch_on_a_native_api() {
+            var api = givenApi(buildNativeApiWithProperties(List.of()));
+
+            cut.execute(
+                new UpdateDynamicPropertiesUseCase.Input(
+                    api.getId(),
+                    HTTP_DYNAMIC_PROPERTIES,
+                    List.of(Property.builder().key("secret").value("s3cret").dynamic(true).build()),
+                    true
+                )
+            );
+
+            var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties().getFirst();
+            assertThat(auditPatch()).doesNotContain(persisted.getValue()).doesNotContain("s3cret").contains("\"key\":\"secret\"");
+            assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test

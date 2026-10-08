@@ -19,6 +19,7 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -52,6 +53,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 class ApiAuditsResourceTest extends ApiResourceTest {
 
@@ -228,6 +231,59 @@ class ApiAuditsResourceTest extends ApiResourceTest {
         }
 
         @Test
+        public void should_filter_the_api_audits_by_encrypted() {
+            auditCrudServiceInMemory.initWith(
+                List.of(
+                    AuditFixtures.anApiAudit()
+                        .toBuilder()
+                        .id("1")
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .referenceId(API)
+                        .properties(Map.of("API", API, "ENCRYPTED", "true"))
+                        .build(),
+                    AuditFixtures.anApiAudit()
+                        .toBuilder()
+                        .id("2")
+                        .organizationId(ORGANIZATION)
+                        .environmentId(ENVIRONMENT)
+                        .referenceId(API)
+                        .properties(Map.of("API", API))
+                        .build()
+                )
+            );
+
+            final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, true).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(AuditsResponse.class)
+                .satisfies(body -> {
+                    assertThat(body.getData()).extracting(Audit::getId).containsExactly("1");
+                    assertThat(body.getData().getFirst().getProperties())
+                        .extracting(AuditPropertiesInner::getKey, AuditPropertiesInner::getValue)
+                        .contains(tuple("ENCRYPTED", "true"));
+                    assertThat(body.getPagination().getTotalCount()).isEqualTo(1L);
+                });
+        }
+
+        @Test
+        public void should_return_403_with_the_encrypted_filter_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_AUDIT),
+                    eq(API),
+                    eq(RolePermissionAction.READ)
+                )
+            ).thenReturn(false);
+
+            final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, true).request().get();
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
         public void should_compute_pagination() {
             var total = 20L;
             var pageSize = 5;
@@ -307,6 +363,18 @@ class ApiAuditsResourceTest extends ApiResourceTest {
                     .get();
 
                 assertThat(response).hasStatus(BAD_REQUEST_400).asError().hasHttpStatus(BAD_REQUEST_400).hasMessage("Validation error");
+            }
+
+            @ParameterizedTest
+            @ValueSource(strings = { "false", "yes" })
+            public void should_reject_an_encrypted_filter_it_cannot_answer(String encrypted) {
+                final Response response = target.queryParam(SearchApiAuditsParam.ENCRYPTED_QUERY_PARAM_NAME, encrypted).request().get();
+
+                assertThat(response)
+                    .hasStatus(BAD_REQUEST_400)
+                    .asError()
+                    .hasHttpStatus(BAD_REQUEST_400)
+                    .hasMessage("Only 'encrypted=true' is supported; omit the parameter to search all audit entries");
             }
 
             @Test
