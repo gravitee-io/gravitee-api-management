@@ -645,7 +645,7 @@ class ImportApiCRDUseCaseTest {
                 .filter(audit -> audit.getEvent().equals("API_CREATED"))
                 .findFirst()
                 .orElseThrow();
-            assertThat(created.getPatch()).contains("ciphertext").doesNotContain("prop-value");
+            assertThat(created.getPatch()).doesNotContain("ciphertext").doesNotContain("prop-value");
             assertThat(created.getProperties()).containsEntry("ENCRYPTED", "true");
         }
 

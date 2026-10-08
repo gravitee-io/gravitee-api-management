@@ -58,9 +58,11 @@ public class JacksonJsonDiffProcessor implements JsonDiffProcessor {
         }
 
         if (obj.getClass().isArray() || obj instanceof Iterable) {
-            return mapper.convertValue(obj, ArrayNode.class).toString();
+            return EncryptedPropertyAuditRedaction.redact(mapper.convertValue(obj, ArrayNode.class)).toString();
         }
 
-        return mapper.convertValue(obj, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt")).toString();
+        return EncryptedPropertyAuditRedaction.redact(
+            mapper.convertValue(obj, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"))
+        ).toString();
     }
 }

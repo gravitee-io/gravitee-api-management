@@ -698,8 +698,9 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
 
         @Test
-        void should_audit_only_the_ciphertext_of_a_changed_encrypted_value() throws GeneralSecurityException {
-            var api = givenApi(buildApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"))));
+        void should_not_audit_the_value_of_a_changed_encrypted_property() throws GeneralSecurityException {
+            var stored = encryptedDynamic("secret", "s3cret");
+            var api = givenApi(buildApiWithProperties(List.of(stored)));
 
             cut.execute(
                 new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false)
@@ -707,13 +708,18 @@ class UpdateDynamicPropertiesUseCaseTest {
 
             var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
             var audit = auditCrudServiceInMemory.storage().getFirst();
-            assertThat(audit.getPatch()).contains(persisted.getValue()).doesNotContain("n3w").doesNotContain("s3cret");
+            assertThat(audit.getPatch())
+                .doesNotContain(persisted.getValue())
+                .doesNotContain(stored.getValue())
+                .doesNotContain("n3w")
+                .doesNotContain("s3cret");
             assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test
-        void should_audit_only_the_ciphertext_of_a_changed_encrypted_value_on_a_native_api() throws GeneralSecurityException {
-            var api = givenApi(buildNativeApiWithProperties(List.of(encryptedDynamic("secret", "s3cret"))));
+        void should_not_audit_the_value_of_a_changed_encrypted_property_on_a_native_api() throws GeneralSecurityException {
+            var stored = encryptedDynamic("secret", "s3cret");
+            var api = givenApi(buildNativeApiWithProperties(List.of(stored)));
 
             cut.execute(
                 new UpdateDynamicPropertiesUseCase.Input(api.getId(), HTTP_DYNAMIC_PROPERTIES, List.of(fetched("secret", "n3w")), false)
@@ -721,7 +727,11 @@ class UpdateDynamicPropertiesUseCaseTest {
 
             var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties().getFirst();
             var audit = auditCrudServiceInMemory.storage().getFirst();
-            assertThat(audit.getPatch()).contains(persisted.getValue()).doesNotContain("n3w").doesNotContain("s3cret");
+            assertThat(audit.getPatch())
+                .doesNotContain(persisted.getValue())
+                .doesNotContain(stored.getValue())
+                .doesNotContain("n3w")
+                .doesNotContain("s3cret");
             assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
@@ -827,7 +837,7 @@ class UpdateDynamicPropertiesUseCaseTest {
         }
 
         @Test
-        void should_audit_only_the_ciphertext_of_a_property_encrypted_on_fetch() {
+        void should_not_audit_the_value_of_a_property_encrypted_on_fetch() {
             var api = givenApi(buildApiWithProperties(List.of()));
 
             cut.execute(
@@ -840,12 +850,12 @@ class UpdateDynamicPropertiesUseCaseTest {
             );
 
             var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionHttpV4().getProperties().getFirst();
-            assertThat(auditPatch()).contains(persisted.getValue()).doesNotContain("s3cret");
+            assertThat(auditPatch()).doesNotContain(persisted.getValue()).doesNotContain("s3cret").contains("\"key\":\"secret\"");
             assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties()).containsEntry("ENCRYPTED", "true");
         }
 
         @Test
-        void should_audit_only_the_ciphertext_of_a_property_encrypted_on_fetch_on_a_native_api() {
+        void should_not_audit_the_value_of_a_property_encrypted_on_fetch_on_a_native_api() {
             var api = givenApi(buildNativeApiWithProperties(List.of()));
 
             cut.execute(
@@ -858,7 +868,7 @@ class UpdateDynamicPropertiesUseCaseTest {
             );
 
             var persisted = apiCrudServiceInMemory.get(api.getId()).getApiDefinitionNativeV4().getProperties().getFirst();
-            assertThat(auditPatch()).contains(persisted.getValue()).doesNotContain("s3cret");
+            assertThat(auditPatch()).doesNotContain(persisted.getValue()).doesNotContain("s3cret").contains("\"key\":\"secret\"");
             assertThat(auditCrudServiceInMemory.storage().getFirst().getProperties()).containsEntry("ENCRYPTED", "true");
         }
 

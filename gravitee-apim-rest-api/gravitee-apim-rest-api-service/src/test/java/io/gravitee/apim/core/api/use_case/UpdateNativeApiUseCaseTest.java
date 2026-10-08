@@ -396,7 +396,7 @@ public class UpdateNativeApiUseCaseTest {
     }
 
     @Test
-    void should_audit_only_the_ciphertext_of_an_encrypted_property_and_mark_the_entry() throws GeneralSecurityException {
+    void should_not_audit_the_value_of_an_encrypted_property_and_mark_the_entry() throws GeneralSecurityException {
         var existingApi = ApiFixtures.aNativeApi();
         apiCrudService.initWith(List.of(existingApi));
         when(dataEncryptor.encrypt("plain-secret")).thenReturn("ciphertext");
@@ -415,7 +415,7 @@ public class UpdateNativeApiUseCaseTest {
         );
 
         var audit = auditCrudService.storage().getFirst();
-        assertThat(audit.getPatch()).contains("ciphertext").doesNotContain("plain-secret");
+        assertThat(audit.getPatch()).doesNotContain("ciphertext").doesNotContain("plain-secret");
         assertThat(audit.getProperties()).containsEntry("ENCRYPTED", "true");
     }
 
