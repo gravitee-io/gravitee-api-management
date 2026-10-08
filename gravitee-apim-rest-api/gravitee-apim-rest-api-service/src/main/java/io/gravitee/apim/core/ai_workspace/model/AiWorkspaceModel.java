@@ -15,14 +15,7 @@
  */
 package io.gravitee.apim.core.ai_workspace.model;
 
-import java.util.List;
-
-public record AiWorkspaceDetails(
-    String id,
-    String name,
-    String description,
-    AiWorkspaceBudget budget,
-    String endpointUrl,
-    AiWorkspaceKey key,
-    List<AiWorkspaceModel> models
-) {}
+/**
+ * A model published by the workspace LLM proxy. Prices are per million tokens and are null when not configured.
+ */
+public record AiWorkspaceModel(String name, Double inputPrice, Double outputPrice) {}
