@@ -70,6 +70,7 @@ import java.util.function.Consumer;
 import joptsimple.internal.Strings;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -139,6 +140,13 @@ public class ApplicationService_UpdateTest {
 
     @Mock
     private GroupService groupService;
+
+    @Before
+    public void setUp() {
+        lenient()
+            .when(groupService.retainGroupsTheCallerMayAssign(any(), any(), any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(2));
+    }
 
     @Test
     public void shouldUpdate() throws TechnicalException {
@@ -223,6 +231,7 @@ public class ApplicationService_UpdateTest {
         settings.setApp(clientSettings);
         mockSubscriptions();
         mockPlans();
+        when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.of(existingApplication));
         when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
 
         Exception exception = assertThrows(BadRequestException.class, () ->
@@ -325,10 +334,7 @@ public class ApplicationService_UpdateTest {
 
     @Test(expected = ApplicationNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
-        ConsoleConfigEntity config = getConsoleConfigEntity(false);
-
         when(applicationRepository.findById(APPLICATION_ID)).thenReturn(Optional.empty());
-        when(configService.getConsoleConfig(GraviteeContext.getExecutionContext())).thenReturn(config);
 
         applicationService.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updateApplication);
     }

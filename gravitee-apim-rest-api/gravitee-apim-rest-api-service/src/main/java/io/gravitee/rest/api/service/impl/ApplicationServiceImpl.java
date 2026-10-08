@@ -472,8 +472,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         validateAndEncodeClientCertificate(newApplicationEntity.getSettings(), executionContext.getEnvironmentId());
 
         if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
-            //throw a NotFoundException if the group doesn't exist
-            groupService.findByIds(newApplicationEntity.getGroups());
+            Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
+                executionContext,
+                userId,
+                newApplicationEntity.getGroups(),
+                Set.of()
+            );
+            newApplicationEntity.setGroups(groups);
+            if (!groups.isEmpty()) {
+                groupService.findByIds(groups);
+            }
         }
 
         Application application = applicationConverter.toApplication(newApplicationEntity);
@@ -674,17 +682,23 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
-            Set<String> groups = updateApplicationEntity.getGroups();
+            Application applicationToUpdate = applicationRepository
+                .findById(applicationId)
+                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+
+            Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
+                executionContext,
+                getAuthenticatedUsername(),
+                updateApplicationEntity.getGroups(),
+                applicationToUpdate.getGroups()
+            );
+            updateApplicationEntity.setGroups(groups);
             validateUserGroups(executionContext, groups);
 
             if (groups != null && !groups.isEmpty()) {
                 //throw a NotFoundException if the group doesn't exist
                 groupService.findByIds(groups);
             }
-
-            Application applicationToUpdate = applicationRepository
-                .findById(applicationId)
-                .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
             if (ApplicationStatus.ARCHIVED.equals(applicationToUpdate.getStatus())) {
                 throw new ApplicationArchivedException(applicationToUpdate.getName());
