@@ -33,9 +33,10 @@ interface TcpHostsCardProps {
     onDelete: (id: string) => void;
     onHostChange: (id: string, host: string) => void;
     isReadOnly: boolean;
+    uniquenessErrors?: Record<string, string>;
 }
 
-export function TcpHostsCard({ rows, onAdd, onDelete, onHostChange, isReadOnly }: Readonly<TcpHostsCardProps>) {
+export function TcpHostsCard({ rows, onAdd, onDelete, onHostChange, isReadOnly, uniquenessErrors }: Readonly<TcpHostsCardProps>) {
     const canDelete = rows.length > 1;
 
     return (
@@ -57,7 +58,7 @@ export function TcpHostsCard({ rows, onAdd, onDelete, onHostChange, isReadOnly }
 
                 <div className="space-y-2">
                     {rows.map(row => {
-                        const error = findRowError(rows, row);
+                        const error = findRowError(rows, row) ?? uniquenessErrors?.[row.id] ?? null;
                         return (
                             <div key={row.id} className="flex items-start gap-2">
                                 <div className="flex-1 space-y-1">

@@ -39,8 +39,10 @@ import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { updateApiFailover } from '../../../services/apis';
 import type { Failover } from '../../../types';
+import { hasTcpListeners } from '../../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../../utils/queryKeys';
 import { InfoTooltip } from '../cors/InfoTooltip';
+import { TcpProxyUnavailableNotice } from '../response-templates/TcpProxyUnavailableNotice';
 
 // ─── Defaults (match backend Failover.java constants) ────────────────────────
 
@@ -140,6 +142,10 @@ export function ApiFailoverPage() {
                 <Skeleton className="h-48 w-full rounded-lg" />
             </div>
         );
+    }
+
+    if (hasTcpListeners(api)) {
+        return <TcpProxyUnavailableNotice feature="Failover settings" />;
     }
 
     return (

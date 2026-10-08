@@ -100,10 +100,11 @@ export function buildWizardSteps(
     ctxType: 'api' | 'api-product',
     currentStepIndex: number,
     isFederatedPlan: boolean,
+    skipRestrictions = false,
 ): WizardStep[] {
     const defs: string[] = ['General'];
     if (securityType !== 'KEY_LESS' && !isFederatedPlan) defs.push('Security');
-    if (ctxType === 'api') defs.push('Restrictions');
+    if (ctxType === 'api' && !skipRestrictions) defs.push('Restrictions');
 
     return defs.map((label, i) => ({
         label,

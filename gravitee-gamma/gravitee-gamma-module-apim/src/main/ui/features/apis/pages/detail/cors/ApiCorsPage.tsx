@@ -27,7 +27,9 @@ import { ToggleRow } from './ToggleRow';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { updateApiCors } from '../../../services/apis';
 import type { Cors } from '../../../types';
+import { hasTcpListeners } from '../../../utils/apiHttpProxy';
 import { apiDetailKeys } from '../../../utils/queryKeys';
+import { TcpProxyUnavailableNotice } from '../response-templates/TcpProxyUnavailableNotice';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -142,6 +144,10 @@ export function ApiCorsPage() {
                 </Card>
             </div>
         );
+    }
+
+    if (hasTcpListeners(api)) {
+        return <TcpProxyUnavailableNotice feature="CORS settings" />;
     }
 
     return (

@@ -35,7 +35,7 @@ interface PlansPageProps {
     canCreate: boolean;
     canUpdate: boolean;
     canDelete: boolean;
-    isTcpApi?: boolean;
+    restrictToKeyless?: boolean;
     isFederated?: boolean;
     /** True while the API type is still unknown — withhold the federation-dependent controls until it is known whether the API is federated. */
     isApiTypeUnknown?: boolean;
@@ -107,7 +107,7 @@ export function PlansPage({
     canRead,
     canCreate,
     canUpdate,
-    isTcpApi = false,
+    restrictToKeyless = false,
     isFederated = false,
     isApiTypeUnknown = false,
 }: Readonly<PlansPageProps>) {
@@ -131,7 +131,7 @@ export function PlansPage({
                     <h1 className="text-2xl font-semibold tracking-tight">Plans</h1>
                     <p className="text-sm text-muted-foreground">Manage subscription plans and their lifecycle.</p>
                 </div>
-                {canOfferPlanCreation && <CreatePlanDropdown ctx={ctx} restrictToKeyless={isTcpApi} />}
+                {canOfferPlanCreation && <CreatePlanDropdown ctx={ctx} restrictToKeyless={restrictToKeyless} />}
             </div>
 
             {canOfferMultiSubscriptionsToggle && <AllowMultiSubscriptionsToggle apiId={ctx.entityId} canUpdate={canUpdate} />}

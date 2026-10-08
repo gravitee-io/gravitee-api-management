@@ -19,16 +19,17 @@ import { healthCheckFromGroup } from '../../../utils/healthCheckForm';
 
 export type { LoadBalancerType };
 
+/** Schema-driven shared configuration — plugin JSON Schema values as stored on the API definition. */
+export type SharedConfigFormState = Record<string, unknown>;
+
+/** Endpoint-level configuration from the plugin `/schema` (target URL, tcp target, …). */
+export type EndpointConfigurationFormState = Record<string, unknown>;
+
 export interface EndpointFormState {
     /** Local row id for React key management — not sent to backend. */
     _id: string;
     name: string;
-    /** http-proxy (and other string-target types) upstream URL. Unused for tcp-proxy. */
-    target: string;
-    /** tcp-proxy target host/port/secured — unused for http-proxy. */
-    tcpTargetHost: string;
-    tcpTargetPort: string;
-    tcpTargetSecured: boolean;
+    configuration: EndpointConfigurationFormState;
     weight: number;
     secondary: boolean;
     inheritConfiguration: boolean;
@@ -47,132 +48,19 @@ export interface EndpointFormState {
     healthCheck: HealthCheckFormState;
 }
 
-export interface ProxyFormState {
-    enabled: boolean;
-    useSystemProxy: boolean;
-    host: string;
-    port: string;
-    username: string;
-    password: string;
-    type: string;
-}
-
-export interface HttpFormState {
-    keepAlive: boolean;
-    keepAliveTimeout: number;
-    readTimeout: number;
-    idleTimeout: number;
-    connectTimeout: number;
-    maxConcurrentConnections: number;
-    maxWaitQueueSize: number;
-    maxConnectionLifetime: number;
-    useCompression: boolean;
-    propagateClientAcceptEncoding: boolean;
-    /** V4 schema field name (`propagateClientHost`, not `propagateClientHostHeader`). */
-    propagateClientHost: boolean;
-    pipelining: boolean;
-    followRedirects: boolean;
-    version: 'HTTP_1_1' | 'HTTP_2';
-    clearTextUpgrade: boolean;
-    http2MultiplexingLimit: number;
-    http2ConnectionWindowSize: number;
-    http2StreamWindowSize: number;
-    http2MaxFrameSize: number;
-}
-
-export interface SslFormState {
-    hostnameVerifier: boolean;
-    trustAll: boolean;
-    clientAuthentication: 'NONE' | 'REQUIRED' | 'OPTIONAL';
-}
-
-export interface HeaderEntry {
-    _id: string;
-    name: string;
-    value: string;
-}
-
-export interface TcpFormState {
-    connectTimeout: number;
-    reconnectAttempts: number;
-    reconnectInterval: number;
-    idleTimeout: number;
-    readIdleTimeout: number;
-    writeIdleTimeout: number;
-}
-
-export interface SharedConfigFormState {
-    proxy: ProxyFormState;
-    http: HttpFormState;
-    tcp: TcpFormState;
-    ssl: SslFormState;
-    headers: HeaderEntry[];
-}
-
 export interface EndpointGroupFormState {
     name: string;
     loadBalancerType: LoadBalancerType;
     sharedConfig: SharedConfigFormState;
     healthCheck: HealthCheckFormState;
     endpoints: EndpointFormState[];
-    /** Required when creating a group — seeds the default endpoint (classic configuration.target). */
-    defaultEndpointTarget?: string;
+    /** Create flow: default endpoint `configuration` from plugin schema (Console parity). */
+    defaultEndpointConfiguration?: EndpointConfigurationFormState;
 }
 
-export const DEFAULT_HTTP: HttpFormState = {
-    keepAlive: true,
-    keepAliveTimeout: 30000,
-    readTimeout: 10000,
-    idleTimeout: 60000,
-    connectTimeout: 5000,
-    maxConcurrentConnections: 20,
-    maxWaitQueueSize: -1,
-    maxConnectionLifetime: 0,
-    useCompression: true,
-    propagateClientAcceptEncoding: false,
-    propagateClientHost: false,
-    pipelining: false,
-    followRedirects: false,
-    version: 'HTTP_1_1',
-    clearTextUpgrade: true,
-    http2MultiplexingLimit: -1,
-    http2ConnectionWindowSize: -1,
-    http2StreamWindowSize: -1,
-    http2MaxFrameSize: 16384,
-};
-
-export const DEFAULT_PROXY: ProxyFormState = {
-    enabled: false,
-    useSystemProxy: false,
-    host: '',
-    port: '',
-    username: '',
-    password: '',
-    type: 'HTTP',
-};
-
-export const DEFAULT_SSL: SslFormState = {
-    hostnameVerifier: true,
-    trustAll: false,
-    clientAuthentication: 'NONE',
-};
-
-export const DEFAULT_TCP: TcpFormState = {
-    connectTimeout: 3000,
-    reconnectAttempts: 3,
-    reconnectInterval: 1000,
-    idleTimeout: 0,
-    readIdleTimeout: 0,
-    writeIdleTimeout: 0,
-};
-
-export const DEFAULT_SHARED_CONFIG: SharedConfigFormState = {
-    proxy: DEFAULT_PROXY,
-    http: DEFAULT_HTTP,
-    tcp: DEFAULT_TCP,
-    ssl: DEFAULT_SSL,
-    headers: [],
-};
+/** Empty until JsonSchemaForm seeds plugin schema defaults (or an existing DTO is loaded). */
+export const DEFAULT_SHARED_CONFIG: SharedConfigFormState = {};
+export const DEFAULT_ENDPOINT_CONFIGURATION: EndpointConfigurationFormState = {};
 
 export const DEFAULT_GROUP_FORM: EndpointGroupFormState = {
     name: '',
@@ -182,63 +70,9 @@ export const DEFAULT_GROUP_FORM: EndpointGroupFormState = {
     endpoints: [],
 };
 
-/** Convert a DTO shared-configuration object (group's or endpoint-override's) to form state. */
-export function parseSharedConfigDto(sc: EndpointGroupSharedConfiguration): SharedConfigFormState {
-    const http = sc.http ?? {};
-    const tcp = sc.tcp ?? {};
-    const proxy = sc.proxy ?? {};
-    const ssl = sc.ssl ?? {};
-    return {
-        tcp: {
-            connectTimeout: tcp.connectTimeout ?? DEFAULT_TCP.connectTimeout,
-            reconnectAttempts: tcp.reconnectAttempts ?? DEFAULT_TCP.reconnectAttempts,
-            reconnectInterval: tcp.reconnectInterval ?? DEFAULT_TCP.reconnectInterval,
-            idleTimeout: tcp.idleTimeout ?? DEFAULT_TCP.idleTimeout,
-            readIdleTimeout: tcp.readIdleTimeout ?? DEFAULT_TCP.readIdleTimeout,
-            writeIdleTimeout: tcp.writeIdleTimeout ?? DEFAULT_TCP.writeIdleTimeout,
-        },
-        http: {
-            keepAlive: http.keepAlive ?? true,
-            keepAliveTimeout: http.keepAliveTimeout ?? 30000,
-            readTimeout: http.readTimeout ?? 10000,
-            idleTimeout: http.idleTimeout ?? 60000,
-            connectTimeout: http.connectTimeout ?? 5000,
-            maxConcurrentConnections: http.maxConcurrentConnections ?? 20,
-            maxWaitQueueSize: http.maxWaitQueueSize ?? -1,
-            maxConnectionLifetime: http.maxConnectionLifetime ?? 0,
-            useCompression: http.useCompression ?? true,
-            propagateClientAcceptEncoding: http.propagateClientAcceptEncoding ?? false,
-            propagateClientHost:
-                http.propagateClientHost ?? (http as { propagateClientHostHeader?: boolean }).propagateClientHostHeader ?? false,
-            pipelining: http.pipelining ?? false,
-            followRedirects: http.followRedirects ?? false,
-            version: http.version ?? 'HTTP_1_1',
-            clearTextUpgrade: http.clearTextUpgrade ?? true,
-            http2MultiplexingLimit: http.http2MultiplexingLimit ?? -1,
-            http2ConnectionWindowSize: http.http2ConnectionWindowSize ?? -1,
-            http2StreamWindowSize: http.http2StreamWindowSize ?? -1,
-            http2MaxFrameSize: http.http2MaxFrameSize ?? 16384,
-        },
-        proxy: {
-            enabled: proxy.enabled ?? false,
-            useSystemProxy: proxy.useSystemProxy ?? false,
-            host: proxy.host ?? '',
-            port: proxy.port !== undefined ? String(proxy.port) : '',
-            username: proxy.username ?? '',
-            password: proxy.password ?? '',
-            type: proxy.type ?? 'HTTP',
-        },
-        ssl: {
-            hostnameVerifier: ssl.hostnameVerifier ?? true,
-            trustAll: ssl.trustAll ?? false,
-            clientAuthentication: ssl.clientAuthentication ?? 'NONE',
-        },
-        headers: (sc.headers ?? []).map(h => ({
-            _id: Math.random().toString(36).slice(2, 10),
-            name: h.name,
-            value: h.value,
-        })),
-    };
+/** Load a DTO shared-configuration object into form state (pass-through for schema-driven forms). */
+export function parseSharedConfigDto(sc: EndpointGroupSharedConfiguration | Record<string, unknown>): SharedConfigFormState {
+    return { ...(sc as Record<string, unknown>) };
 }
 
 export function newEndpointRow(groupHealthCheck?: HealthCheckFormState): EndpointFormState {
@@ -246,10 +80,7 @@ export function newEndpointRow(groupHealthCheck?: HealthCheckFormState): Endpoin
     return {
         _id: Math.random().toString(36).slice(2, 10),
         name: '',
-        target: '',
-        tcpTargetHost: '',
-        tcpTargetPort: '',
-        tcpTargetSecured: false,
+        configuration: {},
         weight: 1,
         secondary: false,
         inheritConfiguration: true,
@@ -260,6 +91,13 @@ export function newEndpointRow(groupHealthCheck?: HealthCheckFormState): Endpoin
             configuration: { ...groupHc.configuration },
         },
     };
+}
+
+/** Shared header row shape used by response templates. */
+export interface HeaderEntry {
+    _id: string;
+    name: string;
+    value: string;
 }
 
 export function newHeaderRow(): HeaderEntry {
@@ -277,14 +115,14 @@ export function headersToRecord(headers: HeaderEntry[]): Record<string, string> 
     return Object.fromEntries(entries);
 }
 
-/** Validate group name — classic console: required, no colons (Validators.pattern /^[^:]*$/). */
+/** Validate group name: required, no colons. */
 export function validateGroupName(name: string): string | null {
     if (!name.trim()) return 'Name is required.';
     if (name.includes(':')) return 'Name must not contain colons.';
     return null;
 }
 
-/** Validate endpoint name — classic console: required, no colons. */
+/** Validate endpoint name: required, no colons. */
 export function validateEndpointName(name: string): string | null {
     if (!name.trim()) return 'Name is required.';
     if (name.includes(':')) return 'Name must not contain colons.';
@@ -298,14 +136,18 @@ export function validateEndpointTarget(value: string): string | null {
     return null;
 }
 
-/** Default endpoint for a new group — classic adds `configuration: { target }` on create. */
-export function buildDefaultEndpointForGroup(groupName: string, target: string, type = 'http-proxy'): EndpointDto {
+/** Default endpoint for a new endpoint group (configuration from plugin schema form). */
+export function buildDefaultEndpointForGroup(
+    groupName: string,
+    configuration: EndpointConfigurationFormState,
+    type: 'http-proxy' | 'tcp-proxy' = 'http-proxy',
+): EndpointDto {
     const cleanName = groupName.trim();
     return {
         name: `${cleanName} default endpoint`,
         type,
         inheritConfiguration: true,
         weight: 1,
-        configuration: { target: target.trim() },
+        configuration,
     };
 }

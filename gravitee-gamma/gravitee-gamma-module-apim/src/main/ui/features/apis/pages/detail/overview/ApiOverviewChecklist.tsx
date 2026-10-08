@@ -37,7 +37,9 @@ function buildChecklistItems(
         {
             id: 'endpoint-security',
             label: 'Configure backend security on your endpoint group',
-            tooltip: 'Set up SSL/TLS, proxy authentication, or upstream headers on the default endpoint group shared configuration.',
+            tooltip: isTcp
+                ? 'Set up SSL/TLS or SOCKS proxy authentication on the default TCP endpoint group shared configuration.'
+                : 'Set up SSL/TLS, proxy authentication, or upstream headers on the default endpoint group shared configuration.',
             to: '../endpoints/list?editGroup=0&step=configuration',
             icon: LockIcon,
             actionLabel: 'Open configuration',

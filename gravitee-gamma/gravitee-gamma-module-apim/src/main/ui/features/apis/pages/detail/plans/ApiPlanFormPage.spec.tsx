@@ -227,3 +227,74 @@ describe('ApiPlanFormPage edit form', () => {
         expect(await screen.findByLabelText(/^Name/)).toHaveValue('Renamed by operator');
     });
 });
+
+describe('ApiPlanFormPage TCP Proxy create', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseApiDetail.mockReturnValue({ data: { listeners: [{ type: 'TCP' }] }, isLoading: false });
+        mockUseGroups.mockReturnValue({ data: undefined });
+        mockUseOrgTags.mockReturnValue({ data: [] });
+        mockUseUserTags.mockReturnValue({ data: [] });
+    });
+
+    it('redirects non-Keyless plan create URLs back to the plans list', async () => {
+        render(
+            <QueryClientProvider client={newQueryClient()}>
+                <MemoryRouter initialEntries={['/apis/api-1/plans/new/JWT']}>
+                    <Routes>
+                        <Route path="apis/:apiId/plans">
+                            <Route index element={<p>Plans list</p>} />
+                            <Route path="new/:securityType" element={<ApiPlanFormPage />} />
+                        </Route>
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        expect(await screen.findByText('Plans list')).toBeInTheDocument();
+    });
+
+    it('allows a non-Keyless plan when the API mixes HTTP and TCP listeners', async () => {
+        mockUseApiDetail.mockReturnValue({
+            data: { listeners: [{ type: 'HTTP' }, { type: 'TCP' }] },
+            isLoading: false,
+        });
+
+        render(
+            <QueryClientProvider client={newQueryClient()}>
+                <MemoryRouter initialEntries={['/apis/api-1/plans/new/JWT']}>
+                    <Routes>
+                        <Route path="apis/:apiId/plans">
+                            <Route index element={<p>Plans list</p>} />
+                            <Route path="new/:securityType" element={<ApiPlanFormPage />} />
+                        </Route>
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        expect(await screen.findByLabelText(/^Name/)).toBeInTheDocument();
+        expect(screen.queryByText('Plans list')).not.toBeInTheDocument();
+        const stepIndicator = screen.getByRole('navigation', { name: 'Plan creation steps' });
+        expect(within(stepIndicator).queryByText('Restrictions')).not.toBeInTheDocument();
+    });
+
+    it('creates a Keyless plan without a Restrictions step', async () => {
+        render(
+            <QueryClientProvider client={newQueryClient()}>
+                <MemoryRouter initialEntries={['/apis/api-1/plans/new/KEY_LESS']}>
+                    <Routes>
+                        <Route path="apis/:apiId/plans">
+                            <Route path="new/:securityType" element={<ApiPlanFormPage />} />
+                        </Route>
+                    </Routes>
+                </MemoryRouter>
+            </QueryClientProvider>,
+        );
+
+        await screen.findByLabelText(/^Name/);
+        const stepIndicator = screen.getByRole('navigation', { name: 'Plan creation steps' });
+        expect(within(stepIndicator).queryByText('Restrictions')).not.toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /create plan/i })).toBeInTheDocument();
+    });
+});
