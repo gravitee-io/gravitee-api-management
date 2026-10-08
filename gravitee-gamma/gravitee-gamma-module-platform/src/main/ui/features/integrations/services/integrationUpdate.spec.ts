@@ -33,14 +33,9 @@ describe('integration update service', () => {
     });
 
     it('PUTs the whole update request to the encoded integration in the environment and returns the updated integration', async () => {
-        const updated = { id: 'int/1', name: 'New name', description: 'New description', provider: 'A2A' };
+        const updated = { id: 'int/1', name: 'New name', description: 'New description', provider: 'solace' };
         mockApimFetchJsonV2.mockResolvedValue(updated);
-        const request = {
-            name: 'New name',
-            description: 'New description',
-            groups: ['Platform Team'],
-            wellKnownUrls: [{ url: 'https://agent.example.com/.well-known/agent.json' }],
-        };
+        const request = { name: 'New name', description: 'New description', groups: ['Platform Team'] };
 
         const result = await updateIntegration('env-1', 'int/1', request);
 

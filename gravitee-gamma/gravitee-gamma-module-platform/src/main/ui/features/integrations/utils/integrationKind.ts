@@ -17,6 +17,7 @@ import type { Integration } from '../types/integration';
 
 export const A2A_PROVIDER = 'A2A';
 
+// A2A integrations are managed in the Classic console only; Gamma does not open them.
 export function isA2aIntegration(integration: Pick<Integration, 'provider'>): boolean {
     return integration.provider === A2A_PROVIDER;
 }

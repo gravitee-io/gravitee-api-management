@@ -21,7 +21,6 @@ import { useUpdateIntegration } from '../hooks/useUpdateIntegration';
 import type { Integration, UpdateIntegrationRequest } from '../types/integration';
 import { integrationErrorMessage } from '../utils/integrationErrorMessage';
 import { INTEGRATION_DESCRIPTION_MAX, validateIntegrationForm, type IntegrationFormValues } from '../utils/integrationForm';
-import { isA2aIntegration } from '../utils/integrationKind';
 
 interface IntegrationGeneralInformationFormProps {
     integration: Integration;
@@ -32,11 +31,7 @@ function toFormValues(integration: Pick<Integration, 'name' | 'description'>): I
 }
 
 function buildUpdateRequest(integration: Integration, values: IntegrationFormValues): UpdateIntegrationRequest {
-    const request: UpdateIntegrationRequest = { ...values, groups: integration.groups ?? [] };
-    if (isA2aIntegration(integration)) {
-        request.wellKnownUrls = integration.wellKnownUrls;
-    }
-    return request;
+    return { ...values, groups: integration.groups ?? [] };
 }
 
 export function IntegrationGeneralInformationForm({ integration }: IntegrationGeneralInformationFormProps) {

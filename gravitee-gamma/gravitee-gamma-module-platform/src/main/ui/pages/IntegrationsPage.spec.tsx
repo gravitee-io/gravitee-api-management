@@ -260,7 +260,7 @@ describe('IntegrationsPage', () => {
         ['empty', EMPTY_RESPONSE, 'No integrations yet'],
         ['populated', SINGLE_PAGE_RESPONSE, 'Acme Gateway'],
     ])(
-        'shows one enabled create integration action, and no separate A2A action, to a user allowed to create integrations when the list is %s',
+        'shows an enabled create integration action to a user allowed to create integrations when the list is %s',
         async (_state, response, listContent) => {
             mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-integration-c') ?? false);
             mockListIntegrations.mockResolvedValue(response);
@@ -269,7 +269,6 @@ describe('IntegrationsPage', () => {
 
             expect(await screen.findByText(listContent)).not.toBeNull();
             expect(screen.getByRole('button', { name: 'Create integration' })).toBeEnabled();
-            expect(screen.queryByRole('button', { name: 'Create A2A integration' })).toBeNull();
         },
     );
 
@@ -289,14 +288,14 @@ describe('IntegrationsPage', () => {
         },
     );
 
-    it('opens the provider create route when a user allowed to create integrations clicks Create integration', async () => {
+    it('opens the create-integration route when a user allowed to create integrations clicks the create action', async () => {
         mockUseHasPermission.mockImplementation(({ anyOf }) => anyOf?.includes('environment-integration-c') ?? false);
         render(
             <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
                 <MemoryRouter initialEntries={['/integrations']}>
                     <Routes>
                         <Route path="/integrations" element={<IntegrationsPage />} />
-                        <Route path="/integrations/new" element={<div data-testid="provider-create-probe" />} />
+                        <Route path="/integrations/new" element={<div data-testid="create-integration-probe" />} />
                     </Routes>
                 </MemoryRouter>
             </QueryClientProvider>,
@@ -304,7 +303,7 @@ describe('IntegrationsPage', () => {
 
         await userEvent.click(await screen.findByRole('button', { name: 'Create integration' }));
 
-        expect(await screen.findByTestId('provider-create-probe')).not.toBeNull();
+        expect(await screen.findByTestId('create-integration-probe')).not.toBeNull();
     });
 
     it('keeps the empty state off the screen when the integrations request fails', async () => {

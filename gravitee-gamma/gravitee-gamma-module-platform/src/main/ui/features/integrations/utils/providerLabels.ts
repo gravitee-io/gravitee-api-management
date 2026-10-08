@@ -15,7 +15,7 @@
  */
 import { A2A_PROVIDER } from './integrationKind';
 
-export type ProviderGroup = 'API gateways' | 'Event brokers' | 'AI agents';
+export type ProviderGroup = 'API gateways' | 'Event brokers';
 
 export interface ProviderCatalogEntry {
     token: string;
@@ -25,7 +25,7 @@ export interface ProviderCatalogEntry {
     monogram: string;
 }
 
-export const PROVIDER_GROUPS_IN_ORDER: readonly ProviderGroup[] = ['API gateways', 'Event brokers', 'AI agents'];
+export const PROVIDER_GROUPS_IN_ORDER: readonly ProviderGroup[] = ['API gateways', 'Event brokers'];
 
 const UNSORTED_PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [
     { token: 'apigee', label: 'Apigee', group: 'API gateways', description: 'API proxies from a Google Cloud org', monogram: 'AP' },
@@ -73,13 +73,6 @@ const UNSORTED_PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [
         monogram: 'CF',
     },
     { token: 'solace', label: 'Solace', group: 'Event brokers', description: 'Event APIs from a Solace broker', monogram: 'SO' },
-    {
-        token: A2A_PROVIDER,
-        label: 'A2A Protocol',
-        group: 'AI agents',
-        description: 'Agents from their well-known agent cards',
-        monogram: 'A2A',
-    },
 ];
 
 export const PROVIDER_CATALOG: readonly ProviderCatalogEntry[] = [...UNSORTED_PROVIDER_CATALOG].sort((a, b) =>
@@ -92,10 +85,12 @@ export function findProvider(provider: string): ProviderCatalogEntry | undefined
     return PROVIDER_CATALOG.find(entry => entry.token === provider);
 }
 
+const A2A_PROVIDER_LABEL = 'A2A Protocol';
+
 export function hasProviderLabel(provider: string): boolean {
-    return findProvider(provider) !== undefined;
+    return provider === A2A_PROVIDER || findProvider(provider) !== undefined;
 }
 
 export function integrationProviderLabel(provider: string): string {
-    return findProvider(provider)?.label ?? provider;
+    return provider === A2A_PROVIDER ? A2A_PROVIDER_LABEL : (findProvider(provider)?.label ?? provider);
 }

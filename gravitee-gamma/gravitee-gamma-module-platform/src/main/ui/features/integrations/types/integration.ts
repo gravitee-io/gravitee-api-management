@@ -23,17 +23,12 @@ export interface IntegrationIngestionJob {
     status: IngestionJobStatus;
 }
 
-export interface IntegrationWellKnownUrl {
-    url?: string;
-}
-
 export interface Integration {
     id: string;
     name: string;
     description?: string;
     provider: string;
     groups?: string[];
-    wellKnownUrls?: IntegrationWellKnownUrl[];
     agentStatus?: IntegrationAgentStatus;
     pendingJob?: IntegrationIngestionJob;
 }
@@ -42,14 +37,12 @@ export interface UpdateIntegrationRequest {
     name: string;
     description: string;
     groups: string[];
-    wellKnownUrls?: IntegrationWellKnownUrl[];
 }
 
 export interface CreateIntegrationRequest {
     name: string;
     description?: string;
     provider: string;
-    wellKnownUrls?: string[];
 }
 
 export interface IntegrationsPagination {

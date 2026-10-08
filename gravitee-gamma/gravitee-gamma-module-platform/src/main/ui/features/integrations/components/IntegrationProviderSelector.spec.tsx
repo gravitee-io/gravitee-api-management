@@ -34,7 +34,6 @@ const GROUPED_PROVIDER_LABELS = [
         ],
     },
     { group: 'Event brokers', labels: ['Confluent Platform', 'Solace'] },
-    { group: 'AI agents', labels: ['A2A Protocol'] },
 ];
 
 beforeAll(() => {
@@ -71,7 +70,6 @@ describe('IntegrationProviderSelector', () => {
     });
 
     it.each([
-        { provider: 'A2A Protocol', token: 'A2A' },
         { provider: 'MuleSoft', token: 'mulesoft' },
         { provider: 'Solace', token: 'solace' },
     ])('reports the $token provider entry when $provider is clicked', async ({ provider, token }) => {
