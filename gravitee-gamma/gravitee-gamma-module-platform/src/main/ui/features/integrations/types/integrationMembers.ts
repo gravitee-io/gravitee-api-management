@@ -13,7 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ChipInput } from './ChipInput';
-export { FeatureTile } from './FeatureTile';
-export { GroupMembersSection } from './GroupMembersSection';
-export { MemberAvatar } from './MemberAvatar';
+
+export interface IntegrationMemberRole {
+    name: string;
+    scope?: string;
+}
+
+export interface IntegrationMember {
+    id?: string;
+    displayName?: string;
+    roles?: IntegrationMemberRole[];
+}
+
+export interface IntegrationMembersResponse {
+    data?: IntegrationMember[];
+}

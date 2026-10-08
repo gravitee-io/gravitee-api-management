@@ -29,8 +29,8 @@ import { useId, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { UserAvatar } from './UserAvatar';
-import { NON_SORTABLE_COLUMN } from '../../applications/utils/dataTableHeaders';
 import type { ColCell } from '../../applications/utils/dataTableTypes';
+import { NON_SORTABLE_COLUMN } from '../../shared/utils/dataTableHeaders';
 import type { OrganizationUser } from '../types/user';
 import { USER_LIST_PAGE_SIZE_OPTIONS } from '../utils/paginationConstants';
 import {

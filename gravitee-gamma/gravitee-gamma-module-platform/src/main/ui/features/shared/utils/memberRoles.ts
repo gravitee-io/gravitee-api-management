@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export { ChipInput } from './ChipInput';
-export { FeatureTile } from './FeatureTile';
-export { GroupMembersSection } from './GroupMembersSection';
-export { MemberAvatar } from './MemberAvatar';
+
+export const PRIMARY_OWNER_ROLE = 'PRIMARY_OWNER';
+
+export function formatRoleLabel(role: string): string {
+    return role
+        .split('_')
+        .map(part => part.charAt(0) + part.slice(1).toLowerCase())
+        .join(' ');
+}
+
+/** Group members carry roles keyed by scope (typically GROUP). */
+export function getGroupMemberRole(member: { roles: Record<string, string> }): string {
+    return member.roles.GROUP ?? member.roles.APPLICATION ?? Object.values(member.roles)[0] ?? '—';
+}

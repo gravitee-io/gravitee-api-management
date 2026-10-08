@@ -16,7 +16,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 
 import { ManageGroupsSheet } from './ManageGroupsSheet';
-import type { EnvironmentGroup } from '../../types/applicationMembers.types';
+import type { EnvironmentGroup } from '../../../shared/types/groupMembers';
 import { querySheetHeading } from '../test/sheetSpecHelpers';
 
 const groups: EnvironmentGroup[] = [

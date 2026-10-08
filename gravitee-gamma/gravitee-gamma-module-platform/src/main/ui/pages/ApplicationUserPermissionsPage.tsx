@@ -40,7 +40,6 @@ import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
 import { AddMembersSheet } from '../features/applications/components/user-permissions/AddMembersSheet';
 import { DirectMembersTable } from '../features/applications/components/user-permissions/DirectMembersTable';
-import { GroupMembersSection } from '../features/applications/components/user-permissions/GroupMembersSection';
 import { ManageGroupsSheet } from '../features/applications/components/user-permissions/ManageGroupsSheet';
 import { formatAddMembersResultMessage, getApplicationRole } from '../features/applications/components/user-permissions/memberHelpers';
 import { RemoveMemberDialog } from '../features/applications/components/user-permissions/RemoveMemberDialog';
@@ -69,6 +68,7 @@ import type {
 } from '../features/applications/types/applicationMembers.types';
 import { toApplicationMemberEntity } from '../features/applications/utils/applicationMemberMapper';
 import { applicationDetailKeys, applicationMemberKeys } from '../features/applications/utils/queryKeys';
+import { GroupMembersSection } from '../features/shared/components';
 import { notify } from '../shared/notify';
 import type { SearchableUser } from '../shared/types/userSearch';
 
