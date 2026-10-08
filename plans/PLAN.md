@@ -81,16 +81,16 @@ todos:
     content: "Documentation list screen with an empty state, static tree and breadcrumbs."
     status: pending
   - id: STORY-26
-    content: "Create a documentation page by typing or uploading content."
+    content: "Create a documentation page by filling it in or importing a file, and edit its content with a live preview."
     status: pending
   - id: STORY-27
-    content: "Create a folder."
+    content: "Create a folder, and edit its title and access."
     status: pending
   - id: STORY-28
     content: "Create a link."
     status: pending
   - id: STORY-29
-    content: "Edit a page's content with a live preview."
+    content: "Edit a page's title and access."
     status: pending
   - id: STORY-30
     content: "Publish and unpublish the API from Gamma."
@@ -771,7 +771,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 - *edit* the single-item resource from STORY-12 — `GET` and `PUT` on `{navId}/content`
 - *read only* `CORE/portal_page/use_case/GetPortalPageContentUseCase.java`, `UpdatePortalPageContentUseCase.java` — delegated to for the actual read and save
 **Size:** S · **Depends on:** STORY-12
-**Note:** security-sensitive, because it is a new authorization path. Addressing content by its own id under an API permission was rejected: the permission check reads only the URL, and a content id does not say which API it belongs to. Blocks STORY-26 and STORY-29 on the backend side.
+**Note:** security-sensitive, because it is a new authorization path. Addressing content by its own id under an API permission was rejected: the permission check reads only the URL, and a content id does not say which API it belongs to. Blocks STORY-26 on the backend side.
 
 #### STORY-13 — Reject a request whose body targets a different API than the URL
 **Why:** permission is worked out from the URL only and cannot consult the database. Without this check, someone with permission on one API could pass an item or parent belonging to another.
@@ -1080,7 +1080,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 #### STORY-24 — Data layer for the documentation screen
 **Status:** Done under [PORTAL-243](https://gravitee.atlassian.net/browse/PORTAL-243), as [#20886](https://github.com/gravitee-io/gravitee-api-management/pull/20886). Types are hand-written in `GAMMA/features/apis/types/apiDocumentation.ts`, because Gamma does not generate types from the OpenAPI spec.
 **Scope as built:** list, create, update (with `propagatePublishToChildren`), delete, import, publish locations, publish and unpublish. Left to the stories that first need them, each one service function and one hook:
-- a page's content read and save — STORY-26 and STORY-29, once STORY-12 Bis provides the endpoints;
+- a page's content read and save — STORY-26, once STORY-12 Bis provides the endpoints;
 - refreshing a sourced item (`_fetch`) — STORY-34;
 - the single-item read — dropped: the list returns every field of every item, and the edit page needs the content type, which lives on the page content, not on the item.
 
@@ -1118,52 +1118,78 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 3. Delete with confirmation.
 4. The exclusive publish/unpublish action, driven by the list response's publish state.
 
-#### STORY-26 — Create a documentation page
-**Why:** the point of the whole feature — without a way to create a page there is nothing to edit, organise or publish. Uploading a file matters as much as typing, since most teams already have their specs and markdown written elsewhere.
+#### STORY-26 — Create a documentation page and edit its content
+**Why:** the point of the whole feature — without a way to create a page there is nothing to edit, organise or publish. Importing a file matters as much as typing, since most teams already have their specs and markdown written elsewhere. The content editor ships with it: a page created without a way to see and change it is a dead end, and documentation is revised far more often than it is created.
 **Acceptance criteria:**
-- Choose how to fill it: type it in, or upload a file.
-- Choose its type: Gravitee Markdown, OpenAPI or AsyncAPI — detected from the file where possible.
-- Title required; the page appears in the tree on success.
+- "Add documentation" is a menu of the kinds of item to add, as in the portal editor, in the page header and in the empty state; it offers pages, and STORY-27 and STORY-28 add folders and links.
+- The page dialog asks, in this order, for the title, whether authentication is required to view the page, and how to fill it:
+  - fill in content: choose its type — Gravitee Markdown, OpenAPI or AsyncAPI — and the page is created empty;
+  - import from file: `.md`, `.yaml`, `.yml` or `.json` up to 10 MB, the type detected from the file, and the title taken from the file name when none was typed; a file whose type cannot be told is refused with the reason.
+- Linking an external source is the third option, hidden until STORY-34.
+- A page is created unpublished, then opens in the editor — even when an imported file could not be saved as its content, which the user is told.
+- The editor, at `documentation/:pageId/edit`, is always in edit mode:
+  - a breadcrumb back to the documentation through the folders holding the page;
+  - badges for its type, whether it is published and who can view it, each status badge explaining itself in a tooltip;
+  - the code editor in the mode matching the content type, filling the height left in the window;
+  - a live preview beside it for Gravitee Markdown, through STORY-22's component; OpenAPI and AsyncAPI get theirs in STORY-33.
+- Save and Discard always show, disabled until the content changes, as in Gamma's other editor screens. The browser asks before closing or reloading the tab with unsaved changes; in-app navigation is not guarded, as elsewhere in Gamma.
+- The content is read only without `api-documentation-u`, and for a page synced from an external source, whose content the server refuses to change.
 **Files:**
-- *create* `GAMMA/features/apis/components/detail/documentation/CreateDocumentationDialog.tsx` — the shared dialog shell plus the page branch; STORY-27 and STORY-28 add their branches to it
-- *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — save a page's content under the API path, once STORY-12 Bis provides it; STORY-24 left it out
-**Size:** M · **Depends on:** STORY-25 · **Backend:** STORY-12 Bis, to save what was typed or uploaded
+- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx` — the "Add documentation" menu, and opening the new page once created
+- *create* `GAMMA/features/apis/components/detail/documentation/CreatePageDialog.tsx` — the page dialog; STORY-34 adds the external-source option to it
+- *create* `GAMMA/features/apis/utils/documentationFile.ts` — the accepted files, the size limit and the type detection
+- *create* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx` — the editor screen
+- *create* `GAMMA/features/apis/components/detail/documentation/DocumentationItemBadges.tsx` — the status and access badges with their explanations, shared with `DocumentationTree.tsx`
+- *create* `GAMMA/features/apis/utils/pageContentType.ts` — the type labels and the editor mode for each type
+- *edit* `GAMMA/features/apis/utils/documentationTree.ts` — the ancestors of an item, for the breadcrumb and the synced check
+- *edit* `GAMMA/features/apis/services/apiDocumentation.ts`, `GAMMA/features/apis/hooks/useApiDocumentation.ts` and `GAMMA/features/apis/utils/queryKeys.ts` — read and save a page's content under the API path (STORY-12 Bis); the content carries the type the editor opens in, which the navigation item does not, and a save stores the returned content in the cache
+- *edit* `GAMMA/app/AppRoutes.tsx` — the editor replaces the placeholder STORY-23 reserved the route with
+- *read only* the host's editor setup — Graphene's `CodeEditor` is already available, do not add a second editor dependency
+**Size:** L · **Depends on:** STORY-25, STORY-22 · **Backend:** STORY-12 Bis
 **Subtasks:**
-1. The dialog shell and the what-to-add step, extensible for folders and links.
-2. Type it in, including the content field.
-3. Upload a file, with the type detected where possible.
+1. The content read and save, in the service and the hooks.
+2. The "Add documentation" menu and the page dialog: fill in, or import a file with its type detected.
+3. The editor screen, with Save and Discard and the warning before leaving with unsaved changes.
+4. The preview pane wired to STORY-22's component.
 
 #### STORY-27 — Create a folder
 **Why:** an API with more than a handful of pages needs grouping, and a flat list stops being usable quickly. Folders are also what lets a whole external folder be linked in STORY-34.
-**Acceptance criteria:** title only; appears in the tree; can be created at the top level or inside another folder.
+**Acceptance criteria:**
+- Title and access, as for a page; appears in the tree; can be created at the top level or inside another folder.
+- Its title and access can be changed afterwards from the tree, as STORY-29 does for a page, except for a folder inside a synced folder, which the server keeps read only.
 **Files:**
-- *edit* `GAMMA/features/apis/components/detail/documentation/CreateDocumentationDialog.tsx` — the folder branch
-**Size:** S · **Depends on:** STORY-25, STORY-26 (shares the dialog shell)
+- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx` — a Folder entry in STORY-26's "Add documentation" menu
+- *create* `GAMMA/features/apis/components/detail/documentation/FolderDialog.tsx` — creates a folder, and edits one from the tree's row menu, with the title and access fields of the page dialogs
+- *read only* `GAMMA/features/apis/components/detail/documentation/toUpdatePayload.ts` — STORY-29's payload builder, so an edit keeps the folder's external source
+**Size:** M · **Depends on:** STORY-25, STORY-26 (the menu and the shared fields)
 
 #### STORY-28 — Create a link
 **Why:** API documentation often needs to point at material that lives elsewhere — a status page, a changelog, a support portal — without copying it. Links can already be created through GitOps and the classic editor, so leaving them out of Gamma would make it the only place that cannot.
 **Acceptance criteria:** title and address; invalid addresses rejected with a clear message; appears in the tree; clicking it opens an inline edit form rather than the content editor.
 **Files:**
-- *edit* `GAMMA/features/apis/components/detail/documentation/CreateDocumentationDialog.tsx` — the link branch
-- *create* `GAMMA/features/apis/components/detail/documentation/LinkForm.tsx` — used for both creating and editing inline, since a link has no content and never opens the editor
-**Size:** S · **Depends on:** STORY-25, STORY-26 (shares the dialog shell) · **Backend:** STORY-10 must be in place, or an invalid area is accepted silently
+- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationPage.tsx` — a Link entry in STORY-26's "Add documentation" menu
+- *create* `GAMMA/features/apis/components/detail/documentation/LinkForm.tsx` — used for both creating and editing inline, since a link has no content and never opens the editor; an edit goes through STORY-29's payload builder
+**Size:** S · **Depends on:** STORY-25, STORY-26 (adds to its menu) · **Backend:** STORY-10 must be in place, or an invalid area is accepted silently
 
-#### STORY-29 — Edit a page's content
-**Why:** documentation is revised far more often than it is created. Without an editor a page can only be replaced by deleting and recreating it, and a live preview is what lets an author see how it will actually look in the portal before anyone else does.
+#### STORY-29 — Edit a page's title and access
+**Why:** a typo in a title, or a page that must become private, should not mean deleting the page and writing it again. STORY-26 sets both only when the page is created.
 **Acceptance criteria:**
-- Editor opens in the mode matching the content type.
-- Live preview beside it — Gravitee Markdown through STORY-22's component.
-- Save and discard, with unsaved-change protection on navigation.
+- "Edit details" on the editor screen opens a dialog with the title and access fields of the page dialog, and its own Save, apart from the content's.
+- The update carries every field of the page, built from fresh data — in particular its external source, since dropping it silently unlinks a synced page.
+- A synced page can be renamed and change its access, its source sent back unchanged. A page inside a synced folder offers no edit: the server keeps it read only.
+- A page inside a private folder cannot be made public, with an explanation, as in the portal editor.
+- A refusal from the server, such as a sibling already using the title, is shown and the dialog stays open with what was entered.
+- No edit without `api-documentation-u`.
+- The new title shows in the tree, the breadcrumb and the header once saved.
 **Files:**
-- *create* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx`
-- *create* `GAMMA/features/apis/components/detail/documentation/DocumentationEditor.tsx` — the editor pane and its mode selection
-- *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — read and save a page's content under the API path (STORY-12 Bis); the content carries the type the editor opens in, which the navigation item does not
-- *read only* the host's editor setup in the platform module — already available, do not add a second editor dependency
-**Size:** M · **Depends on:** STORY-25, STORY-22 · **Backend:** STORY-12 Bis
+- *create* `GAMMA/features/apis/components/detail/documentation/toUpdatePayload.ts` — build the full replace payload from a list row, in one place, so no caller can forget a field; STORY-27, STORY-28 and STORY-31 use it too
+- *create* `GAMMA/features/apis/components/detail/documentation/EditPageDetailsDialog.tsx`
+- *edit* `GAMMA/features/apis/components/detail/documentation/CreatePageDialog.tsx` — share the title and access fields with the new dialog
+- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx` — the "Edit details" action
+**Size:** M · **Depends on:** STORY-26
 **Subtasks:**
-1. The editor pane with the mode matching the content type, plus save and discard.
-2. Unsaved-change protection on navigation away.
-3. The preview pane wired to STORY-22's component.
+1. The payload builder, with tests proving the external source and a link's address survive a change to any other field. Do this first — these are the two fields whose omission silently unlinks a sourced page and rejects every link.
+2. The dialog and its rules for synced pages and private folders.
 
 #### STORY-30 — Publish and unpublish the API from Gamma
 **Why:** this is the step that puts documentation in front of customers, and the product's central promise — write first, choose where it appears later — only holds if the location is picked here. Publishing must also be a deliberate choice of an existing section, since these users are not allowed to create top-level sections.
@@ -1192,11 +1218,11 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - The UI warns that publishing the API again will show every item, including the ones hidden here.
 **Files:**
 - *edit* `GAMMA/features/apis/components/detail/documentation/DocumentationTree.tsx` — the per-item action
-- *create* `GAMMA/features/apis/components/detail/documentation/toUpdatePayload.ts` — build the full replace payload from a list row, in one place, so no caller can forget a field
+- *read only* `GAMMA/features/apis/components/detail/documentation/toUpdatePayload.ts` — STORY-29's payload builder; if this story lands first, it creates the builder as STORY-29 describes
 - *edit* `GAMMA/features/apis/hooks/useApiDocumentation.ts` — the update hook
 **Size:** M · **Depends on:** STORY-25
 **Subtasks:**
-1. The payload builder, with tests proving the external source and the address survive a visibility-only change. Do this first — these are the two fields whose omission silently unlinks a sourced page and rejects every link.
+1. Tests proving the external source and the address survive a visibility-only change, through STORY-29's payload builder. Do this first — these are the two fields whose omission silently unlinks a sourced page and rejects every link.
 2. The toggle and its disabled state while the whole API is unpublished.
 3. The cascade prompt when revealing a folder.
 
@@ -1229,9 +1255,9 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 **Files:**
 - *create* `GAMMA/features/apis/components/detail/documentation/OpenApiPreview.tsx`
 - *create* `GAMMA/features/apis/components/detail/documentation/AsyncApiPreview.tsx`
-- *edit* `GAMMA/features/apis/components/detail/documentation/DocumentationEditor.tsx` — select the preview by content type
+- *edit* `GAMMA/features/apis/pages/detail/ApiDocumentationEditPage.tsx` — select the preview by content type
 - *edit* `GAMMA/package.json` — the spec viewer dependency
-**Size:** M · **Depends on:** STORY-29
+**Size:** M · **Depends on:** STORY-26
 **Subtasks:**
 1. OpenAPI, including the malformed-spec error state.
 2. AsyncAPI.
@@ -1247,7 +1273,7 @@ All of PHASE 6 can be built against a stand-in generated from STORY-11's contrac
 - *create* `GAMMA/features/apis/components/detail/documentation/ExternalSourceConfig.tsx` — fetcher choice, the schema-driven settings form and the raw-editor fallback
 - *create* `GAMMA/features/apis/services/fetchers.ts` and a hook beside it — the fetcher list comes from an older API surface than the rest of this screen
 - *edit* `GAMMA/features/apis/services/apiDocumentation.ts` and `GAMMA/features/apis/hooks/useApiDocumentation.ts` — the manual refresh (`POST {navId}/_fetch`), which STORY-24 left out; invalidate the documentation list like the other writes
-- *edit* `GAMMA/features/apis/components/detail/documentation/CreateDocumentationDialog.tsx` — the external-source branch, for a page and for a whole folder
+- *edit* `GAMMA/features/apis/components/detail/documentation/CreatePageDialog.tsx` and STORY-27's `FolderDialog.tsx` — the "Link to external source" option, for a page and for a whole folder
 - *edit* `GAMMA/package.json` — the schema-form dependency
 **Size:** L · **Depends on:** STORY-25, STORY-17
 **Subtasks:**
@@ -1365,10 +1391,10 @@ flowchart LR
         S23["23 Sidebar"]
         S24["24 Data layer"]
         S25["25 List screen"]
-        S26["26 Create page"]
+        S26["26 Create and edit page"]
         S27["27 Create folder"]
         S28["28 Create link"]
-        S29["29 Edit page"]
+        S29["29 Edit page details"]
         S30["30 Publish UI"]
         S31["31 Show / hide item"]
         S32["32 Drag and drop"]
@@ -1407,12 +1433,12 @@ flowchart LR
     S25 --> S26
     S25 --> S27
     S25 --> S28
-    S25 --> S29
-    S22 --> S29
+    S22 --> S26
+    S26 --> S29
     S25 --> S30
     S25 --> S31
     S25 --> S32
-    S29 --> S33
+    S26 --> S33
     S25 --> S34
     S17 --> S34
 ```
@@ -1427,7 +1453,7 @@ Three of those unblock the most downstream work and should go first: **11** open
 
 The graph is wide and shallow — only five levels deep — so the constraint is weighting, not depth. Scoring S=1, M=2, L=3, the longest chain is:
 
-**11 → 24 → 25 → 29 → 33** — contract, data layer, list screen, edit page, spec preview ≈ 10 units.
+**11 → 24 → 25 → 26 → 33** — contract, data layer, list screen, create and edit page, spec preview ≈ 11 units, tied with **11 → 24 → 25 → 26 → 29**, which ends with the page details.
 
 Two chains run close behind it: **11 → 24 → 25 → 32** (drag and drop) ≈ 9, and **11 → 12 → 17 → 34** (external sources) ≈ 9. All three are frontend, which matches the earlier finding that the frontend is the schedule rather than the backend ownership work.
 
@@ -1445,7 +1471,7 @@ The longest backend chain is **01 → 03 → 05 → 06** ≈ 8. It only becomes 
 | **B — Gamma backend and data** | 11 → 12 → 12 Bis, 13, 14, 15, 16, 17, 35, 19, (37) | Independently testable from day one; 12 does not wait on track A because the explicit-owner rule needs no pipeline change |
 | **C — frontend** | 20 → 21 → 22, 23, 24 → 25 → 26, 27, 28, 29, 30, 31, 33, 34, 32 | Build against the contract's stand-in. 32 last |
 
-Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/29/33/34 against 24/25/26/27/28/30/31/32), while the backend cannot, because of the shared file in track A.
+Track C is roughly half the total work, so with four people the split is two on backend and two on frontend — the frontend divides cleanly (21/22/26/33/34 against 24/25/27/28/29/30/31/32), while the backend cannot, because of the shared file in track A.
 
 **Sizing caveat:** these sizes assume familiarity with this codebase. The ownership stories in track A depend on a model that is not stated anywhere in the code — [How portal navigation works today](#how-portal-navigation-works-today) is the onboarding document for it — and mistakes there are invisible rather than loud: it is possible to write code that passes its own tests and silently disables a validation rule. For someone new to this area, expect those stories to take roughly 1.7× and the mechanical ones 1.25×. Sequencing track B's smaller stories before track A is the cheapest way to build that model with low blast radius.
 
@@ -1494,7 +1520,7 @@ Track C is roughly half the total work, so with four people the split is two on 
 | Bug A detaches items from their API on every edit | **Blocker** | Closed: STORY-01 is merged |
 | Owner assignment placed after validation silently disables a validation rule | High | Assign before validation; test each affected rule explicitly (STORY-03) |
 | An imported folder lands half-owned | High | STORY-08 covers both bypassing creation paths |
-| Show/hide sends a short payload and unlinks a sourced page or rejects every link | High | STORY-31's acceptance criteria name both failures |
+| An update sends a short payload and unlinks a sourced page or rejects every link | High | STORY-29's payload builder is tested for both failures first, and every update goes through it |
 | zone.js turns out to be required and patches globals across Gamma | Medium | STORY-20 settles it before anything depends on it |
 | Create response misleads the editor about where the page is | Medium | STORY-04 |
 | Publishing impossible when no top-level section exists | Medium | Decision 3 |
