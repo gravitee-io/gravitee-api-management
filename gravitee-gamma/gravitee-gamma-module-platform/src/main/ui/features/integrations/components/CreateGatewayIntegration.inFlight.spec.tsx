@@ -21,7 +21,7 @@ import userEvent, { type UserEvent } from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { CreateA2aIntegration } from './CreateA2aIntegration';
+import { CreateGatewayIntegration } from './CreateGatewayIntegration';
 import { ApimApiError, apimFetchJsonV2 } from '../../../shared/api/apimClient';
 
 const mockNavigate = jest.fn();
@@ -46,21 +46,6 @@ interface PendingResponse {
     resolve: (value: unknown) => void;
     reject: (error: unknown) => void;
 }
-
-const FAILED_CREATES = [
-    {
-        failure: 'an HTTP 400 response',
-        error: new ApimApiError(400, 'Invalid integration'),
-        name: 'Pricing Agent',
-        url: 'https://pricing.example.com/.well-known/agent-card.json',
-    },
-    {
-        failure: 'a network error with no response',
-        error: new TypeError('Failed to fetch'),
-        name: 'Calendar Agent',
-        url: 'https://calendar.example.net/.well-known/agent-card.json',
-    },
-];
 
 beforeAll(() => {
     Object.defineProperty(window, 'matchMedia', {
@@ -98,19 +83,13 @@ function renderPage() {
             </QueryClientProvider>
         );
     }
-    renderWithGraphene(<CreateA2aIntegration onCancel={jest.fn()} />, { wrapper: Wrapper });
+    renderWithGraphene(<CreateGatewayIntegration provider="solace" onCancel={jest.fn()} />, { wrapper: Wrapper });
     return userEvent.setup();
 }
 
-async function enterText(user: UserEvent, input: HTMLElement, value: string) {
-    await user.click(input);
-    await user.paste(value);
-}
-
-async function fillForm(user: UserEvent, { name, url }: { name: string; url: string }) {
-    await enterText(user, screen.getByRole('textbox', { name: /^Name/ }), name);
-    await user.click(screen.getByRole('button', { name: 'Add another URL' }));
-    await enterText(user, screen.getByRole('textbox', { name: 'Well-known URL 1' }), url);
+async function fillName(user: UserEvent, name: string) {
+    await user.click(screen.getByRole('textbox', { name: /^Name/ }));
+    await user.paste(name);
 }
 
 function createButton(): HTMLElement {
@@ -121,7 +100,7 @@ function createRequests() {
     return mockApimFetchJsonV2.mock.calls.filter(([, path, init]) => path === '/integrations' && init?.method === 'POST');
 }
 
-describe('CreateA2aIntegration while a create request is in flight', () => {
+describe('CreateGatewayIntegration while a create request is in flight', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -129,7 +108,7 @@ describe('CreateA2aIntegration while a create request is in flight', () => {
     it('sends one create request when submit is activated twice before the first response arrives', async () => {
         const pending = holdCreateResponses();
         const user = renderPage();
-        await fillForm(user, { name: 'A2A Agents', url: 'https://agent.example.com/.well-known/agent.json' });
+        await fillName(user, 'Solace Prod');
 
         act(() => {
             createButton().click();
@@ -137,38 +116,22 @@ describe('CreateA2aIntegration while a create request is in flight', () => {
         });
         await waitFor(() => expect(pending.length).toBeGreaterThan(0));
         await act(async () => {
-            pending.forEach(response => response.resolve({ id: 'a2a-created-id', name: 'A2A Agents', provider: 'A2A' }));
+            pending.forEach(response => response.resolve({ id: 'gw-created-id', name: 'Solace Prod', provider: 'solace' }));
         });
 
         await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
         expect(createRequests()).toHaveLength(1);
     });
 
-    it('keeps the submit control disabled until the create response arrives', async () => {
+    it('sends a second create request when the user retries after a failed create', async () => {
         const pending = holdCreateResponses();
         const user = renderPage();
-        await fillForm(user, { name: 'A2A Agents', url: 'https://agent.example.com/.well-known/agent.json' });
-
-        await user.click(createButton());
-
-        await waitFor(() => expect(createRequests()).toHaveLength(1));
-        await waitFor(() => expect(createButton()).toBeDisabled());
-        expect(mockNavigate).not.toHaveBeenCalled();
-        await act(async () => {
-            pending[0].resolve({ id: 'a2a-created-id', name: 'A2A Agents', provider: 'A2A' });
-        });
-        await waitFor(() => expect(mockNavigate).toHaveBeenCalled());
-    });
-
-    it.each(FAILED_CREATES)('makes the submit control usable again after $failure', async ({ error, name, url }) => {
-        const pending = holdCreateResponses();
-        const user = renderPage();
-        await fillForm(user, { name, url });
+        await fillName(user, 'Solace Prod');
         await user.click(createButton());
         await waitFor(() => expect(createButton()).toBeDisabled());
 
         await act(async () => {
-            pending[0].reject(error);
+            pending[0].reject(new ApimApiError(400, 'Invalid integration'));
         });
 
         await waitFor(() => expect(createButton()).toBeEnabled());

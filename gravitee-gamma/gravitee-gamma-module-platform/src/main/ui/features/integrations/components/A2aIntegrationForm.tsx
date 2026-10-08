@@ -26,8 +26,9 @@ interface WellKnownUrlEntry {
 
 export function A2aIntegrationForm({
     onSubmit,
+    onCancel,
     isSubmitting = false,
-}: Readonly<{ onSubmit: (values: A2aIntegrationFormValues) => void; isSubmitting?: boolean }>) {
+}: Readonly<{ onSubmit: (values: A2aIntegrationFormValues) => void; onCancel: () => void; isSubmitting?: boolean }>) {
     const nextEntryId = useRef(0);
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
@@ -139,9 +140,14 @@ export function A2aIntegrationForm({
                     <FieldError>{errors.missingWellKnownUrls}</FieldError>
                 ) : null}
             </Field>
-            <Button type="submit" disabled={!canSubmit}>
-                Create
-            </Button>
+            <div className="flex justify-end gap-2 border-t pt-4">
+                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onCancel}>
+                    Cancel
+                </Button>
+                <Button type="submit" disabled={!canSubmit}>
+                    Create integration
+                </Button>
+            </div>
         </form>
     );
 }

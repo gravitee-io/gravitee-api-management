@@ -15,21 +15,26 @@
  */
 
 import { renderWithGraphene } from '@gravitee/graphene-core/testing';
-import { fireEvent, screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { IntegrationProviderSelector } from './IntegrationProviderSelector';
 
-const PROVIDER_LABELS_IN_DISPLAY_ORDER = [
-    'A2A Protocol',
-    'AWS API Gateway',
-    'Solace',
-    'Apigee',
-    'Azure API Management',
-    'IBM API Connect',
-    'Confluent Platform',
-    'MuleSoft',
-    'Edge Stack',
-    'SAP Business Technology Platform',
+const GROUPED_PROVIDER_LABELS = [
+    {
+        group: 'API gateways',
+        labels: [
+            'Apigee',
+            'AWS API Gateway',
+            'Azure API Management',
+            'Edge Stack',
+            'IBM API Connect',
+            'MuleSoft',
+            'SAP Business Technology Platform',
+        ],
+    },
+    { group: 'Event brokers', labels: ['Confluent Platform', 'Solace'] },
+    { group: 'AI agents', labels: ['A2A Protocol'] },
 ];
 
 beforeAll(() => {
@@ -48,33 +53,80 @@ beforeAll(() => {
     });
 });
 
+function providerCards() {
+    return screen.queryAllByRole('region').flatMap(group => within(group).getAllByRole('button'));
+}
+
 describe('IntegrationProviderSelector', () => {
-    it('offers A2A first, then one radio per gateway-style provider, in display order', () => {
-        renderWithGraphene(<IntegrationProviderSelector value={undefined} onChange={jest.fn()} />);
+    it('lists the providers grouped by type, in alphabetical order within each group', () => {
+        renderWithGraphene(<IntegrationProviderSelector onSelect={jest.fn()} />);
 
-        const radios = screen.getAllByRole('radio');
-
-        expect(radios).toHaveLength(PROVIDER_LABELS_IN_DISPLAY_ORDER.length);
-        radios.forEach((radio, index) => expect(radio).toHaveAccessibleName(PROVIDER_LABELS_IN_DISPLAY_ORDER[index]));
+        const groupNames = screen.getAllByRole('region').map(region => region.getAttribute('aria-label'));
+        expect(groupNames).toEqual(GROUPED_PROVIDER_LABELS.map(({ group }) => group));
+        GROUPED_PROVIDER_LABELS.forEach(({ group, labels }) => {
+            const cards = within(screen.getByRole('region', { name: group })).getAllByRole('button');
+            expect(cards).toHaveLength(labels.length);
+            cards.forEach((card, index) => expect(card).toHaveAccessibleName(new RegExp(`^${labels[index]}`)));
+        });
     });
 
     it.each([
-        { position: 'first', index: 0, provider: 'A2A' },
-        { position: 'eighth', index: 7, provider: 'mulesoft' },
-    ])('reports the stored provider value when the $position option is clicked', ({ index, provider }) => {
-        const onChange = jest.fn();
-        renderWithGraphene(<IntegrationProviderSelector value={undefined} onChange={onChange} />);
+        { provider: 'A2A Protocol', token: 'A2A' },
+        { provider: 'MuleSoft', token: 'mulesoft' },
+        { provider: 'Solace', token: 'solace' },
+    ])('reports the $token provider entry when $provider is clicked', async ({ provider, token }) => {
+        const onSelect = jest.fn();
+        renderWithGraphene(<IntegrationProviderSelector onSelect={onSelect} />);
 
-        fireEvent.click(screen.getAllByRole('radio')[index]);
+        await userEvent.click(screen.getByRole('button', { name: new RegExp(`^${provider}`) }));
 
-        expect(onChange).toHaveBeenCalledWith(provider);
+        expect(onSelect).toHaveBeenCalledTimes(1);
+        expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ token, label: provider }));
     });
 
-    it('marks only the selected provider as checked', () => {
-        renderWithGraphene(<IntegrationProviderSelector value="mulesoft" onChange={jest.fn()} />);
+    it('narrows the list to the providers whose name matches the filter and hides groups left empty', async () => {
+        renderWithGraphene(<IntegrationProviderSelector onSelect={jest.fn()} />);
 
-        const checkedStates = screen.getAllByRole('radio').map(radio => radio.getAttribute('aria-checked'));
+        await userEvent.type(screen.getByRole('textbox', { name: 'Filter providers' }), 'mule');
 
-        expect(checkedStates).toEqual(['false', 'false', 'false', 'false', 'false', 'false', 'false', 'true', 'false', 'false']);
+        expect(providerCards()).toHaveLength(1);
+        expect(providerCards()[0]).toHaveAccessibleName(/^MuleSoft/);
+        expect(screen.getAllByRole('region').map(region => region.getAttribute('aria-label'))).toEqual(['API gateways']);
+    });
+
+    it.each([{ filter: 'MULE' }, { filter: '  mule  ' }])('shows only MuleSoft for the filter "$filter"', async ({ filter }) => {
+        renderWithGraphene(<IntegrationProviderSelector onSelect={jest.fn()} />);
+
+        await userEvent.type(screen.getByRole('textbox', { name: 'Filter providers' }), filter);
+
+        expect(providerCards()).toHaveLength(1);
+        expect(providerCards()[0]).toHaveAccessibleName(/^MuleSoft/);
+    });
+
+    it('also matches the filter against the provider description', async () => {
+        renderWithGraphene(<IntegrationProviderSelector onSelect={jest.fn()} />);
+
+        await userEvent.type(screen.getByRole('textbox', { name: 'Filter providers' }), 'topics');
+
+        expect(providerCards()).toHaveLength(1);
+        expect(providerCards()[0]).toHaveAccessibleName(/^Confluent Platform/);
+    });
+
+    it.each([{ filter: 'zzz' }, { filter: '  zzz  ' }])('says no provider matches "zzz" for the filter "$filter"', async ({ filter }) => {
+        renderWithGraphene(<IntegrationProviderSelector onSelect={jest.fn()} />);
+
+        await userEvent.type(screen.getByRole('textbox', { name: 'Filter providers' }), filter);
+
+        expect(screen.queryAllByRole('button')).toHaveLength(0);
+        expect(screen.getByText('No providers match "zzz".')).toBeInTheDocument();
+    });
+
+    it('keeps every provider listed when the filter is only whitespace', async () => {
+        renderWithGraphene(<IntegrationProviderSelector onSelect={jest.fn()} />);
+
+        await userEvent.type(screen.getByRole('textbox', { name: 'Filter providers' }), '   ');
+
+        expect(providerCards()).toHaveLength(GROUPED_PROVIDER_LABELS.flatMap(({ labels }) => labels).length);
+        expect(screen.queryByText(/No providers match/)).not.toBeInTheDocument();
     });
 });
