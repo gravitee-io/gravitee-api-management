@@ -31,7 +31,7 @@ export const RETRY_DELAYS_MS = [2_000, 5_000, 10_000, ...Array.from({ length: 11
  */
 export const DELAY_REPORTED_AFTER_MS = 10_000;
 
-export type RemoteModuleLoadStatus = 'delayed';
+export type RemoteModuleLoadStatus = 'delayed' | 'attempting';
 
 type RemoteModuleExport = { default: ComponentType };
 
@@ -77,8 +77,23 @@ async function loadOnce(id: string): Promise<RemoteModuleExport> {
     return loaded;
 }
 
-function wait(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+const pendingRetries = new Map<string, () => void>();
+
+function waitBeforeRetry(moduleId: string, ms: number): Promise<void> {
+    return new Promise(resolve => {
+        const timer = setTimeout(retry, ms);
+        function retry() {
+            clearTimeout(timer);
+            pendingRetries.delete(moduleId);
+            resolve();
+        }
+        pendingRetries.set(moduleId, retry);
+    });
+}
+
+/** Starts the next attempt of a module now instead of waiting for it. Does nothing while no attempt is waiting. */
+export function retryModuleNow(moduleId: string): void {
+    pendingRetries.get(moduleId)?.();
 }
 
 export async function loadRemoteModule(
@@ -91,6 +106,7 @@ export async function loadRemoteModule(
     let delayed = false;
 
     for (let attempt = 1; ; attempt++) {
+        if (delayed) onStatus?.('attempting');
         try {
             const loaded = await loadOnce(id);
             if (attempt > 1) console.info(`[Modules] Loaded module "${module.id}" after ${attempt} attempts.`);
@@ -104,13 +120,13 @@ export async function loadRemoteModule(
             if (!delayed && (delay >= DELAY_REPORTED_AFTER_MS || Date.now() - startedAt >= DELAY_REPORTED_AFTER_MS)) {
                 delayed = true;
                 delay = Math.max(delay, DELAY_REPORTED_AFTER_MS);
-                onStatus?.('delayed');
             }
+            if (delayed) onStatus?.('delayed');
             console.warn(
                 `[Modules] Could not load module "${module.id}" (attempt ${attempt} of ${attempts}). The platform may be updating; retrying in ${delay / 1000} s.`,
                 error,
             );
-            await wait(delay);
+            await waitBeforeRetry(module.id, delay);
             registerWithFreshManifest(module.remoteName);
         }
     }

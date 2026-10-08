@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle, Spinner } from '@gravitee/graphene-core';
+import { Button, Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle, Spinner } from '@gravitee/graphene-core';
 
-export function ModuleUpdating({ moduleName }: { readonly moduleName: string }) {
+interface ModuleUpdatingProps {
+    readonly moduleName: string;
+    readonly attempting: boolean;
+    readonly onRetryNow: () => void;
+}
+
+export function ModuleUpdating({ moduleName, attempting, onRetryNow }: ModuleUpdatingProps) {
     return (
         <Empty role="status">
             <EmptyHeader>
@@ -31,6 +37,13 @@ export function ModuleUpdating({ moduleName }: { readonly moduleName: string }) 
                     {"An update may be in progress. We keep retrying and will open it here as soon as it's ready."}
                 </EmptyDescription>
             </EmptyHeader>
+            <EmptyContent>
+                {/* Outline on purpose: the console keeps retrying by itself, so waiting is the expected path and this
+                    button only saves time. The primary style is kept for the final message, where the user has to act. */}
+                <Button variant="outline" aria-disabled={attempting} onClick={attempting ? undefined : onRetryNow}>
+                    {attempting ? 'Retrying…' : 'Retry now'}
+                </Button>
+            </EmptyContent>
         </Empty>
     );
 }

@@ -22,6 +22,8 @@ const meta: Meta<typeof ModuleUpdating> = {
     component: ModuleUpdating,
     args: {
         moduleName: 'Agent Management',
+        attempting: false,
+        onRetryNow: () => window.alert('Retry now triggered'),
     },
     parameters: {
         docs: {
@@ -37,3 +39,8 @@ export default meta;
 type Story = StoryObj<typeof ModuleUpdating>;
 
 export const Default: Story = {};
+
+/** An attempt is running: the button stays focusable but does nothing until the attempt ends. */
+export const Attempting: Story = {
+    args: { attempting: true },
+};

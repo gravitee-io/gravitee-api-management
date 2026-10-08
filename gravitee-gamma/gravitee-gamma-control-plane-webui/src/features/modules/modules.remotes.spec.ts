@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DELAY_REPORTED_AFTER_MS, loadRemoteModule, registerModuleRemotes, RETRY_DELAYS_MS } from './modules.remotes';
+import { DELAY_REPORTED_AFTER_MS, loadRemoteModule, registerModuleRemotes, RETRY_DELAYS_MS, retryModuleNow } from './modules.remotes';
 import type { GammaModule } from './modules.types';
 
 const mockLoadRemote = jest.fn();
@@ -158,6 +158,41 @@ describe('loadRemoteModule', () => {
         expect(mockLoadRemote).toHaveBeenCalledTimes(1);
         await jest.advanceTimersByTimeAsync(1);
         expect(mockLoadRemote).toHaveBeenCalledTimes(2);
+    });
+
+    it('should report each attempt made once the load is delayed', async () => {
+        const onStatus = jest.fn();
+        const chunkError = new Error('Loading chunk 8201 failed.');
+        mockLoadRemote
+            .mockRejectedValueOnce(chunkError)
+            .mockRejectedValueOnce(chunkError)
+            .mockRejectedValueOnce(chunkError)
+            .mockResolvedValue(REMOTE_EXPORT);
+
+        const loading = loadRemoteModule(MODULE, onStatus);
+        await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1] + RETRY_DELAYS_MS[2]);
+        await loading;
+
+        expect(onStatus.mock.calls.map(([status]) => status)).toEqual(['delayed', 'attempting']);
+    });
+
+    it('should start the next attempt at once when asked to retry now', async () => {
+        const chunkError = new Error('Loading chunk 8201 failed.');
+        mockLoadRemote
+            .mockRejectedValueOnce(chunkError)
+            .mockRejectedValueOnce(chunkError)
+            .mockRejectedValueOnce(chunkError)
+            .mockResolvedValue(REMOTE_EXPORT);
+
+        const loading = loadRemoteModule(MODULE);
+        await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+        expect(mockLoadRemote).toHaveBeenCalledTimes(3);
+
+        retryModuleNow(MODULE.id);
+        await jest.advanceTimersByTimeAsync(0);
+
+        await expect(loading).resolves.toBe(REMOTE_EXPORT);
+        expect(mockLoadRemote).toHaveBeenCalledTimes(4);
     });
 
     it('should give up with the last error once every retry has failed', async () => {

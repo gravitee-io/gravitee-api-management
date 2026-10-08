@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { Suspense, useEffect } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 
@@ -190,6 +190,27 @@ describe('RemoteModuleRoute', () => {
 
             expect(await screen.findByText('Remote module')).toBeTruthy();
             expect(screen.queryByText(/isn't ready yet/)).toBeNull();
+        });
+
+        it('should load the module at once when the user clicks Retry now', async () => {
+            let platformIsBack = false;
+            mockLoadRemote.mockImplementation(() =>
+                platformIsBack ? Promise.resolve(mockRemoteExport) : Promise.reject(new Error('Loading chunk 8201 failed.')),
+            );
+
+            render(<RemoteModuleRoute module={buildModule('retry-now')} />);
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(RETRY_DELAYS_MS[0] + RETRY_DELAYS_MS[1]);
+            });
+            const retryNow = await screen.findByRole('button', { name: 'Retry now' });
+
+            platformIsBack = true;
+            await act(async () => {
+                fireEvent.click(retryNow);
+                await jest.advanceTimersByTimeAsync(0);
+            });
+
+            expect(await screen.findByText('Remote module')).toBeTruthy();
         });
 
         it('should show a message in place of the module, and keep the rest of the page, once every attempt has failed', async () => {

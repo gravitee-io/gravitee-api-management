@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { ModuleUpdating } from './ModuleUpdating';
 
 describe('ModuleUpdating', () => {
     it('should name the app and say it will open by itself', () => {
-        render(<ModuleUpdating moduleName="Agent Management" />);
+        render(<ModuleUpdating moduleName="Agent Management" attempting={false} onRetryNow={jest.fn()} />);
 
         const message = screen.getByRole('status');
         expect(message.textContent).toContain("Agent Management isn't ready yet");
@@ -27,8 +28,30 @@ describe('ModuleUpdating', () => {
     });
 
     it('should title the page, as the module has not rendered its own heading', () => {
-        render(<ModuleUpdating moduleName="Agent Management" />);
+        render(<ModuleUpdating moduleName="Agent Management" attempting={false} onRetryNow={jest.fn()} />);
 
         expect(screen.getByRole('heading', { level: 1, name: "Agent Management isn't ready yet" })).toBeTruthy();
+    });
+
+    it('should start a new attempt when the user asks to retry now', async () => {
+        const user = userEvent.setup();
+        const onRetryNow = jest.fn();
+        render(<ModuleUpdating moduleName="Agent Management" attempting={false} onRetryNow={onRetryNow} />);
+
+        await user.click(screen.getByRole('button', { name: 'Retry now' }));
+
+        expect(onRetryNow).toHaveBeenCalledTimes(1);
+    });
+
+    it('should keep the button, without acting on it, while an attempt is running', async () => {
+        const user = userEvent.setup();
+        const onRetryNow = jest.fn();
+        render(<ModuleUpdating moduleName="Agent Management" attempting onRetryNow={onRetryNow} />);
+
+        const button = screen.getByRole('button', { name: 'Retrying…' });
+        expect(button.getAttribute('aria-disabled')).toBe('true');
+        await user.click(button);
+
+        expect(onRetryNow).not.toHaveBeenCalled();
     });
 });
