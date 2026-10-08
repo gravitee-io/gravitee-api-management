@@ -25,15 +25,17 @@ import {
     SheetTitle,
     Switch,
 } from '@gravitee/graphene-core';
-import { FileUpIcon, UploadIcon } from '@gravitee/graphene-core/icons';
+import { UploadIcon } from '@gravitee/graphene-core/icons';
 import { useQuery } from '@tanstack/react-query';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
+import { FileDropZone } from './FileDropZone';
 import { SegmentedTabs } from './SegmentedTabs';
 import { SelectionCards } from './SelectionCards';
 import { policyStudioKeys } from '../../../hooks/usePolicyStudioData';
 import { listPolicies } from '../../../services/policyStudioService';
 import type { ApiImportFormat, ApiImportSubmission } from '../../../types';
+import { importFileFormatError } from '../../../utils/importFileFormat';
 
 type SourceMode = 'local' | 'remote';
 
@@ -73,8 +75,6 @@ export function ImportApiSheet({
     isImporting: boolean;
     error?: string | null;
 }>) {
-    const inputRef = useRef<HTMLInputElement>(null);
-
     const [format, setFormat] = useState<ApiImportFormat>('gravitee');
     const [sourceMode, setSourceMode] = useState<SourceMode>('local');
     const [fileName, setFileName] = useState<string | null>(null);
@@ -173,15 +173,16 @@ export function ImportApiSheet({
         setParseError(null);
         setFileName(file.name);
         const text = await file.text();
+        const formatError = importFileFormatError(format, file.name, text);
+        if (formatError) {
+            setParseError(formatError);
+            setDefinition(null);
+            setFileText(null);
+            return;
+        }
         if (format === 'gravitee') {
-            try {
-                setDefinition(JSON.parse(text) as unknown);
-                setFileText(text);
-            } catch {
-                setParseError('Invalid JSON. Please upload a valid Gravitee API definition file.');
-                setDefinition(null);
-                setFileText(null);
-            }
+            setDefinition(JSON.parse(text) as unknown);
+            setFileText(text);
         } else {
             setDefinition(null);
             setFileText(text);
@@ -290,32 +291,8 @@ export function ImportApiSheet({
                             </div>
                         ) : (
                             <>
-                                <div
-                                    role="button"
-                                    tabIndex={0}
-                                    onClick={() => inputRef.current?.click()}
-                                    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
-                                    className="flex items-center justify-center rounded-lg border-dashed bg-muted/40 p-6 cursor-pointer hover:border-primary/40 transition-colors"
-                                    style={{ borderWidth: '2px' }}
-                                >
-                                    <div className="text-center space-y-1">
-                                        <FileUpIcon className="size-7 text-muted-foreground mx-auto" />
-                                        <p className="text-sm font-medium">{fileName ?? 'Drop file here or click to browse'}</p>
-                                        <p className="text-xs text-muted-foreground">{fileHint}</p>
-                                    </div>
-                                </div>
+                                <FileDropZone accept={fileAccept} fileName={fileName} hint={fileHint} onFile={handleFile} />
                                 {parseError && <p className="text-xs text-destructive">{parseError}</p>}
-                                <input
-                                    ref={inputRef}
-                                    type="file"
-                                    accept={fileAccept}
-                                    className="sr-only"
-                                    onChange={async e => {
-                                        const file = e.target.files?.[0];
-                                        if (file) await handleFile(file);
-                                        e.target.value = '';
-                                    }}
-                                />
                             </>
                         )}
                     </div>

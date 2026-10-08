@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { policyStudioKeys } from './usePolicyStudioData';
 import { listPolicies } from '../services/policyStudioService';
 import type { ApiImportFormat, ApiImportSubmission } from '../types';
+import { importFileFormatError } from '../utils/importFileFormat';
 
 export type ImportSourceMode = 'local' | 'remote';
 
@@ -154,15 +155,16 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
         setParseError(null);
         setFileName(file.name);
         const text = await file.text();
+        const formatError = importFileFormatError(format, file.name, text);
+        if (formatError) {
+            setParseError(formatError);
+            setDefinition(null);
+            setFileText(null);
+            return;
+        }
         if (format === 'gravitee') {
-            try {
-                setDefinition(JSON.parse(text) as unknown);
-                setFileText(text);
-            } catch {
-                setParseError('Invalid JSON. Please upload a valid Gravitee API definition file.');
-                setDefinition(null);
-                setFileText(null);
-            }
+            setDefinition(JSON.parse(text) as unknown);
+            setFileText(text);
         } else {
             setDefinition(null);
             setFileText(text);

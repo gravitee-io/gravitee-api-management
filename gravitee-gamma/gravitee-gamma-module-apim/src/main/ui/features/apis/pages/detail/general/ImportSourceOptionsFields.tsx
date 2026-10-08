@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 import { Input, Label, Switch } from '@gravitee/graphene-core';
-import { FileUpIcon } from '@gravitee/graphene-core/icons';
-import { useRef } from 'react';
 
+import { FileDropZone } from './FileDropZone';
 import { SelectionCards } from './SelectionCards';
 import { isValidHttpUrl } from '../../../hooks/useImportSourceOptions';
 import type { ImportSourceMode, UseImportSourceOptionsResult } from '../../../hooks/useImportSourceOptions';
@@ -35,8 +34,6 @@ export function ImportSourceOptionsFields({
     format: ApiImportFormat;
     state: UseImportSourceOptionsResult;
 }>) {
-    const inputRef = useRef<HTMLInputElement>(null);
-
     return (
         <>
             <div className="space-y-2">
@@ -64,32 +61,8 @@ export function ImportSourceOptionsFields({
                     </div>
                 ) : (
                     <>
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => inputRef.current?.click()}
-                            onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
-                            className="flex items-center justify-center rounded-lg border-dashed bg-muted/40 p-6 cursor-pointer hover:border-primary/40 transition-colors"
-                            style={{ borderWidth: '2px' }}
-                        >
-                            <div className="text-center space-y-1">
-                                <FileUpIcon className="size-7 text-muted-foreground mx-auto" />
-                                <p className="text-sm font-medium">{state.fileName ?? 'Drop file here or click to browse'}</p>
-                                <p className="text-xs text-muted-foreground">{state.fileHint}</p>
-                            </div>
-                        </div>
+                        <FileDropZone accept={state.fileAccept} fileName={state.fileName} hint={state.fileHint} onFile={state.handleFile} />
                         {state.parseError && <p className="text-xs text-destructive">{state.parseError}</p>}
-                        <input
-                            ref={inputRef}
-                            type="file"
-                            accept={state.fileAccept}
-                            className="sr-only"
-                            onChange={async e => {
-                                const file = e.target.files?.[0];
-                                if (file) await state.handleFile(file);
-                                e.target.value = '';
-                            }}
-                        />
                     </>
                 )}
             </div>
