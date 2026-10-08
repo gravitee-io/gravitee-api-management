@@ -20,6 +20,8 @@ import { InfoTooltip } from './InfoTooltip';
 import type { VirtualHostRow } from './types';
 import { validatePath } from './types';
 
+const COLUMNS_STYLE = { gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) 8rem 2rem' };
+
 interface VirtualHostsCardProps {
     rows: VirtualHostRow[];
     onAdd: () => void;
@@ -61,7 +63,7 @@ export function VirtualHostsCard({
                 </div>
 
                 {/* Column headers */}
-                <div className="grid gap-2" style={{ gridTemplateColumns: '1fr 1fr auto auto' }}>
+                <div className="grid gap-2" style={COLUMNS_STYLE}>
                     <div>
                         <p className="text-xs font-medium text-muted-foreground">Virtual host</p>
                         <p className="text-xs text-muted-foreground">
@@ -90,7 +92,7 @@ export function VirtualHostsCard({
                     {rows.map(row => {
                         const pathError = validatePath(row.path);
                         return (
-                            <div key={row.id} className="grid items-start gap-2" style={{ gridTemplateColumns: '1fr 1fr auto auto' }}>
+                            <div key={row.id} className="grid items-start gap-2" style={COLUMNS_STYLE}>
                                 <Input
                                     value={row.host}
                                     onChange={e => onFieldChange(row.id, 'host', e.target.value)}

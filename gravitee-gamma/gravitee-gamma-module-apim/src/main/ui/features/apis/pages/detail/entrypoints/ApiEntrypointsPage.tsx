@@ -206,8 +206,8 @@ export function ApiEntrypointsPage() {
 
     function handleEnableVirtualHosts() {
         setVirtualHostMode(true);
-        if (virtualHosts.length === 0) {
-            setVirtualHosts([{ id: newId(), host: '', path: '/', overrideAccess: false }]);
+        if (!virtualHosts.some(r => r.host.trim())) {
+            setVirtualHosts(contextPaths.map(r => ({ id: newId(), host: '', path: r.path, overrideAccess: false })));
         }
         markDirty();
     }
