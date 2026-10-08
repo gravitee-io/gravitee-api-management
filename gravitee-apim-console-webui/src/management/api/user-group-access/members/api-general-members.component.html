@@ -40,7 +40,7 @@
             *gioPermission="{ anyOf: ['api-member-u'] }"
             mat-raised-button
             (click)="updateGroups()"
-            [disabled]="groups?.length === 0"
+            [disabled]="groupsLoadFailed || groups?.length === 0"
             type="button"
           >
             Manage groups
