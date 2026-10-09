@@ -1036,7 +1036,9 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
     }
 
     private static final String SYNC_ENV = "env-sync-queries";
-    private static final long SYNC_NOW = 5_000_000_000_000L;
+    // MySQL and MariaDB TIMESTAMP columns only cover 1970-01-01 00:00:01 to 2038-01-19 UTC: stay well inside
+    private static final long SYNC_BASE = 1_700_000_000_000L;
+    private static final long SYNC_NOW = 2_000_000_000_000L;
 
     private Subscription syncSubscription(String id, String plan, Subscription.Status status, Long endingAt, long updatedAt, String env) {
         Subscription subscription = new Subscription();
@@ -1059,15 +1061,15 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
         long future = SYNC_NOW + 1_000_000L;
         long past = SYNC_NOW - 1_000_000L;
         List<Subscription> subscriptions = List.of(
-            syncSubscription("sync-b2", "plan-sync-b", Subscription.Status.ACCEPTED, null, 1000, SYNC_ENV),
-            syncSubscription("sync-b1", "plan-sync-b", Subscription.Status.ACCEPTED, future, 2000, SYNC_ENV),
-            syncSubscription("sync-a2", "plan-sync-a", Subscription.Status.ACCEPTED, future, 3000, SYNC_ENV),
-            syncSubscription("sync-a1", "plan-sync-a", Subscription.Status.ACCEPTED, null, 4000, SYNC_ENV),
-            syncSubscription("sync-a3", "plan-sync-a", Subscription.Status.ACCEPTED, past, 5000, SYNC_ENV),
-            syncSubscription("sync-a4", "plan-sync-a", Subscription.Status.CLOSED, null, 6000, SYNC_ENV),
-            syncSubscription("sync-a5", "plan-sync-a", Subscription.Status.REJECTED, null, 7000, SYNC_ENV),
-            syncSubscription("sync-c1", "plan-sync-c", Subscription.Status.ACCEPTED, null, 8000, SYNC_ENV),
-            syncSubscription("sync-a6", "plan-sync-a", Subscription.Status.ACCEPTED, null, 9000, "env-sync-other")
+            syncSubscription("sync-b2", "plan-sync-b", Subscription.Status.ACCEPTED, null, SYNC_BASE + 1000, SYNC_ENV),
+            syncSubscription("sync-b1", "plan-sync-b", Subscription.Status.ACCEPTED, future, SYNC_BASE + 2000, SYNC_ENV),
+            syncSubscription("sync-a2", "plan-sync-a", Subscription.Status.ACCEPTED, future, SYNC_BASE + 3000, SYNC_ENV),
+            syncSubscription("sync-a1", "plan-sync-a", Subscription.Status.ACCEPTED, null, SYNC_BASE + 4000, SYNC_ENV),
+            syncSubscription("sync-a3", "plan-sync-a", Subscription.Status.ACCEPTED, past, SYNC_BASE + 5000, SYNC_ENV),
+            syncSubscription("sync-a4", "plan-sync-a", Subscription.Status.CLOSED, null, SYNC_BASE + 6000, SYNC_ENV),
+            syncSubscription("sync-a5", "plan-sync-a", Subscription.Status.REJECTED, null, SYNC_BASE + 7000, SYNC_ENV),
+            syncSubscription("sync-c1", "plan-sync-c", Subscription.Status.ACCEPTED, null, SYNC_BASE + 8000, SYNC_ENV),
+            syncSubscription("sync-a6", "plan-sync-a", Subscription.Status.ACCEPTED, null, SYNC_BASE + 9000, "env-sync-other")
         );
         for (Subscription subscription : subscriptions) {
             subscriptionRepository.create(subscription);
@@ -1200,8 +1202,8 @@ public class SubscriptionRepositoryTest extends AbstractManagementRepositoryTest
                         Subscription.Status.PENDING.name()
                     )
                 )
-                .from(2000)
-                .to(8000)
+                .from(SYNC_BASE + 2000)
+                .to(SYNC_BASE + 8000)
                 .environments(singleton(SYNC_ENV))
                 .build();
 
