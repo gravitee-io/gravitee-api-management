@@ -16,8 +16,11 @@
 package io.gravitee.rest.api.security.filter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.*;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.management.model.Token;
@@ -28,10 +31,12 @@ import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -100,6 +105,50 @@ public class TokenAuthenticationFilterTest {
         verify(authoritiesProvider).retrieveAuthorities(USER_ID);
         UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         assertEquals(ORG_ID, principal.getOrganizationId());
+    }
+
+    @Test
+    public void shouldExposeGcatCarriedBySessionJwt() throws Exception {
+        final String USER_ID = "userid1";
+        final String GCAT = "Bearer cockpit-session-token";
+        TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
+            "JWT_SECRET_TOEKN_TEST",
+            cookieGenerator,
+            userService,
+            tokenService,
+            authoritiesProvider
+        );
+        String jwt = JWT.create()
+            .withSubject(USER_ID)
+            .withClaim(JWTHelper.Claims.GCAT, GCAT)
+            .sign(Algorithm.HMAC256("JWT_SECRET_TOEKN_TEST"));
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(authoritiesProvider.retrieveAuthorities(USER_ID)).thenReturn(Set.of());
+
+        filter.doFilter(request, response, filterChain);
+
+        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        assertEquals(GCAT, principal.getGcat());
+    }
+
+    @Test
+    public void shouldLeaveGcatNullWhenSessionJwtHasNone() throws Exception {
+        final String USER_ID = "userid1";
+        TokenAuthenticationFilter filter = new TokenAuthenticationFilter(
+            "JWT_SECRET_TOEKN_TEST",
+            cookieGenerator,
+            userService,
+            tokenService,
+            authoritiesProvider
+        );
+        String jwt = JWT.create().withSubject(USER_ID).sign(Algorithm.HMAC256("JWT_SECRET_TOEKN_TEST"));
+        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + jwt);
+        when(authoritiesProvider.retrieveAuthorities(USER_ID)).thenReturn(Set.of());
+
+        filter.doFilter(request, response, filterChain);
+
+        UserDetails principal = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        assertNull(principal.getGcat());
     }
 
     @Test

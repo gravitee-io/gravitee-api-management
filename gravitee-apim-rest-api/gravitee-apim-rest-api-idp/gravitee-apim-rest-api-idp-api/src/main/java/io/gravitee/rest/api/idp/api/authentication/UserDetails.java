@@ -44,6 +44,7 @@ public class UserDetails extends User implements org.springframework.security.co
     private Map<String, Object> customFields;
     private boolean isSystem;
     private String organizationId;
+    private String gcat;
 
     /**
      * The user creation date
@@ -312,5 +313,14 @@ public class UserDetails extends User implements org.springframework.security.co
 
     public void setOrganizationId(String organizationId) {
         this.organizationId = organizationId;
+    }
+
+    @JsonIgnore
+    public String getGcat() {
+        return gcat;
+    }
+
+    public void setGcat(String gcat) {
+        this.gcat = gcat;
     }
 }
