@@ -16,6 +16,7 @@
 package io.gravitee.apim.rest.api.automation.resource;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.group.model.crd.GroupCRDStatus;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
 import io.gravitee.apim.core.member.model.RoleScope;
+import io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles;
 import io.gravitee.apim.rest.api.automation.model.GroupState;
 import io.gravitee.apim.rest.api.automation.resource.base.AbstractResourceTest;
 import jakarta.inject.Inject;
@@ -147,6 +149,7 @@ class GroupsResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
+            reset(groupService);
             when(importGroupCRDUseCase.execute(any(ImportGroupCRDUseCase.Input.class))).thenReturn(
                 new ImportGroupCRDUseCase.Output(GroupCRDStatus.builder().id("group-id").members(0).build())
             );
@@ -155,8 +158,24 @@ class GroupsResourceTest extends AbstractResourceTest {
             );
         }
 
+        private void givenStoredDefaultMemberRoles(Map<io.gravitee.rest.api.model.permissions.RoleScope, String> roles) {
+            var group = new io.gravitee.rest.api.model.GroupEntity();
+            group.setRoles(roles);
+            when(groupService.findById(any(), eq("group-id"))).thenReturn(group);
+        }
+
         @Test
-        void should_pass_default_member_roles_to_the_use_case_and_echo_them() {
+        void should_pass_default_member_roles_to_the_use_case_and_answer_the_stored_ones() {
+            givenStoredDefaultMemberRoles(
+                Map.of(
+                    io.gravitee.rest.api.model.permissions.RoleScope.API,
+                    "USER",
+                    io.gravitee.rest.api.model.permissions.RoleScope.APPLICATION,
+                    "USER",
+                    io.gravitee.rest.api.model.permissions.RoleScope.API_PRODUCT,
+                    "USER"
+                )
+            );
             var state = expectEntity("group-with-default-member-roles.json");
 
             var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
@@ -168,33 +187,36 @@ class GroupsResourceTest extends AbstractResourceTest {
                         Map.of(RoleScope.API, "USER", RoleScope.APPLICATION, "USER", RoleScope.API_PRODUCT, "USER")
                     );
                 soft.assertThat(input.getValue().spec().isIgnoreMembers()).isFalse();
-                soft.assertThat(state.getDefaultMemberRoles()).containsEntry("API_PRODUCT", "USER");
+                soft.assertThat(state.getDefaultMemberRoles().getApiProduct()).isEqualTo("USER");
             });
         }
 
-        @ParameterizedTest
-        @ValueSource(strings = { "group-with-name.json", "group-with-empty-default-member-roles.json" })
-        void should_leave_default_member_roles_undeclared_when_absent_or_empty(String fixture) {
-            expectEntity(fixture);
+        @Test
+        void should_leave_default_member_roles_undeclared_when_absent() {
+            expectEntity("group-with-name.json");
 
             var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
             verify(importGroupCRDUseCase).execute(input.capture());
             assertThat(input.getValue().spec().getDefaultMemberRoles()).isNull();
         }
 
-        @ParameterizedTest
-        @ValueSource(booleans = { true, false })
-        void should_reject_a_scope_that_is_not_a_group_default_role_scope(boolean dryRun) {
-            try (
-                var response = rootTarget()
-                    .queryParam("dryRun", dryRun)
-                    .request()
-                    .accept(MediaType.APPLICATION_JSON_TYPE)
-                    .put(Entity.json(readJSON("group-with-integration-default-member-role.json")))
-            ) {
-                assertThat(response.getStatus()).isEqualTo(400);
-                assertThat(response.readEntity(String.class)).contains("scope [INTEGRATION] is not a group default role scope");
-            }
+        @Test
+        void should_answer_the_stored_default_member_roles_when_the_spec_omits_them() {
+            givenStoredDefaultMemberRoles(Map.of(io.gravitee.rest.api.model.permissions.RoleScope.API, "OWNER"));
+
+            var state = expectEntity("group-with-name.json");
+
+            assertThat(state.getDefaultMemberRoles()).isEqualTo(new GroupDefaultMemberRoles().api("OWNER"));
+        }
+
+        @Test
+        void should_declare_no_default_member_roles_when_empty() {
+            var state = expectEntity("group-with-empty-default-member-roles.json");
+            assertThat(state.getDefaultMemberRoles()).isEqualTo(new GroupDefaultMemberRoles());
+
+            var input = ArgumentCaptor.forClass(ImportGroupCRDUseCase.Input.class);
+            verify(importGroupCRDUseCase).execute(input.capture());
+            assertThat(input.getValue().spec().getDefaultMemberRoles()).isEqualTo(Map.of());
         }
 
         @ParameterizedTest
