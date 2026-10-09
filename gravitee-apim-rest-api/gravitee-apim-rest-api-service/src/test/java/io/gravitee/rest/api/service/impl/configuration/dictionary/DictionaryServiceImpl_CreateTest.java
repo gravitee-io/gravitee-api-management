@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_CREATED;
+import static io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryAuditPatch.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,7 +31,10 @@ import static org.mockito.Mockito.when;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DictionaryRepository;
 import io.gravitee.repository.management.model.Dictionary;
@@ -57,6 +61,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -70,6 +75,9 @@ public class DictionaryServiceImpl_CreateTest {
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();
+
+    @Spy
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Mock
     private DictionaryRepository dictionaryRepository;
@@ -292,6 +300,51 @@ public class DictionaryServiceImpl_CreateTest {
         dictionaryService.create(new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID), newDictionary);
 
         verify(auditService).createAuditLog(any(ExecutionContext.class), argThat(data -> !data.getProperties().containsKey(ENCRYPTED)));
+    }
+
+    @Test
+    public void should_audit_only_the_fingerprint_of_an_encrypted_property_on_create() throws Exception {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setName("my-dict");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("secret", "s3cr3t", "plain", "plain-value"));
+        newDictionary.setPropertyOptions(Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build()));
+
+        when(dictionaryRepository.findById(any())).thenReturn(Optional.empty());
+        when(dictionaryRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("s3cr3t")).thenReturn("CIPHER-OF-S3CR3T");
+
+        dictionaryService.create(new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID), newDictionary);
+
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"add","path":"/properties","value":{"secret":{"value":"<sha256:e0b6daa9e5b1247e71610b26c5b48482b03daf2c445d853458ae04afce4af65b>","encrypted":true},"plain":"plain-value"}}
+                """
+            )
+        );
+        assertThat(patch.toString()).doesNotContain("CIPHER-OF-S3CR3T").doesNotContain("s3cr3t");
+        verify(dictionaryRepository).create(
+            argThat(dict -> new DictionaryProperty("CIPHER-OF-S3CR3T", true).equals(dict.getProperties().get("secret")))
+        );
+    }
+
+    @Test
+    public void should_not_audit_the_value_of_an_encrypted_property_whose_key_contains_a_slash() throws Exception {
+        NewDictionaryEntity newDictionary = new NewDictionaryEntity();
+        newDictionary.setName("my-dict");
+        newDictionary.setType(DictionaryType.MANUAL);
+        newDictionary.setProperties(Map.of("db/pass~word", "s3cr3t"));
+        newDictionary.setPropertyOptions(Map.of("db/pass~word", DictionaryPropertyOptions.builder().encryptable(true).build()));
+
+        when(dictionaryRepository.findById(any())).thenReturn(Optional.empty());
+        when(dictionaryRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("s3cr3t")).thenReturn("CIPHER-OF-S3CR3T");
+
+        dictionaryService.create(new ExecutionContext(GraviteeContext.getCurrentOrganization(), ENVIRONMENT_ID), newDictionary);
+
+        assertThat(DictionaryAuditPatch.capturedPatch(auditService).toString()).doesNotContain("CIPHER-OF-S3CR3T").contains("db/pass~word");
     }
 
     @Test
