@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import {
-    Alert,
-    AlertDescription,
     Button,
     Dialog,
     DialogContent,
@@ -25,38 +23,23 @@ import {
     DialogTitle,
     Field,
     FieldDescription,
-    FieldError,
     FieldLabel,
     FieldLegend,
     FieldSet,
-    FileUploadInput,
     Input,
     Label,
     Switch,
-    type FileRejection,
 } from '@gravitee/graphene-core';
 import { useState, type FormEvent } from 'react';
 
-import { notify } from '../../../../../shared/notify';
-import { extractErrorMessage } from '../../../../../shared/notify/extractErrorMessage';
-import { useCreateApiDocumentationItem, useSaveApiDocumentationPageContent } from '../../../hooks/useApiDocumentation';
+import { type ImportedFile, ImportFileField } from './ImportFileField';
+import { useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
 import { SelectionCards, type SelectionCardItem } from '../../../pages/detail/general/SelectionCards';
 import type { PortalNavigationFolder, PortalPageContentType } from '../../../types/apiDocumentation';
-import {
-    DOCUMENTATION_FILE_ACCEPT,
-    detectPageContentType,
-    MAX_DOCUMENTATION_FILE_SIZE_MB,
-    titleFromFileName,
-} from '../../../utils/documentationFile';
+import { titleFromFileName } from '../../../utils/documentationFile';
 import { PAGE_CONTENT_TYPE_LABELS } from '../../../utils/pageContentType';
 
 type ContentSource = 'FILL' | 'IMPORT';
-
-interface ImportedFile {
-    name: string;
-    content: string;
-    contentType: PortalPageContentType;
-}
 
 const CONTENT_SOURCES: readonly SelectionCardItem<ContentSource>[] = [
     { id: 'FILL', label: 'Fill in content', description: 'Write the page in the editor' },
@@ -98,8 +81,7 @@ function CreatePageForm({
     onClose,
     onCreated,
 }: Readonly<{ apiId: string; parent?: PortalNavigationFolder; onClose: () => void; onCreated: (pageId: string) => void }>) {
-    const createItem = useCreateApiDocumentationItem(apiId);
-    const saveContent = useSaveApiDocumentationPageContent(apiId);
+    const { createPage, isCreating } = useCreateDocumentationPage(apiId);
 
     const [title, setTitle] = useState('');
     // The server refuses a public page inside a folder that requires authentication.
@@ -108,82 +90,26 @@ function CreatePageForm({
     const [source, setSource] = useState<ContentSource>('FILL');
     const [pageType, setPageType] = useState<PortalPageContentType>('GRAVITEE_MARKDOWN');
     const [importedFile, setImportedFile] = useState<ImportedFile | null>(null);
-    const [fileError, setFileError] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const canCreate = title.trim() !== '' && (source === 'FILL' || importedFile !== null) && !isSubmitting;
+    const imported = source === 'IMPORT' ? importedFile : null;
+    const canCreate = title.trim() !== '' && (source === 'FILL' || imported !== null) && !isCreating;
 
-    function refuseFile(message: string) {
-        setImportedFile(null);
-        setFileError(message);
-    }
-
-    async function handleFilesAccepted([file]: File[]) {
-        if (!file) return;
-        let content: string;
-        try {
-            content = await file.text();
-        } catch {
-            refuseFile(`'${file.name}' could not be read.`);
-            return;
-        }
-        const contentType = detectPageContentType(file.name, content);
-        if (!contentType) {
-            refuseFile(`Cannot tell whether '${file.name}' is OpenAPI or AsyncAPI: it needs a root openapi, swagger or asyncapi property.`);
-            return;
-        }
-        setFileError(null);
-        setImportedFile({ name: file.name, content, contentType });
-        setTitle(current => (current.trim() ? current : titleFromFileName(file.name)));
-    }
-
-    function handleFilesRejected([rejection]: FileRejection[]) {
-        if (!rejection) return;
-        const tooLarge = rejection.errors.some(error => error.code === 'file-too-large');
-        refuseFile(
-            tooLarge
-                ? `'${rejection.file.name}' is larger than ${MAX_DOCUMENTATION_FILE_SIZE_MB} MB.`
-                : 'Only .md, .yaml, .yml and .json files can be imported.',
-        );
+    function handleImportedFile(file: ImportedFile | null) {
+        setImportedFile(file);
+        if (file) setTitle(current => (current.trim() ? current : titleFromFileName(file.file.name)));
     }
 
     async function handleSubmit(event: FormEvent) {
         event.preventDefault();
         if (!canCreate) return;
-        const pageTitle = title.trim();
-        const imported = source === 'IMPORT' ? importedFile : null;
-        setIsSubmitting(true);
-
-        let pageId: string;
-        try {
-            const page = await createItem.mutateAsync({
-                type: 'PAGE',
-                title: pageTitle,
-                contentType: imported?.contentType ?? pageType,
-                area: 'TOP_NAVBAR',
-                visibility: isPrivate ? 'PRIVATE' : 'PUBLIC',
-                parentId: parent?.id,
-            });
-            pageId = page.id;
-        } catch (error) {
-            notify.error(error, 'Failed to create the page');
-            setIsSubmitting(false);
-            return;
-        }
-
-        // A page is created empty: its text can only be written through its content, once the page exists.
-        if (imported && imported.content !== '') {
-            try {
-                await saveContent.mutateAsync({ navId: pageId, content: imported.content });
-            } catch (error) {
-                notify.warning(`Page '${pageTitle}' was created, but its content could not be saved: ${extractErrorMessage(error)}`);
-                onCreated(pageId);
-                return;
-            }
-        }
-
-        notify.success(`Page '${pageTitle}' created`);
-        onCreated(pageId);
+        const pageId = await createPage({
+            title: title.trim(),
+            visibility: isPrivate ? 'PRIVATE' : 'PUBLIC',
+            contentType: imported?.contentType ?? pageType,
+            content: imported?.content ?? '',
+            parentId: parent?.id,
+        });
+        if (pageId) onCreated(pageId);
     }
 
     return (
@@ -195,78 +121,59 @@ function CreatePageForm({
                 </DialogDescription>
             </DialogHeader>
 
-            <form id="create-documentation-page-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <Field orientation="vertical" className="gap-1.5">
-                    <FieldLabel htmlFor="documentation-page-title">Title</FieldLabel>
-                    <Input
-                        id="documentation-page-title"
-                        value={title}
-                        onChange={event => setTitle(event.target.value)}
-                        disabled={isSubmitting}
-                        required
-                    />
-                </Field>
-
-                <FieldSet className="gap-1.5">
-                    <FieldLegend variant="label">Access</FieldLegend>
-                    <div className="flex items-center gap-2">
-                        <Switch
-                            id="documentation-page-private"
-                            checked={isPrivate}
-                            onCheckedChange={setIsPrivate}
-                            disabled={isSubmitting || privateParent !== undefined}
+            <div className="flex flex-col gap-5">
+                <form id="create-documentation-page-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
+                    <Field orientation="vertical" className="gap-1.5">
+                        <FieldLabel htmlFor="documentation-page-title">Title</FieldLabel>
+                        <Input
+                            id="documentation-page-title"
+                            value={title}
+                            onChange={event => setTitle(event.target.value)}
+                            disabled={isCreating}
+                            required
                         />
-                        <Label htmlFor="documentation-page-private" className="font-normal">
-                            Authentication is required to view this page
-                        </Label>
-                    </div>
-                    {privateParent ? (
-                        <FieldDescription>{privateParent.title} requires authentication, so this page does too.</FieldDescription>
-                    ) : null}
-                </FieldSet>
+                    </Field>
 
-                <FieldSet className="gap-1.5">
-                    <FieldLegend variant="label">Content</FieldLegend>
-                    <SelectionCards options={CONTENT_SOURCES} activeId={source} onChange={setSource} ariaLabel="Content" />
-                </FieldSet>
-
-                {source === 'FILL' ? (
                     <FieldSet className="gap-1.5">
-                        <FieldLegend variant="label">Page type</FieldLegend>
-                        <SelectionCards options={PAGE_TYPES} activeId={pageType} onChange={setPageType} ariaLabel="Page type" />
-                    </FieldSet>
-                ) : (
-                    <>
-                        <Field orientation="vertical" className="gap-1.5">
-                            <FileUploadInput
-                                label={importedFile?.name ?? 'Choose a file to import'}
-                                accept={DOCUMENTATION_FILE_ACCEPT}
-                                maxFileSize={MAX_DOCUMENTATION_FILE_SIZE_MB * 1024 * 1024}
-                                invalid={fileError !== null}
-                                disabled={isSubmitting}
-                                onFilesAccepted={files => void handleFilesAccepted(files)}
-                                onFilesRejected={handleFilesRejected}
+                        <FieldLegend variant="label">Access</FieldLegend>
+                        <div className="flex items-center gap-2">
+                            <Switch
+                                id="documentation-page-private"
+                                checked={isPrivate}
+                                onCheckedChange={setIsPrivate}
+                                disabled={isCreating || privateParent !== undefined}
                             />
-                            {fileError && <FieldError>{fileError}</FieldError>}
-                        </Field>
+                            <Label htmlFor="documentation-page-private" className="font-normal">
+                                Authentication is required to view this page
+                            </Label>
+                        </div>
+                        {privateParent ? (
+                            <FieldDescription>{privateParent.title} requires authentication, so this page does too.</FieldDescription>
+                        ) : null}
+                    </FieldSet>
 
-                        {importedFile && (
-                            <Alert>
-                                <AlertDescription>
-                                    {importedFile.name} will be imported as {PAGE_CONTENT_TYPE_LABELS[importedFile.contentType]}.
-                                </AlertDescription>
-                            </Alert>
-                        )}
-                    </>
-                )}
-            </form>
+                    <FieldSet className="gap-1.5">
+                        <FieldLegend variant="label">Content</FieldLegend>
+                        <SelectionCards options={CONTENT_SOURCES} activeId={source} onChange={setSource} ariaLabel="Content" />
+                    </FieldSet>
+
+                    {source === 'FILL' ? (
+                        <FieldSet className="gap-1.5">
+                            <FieldLegend variant="label">Page type</FieldLegend>
+                            <SelectionCards options={PAGE_TYPES} activeId={pageType} onChange={setPageType} ariaLabel="Page type" />
+                        </FieldSet>
+                    ) : null}
+                </form>
+                {/* Outside the form: Graphene's FileUpload remove button has no type, so it would submit it. */}
+                {source === 'IMPORT' ? <ImportFileField value={importedFile} onChange={handleImportedFile} disabled={isCreating} /> : null}
+            </div>
 
             <DialogFooter>
-                <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+                <Button type="button" variant="outline" onClick={onClose} disabled={isCreating}>
                     Cancel
                 </Button>
                 <Button type="submit" form="create-documentation-page-form" disabled={!canCreate}>
-                    {isSubmitting ? 'Creating…' : 'Create'}
+                    {isCreating ? 'Creating…' : 'Create'}
                 </Button>
             </DialogFooter>
         </>
