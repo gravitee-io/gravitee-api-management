@@ -24,6 +24,7 @@ import { of } from 'rxjs/internal/observable/of';
 
 import { PortalNavigationItem } from '../../../entities/portal-navigation/portal-navigation-item';
 import { User } from '../../../entities/user/user';
+import { ConfigService } from '../../../services/config.service';
 import { PortalService } from '../../../services/portal.service';
 
 @Component({
@@ -45,9 +46,11 @@ export class MobileNavBarComponent {
       ),
   );
 
+  private readonly configService = inject(ConfigService);
   protected isLoggedIn = computed(() => {
     return !isEmpty(this.currentUser());
   });
+  protected readonly aiWorkspacesEnabled = computed(() => this.configService.configuration.portalNext?.aiWorkspaces?.enabled === true);
   protected isMobileMenuOpened = false;
   private readonly elementRef = inject(ElementRef);
 

@@ -24,5 +24,8 @@
   }
   <button i18n="@@applications" mat-menu-item [routerLink]="['/dashboard', 'applications']">Applications</button>
   <button i18n="@@subscriptions" mat-menu-item [routerLink]="['/dashboard', 'subscriptions']">Subscriptions</button>
+  @if (aiWorkspacesEnabled()) {
+    <button i18n="@@myWorkspaceTitle" mat-menu-item [routerLink]="['/dashboard', 'workspaces']">My Workspace</button>
+  }
   <button i18n="@@userAvatarMenuLogOut" mat-menu-item [routerLink]="['/log-out']">Log out</button>
 </mat-menu>

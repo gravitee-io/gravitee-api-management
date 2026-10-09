@@ -82,6 +82,16 @@
         (click)="closeMenu()"
         >Subscriptions</a
       >
+      @if (aiWorkspacesEnabled()) {
+        <a
+          class="mobile-menu__link"
+          i18n="@@myWorkspaceTitle"
+          [routerLink]="['/dashboard', 'workspaces']"
+          routerLinkActive="active"
+          (click)="closeMenu()"
+          >My Workspace</a
+        >
+      }
       <a class="mobile-menu__link" i18n="@@userAvatarMenuLogOut" [routerLink]="['/log-out']" routerLinkActive="active" (click)="closeMenu()"
         >Log out</a
       >

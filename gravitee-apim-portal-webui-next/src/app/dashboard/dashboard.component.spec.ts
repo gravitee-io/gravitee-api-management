@@ -33,8 +33,9 @@ describe('DashboardComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const init = async (
-    params: Partial<{ enablePortalNextAnalytics: boolean }> = {
+    params: Partial<{ enablePortalNextAnalytics: boolean; enableAiWorkspaces: boolean }> = {
       enablePortalNextAnalytics: false,
+      enableAiWorkspaces: false,
     },
   ) => {
     const dashboardRoute = (routes as Routes).find(route => route.path === 'dashboard');
@@ -64,12 +65,13 @@ describe('DashboardComponent', () => {
           provide: ConfigService,
           useFactory: () => {
             const stub = new ConfigServiceStub();
-            if (params.enablePortalNextAnalytics) {
+            if (params.enablePortalNextAnalytics || params.enableAiWorkspaces) {
               stub.configuration = {
                 ...stub.configuration,
                 portalNext: {
                   ...stub.configuration.portalNext,
-                  analytics: { enabled: true },
+                  ...(params.enablePortalNextAnalytics ? { analytics: { enabled: true } } : {}),
+                  ...(params.enableAiWorkspaces ? { aiWorkspaces: { enabled: true } } : {}),
                 },
               };
             }
@@ -144,6 +146,12 @@ describe('DashboardComponent', () => {
     await init({ enablePortalNextAnalytics: true });
 
     expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['analytics', 'applications', 'subscriptions']);
+  });
+
+  it('should include My Workspace when the capability is on', async () => {
+    await init({ enableAiWorkspaces: true });
+
+    expect(fixture.componentInstance.menuItems().map(item => item.path)).toEqual(['applications', 'subscriptions', 'workspaces']);
   });
 
   it('should show Analytics in the sidenav when portal next analytics is enabled', async () => {
