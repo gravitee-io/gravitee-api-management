@@ -394,19 +394,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             audit.setEnvironmentId(executionContext.getEnvironmentId());
         }
         audit.setCreatedAt(auditLogData.getCreatedAt() == null ? new Date() : auditLogData.getCreatedAt());
-
-        final UserDetails authenticatedUser = getAuthenticatedUser();
-        final String user;
-        if (authenticatedUser != null && "token".equals(authenticatedUser.getSource())) {
-            user =
-                userService.findById(executionContext, authenticatedUser.getUsername()).getDisplayName() +
-                " - (using token \"" +
-                authenticatedUser.getSourceId() +
-                "\")";
-        } else {
-            user = getAuthenticatedUsernameOrSystem();
-        }
-        audit.setUser(user);
+        audit.setUser(auditUser(executionContext, auditLogData));
 
         if (auditLogData.getProperties() != null) {
             Map<String, String> stringStringMap = new HashMap<>(auditLogData.getProperties().size());
@@ -470,7 +458,19 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         return auditEntity;
     }
 
-    private String getAuthenticatedUsernameOrSystem() {
-        return isAuthenticated() ? getAuthenticatedUsername() : "system";
+    private String auditUser(ExecutionContext executionContext, AuditLogData auditLogData) {
+        final UserDetails authenticatedUser = getAuthenticatedUser();
+        if (authenticatedUser == null) {
+            return Objects.requireNonNullElse(auditLogData.getUser(), "system");
+        }
+        if ("token".equals(authenticatedUser.getSource())) {
+            return (
+                userService.findById(executionContext, authenticatedUser.getUsername()).getDisplayName() +
+                " - (using token \"" +
+                authenticatedUser.getSourceId() +
+                "\")"
+            );
+        }
+        return authenticatedUser.getUsername();
     }
 }

@@ -580,6 +580,7 @@ public class ApiStateServiceImpl_DeployTest {
             argThat(
                 auditLogData ->
                     auditLogData.getEvent() == event &&
+                    USER_NAME.equals(auditLogData.getUser()) &&
                     auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true")) &&
                     auditLogData.getCreatedAt().equals(api.getDeployedAt()) &&
                     auditLogData.getOldValue() == null &&

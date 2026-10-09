@@ -204,7 +204,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         Api.AuditEvent accessEvent
     ) {
         GenericApiEntity deployedApi = deploy(executionContext, storedApi, apiToDeploy, authenticatedUser, apiDeploymentEntity);
-        auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), accessEvent);
+        auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), authenticatedUser, accessEvent);
         return notifyDeployment(executionContext, deployedApi);
     }
 
@@ -256,6 +256,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         ExecutionContext executionContext,
         GenericApiEntity deployedApi,
         Date deployedAt,
+        String authenticatedUser,
         Api.AuditEvent event
     ) {
         List<Property> properties = v4Properties(deployedApi);
@@ -269,6 +270,7 @@ public class ApiStateServiceImpl implements ApiStateService {
                 .properties(encryptedMarker)
                 .event(event)
                 .createdAt(deployedAt)
+                .user(authenticatedUser)
                 .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
                 .build(),
             deployedApi.getId()

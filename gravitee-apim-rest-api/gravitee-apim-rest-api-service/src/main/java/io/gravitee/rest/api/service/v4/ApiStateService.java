@@ -61,7 +61,7 @@ public interface ApiStateService {
      * {@code API_ENCRYPTED_PROPERTIES_REFRESHED} audit entry instead of {@code API_ENCRYPTED_PROPERTIES_ACCESSED}.
      * @param executionContext the execution context containing organization and environment information
      * @param apiToDeploy is the API to deploy, carrying the synchronized dynamic properties
-     * @param authenticatedUser user to reference in deployment properties
+     * @param authenticatedUser user to reference in deployment properties, and in the audit entry when no user is authenticated
      * @param apiDeploymentEntity additional information about the deployment
      * @return the deployed API
      */

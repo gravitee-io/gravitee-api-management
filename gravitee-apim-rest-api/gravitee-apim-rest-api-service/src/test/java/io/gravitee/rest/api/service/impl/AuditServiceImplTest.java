@@ -39,11 +39,13 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.SecurityContextHelper;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.StreamSupport;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,6 +55,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
 class AuditServiceImplTest {
@@ -222,10 +225,57 @@ class AuditServiceImplTest {
         }
     }
 
+    @Nested
+    class AuditUser {
+
+        private static final ExecutionContext EXECUTION_CONTEXT = new ExecutionContext("DEFAULT", "DEFAULT");
+
+        @AfterEach
+        void clearSecurityContext() {
+            SecurityContextHolder.clearContext();
+        }
+
+        @Test
+        void should_record_the_given_user_when_no_user_is_authenticated() throws Exception {
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().user("sync-actor").build());
+
+            assertThat(capturedAudit().getUser()).isEqualTo("sync-actor");
+        }
+
+        @Test
+        void should_record_the_authenticated_user_over_the_given_user() throws Exception {
+            var authenticatedUser = new UserEntity();
+            authenticatedUser.setId("console-user");
+            SecurityContextHelper.authenticateAs(authenticatedUser);
+
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().user("sync-actor").build());
+
+            assertThat(capturedAudit().getUser()).isEqualTo("console-user");
+        }
+
+        @Test
+        void should_record_system_when_no_user_is_given_nor_authenticated() throws Exception {
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().build());
+
+            assertThat(capturedAudit().getUser()).isEqualTo("system");
+        }
+
+        private static AuditService.AuditLogData.AuditLogDataBuilder anApiAudit() {
+            return AuditService.AuditLogData.builder()
+                .referenceType(Audit.AuditReferenceType.API)
+                .referenceId("api-id")
+                .event(Api.AuditEvent.API_UPDATED);
+        }
+    }
+
     private String capturedPatch() throws TechnicalException {
+        return capturedAudit().getPatch();
+    }
+
+    private Audit capturedAudit() throws TechnicalException {
         var audit = ArgumentCaptor.forClass(Audit.class);
         verify(auditRepository).create(audit.capture());
-        return audit.getValue().getPatch();
+        return audit.getValue();
     }
 
     @Nested
