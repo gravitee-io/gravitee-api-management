@@ -151,10 +151,6 @@ function saveButton() {
     return screen.getByRole('button', { name: 'Save changes' }) as HTMLButtonElement;
 }
 
-function discardButton() {
-    return screen.getByRole('button', { name: 'Discard' }) as HTMLButtonElement;
-}
-
 function leavePage() {
     const event = new Event('beforeunload', { cancelable: true });
     fireEvent(window, event);
@@ -279,16 +275,14 @@ describe('ApiDocumentationEditPage', () => {
     });
 
     describe('editing', () => {
-        it('keeps Save and Discard disabled until the content changes, and previews the change', async () => {
+        it('keeps Save disabled until the content changes, and previews the change', async () => {
             renderPage();
             const textbox = await editor();
             expect(saveButton().disabled).toBe(true);
-            expect(discardButton().disabled).toBe(true);
 
             await userEvent.type(textbox, '!');
 
             expect(saveButton().disabled).toBe(false);
-            expect(discardButton().disabled).toBe(false);
             expect(screen.getByLabelText('Preview')).toHaveTextContent('# Getting started!');
         });
 
@@ -337,17 +331,6 @@ describe('ApiDocumentationEditPage', () => {
             expect((await editor()).value).toBe('# Getting started!');
         });
 
-        it('goes back to the saved content on Discard', async () => {
-            renderPage();
-
-            await userEvent.type(await editor(), '!');
-            await userEvent.click(discardButton());
-
-            expect((await editor()).value).toBe('# Getting started');
-            expect(saveButton().disabled).toBe(true);
-            expect(mockSaveContent).not.toHaveBeenCalled();
-        });
-
         it('asks the browser to confirm leaving only while there are unsaved changes', async () => {
             renderPage();
             const textbox = await editor();
@@ -355,9 +338,6 @@ describe('ApiDocumentationEditPage', () => {
 
             await userEvent.type(textbox, '!');
             expect(leavePage().defaultPrevented).toBe(true);
-
-            await userEvent.click(discardButton());
-            expect(leavePage().defaultPrevented).toBe(false);
         });
     });
 
@@ -417,7 +397,6 @@ describe('ApiDocumentationEditPage', () => {
 
             expect((await editor()).readOnly).toBe(true);
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', { name: 'Discard' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Edit details' })).not.toBeInTheDocument();
         });
 
