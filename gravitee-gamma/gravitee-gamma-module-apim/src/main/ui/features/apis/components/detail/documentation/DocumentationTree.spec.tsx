@@ -77,9 +77,12 @@ const STATUS_PAGE: ApiDocumentationItem = {
 
 const ITEMS = [GUIDES, GETTING_STARTED, OAUTH, REFERENCE, ENDPOINTS, STATUS_PAGE];
 
-function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelete: boolean; canAdd: boolean; isLoading: boolean }> = {}) {
+function renderTree(
+    overrides: Partial<{ items: ApiDocumentationItem[]; canDelete: boolean; canAdd: boolean; canEdit: boolean; isLoading: boolean }> = {},
+) {
     const onDelete = jest.fn();
     const onAddPage = jest.fn();
+    const onEditDetails = jest.fn();
     render(
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
@@ -93,13 +96,15 @@ function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelet
                             onDelete={onDelete}
                             canAdd={overrides.canAdd ?? true}
                             onAddPage={onAddPage}
+                            canEdit={overrides.canEdit ?? true}
+                            onEditDetails={onEditDetails}
                         />
                     }
                 />
             </Routes>
         </MemoryRouter>,
     );
-    return { onDelete, onAddPage };
+    return { onDelete, onAddPage, onEditDetails };
 }
 
 // The page owns which folders are open; this stands in for it.
@@ -273,6 +278,61 @@ describe('DocumentationTree', () => {
         });
     });
 
+    describe('editing the details of a page', () => {
+        it('offers it from the page, before delete, and reports which one', async () => {
+            const user = userEvent.setup();
+            const { onEditDetails } = renderTree();
+
+            await expand(user, 'Guides');
+            await user.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
+
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details', 'Delete']);
+            await user.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+            expect(onEditDetails).toHaveBeenCalledWith(GETTING_STARTED);
+        });
+
+        it('offers it on a page synced from its own source, which the server lets be renamed', async () => {
+            const user = userEvent.setup();
+            const syncedPage: ApiDocumentationItem = { ...ENDPOINTS, parentId: undefined, rootId: 'endpoints', source: REFERENCE.source };
+            renderTree({ items: [syncedPage] });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Endpoints' }));
+
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Edit details']);
+        });
+
+        it('does not offer it on a page inside a synced folder, which the server keeps read only', async () => {
+            const user = userEvent.setup();
+            renderTree();
+
+            await expand(user, 'Reference');
+
+            expect(screen.queryByRole('button', { name: 'Actions for Endpoints' })).not.toBeInTheDocument();
+        });
+
+        it('offers it only on a page', async () => {
+            const user = userEvent.setup();
+            renderTree();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            expect(screen.queryByRole('menuitem', { name: 'Edit details' })).not.toBeInTheDocument();
+            await user.keyboard('{Escape}');
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Status page' }));
+            expect(screen.queryByRole('menuitem', { name: 'Edit details' })).not.toBeInTheDocument();
+        });
+
+        it('does not offer it without the permission', async () => {
+            const user = userEvent.setup();
+            renderTree({ canEdit: false });
+
+            await expand(user, 'Guides');
+            await user.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
+
+            expect(screen.queryByRole('menuitem', { name: 'Edit details' })).not.toBeInTheDocument();
+        });
+    });
+
     describe('right-clicking a row', () => {
         it('opens the same menu as the row button, anywhere in the row', async () => {
             const user = userEvent.setup();
@@ -307,7 +367,7 @@ describe('DocumentationTree', () => {
         });
 
         it('leaves the browser menu alone without the permissions', () => {
-            renderTree({ canDelete: false, canAdd: false });
+            renderTree({ canDelete: false, canAdd: false, canEdit: false });
 
             expect(fireEvent.contextMenu(screen.getByText('Guides'))).toBe(true);
             expect(screen.queryByRole('menu')).not.toBeInTheDocument();

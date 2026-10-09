@@ -30,6 +30,7 @@ import {
     FolderOpenIcon,
     Link2Icon,
     MoreVerticalIcon,
+    PencilIcon,
     PlusIcon,
     RefreshCwIcon,
     Trash2Icon,
@@ -38,7 +39,7 @@ import { type ComponentType, type MouseEvent, useCallback, useMemo, useState } f
 import { Link } from 'react-router-dom';
 
 import { ItemAccessBadge, ItemPublishedBadge } from './DocumentationItemBadges';
-import type { ApiDocumentationItem, PortalNavigationFolder } from '../../../types/apiDocumentation';
+import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage } from '../../../types/apiDocumentation';
 import { buildDocumentationRows, type DocumentationRow, hasSource } from '../../../utils/documentationTree';
 
 type ColCell = { row: { original: DocumentationRow } };
@@ -67,6 +68,8 @@ export function DocumentationTree({
     onDelete,
     canAdd,
     onAddPage,
+    canEdit,
+    onEditDetails,
 }: Readonly<{
     items: ApiDocumentationItem[];
     isLoading: boolean;
@@ -76,6 +79,8 @@ export function DocumentationTree({
     onDelete: (row: DocumentationRow) => void;
     canAdd: boolean;
     onAddPage: (folder: PortalNavigationFolder) => void;
+    canEdit: boolean;
+    onEditDetails: (page: PortalNavigationPage) => void;
 }>) {
     const rows = useMemo(() => buildDocumentationRows(items, expandedIds), [items, expandedIds]);
     const [contextMenu, setContextMenu] = useState<RowContextMenuState | null>(null);
@@ -83,10 +88,15 @@ export function DocumentationTree({
     // The row button and the right-click menu offer the same actions, built here only.
     const actionsFor = useCallback(
         (row: DocumentationRow): RowAction[] => {
-            // The server refuses to add anything below a synced folder, or to delete what it syncs.
-            if (row.synced) return [];
             const { item } = row;
             const actions: RowAction[] = [];
+            // The server keeps everything below a synced folder read only, but lets a synced page be renamed.
+            const belowSyncedFolder = row.synced && !hasSource(item);
+            if (canEdit && item.type === 'PAGE' && !belowSyncedFolder) {
+                actions.push({ label: 'Edit details', icon: PencilIcon, onSelect: () => onEditDetails(item) });
+            }
+            // The server refuses to add anything below a synced folder, or to delete what it syncs.
+            if (row.synced) return actions;
             if (canAdd && item.type === 'FOLDER') {
                 actions.push({ label: 'Add page', icon: PlusIcon, onSelect: () => onAddPage(item) });
             }
@@ -95,12 +105,12 @@ export function DocumentationTree({
             }
             return actions;
         },
-        [canAdd, onAddPage, canDelete, onDelete],
+        [canEdit, onEditDetails, canAdd, onAddPage, canDelete, onDelete],
     );
 
     const columns = useMemo(
-        () => buildColumns({ hasActions: canAdd || canDelete, actionsFor, onToggle }),
-        [canAdd, canDelete, actionsFor, onToggle],
+        () => buildColumns({ hasActions: canEdit || canAdd || canDelete, actionsFor, onToggle }),
+        [canEdit, canAdd, canDelete, actionsFor, onToggle],
     );
 
     // DataTable takes no props for its rows, so the row is found from the title cell it contains.
