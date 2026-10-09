@@ -21,7 +21,9 @@ import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenti
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.ORG_CLAIM;
 import static io.gravitee.rest.api.management.rest.resource.auth.CockpitAuthenticationResource.REDIRECT_URI_CLAIM;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.auth0.jwt.JWT;
@@ -40,6 +42,8 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.common.utils.UUID;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.security.cookies.CookieGenerator;
+import io.gravitee.rest.api.security.filter.TokenAuthenticationFilter;
 import io.gravitee.rest.api.service.common.JWTHelper;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -53,12 +57,14 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
@@ -87,6 +93,9 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
     @Autowired
     protected Environment environment;
 
+    @Autowired
+    private CookieGenerator cookieGenerator;
+
     @Override
     protected String contextPath() {
         return "";
@@ -112,7 +121,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         System.setProperty(getKeystorePropertyPrefix() + ".keystore.type", "PKCS12");
         System.setProperty(getKeystorePropertyPrefix() + ".keystore.key.alias", "cockpit-ca");
         System.setProperty(getPropertyPrefix() + ".connector.ws.ssl.keystore.type", "PKCS12");
-        reset(userService);
+        reset(userService, cookieGenerator);
     }
 
     @AfterEach
@@ -223,6 +232,51 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         assertToken(response, userEntity);
     }
 
+    @Test
+    public void shouldCarryGcatIntoSessionCookie() {
+        UserEntity userEntity = mockUserEntity();
+        String gcat = "Bearer cockpit-session-token";
+
+        String jwt = this.generateJWT(
+            userEntity.getId(),
+            ORGANIZATION_ID,
+            ENVIRONMENT_ID,
+            "audience",
+            null,
+            null,
+            "gamma_console",
+            Map.of(JWTHelper.Claims.GCAT, gcat)
+        );
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertEquals(gcat, sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
+    }
+
+    @Test
+    public void shouldNotAddGcatToSessionCookieWhenCockpitTokenHasNone() {
+        UserEntity userEntity = mockUserEntity();
+
+        String jwt = this.generateJWT(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID, "audience", null, null, "gamma_console");
+        when(userService.findBySource(ORGANIZATION_ID, "cockpit", userEntity.getId(), true)).thenReturn(userEntity);
+        when(authoritiesProvider.retrieveAuthorities(userEntity.getId(), ORGANIZATION_ID, ENVIRONMENT_ID)).thenReturn(Set.of());
+        when(installationAccessQueryService.getGammaUrl(ORGANIZATION_ID)).thenReturn("http://localhost:4200");
+        final Response response = rootTarget(PATH).queryParam("token", jwt).request().get();
+        assertEquals(HttpStatusCode.TEMPORARY_REDIRECT_307, response.getStatus());
+        assertNull(sessionCookieJwt().getClaim(JWTHelper.Claims.GCAT).asString());
+    }
+
+    /** The cookie generator is a mock in the test context, so the session cookie is read from what the resource asked it to build. */
+    private DecodedJWT sessionCookieJwt() {
+        ArgumentCaptor<String> cookieValue = ArgumentCaptor.forClass(String.class);
+        verify(cookieGenerator).generate(eq(TokenAuthenticationFilter.AUTH_COOKIE_NAME), cookieValue.capture());
+        String token = cookieValue.getValue().substring("Bearer%20".length());
+        Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
+        return JWT.require(algorithm).build().verify(token);
+    }
+
     private void assertToken(Response response, UserEntity userEntity) {
         String token = URLEncodedUtils.parse(response.getLocation(), "UTF-8")
             .stream()
@@ -268,6 +322,19 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
         String redirectUri,
         String application
     ) {
+        return generateJWT(userId, organizationId, environmentId, audience, apiId, redirectUri, application, Map.of());
+    }
+
+    private String generateJWT(
+        String userId,
+        String organizationId,
+        String environmentId,
+        String audience,
+        String apiId,
+        String redirectUri,
+        String application,
+        Map<String, Object> additionalClaims
+    ) {
         var issueTime = TimeProvider.now();
         var expirationTime = issueTime.plusSeconds(TTL_SECONDS);
         try {
@@ -293,6 +360,7 @@ public abstract class AbstractCloudAuthenticationResourceTest extends AbstractRe
                 .claim(API_CLAIM, apiId)
                 .claim(APPLICATION_CLAIM, application)
                 .claim(REDIRECT_URI_CLAIM, redirectUri);
+            additionalClaims.forEach(claimsBuilder::claim);
             var claims = claimsBuilder.build();
 
             // Sign then serialize the JWT.
