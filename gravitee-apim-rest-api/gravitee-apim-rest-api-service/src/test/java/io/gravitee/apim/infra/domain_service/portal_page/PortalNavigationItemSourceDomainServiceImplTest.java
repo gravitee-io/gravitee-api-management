@@ -231,6 +231,83 @@ class PortalNavigationItemSourceDomainServiceImplTest {
         }
 
         @Test
+        void should_not_restore_masked_values_when_the_address_changes() {
+            mockDummyConfigurationClass();
+            var oldSource = dummySource("{\"url\":\"https://a.example/doc.md\",\"sensitiveData\":\"original-secret-token\"}");
+            var maskedConfiguration =
+                "{\"url\":\"https://b.example/doc.md\",\"sensitiveData\":\"" +
+                PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
+                "\"}";
+            var newSource = dummySource(maskedConfiguration);
+
+            cut.mergeSensitiveData(oldSource, newSource);
+
+            assertThat(newSource.getSourceConfiguration()).isEqualTo(maskedConfiguration);
+        }
+
+        @Test
+        void should_restore_masked_values_when_only_non_address_fields_change() throws Exception {
+            mockDummyConfigurationClass();
+            var oldSource = dummySource(
+                "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"main\",\"sensitiveData\":\"original-secret-token\"}"
+            );
+            var newSource = dummySource(
+                "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"dev\",\"sensitiveData\":\"" +
+                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
+                    "\"}"
+            );
+
+            cut.mergeSensitiveData(oldSource, newSource);
+
+            JsonNode configuration = new ObjectMapper().readTree(newSource.getSourceConfiguration());
+            assertThat(configuration.get("sensitiveData").textValue()).isEqualTo("original-secret-token");
+        }
+
+        @Test
+        void should_clear_a_masked_value_with_no_stored_secret_when_the_address_changes() throws Exception {
+            mockDummyConfigurationClass();
+            var oldSource = dummySource("{\"url\":\"https://a.example\"}");
+            var newSource = dummySource(
+                "{\"url\":\"https://b.example\",\"sensitiveData\":\"" +
+                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
+                    "\"}"
+            );
+
+            cut.mergeSensitiveData(oldSource, newSource);
+
+            JsonNode configuration = new ObjectMapper().readTree(newSource.getSourceConfiguration());
+            assertThat(configuration.has("sensitiveData")).isFalse();
+        }
+
+        @Test
+        void should_restore_an_explicit_null_stored_value_when_the_address_changes() throws Exception {
+            mockDummyConfigurationClass();
+            var oldSource = dummySource("{\"url\":\"https://a.example\",\"sensitiveData\":null}");
+            var newSource = dummySource(
+                "{\"url\":\"https://b.example\",\"sensitiveData\":\"" +
+                    PortalNavigationItemSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
+                    "\"}"
+            );
+
+            cut.mergeSensitiveData(oldSource, newSource);
+
+            JsonNode configuration = new ObjectMapper().readTree(newSource.getSourceConfiguration());
+            assertThat(configuration.get("sensitiveData").isNull()).isTrue();
+        }
+
+        @Test
+        void should_keep_a_new_secret_when_the_address_changes() {
+            mockDummyConfigurationClass();
+            var oldSource = dummySource("{\"url\":\"https://a.example\",\"sensitiveData\":\"original-secret-token\"}");
+            var newConfiguration = "{\"url\":\"https://b.example\",\"sensitiveData\":\"new-secret-token\"}";
+            var newSource = dummySource(newConfiguration);
+
+            cut.mergeSensitiveData(oldSource, newSource);
+
+            assertThat(newSource.getSourceConfiguration()).isEqualTo(newConfiguration);
+        }
+
+        @Test
         void should_not_restore_masked_values_across_a_source_type_change() {
             var oldSource = dummySource("{\"nonSensitiveData\":\"data\",\"sensitiveData\":\"original-secret-token\"}");
             var maskedConfiguration =

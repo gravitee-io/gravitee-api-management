@@ -27,6 +27,7 @@ import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
+import io.gravitee.rest.api.fetcher.FetcherConfigurationAddress;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -98,6 +99,10 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
 
             FetcherConfiguration originalFetcherConfiguration = oldFetcher.getConfiguration();
             FetcherConfiguration updatedFetcherConfiguration = newFetcher.getConfiguration();
+            var sameAddress = FetcherConfigurationAddress.sameAddress(
+                oldPage.getSource().getConfiguration(),
+                newPage.getSource().getConfiguration()
+            );
             boolean updated = false;
 
             Field[] fields = originalFetcherConfiguration.getClass().getDeclaredFields();
@@ -108,8 +113,13 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
                     try {
                         Object updatedValue = field.get(updatedFetcherConfiguration);
                         if (SENSITIVE_DATA_REPLACEMENT.equals(updatedValue)) {
+                            var storedValue = field.get(originalFetcherConfiguration);
+                            // A stored secret is only handed back to the address it was configured for
+                            if (!sameAddress && storedValue != null) {
+                                throw InvalidPageSourceException.unresolvedSensitivePlaceholder(field.getName());
+                            }
                             updated = true;
-                            field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
+                            field.set(updatedFetcherConfiguration, storedValue);
                         }
                     } catch (IllegalAccessException | IllegalArgumentException e) {
                         log.error("Error while merging original fetcher sensitive data to new fetcher", e);

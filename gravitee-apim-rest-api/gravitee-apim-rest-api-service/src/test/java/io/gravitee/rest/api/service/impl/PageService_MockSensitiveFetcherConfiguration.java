@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.exception;
+package io.gravitee.rest.api.service.impl;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.fetcher.api.FetcherConfiguration;
+import io.gravitee.fetcher.api.Sensitive;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-public class InvalidPageSourceException extends ValidationDomainException {
+@Getter
+@Setter
+@NoArgsConstructor
+public class PageService_MockSensitiveFetcherConfiguration implements FetcherConfiguration {
 
-    public InvalidPageSourceException(String message) {
-        super(message);
-    }
+    private String url;
+    private String branch;
 
-    public static InvalidPageSourceException unresolvedSensitivePlaceholder(String field) {
-        return new InvalidPageSourceException(
-            "The source configuration field %s still holds the masked placeholder: provide its actual value.".formatted(field)
-        );
-    }
+    @Sensitive
+    private String token;
 }
