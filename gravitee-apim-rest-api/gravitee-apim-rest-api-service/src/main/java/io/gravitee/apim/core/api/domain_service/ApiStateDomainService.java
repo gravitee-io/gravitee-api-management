@@ -27,6 +27,7 @@ import jakarta.validation.constraints.NotBlank;
 public interface ApiStateDomainService {
     boolean isSynchronized(Api api, AuditInfo auditInfo);
     Api deploy(Api apiToDeploy, String deploymentLabel, AuditInfo auditInfo);
+    Api redeployWithSyncedDynamicProperties(Api apiToDeploy, String deploymentLabel, AuditInfo auditInfo);
     Api start(Api api, AuditInfo auditInfo);
     boolean startV2DynamicProperties(String id);
     boolean startV4DynamicProperties(String apiId);

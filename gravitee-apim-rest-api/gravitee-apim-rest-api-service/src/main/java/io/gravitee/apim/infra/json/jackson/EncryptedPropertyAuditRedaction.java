@@ -21,6 +21,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 public final class EncryptedPropertyAuditRedaction {
 
+    private static final String VALUE = "value";
+
     private EncryptedPropertyAuditRedaction() {}
 
     public static <T extends JsonNode> T redact(T node) {
@@ -32,11 +34,11 @@ public final class EncryptedPropertyAuditRedaction {
     }
 
     private static void redactValue(ObjectNode property) {
-        JsonNode value = property.path("value");
+        JsonNode value = property.path(VALUE);
         if (value.isTextual()) {
-            property.put("value", fingerprint(value.textValue()));
+            property.put(VALUE, fingerprint(value.textValue()));
         } else {
-            property.remove("value");
+            property.remove(VALUE);
         }
     }
 
