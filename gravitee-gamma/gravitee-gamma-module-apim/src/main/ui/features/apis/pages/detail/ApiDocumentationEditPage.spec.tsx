@@ -15,7 +15,7 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -23,7 +23,12 @@ import { ApiDocumentationEditPage } from './ApiDocumentationEditPage';
 import { ApimApiError } from '../../../../shared/api/apimClient';
 import { notify } from '../../../../shared/notify';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
-import { getApiDocumentationPageContent, listApiDocumentation, saveApiDocumentationPageContent } from '../../services/apiDocumentation';
+import {
+    getApiDocumentationPageContent,
+    listApiDocumentation,
+    saveApiDocumentationPageContent,
+    updateApiDocumentationItem,
+} from '../../services/apiDocumentation';
 import type { ApiDocumentationItem, PortalPageContent, PortalPageContentType } from '../../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -82,6 +87,9 @@ const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockListApiDocumentation = jest.mocked(listApiDocumentation);
 const mockGetContent = jest.mocked(getApiDocumentationPageContent);
 const mockSaveContent = jest.mocked(saveApiDocumentationPageContent);
+const mockUpdateItem = jest.mocked(updateApiDocumentationItem);
+
+const SOURCE = { type: 'github-fetcher', configuration: {} };
 
 const BASE = { organizationId: 'DEFAULT', environmentId: 'DEFAULT', area: 'TOP_NAVBAR', published: false, visibility: 'PUBLIC' } as const;
 const GUIDES: ApiDocumentationItem = { ...BASE, id: 'guides', rootId: 'guides', title: 'Guides', type: 'FOLDER', order: 0 };
@@ -353,6 +361,55 @@ describe('ApiDocumentationEditPage', () => {
         });
     });
 
+    describe('editing the details', () => {
+        it('opens the details of the page beside the content actions', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(await screen.findByRole('button', { name: 'Edit details' }));
+
+            const dialog = screen.getByRole('dialog', { name: 'Edit page details' });
+            expect((within(dialog).getByRole('textbox', { name: 'Title' }) as HTMLInputElement).value).toBe('Getting started');
+        });
+
+        it('shows the new title once saved, keeping the unsaved content', async () => {
+            const user = userEvent.setup();
+            mockUpdateItem.mockResolvedValue({ ...GETTING_STARTED, title: 'First steps' });
+            renderPage();
+            await user.type(await editor(), ' today');
+
+            await user.click(screen.getByRole('button', { name: 'Edit details' }));
+            const dialog = screen.getByRole('dialog', { name: 'Edit page details' });
+            const title = within(dialog).getByRole('textbox', { name: 'Title' });
+            await user.clear(title);
+            await user.type(title, 'First steps');
+            givenItems([GUIDES, { ...GETTING_STARTED, title: 'First steps' }, PETSTORE]);
+            await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+            expect(await screen.findByRole('heading', { name: 'First steps' })).toBeInTheDocument();
+            expect(screen.queryByRole('dialog', { name: 'Edit page details' })).not.toBeInTheDocument();
+            expect((await editor()).value).toBe('# Getting started today');
+            expect(saveButton().disabled).toBe(false);
+        });
+
+        it('keeps a page inside a folder requiring authentication private', async () => {
+            const user = userEvent.setup();
+            givenItems([
+                { ...GUIDES, visibility: 'PRIVATE' },
+                { ...GETTING_STARTED, visibility: 'PRIVATE' },
+            ]);
+            renderPage();
+
+            await user.click(await screen.findByRole('button', { name: 'Edit details' }));
+
+            const dialog = screen.getByRole('dialog', { name: 'Edit page details' });
+            expect((within(dialog).getByRole('switch') as HTMLButtonElement).disabled).toBe(true);
+            expect(within(dialog).getByText(/requires authentication, so this page does too/).textContent).toBe(
+                'The parent folder Guides requires authentication, so this page does too.',
+            );
+        });
+    });
+
     describe('read only', () => {
         it('shows the content without letting a user without api-documentation-u change it', async () => {
             grantedPermissions = ['api-documentation-r'];
@@ -361,16 +418,29 @@ describe('ApiDocumentationEditPage', () => {
             expect((await editor()).readOnly).toBe(true);
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Discard' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Edit details' })).not.toBeInTheDocument();
         });
 
-        it('explains that a page synced from an external source cannot be edited', async () => {
-            const synced: ApiDocumentationItem = { ...GUIDES, source: { type: 'github-fetcher', configuration: {} } };
-            givenItems([synced, GETTING_STARTED]);
+        it('lets nothing be edited in a page inside a synced folder, which the server keeps read only', async () => {
+            givenItems([{ ...GUIDES, source: SOURCE }, GETTING_STARTED]);
             renderPage();
 
             expect((await editor()).readOnly).toBe(true);
-            expect(screen.getByText(/synced from an external source/i)).toBeInTheDocument();
+            expect(screen.getByText("This page is synced from an external source, so it can't be edited here.")).toBeInTheDocument();
             expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Edit details' })).not.toBeInTheDocument();
+        });
+
+        it('keeps the content of a synced page read only, but lets its details be edited', async () => {
+            givenItems([GUIDES, { ...GETTING_STARTED, source: SOURCE }]);
+            renderPage();
+
+            expect((await editor()).readOnly).toBe(true);
+            expect(
+                screen.getByText("This page's content is synced from an external source, so it can't be edited here."),
+            ).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+            expect(screen.getByRole('button', { name: 'Edit details' })).toBeInTheDocument();
         });
     });
 
