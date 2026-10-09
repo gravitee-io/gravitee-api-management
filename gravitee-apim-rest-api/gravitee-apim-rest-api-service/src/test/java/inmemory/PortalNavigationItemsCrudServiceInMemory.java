@@ -18,8 +18,10 @@ package inmemory;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 
 public class PortalNavigationItemsCrudServiceInMemory
@@ -49,6 +51,23 @@ public class PortalNavigationItemsCrudServiceInMemory
             return portalNavigationItem;
         }
         throw new IllegalStateException("Item not found");
+    }
+
+    @Override
+    public Optional<PortalNavigationItem> updateSourceFetchState(
+        PortalNavigationItemId id,
+        PortalNavigationItemSource fetchedSource,
+        PortalNavigationItemSource.FetchState fetchState
+    ) {
+        var stored = storage
+            .stream()
+            .filter(item -> item.getId().equals(id))
+            .findFirst();
+        stored
+            .map(PortalNavigationItem::getSource)
+            .filter(source -> source.sameOriginAs(fetchedSource))
+            .ifPresent(fetchState::applyTo);
+        return stored;
     }
 
     @Override

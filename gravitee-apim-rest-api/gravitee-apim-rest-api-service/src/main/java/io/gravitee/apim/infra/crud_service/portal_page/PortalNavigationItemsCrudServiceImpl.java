@@ -19,16 +19,21 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.portal_page.crud_service.PortalNavigationItemCrudService;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import io.gravitee.apim.infra.adapter.PortalNavigationItemAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PortalNavigationItemRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationItemCrudService {
+
+    /** Each miss means another writer touched the row meanwhile; contention on one item is rare and brief. */
+    private static final int MAX_FETCH_STATE_ATTEMPTS = 5;
 
     private final PortalNavigationItemRepository portalNavigationItemRepository;
     private final PortalNavigationItemAdapter portalNavigationItemAdapter = PortalNavigationItemAdapter.INSTANCE;
@@ -64,6 +69,45 @@ public class PortalNavigationItemsCrudServiceImpl implements PortalNavigationIte
                 "An error occurred while updating portal navigation item with id %s and environmentId %s",
                 portalNavigationItem.getId(),
                 portalNavigationItem.getEnvironmentId()
+            );
+            throw new TechnicalDomainException(errorMessage, e);
+        }
+    }
+
+    @Override
+    public Optional<PortalNavigationItem> updateSourceFetchState(
+        PortalNavigationItemId id,
+        PortalNavigationItemSource fetchedSource,
+        PortalNavigationItemSource.FetchState fetchState
+    ) {
+        try {
+            for (int attempt = 0; attempt < MAX_FETCH_STATE_ATTEMPTS; attempt++) {
+                final var stored = portalNavigationItemRepository.findById(id.json()).orElse(null);
+                if (stored == null) {
+                    return Optional.empty();
+                }
+                final var storedSource = portalNavigationItemAdapter.sourceFromRepository(stored);
+                if (storedSource == null || !storedSource.sameOriginAs(fetchedSource)) {
+                    return Optional.of(portalNavigationItemAdapter.toEntity(stored));
+                }
+                final var configuration = portalNavigationItemAdapter.configurationWithFetchState(stored.getConfiguration(), fetchState);
+                if (
+                    portalNavigationItemRepository.updateConfigurationIfUnchanged(stored.getId(), stored.getConfiguration(), configuration)
+                ) {
+                    stored.setConfiguration(configuration);
+                    return Optional.of(portalNavigationItemAdapter.toEntity(stored));
+                }
+            }
+            throw new TechnicalDomainException(
+                String.format(
+                    "Unable to persist the fetch state of portal navigation item with id %s: it keeps being updated concurrently",
+                    id
+                )
+            );
+        } catch (TechnicalException e) {
+            final var errorMessage = String.format(
+                "An error occurred while updating the fetch state of portal navigation item with id %s",
+                id
             );
             throw new TechnicalDomainException(errorMessage, e);
         }

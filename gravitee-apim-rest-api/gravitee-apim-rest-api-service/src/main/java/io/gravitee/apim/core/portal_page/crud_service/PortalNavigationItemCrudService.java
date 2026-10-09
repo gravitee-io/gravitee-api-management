@@ -17,12 +17,28 @@ package io.gravitee.apim.core.portal_page.crud_service;
 
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItem;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
+import io.gravitee.apim.core.portal_page.model.PortalNavigationItemSource;
 import java.util.List;
+import java.util.Optional;
 
 public interface PortalNavigationItemCrudService {
     PortalNavigationItem create(PortalNavigationItem portalNavigationItem);
 
     PortalNavigationItem update(PortalNavigationItem portalNavigationItem);
+
+    /**
+     * Persists the fetch state of the item's source and nothing else: every other attribute stays as
+     * currently stored, so a concurrent change to the item is never overwritten. The state is dropped
+     * when the item no longer exists, or when its stored source no longer has the origin of
+     * {@code fetchedSource}: a stamp belongs to the source it was fetched from.
+     *
+     * @return the item as stored afterwards, empty when it no longer exists
+     */
+    Optional<PortalNavigationItem> updateSourceFetchState(
+        PortalNavigationItemId id,
+        PortalNavigationItemSource fetchedSource,
+        PortalNavigationItemSource.FetchState fetchState
+    );
 
     void delete(PortalNavigationItemId portalNavigationItemId);
 
