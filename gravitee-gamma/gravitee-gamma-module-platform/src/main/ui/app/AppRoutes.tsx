@@ -105,6 +105,7 @@ import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { IntegrationConfigurationPage } from '../pages/IntegrationConfigurationPage';
+import { IntegrationDiscoveryPage } from '../pages/IntegrationDiscoveryPage';
 import { IntegrationOverviewPage } from '../pages/IntegrationOverviewPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
@@ -905,22 +906,32 @@ export function AppRoutes() {
                                     path=":integrationId"
                                     element={
                                         <RequireIntegrationPermission anyOf={[INTEGRATION_DEFINITION_READ_PERMISSION]}>
-                                            <IntegrationDetailLayout />
+                                            <Outlet />
                                         </RequireIntegrationPermission>
                                     }
                                 >
-                                    <Route index element={<IntegrationOverviewPage />} />
-                                    <Route
-                                        path="configuration"
-                                        element={
-                                            <RequireIntegrationPermission anyOf={INTEGRATION_CONFIGURATION_PERMISSIONS}>
-                                                <IntegrationConfigurationPage />
-                                            </RequireIntegrationPermission>
-                                        }
-                                    >
-                                        <Route index />
-                                        <Route path="members" />
+                                    <Route element={<IntegrationDetailLayout />}>
+                                        <Route index element={<IntegrationOverviewPage />} />
+                                        <Route
+                                            path="configuration"
+                                            element={
+                                                <RequireIntegrationPermission anyOf={INTEGRATION_CONFIGURATION_PERMISSIONS}>
+                                                    <IntegrationConfigurationPage />
+                                                </RequireIntegrationPermission>
+                                            }
+                                        >
+                                            <Route index />
+                                            <Route path="members" />
+                                        </Route>
                                     </Route>
+                                    <Route
+                                        path="discover"
+                                        element={
+                                            <PermissionPageGuard permission={ENVIRONMENT_INTEGRATION_CREATE_PERMISSION} unauthorizedTo="..">
+                                                <IntegrationDiscoveryPage />
+                                            </PermissionPageGuard>
+                                        }
+                                    />
                                 </Route>
                             </Route>
                             <Route

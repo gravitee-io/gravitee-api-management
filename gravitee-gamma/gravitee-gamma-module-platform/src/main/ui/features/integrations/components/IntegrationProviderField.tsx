@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
-import { Badge } from '@gravitee/graphene-core';
 import { useId } from 'react';
 
-import { CopyableProfileValue } from '../../users/components/CopyableProfileValue';
+import { IntegrationProviderLabel } from './IntegrationProviderLabel';
+import { ProviderMonogram } from './ProviderMonogram';
+import { findProvider } from '../utils/providerLabels';
 
-export function IntegrationId({ integrationId }: Readonly<{ integrationId: string }>) {
+export function IntegrationProviderField({ provider }: Readonly<{ provider: string }>) {
     const headingId = useId();
+    const monogram = findProvider(provider)?.monogram ?? provider.slice(0, 3).toUpperCase();
 
     return (
-        <section className="min-w-0 flex-1 space-y-2" data-testid="integration-id" aria-labelledby={headingId}>
+        <section className="min-w-0 flex-1 space-y-2" data-testid="integration-provider" aria-labelledby={headingId}>
             <h2 id={headingId} className="text-sm font-semibold">
-                Integration ID
+                Provider
             </h2>
-            <Badge variant="secondary" className="max-w-full px-2.5 py-1 font-normal">
-                <CopyableProfileValue value={integrationId} copyAriaLabel="Copy integration ID" className="font-mono text-xs" />
-            </Badge>
+            <div className="flex items-center gap-2 font-semibold">
+                <ProviderMonogram monogram={monogram} />
+                <IntegrationProviderLabel provider={provider} />
+            </div>
         </section>
     );
 }
