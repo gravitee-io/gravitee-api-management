@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-import { Skeleton } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Card, CardContent, CardHeader, Skeleton } from '@gravitee/graphene-core';
 import { Navigate, useParams } from 'react-router-dom';
 
 import { IntegrationAgentConnection } from '../features/integrations/components/IntegrationAgentConnection';
+import { IntegrationFederatedApisSection } from '../features/integrations/components/IntegrationFederatedApisSection';
 import { IntegrationId } from '../features/integrations/components/IntegrationId';
-import { IntegrationIngestionInProgress } from '../features/integrations/components/IntegrationIngestionInProgress';
-import { IntegrationProviderLabel } from '../features/integrations/components/IntegrationProviderLabel';
+import { IntegrationProviderField } from '../features/integrations/components/IntegrationProviderField';
 import { useIntegration } from '../features/integrations/hooks/useIntegration';
 import { INTEGRATION_LOAD_ERROR_MESSAGE, useIntegrationLoadFailure } from '../features/integrations/hooks/useIntegrationLoadFailure';
-import { isIngestionInProgress } from '../features/integrations/utils/ingestion';
 import { isA2aIntegration } from '../features/integrations/utils/integrationKind';
 import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../features/shared/hooks/useDetailBasePath';
+
+const DISCONNECTED_GUIDANCE = 'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.';
 
 export function IntegrationOverviewPage() {
     const { integrationId = '' } = useParams<{ integrationId: string }>();
@@ -48,13 +49,31 @@ export function IntegrationOverviewPage() {
 
         return (
             <>
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-semibold tracking-tight">{integration.name}</h1>
-                    <IntegrationProviderLabel provider={integration.provider} />
-                </div>
-                <IntegrationAgentConnection agentStatus={integration.agentStatus} />
-                <IntegrationId integrationId={integration.id} />
-                {isIngestionInProgress(integration) && <IntegrationIngestionInProgress />}
+                <Card data-testid="integration-overview-summary">
+                    <CardHeader className="gap-1">
+                        <h1 className="text-xl font-semibold tracking-tight">{integration.name}</h1>
+                        {integration.description ? <p className="text-sm text-muted-foreground">{integration.description}</p> : null}
+                    </CardHeader>
+                    <CardContent className="space-y-5">
+                        <div className="flex flex-col gap-5 rounded-lg border p-5 sm:flex-row sm:gap-0">
+                            <div className="min-w-0 flex-1 sm:border-r sm:pr-5">
+                                <IntegrationProviderField provider={integration.provider} />
+                            </div>
+                            <div className="min-w-0 flex-1 sm:border-r sm:px-5">
+                                <IntegrationAgentConnection agentStatus={integration.agentStatus} />
+                            </div>
+                            <div className="min-w-0 flex-1 sm:pl-5">
+                                <IntegrationId integrationId={integration.id} />
+                            </div>
+                        </div>
+                        {integration.agentStatus === 'DISCONNECTED' && (
+                            <Alert variant="destructive" data-testid="integration-agent-disconnected-banner">
+                                <AlertDescription>{DISCONNECTED_GUIDANCE}</AlertDescription>
+                            </Alert>
+                        )}
+                    </CardContent>
+                </Card>
+                <IntegrationFederatedApisSection integration={integration} />
             </>
         );
     }

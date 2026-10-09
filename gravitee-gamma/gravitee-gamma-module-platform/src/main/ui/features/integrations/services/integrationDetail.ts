@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
-import type { Integration, IntegrationDeletedFederatedApisResponse, IntegrationFederatedApisResponse } from '../types/integration';
+import type {
+    Integration,
+    IntegrationDeletedFederatedApisResponse,
+    IntegrationFederatedApisResponse,
+    IntegrationIngestionResponse,
+    IntegrationPreview,
+} from '../types/integration';
 
 export async function getIntegration(environmentId: string, integrationId: string): Promise<Integration> {
     return apimFetchJsonV2<Integration>(environmentId, `/integrations/${encodeURIComponent(integrationId)}`);
@@ -24,11 +30,35 @@ export async function deleteIntegration(environmentId: string, integrationId: st
     await apimFetchJsonV2<void>(environmentId, `/integrations/${encodeURIComponent(integrationId)}`, { method: 'DELETE' });
 }
 
-export async function hasFederatedApis(environmentId: string, integrationId: string): Promise<boolean> {
-    const response = await apimFetchJsonV2<IntegrationFederatedApisResponse>(
+export async function listFederatedApis(
+    environmentId: string,
+    integrationId: string,
+    page: number,
+    perPage: number,
+): Promise<IntegrationFederatedApisResponse> {
+    return apimFetchJsonV2<IntegrationFederatedApisResponse>(
         environmentId,
-        `/integrations/${encodeURIComponent(integrationId)}/apis?page=1&perPage=1`,
+        `/integrations/${encodeURIComponent(integrationId)}/apis?page=${page}&perPage=${perPage}`,
     );
+}
+
+export async function previewIntegration(environmentId: string, integrationId: string): Promise<IntegrationPreview> {
+    return apimFetchJsonV2<IntegrationPreview>(environmentId, `/integrations/${encodeURIComponent(integrationId)}/_preview`);
+}
+
+export async function ingestIntegration(
+    environmentId: string,
+    integrationId: string,
+    apiIds: string[] = [],
+): Promise<IntegrationIngestionResponse> {
+    return apimFetchJsonV2<IntegrationIngestionResponse>(environmentId, `/integrations/${encodeURIComponent(integrationId)}/_ingest`, {
+        method: 'POST',
+        body: JSON.stringify({ apiIds }),
+    });
+}
+
+export async function hasFederatedApis(environmentId: string, integrationId: string): Promise<boolean> {
+    const response = await listFederatedApis(environmentId, integrationId, 1, 1);
     return response.data.length > 0;
 }
 

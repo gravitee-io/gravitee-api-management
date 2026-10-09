@@ -155,6 +155,16 @@ export const apiNotificationKeys = {
     hooks: (envId: string) => [...apiNotificationKeys.all, 'hooks', envId] as const,
 };
 
+export const currentUserKeys = {
+    all: ['current-user'] as const,
+    me: () => [...currentUserKeys.all, 'me'] as const,
+};
+
+export const integrationKeys = {
+    all: ['integrations'] as const,
+    detail: (envId: string, integrationId: string) => [...integrationKeys.all, 'detail', envId, integrationId] as const,
+};
+
 export const apiMetadataKeys = {
     all: ['api-metadata'] as const,
     list: (envId: string, apiId: string, params: object) => [...apiMetadataKeys.all, 'list', envId, apiId, params] as const,

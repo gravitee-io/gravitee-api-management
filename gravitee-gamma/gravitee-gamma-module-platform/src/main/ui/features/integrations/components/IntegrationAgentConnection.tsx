@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-import { Alert, AlertDescription } from '@gravitee/graphene-core';
 import { useId } from 'react';
 
 import { IntegrationStatusBadge } from './IntegrationStatusBadge';
 import type { IntegrationAgentStatus } from '../types/integration';
 
-const DISCONNECTED_GUIDANCE = 'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.';
-
 export function IntegrationAgentConnection({ agentStatus }: Readonly<{ agentStatus: IntegrationAgentStatus | undefined }>) {
     const headingId = useId();
 
     return (
-        <section className="space-y-2" data-testid="integration-agent-connection" aria-labelledby={headingId}>
-            <h2 id={headingId} className="text-base font-semibold">
-                Agent connection
+        <section className="min-w-0 flex-1 space-y-2" data-testid="integration-agent-connection" aria-labelledby={headingId}>
+            <h2 id={headingId} className="text-sm font-semibold">
+                Agent Connection
             </h2>
             <IntegrationStatusBadge agentStatus={agentStatus} />
-            {agentStatus === 'DISCONNECTED' && (
-                <Alert variant="warning">
-                    <AlertDescription>{DISCONNECTED_GUIDANCE}</AlertDescription>
-                </Alert>
-            )}
         </section>
     );
 }

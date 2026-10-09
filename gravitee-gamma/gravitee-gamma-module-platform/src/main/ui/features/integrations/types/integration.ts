@@ -53,9 +53,36 @@ export interface IntegrationsPagination {
     totalCount: number;
 }
 
+export interface IntegrationFederatedApi {
+    id: string;
+    name: string;
+    version: string;
+}
+
 export interface IntegrationFederatedApisResponse {
-    data: Array<{ id: string }>;
+    data: IntegrationFederatedApi[];
     pagination: IntegrationsPagination;
+}
+
+export type IntegrationPreviewApiState = 'NEW' | 'UPDATE';
+
+export interface IntegrationPreviewApi extends IntegrationFederatedApi {
+    state: IntegrationPreviewApiState;
+}
+
+export interface IntegrationPreview {
+    totalCount: number;
+    newCount: number;
+    updateCount: number;
+    apis: IntegrationPreviewApi[];
+    isPartiallyDiscovered: boolean;
+}
+
+export type IntegrationIngestionStatus = 'SUCCESS' | 'PENDING' | 'ERROR';
+
+export interface IntegrationIngestionResponse {
+    status: IntegrationIngestionStatus;
+    message?: string;
 }
 
 export interface IntegrationDeletedFederatedApisResponse {

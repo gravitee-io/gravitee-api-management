@@ -19,6 +19,8 @@ import { ChevronDownIcon } from '@gravitee/graphene-core/icons';
 export interface MultiSelectFilterOption {
     value: string;
     label: string;
+    /** When true, the option stays selected/unselected and cannot be toggled. */
+    disabled?: boolean;
 }
 
 function formatSelection(options: MultiSelectFilterOption[], selectedValues: string[], placeholder: string): string {
@@ -54,6 +56,8 @@ export function MultiSelectFilter({
     const display = formatSelection(options, selectedValues, placeholder);
 
     const toggle = (value: string) => {
+        const option = options.find(o => o.value === value);
+        if (option?.disabled) return;
         onSelectedValuesChange(selectedValues.includes(value) ? selectedValues.filter(v => v !== value) : [...selectedValues, value]);
     };
 
@@ -80,8 +84,18 @@ export function MultiSelectFilter({
                 ) : (
                     <div className="max-h-48 min-h-0 space-y-2 overflow-y-auto overscroll-contain">
                         {options.map(option => (
-                            <label key={option.value} className="flex cursor-pointer items-center gap-2 text-sm">
-                                <Checkbox checked={selectedValues.includes(option.value)} onCheckedChange={() => toggle(option.value)} />
+                            <label
+                                key={option.value}
+                                className={cn(
+                                    'flex items-center gap-2 text-sm',
+                                    option.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer',
+                                )}
+                            >
+                                <Checkbox
+                                    checked={selectedValues.includes(option.value)}
+                                    onCheckedChange={() => toggle(option.value)}
+                                    disabled={option.disabled}
+                                />
                                 <span className="truncate">{option.label}</span>
                             </label>
                         ))}

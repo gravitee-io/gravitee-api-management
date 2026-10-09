@@ -35,6 +35,7 @@ import { Fragment } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { useApiNotificationForm } from './useApiNotificationForm';
+import { MultiSelectFilter } from '../../../../../shared/components';
 import type { HookCategory } from '../../../hooks/useApiNotifications';
 import { CHANNEL_ICON, CHANNEL_LABEL } from '../../../utils/notificationFormatters';
 
@@ -123,6 +124,10 @@ export function ApiNotificationFormPage() {
         showSystemProxy,
         useSystemProxy,
         setUseSystemProxy,
+        showGroups,
+        groupOptions,
+        selectedGroups,
+        setSelectedGroups,
         hookCategories,
         groupHookIds,
         selectedHooks,
@@ -262,6 +267,22 @@ export function ApiNotificationFormPage() {
                                     onCheckedChange={setUseSystemProxy}
                                     disabled={isReadonly || isPending}
                                     aria-label="Use system proxy"
+                                />
+                            </div>
+                        )}
+
+                        {showGroups && (
+                            <div className="space-y-2">
+                                <Label htmlFor="notif-groups">Groups</Label>
+                                <MultiSelectFilter
+                                    id="notif-groups"
+                                    placeholder="Select groups"
+                                    ariaLabel="Groups"
+                                    options={groupOptions}
+                                    selectedValues={selectedGroups}
+                                    onSelectedValuesChange={setSelectedGroups}
+                                    emptyMessage="No groups are associated with this API."
+                                    disabled={isReadonly || isPending}
                                 />
                             </div>
                         )}

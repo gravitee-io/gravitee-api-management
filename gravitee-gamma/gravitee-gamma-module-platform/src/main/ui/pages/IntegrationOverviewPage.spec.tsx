@@ -29,6 +29,16 @@ import { notify } from '../shared/notify';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({ useEnvironment: jest.fn() }));
 jest.mock('../features/integrations/services/integrationDetail', () => ({ getIntegration: jest.fn() }));
+jest.mock('../features/integrations/components/IntegrationFederatedApisSection', () => ({
+    IntegrationFederatedApisSection: ({ integration }: { integration: { id: string; pendingJob?: { status: string } } }) => (
+        <div data-testid="integration-federated-apis">
+            <span>APIs</span>
+            {integration.pendingJob?.status === 'PENDING' ? (
+                <div data-testid="integration-ingestion-in-progress">Ingestion in progress</div>
+            ) : null}
+        </div>
+    ),
+}));
 jest.mock('../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn(), warning: jest.fn() },
 }));
@@ -145,21 +155,31 @@ describe('IntegrationOverviewPage', () => {
     });
 
     it.each(['aws-api-gateway', 'solace'])(
-        'shows a Connected agent connection section without disconnected guidance for a connected %s integration',
+        'shows provider, agent connection, and integration id in a summary card for a connected %s integration',
         async provider => {
-            mockGetIntegration.mockResolvedValue({ id: 'integration-gw', name: 'Gateway integration', provider, agentStatus: 'CONNECTED' });
+            mockGetIntegration.mockResolvedValue({
+                id: 'integration-gw',
+                name: 'Gateway integration',
+                description: 'Parity test gateway integration',
+                provider,
+                agentStatus: 'CONNECTED',
+            });
 
             renderIntegrationOverviewPage('integration-gw');
 
-            const section = await screen.findByTestId('integration-agent-connection');
-            expect(within(section).getByRole('heading', { name: 'Agent connection' })).toBeInTheDocument();
+            expect(await screen.findByTestId('integration-overview-summary')).toBeInTheDocument();
+            expect(screen.getByText('Parity test gateway integration')).toBeInTheDocument();
+            expect(within(screen.getByTestId('integration-provider')).getByRole('heading', { name: 'Provider' })).toBeInTheDocument();
+            const section = screen.getByTestId('integration-agent-connection');
+            expect(within(section).getByRole('heading', { name: 'Agent Connection' })).toBeInTheDocument();
             expect(within(section).getByText('Connected')).toBeInTheDocument();
             expect(within(section).queryByText('Disconnected')).toBeNull();
+            expect(screen.queryByTestId('integration-agent-disconnected-banner')).toBeNull();
             expect(screen.queryByText(/Check your agent status/)).toBeNull();
         },
     );
 
-    it('shows a Disconnected agent connection section with guidance to check the agent for a disconnected gateway-style integration', async () => {
+    it('shows a Disconnected agent connection with guidance below the details row for a disconnected gateway-style integration', async () => {
         mockGetIntegration.mockResolvedValue({
             id: 'integration-gw',
             name: 'Gateway integration',
@@ -170,11 +190,11 @@ describe('IntegrationOverviewPage', () => {
         renderIntegrationOverviewPage('integration-gw');
 
         const section = await screen.findByTestId('integration-agent-connection');
-        expect(within(section).getByRole('heading', { name: 'Agent connection' })).toBeInTheDocument();
+        expect(within(section).getByRole('heading', { name: 'Agent Connection' })).toBeInTheDocument();
         expect(within(section).getByText('Disconnected')).toBeInTheDocument();
         expect(within(section).queryByText('Connected')).toBeNull();
         expect(
-            within(section).getByText(
+            within(screen.getByTestId('integration-agent-disconnected-banner')).getByText(
                 'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
             ),
         ).toBeInTheDocument();
@@ -196,8 +216,9 @@ describe('IntegrationOverviewPage', () => {
             renderIntegrationOverviewPage('integration-gw');
 
             const section = await screen.findByTestId('integration-agent-connection');
-            expect(within(section).getByRole('heading', { name: 'Agent connection' })).toBeInTheDocument();
+            expect(within(section).getByRole('heading', { name: 'Agent Connection' })).toBeInTheDocument();
             expect(section.textContent).not.toMatch(/Connected|Disconnected/);
+            expect(screen.queryByTestId('integration-agent-disconnected-banner')).toBeNull();
             expect(screen.queryByText(/Check your agent status/)).toBeNull();
         },
     );

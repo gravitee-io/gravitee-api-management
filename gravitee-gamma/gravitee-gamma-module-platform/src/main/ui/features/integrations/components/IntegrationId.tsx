@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { Badge } from '@gravitee/graphene-core';
 import { useId } from 'react';
 
 import { CopyableProfileValue } from '../../users/components/CopyableProfileValue';
@@ -22,11 +23,13 @@ export function IntegrationId({ integrationId }: Readonly<{ integrationId: strin
     const headingId = useId();
 
     return (
-        <section className="space-y-2" data-testid="integration-id" aria-labelledby={headingId}>
-            <h2 id={headingId} className="text-base font-semibold">
+        <section className="min-w-0 flex-1 space-y-2" data-testid="integration-id" aria-labelledby={headingId}>
+            <h2 id={headingId} className="text-sm font-semibold">
                 Integration ID
             </h2>
-            <CopyableProfileValue value={integrationId} copyAriaLabel="Copy integration ID" className="font-mono text-sm" />
+            <Badge variant="secondary" className="max-w-full px-2.5 py-1 font-normal">
+                <CopyableProfileValue value={integrationId} copyAriaLabel="Copy integration ID" className="font-mono text-xs" />
+            </Badge>
         </section>
     );
 }

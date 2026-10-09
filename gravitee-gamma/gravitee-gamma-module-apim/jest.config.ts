@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { fileURLToPath } from 'node:url';
-
 export default {
     displayName: 'gravitee-gamma-module-apim',
     testEnvironment: 'jest-fixed-jsdom',
@@ -51,7 +49,7 @@ export default {
         [
             'jest-junit',
             {
-                outputDirectory: fileURLToPath(new URL('./coverage', import.meta.url)),
+                outputDirectory: '<rootDir>/coverage',
                 outputName: 'junit.xml',
                 addFileAttribute: 'true',
             },

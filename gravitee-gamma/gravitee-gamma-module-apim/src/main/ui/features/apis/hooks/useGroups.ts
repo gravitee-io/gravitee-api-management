@@ -19,12 +19,12 @@ import { useQuery } from '@tanstack/react-query';
 import { getGroups } from '../services/members';
 import { groupKeys } from '../utils/queryKeys';
 
-export function useGroups() {
+export function useGroups(enabled = true) {
     const env = useEnvironment();
     return useQuery({
         queryKey: groupKeys.list(env?.id ?? ''),
         queryFn: () => getGroups(env!.id),
-        enabled: Boolean(env),
+        enabled: enabled && Boolean(env),
         staleTime: 5 * 60_000,
     });
 }

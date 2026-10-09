@@ -19,7 +19,10 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { ApiNotificationFormPage } from './ApiNotificationFormPage';
+import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiNotifications, useCreateNotification, useUpdateNotification } from '../../../hooks/useApiNotifications';
+import { useCurrentUser } from '../../../hooks/useCurrentUser';
+import { useGroups } from '../../../hooks/useGroups';
 
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
@@ -34,6 +37,18 @@ jest.mock('../../../hooks/useApiNotifications', () => ({
     useApiNotifications: jest.fn(),
     useCreateNotification: jest.fn(),
     useUpdateNotification: jest.fn(),
+}));
+
+jest.mock('../../../context/ApiDetailContext', () => ({
+    useApiDetailContext: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useGroups', () => ({
+    useGroups: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useCurrentUser', () => ({
+    useCurrentUser: jest.fn(),
 }));
 
 // ─── Test data ────────────────────────────────────────────────────────────────
@@ -56,6 +71,22 @@ const EMAIL_ROW = {
     canDelete: true,
 };
 
+const PORTAL_ROW = {
+    key: 'PORTAL',
+    notification: {
+        name: 'Default notification',
+        config_type: 'PORTAL' as const,
+        hooks: ['API_STARTED'],
+        groups: ['group-1'],
+        referenceType: 'API',
+        referenceId: 'api-1',
+    },
+    notifier: undefined,
+    channel: 'CONSOLE' as const,
+    isReadonly: false,
+    canDelete: false,
+};
+
 const NOTIFIERS = [{ id: 'email-notifier', type: 'EMAIL', name: 'Default email' }];
 
 const HOOK_CATEGORIES = [
@@ -72,6 +103,9 @@ const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiNotifications = useApiNotifications as jest.Mock;
 const mockUseCreateNotification = useCreateNotification as jest.Mock;
 const mockUseUpdateNotification = useUpdateNotification as jest.Mock;
+const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
+const mockUseGroups = useGroups as jest.Mock;
+const mockUseCurrentUser = useCurrentUser as jest.Mock;
 
 function renderForm(path: string) {
     render(
@@ -90,6 +124,13 @@ function renderForm(path: string) {
 beforeEach(() => {
     jest.clearAllMocks();
     mockUseHasPermission.mockReturnValue(true);
+    mockUseApiDetailContext.mockReturnValue({
+        api: { id: 'api-1', groups: ['group-1'], primaryOwner: { id: 'user-1', displayName: 'Admin' } },
+        isLoading: false,
+        permissionsReady: true,
+    });
+    mockUseGroups.mockReturnValue({ data: { data: [{ id: 'group-1', name: 'Ops' }] } });
+    mockUseCurrentUser.mockReturnValue({ data: { id: 'user-1' } });
     mockUseApiNotifications.mockReturnValue({
         rows: [EMAIL_ROW],
         notifiers: NOTIFIERS,
@@ -211,4 +252,69 @@ it('redirects to the list when the user lacks the create permission', () => {
     mockUseHasPermission.mockReturnValue(false);
     renderForm('/apis/api-1/notifications/new');
     expect(screen.getByTestId('list')).toBeInTheDocument();
+});
+
+// ─── Console / PORTAL: groups (primary owner only) ───────────────────────────
+
+it('shows the Groups multi-select when editing the console notification as primary owner', async () => {
+    mockUseApiNotifications.mockReturnValue({
+        rows: [PORTAL_ROW],
+        notifiers: [],
+        hookCategories: HOOK_CATEGORIES,
+        isLoading: false,
+        isLoadingHooks: false,
+        isError: false,
+    });
+
+    const user = userEvent.setup();
+    renderForm('/apis/api-1/notifications/PORTAL');
+
+    expect(screen.getByLabelText('Groups')).toBeInTheDocument();
+    await user.click(screen.getByLabelText('Groups'));
+    expect(screen.getByText('Primary Owner')).toBeInTheDocument();
+    expect(screen.getByText('Ops')).toBeInTheDocument();
+});
+
+it('hides Groups when the current user is not the API primary owner', () => {
+    mockUseCurrentUser.mockReturnValue({ data: { id: 'other-user' } });
+    mockUseApiNotifications.mockReturnValue({
+        rows: [PORTAL_ROW],
+        notifiers: [],
+        hookCategories: HOOK_CATEGORIES,
+        isLoading: false,
+        isLoadingHooks: false,
+        isError: false,
+    });
+
+    renderForm('/apis/api-1/notifications/PORTAL');
+
+    expect(screen.queryByLabelText('Groups')).toBeNull();
+});
+
+it('persists cleansed groups (primary owner stripped) when saving the console notification', async () => {
+    const updateMutate = jest.fn((_payload: unknown, opts: { onSuccess?: () => void }) => opts.onSuccess?.());
+    mockUseUpdateNotification.mockReturnValue({ mutate: updateMutate, isPending: false });
+    mockUseApiNotifications.mockReturnValue({
+        rows: [PORTAL_ROW],
+        notifiers: [],
+        hookCategories: HOOK_CATEGORIES,
+        isLoading: false,
+        isLoadingHooks: false,
+        isError: false,
+    });
+
+    const user = userEvent.setup();
+    renderForm('/apis/api-1/notifications/PORTAL');
+
+    await user.click(screen.getByRole('button', { name: /^save$/i }));
+
+    await waitFor(() => expect(updateMutate).toHaveBeenCalledTimes(1));
+    const payload = updateMutate.mock.calls[0][0] as { groups: string[] };
+    expect(payload.groups).toEqual(['group-1']);
+    expect(payload.groups).not.toContain('user-1');
+});
+
+it('does not show Groups when editing a non-console notification', () => {
+    renderForm('/apis/api-1/notifications/notif-email-1');
+    expect(screen.queryByLabelText('Groups')).toBeNull();
 });

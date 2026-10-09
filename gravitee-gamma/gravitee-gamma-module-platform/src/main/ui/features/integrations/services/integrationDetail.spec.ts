@@ -14,7 +14,15 @@
  * limitations under the License.
  */
 
-import { deleteFederatedApis, deleteIntegration, getIntegration, hasFederatedApis } from './integrationDetail';
+import {
+    deleteFederatedApis,
+    deleteIntegration,
+    getIntegration,
+    hasFederatedApis,
+    ingestIntegration,
+    listFederatedApis,
+    previewIntegration,
+} from './integrationDetail';
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type { Integration } from '../types/integration';
 
@@ -40,11 +48,52 @@ describe('integration detail service', () => {
         expect(result).toEqual(integration);
     });
 
+    it('lists federated APIs for the integration page', async () => {
+        const response = {
+            data: [{ id: 'federated-api-1', name: 'Orders', version: '1.0' }],
+            pagination: { page: 2, perPage: 10, pageCount: 3, pageItemsCount: 1, totalCount: 21 },
+        };
+        mockApimFetchJsonV2.mockResolvedValueOnce(response);
+
+        const result = await listFederatedApis('env-1', 'int-1', 2, 10);
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/integrations/int-1/apis?page=2&perPage=10');
+        expect(result).toEqual(response);
+    });
+
+    it('loads the discovery preview for the integration', async () => {
+        const preview = {
+            totalCount: 1,
+            newCount: 1,
+            updateCount: 0,
+            apis: [{ id: 'api-1', name: 'Orders', version: '1.0', state: 'NEW' as const }],
+            isPartiallyDiscovered: false,
+        };
+        mockApimFetchJsonV2.mockResolvedValueOnce(preview);
+
+        const result = await previewIntegration('env-1', 'int-1');
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/integrations/int-1/_preview');
+        expect(result).toEqual(preview);
+    });
+
+    it('starts ingestion for the selected API ids', async () => {
+        mockApimFetchJsonV2.mockResolvedValueOnce({ status: 'PENDING' });
+
+        const result = await ingestIntegration('env-1', 'a/b c', ['api-1', 'api-2']);
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/integrations/a%2Fb%20c/_ingest', {
+            method: 'POST',
+            body: JSON.stringify({ apiIds: ['api-1', 'api-2'] }),
+        });
+        expect(result).toEqual({ status: 'PENDING' });
+    });
+
     it.each([
         {
             scenario: 'has one',
             response: {
-                data: [{ id: 'federated-api-1' }],
+                data: [{ id: 'federated-api-1', name: 'Orders', version: '1.0' }],
                 pagination: { page: 1, perPage: 1, pageCount: 3, pageItemsCount: 1, totalCount: 3 },
             },
             expected: true,

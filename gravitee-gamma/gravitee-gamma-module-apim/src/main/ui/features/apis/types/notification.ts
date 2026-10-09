@@ -26,6 +26,11 @@ export interface NotificationSettings {
     hooks: string[];
     /** Hooks inherited from the API's group — displayed but not editable. */
     groupHooks?: string[];
+    /**
+     * Group ids that receive the PORTAL (console) notification.
+     * Only editable by the API primary owner; primary-owner id is UI-only and stripped on save.
+     */
+    groups?: string[];
     /** Email address(es) or webhook URL. Only relevant for EMAIL and WEBHOOK channels. */
     config?: string;
     useSystemProxy?: boolean;
