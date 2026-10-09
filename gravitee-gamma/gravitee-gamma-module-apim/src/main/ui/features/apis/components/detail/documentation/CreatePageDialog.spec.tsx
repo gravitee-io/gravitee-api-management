@@ -430,6 +430,22 @@ describe('CreatePageDialog', () => {
             await waitFor(() => expect(onCreated).toHaveBeenCalled());
             expect(mockCreateItem).toHaveBeenCalledTimes(1);
         });
+
+        it('stays open while the page is being created', async () => {
+            let resolveCreate: (page: PortalNavigationPage) => void = () => undefined;
+            mockCreateItem.mockReturnValue(new Promise(resolve => (resolveCreate = resolve)));
+            const { user, onClose, onCreated } = renderDialog();
+
+            await user.type(titleInput(), 'Getting started');
+            await user.click(createButton());
+            await user.keyboard('{Escape}');
+            await user.click(screen.getByRole('button', { name: 'Close' }));
+
+            expect(onClose).not.toHaveBeenCalled();
+            resolveCreate(CREATED_PAGE);
+            await waitFor(() => expect(onCreated).toHaveBeenCalledWith('nav-1'));
+            expect(onClose).not.toHaveBeenCalled();
+        });
     });
 
     it('closes without creating anything on Cancel', async () => {
