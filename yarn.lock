@@ -4787,12 +4787,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/gamma-lib-observability@npm:4.0.1":
-  version: 4.0.1
-  resolution: "@gravitee/gamma-lib-observability@npm:4.0.1"
+"@gravitee/gamma-lib-observability@npm:5.1.0":
+  version: 5.1.0
+  resolution: "@gravitee/gamma-lib-observability@npm:5.1.0"
   peerDependencies:
-    "@gravitee/graphene-charts": ^3.19.0
-    "@gravitee/graphene-core": ^3.19.0
+    "@gravitee/graphene-charts": ^3.26.2
+    "@gravitee/graphene-core": ^3.26.2
     "@monaco-editor/react": ^4.7.0
     "@tanstack/react-query": ^5.0.0
     "@xyflow/react": ^12.0.0
@@ -4811,7 +4811,7 @@ __metadata:
       optional: true
     tailwindcss:
       optional: true
-  checksum: 10c0/96faecb59bbbab98a2249e81d38deefaf09ca004660a463ac2a54ec451806d67809aeefcdd67b23a8b7848526432111de8a7e06fd7f9e3c0e6be75e924cf085b
+  checksum: 10c0/c3298bfb0630fa68f2a2caf3a04934fc6b781980700cae7891660fb3c48d1e571231d1494defde13e69106b6061e8d260fd209679ec3a07d8eab455e70ad2ac5
   languageName: node
   linkType: hard
 
@@ -21478,7 +21478,7 @@ __metadata:
     "@fontsource/material-icons-two-tone": "npm:5.3.0"
     "@fontsource/montserrat": "npm:5.3.0"
     "@fontsource/roboto": "npm:5.3.0"
-    "@gravitee/gamma-lib-observability": "npm:4.0.1"
+    "@gravitee/gamma-lib-observability": "npm:5.1.0"
     "@gravitee/gamma-modules-sdk": "npm:1.2.1"
     "@gravitee/graphene-charts": "npm:3.26.3"
     "@gravitee/graphene-core": "npm:3.26.3"

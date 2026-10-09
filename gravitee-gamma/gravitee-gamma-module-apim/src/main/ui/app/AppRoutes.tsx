@@ -15,7 +15,7 @@
  */
 import '@gravitee/gamma-lib-observability/styles';
 import '@gravitee/graphene-charts/lineage/styles.css';
-import { CapabilityProvider, type DashboardCapabilities } from '@gravitee/gamma-lib-observability';
+import { CapabilityProvider } from '@gravitee/gamma-lib-observability';
 import { useEnvironment, useHasFeature } from '@gravitee/gamma-modules-sdk';
 import { buildModuleNavPath, resolveModulePath } from '@gravitee/gamma-modules-sdk/routing';
 import { buildLinearBreadcrumbs, SidebarNavigation, useLayoutConfig, type NavGroup } from '@gravitee/graphene-core';
@@ -27,7 +27,7 @@ import { ApimToaster } from './ApimToaster';
 import { detailPageOwnsBreadcrumbs, moduleShellLayout } from './detailPageOwnsBreadcrumbs';
 import { OnboardingProvider, OnboardingTourHost } from './onboarding';
 import { NAV_GROUPS } from '../config/navigation';
-import { observability } from '../config/observability';
+import { PERMISSIVE_CAPABILITIES, observability } from '../config/observability';
 import { APIM_ROUTE_CONFIG, getActiveNavKey, ROUTES, type RouteKey } from '../config/routes';
 import { ApiProductDetailLayout, ApiProductIndexRedirect } from '../features/api-products/components';
 import { ApiProductsPage } from '../features/api-products/pages/ApiProductsPage';
@@ -89,12 +89,6 @@ import { useObservabilityBaseUrl } from '../lib/hooks/useObservabilityBaseUrl';
 import { gammaConsoleHttpOptions } from '../shared/api/apimClient';
 
 const queryClient = new QueryClient();
-
-const PERMISSIVE_CAPABILITIES: DashboardCapabilities = {
-    'observability.dashboards.read': true,
-    'observability.logs.read': true,
-    'observability.traces.read': true,
-};
 
 /** Host console env root (`/environments/:hrid`) — used to deep-link log rows to APIs. */
 const HOST_ENV_ROOT_RE = /\/environments\/[^/]+/;
