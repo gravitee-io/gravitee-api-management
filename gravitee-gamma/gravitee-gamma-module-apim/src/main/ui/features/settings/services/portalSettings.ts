@@ -19,10 +19,15 @@ export interface EnvironmentPortalSettings {
     portal?: { entrypoint?: string };
 }
 
-/** Subset of GET /environments/{envId}/portal (classic Console EnvSettings). */
+/**
+ * Subset of GET /environments/{envId}/portal (classic Console EnvSettings).
+ * Includes feature flags (API Score, API Review) and primary-owner modes for APIs and API Products.
+ */
 export interface EnvironmentPortalConfiguration {
     apiScore?: { enabled?: boolean };
     apiReview?: { enabled?: boolean };
+    api?: { primaryOwnerMode?: string };
+    apiProduct?: { primaryOwnerMode?: string };
 }
 
 export async function getEnvironmentPortalSettings(environmentId: string): Promise<EnvironmentPortalSettings> {
