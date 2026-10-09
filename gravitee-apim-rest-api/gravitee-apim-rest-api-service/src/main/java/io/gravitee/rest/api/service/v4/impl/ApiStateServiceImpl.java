@@ -156,9 +156,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         ApiDeploymentEntity apiDeploymentEntity
     ) {
         Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
-        GenericApiEntity deployedApi = deploy(executionContext, api, api, authenticatedUser, apiDeploymentEntity);
-        auditEncryptedPropertiesAccess(executionContext, deployedApi, api.getDeployedAt(), API_ENCRYPTED_PROPERTIES_ACCESSED);
-        return notifyDeployment(executionContext, deployedApi);
+        return deployAuditedAs(executionContext, api, api, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_ACCESSED);
     }
 
     @Override
@@ -168,7 +166,15 @@ public class ApiStateServiceImpl implements ApiStateService {
         String authenticatedUser,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
-        return deployAuditedAs(executionContext, apiToDeploy, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_ACCESSED);
+        Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
+        return deployAuditedAs(
+            executionContext,
+            storedApi,
+            apiToDeploy,
+            authenticatedUser,
+            apiDeploymentEntity,
+            API_ENCRYPTED_PROPERTIES_ACCESSED
+        );
     }
 
     @Override
@@ -178,17 +184,25 @@ public class ApiStateServiceImpl implements ApiStateService {
         String authenticatedUser,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
-        return deployAuditedAs(executionContext, apiToDeploy, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_REFRESHED);
+        Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
+        return deployAuditedAs(
+            executionContext,
+            storedApi,
+            apiToDeploy,
+            authenticatedUser,
+            apiDeploymentEntity,
+            API_ENCRYPTED_PROPERTIES_REFRESHED
+        );
     }
 
     private GenericApiEntity deployAuditedAs(
         ExecutionContext executionContext,
+        Api storedApi,
         Api apiToDeploy,
         String authenticatedUser,
         ApiDeploymentEntity apiDeploymentEntity,
         Api.AuditEvent accessEvent
     ) {
-        Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
         GenericApiEntity deployedApi = deploy(executionContext, storedApi, apiToDeploy, authenticatedUser, apiDeploymentEntity);
         auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), accessEvent);
         return notifyDeployment(executionContext, deployedApi);

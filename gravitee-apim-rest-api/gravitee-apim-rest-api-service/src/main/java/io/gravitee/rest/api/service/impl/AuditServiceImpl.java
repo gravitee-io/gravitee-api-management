@@ -440,7 +440,8 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     private static boolean combinesPatchAndValuesToDiff(AuditLogData auditLogData) {
-        return auditLogData.getPatch() != null && (auditLogData.getOldValue() != null || auditLogData.getNewValue() != null);
+        boolean valuesToDiffPresent = auditLogData.getOldValue() != null || auditLogData.getNewValue() != null;
+        return auditLogData.getPatch() != null && valuesToDiffPresent;
     }
 
     void anonymizeData(JsonNode diff, List<String> pathsToAnonymize) {
