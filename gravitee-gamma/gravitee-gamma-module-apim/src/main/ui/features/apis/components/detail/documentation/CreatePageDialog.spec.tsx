@@ -201,7 +201,9 @@ describe('CreatePageDialog', () => {
             const authenticationRequired = screen.getByRole('switch', { name: 'Authentication is required to view this page' });
             expect(authenticationRequired.getAttribute('aria-checked')).toBe('true');
             expect((authenticationRequired as HTMLButtonElement).disabled).toBe(true);
-            expect(screen.getByText('Guides requires authentication, so this page does too.')).not.toBeNull();
+            expect(screen.getByText(/requires authentication, so this page does too/).textContent).toBe(
+                'The parent folder Guides requires authentication, so this page does too.',
+            );
 
             await user.type(titleInput(), 'Getting started');
             await user.click(createButton());
