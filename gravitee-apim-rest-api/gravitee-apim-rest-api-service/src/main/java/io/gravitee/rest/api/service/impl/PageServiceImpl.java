@@ -42,6 +42,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.fetcher.FetcherConfigurationAddress;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.Visibility;
@@ -1316,7 +1317,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                         final FetcherConfiguration originalFetcherConfiguration = this.getFetcher(
                             pageToUpdate.getSource()
                         ).getConfiguration();
-                        mergeSensitiveData(originalFetcherConfiguration, page);
+                        mergeSensitiveData(originalFetcherConfiguration, pageToUpdate.getSource().getConfiguration(), page);
                     }
                 }
             } catch (FetcherException e) {
@@ -2066,7 +2067,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 }
                 final FetcherConfiguration configuration = fetcher.getConfiguration();
 
-                mergeSensitiveData(configuration, page);
+                mergeSensitiveData(configuration, searchResult.get(0).getSource().getConfiguration(), page);
                 page.setUpdatedAt(new Date());
                 validateSafeContent(executionContext, page);
                 return pageRepository.update(page);
@@ -2527,12 +2528,14 @@ public class PageServiceImpl extends AbstractService implements PageService, App
         }
     }
 
-    private void mergeSensitiveData(FetcherConfiguration originalFetcherConfiguration, Page page) throws FetcherException {
+    private void mergeSensitiveData(FetcherConfiguration originalFetcherConfiguration, String originalSourceConfiguration, Page page)
+        throws FetcherException {
         Fetcher fetcher = getFetcher(page.getSource());
         if (fetcher == null) {
             throw new TechnicalManagementException("An error occurs while trying to fetch page source for page " + page.getId());
         }
         FetcherConfiguration updatedFetcherConfiguration = fetcher.getConfiguration();
+        boolean sameAddress = FetcherConfigurationAddress.sameAddress(originalSourceConfiguration, page.getSource().getConfiguration());
         boolean updated = false;
 
         Field[] fields = originalFetcherConfiguration.getClass().getDeclaredFields();
@@ -2543,8 +2546,17 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 try {
                     Object updatedValue = field.get(updatedFetcherConfiguration);
                     if (SENSITIVE_DATA_REPLACEMENT.equals(updatedValue)) {
+                        Object storedValue = field.get(originalFetcherConfiguration);
+                        // A stored secret is only handed back to the address it was configured for
+                        if (!sameAddress && storedValue != null) {
+                            throw new InvalidDataException(
+                                "The source configuration field " +
+                                    field.getName() +
+                                    " still holds the masked placeholder: provide its actual value."
+                            );
+                        }
                         updated = true;
-                        field.set(updatedFetcherConfiguration, field.get(originalFetcherConfiguration));
+                        field.set(updatedFetcherConfiguration, storedValue);
                     }
                 } catch (IllegalAccessException | IllegalArgumentException e) {
                     log.error("Error while merging original fetcher sensitive data to new fetcher for page '{}'", page.getId(), e);
