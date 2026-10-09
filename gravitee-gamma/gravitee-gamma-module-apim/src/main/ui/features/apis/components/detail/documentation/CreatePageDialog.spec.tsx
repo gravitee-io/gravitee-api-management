@@ -269,6 +269,28 @@ describe('CreatePageDialog', () => {
             expect(notify.success).toHaveBeenCalledWith("Page 'petstore' created");
         });
 
+        it('lets the chosen file be removed', async () => {
+            const { user } = renderDialog();
+
+            await importFile(user, new File([OPENAPI_YAML], 'petstore.yaml'));
+            await user.click(screen.getByRole('button', { name: 'Remove petstore.yaml' }));
+
+            expect(screen.queryByText(/will be imported as/)).toBeNull();
+            expect(createButton().disabled).toBe(true);
+            expect(mockCreateItem).not.toHaveBeenCalled();
+        });
+
+        it('keeps the chosen file when switching to filling in content and back', async () => {
+            const { user } = renderDialog();
+
+            await importFile(user, new File([OPENAPI_YAML], 'petstore.yaml'));
+            await user.click(screen.getByRole('radio', { name: 'Fill in content' }));
+            await chooseImport(user);
+
+            expect(screen.getByText('petstore.yaml will be imported as OpenAPI.')).not.toBeNull();
+            expect(createButton().disabled).toBe(false);
+        });
+
         it('keeps a title that was already typed', async () => {
             const { user } = renderDialog();
 
