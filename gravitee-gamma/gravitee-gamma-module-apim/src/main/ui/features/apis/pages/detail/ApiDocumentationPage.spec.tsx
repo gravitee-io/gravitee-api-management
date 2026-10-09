@@ -71,6 +71,32 @@ jest.mock('../../components/detail/documentation/CreatePageDialog', () => ({
         ) : null,
 }));
 
+// The dialog has its own spec; here only which page it is opened for, and in which folder, matters.
+jest.mock('../../components/detail/documentation/EditPageDetailsDialog', () => ({
+    EditPageDetailsDialog: ({
+        open,
+        apiId,
+        page,
+        parent,
+        onClose,
+    }: {
+        open: boolean;
+        apiId: string;
+        page: { title: string };
+        parent?: { title: string };
+        onClose: () => void;
+    }) =>
+        open ? (
+            <div role="dialog" aria-label="Edit page details">
+                Editing the details of {page.title} in {apiId}
+                {parent ? `, inside ${parent.title}` : ', at the top level'}
+                <button type="button" onClick={onClose}>
+                    Close
+                </button>
+            </div>
+        ) : null,
+}));
+
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockUseApiDocumentation = useApiDocumentation as jest.Mock;
@@ -319,7 +345,9 @@ describe('ApiDocumentationPage', () => {
             mockUseHasPermission.mockImplementation(({ anyOf = [] }: { anyOf?: string[] }) => !anyOf.includes('api-documentation-d'));
             renderPage();
 
-            expect(screen.queryByRole('button', { name: 'Actions for Changelog' })).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+            expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
+            await userEvent.keyboard('{Escape}');
             await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
             expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
         });
@@ -381,6 +409,43 @@ describe('ApiDocumentationPage', () => {
             expect(screen.queryByRole('button', { name: 'Add documentation' })).not.toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
             expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('editing the details of a page', () => {
+        it('opens them from the page row, and closes them', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+            expect(screen.getByRole('dialog', { name: 'Edit page details' })).toHaveTextContent(
+                'Editing the details of Changelog in api-1, at the top level',
+            );
+
+            await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Edit page details' })).not.toBeInTheDocument();
+        });
+
+        it('names the folder holding the page', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Expand Guides' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Edit details' }));
+
+            expect(screen.getByRole('dialog', { name: 'Edit page details' })).toHaveTextContent(
+                'Editing the details of Getting started in api-1, inside Guides',
+            );
+        });
+
+        it('offers them only with api-documentation-u', async () => {
+            mockUseHasPermission.mockImplementation((query: { anyOf?: string[] }) => !query.anyOf?.includes('api-documentation-u'));
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Changelog' }));
+
+            expect(screen.queryByRole('menuitem', { name: 'Edit details' })).not.toBeInTheDocument();
+            expect(mockUseHasPermission).toHaveBeenCalledWith({ anyOf: ['api-documentation-u'] });
         });
     });
 });

@@ -17,6 +17,7 @@
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { type DocumentationItemChanges, toUpdatePayload } from '../components/detail/documentation/toUpdatePayload';
 import {
     createApiDocumentationItem,
     deleteApiDocumentationItem,
@@ -99,6 +100,30 @@ export function useUpdateApiDocumentationItem(apiId: string) {
         apiId,
         (envId, id, { navId, payload, propagatePublishToChildren }: UpdateApiDocumentationItemVariables) =>
             updateApiDocumentationItem(envId, id, navId, payload, { propagatePublishToChildren }),
+    );
+}
+
+/**
+ * Changes some fields of an item. The update replaces the whole item, so it is built from the item as the server has it
+ * at that moment rather than as the screen last loaded it, which could undo a change made since.
+ */
+export function useChangeApiDocumentationItem(apiId: string) {
+    const queryClient = useQueryClient();
+
+    return useApiDocumentationMutation(
+        apiId,
+        async (envId, id, { navId, changes }: { navId: string; changes: DocumentationItemChanges }) => {
+            const documentation = await queryClient.fetchQuery({
+                queryKey: apiDocumentationKeys.list(envId, id),
+                queryFn: () => listApiDocumentation(envId, id),
+                staleTime: 0,
+            });
+            const item = documentation.items.find(candidate => candidate.id === navId);
+            if (!item) {
+                throw new Error('This item no longer exists in the documentation of this API.');
+            }
+            return updateApiDocumentationItem(envId, id, navId, toUpdatePayload(item, changes));
+        },
     );
 }
 

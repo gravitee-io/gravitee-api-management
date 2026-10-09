@@ -16,16 +16,17 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { Alert, AlertDescription, Badge, Button, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { CodeEditor } from '@gravitee/graphene-core/code-editor';
-import { FolderOpenIcon } from '@gravitee/graphene-core/icons';
+import { FolderOpenIcon, PencilIcon } from '@gravitee/graphene-core/icons';
 import { useDeferredValue, useEffect, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { notify } from '../../../../shared/notify';
 import { ItemAccessBadge, ItemPublishedBadge } from '../../components/detail/documentation/DocumentationItemBadges';
+import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useApiDocumentationPageContent, useSaveApiDocumentationPageContent } from '../../hooks/useApiDocumentation';
-import type { ApiDocumentationItem, PortalNavigationPage, PortalPageContent } from '../../types/apiDocumentation';
+import type { ApiDocumentationItem, PortalNavigationFolder, PortalNavigationPage, PortalPageContent } from '../../types/apiDocumentation';
 import { getAncestors, hasSource } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
 
@@ -93,18 +94,23 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     }
 
     const ancestors = getAncestors(items, page);
-    // The server refuses to change the content of a page with a source, or below a folder with one.
-    const synced = [page, ...ancestors].some(hasSource);
+    // The server refuses to change anything below a folder with a source, and the content of a page with one.
+    const belowSyncedFolder = ancestors.some(hasSource);
+    const synced = belowSyncedFolder || hasSource(page);
+    const parent = ancestors.at(-1);
 
     return (
         <PageEditor
             key={page.id}
             apiId={apiId}
             page={page}
+            parent={parent?.type === 'FOLDER' ? parent : undefined}
             ancestors={ancestors}
             saved={content.data}
             synced={synced}
+            belowSyncedFolder={belowSyncedFolder}
             readOnly={!canEdit || synced}
+            canEditDetails={canEdit && !belowSyncedFolder}
         />
     );
 }
@@ -120,21 +126,28 @@ function PageAlert({ message }: Readonly<{ message: string }>) {
 function PageEditor({
     apiId,
     page,
+    parent,
     ancestors,
     saved,
     synced,
+    belowSyncedFolder,
     readOnly,
+    canEditDetails,
 }: Readonly<{
     apiId: string;
     page: PortalNavigationPage;
+    parent?: PortalNavigationFolder;
     ancestors: ApiDocumentationItem[];
     saved: PortalPageContent;
     synced: boolean;
+    belowSyncedFolder: boolean;
     readOnly: boolean;
+    canEditDetails: boolean;
 }>) {
     const saveContent = useSaveApiDocumentationPageContent(apiId);
     const [draft, setDraft] = useState(saved.content);
     const [isSaving, setIsSaving] = useState(false);
+    const [isEditingDetails, setIsEditingDetails] = useState(false);
     const previewContent = useDeferredValue(draft);
 
     const isDirty = !readOnly && draft !== saved.content;
@@ -153,17 +166,23 @@ function PageEditor({
         }
     }
 
-    // Shown even with nothing to save, as in the policy studios, so the page reads as editable.
-    const saveActions = readOnly ? null : (
-        <div className="flex shrink-0 gap-2">
-            <Button variant="outline" onClick={() => setDraft(saved.content)} disabled={!isDirty || isSaving}>
-                Discard
-            </Button>
-            <Button onClick={() => void handleSave()} disabled={!isDirty || isSaving}>
-                {isSaving ? 'Saving…' : 'Save changes'}
-            </Button>
-        </div>
-    );
+    const actions =
+        readOnly && !canEditDetails ? null : (
+            <div className="flex shrink-0 gap-2">
+                {canEditDetails ? (
+                    <Button variant="outline" onClick={() => setIsEditingDetails(true)}>
+                        <PencilIcon className="size-4" aria-hidden />
+                        Edit details
+                    </Button>
+                ) : null}
+                {/* Shown even with nothing to save, as in the policy studios, so the page reads as editable. */}
+                {readOnly ? null : (
+                    <Button onClick={() => void handleSave()} disabled={!isDirty || isSaving}>
+                        {isSaving ? 'Saving…' : 'Save changes'}
+                    </Button>
+                )}
+            </div>
+        );
 
     return (
         <div className="flex min-h-0 flex-1 flex-col gap-6">
@@ -186,12 +205,18 @@ function PageEditor({
                         </p>
                     ) : null}
                 </div>
-                {saveActions}
+                {actions}
             </header>
 
             {synced ? (
                 <Alert>
-                    <AlertDescription>This page is synced from an external source, so it can&apos;t be edited here.</AlertDescription>
+                    <AlertDescription>
+                        {belowSyncedFolder ? (
+                            <>This page is synced from an external source, so it can&apos;t be edited here.</>
+                        ) : (
+                            <>This page&apos;s content is synced from an external source, so it can&apos;t be edited here.</>
+                        )}
+                    </AlertDescription>
                 </Alert>
             ) : null}
 
@@ -219,6 +244,16 @@ function PageEditor({
                     </div>
                 )}
             </div>
+
+            {canEditDetails ? (
+                <EditPageDetailsDialog
+                    open={isEditingDetails}
+                    apiId={apiId}
+                    page={page}
+                    parent={parent}
+                    onClose={() => setIsEditingDetails(false)}
+                />
+            ) : null}
         </div>
     );
 }

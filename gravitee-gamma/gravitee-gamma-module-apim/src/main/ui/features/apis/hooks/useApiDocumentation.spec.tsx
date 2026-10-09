@@ -21,6 +21,7 @@ import type { ReactNode } from 'react';
 import {
     useApiDocumentation,
     useApiDocumentationPageContent,
+    useChangeApiDocumentationItem,
     useApiPublishLocations,
     useCreateApiDocumentationItem,
     useDeleteApiDocumentationItem,
@@ -43,7 +44,12 @@ import {
     unpublishApiFromPortal,
     updateApiDocumentationItem,
 } from '../services/apiDocumentation';
-import type { CreateApiDocumentationItem, ImportPortalNavigationRequest, UpdateApiDocumentationItem } from '../types/apiDocumentation';
+import type {
+    CreateApiDocumentationItem,
+    ImportPortalNavigationRequest,
+    PortalNavigationPage,
+    UpdateApiDocumentationItem,
+} from '../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -275,6 +281,78 @@ describe('useApiDocumentation hooks', () => {
             await act(() => result.current.mutateAsync({ navId: 'nav-1', content: '# Hello again' }));
 
             expect(queryClient.getQueryData(['api-documentation', 'env-1', 'api-1', 'content', 'nav-1'])).toEqual(saved);
+        });
+    });
+
+    describe('useChangeApiDocumentationItem', () => {
+        const PAGE: PortalNavigationPage = {
+            id: 'nav-1',
+            organizationId: 'DEFAULT',
+            environmentId: 'env-1',
+            title: 'Petstore',
+            type: 'PAGE',
+            area: 'TOP_NAVBAR',
+            parentId: 'guides',
+            rootId: 'guides',
+            order: 3,
+            published: true,
+            visibility: 'PUBLIC',
+            portalPageContentId: 'content-1',
+        };
+        const SOURCE = { type: 'github-fetcher', configuration: { repository: 'docs' } };
+
+        it('builds the update from the item as the server has it now, changing only what was asked', async () => {
+            // The list loaded earlier predates the page being linked to a source and moved.
+            const { result, queryClient } = renderWithQueryClient(() => useChangeApiDocumentationItem('api-1'));
+            queryClient.setQueryData(API_DOCUMENTATION_LIST.queryKey, { items: [PAGE], publications: [] });
+            mockListApiDocumentation.mockResolvedValue({ items: [{ ...PAGE, order: 0, source: SOURCE }], publications: [] });
+            mockUpdateApiDocumentationItem.mockResolvedValue(PAGE);
+
+            await act(() => result.current.mutateAsync({ navId: 'nav-1', changes: { title: 'Pet store' } }));
+
+            expect(mockUpdateApiDocumentationItem).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1', {
+                type: 'PAGE',
+                title: 'Pet store',
+                order: 0,
+                published: true,
+                visibility: 'PUBLIC',
+                parentId: 'guides',
+                source: SOURCE,
+            });
+        });
+
+        it("refreshes this API's documentation once it succeeds", async () => {
+            mockListApiDocumentation.mockResolvedValue({ items: [PAGE], publications: [] });
+            mockUpdateApiDocumentationItem.mockResolvedValue(PAGE);
+            const { result, invalidateQueries } = renderWithQueryClient(() => useChangeApiDocumentationItem('api-1'));
+
+            await act(() => result.current.mutateAsync({ navId: 'nav-1', changes: { visibility: 'PRIVATE' } }));
+
+            expect(invalidateQueries).toHaveBeenCalledWith(API_DOCUMENTATION_LIST);
+        });
+
+        it('updates nothing when the item no longer exists', async () => {
+            mockListApiDocumentation.mockResolvedValue({ items: [], publications: [] });
+            const { result } = renderWithQueryClient(() => useChangeApiDocumentationItem('api-1'));
+
+            await act(async () => {
+                await expect(result.current.mutateAsync({ navId: 'nav-1', changes: { title: 'Pet store' } })).rejects.toThrow(
+                    'This item no longer exists in the documentation of this API.',
+                );
+            });
+
+            expect(mockUpdateApiDocumentationItem).not.toHaveBeenCalled();
+        });
+
+        it('exposes the server error unchanged when the update is refused', async () => {
+            const serverError = new ApimApiError(400, 'A sibling item already uses the title "Pet store"');
+            mockListApiDocumentation.mockResolvedValue({ items: [PAGE], publications: [] });
+            mockUpdateApiDocumentationItem.mockRejectedValue(serverError);
+            const { result } = renderWithQueryClient(() => useChangeApiDocumentationItem('api-1'));
+
+            await act(async () => {
+                await expect(result.current.mutateAsync({ navId: 'nav-1', changes: { title: 'Pet store' } })).rejects.toBe(serverError);
+            });
         });
     });
 });
