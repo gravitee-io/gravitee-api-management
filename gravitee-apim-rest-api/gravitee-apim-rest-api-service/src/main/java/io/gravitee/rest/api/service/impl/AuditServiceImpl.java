@@ -62,6 +62,8 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class AuditServiceImpl extends AbstractService implements AuditService {
 
+    private static final String DEFINITION = "definition";
+
     private static final Map<Audit.AuditReferenceType, AuditReferenceType> AUDIT_REFERENCE_TYPE_AUDIT_REFERENCE_TYPE_MAP = Map.ofEntries(
         entry(Audit.AuditReferenceType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
         entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
@@ -356,22 +358,30 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     private void redactDefinition(ObjectNode api) {
-        JsonNode definition = api.path("definition");
+        JsonNode definition = api.path(DEFINITION);
         if (!definition.isTextual()) {
             return;
         }
         try {
-            api.put("definition", EncryptedPropertyAuditRedaction.redact(mapper.readTree(definition.textValue())).toString());
+            api.put(DEFINITION, EncryptedPropertyAuditRedaction.redact(mapper.readTree(definition.textValue())).toString());
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse the API definition for the audit log diff, leaving it out", e);
-            api.remove("definition");
+            api.remove(DEFINITION);
         }
+    }
+
+    @Override
+    public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+        createAuditLog(executionContext, auditLogData, null);
     }
 
     // Synchronous on purpose: the audit user is read from the caller's security context,
     // which an async executor thread does not carry.
     @Override
-    public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+    public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String userWhenUnauthenticated) {
+        if (combinesPatchAndValuesToDiff(auditLogData)) {
+            throw new IllegalArgumentException("An audit log takes either a patch or the values to diff, not both");
+        }
         if (auditLogData.getReferenceType() == null) {
             if (executionContext.hasEnvironmentId()) {
                 auditLogData.setReferenceType(Audit.AuditReferenceType.ENVIRONMENT);
@@ -389,19 +399,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             audit.setEnvironmentId(executionContext.getEnvironmentId());
         }
         audit.setCreatedAt(auditLogData.getCreatedAt() == null ? new Date() : auditLogData.getCreatedAt());
-
-        final UserDetails authenticatedUser = getAuthenticatedUser();
-        final String user;
-        if (authenticatedUser != null && "token".equals(authenticatedUser.getSource())) {
-            user =
-                userService.findById(executionContext, authenticatedUser.getUsername()).getDisplayName() +
-                " - (using token \"" +
-                authenticatedUser.getSourceId() +
-                "\")";
-        } else {
-            user = getAuthenticatedUsernameOrSystem();
-        }
-        audit.setUser(user);
+        audit.setUser(auditUser(executionContext, userWhenUnauthenticated));
 
         if (auditLogData.getProperties() != null) {
             Map<String, String> stringStringMap = new HashMap<>(auditLogData.getProperties().size());
@@ -413,6 +411,16 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         audit.setReferenceId(auditLogData.getReferenceId());
         audit.setEvent(auditLogData.getEvent().name());
 
+        audit.setPatch(auditLogData.getPatch() != null ? auditLogData.getPatch() : diff(auditLogData));
+
+        try {
+            auditRepository.create(audit);
+        } catch (TechnicalException e) {
+            log.error("Error occurs during the creation of an Audit Log {}.", e);
+        }
+    }
+
+    private String diff(AuditLogData auditLogData) {
         ObjectNode oldNode = toObjectNode(auditLogData.getOldValue()).remove(Arrays.asList("updatedAt", "createdAt"));
         ObjectNode newNode = toObjectNode(auditLogData.getNewValue()).remove(Arrays.asList("updatedAt", "createdAt"));
 
@@ -421,14 +429,12 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         if (CollectionUtils.isNotEmpty(auditLogData.getPathsToAnonymize())) {
             anonymizeData(diff, auditLogData.getPathsToAnonymize());
         }
+        return diff.toString();
+    }
 
-        audit.setPatch(diff.toString());
-
-        try {
-            auditRepository.create(audit);
-        } catch (TechnicalException e) {
-            log.error("Error occurs during the creation of an Audit Log {}.", e);
-        }
+    private static boolean combinesPatchAndValuesToDiff(AuditLogData auditLogData) {
+        boolean valuesToDiffPresent = auditLogData.getOldValue() != null || auditLogData.getNewValue() != null;
+        return auditLogData.getPatch() != null && valuesToDiffPresent;
     }
 
     void anonymizeData(JsonNode diff, List<String> pathsToAnonymize) {
@@ -457,7 +463,19 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         return auditEntity;
     }
 
-    private String getAuthenticatedUsernameOrSystem() {
-        return isAuthenticated() ? getAuthenticatedUsername() : "system";
+    private String auditUser(ExecutionContext executionContext, String userWhenUnauthenticated) {
+        final UserDetails authenticatedUser = getAuthenticatedUser();
+        if (authenticatedUser == null) {
+            return Objects.requireNonNullElse(userWhenUnauthenticated, "system");
+        }
+        if ("token".equals(authenticatedUser.getSource())) {
+            return (
+                userService.findById(executionContext, authenticatedUser.getUsername()).getDisplayName() +
+                " - (using token \"" +
+                authenticatedUser.getSourceId() +
+                "\")"
+            );
+        }
+        return authenticatedUser.getUsername();
     }
 }

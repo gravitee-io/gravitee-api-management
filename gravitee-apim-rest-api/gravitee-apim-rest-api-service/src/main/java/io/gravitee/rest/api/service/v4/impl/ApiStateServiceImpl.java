@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_ACCESSED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_REFRESHED;
 import static io.gravitee.repository.management.model.Api.AuditEvent.API_UPDATED;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singleton;
@@ -24,14 +26,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.cluster.domain_service.ValidateApiClusterBindingService;
 import io.gravitee.apim.core.utils.CollectionUtils;
+import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EventEntity;
@@ -151,7 +156,7 @@ public class ApiStateServiceImpl implements ApiStateService {
         ApiDeploymentEntity apiDeploymentEntity
     ) {
         Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
-        return deploy(executionContext, api, api, authenticatedUser, apiDeploymentEntity);
+        return deployAuditedAs(executionContext, api, api, authenticatedUser, apiDeploymentEntity, API_ENCRYPTED_PROPERTIES_ACCESSED);
     }
 
     @Override
@@ -161,8 +166,46 @@ public class ApiStateServiceImpl implements ApiStateService {
         String authenticatedUser,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
-        Api api = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
-        return deploy(executionContext, api, apiToDeploy, authenticatedUser, apiDeploymentEntity);
+        Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
+        return deployAuditedAs(
+            executionContext,
+            storedApi,
+            apiToDeploy,
+            authenticatedUser,
+            apiDeploymentEntity,
+            API_ENCRYPTED_PROPERTIES_ACCESSED
+        );
+    }
+
+    @Override
+    public GenericApiEntity redeployWithSyncedDynamicProperties(
+        ExecutionContext executionContext,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity
+    ) {
+        Api storedApi = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
+        return deployAuditedAs(
+            executionContext,
+            storedApi,
+            apiToDeploy,
+            authenticatedUser,
+            apiDeploymentEntity,
+            API_ENCRYPTED_PROPERTIES_REFRESHED
+        );
+    }
+
+    private GenericApiEntity deployAuditedAs(
+        ExecutionContext executionContext,
+        Api storedApi,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity,
+        Api.AuditEvent accessEvent
+    ) {
+        GenericApiEntity deployedApi = deploy(executionContext, storedApi, apiToDeploy, authenticatedUser, apiDeploymentEntity);
+        auditEncryptedPropertiesAccess(executionContext, deployedApi, storedApi.getDeployedAt(), authenticatedUser, accessEvent);
+        return notifyDeployment(executionContext, deployedApi);
     }
 
     /**
@@ -200,12 +243,57 @@ public class ApiStateServiceImpl implements ApiStateService {
         this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, apiToDeploy);
 
         PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiToDeploy.getId());
-        final GenericApiEntity deployedApi = genericApiMapper.toGenericApi(apiToDeploy, primaryOwner);
+        return genericApiMapper.toGenericApi(apiToDeploy, primaryOwner);
+    }
+
+    private GenericApiEntity notifyDeployment(ExecutionContext executionContext, GenericApiEntity deployedApi) {
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, deployedApi);
-
         apiNotificationService.triggerDeployNotification(executionContext, apiWithMetadata);
-
         return deployedApi;
+    }
+
+    private void auditEncryptedPropertiesAccess(
+        ExecutionContext executionContext,
+        GenericApiEntity deployedApi,
+        Date deployedAt,
+        String authenticatedUser,
+        Api.AuditEvent event
+    ) {
+        List<Property> properties = v4Properties(deployedApi);
+        Map<Audit.AuditProperties, String> encryptedMarker = EncryptedPropertyAuditProperties.of(null, properties);
+        if (encryptedMarker.isEmpty()) {
+            return;
+        }
+        auditService.createApiAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(encryptedMarker)
+                .event(event)
+                .createdAt(deployedAt)
+                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
+                .build(),
+            deployedApi.getId(),
+            authenticatedUser
+        );
+    }
+
+    private static Map<String, String> ciphertextByKey(List<Property> properties) {
+        return properties
+            .stream()
+            .filter(Property::isEncrypted)
+            .collect(
+                HashMap::new,
+                (ciphertextByKey, property) -> ciphertextByKey.put(property.getKey(), property.getValue()),
+                HashMap::putAll
+            );
+    }
+
+    private static List<Property> v4Properties(GenericApiEntity api) {
+        return switch (api) {
+            case ApiEntity httpApi -> httpApi.getProperties();
+            case NativeApiEntity nativeApi -> nativeApi.getProperties();
+            default -> null;
+        };
     }
 
     private void updateDeploymentDate(Api api) {

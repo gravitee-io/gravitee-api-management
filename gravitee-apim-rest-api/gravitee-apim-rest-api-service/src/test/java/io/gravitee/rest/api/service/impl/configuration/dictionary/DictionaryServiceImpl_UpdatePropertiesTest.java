@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
 import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
+import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED;
+import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
 import static io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryAuditPatch.json;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -177,6 +179,79 @@ public class DictionaryServiceImpl_UpdatePropertiesTest {
             argThat(
                 dict -> dict.getProperties().get("apiKey").encrypted() && dict.getProperties().get("apiKey").value().equals("fresh-cipher")
             )
+        );
+    }
+
+    @Test
+    public void should_not_audit_encrypted_properties_access_when_a_refresh_publishes_an_encrypted_dictionary()
+        throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of(), true);
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("fresh-value")).thenReturn("fresh-cipher");
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("apiKey", "fresh-value"));
+
+        verify(eventService).createDictionaryEvent(any(), any(), any(), eq(EventType.PUBLISH_DICTIONARY), any(Dictionary.class));
+        verify(auditService, never()).createAuditLog(
+            any(),
+            argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED)
+        );
+    }
+
+    @Test
+    public void should_audit_encrypted_properties_refresh_when_a_refresh_publishes_an_encrypted_dictionary()
+        throws TechnicalException, GeneralSecurityException {
+        Dictionary dictionaryInDb = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("value", false)), true);
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(dictionaryInDb));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(dataEncryptor.encrypt("value")).thenReturn("value-cipher");
+        when(dataEncryptor.encrypt("fresh-value")).thenReturn("fresh-cipher");
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "value", "apiKey", "fresh-value"));
+
+        verify(auditService).createAuditLog(
+            any(),
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED &&
+                    "true".equals(auditLogData.getProperties().get(ENCRYPTED)) &&
+                    auditLogData.getCreatedAt().equals(dictionaryInDb.getDeployedAt()) &&
+                    auditLogData
+                        .getPatch()
+                        .contains(
+                            "{\"op\":\"access\",\"path\":\"/properties/apiKey\",\"value\":{\"value\":\"<sha256:4841bcab77bdaabda76ea0b699c0a88a61a73bb3b2c5bd69f9d79e0848646fa0>\",\"encrypted\":true}}"
+                        )
+            )
+        );
+    }
+
+    @Test
+    public void should_not_audit_encrypted_properties_refresh_when_the_refresh_changes_nothing()
+        throws TechnicalException, GeneralSecurityException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of("secret", new DictionaryProperty("ENC(unchanged)", true)));
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dataEncryptor.decrypt("ENC(unchanged)")).thenReturn("unchanged-plaintext");
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("secret", "unchanged-plaintext"));
+
+        verify(auditService, never()).createAuditLog(any(), any());
+    }
+
+    @Test
+    public void should_not_audit_encrypted_properties_refresh_for_a_dictionary_without_encrypted_value() throws TechnicalException {
+        Dictionary existing = startedDynamicDictionaryWith(Map.of("plain", new DictionaryProperty("old", false)));
+        when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.of(existing));
+        when(dictionaryRepository.update(any(Dictionary.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        given_environment();
+
+        dictionaryService.updateProperties(DICTIONARY_ID, Map.of("plain", "new"));
+
+        verify(auditService, never()).createAuditLog(
+            any(),
+            argThat(auditLogData -> auditLogData.getEvent() == DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED)
         );
     }
 

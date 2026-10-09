@@ -15,7 +15,9 @@
  */
 package io.gravitee.rest.api.service.impl.configuration.dictionary;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,8 +42,18 @@ final class DictionaryAuditPatch {
 
     static AuditService.AuditLogData captured(AuditService auditService) {
         ArgumentCaptor<AuditService.AuditLogData> auditLogData = ArgumentCaptor.forClass(AuditService.AuditLogData.class);
-        verify(auditService).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
-        return auditLogData.getValue();
+        verify(auditService, atLeastOnce()).createAuditLog(any(ExecutionContext.class), auditLogData.capture());
+        List<AuditService.AuditLogData> diffedEntries = auditLogData
+            .getAllValues()
+            .stream()
+            .filter(DictionaryAuditPatch::isDiffed)
+            .toList();
+        assertThat(diffedEntries).hasSize(1);
+        return diffedEntries.getFirst();
+    }
+
+    private static boolean isDiffed(AuditService.AuditLogData data) {
+        return data.getPatch() == null;
     }
 
     static JsonNode capturedPatch(AuditService auditService) {

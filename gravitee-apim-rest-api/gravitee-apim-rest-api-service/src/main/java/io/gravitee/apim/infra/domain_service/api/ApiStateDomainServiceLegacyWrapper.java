@@ -72,6 +72,19 @@ public class ApiStateDomainServiceLegacyWrapper implements ApiStateDomainService
     }
 
     @Override
+    public Api redeployWithSyncedDynamicProperties(Api api, String deploymentLabel, AuditInfo auditInfo) {
+        var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
+
+        var deployed = apiStateService.redeployWithSyncedDynamicProperties(
+            executionContext,
+            apiAdapter.toRepository(api),
+            auditInfo.actor().userId(),
+            new ApiDeploymentEntity(deploymentLabel)
+        );
+        return apiAdapter.fromApiEntity(deployed);
+    }
+
+    @Override
     public Api start(Api api, AuditInfo auditInfo) {
         var executionContext = new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId());
         var userId = auditInfo.actor().userId();
