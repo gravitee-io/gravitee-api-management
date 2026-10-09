@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, effect, input, InputSignal } from '@angular/core';
+import { Component, computed, effect, inject, input, InputSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatMenu, MatMenuItem, MatMenuTrigger } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 
 import { User } from '../../entities/user/user';
+import { ConfigService } from '../../services/config.service';
 
 @Component({
   selector: 'app-user-avatar',
@@ -30,6 +31,9 @@ export class UserAvatarComponent {
   user: InputSignal<User> = input({});
   analyticsEnabled: InputSignal<boolean> = input(false);
   initials: string = '';
+
+  private readonly configService = inject(ConfigService);
+  readonly aiWorkspacesEnabled = computed(() => this.configService.configuration.portalNext?.aiWorkspaces?.enabled === true);
 
   constructor() {
     effect(() => {
