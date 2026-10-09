@@ -1,0 +1,145 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use '../../../../scss/theme' as theme;
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: theme.$inner-content-width;
+  padding-top: 24px;
+}
+
+.workspace-details {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &__title {
+    margin: 0;
+  }
+
+  &__card {
+    mat-card-header {
+      margin-bottom: 8px;
+    }
+  }
+
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__row {
+    display: grid;
+    align-items: baseline;
+    gap: 16px;
+    grid-template-columns: minmax(160px, 220px) 1fr;
+  }
+
+  &__label {
+    color: theme.$paragraph-color;
+  }
+
+  &__endpoint {
+    width: 100%;
+  }
+
+  &__call-snippet {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__call-snippet-help {
+    margin: 0;
+    color: theme.$paragraph-color;
+  }
+
+  &__snippet-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  &__snippet-select {
+    min-width: 200px;
+    max-width: 360px;
+    flex: 1 1 240px;
+  }
+
+  &__snippet {
+    padding: 16px;
+    border-radius: 8px;
+    margin: 0;
+    background: #f5f5f5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  &__copy-snippet {
+    align-self: flex-start;
+
+    mat-icon {
+      width: 18px;
+      height: 18px;
+      margin-right: 6px;
+      font-size: 18px;
+    }
+  }
+
+  &__window {
+    margin: 0 0 12px;
+    color: theme.$paragraph-color;
+  }
+
+  &__section-subtitle {
+    margin-bottom: 12px;
+    color: theme.$paragraph-color;
+  }
+
+  &__table {
+    width: 100%;
+  }
+
+  &__key-cell {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    word-break: break-all;
+  }
+
+  &__status-icon {
+    color: theme.$paragraph-color;
+
+    &--active {
+      color: #2e7d32;
+    }
+  }
+
+  &__pagination {
+    margin-top: 12px;
+  }
+
+  &__empty {
+    margin: 0;
+    color: theme.$paragraph-color;
+  }
+}
