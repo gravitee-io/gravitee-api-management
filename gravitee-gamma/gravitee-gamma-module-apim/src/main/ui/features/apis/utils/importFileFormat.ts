@@ -59,7 +59,9 @@ export function importFileFormatError(format: ApiImportFormat, fileName: string,
 
     if (extension !== 'json') return FILE_FORMAT_MISMATCH;
     try {
-        return isGraviteeV4Export(JSON.parse(text)) ? null : FILE_FORMAT_MISMATCH;
+        const parsed: unknown = JSON.parse(text);
+        if (isOpenApiDocument(parsed)) return FILE_FORMAT_MISMATCH;
+        return isGraviteeV4Export(parsed) ? null : FILE_FORMAT_MISMATCH;
     } catch {
         return INVALID_JSON_FILE;
     }

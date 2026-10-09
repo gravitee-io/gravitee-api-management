@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { getAvailability, getAverageResponseTime, getResponseTimeOvertime } from '../../../../services/healthCheck';
 import type { AvailabilityRow, HealthField, ResponseTimeTrendPoint } from '../../../../types/healthCheck';
 import { toAvailabilityPct, toAvailabilityRows, toResponseTimeTrend } from '../../../../utils/healthCheckDashboard';
-import { resolveHealthTimeRange, type Timeframe } from '../../../../utils/healthTimeframe';
+import type { HealthTimeRange } from '../../../../utils/healthTimeframe';
 import { apiHealthCheckKeys } from '../../../../utils/queryKeys';
 
 const STALE_TIME = 30_000;
@@ -56,7 +56,6 @@ export interface HealthCheckDashboardData {
     gateway: AvailabilityFieldData;
     /** True if any underlying query failed — used only for a non-blocking toast. */
     anyError: boolean;
-    refresh: () => void;
 }
 
 /**
@@ -68,28 +67,26 @@ export interface HealthCheckDashboardData {
  * Queries are shared/deduped by query key between the headline metrics and the per-field
  * tables.
  */
-export function useHealthCheckDashboard(apiId: string | undefined, timeframe: Timeframe): HealthCheckDashboardData {
+export function useHealthCheckDashboard(apiId: string | undefined, range: HealthTimeRange): HealthCheckDashboardData {
     const env = useEnvironment();
     const envId = env?.id ?? '';
     const id = apiId ?? '';
     const canRead = useHasPermission({ anyOf: ['api-health-r'] });
-    const queryClient = useQueryClient();
 
-    const { from, to } = useMemo(() => resolveHealthTimeRange(timeframe), [timeframe]);
     const enabled = Boolean(env && apiId && canRead);
 
     const trendQuery = useQuery({
-        queryKey: apiHealthCheckKeys.trend(envId, id, timeframe),
-        queryFn: () => getResponseTimeOvertime(envId, id, from, to),
+        queryKey: apiHealthCheckKeys.trend(envId, id, range),
+        queryFn: ({ signal }) => getResponseTimeOvertime(envId, id, range.from, range.to, { signal }),
         enabled,
         staleTime: STALE_TIME,
         retry: 0,
     });
 
-    const endpointAvailability = useFieldAvailability(envId, id, 'endpoint', timeframe, from, to, enabled);
-    const endpointResponseTime = useFieldResponseTime(envId, id, 'endpoint', timeframe, from, to, enabled);
-    const gatewayAvailability = useFieldAvailability(envId, id, 'gateway', timeframe, from, to, enabled);
-    const gatewayResponseTime = useFieldResponseTime(envId, id, 'gateway', timeframe, from, to, enabled);
+    const endpointAvailability = useFieldAvailability(envId, id, 'endpoint', range, enabled);
+    const endpointResponseTime = useFieldResponseTime(envId, id, 'endpoint', range, enabled);
+    const gatewayAvailability = useFieldAvailability(envId, id, 'gateway', range, enabled);
+    const gatewayResponseTime = useFieldResponseTime(envId, id, 'gateway', range, enabled);
 
     const trend = useMemo<TrendData>(
         () => ({ points: toResponseTimeTrend(trendQuery.data), isLoading: trendQuery.isLoading, isError: trendQuery.isError }),
@@ -146,10 +143,6 @@ export function useHealthCheckDashboard(apiId: string | undefined, timeframe: Ti
         [endpointResponseTime.data, endpointResponseTime.isLoading, endpointResponseTime.isError],
     );
 
-    const refresh = useCallback(() => {
-        void queryClient.invalidateQueries({ queryKey: apiHealthCheckKeys.all });
-    }, [queryClient]);
-
     return {
         canRead,
         availability,
@@ -163,40 +156,23 @@ export function useHealthCheckDashboard(apiId: string | undefined, timeframe: Ti
             endpointResponseTime.isError ||
             gatewayAvailability.isError ||
             gatewayResponseTime.isError,
-        refresh,
     };
 }
 
-function useFieldAvailability(
-    envId: string,
-    apiId: string,
-    field: HealthField,
-    timeframe: Timeframe,
-    from: number,
-    to: number,
-    enabled: boolean,
-) {
+function useFieldAvailability(envId: string, apiId: string, field: HealthField, range: HealthTimeRange, enabled: boolean) {
     return useQuery({
-        queryKey: apiHealthCheckKeys.availability(envId, apiId, field, timeframe),
-        queryFn: () => getAvailability(envId, apiId, from, to, field),
+        queryKey: apiHealthCheckKeys.availability(envId, apiId, field, range),
+        queryFn: ({ signal }) => getAvailability(envId, apiId, range.from, range.to, field, { signal }),
         enabled,
         staleTime: STALE_TIME,
         retry: 0,
     });
 }
 
-function useFieldResponseTime(
-    envId: string,
-    apiId: string,
-    field: HealthField,
-    timeframe: Timeframe,
-    from: number,
-    to: number,
-    enabled: boolean,
-) {
+function useFieldResponseTime(envId: string, apiId: string, field: HealthField, range: HealthTimeRange, enabled: boolean) {
     return useQuery({
-        queryKey: apiHealthCheckKeys.avgResponseTime(envId, apiId, field, timeframe),
-        queryFn: () => getAverageResponseTime(envId, apiId, from, to, field),
+        queryKey: apiHealthCheckKeys.avgResponseTime(envId, apiId, field, range),
+        queryFn: ({ signal }) => getAverageResponseTime(envId, apiId, range.from, range.to, field, { signal }),
         enabled,
         staleTime: STALE_TIME,
         retry: 0,

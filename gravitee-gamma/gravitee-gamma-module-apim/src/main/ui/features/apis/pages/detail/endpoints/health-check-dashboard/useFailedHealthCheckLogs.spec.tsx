@@ -20,6 +20,7 @@ import type { ReactNode } from 'react';
 
 import { useFailedHealthCheckLogs } from './useFailedHealthCheckLogs';
 import { getHealthCheckLogs } from '../../../../services/healthCheck';
+import type { HealthTimeRange } from '../../../../utils/healthTimeframe';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -37,6 +38,8 @@ function createWrapper() {
     };
 }
 
+const RANGE: HealthTimeRange = { from: 1_000, to: 2_000, interval: 10 };
+
 describe('useFailedHealthCheckLogs', () => {
     beforeEach(() => {
         mockUseEnvironment.mockReturnValue({ id: 'DEFAULT' });
@@ -46,7 +49,7 @@ describe('useFailedHealthCheckLogs', () => {
     afterEach(() => jest.clearAllMocks());
 
     it('always queries failures (success=false) with default pagination', async () => {
-        renderHook(() => useFailedHealthCheckLogs('api-1', '1d'), { wrapper: createWrapper() });
+        renderHook(() => useFailedHealthCheckLogs('api-1', RANGE), { wrapper: createWrapper() });
 
         await waitFor(() => expect(mockGetLogs).toHaveBeenCalledTimes(1));
         const [envId, apiId, params] = mockGetLogs.mock.calls[0];
@@ -55,7 +58,9 @@ describe('useFailedHealthCheckLogs', () => {
         expect(params.success).toBe(false);
         expect(params.page).toBe(1);
         expect(params.perPage).toBe(10);
-        expect(params.from).toBeLessThan(params.to);
+        expect(params.from).toBe(RANGE.from);
+        expect(params.to).toBe(RANGE.to);
+        expect(mockGetLogs.mock.calls[0][3]).toEqual(expect.objectContaining({ signal: expect.any(AbortSignal) }));
     });
 
     it('exposes returned logs and total count', async () => {
@@ -64,14 +69,14 @@ describe('useFailedHealthCheckLogs', () => {
             pagination: { totalCount: 42 },
         });
 
-        const { result } = renderHook(() => useFailedHealthCheckLogs('api-1', '1d'), { wrapper: createWrapper() });
+        const { result } = renderHook(() => useFailedHealthCheckLogs('api-1', RANGE), { wrapper: createWrapper() });
 
         await waitFor(() => expect(result.current.logs).toHaveLength(1));
         expect(result.current.totalCount).toBe(42);
     });
 
     it('resets to page 1 when the page size changes', async () => {
-        const { result } = renderHook(() => useFailedHealthCheckLogs('api-1', '1d'), { wrapper: createWrapper() });
+        const { result } = renderHook(() => useFailedHealthCheckLogs('api-1', RANGE), { wrapper: createWrapper() });
 
         await waitFor(() => expect(mockGetLogs).toHaveBeenCalled());
         act(() => result.current.setPage(3));
@@ -82,9 +87,24 @@ describe('useFailedHealthCheckLogs', () => {
         expect(result.current.page).toBe(1);
     });
 
-    it('resets to page 1 when the timeframe changes', async () => {
-        let timeframe: '1d' | '1h' = '1d';
-        const { result, rerender } = renderHook(() => useFailedHealthCheckLogs('api-1', timeframe), {
+    it('reuses the same window when paging', async () => {
+        const { result } = renderHook(() => useFailedHealthCheckLogs('api-1', RANGE), { wrapper: createWrapper() });
+        await waitFor(() => expect(mockGetLogs).toHaveBeenCalledTimes(1));
+
+        act(() => result.current.setPage(2));
+        await waitFor(() => expect(mockGetLogs).toHaveBeenCalledTimes(2));
+
+        const first = mockGetLogs.mock.calls[0][2];
+        const second = mockGetLogs.mock.calls[1][2];
+        expect(first.from).toBe(RANGE.from);
+        expect(second.from).toBe(RANGE.from);
+        expect(second.to).toBe(RANGE.to);
+        expect(second.page).toBe(2);
+    });
+
+    it('resets to page 1 when the window changes', async () => {
+        let range = RANGE;
+        const { result, rerender } = renderHook(() => useFailedHealthCheckLogs('api-1', range), {
             wrapper: createWrapper(),
         });
 
@@ -92,13 +112,13 @@ describe('useFailedHealthCheckLogs', () => {
         act(() => result.current.setPage(3));
         await waitFor(() => expect(result.current.page).toBe(3));
 
-        timeframe = '1h';
+        range = { ...RANGE, from: 3_000, to: 4_000 };
         rerender();
         await waitFor(() => expect(result.current.page).toBe(1));
     });
 
     it('does not fire when the API id is missing (not applicable)', () => {
-        renderHook(() => useFailedHealthCheckLogs(undefined, '1d'), { wrapper: createWrapper() });
+        renderHook(() => useFailedHealthCheckLogs(undefined, RANGE), { wrapper: createWrapper() });
         expect(mockGetLogs).not.toHaveBeenCalled();
     });
 });

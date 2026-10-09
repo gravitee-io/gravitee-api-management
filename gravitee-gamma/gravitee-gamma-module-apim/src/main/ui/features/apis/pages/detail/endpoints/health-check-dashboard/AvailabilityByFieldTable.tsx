@@ -123,13 +123,7 @@ export function AvailabilityByFieldTable({ field, data }: Readonly<AvailabilityB
                               }
                             : undefined
                     }
-                    emptyMessage={
-                        <DataTableEmptyState
-                            variant="no-results"
-                            title="No data"
-                            description="No availability data for the selected period."
-                        />
-                    }
+                    emptyMessage={<DataTableEmptyState variant="no-results" title="No data to display" description="" />}
                 />
             </CardContent>
         </Card>
