@@ -40,8 +40,10 @@ import { ManageGroups } from '../../../../apis/components/user-permissions/Manag
 import { type EditState, getApiProductRole } from '../../../../apis/components/user-permissions/memberHelpers';
 import { RemoveMemberDialog } from '../../../../apis/components/user-permissions/RemoveMemberDialog';
 import { TransferOwnership } from '../../../../apis/components/user-permissions/TransferOwnership';
+import { useEnvironmentPortalConfiguration } from '../../../../apis/hooks/useEnvironmentPortalConfiguration';
 import { useGroups } from '../../../../apis/hooks/useGroups';
 import type { Member, SearchableUser, TransferOwnershipPayload } from '../../../../apis/types/members.types';
+import { groupKeys } from '../../../../apis/utils/queryKeys';
 import { useApiProductDetailContext } from '../../../context/ApiProductDetailContext';
 import { useApiProductGroupMembers } from '../../../hooks/useApiProductGroupMembers';
 import { useApiProductMembers, useApiProductRoles } from '../../../hooks/useApiProductMembers';
@@ -69,10 +71,12 @@ export function ApiProductUserPermissionsPage() {
     const { data: membersData, isLoading: membersLoading } = useApiProductMembers(productId);
     const { data: rolesData } = useApiProductRoles();
     const { data: groupsData } = useGroups();
+    const { data: portalConfig, isFetched: portalConfigFetched } = useEnvironmentPortalConfiguration();
     const { mutate: updateProduct, isPending: isProductUpdating } = useUpdateApiProduct(productId ?? '');
 
     const members = membersData?.data ?? [];
     const roleNames = useMemo(() => (rolesData ?? []).filter(r => r.name !== 'PRIMARY_OWNER').map(r => r.name), [rolesData]);
+    const primaryOwnerMode = portalConfig?.apiProduct?.primaryOwnerMode ?? 'USER';
     const allGroups = useMemo(() => groupsData?.data ?? [], [groupsData]);
     const currentGroupIds = useMemo(() => product?.groups ?? [], [product]);
     const currentGroups = useMemo(() => allGroups.filter(g => currentGroupIds.includes(g.id)), [allGroups, currentGroupIds]);
@@ -125,6 +129,9 @@ export function ApiProductUserPermissionsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiProductKeys.members(env!.id, productId!) });
             queryClient.invalidateQueries({ queryKey: apiProductKeys.detail(env!.id, productId!) });
+            queryClient.invalidateQueries({ queryKey: apiProductKeys.allGroupMembers(env!.id, productId!) });
+            queryClient.invalidateQueries({ queryKey: apiProductKeys.permissions(env!.id, productId!) });
+            queryClient.invalidateQueries({ queryKey: groupKeys.list(env!.id) });
             setTransferOpen(false);
             notify.success('Ownership transferred');
         },
@@ -206,7 +213,13 @@ export function ApiProductUserPermissionsPage() {
                         <span className="text-sm">Notify members when they are added to the product</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTransferOpen(true)}
+                            disabled={!portalConfigFetched}
+                        >
                             <UserCogIcon className="size-4" aria-hidden="true" />
                             Transfer ownership
                         </Button>
@@ -326,6 +339,11 @@ export function ApiProductUserPermissionsPage() {
                 onClose={() => setTransferOpen(false)}
                 onTransfer={payload => transferMutation.mutate(payload)}
                 isTransferring={transferMutation.isPending}
+                groups={allGroups}
+                currentPrimaryOwnerId={product?.primaryOwner?.id}
+                primaryOwnerMode={primaryOwnerMode}
+                groupOwnerField="apiProductPrimaryOwner"
+                scopeLabel="API Product"
             />
             <ManageGroups
                 open={manageGroupsOpen}

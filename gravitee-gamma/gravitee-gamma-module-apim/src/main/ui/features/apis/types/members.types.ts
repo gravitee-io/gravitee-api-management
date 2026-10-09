@@ -40,6 +40,7 @@ export interface Group {
     id: string;
     name: string;
     apiPrimaryOwner?: string | null;
+    apiProductPrimaryOwner?: string | null;
 }
 
 export interface GroupsResponse {

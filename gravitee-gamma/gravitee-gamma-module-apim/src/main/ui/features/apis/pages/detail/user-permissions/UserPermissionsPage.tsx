@@ -44,6 +44,7 @@ import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import { useApiGroupMembers } from '../../../hooks/useApiGroupMembers';
 import { useApiMembers } from '../../../hooks/useApiMembers';
 import { useApiRoles } from '../../../hooks/useApiRoles';
+import { useEnvironmentPortalConfiguration } from '../../../hooks/useEnvironmentPortalConfiguration';
 import { useGroups } from '../../../hooks/useGroups';
 import {
     addApiMember,
@@ -54,7 +55,7 @@ import {
     updateApiNotifications,
 } from '../../../services/members';
 import type { Member, SearchableUser, TransferOwnershipPayload } from '../../../types/members.types';
-import { apiDetailKeys, apiMemberKeys, groupKeys } from '../../../utils/queryKeys';
+import { apiDetailKeys, apiMemberKeys, apiPermissionKeys, groupKeys } from '../../../utils/queryKeys';
 
 export function UserPermissionsPage() {
     const { apiId } = useParams<{ apiId: string }>();
@@ -72,6 +73,8 @@ export function UserPermissionsPage() {
     const { data: groupMembersMap, isLoading: groupsLoading } = useApiGroupMembers(apiId);
     const { data: rolesData } = useApiRoles();
     const { data: groupsData } = useGroups();
+    const { data: portalConfig, isFetched: portalConfigFetched } = useEnvironmentPortalConfiguration();
+    const primaryOwnerMode = portalConfig?.api?.primaryOwnerMode ?? 'USER';
 
     const members = membersData?.data ?? [];
     const roleNames = (rolesData ?? []).filter(r => r.name !== 'PRIMARY_OWNER').map(r => r.name);
@@ -121,7 +124,10 @@ export function UserPermissionsPage() {
         mutationFn: (payload: TransferOwnershipPayload) => transferApiOwnership(env!.id, apiId!, payload),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: apiMemberKeys.list(env!.id, apiId!) });
+            queryClient.invalidateQueries({ queryKey: apiMemberKeys.groups(env!.id, apiId!) });
             queryClient.invalidateQueries({ queryKey: apiDetailKeys.detail(env!.id, apiId!) });
+            queryClient.invalidateQueries({ queryKey: apiPermissionKeys.detail(env!.id, apiId!) });
+            queryClient.invalidateQueries({ queryKey: groupKeys.list(env!.id) });
             setTransferOpen(false);
             notify.success('Ownership transferred');
         },
@@ -183,7 +189,13 @@ export function UserPermissionsPage() {
                         <span className="text-sm">Notify members when they are added to the API</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTransferOpen(true)}
+                            disabled={!portalConfigFetched}
+                        >
                             <UserCogIcon className="size-4" aria-hidden="true" />
                             Transfer ownership
                         </Button>
@@ -302,6 +314,11 @@ export function UserPermissionsPage() {
                 onClose={() => setTransferOpen(false)}
                 onTransfer={payload => transferMutation.mutate(payload)}
                 isTransferring={transferMutation.isPending}
+                groups={allGroups}
+                currentPrimaryOwnerId={api?.primaryOwner?.id}
+                primaryOwnerMode={primaryOwnerMode}
+                groupOwnerField="apiPrimaryOwner"
+                scopeLabel="API"
             />
             <ManageGroups
                 open={manageGroupsOpen}
