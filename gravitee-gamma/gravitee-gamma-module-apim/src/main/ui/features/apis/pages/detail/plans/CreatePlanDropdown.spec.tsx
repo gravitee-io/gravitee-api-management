@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -30,20 +31,32 @@ jest.mock('@gravitee/graphene-core', () => ({
 }));
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
+jest.mock('../../../hooks/usePlanSecuritySettings', () => ({
+    usePlanSecuritySettings: jest.fn(() => ({ API_KEY: true, JWT: true, OAUTH2: true, MTLS: true, KEY_LESS: true })),
+}));
+
 import { CreatePlanDropdown } from './CreatePlanDropdown';
+import { usePlanSecuritySettings } from '../../../hooks/usePlanSecuritySettings';
 import type { PlanContext } from '../../../types/plan';
 
 const CTX: PlanContext = { type: 'api', entityId: 'api-1' };
+const mockUsePlanSecuritySettings = usePlanSecuritySettings as jest.Mock;
 
 function renderDropdown(restrictToKeyless?: boolean) {
     return render(
-        <MemoryRouter>
-            <CreatePlanDropdown ctx={CTX} restrictToKeyless={restrictToKeyless} />
-        </MemoryRouter>,
+        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+            <MemoryRouter>
+                <CreatePlanDropdown ctx={CTX} restrictToKeyless={restrictToKeyless} />
+            </MemoryRouter>
+        </QueryClientProvider>,
     );
 }
 
 describe('CreatePlanDropdown', () => {
+    beforeEach(() => {
+        mockUsePlanSecuritySettings.mockReturnValue({ API_KEY: true, JWT: true, OAUTH2: true, MTLS: true, KEY_LESS: true });
+    });
+
     it('lists every plan security type for a regular (non-TCP) API', () => {
         renderDropdown(false);
 
@@ -56,6 +69,15 @@ describe('CreatePlanDropdown', () => {
         renderDropdown(true);
 
         expect(screen.getAllByRole('menuitem')).toHaveLength(1);
+        expect(screen.getByRole('menuitem', { name: /keyless/i })).toBeInTheDocument();
+    });
+
+    it('hides a plan type when its security setting is disabled', async () => {
+        mockUsePlanSecuritySettings.mockReturnValue({ API_KEY: false, JWT: true, OAUTH2: true, MTLS: true, KEY_LESS: true });
+        renderDropdown(false);
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', { name: /api key/i })).toBeNull());
+        expect(screen.getByRole('menuitem', { name: /oauth2/i })).toBeInTheDocument();
         expect(screen.getByRole('menuitem', { name: /keyless/i })).toBeInTheDocument();
     });
 });

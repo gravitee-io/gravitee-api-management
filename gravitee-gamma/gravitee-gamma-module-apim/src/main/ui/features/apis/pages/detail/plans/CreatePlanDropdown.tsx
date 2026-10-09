@@ -17,6 +17,7 @@ import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMe
 import { ChevronDownIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useNavigate } from 'react-router-dom';
 
+import { usePlanSecuritySettings } from '../../../hooks/usePlanSecuritySettings';
 import type { PlanContext, PlanSecurityType } from '../../../types/plan';
 import { PLAN_SECURITY_LABELS, PLAN_TYPES_BY_CTX } from '../../../types/plan';
 
@@ -27,7 +28,10 @@ interface CreatePlanDropdownProps {
 
 export function CreatePlanDropdown({ ctx, restrictToKeyless = false }: Readonly<CreatePlanDropdownProps>) {
     const navigate = useNavigate();
-    const types: PlanSecurityType[] = restrictToKeyless ? ['KEY_LESS'] : PLAN_TYPES_BY_CTX[ctx.type];
+    const planSecuritySettings = usePlanSecuritySettings();
+    const types: PlanSecurityType[] = restrictToKeyless
+        ? ['KEY_LESS']
+        : PLAN_TYPES_BY_CTX[ctx.type].filter(type => planSecuritySettings[type]);
 
     return (
         <DropdownMenu>
