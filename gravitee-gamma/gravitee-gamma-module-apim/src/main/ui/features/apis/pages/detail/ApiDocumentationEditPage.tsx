@@ -28,9 +28,6 @@ import type { ApiDocumentationItem, PortalNavigationPage, PortalPageContent } fr
 import { getAncestors, hasSource } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
 
-// Below this, the editor stops shrinking and the page scrolls instead.
-const MIN_EDITOR_HEIGHT = 320;
-
 export function ApiDocumentationEditPage() {
     const { apiId = '', pageId = '' } = useParams<{ apiId: string; pageId: string }>();
     const { permissionsReady } = useApiDetailContext();
@@ -61,15 +58,11 @@ export function ApiDocumentationEditPage() {
 }
 
 /**
- * Puts back the width and padding that full-bleed removes. Inline styles stand in for classes Graphene's stylesheet,
- * the only one modules get, does not have.
+ * Puts back the width and padding that full-bleed removes. Its height is the window's, not its content's: sized by its
+ * content, it would include the editor's last size, which could then never shrink.
  */
 function EditPageContainer({ children }: Readonly<{ children: ReactNode }>) {
-    return (
-        <div className="mx-auto flex w-full max-w-content flex-col px-content pt-4 pb-content" style={{ minHeight: '100%' }}>
-            {children}
-        </div>
-    );
+    return <div className="mx-auto flex h-full w-full max-w-content flex-col px-content pt-4 pb-content">{children}</div>;
 }
 
 // Split from the page so nothing is requested once the user is known not to be allowed to read it.
@@ -188,7 +181,7 @@ function PageEditor({
     );
 
     return (
-        <div className="flex flex-1 flex-col gap-6">
+        <div className="flex min-h-0 flex-1 flex-col gap-6">
             <div className="flex flex-col gap-3">
                 {/* The buttons share the back button's row, to leave the editor more height. */}
                 <div className="flex items-center justify-between gap-4">
@@ -227,8 +220,11 @@ function PageEditor({
                 </Alert>
             ) : null}
 
-            <div className="grid flex-1 grid-cols-2 gap-4" style={{ minHeight: MIN_EDITOR_HEIGHT }}>
+            {/* A row sized by its content could not shrink below the editor's last size, which the editor then keeps
+                chasing as the window shrinks: the row takes the space left, whatever the editor's size. */}
+            <div className="grid min-h-0 flex-1 grid-cols-2 gap-4" style={{ gridTemplateRows: 'minmax(0, 1fr)' }}>
                 <CodeEditor
+                    className="min-h-0"
                     value={draft}
                     onChange={value => setDraft(value ?? '')}
                     language={editorLanguageFor(saved.type, draft)}
