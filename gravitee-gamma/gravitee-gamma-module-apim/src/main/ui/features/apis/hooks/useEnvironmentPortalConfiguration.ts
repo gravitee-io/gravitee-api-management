@@ -29,9 +29,10 @@ import { portalSettingsKeys } from '../utils/queryKeys';
 export const PORTAL_SETTINGS_CHANGED_EVENT = 'gamma:portal-settings-changed';
 
 /**
- * GET /portal: the environment feature flags Classic keeps on `Constants.env.settings` (API Score, API Review).
+ * GET /portal: the environment settings Classic keeps on `Constants.env.settings`
+ * (API Score, API Review, API/API Product primaryOwnerMode).
  *
- * These flags are owned by the platform module's settings page, which runs as a separate federated module
+ * These settings are owned by the platform module's settings page, which runs as a separate federated module
  * with its OWN QueryClient. Its `invalidateQueries` after a save therefore cannot reach this cache, whatever
  * the query key is called, so freshness is kept three ways: the settings page broadcasts
  * `PORTAL_SETTINGS_CHANGED_EVENT` when it saves, screens re-read the flags when they mount, and a save made

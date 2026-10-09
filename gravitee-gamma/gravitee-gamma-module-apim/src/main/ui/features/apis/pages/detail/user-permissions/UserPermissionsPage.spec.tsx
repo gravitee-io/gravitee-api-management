@@ -39,15 +39,19 @@ jest.mock('../../../services/members', () => ({
 jest.mock('../../../context/ApiDetailContext', () => ({ useApiDetailContext: jest.fn() }));
 jest.mock('../../../hooks/useApiMembers', () => ({ useApiMembers: jest.fn(() => ({ data: { data: [] }, isLoading: false })) }));
 jest.mock('../../../hooks/useApiGroupMembers', () => ({ useApiGroupMembers: jest.fn(() => ({ data: {}, isLoading: false })) }));
-jest.mock('../../../hooks/useApiRoles', () => ({ useApiRoles: jest.fn(() => ({ data: [] })) }));
+jest.mock('../../../hooks/useApiRoles', () => ({ useApiRoles: jest.fn(() => ({ data: [{ name: 'OWNER' }, { name: 'USER' }] })) }));
 jest.mock('../../../hooks/useGroups', () => ({ useGroups: jest.fn() }));
+jest.mock('../../../hooks/useEnvironmentPortalConfiguration', () => ({
+    useEnvironmentPortalConfiguration: jest.fn(() => ({ data: { api: { primaryOwnerMode: 'USER' } }, isFetched: true })),
+}));
 
 import { UserPermissionsPage } from './UserPermissionsPage';
 import { notify } from '../../../../../shared/notify';
 import { useApiDetailContext } from '../../../context/ApiDetailContext';
+import { useEnvironmentPortalConfiguration } from '../../../hooks/useEnvironmentPortalConfiguration';
 import { useGroups } from '../../../hooks/useGroups';
-import { updateApiGroups } from '../../../services/members';
-import { apiDetailKeys, apiMemberKeys } from '../../../utils/queryKeys';
+import { transferApiOwnership, updateApiGroups } from '../../../services/members';
+import { apiDetailKeys, apiMemberKeys, apiPermissionKeys, groupKeys } from '../../../utils/queryKeys';
 
 // jsdom ships no ResizeObserver, and the checkbox indicator mounts one when a group gets ticked.
 globalThis.ResizeObserver ??= class {
@@ -56,14 +60,21 @@ globalThis.ResizeObserver ??= class {
     disconnect() {}
 };
 
+Element.prototype.hasPointerCapture ??= () => false;
+Element.prototype.setPointerCapture ??= () => {};
+Element.prototype.releasePointerCapture ??= () => {};
+Element.prototype.scrollIntoView ??= () => {};
+
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockUseGroups = useGroups as jest.Mock;
+const mockUsePortalConfig = useEnvironmentPortalConfiguration as jest.Mock;
 const mockUpdateApiGroups = updateApiGroups as jest.Mock;
+const mockTransferApiOwnership = transferApiOwnership as jest.Mock;
 const mockNotifySuccess = notify.success as jest.Mock;
 
 const ENV_GROUPS = [
-    { id: 'group-a', name: 'Partners' },
-    { id: 'group-b', name: 'Internal' },
+    { id: 'group-a', name: 'Partners', apiPrimaryOwner: 'user-po' },
+    { id: 'group-b', name: 'Internal', apiPrimaryOwner: 'user-po-2' },
 ];
 
 const FEDERATED_API = { id: 'api-1', name: 'Federated Orders API', definitionVersion: 'FEDERATED', groups: ['group-a'] };
@@ -146,5 +157,45 @@ describe.each([
 
         expect(screen.getByRole('checkbox', { name: /Partners/ })).toBeChecked();
         expect(screen.getByRole('checkbox', { name: /Internal/ })).toBeChecked();
+    });
+});
+
+describe('UserPermissionsPage transfer ownership refresh', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseGroups.mockReturnValue({ data: { data: ENV_GROUPS } });
+        mockUsePortalConfig.mockReturnValue({ data: { api: { primaryOwnerMode: 'GROUP' } }, isFetched: true });
+        mockTransferApiOwnership.mockResolvedValue(undefined);
+    });
+
+    it('keeps Transfer ownership disabled until portal configuration is fetched', () => {
+        mockUsePortalConfig.mockReturnValue({ data: undefined, isFetched: false });
+        renderUserPermissionsPage(V4_API);
+
+        expect(screen.getByRole('button', { name: /transfer ownership/i })).toBeDisabled();
+    });
+
+    it('refreshes inherited group members and API detail after transferring ownership to a group', async () => {
+        const user = userEvent.setup();
+        const { invalidateQueries } = renderUserPermissionsPage(V4_API);
+
+        await user.click(screen.getByRole('button', { name: /transfer ownership/i }));
+        await screen.findByRole('heading', { name: /transfer ownership/i });
+
+        await user.click(screen.getAllByRole('combobox')[0]);
+        await user.click(await screen.findByRole('option', { name: 'Internal' }));
+        await user.click(screen.getByRole('button', { name: /^transfer$/i }));
+
+        await waitFor(() =>
+            expect(mockTransferApiOwnership).toHaveBeenCalledWith('DEFAULT', 'api-1', {
+                userId: 'group-b',
+                userType: 'GROUP',
+                poRole: 'OWNER',
+            }),
+        );
+        await waitFor(() => expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: apiMemberKeys.groups('DEFAULT', 'api-1') }));
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: apiDetailKeys.detail('DEFAULT', 'api-1') });
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: apiPermissionKeys.detail('DEFAULT', 'api-1') });
+        expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: groupKeys.list('DEFAULT') });
     });
 });
