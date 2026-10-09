@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management.internal.integration;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -120,5 +121,52 @@ class IntegrationMongoRepositoryImplTest {
                 """
             )
         );
+    }
+
+    @Test
+    @SneakyThrows
+    void findAllByEnvironmentIdAndIdsWithoutGroups() {
+        // Given
+        String environmentId = "env-1";
+        Pageable pageable = new PageableBuilder().pageNumber(0).pageSize(5).build();
+        given(mongoQueries.countOrTimeout(eq(mongoTemplate), query.capture(), eq(IntegrationMongo.class))).willReturn(0L);
+        given(mongoTemplate.find(query.capture(), eq(IntegrationMongo.class))).willReturn(List.of());
+        // When
+        Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(environmentId, pageable, Set.of("id1"), Set.of());
+
+        // Then
+        assertThat(result.getContent()).isEmpty();
+
+        JsonNode jsonQuery = MAPPER.readTree(query.getValue().getQueryObject().toJson());
+        assertThat(jsonQuery).isEqualTo(
+            MAPPER.readTree(
+                """
+                {
+                  "$and": [
+                    { "environmentId": "env-1" },
+                    { "$or" : [
+                      { "_id": {"$in": ["id1"]} }
+                    ]}
+                  ]
+                }
+                """
+            )
+        );
+    }
+
+    @Test
+    void findAllByEnvironmentIdAndGroupsWithoutIdsNorGroups() {
+        // When
+        Page<IntegrationMongo> result = sut.findAllByEnvironmentIdAndGroups(
+            "env-1",
+            new PageableBuilder().pageNumber(0).pageSize(5).build(),
+            Set.of(),
+            Set.of()
+        );
+
+        // Then
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
+        verifyNoInteractions(mongoTemplate, mongoQueries);
     }
 }
