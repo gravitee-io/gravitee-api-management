@@ -97,6 +97,17 @@ export function CreateSubscription({ ctx, open, isPending, error, onConfirm, onC
     const [selectedApp, setSelectedApp] = useState<Application | null>(null);
     const [selectedPlanId, setSelectedPlanId] = useState('');
 
+    // The page closes the sheet itself once a subscription is created, so the form is cleared on open
+    // rather than in a close handler that only the Cancel and dismiss paths go through.
+    const [wasOpen, setWasOpen] = useState(open);
+    if (wasOpen !== open) {
+        setWasOpen(open);
+        if (open) {
+            setSelectedApp(null);
+            setSelectedPlanId('');
+        }
+    }
+
     const entityLabel = ctx.type === 'api-product' ? 'API product' : 'API';
     const { data: plans = [], isLoading: isLoadingPlans } = useApiPlans(ctx);
 
@@ -104,19 +115,13 @@ export function CreateSubscription({ ctx, open, isPending, error, onConfirm, onC
     const selectedPlan = plans.find(p => p.id === selectedPlanId) ?? null;
     const canSubmit = Boolean(selectedApp && selectedPlanId && !onlyKeyless);
 
-    const handleClose = useCallback(() => {
-        setSelectedApp(null);
-        setSelectedPlanId('');
-        onClose();
-    }, [onClose]);
-
     const handleConfirm = useCallback(() => {
         if (!canSubmit || !selectedApp) return;
         onConfirm(selectedApp.id, selectedPlanId);
     }, [canSubmit, selectedApp, selectedPlanId, onConfirm]);
 
     return (
-        <Sheet open={open} onOpenChange={open ? handleClose : undefined}>
+        <Sheet open={open} onOpenChange={open ? onClose : undefined}>
             <SheetContent side="right" style={{ maxWidth: '480px' }}>
                 <SheetHeader>
                     <SheetTitle>Create Subscription</SheetTitle>
@@ -174,7 +179,7 @@ export function CreateSubscription({ ctx, open, isPending, error, onConfirm, onC
                 </div>
 
                 <SheetFooter className="flex-row justify-end border-t">
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={isPending}>
+                    <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
                         Cancel
                     </Button>
                     <Button type="button" onClick={handleConfirm} disabled={!canSubmit || isPending}>
