@@ -43,6 +43,7 @@ import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.service.impl.ApiServiceImpl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -114,6 +115,18 @@ class ApiDocumentTransformerTest {
 
         Document doc = cut.transform(api);
         assertThat(doc.get("id")).isEqualTo(api.getId());
+    }
+
+    @Test
+    void shouldTransformWithoutError_FederatedAgentWithIdOnly() {
+        // A delete replayed from another node rebuilds the entity with its no-arg constructor, so only the id is set
+        FederatedApiAgentEntity agent = new FederatedApiAgentEntity();
+        agent.setId("agent-uuid");
+
+        Document doc = cut.transform(agent);
+
+        assertThat(doc.get("id")).isEqualTo(agent.getId());
+        assertThat(doc.get("type")).isEqualTo("api");
     }
 
     @Test
