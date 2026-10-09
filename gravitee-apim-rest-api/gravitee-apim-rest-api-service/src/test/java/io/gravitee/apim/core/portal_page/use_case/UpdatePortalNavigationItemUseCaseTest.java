@@ -1393,6 +1393,21 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         @Test
+        void should_take_the_portal_of_the_folder_it_lands_in_when_it_leaves_an_api() {
+            var otherPortal = new NavigationItemReference.PortalReference(PortalId.of("00000000-0000-0000-0000-0000000000aa"));
+            var portalFolder = store(
+                PortalNavigationItemFixtures.aFolder("Other portal guides").toBuilder().reference(otherPortal).build()
+            );
+            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+            move(folder, portalFolder.getId());
+
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(otherPortal);
+            assertThat(find(folder).getParentId()).isEqualTo(portalFolder.getId());
+        }
+
+        @Test
         void should_take_the_other_api_as_owner_when_moved_onto_its_listing_row() {
             aListingOf(API_A);
             var listingOfB = aListingOf(API_B);

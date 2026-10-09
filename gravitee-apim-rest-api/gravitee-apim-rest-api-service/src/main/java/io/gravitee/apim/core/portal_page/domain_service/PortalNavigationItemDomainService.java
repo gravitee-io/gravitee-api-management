@@ -304,7 +304,7 @@ public class PortalNavigationItemDomainService {
         }
         if (requested.getParentId() == null) {
             if (!ownerFixed) {
-                resolved.setReference(newOwnerAt(DocumentationDestination.under(null), existing));
+                resolved.setReference(newOwnerAt(DocumentationDestination.under(null), null, existing));
             }
             return resolved;
         }
@@ -313,7 +313,7 @@ public class PortalNavigationItemDomainService {
             return resolved;
         }
         var destination = apiOwnedNavigationDomainService.destinationUnder(existing.getEnvironmentId(), parent);
-        var newOwner = newOwnerAt(destination, existing);
+        var newOwner = newOwnerAt(destination, parent, existing);
         if (newOwner != null && ownerFixed) {
             return resolved;
         }
@@ -325,14 +325,24 @@ public class PortalNavigationItemDomainService {
 
     /**
      * @return the owner the item takes at the destination, null when it keeps the one it has. An item of the
-     *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item.
+     *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item,
+     *         and an item an API gives up joins the portal of the parent it lands under.
      */
     @Nullable
-    private static NavigationItemReference newOwnerAt(DocumentationDestination destination, PortalNavigationItem existing) {
+    private static NavigationItemReference newOwnerAt(
+        DocumentationDestination destination,
+        @Nullable PortalNavigationItem parent,
+        PortalNavigationItem existing
+    ) {
         if (destination.apiOwner() != null) {
             return destination.apiOwner().equals(existing.getReference()) ? null : destination.apiOwner();
         }
-        return existing.getReference() instanceof NavigationItemReference.ApiReference ? NavigationItemReference.defaultReference() : null;
+        if (!(existing.getReference() instanceof NavigationItemReference.ApiReference)) {
+            return null;
+        }
+        return parent != null && parent.getReference() instanceof NavigationItemReference.PortalReference
+            ? parent.getReference()
+            : NavigationItemReference.defaultReference();
     }
 
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {

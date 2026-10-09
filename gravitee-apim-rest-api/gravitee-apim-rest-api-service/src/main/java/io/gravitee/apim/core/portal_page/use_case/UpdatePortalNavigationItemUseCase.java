@@ -63,8 +63,7 @@ public class UpdatePortalNavigationItemUseCase {
     }
 
     /**
-     * @param ownerFixed set by a caller whose items all belong to one API: a move then never changes the
-     *                   owner, and no parent means the root of that API's documentation
+     * @param ownerFixed see {@link PortalNavigationItemDomainService#resolveDestination}
      */
     @Builder
     public record Input(
