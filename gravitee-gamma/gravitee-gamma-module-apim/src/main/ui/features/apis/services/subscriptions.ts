@@ -27,6 +27,7 @@ import type {
     SubscriptionPage,
     SubscriptionStatus,
 } from '../types/subscription';
+import { dateInputToOffsetDateTime } from '../utils/dateInputToOffsetDateTime';
 
 function buildQuery(params: Record<string, string | string[] | number | boolean | undefined>): string {
     const p = new URLSearchParams();
@@ -123,12 +124,18 @@ export async function updateSubscriptionEndDate(
     return apimFetchJsonV2<Subscription>(envId, sub(ctx, subscriptionId), {
         method: 'PUT',
         body: JSON.stringify({
-            startingAt: current.startingAt,
+            startingAt: toOffsetDateTime(current.startingAt),
             endingAt,
             consumerConfiguration: current.consumerConfiguration,
             metadata: current.metadata,
         }),
     });
+}
+
+/** Management API v2 dates are OffsetDateTime. A calendar date (`YYYY-MM-DD`) fails deserialization. */
+function toOffsetDateTime(value: string | undefined): string | undefined {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+    return dateInputToOffsetDateTime(value);
 }
 
 export async function listApiKeys(
