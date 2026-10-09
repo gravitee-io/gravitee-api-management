@@ -84,6 +84,8 @@ function CreatePageForm({
     const { createPage, isCreating } = useCreateDocumentationPage(apiId);
 
     const [title, setTitle] = useState('');
+    // The title last taken from a file name, replaced by the next file's as long as the user has not changed it.
+    const [titleFromFile, setTitleFromFile] = useState('');
     // The server refuses a public page inside a folder that requires authentication.
     const privateParent = parent?.visibility === 'PRIVATE' ? parent : undefined;
     const [isPrivate, setIsPrivate] = useState(privateParent !== undefined);
@@ -96,7 +98,10 @@ function CreatePageForm({
 
     function handleImportedFile(file: ImportedFile | null) {
         setImportedFile(file);
-        if (file) setTitle(current => (current.trim() ? current : titleFromFileName(file.file.name)));
+        if (!file || (title.trim() !== '' && title !== titleFromFile)) return;
+        const fileTitle = titleFromFileName(file.file.name);
+        setTitle(fileTitle);
+        setTitleFromFile(fileTitle);
     }
 
     async function handleSubmit(event: FormEvent) {
