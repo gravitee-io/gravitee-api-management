@@ -410,7 +410,7 @@ public class ApiStateServiceImpl_DeployTest {
 
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
 
-        verify(auditService, never()).createApiAuditLog(any(), any(), any());
+        verifyNoInteractions(auditService);
     }
 
     @Test
@@ -419,7 +419,7 @@ public class ApiStateServiceImpl_DeployTest {
 
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
 
-        verify(auditService, never()).createApiAuditLog(any(), any(), any());
+        verifyNoInteractions(auditService);
     }
 
     @Test
@@ -441,7 +441,7 @@ public class ApiStateServiceImpl_DeployTest {
         );
 
         assertTrue(((ApiEntity) deployed).getPropertyList().getFirst().isEncrypted());
-        verify(auditService, never()).createApiAuditLog(any(), any(), any());
+        verifyNoInteractions(auditService);
     }
 
     @Test
@@ -454,7 +454,7 @@ public class ApiStateServiceImpl_DeployTest {
             apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
         );
 
-        verify(auditService, never()).createApiAuditLog(any(), any(), any());
+        verifyNoInteractions(auditService);
     }
 
     @Test
@@ -472,11 +472,7 @@ public class ApiStateServiceImpl_DeployTest {
 
         verify(eventService).createApiEvent(any(), anySet(), anyString(), eq(EventType.PUBLISH_API), same(updatedApi), anyMap());
         verify_encrypted_properties_audited(API_ENCRYPTED_PROPERTIES_REFRESHED);
-        verify(auditService, never()).createApiAuditLog(
-            any(),
-            argThat(auditLogData -> auditLogData.getEvent() == API_ENCRYPTED_PROPERTIES_ACCESSED),
-            any()
-        );
+        verifyNoMoreInteractions(auditService);
     }
 
     @Test
@@ -493,7 +489,7 @@ public class ApiStateServiceImpl_DeployTest {
             new ApiDeploymentEntity("http-dynamic-properties sync")
         );
 
-        verify(auditService, never()).createApiAuditLog(any(), any(), any());
+        verifyNoInteractions(auditService);
     }
 
     @Test
@@ -580,14 +576,14 @@ public class ApiStateServiceImpl_DeployTest {
             argThat(
                 auditLogData ->
                     auditLogData.getEvent() == event &&
-                    USER_NAME.equals(auditLogData.getUserWhenUnauthenticated()) &&
                     auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true")) &&
                     auditLogData.getCreatedAt().equals(api.getDeployedAt()) &&
                     auditLogData.getOldValue() == null &&
                     auditLogData.getNewValue() == null &&
                     ACCESS_PATCH.equals(auditLogData.getPatch())
             ),
-            eq(API_ID)
+            eq(API_ID),
+            eq(USER_NAME)
         );
     }
 }

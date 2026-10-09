@@ -370,10 +370,15 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         }
     }
 
+    @Override
+    public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+        createAuditLog(executionContext, auditLogData, null);
+    }
+
     // Synchronous on purpose: the audit user is read from the caller's security context,
     // which an async executor thread does not carry.
     @Override
-    public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData) {
+    public void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String userWhenUnauthenticated) {
         if (combinesPatchAndValuesToDiff(auditLogData)) {
             throw new IllegalArgumentException("An audit log takes either a patch or the values to diff, not both");
         }
@@ -394,7 +399,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
             audit.setEnvironmentId(executionContext.getEnvironmentId());
         }
         audit.setCreatedAt(auditLogData.getCreatedAt() == null ? new Date() : auditLogData.getCreatedAt());
-        audit.setUser(auditUser(executionContext, auditLogData));
+        audit.setUser(auditUser(executionContext, userWhenUnauthenticated));
 
         if (auditLogData.getProperties() != null) {
             Map<String, String> stringStringMap = new HashMap<>(auditLogData.getProperties().size());
@@ -458,10 +463,10 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
         return auditEntity;
     }
 
-    private String auditUser(ExecutionContext executionContext, AuditLogData auditLogData) {
+    private String auditUser(ExecutionContext executionContext, String userWhenUnauthenticated) {
         final UserDetails authenticatedUser = getAuthenticatedUser();
         if (authenticatedUser == null) {
-            return Objects.requireNonNullElse(auditLogData.getUserWhenUnauthenticated(), "system");
+            return Objects.requireNonNullElse(userWhenUnauthenticated, "system");
         }
         if ("token".equals(authenticatedUser.getSource())) {
             return (

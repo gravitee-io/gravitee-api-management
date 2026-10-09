@@ -270,10 +270,10 @@ public class ApiStateServiceImpl implements ApiStateService {
                 .properties(encryptedMarker)
                 .event(event)
                 .createdAt(deployedAt)
-                .userWhenUnauthenticated(authenticatedUser)
                 .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(properties)))
                 .build(),
-            deployedApi.getId()
+            deployedApi.getId(),
+            authenticatedUser
         );
     }
 

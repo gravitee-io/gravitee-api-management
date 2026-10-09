@@ -54,17 +54,23 @@ public interface AuditService {
          * carry a secret. It cannot be combined with {@code oldValue} or {@code newValue}.
          */
         String patch;
-
-        /**
-         * For an action run outside a request, such as a scheduled sync. An authenticated user always takes precedence.
-         */
-        String userWhenUnauthenticated;
     }
 
     default void createApiAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String apiId) {
         auditLogData.setReferenceType(Audit.AuditReferenceType.API);
         auditLogData.setReferenceId(apiId);
         createAuditLog(executionContext, auditLogData);
+    }
+
+    default void createApiAuditLog(
+        ExecutionContext executionContext,
+        AuditLogData auditLogData,
+        String apiId,
+        String userWhenUnauthenticated
+    ) {
+        auditLogData.setReferenceType(Audit.AuditReferenceType.API);
+        auditLogData.setReferenceId(apiId);
+        createAuditLog(executionContext, auditLogData, userWhenUnauthenticated);
     }
 
     default void createApplicationAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String applicationId) {
@@ -92,6 +98,12 @@ public interface AuditService {
     }
 
     void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData);
+
+    /**
+     * @param userWhenUnauthenticated the user recorded when no user is authenticated, for an action run outside a request, such as a
+     *                                scheduled sync. An authenticated user always takes precedence.
+     */
+    void createAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String userWhenUnauthenticated);
 
     MetadataPage<AuditEntity> search(final ExecutionContext executionContext, AuditQuery query);
 }
