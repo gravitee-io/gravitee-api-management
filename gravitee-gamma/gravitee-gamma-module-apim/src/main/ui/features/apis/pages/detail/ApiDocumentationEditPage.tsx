@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Alert, AlertDescription, Badge, Button, Separator, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Badge, Button, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { CodeEditor } from '@gravitee/graphene-core/code-editor';
-import { ArrowLeftIcon, FolderOpenIcon } from '@gravitee/graphene-core/icons';
+import { FolderOpenIcon } from '@gravitee/graphene-core/icons';
 import { useDeferredValue, useEffect, useState, type ReactNode } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 import { notify } from '../../../../shared/notify';
 import { GraviteeMarkdownPreview } from '../../components/detail/documentation/GraviteeMarkdownPreview';
@@ -110,25 +110,9 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
 
 function PageAlert({ message }: Readonly<{ message: string }>) {
     return (
-        <div className="flex flex-col gap-4">
-            <div>
-                <BackToDocumentation />
-            </div>
-            <Alert variant="destructive">
-                <AlertDescription>{message}</AlertDescription>
-            </Alert>
-        </div>
-    );
-}
-
-function BackToDocumentation() {
-    return (
-        <Button asChild variant="outline">
-            <Link to="..">
-                <ArrowLeftIcon className="size-4" aria-hidden />
-                Documentation
-            </Link>
-        </Button>
+        <Alert variant="destructive">
+            <AlertDescription>{message}</AlertDescription>
+        </Alert>
     );
 }
 
@@ -182,37 +166,31 @@ function PageEditor({
 
     return (
         <div className="flex min-h-0 flex-1 flex-col gap-6">
-            <div className="flex flex-col gap-3">
-                {/* The buttons share the back button's row, to leave the editor more height. */}
-                <div className="flex items-center justify-between gap-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <BackToDocumentation />
-                        {ancestors.length > 0 ? (
-                            <>
-                                <Separator orientation="vertical" className="h-5" style={{ alignSelf: 'center' }} />
-                                <span className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-                                    <FolderOpenIcon className="size-4 shrink-0" aria-hidden />
-                                    <span className="truncate">{ancestors.map(folder => folder.title).join(' / ')}</span>
-                                </span>
-                            </>
-                        ) : null}
+            {/* Graphene's PageHeader layout, as that header takes text only: the badges follow the title on its line, and
+                the folders holding the page take the description's place. */}
+            <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 space-y-1 wrap-anywhere">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                        <h1 className="min-w-0 text-balance">{page.title}</h1>
+                        <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline">{PAGE_CONTENT_TYPE_LABELS[saved.type]}</Badge>
+                            {page.published ? <Badge variant="success">Published</Badge> : <Badge variant="outline">Unpublished</Badge>}
+                            {page.visibility === 'PRIVATE' ? (
+                                <Badge variant="secondary">Private</Badge>
+                            ) : (
+                                <Badge variant="outline">Public</Badge>
+                            )}
+                        </div>
                     </div>
-                    {saveActions}
+                    {ancestors.length > 0 ? (
+                        <p className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                            <FolderOpenIcon className="size-4 shrink-0" aria-hidden />
+                            <span className="truncate">{ancestors.map(folder => folder.title).join(' / ')}</span>
+                        </p>
+                    ) : null}
                 </div>
-                {/* Not Graphene's PageHeader, whose title is text only: the badges follow the title on its line. */}
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                    <h1 className="min-w-0 text-balance wrap-anywhere">{page.title}</h1>
-                    <div className="flex flex-wrap gap-2">
-                        <Badge variant="outline">{PAGE_CONTENT_TYPE_LABELS[saved.type]}</Badge>
-                        {page.published ? <Badge variant="success">Published</Badge> : <Badge variant="outline">Unpublished</Badge>}
-                        {page.visibility === 'PRIVATE' ? (
-                            <Badge variant="secondary">Private</Badge>
-                        ) : (
-                            <Badge variant="outline">Public</Badge>
-                        )}
-                    </div>
-                </div>
-            </div>
+                {saveActions}
+            </header>
 
             {synced ? (
                 <Alert>

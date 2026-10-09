@@ -195,7 +195,7 @@ describe('ApiDocumentationEditPage', () => {
     });
 
     describe('showing the page', () => {
-        it('offers a way back to the documentation, beside the folders holding the page', async () => {
+        it('shows the folders holding the page under its title, leaving the way back to the sidebar', async () => {
             const authentication: ApiDocumentationItem = {
                 ...GUIDES,
                 id: 'auth',
@@ -206,10 +206,10 @@ describe('ApiDocumentationEditPage', () => {
             givenItems([GUIDES, authentication, { ...GETTING_STARTED, parentId: 'auth' }]);
             renderPage();
 
-            expect(await screen.findByRole('heading', { name: 'Getting started' })).toBeInTheDocument();
-            expect(screen.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', '/apis/api-1/documentation');
-            expect(screen.getByText('Guides / Authentication')).toBeInTheDocument();
-            expect(screen.queryByRole('link', { name: /Guides|Authentication/ })).not.toBeInTheDocument();
+            const title = await screen.findByRole('heading', { name: 'Getting started' });
+            const folders = screen.getByText('Guides / Authentication');
+            expect(title.compareDocumentPosition(folders) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(screen.queryByRole('link')).not.toBeInTheDocument();
         });
 
         it('shows no folders for a page at the top level', async () => {
@@ -365,7 +365,6 @@ describe('ApiDocumentationEditPage', () => {
             renderPage(pageId);
 
             expect(await screen.findByText('This page does not exist in the documentation of this API.')).toBeInTheDocument();
-            expect(screen.getByRole('link', { name: 'Documentation' })).toHaveAttribute('href', '/apis/api-1/documentation');
             expect(mockGetContent).not.toHaveBeenCalled();
         });
 
