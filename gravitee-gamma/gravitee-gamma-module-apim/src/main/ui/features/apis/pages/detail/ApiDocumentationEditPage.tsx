@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Alert, AlertDescription, Badge, Button, Separator, Skeleton } from '@gravitee/graphene-core';
+import { Alert, AlertDescription, Badge, Button, Separator, Skeleton, useLayoutConfig } from '@gravitee/graphene-core';
 import { CodeEditor } from '@gravitee/graphene-core/code-editor';
 import { ArrowLeftIcon, FolderOpenIcon } from '@gravitee/graphene-core/icons';
-import { useDeferredValue, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useDeferredValue, useEffect, useState, type ReactNode } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { notify } from '../../../../shared/notify';
@@ -28,14 +28,15 @@ import type { ApiDocumentationItem, PortalNavigationPage, PortalPageContent } fr
 import { getAncestors, hasSource } from '../../utils/documentationTree';
 import { editorLanguageFor, PAGE_CONTENT_TYPE_LABELS } from '../../utils/pageContentType';
 
+// Below this, the editor stops shrinking and the page scrolls instead.
 const MIN_EDITOR_HEIGHT = 320;
-// Leaves the content area's bottom padding visible under the editor.
-const EDITOR_BOTTOM_GAP = 24;
 
 export function ApiDocumentationEditPage() {
     const { apiId = '', pageId = '' } = useParams<{ apiId: string; pageId: string }>();
     const { permissionsReady } = useApiDetailContext();
     const canRead = useHasPermission({ anyOf: ['api-documentation-r'] });
+    // The default content area is only as tall as the page; full-bleed makes it as tall as the window, for the editor to fill.
+    useLayoutConfig({ contentVariant: 'full-bleed' }, []);
 
     if (!permissionsReady) {
         return null;
@@ -43,14 +44,32 @@ export function ApiDocumentationEditPage() {
 
     if (!canRead) {
         return (
-            <div className="space-y-6">
-                <h1 className="text-2xl font-semibold tracking-tight">Documentation</h1>
-                <p className="text-sm text-muted-foreground">You don&apos;t have permission to view this API&apos;s documentation.</p>
-            </div>
+            <EditPageContainer>
+                <div className="space-y-6">
+                    <h1 className="text-2xl font-semibold tracking-tight">Documentation</h1>
+                    <p className="text-sm text-muted-foreground">You don&apos;t have permission to view this API&apos;s documentation.</p>
+                </div>
+            </EditPageContainer>
         );
     }
 
-    return <ApiDocumentationEditContent apiId={apiId} pageId={pageId} />;
+    return (
+        <EditPageContainer>
+            <ApiDocumentationEditContent apiId={apiId} pageId={pageId} />
+        </EditPageContainer>
+    );
+}
+
+/**
+ * Puts back the width and padding that full-bleed removes. Inline styles stand in for classes Graphene's stylesheet,
+ * the only one modules get, does not have.
+ */
+function EditPageContainer({ children }: Readonly<{ children: ReactNode }>) {
+    return (
+        <div className="mx-auto flex w-full max-w-content flex-col px-content pt-4 pb-content" style={{ minHeight: '100%' }}>
+            {children}
+        </div>
+    );
 }
 
 // Split from the page so nothing is requested once the user is known not to be allowed to read it.
@@ -66,9 +85,9 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     }
     if (documentation.isLoading || content.isLoading) {
         return (
-            <div role="status" aria-label="Loading the page" className="flex flex-col gap-6">
+            <div role="status" aria-label="Loading the page" className="flex flex-1 flex-col gap-6">
                 <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-96 w-full" />
+                <Skeleton className="w-full flex-1" />
             </div>
         );
     }
@@ -139,8 +158,6 @@ function PageEditor({
     const [draft, setDraft] = useState(saved.content);
     const [isSaving, setIsSaving] = useState(false);
     const previewContent = useDeferredValue(draft);
-    const editorAreaRef = useRef<HTMLDivElement>(null);
-    const editorHeight = useRemainingViewportHeight(editorAreaRef);
 
     const isDirty = !readOnly && draft !== saved.content;
     useWarnBeforeUnload(isDirty);
@@ -171,7 +188,7 @@ function PageEditor({
     );
 
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-1 flex-col gap-6">
             <div className="flex flex-col gap-3">
                 {/* The buttons share the back button's row, to leave the editor more height. */}
                 <div className="flex items-center justify-between gap-4">
@@ -179,7 +196,7 @@ function PageEditor({
                         <BackToDocumentation />
                         {ancestors.length > 0 ? (
                             <>
-                                <Separator orientation="vertical" className="h-5 data-vertical:self-center" />
+                                <Separator orientation="vertical" className="h-5" style={{ alignSelf: 'center' }} />
                                 <span className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
                                     <FolderOpenIcon className="size-4 shrink-0" aria-hidden />
                                     <span className="truncate">{ancestors.map(folder => folder.title).join(' / ')}</span>
@@ -210,7 +227,7 @@ function PageEditor({
                 </Alert>
             ) : null}
 
-            <div ref={editorAreaRef} className="grid grid-cols-2 gap-4" style={{ height: editorHeight }}>
+            <div className="grid flex-1 grid-cols-2 gap-4" style={{ minHeight: MIN_EDITOR_HEIGHT }}>
                 <CodeEditor
                     value={draft}
                     onChange={value => setDraft(value ?? '')}
@@ -233,23 +250,6 @@ function PageEditor({
             </div>
         </div>
     );
-}
-
-/** The height left between the top of the element and the bottom of the window, kept up to date as the window resizes. */
-function useRemainingViewportHeight(ref: RefObject<HTMLElement | null>): number {
-    const [height, setHeight] = useState(MIN_EDITOR_HEIGHT);
-
-    useLayoutEffect(() => {
-        function measure() {
-            const top = ref.current?.getBoundingClientRect().top ?? 0;
-            setHeight(Math.max(MIN_EDITOR_HEIGHT, window.innerHeight - top - EDITOR_BOTTOM_GAP));
-        }
-        measure();
-        window.addEventListener('resize', measure);
-        return () => window.removeEventListener('resize', measure);
-    }, [ref]);
-
-    return height;
 }
 
 // Covers closing or reloading the tab only: Gamma has no guard on in-app navigation.
