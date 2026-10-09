@@ -41,6 +41,14 @@ jest.mock('../../../../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
 }));
 
+let mockLayoutConfig: Record<string, unknown> | undefined;
+jest.mock('@gravitee/graphene-core', () => ({
+    ...jest.requireActual<object>('@gravitee/graphene-core'),
+    useLayoutConfig: (config: Record<string, unknown>) => {
+        mockLayoutConfig = config;
+    },
+}));
+
 // Monaco does not run in jsdom: a textarea stands in for the editor.
 jest.mock('@gravitee/graphene-core/code-editor', () => ({
     CodeEditor: ({
@@ -161,6 +169,15 @@ beforeEach(() => {
 });
 
 describe('ApiDocumentationEditPage', () => {
+    // The shell's default content area is only as tall as the page, so the editor could not fill the window.
+    it('asks the shell for a content area as tall as the window, for the editor to fill', async () => {
+        mockLayoutConfig = undefined;
+        renderPage();
+
+        await editor();
+        expect(mockLayoutConfig).toEqual({ contentVariant: 'full-bleed' });
+    });
+
     it('renders nothing until the permission request has resolved', () => {
         mockUseApiDetailContext.mockReturnValue({ api: { id: 'api-1' }, isLoading: false, permissionsReady: false });
         renderPage();
