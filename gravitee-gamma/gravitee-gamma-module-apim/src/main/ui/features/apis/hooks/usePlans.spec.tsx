@@ -22,7 +22,7 @@ import { usePlanStatusCounts, usePlanTransition, useReorderPlan, useUpdatePlan }
 import { listPlans, transitionPlan, updatePlan } from '../services/plans';
 import { EMPTY_GENERAL, EMPTY_RESTRICTIONS, EMPTY_SECURITY } from '../types/plan';
 import type { ManagedPlan, ManagedPlanPage, PlanContext, PlanFormValue, PlanStatus } from '../types/plan';
-import { apiDetailKeys, apiPlanKeys } from '../utils/queryKeys';
+import { apiDetailKeys, apiPlanKeys, apiSubscriptionKeys } from '../utils/queryKeys';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
     ...jest.requireActual<object>('@gravitee/gamma-modules-sdk'),
@@ -177,6 +177,25 @@ describe('usePlanTransition once the transition succeeds', () => {
         await waitFor(() => expect(result.current.isSuccess).toBe(true));
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['api-plans', 'api', 'api-1'] });
         expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: apiDetailKeys.detail('DEFAULT', 'api-1') });
+    });
+});
+
+describe('plan changes and the plans offered by Create Subscription', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockUseEnvironment.mockReturnValue({ id: 'DEFAULT', hrids: ['DEFAULT'] });
+        mockTransitionPlan.mockResolvedValue({ ...RENAMED_PLAN, status: 'PUBLISHED' });
+    });
+
+    it('marks them stale once a plan is published, so a new plan shows up without a page refresh', async () => {
+        const { result, queryClient } = renderPlanTransitionHook();
+        const subscriptionPlansKey = apiSubscriptionKeys.plans('DEFAULT', CTX);
+        queryClient.setQueryData(subscriptionPlansKey, { data: [] });
+
+        result.current.mutate({ planId: 'plan-1', action: 'publish' });
+
+        await waitFor(() => expect(result.current.isSuccess).toBe(true));
+        expect(queryClient.getQueryState(subscriptionPlansKey)?.isInvalidated).toBe(true);
     });
 });
 
