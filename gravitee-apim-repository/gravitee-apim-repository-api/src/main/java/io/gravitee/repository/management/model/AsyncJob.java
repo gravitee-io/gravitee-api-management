@@ -45,6 +45,13 @@ public class AsyncJob {
     String errorMessage;
 
     Long upperLimit;
+    Long processed;
+
+    @Nullable
+    String details;
+
+    @Nullable
+    String errors;
 
     public boolean isLate() {
         return "PENDING".equalsIgnoreCase(status) && deadLine != null && deadLine.before(Date.from(TimeProvider.instantNow()));

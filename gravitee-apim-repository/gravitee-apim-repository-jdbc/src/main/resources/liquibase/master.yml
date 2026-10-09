@@ -451,3 +451,5 @@ databaseChangeLog:
         - file: liquibase/changelogs/v4_14_0/03_add_events_latest_type_updated_at_id_index.yml
     - include:
         - file: liquibase/changelogs/v4_14_0/04_add_default_portal_and_url_to_portals.yml
+    - include:
+        - file: liquibase/changelogs/v4_14_0/05_add_progress_details_errors_to_async_jobs_table.yml

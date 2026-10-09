@@ -54,6 +54,13 @@ public class AsyncJobQueryServiceInMemory implements AsyncJobQueryService, InMem
 
         var matches = storage
             .stream()
+            .filter(job -> job.getEnvironmentId().equals(query.environmentId()))
+            .filter(job ->
+                query
+                    .sourceId()
+                    .map(value -> job.getSourceId().equals(value))
+                    .orElse(true)
+            )
             .filter(job ->
                 query
                     .initiatorId()
