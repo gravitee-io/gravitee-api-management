@@ -283,10 +283,12 @@ public class PortalNavigationItemDomainService {
      *
      * The displayed parent is kept as renderedParentId so that validation checks the parent the caller chose.
      * An item saved under the parent it is already stored under is not being moved and keeps its owner, so
-     * a page the editor once stored below a listing is left as it is.
+     * a page the editor once stored below a listing is left as it is. So is a root of an API's documentation
+     * sent with no parent, which is what a read of it returns.
      *
      * @param ownerFixed the caller only ever handles items of one API: the owner never changes, and no
-     *                   parent means the root of that API's documentation rather than the portal's top level
+     *                   parent on a nested item means the root of that API's documentation rather than the
+     *                   portal's top level
      */
     public UpdatePortalNavigationItem resolveDestination(
         UpdatePortalNavigationItem requested,
@@ -297,13 +299,13 @@ public class PortalNavigationItemDomainService {
         if (!apiOwnedNavigationDomainService.isDocumentation(existing)) {
             return resolved;
         }
+        if (Objects.equals(requested.getParentId(), existing.getParentId())) {
+            return resolved;
+        }
         if (requested.getParentId() == null) {
             if (!ownerFixed) {
                 resolved.setReference(newOwnerAt(DocumentationDestination.under(null), existing));
             }
-            return resolved;
-        }
-        if (requested.getParentId().equals(existing.getParentId())) {
             return resolved;
         }
         var parent = queryService.findByIdAndEnvironmentId(existing.getEnvironmentId(), requested.getParentId());
@@ -470,7 +472,7 @@ public class PortalNavigationItemDomainService {
     ) {
         if (currentNestingLevel > MAX_PROPAGATION_NESTING_LEVEL) {
             throw new IllegalStateException(
-                "Maximum portal navigation nesting level of %d exceeded while propagating rootId".formatted(MAX_PROPAGATION_NESTING_LEVEL)
+                "Maximum portal navigation nesting level of %d exceeded while propagating a move".formatted(MAX_PROPAGATION_NESTING_LEVEL)
             );
         }
         var children = queryService.findByParentIdAndEnvironmentId(environmentId, parentId);

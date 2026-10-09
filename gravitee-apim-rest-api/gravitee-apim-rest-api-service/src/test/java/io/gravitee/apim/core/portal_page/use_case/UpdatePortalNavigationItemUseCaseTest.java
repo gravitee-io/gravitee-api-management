@@ -155,7 +155,6 @@ class UpdatePortalNavigationItemUseCaseTest {
                         .environmentId(ENV_ID)
                         .navigationItemId(existing.getId().json())
                         .updatePortalNavigationItem(toUpdate)
-                        .ownerFixed(true)
                         .build()
                 )
                 .updatedItem();
@@ -794,7 +793,7 @@ class UpdatePortalNavigationItemUseCaseTest {
     }
 
     @Test
-    void should_add_parent_api_to_folder_item() {
+    void should_keep_a_folder_stored_under_a_listing_when_saved_in_place() {
         var existing = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_FOLDER_ID));
         assertThat(existing).isNotNull();
 
@@ -1152,16 +1151,7 @@ class UpdatePortalNavigationItemUseCaseTest {
                 .renderedParentId(PortalNavigationItemId.of("00000000-0000-0000-0000-00000000ffff"))
                 .build();
 
-            // No parent only means the root of the API's documentation for a caller bound to that API
-            useCase.execute(
-                UpdatePortalNavigationItemUseCase.Input.builder()
-                    .organizationId(ORG_ID)
-                    .environmentId(ENV_ID)
-                    .navigationItemId(document.getId().json())
-                    .updatePortalNavigationItem(command)
-                    .ownerFixed(true)
-                    .build()
-            );
+            execute(document, command);
 
             assertRoot(document);
         }
@@ -1511,14 +1501,54 @@ class UpdatePortalNavigationItemUseCaseTest {
         }
 
         @Test
-        void should_make_an_api_owned_root_portal_owned_when_moved_to_the_portal_top_level() {
-            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+        void should_make_a_nested_api_owned_item_portal_owned_when_moved_to_the_portal_top_level() {
+            var apiRoot = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Advanced", apiRoot.getId())));
             var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
 
             move(folder, null);
 
             assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(PORTAL);
             assertThat(find(folder).getParentId()).isNull();
+            assertThat(find(apiRoot).getReference()).isEqualTo(API_A);
+        }
+
+        /**
+         * A root of an API's documentation is stored with no parent, and that is what a read of it returns:
+         * sent back as it is, it has not moved.
+         */
+        @Test
+        void should_keep_an_api_owned_root_and_its_descendants_when_saved_with_no_parent() {
+            var folder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Tutorials")));
+            var page = store(ownedBy(API_A, PortalNavigationItemFixtures.aPage("Guide", folder.getId())));
+
+            execute(folder, updateOf(folder).title("Handbooks").build(), false);
+
+            assertThat(find(folder).getTitle()).isEqualTo("Handbooks");
+            assertThat(List.of(find(folder), find(page))).extracting(PortalNavigationItem::getReference).containsOnly(API_A);
+        }
+
+        @Test
+        void should_still_rename_an_automation_managed_api_root_saved_with_no_parent() {
+            var managed = store(
+                ownedBy(API_A, PortalNavigationItemFixtures.aPage("Managed page", null))
+                    .toBuilder()
+                    .automationMetadata(
+                        new AutomationMetadata(
+                            AutomationMetadata.ReferenceType.API,
+                            API_A.apiId(),
+                            "Managed page",
+                            Optional.empty(),
+                            Optional.empty()
+                        )
+                    )
+                    .build()
+            );
+
+            execute(managed, updateOf(managed).title("Renamed managed page").build(), false);
+
+            assertThat(find(managed).getTitle()).isEqualTo("Renamed managed page");
+            assertThat(find(managed).getReference()).isEqualTo(API_A);
         }
 
         @Test
@@ -1541,9 +1571,24 @@ class UpdatePortalNavigationItemUseCaseTest {
 
             assertThatThrownBy(() -> move(folder, listingOfA.getId()))
                 .isInstanceOf(InvalidPortalNavigationItemDataException.class)
-                .hasMessageContaining("API");
+                .hasMessageContaining("cannot be moved into the documentation of an API");
             assertThat(find(folder).getReference()).isEqualTo(PORTAL);
             assertThat(find(nestedListing).getParentId()).isEqualTo(folder.getId());
+        }
+
+        @Test
+        void should_refuse_moving_a_folder_holding_an_api_product_into_a_folder_an_api_owns() {
+            var apiFolder = store(ownedBy(API_A, PortalNavigationItemFixtures.aFolder("Api guides")));
+            var folder = store(PortalNavigationItemFixtures.aFolder("Products", section.getId()));
+            store(
+                PortalNavigationItemFixtures.anApiProduct(PortalNavigationItemId.random().json(), "Product", folder.getId(), "product-ref")
+            );
+
+            assertThatThrownBy(() -> move(folder, apiFolder.getId()))
+                .isInstanceOf(InvalidPortalNavigationItemDataException.class)
+                .hasMessageContaining("cannot be moved into the documentation of an API");
+            assertThat(find(folder).getReference()).isEqualTo(PORTAL);
+            assertThat(find(folder).getParentId()).isEqualTo(section.getId());
         }
 
         @Test
