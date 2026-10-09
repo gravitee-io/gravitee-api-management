@@ -17,6 +17,8 @@ import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import type { MultiSelectFilterOption } from '../../../../../shared/components';
+import { useApiDetailContext } from '../../../context/ApiDetailContext';
 import {
     type HookCategory,
     type NotificationChannel,
@@ -24,7 +26,15 @@ import {
     useCreateNotification,
     useUpdateNotification,
 } from '../../../hooks/useApiNotifications';
+import { useCurrentUser } from '../../../hooks/useCurrentUser';
+import { useGroups } from '../../../hooks/useGroups';
 import type { ApiNotifier, NotificationSettings } from '../../../types/notification';
+import {
+    cleanseNotificationGroups,
+    mapApiGroupsToNotificationOptions,
+    selectedGroupsWithPrimaryOwner,
+    withPrimaryOwnerOption,
+} from '../../../utils/notificationGroups';
 
 /** A single channel a brand-new notification can be created on. Console is a built-in
  *  singleton edited from the list, so it is intentionally not an "add" option here. */
@@ -76,10 +86,16 @@ export interface UseApiNotificationFormReturn {
     config: string;
     setConfig: (value: string) => void;
 
-    /** "Use system proxy" — webhook channel only, mirrors the classic console. */
+    /** "Use system proxy" — webhook channel only. */
     showSystemProxy: boolean;
     useSystemProxy: boolean;
     setUseSystemProxy: (value: boolean) => void;
+
+    /** Groups multi-select for PORTAL (console) notification when the user is API primary owner. */
+    showGroups: boolean;
+    groupOptions: MultiSelectFilterOption[];
+    selectedGroups: string[];
+    setSelectedGroups: (values: string[]) => void;
 
     hookCategories: HookCategory[];
     groupHookIds: Set<string>;
@@ -102,6 +118,7 @@ export interface UseApiNotificationFormReturn {
 export function useApiNotificationForm(): UseApiNotificationFormReturn {
     const { apiId, notificationKey } = useParams<{ apiId: string; notificationKey: string }>();
     const navigate = useNavigate();
+    const { api } = useApiDetailContext();
 
     const isUpdate = !!notificationKey && notificationKey !== 'new';
 
@@ -118,6 +135,9 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         () => (isUpdate ? (rows.find(r => r.key === notificationKey) ?? null) : null),
         [isUpdate, rows, notificationKey],
     );
+    const isPortalNotificationRow = Boolean(isUpdate && editingRow?.notification.config_type === 'PORTAL');
+    const { data: groupsResponse } = useGroups(isPortalNotificationRow);
+    const { data: currentUser } = useCurrentUser(isPortalNotificationRow);
 
     const channelOptions = useMemo(() => buildAddChannelOptions(notifiers), [notifiers]);
 
@@ -126,6 +146,7 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
     const [config, setConfig] = useState('');
     const [useSystemProxy, setUseSystemProxy] = useState(false);
     const [selectedHooks, setSelectedHooks] = useState<Set<string>>(new Set());
+    const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
     const [saveError, setSaveError] = useState<string | null>(null);
 
     // Guards against POSTing twice if the follow-up PUT fails and the user retries.
@@ -133,14 +154,19 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
     // Initialise edit state exactly once per notification (survives background refetches).
     const initializedForRef = useRef<string | undefined>(undefined);
 
+    const primaryOwnerId = api?.primaryOwner?.id;
+    const isPrimaryOwner = Boolean(primaryOwnerId && currentUser?.id && primaryOwnerId === currentUser.id);
+
     useEffect(() => {
         if (!isUpdate || !editingRow || initializedForRef.current === notificationKey) return;
+        if (editingRow.notification.config_type === 'PORTAL' && !primaryOwnerId) return;
         initializedForRef.current = notificationKey;
         setName(editingRow.notification.name);
         setConfig(editingRow.notification.config ?? '');
         setUseSystemProxy(editingRow.notification.useSystemProxy ?? false);
         setSelectedHooks(new Set([...(editingRow.notification.hooks ?? []), ...(editingRow.notification.groupHooks ?? [])]));
-    }, [isUpdate, editingRow, notificationKey]);
+        setSelectedGroups(selectedGroupsWithPrimaryOwner(editingRow.notification.groups, primaryOwnerId));
+    }, [isUpdate, editingRow, notificationKey, primaryOwnerId]);
 
     // Default the add-channel to the first available notifier until the user picks one.
     const selectedNotifierId = notifierIdOverride ?? channelOptions[0]?.notifierId ?? '';
@@ -148,6 +174,17 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
 
     const channel: NotificationChannel = isUpdate ? (editingRow?.channel ?? 'CONSOLE') : (selectedOption?.type ?? 'CONSOLE');
     const needsTarget = channel === 'EMAIL' || channel === 'WEBHOOK';
+    const showGroups = Boolean(isPortalNotificationRow && isPrimaryOwner);
+
+    const groupOptions = useMemo<MultiSelectFilterOption[]>(() => {
+        if (!showGroups) return [];
+        const mapped = mapApiGroupsToNotificationOptions(api?.groups, groupsResponse?.data ?? []);
+        return withPrimaryOwnerOption(mapped, primaryOwnerId).map(g => ({
+            value: g.id,
+            label: g.name,
+            disabled: g.id === primaryOwnerId,
+        }));
+    }, [showGroups, api?.groups, groupsResponse?.data, primaryOwnerId]);
 
     const groupHookIds = useMemo(() => new Set(isUpdate ? (editingRow?.notification.groupHooks ?? []) : []), [isUpdate, editingRow]);
 
@@ -178,9 +215,16 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         if (isUpdate) {
             if (!editingRow) return;
             const userHooks = [...selectedHooks].filter(h => !groupHookIds.has(h));
+            const groups = showGroups ? cleanseNotificationGroups(selectedGroups, primaryOwnerId) : editingRow.notification.groups;
             updateMutation.mutate(
                 // useSystemProxy is webhook-specific; only include it for the WEBHOOK channel.
-                { ...editingRow.notification, hooks: userHooks, config, ...(channel === 'WEBHOOK' ? { useSystemProxy } : {}) },
+                {
+                    ...editingRow.notification,
+                    hooks: userHooks,
+                    config,
+                    ...(showGroups ? { groups } : {}),
+                    ...(channel === 'WEBHOOK' ? { useSystemProxy } : {}),
+                },
                 {
                     onSuccess: backToList,
                     onError: err => setSaveError(toMessage(err, 'Failed to save notification events.')),
@@ -238,6 +282,9 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         config,
         channel,
         useSystemProxy,
+        showGroups,
+        selectedGroups,
+        primaryOwnerId,
         isNameValid,
         selectedNotifierId,
         name,
@@ -268,6 +315,10 @@ export function useApiNotificationForm(): UseApiNotificationFormReturn {
         showSystemProxy: channel === 'WEBHOOK',
         useSystemProxy,
         setUseSystemProxy,
+        showGroups,
+        groupOptions,
+        selectedGroups,
+        setSelectedGroups,
         hookCategories,
         groupHookIds,
         selectedHooks,
