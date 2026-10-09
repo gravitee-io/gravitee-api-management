@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCR
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAuditRedaction;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.IdGenerator;
@@ -65,7 +66,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.CustomLog;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -515,14 +515,9 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         JsonNode properties = snapshot.path("properties");
         encryptedPropertyKeys(dictionary).forEach(key -> {
             ObjectNode property = (ObjectNode) properties.get(key);
-            property.put("value", fingerprint(property.get("value").asText()));
+            property.put("value", EncryptedPropertyAuditRedaction.fingerprint(property.get("value").asText()));
         });
         return snapshot;
-    }
-
-    // Hashes the ciphertext, not the plaintext, so nobody without the encryption key can match the fingerprint against guessed secrets.
-    private static String fingerprint(String ciphertext) {
-        return "<sha256:" + DigestUtils.sha256Hex(ciphertext) + ">";
     }
 
     private static Stream<String> encryptedPropertyKeys(Dictionary dictionary) {
