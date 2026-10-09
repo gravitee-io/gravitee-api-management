@@ -68,6 +68,7 @@ export function PlansListPage({ ctx, counts, canUpdate }: Readonly<PlansListPage
 
             <PlansTable
                 ctx={ctx}
+                status={selectedStatus}
                 plans={data?.data ?? []}
                 totalCount={data?.pagination.totalCount ?? 0}
                 page={page}
