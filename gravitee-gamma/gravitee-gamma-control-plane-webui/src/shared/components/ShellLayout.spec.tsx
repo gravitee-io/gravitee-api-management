@@ -238,6 +238,31 @@ describe('ShellLayout app switcher', () => {
         expect(open).toHaveBeenCalledWith('http://console.test/#!/env-1/_portal/navigation', '_blank', 'noopener,noreferrer');
         open.mockRestore();
     });
+
+    it('should link each app to its page under the router base path, so it can be opened in a new tab', async () => {
+        const user = userEvent.setup();
+        render(
+            <MemoryRouter basename="/console" initialEntries={['/console/environments/env-1/home']}>
+                <Routes>
+                    <Route path="/environments/:envHrid" element={<ShellLayout modules={MODULES} />}>
+                        <Route path="*" element={null} />
+                    </Route>
+                </Routes>
+            </MemoryRouter>,
+        );
+
+        await user.click(await screen.findByRole('button', { name: 'Home' }));
+
+        expect((await screen.findByRole('menuitem', { name: /Home/ })).closest('a')?.getAttribute('href')).toBe(
+            '/console/environments/env-1/home',
+        );
+        expect(
+            screen
+                .getByRole('menuitem', { name: /API Management/ })
+                .closest('a')
+                ?.getAttribute('href'),
+        ).toBe('/console/environments/env-1/apim');
+    });
 });
 
 describe('ShellLayout document title', () => {

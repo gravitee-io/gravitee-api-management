@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { NavGroup } from '@gravitee/graphene-core';
-import { ClipboardCheck, Home } from 'lucide-react';
+import { useCallback } from 'react';
+import { useHref } from 'react-router-dom';
 
-import { HOME_NAV_KEY, HOST_NAV_LABELS, type HostNavKey, TASKS_NAV_KEY } from './routes';
-
-export function buildNavGroups(hrefFor: (key: HostNavKey) => string): NavGroup[] {
-    return [
-        {
-            label: 'Overview',
-            items: [
-                { key: HOME_NAV_KEY, title: HOST_NAV_LABELS.home, icon: Home, href: hrefFor(HOME_NAV_KEY) },
-                { key: TASKS_NAV_KEY, title: HOST_NAV_LABELS.tasks, icon: ClipboardCheck, href: hrefFor(TASKS_NAV_KEY) },
-            ],
-        },
-    ];
+/** Prefixes an absolute router path with the router base path, giving a URL a link can open in a new tab. */
+export function useToHref(): (to: string) => string {
+    const basename = useHref('/').replace(/\/$/, '');
+    return useCallback((to: string) => basename + to, [basename]);
 }

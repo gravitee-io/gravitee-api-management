@@ -37,6 +37,7 @@ import { currentUserAvatarUrl } from '../../pages/my-account/myAccount.mapping';
 import { PendingTasksBadge } from '../../pages/tasks';
 import { useBootstrapStore } from '../config/bootstrap.store';
 import { buildPathnameAfterEnvironmentChange, pathSegmentsAfterEnvironment } from '../config/routes';
+import { useToHref } from '../config/useToHref';
 
 const GAMMA_APP_KEY = 'gamma-console';
 const DOCUMENT_TITLE_SUFFIX = 'Gravitee Gamma';
@@ -53,9 +54,13 @@ function moduleIcon(moduleId: string): ReactNode {
     return Icon ? <Icon className="size-5" /> : <Globe size={20} />;
 }
 
-function buildAppDefinitions(modules: readonly GammaModule[]) {
+function appPath(appKey: string, envHrid: string): string {
+    return `/environments/${envHrid}/${appKey === GAMMA_APP_KEY ? 'home' : appKey}`;
+}
+
+function buildAppDefinitions(modules: readonly GammaModule[], appHref: (appKey: string) => string) {
     return [
-        hostAppDefinition,
+        { ...hostAppDefinition, href: appHref(GAMMA_APP_KEY) },
         ...orderByCatalog(modules).map(m => {
             const product = findModuleProduct(m.id);
             return {
@@ -63,6 +68,7 @@ function buildAppDefinitions(modules: readonly GammaModule[]) {
                 label: product?.label ?? m.name,
                 description: product?.tagline ?? m.name,
                 icon: moduleIcon(m.id),
+                href: appHref(m.id),
             };
         }),
     ];
@@ -115,7 +121,8 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
 
     const environments = useEnvironmentStore(s => s.environments);
 
-    const apps = useMemo(() => buildAppDefinitions(modules), [modules]);
+    const toHref = useToHref();
+    const apps = useMemo(() => buildAppDefinitions(modules, appKey => toHref(appPath(appKey, envHrid))), [modules, toHref, envHrid]);
     const activeAppKey = useMemo(() => resolveActiveAppKey(pathname, envHrid, modules), [pathname, envHrid, modules]);
 
     // Home is the host, not a product: its pages are titled by their breadcrumbs alone.
@@ -134,17 +141,13 @@ function ShellLayoutInner({ modules }: { readonly modules: readonly GammaModule[
 
     const handleAppChange = useCallback(
         (key: string) => {
-            if (key === GAMMA_APP_KEY) {
-                navigate(`/environments/${envHrid}/home`);
-                return;
-            }
             if (key === PORTALS_MODULE_ID) {
                 if (config?.consoleUrl) {
                     window.open(buildPortalNextEditorUrl(config.consoleUrl, envHrid), '_blank', 'noopener,noreferrer');
                 }
                 return;
             }
-            navigate(`/environments/${envHrid}/${key}`);
+            navigate(appPath(key, envHrid));
         },
         [config?.consoleUrl, envHrid, navigate],
     );

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { render } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { MemoryRouter } from 'react-router-dom';
 
 const mockPublished: Array<Record<string, unknown>> = [];
 let mockLastDeps: unknown[] | null = null;
@@ -43,6 +45,8 @@ jest.mock('react-router-dom', () => {
     };
 });
 
+jest.mock('../../features/environment/environment.utils', () => ({ useEnvHrid: () => 'env' }));
+
 jest.mock('../config/routes', () => {
     const actual = jest.requireActual('../config/routes');
     return {
@@ -56,6 +60,15 @@ jest.mock('../config/routes', () => {
 
 import { RouteLayout } from './RouteLayout';
 
+// The links' base path comes from the router, so RouteLayout renders inside one; location and navigation stay mocked above.
+function InRouter({ children }: { readonly children: ReactNode }) {
+    return (
+        <MemoryRouter basename="/console" initialEntries={['/console']}>
+            {children}
+        </MemoryRouter>
+    );
+}
+
 describe('RouteLayout breadcrumbs', () => {
     beforeEach(() => {
         mockPublished.length = 0;
@@ -64,7 +77,7 @@ describe('RouteLayout breadcrumbs', () => {
     });
 
     it('keeps the same breadcrumb when the next page resolves to the same labels', () => {
-        const view = render(<RouteLayout />);
+        const view = render(<RouteLayout />, { wrapper: InRouter });
         const first = mockPublished[0]?.breadcrumbs;
 
         mockPathname = '/environments/env/apis/one/plans';
@@ -72,5 +85,20 @@ describe('RouteLayout breadcrumbs', () => {
 
         expect(mockPublished.at(-1)?.breadcrumbs).toBe(first);
         expect(first).toEqual([{ label: 'Home', to: '/environments/env/home' }]);
+    });
+});
+
+describe('RouteLayout side menu', () => {
+    beforeEach(() => {
+        mockPublished.length = 0;
+        mockLastDeps = null;
+    });
+
+    it('should link each item to its page in the current environment under the router base path, so it can be opened in a new tab', () => {
+        render(<RouteLayout />, { wrapper: InRouter });
+
+        const navigation = mockPublished[0]?.navigation as { props: { groups: Array<{ items: Array<{ key: string; href?: string }> }> } };
+        const hrefs = Object.fromEntries(navigation.props.groups.flatMap(group => group.items).map(item => [item.key, item.href]));
+        expect(hrefs).toEqual({ home: '/console/environments/env/home', tasks: '/console/environments/env/tasks' });
     });
 });

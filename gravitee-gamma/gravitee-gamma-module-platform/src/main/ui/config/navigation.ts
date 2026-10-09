@@ -149,8 +149,12 @@ export const NAV_SECTIONS: PlatformNavSection[] = [
     },
 ];
 
-export function platformPrimaryNavItems(sections: readonly PlatformNavSection[]): NavItem[] {
-    return sections.map(section => ({ key: section.key, title: section.title, icon: section.icon }));
+/** A section links to its first visible item, the page selecting it navigates to. */
+export function platformPrimaryNavItems(sections: readonly PlatformNavSection[], hrefForItem: (itemKey: string) => string): NavItem[] {
+    return sections.map(section => {
+        const firstKey = firstNavItemKey(section);
+        return { key: section.key, title: section.title, icon: section.icon, href: firstKey ? hrefForItem(firstKey) : undefined };
+    });
 }
 
 export function findNavSectionKey(sections: readonly PlatformNavSection[], itemKey: string): PlatformNavSectionKey | undefined {
