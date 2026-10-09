@@ -558,21 +558,17 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .properties(auditProperties)
                 .event(event)
                 .createdAt(deployedDictionary.getDeployedAt())
-                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(deployedDictionary.getProperties())))
+                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(deployedDictionary)))
                 .build()
         );
     }
 
-    private static Map<String, String> ciphertextByKey(Map<String, DictionaryProperty> properties) {
-        return properties
-            .entrySet()
-            .stream()
-            .filter(entry -> entry.getValue() != null && entry.getValue().encrypted())
-            .collect(
-                HashMap::new,
-                (ciphertextByKey, entry) -> ciphertextByKey.put(entry.getKey(), entry.getValue().value()),
-                HashMap::putAll
-            );
+    private static Map<String, String> ciphertextByKey(Dictionary dictionary) {
+        return encryptedPropertyKeys(dictionary).collect(
+            HashMap::new,
+            (ciphertextByKey, key) -> ciphertextByKey.put(key, dictionary.getProperties().get(key).value()),
+            HashMap::putAll
+        );
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {
