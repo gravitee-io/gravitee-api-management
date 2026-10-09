@@ -146,7 +146,7 @@ public class UpdateDynamicPropertiesUseCase {
                         setDynamicPropertyService(updated, deployedDynamicPropertiesService);
                     }
                 });
-            apiStateDomainService.redeployWithSyncedDynamicProperties(updated, String.format("%s sync", input.pluginId()), auditInfo);
+            apiStateDomainService.redeployWithSyncedDynamicProperties(updated, input.pluginId() + " sync", auditInfo);
         }
     }
 

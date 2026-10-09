@@ -62,6 +62,8 @@ import org.springframework.stereotype.Component;
 @CustomLog
 public class AuditServiceImpl extends AbstractService implements AuditService {
 
+    private static final String DEFINITION = "definition";
+
     private static final Map<Audit.AuditReferenceType, AuditReferenceType> AUDIT_REFERENCE_TYPE_AUDIT_REFERENCE_TYPE_MAP = Map.ofEntries(
         entry(Audit.AuditReferenceType.ORGANIZATION, AuditReferenceType.ORGANIZATION),
         entry(Audit.AuditReferenceType.ENVIRONMENT, AuditReferenceType.ENVIRONMENT),
@@ -356,15 +358,15 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     }
 
     private void redactDefinition(ObjectNode api) {
-        JsonNode definition = api.path("definition");
+        JsonNode definition = api.path(DEFINITION);
         if (!definition.isTextual()) {
             return;
         }
         try {
-            api.put("definition", EncryptedPropertyAuditRedaction.redact(mapper.readTree(definition.textValue())).toString());
+            api.put(DEFINITION, EncryptedPropertyAuditRedaction.redact(mapper.readTree(definition.textValue())).toString());
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse the API definition for the audit log diff, leaving it out", e);
-            api.remove("definition");
+            api.remove(DEFINITION);
         }
     }
 

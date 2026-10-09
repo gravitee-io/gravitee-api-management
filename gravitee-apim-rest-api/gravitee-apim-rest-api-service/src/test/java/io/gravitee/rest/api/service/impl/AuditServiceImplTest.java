@@ -233,7 +233,6 @@ class AuditServiceImplTest {
 
         @Test
         void no_path_to_anonymize() throws JsonProcessingException {
-            ObjectMapper mapper = new ObjectMapper();
             String data = """
                 [
                     {
@@ -265,7 +264,6 @@ class AuditServiceImplTest {
 
         @Test
         void one_path_to_anonymize() throws JsonProcessingException {
-            ObjectMapper mapper = new ObjectMapper();
             String data = """
                 [
                     {
@@ -320,7 +318,6 @@ class AuditServiceImplTest {
 
         @Test
         void one_path_to_anonymize_present_without_value_field() throws JsonProcessingException {
-            ObjectMapper mapper = new ObjectMapper();
             String data = """
                 [
                     {
