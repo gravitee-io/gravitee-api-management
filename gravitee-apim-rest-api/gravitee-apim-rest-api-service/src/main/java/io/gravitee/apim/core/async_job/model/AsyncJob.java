@@ -81,7 +81,9 @@ public class AsyncJob {
         PENDING,
         SUCCESS,
         TIMEOUT,
-        ERROR;
+        ERROR,
+        /** Some items failed, but at least one result was written. */
+        PARTIAL;
 
         public boolean isFinal() {
             return this != PENDING;
@@ -96,6 +98,10 @@ public class AsyncJob {
 
     public AsyncJob complete() {
         return toBuilder().status(Status.SUCCESS).updatedAt(TimeProvider.now()).build();
+    }
+
+    public AsyncJob partial() {
+        return toBuilder().status(Status.PARTIAL).updatedAt(TimeProvider.now()).build();
     }
 
     public AsyncJob timeout() {
