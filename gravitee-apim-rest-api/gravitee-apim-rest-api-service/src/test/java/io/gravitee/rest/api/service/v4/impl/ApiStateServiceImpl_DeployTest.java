@@ -15,14 +15,22 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_ACCESSED;
+import static io.gravitee.repository.management.model.Api.AuditEvent.API_ENCRYPTED_PROPERTIES_REFRESHED;
+import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Properties;
+import io.gravitee.definition.model.Property;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -33,6 +41,7 @@ import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -50,6 +59,7 @@ import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
 import java.lang.reflect.Method;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +85,14 @@ public class ApiStateServiceImpl_DeployTest {
     private static final String API_ID = "id-api";
     private static final String API_NAME = "myAPI";
     private static final String USER_NAME = "myUser";
+    private static final String ENCRYPTED_PROPERTY_DEFINITION = """
+        {"properties":[{"key":"plain","value":"value","encrypted":false},{"key":"secret","value":"cipher","encrypted":true}]}""";
+    private static final String NATIVE_ENCRYPTED_PROPERTY_DEFINITION = """
+        {"type":"native","properties":[{"key":"plain","value":"value","encrypted":false},{"key":"secret","value":"cipher","encrypted":true}]}""";
+    private static final String ACCESS_PATCH = """
+        [{"op":"access","path":"/properties/secret","value":{"value":"<sha256:c806cd9c716cfbfdb4763c71dd1394b3e602fce81291a0338bf8e3225416ac32>","encrypted":true}}]""";
+    private static final String PLAIN_PROPERTY_DEFINITION = """
+        {"properties":[{"key":"plain","value":"value","encrypted":false}]}""";
     private final ObjectMapper objectMapper = new GraviteeMapper();
 
     @Mock
@@ -321,6 +339,160 @@ public class ApiStateServiceImpl_DeployTest {
     }
 
     @Test
+    public void should_redeploy_api_with_synced_dynamic_properties() throws TechnicalException {
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiRepository.update(api)).thenReturn(api);
+
+        final GenericApiEntity result = apiStateService.redeployWithSyncedDynamicProperties(
+            GraviteeContext.getExecutionContext(),
+            updatedApi,
+            USER_NAME,
+            new ApiDeploymentEntity("http-dynamic-properties sync")
+        );
+
+        verify(eventService).createApiEvent(
+            any(ExecutionContext.class),
+            anySet(),
+            anyString(),
+            eq(EventType.PUBLISH_API),
+            same(updatedApi),
+            argThat(properties -> "http-dynamic-properties sync".equals(properties.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue())))
+        );
+        verify(apiNotificationService).triggerDeployNotification(any(ExecutionContext.class), eq(result));
+    }
+
+    @Test
+    public void should_audit_encrypted_properties_access_when_deploying_a_v4_http_api() throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, ENCRYPTED_PROPERTY_DEFINITION);
+
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
+
+        verify_encrypted_properties_access_audited();
+    }
+
+    @Test
+    public void should_audit_encrypted_properties_access_when_deploying_a_v4_native_api() throws TechnicalException {
+        given_deployable_api(ApiType.NATIVE, NATIVE_ENCRYPTED_PROPERTY_DEFINITION);
+
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
+
+        verify_encrypted_properties_access_audited();
+    }
+
+    @Test
+    public void should_audit_the_deployed_definition_not_the_stored_one() throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, PLAIN_PROPERTY_DEFINITION);
+        updatedApi.setType(ApiType.PROXY);
+        updatedApi.setDefinition(ENCRYPTED_PROPERTY_DEFINITION);
+        updatedApi.setDeployedAt(new Date(0));
+
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), updatedApi, USER_NAME, new ApiDeploymentEntity());
+
+        verify_encrypted_properties_access_audited();
+    }
+
+    @Test
+    public void should_keep_the_access_audit_when_the_deploy_notification_fails() throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, ENCRYPTED_PROPERTY_DEFINITION);
+        doThrow(new IllegalStateException("notifier down")).when(apiNotificationService).triggerDeployNotification(any(), any());
+
+        assertThrows(IllegalStateException.class, () ->
+            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
+        );
+
+        verify_encrypted_properties_access_audited();
+    }
+
+    @Test
+    public void should_not_audit_an_api_without_encrypted_property() throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, PLAIN_PROPERTY_DEFINITION);
+
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
+
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_not_audit_an_api_without_properties() throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, "{}");
+
+        apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity());
+
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_not_audit_a_v2_api() throws Exception {
+        Proxy proxy = new Proxy();
+        proxy.setVirtualHosts(List.of(new VirtualHost("/v2")));
+        io.gravitee.definition.model.Api v2Definition = new io.gravitee.definition.model.Api();
+        v2Definition.setDefinitionVersion(DefinitionVersion.V2);
+        v2Definition.setProxy(proxy);
+        v2Definition.setProperties(new Properties(List.of(new Property("secret", "cipher", true))));
+        given_deployable_api(ApiType.PROXY, objectMapper.writeValueAsString(v2Definition));
+        api.setDefinitionVersion(DefinitionVersion.V2);
+
+        GenericApiEntity deployed = apiStateService.deploy(
+            GraviteeContext.getExecutionContext(),
+            API_ID,
+            USER_NAME,
+            new ApiDeploymentEntity()
+        );
+
+        assertTrue(((ApiEntity) deployed).getPropertyList().getFirst().isEncrypted());
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_not_audit_a_rejected_deploy() {
+        api.setDefinition(ENCRYPTED_PROPERTY_DEFINITION);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(false);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+
+        assertThrows(ApiNotDeployableException.class, () ->
+            apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, USER_NAME, new ApiDeploymentEntity())
+        );
+
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
+    public void should_audit_encrypted_properties_refresh_when_redeploying_with_synced_dynamic_properties() throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, ENCRYPTED_PROPERTY_DEFINITION);
+        updatedApi.setType(ApiType.PROXY);
+        updatedApi.setDefinition(ENCRYPTED_PROPERTY_DEFINITION);
+
+        apiStateService.redeployWithSyncedDynamicProperties(
+            GraviteeContext.getExecutionContext(),
+            updatedApi,
+            USER_NAME,
+            new ApiDeploymentEntity("http-dynamic-properties sync")
+        );
+
+        verify(eventService).createApiEvent(any(), anySet(), anyString(), eq(EventType.PUBLISH_API), same(updatedApi), anyMap());
+        verify_encrypted_properties_audited(API_ENCRYPTED_PROPERTIES_REFRESHED);
+        verifyNoMoreInteractions(auditService);
+    }
+
+    @Test
+    public void should_not_audit_a_redeploy_with_synced_dynamic_properties_of_an_api_without_encrypted_property()
+        throws TechnicalException {
+        given_deployable_api(ApiType.PROXY, PLAIN_PROPERTY_DEFINITION);
+        updatedApi.setType(ApiType.PROXY);
+        updatedApi.setDefinition(PLAIN_PROPERTY_DEFINITION);
+
+        apiStateService.redeployWithSyncedDynamicProperties(
+            GraviteeContext.getExecutionContext(),
+            updatedApi,
+            USER_NAME,
+            new ApiDeploymentEntity("http-dynamic-properties sync")
+        );
+
+        verifyNoInteractions(auditService);
+    }
+
+    @Test
     public void should_throw_technical_exception_during_update() throws TechnicalException {
         assertThrows(TechnicalManagementException.class, () -> {
             when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
@@ -384,5 +556,34 @@ public class ApiStateServiceImpl_DeployTest {
         method.invoke(impl, executionContext, "api-id", props, deploymentEntity);
         assertEquals("6", props.get(Event.EventProperties.DEPLOYMENT_NUMBER.getValue()));
         assertEquals("Release v1.0", props.get(Event.EventProperties.DEPLOYMENT_LABEL.getValue()));
+    }
+
+    private void given_deployable_api(ApiType type, String definition) throws TechnicalException {
+        api.setType(type);
+        api.setDefinition(definition);
+        when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
+        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiRepository.update(api)).thenReturn(api);
+    }
+
+    private void verify_encrypted_properties_access_audited() {
+        verify_encrypted_properties_audited(API_ENCRYPTED_PROPERTIES_ACCESSED);
+    }
+
+    private void verify_encrypted_properties_audited(Api.AuditEvent event) {
+        verify(auditService).createApiAuditLog(
+            eq(GraviteeContext.getExecutionContext()),
+            argThat(
+                auditLogData ->
+                    auditLogData.getEvent() == event &&
+                    auditLogData.getProperties().equals(Map.of(ENCRYPTED, "true")) &&
+                    auditLogData.getCreatedAt().equals(api.getDeployedAt()) &&
+                    auditLogData.getOldValue() == null &&
+                    auditLogData.getNewValue() == null &&
+                    ACCESS_PATCH.equals(auditLogData.getPatch())
+            ),
+            eq(API_ID),
+            eq(USER_NAME)
+        );
     }
 }

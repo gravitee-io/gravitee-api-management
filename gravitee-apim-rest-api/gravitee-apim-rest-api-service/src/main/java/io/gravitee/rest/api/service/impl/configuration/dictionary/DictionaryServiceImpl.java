@@ -22,6 +22,7 @@ import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCR
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAccessPatch;
 import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAuditRedaction;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.util.DataEncryptor;
@@ -58,6 +59,7 @@ import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -134,6 +136,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 EventType.PUBLISH_DICTIONARY,
                 dictionary
             );
+            auditEncryptedPropertiesAccess(executionContext, dictionary, Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_ACCESSED);
             return convert(dictionary);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to deploy " + id, ex);
@@ -404,6 +407,11 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             beforeRefresh,
             updatedDictionary
         );
+        auditEncryptedPropertiesAccess(
+            executionContext,
+            updatedDictionary,
+            Dictionary.AuditEvent.DICTIONARY_ENCRYPTED_PROPERTIES_REFRESHED
+        );
     }
 
     private static Dictionary copyOf(Dictionary dictionary) {
@@ -530,6 +538,37 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
             .stream()
             .filter(property -> property.getValue() != null && property.getValue().encrypted())
             .map(Map.Entry::getKey);
+    }
+
+    private void auditEncryptedPropertiesAccess(
+        ExecutionContext executionContext,
+        Dictionary deployedDictionary,
+        Dictionary.AuditEvent event
+    ) {
+        if (!hasEncryptedProperty(deployedDictionary)) {
+            return;
+        }
+        Map<Audit.AuditProperties, String> auditProperties = new EnumMap<>(Audit.AuditProperties.class);
+        auditProperties.put(DICTIONARY, deployedDictionary.getName());
+        auditProperties.put(ENCRYPTED, Boolean.TRUE.toString());
+
+        auditService.createAuditLog(
+            executionContext,
+            AuditService.AuditLogData.builder()
+                .properties(auditProperties)
+                .event(event)
+                .createdAt(deployedDictionary.getDeployedAt())
+                .patch(EncryptedPropertyAccessPatch.of(ciphertextByKey(deployedDictionary)))
+                .build()
+        );
+    }
+
+    private static Map<String, String> ciphertextByKey(Dictionary dictionary) {
+        return encryptedPropertyKeys(dictionary).collect(
+            HashMap::new,
+            (ciphertextByKey, key) -> ciphertextByKey.put(key, dictionary.getProperties().get(key).value()),
+            HashMap::putAll
+        );
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {
