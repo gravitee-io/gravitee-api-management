@@ -199,8 +199,16 @@ class AuditServiceImplTest {
         }
 
         @Test
-        void should_reject_a_given_patch_combined_with_audited_values() throws Exception {
+        void should_reject_a_given_patch_combined_with_a_new_value() throws Exception {
             var audit = anApiAudit().patch(PATCH).newValue(Map.of("key", "value")).build();
+
+            assertThatThrownBy(() -> auditService.createAuditLog(EXECUTION_CONTEXT, audit)).isInstanceOf(IllegalArgumentException.class);
+            verify(auditRepository, never()).create(any());
+        }
+
+        @Test
+        void should_reject_a_given_patch_combined_with_an_old_value() throws Exception {
+            var audit = anApiAudit().patch(PATCH).oldValue(Map.of("key", "value")).build();
 
             assertThatThrownBy(() -> auditService.createAuditLog(EXECUTION_CONTEXT, audit)).isInstanceOf(IllegalArgumentException.class);
             verify(auditRepository, never()).create(any());
