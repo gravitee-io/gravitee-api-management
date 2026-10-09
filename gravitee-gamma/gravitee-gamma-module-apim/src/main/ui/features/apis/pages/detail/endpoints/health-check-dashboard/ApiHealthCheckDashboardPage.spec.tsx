@@ -60,7 +60,7 @@ function buildDashboard(overrides: Partial<dashboardHook.HealthCheckDashboardDat
         canRead: true,
         availability: { value: 92.68, isLoading: false, isError: false },
         responseTime: { value: 87, isLoading: false, isError: false },
-        trend: { points: [], isLoading: false, isError: false },
+        trend: { points: [{ timestamp: 1_700_000_000_000, responseTime: 42 }], isLoading: false, isError: false },
         endpoint: { rows: [{ key: 'ep-1', name: 'ep-1', availabilityPct: 99, avgResponseTimeMs: 42 }], isLoading: false, isError: false },
         gateway: { rows: [], isLoading: false, isError: false },
         anyError: false,

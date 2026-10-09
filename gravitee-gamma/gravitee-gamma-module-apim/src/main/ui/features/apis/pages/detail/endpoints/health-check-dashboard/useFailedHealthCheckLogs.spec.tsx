@@ -56,6 +56,7 @@ describe('useFailedHealthCheckLogs', () => {
         expect(params.page).toBe(1);
         expect(params.perPage).toBe(10);
         expect(params.from).toBeLessThan(params.to);
+        expect(mockGetLogs.mock.calls[0][3]).toEqual(expect.objectContaining({ signal: expect.any(AbortSignal) }));
     });
 
     it('exposes returned logs and total count', async () => {

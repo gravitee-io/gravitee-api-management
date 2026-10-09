@@ -124,6 +124,27 @@ describe('ImportApiSheet', () => {
         expect(onImport).toHaveBeenCalledWith({ format: 'gravitee', source: 'local', definition });
     });
 
+    it('rejects a JSON file that is not a Gravitee export and keeps Import disabled', async () => {
+        const { fileInput } = renderSheet();
+
+        fireEvent.change(fileInput, { target: { files: [jsonFile('payload.json', { name: 'create payload' })] } });
+
+        await waitFor(() => expect(screen.getByText(/does not match the selected API format/i)).toBeInTheDocument());
+        expect(screen.getByRole('button', { name: /^import$/i })).toBeDisabled();
+    });
+
+    it('accepts a file dropped on the upload area', async () => {
+        const { onImport } = renderSheet();
+        const definition = { api: { name: 'Dropped API' } };
+        const dropZone = screen.getByText(/drop file here or click to browse/i).closest('[role="button"]') as HTMLElement;
+
+        fireEvent.drop(dropZone, { dataTransfer: { files: [jsonFile('api.json', definition)] } });
+
+        await waitFor(() => expect(screen.getByRole('button', { name: /^import$/i })).not.toBeDisabled());
+        fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
+        expect(onImport).toHaveBeenCalledWith({ format: 'gravitee', source: 'local', definition });
+    });
+
     it('shows a parse error and keeps Import disabled for invalid JSON', async () => {
         const { fileInput } = renderSheet();
 
@@ -261,14 +282,16 @@ describe('ImportApiSheet', () => {
         fireEvent.click(screen.getByRole('tab', { name: 'WSDL' }));
         await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
 
-        fireEvent.change(fileInput, { target: { files: [textFile('service.wsdl', '<xml/>', 'application/xml')] } });
+        fireEvent.change(fileInput, {
+            target: { files: [textFile('service.wsdl', '<definitions></definitions>', 'application/xml')] },
+        });
         await waitFor(() => expect(screen.getByRole('button', { name: /^import$/i })).not.toBeDisabled());
         fireEvent.click(screen.getByRole('button', { name: /^import$/i }));
 
         expect(onImport).toHaveBeenCalledWith({
             format: 'wsdl',
             descriptor: {
-                payload: '<xml/>',
+                payload: '<definitions></definitions>',
                 type: 'INLINE',
                 withDocumentation: true,
                 withOASValidationPolicy: true,

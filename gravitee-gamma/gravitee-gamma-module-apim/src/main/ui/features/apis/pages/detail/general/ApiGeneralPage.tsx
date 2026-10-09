@@ -56,6 +56,7 @@ import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntr
 import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 import { canAskForReview, isReviewClearedForLifecycle } from '../../../utils/apiReview';
 import { getSourceIntegration, isFederatedApi } from '../../../utils/federatedApi';
+import { readableImportError } from '../../../utils/importFileValidation';
 import { buildIntegrationOverviewPath } from '../../../utils/integrationOverviewPath';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -326,9 +327,7 @@ export function ApiGeneralPage() {
         : null;
 
     const importError = importMutation.isError
-        ? importMutation.error instanceof Error
-            ? importMutation.error.message
-            : 'Failed to import API definition.'
+        ? readableImportError(importMutation.error instanceof Error ? importMutation.error.message : 'Failed to import API definition.')
         : null;
 
     // ── Loading ───────────────────────────────────────────────────────────────

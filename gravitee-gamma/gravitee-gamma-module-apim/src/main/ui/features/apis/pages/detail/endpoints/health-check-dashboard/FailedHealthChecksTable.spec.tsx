@@ -66,6 +66,7 @@ describe('FailedHealthChecksTable', () => {
 
         expect(screen.getByText('endpoint-1')).toBeInTheDocument();
         expect(screen.getByText('gateway-a')).toBeInTheDocument();
+        expect(screen.getByText('250ms')).toBeInTheDocument();
     });
 
     it('shows an empty state when there are no failures', () => {
@@ -79,10 +80,18 @@ describe('FailedHealthChecksTable', () => {
     it('opens the log detail sheet with request/response steps on row click', async () => {
         render(<FailedHealthChecksTable apiId="api-1" timeframe="1d" />);
 
-        await userEvent.click(screen.getByRole('button', { name: /view health check detail for endpoint-1/i }));
+        await userEvent.click(screen.getByRole('button', { name: 'View failure details' }));
 
         expect(screen.getByText('Health check detail')).toBeInTheDocument();
         expect(screen.getByText(/GET https:\/\/api\/health/)).toBeInTheDocument();
         expect(screen.getByText(/Status: 503/)).toBeInTheDocument();
+    });
+
+    it('disables the view action when the probe has no step details', () => {
+        useFailedHealthCheckLogsSpy.mockReturnValue(buildData({ logs: [{ ...LOG, steps: [] }], totalCount: 1 }));
+
+        render(<FailedHealthChecksTable apiId="api-1" timeframe="1d" />);
+
+        expect(screen.getByRole('button', { name: 'No details available for this probe' })).toBeDisabled();
     });
 });

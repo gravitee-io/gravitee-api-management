@@ -24,7 +24,7 @@ import {
     DataTableEmptyState,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
 import { HealthCheckLogDetailSheet } from './HealthCheckLogDetailSheet';
@@ -59,19 +59,7 @@ export function FailedHealthChecksTable({ apiId, timeframe }: Readonly<FailedHea
             accessorFn: (row: HealthCheckLog) => row.endpointName,
             header: 'Endpoint',
             enableSorting: false,
-            cell: ({ row }: ColCell<HealthCheckLog>) => {
-                const log = row.original;
-                return (
-                    <button
-                        type="button"
-                        className="text-left font-medium hover:underline"
-                        aria-label={`View health check detail for ${log.endpointName}`}
-                        onClick={() => setSelectedLog(log)}
-                    >
-                        {log.endpointName}
-                    </button>
-                );
-            },
+            cell: ({ row }: ColCell<HealthCheckLog>) => <span className="font-medium">{row.original.endpointName}</span>,
         },
         {
             id: 'Gateway',
@@ -79,6 +67,36 @@ export function FailedHealthChecksTable({ apiId, timeframe }: Readonly<FailedHea
             header: 'Gateway',
             enableSorting: false,
             cell: ({ row }: ColCell<HealthCheckLog>) => <span className="text-muted-foreground">{row.original.gatewayId}</span>,
+        },
+        {
+            id: 'Response Time',
+            accessorFn: (row: HealthCheckLog) => row.responseTime,
+            header: 'Response Time',
+            enableSorting: false,
+            cell: ({ row }: ColCell<HealthCheckLog>) => <span>{row.original.responseTime}ms</span>,
+        },
+        {
+            id: 'actions',
+            header: '',
+            enableSorting: false,
+            cell: ({ row }: ColCell<HealthCheckLog>) => {
+                const log = row.original;
+                const hasDetails = log.steps.length > 0;
+                return (
+                    <button
+                        type="button"
+                        className="inline-flex size-8 items-center justify-center rounded-md hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
+                        aria-label={hasDetails ? 'View failure details' : 'No details available for this probe'}
+                        title={hasDetails ? 'View failure details' : 'No details available for this probe'}
+                        disabled={!hasDetails}
+                        onClick={() => {
+                            if (hasDetails) setSelectedLog(log);
+                        }}
+                    >
+                        <EyeIcon className="size-4" aria-hidden />
+                    </button>
+                );
+            },
         },
     ];
 
