@@ -1,7 +1,0 @@
-{
-  "hrid": "my-group",
-  "name": "my-group",
-  "defaultMemberRoles": {
-    "INTEGRATION": "USER"
-  }
-}
