@@ -35,7 +35,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { EMPTY } from 'rxjs';
-import { catchError, debounceTime, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, switchMap, tap } from 'rxjs/operators';
+import { isEqual } from 'lodash';
 
 import type { EnvLog } from './models/env-log.model';
 
@@ -113,19 +114,37 @@ export class EnvLogsComponent {
 
   private readonly logsResult$ = toObservable(this.searchParams).pipe(
     debounceTime(0), // batch synchronous signal updates into a single emission
-    switchMap(params => this.fetchLogs(params)),
+    switchMap(params =>
+      this.fetchLogs(params).pipe(map(response => ({ response, requestFilters: params.requestFilters, timeRange: params.timeRange }))),
+    ),
   );
 
   private readonly logsResult = toSignal(this.logsResult$);
 
-  protected logs = computed(() => {
+  // A failed or pending search leaves logsResult holding the previous response; it must not be rendered as
+  // the answer to the current search. Emptying the table also lets it show its loader while loading.
+  private readonly currentLogsResult = computed(() => (this.loading() || this.error() ? undefined : this.logsResult()?.response));
+
+  // Unlike the rows, the total stays valid while another page of the same search loads: keeping it stops the
+  // paginators from collapsing to "0 of 0" for the whole wait. It is dropped once the filters or time range differ.
+  private readonly totalCount = computed(() => {
     const result = this.logsResult();
+    if (!result || this.error()) {
+      return 0;
+    }
+    const isSameSearch =
+      isEqual(result.requestFilters, this.filtersStore.requestFilters()) && isEqual(result.timeRange, this.filtersStore.timeRange());
+    return isSameSearch ? result.response.pagination.totalCount : 0;
+  });
+
+  protected logs = computed(() => {
+    const result = this.currentLogsResult();
     return result?.data.map(log => this.mapToEnvLog(log)) ?? [];
   });
 
   protected paginationWithTotal = computed(() => ({
     ...this.pagination(),
-    totalCount: this.logsResult()?.pagination.totalCount ?? 0,
+    totalCount: this.totalCount(),
   }));
 
   protected onRefresh() {

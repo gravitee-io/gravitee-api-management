@@ -51,13 +51,15 @@
   </div>
 </div>
 
-<mat-card class="logs-section">
-  <env-logs-table
-    class="env-runtime-logs__table"
-    [logs]="logs()"
-    [showAssetTypeColumn]="true"
-    [isLoading]="loading()"
-    [pagination]="paginationWithTotal()"
-    (paginationUpdated)="onPaginationUpdated($event)"
-  />
-</mat-card>
+@if (!error()) {
+  <mat-card class="logs-section">
+    <env-logs-table
+      class="env-runtime-logs__table"
+      [logs]="logs()"
+      [showAssetTypeColumn]="true"
+      [isLoading]="loading()"
+      [pagination]="paginationWithTotal()"
+      (paginationUpdated)="onPaginationUpdated($event)"
+    />
+  </mat-card>
+}
