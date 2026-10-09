@@ -166,6 +166,14 @@ jest.mock('../../../utils/queryKeys', () => ({
         targets: (envId: string) => ['api-promotion', 'targets', envId],
         pending: (apiId: string) => ['api-promotion', 'pending', apiId],
     },
+    integrationKeys: {
+        all: ['integrations'],
+        detail: (envId: string, integrationId: string) => ['integrations', 'detail', envId, integrationId],
+    },
+}));
+
+jest.mock('../../../services/integrations', () => ({
+    getIntegration: jest.fn((envId: string, integrationId: string) => Promise.resolve({ id: integrationId, name: 'Fetched Integration' })),
 }));
 
 const mockUseApiReviewEnabled = jest.fn(() => ({ enabled: false, isFetched: true }));
@@ -333,7 +341,7 @@ describe('ApiGeneralPage', () => {
         expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(0);
     });
 
-    it('links a federated API back to the integration overview page of the integration that produced it', () => {
+    it('links a federated API back to the integration overview page of the integration that produced it', async () => {
         mockUseApiDetailContext.mockReturnValue({
             api: {
                 ...FEDERATED_API,
@@ -344,34 +352,37 @@ describe('ApiGeneralPage', () => {
         });
         renderPage('federated-api-1', makeClient(), '/environments/DEFAULT/apim');
 
-        expect(screen.getByText('Source')).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: 'My Solace env' })).toHaveAttribute(
+        expect(screen.getByText('From integration')).toBeInTheDocument();
+        expect(await screen.findByRole('link', { name: 'Fetched Integration' })).toHaveAttribute(
             'href',
             '/environments/DEFAULT/platform/integrations/int-1',
         );
     });
 
-    it('shows a dash and no link in the Source row when the integration name is unavailable', () => {
+    it('keeps the From integration link when originContext has no name (resolved via GET integration)', async () => {
         mockUseApiDetailContext.mockReturnValue({
             api: { ...FEDERATED_API, originContext: { origin: 'INTEGRATION', integrationId: 'int-1' } },
             isLoading: false,
             permissionsReady: true,
         });
-        renderPage('federated-api-1');
+        renderPage('federated-api-1', makeClient(), '/environments/DEFAULT/apim');
 
-        expect(screen.getByText('Source').closest('div')).toHaveTextContent('Source—');
-        expect(screen.queryByRole('link')).toBeNull();
+        expect(screen.getByText('From integration')).toBeInTheDocument();
+        expect(await screen.findByRole('link', { name: 'Fetched Integration' })).toHaveAttribute(
+            'href',
+            '/environments/DEFAULT/platform/integrations/int-1',
+        );
     });
 
     it.each([
         ['an API created in the platform', { ...STUB_API, originContext: { origin: 'MANAGEMENT' } }],
         ['an API discovered through Kubernetes', { ...STUB_API, originContext: { origin: 'KUBERNETES' } }],
         ['a federated API missing its integration id', { ...FEDERATED_API, originContext: { origin: 'INTEGRATION' } }],
-    ])('renders no Source row and no link for %s', (_label, api) => {
+    ])('renders no From integration row and no link for %s', (_label, api) => {
         mockUseApiDetailContext.mockReturnValue({ api, isLoading: false, permissionsReady: true });
         renderPage(api.id);
 
-        expect(screen.queryByText('Source')).toBeNull();
+        expect(screen.queryByText('From integration')).toBeNull();
         expect(screen.queryByRole('link')).toBeNull();
     });
 

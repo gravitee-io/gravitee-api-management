@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 import { useQuery } from '@tanstack/react-query';
 
-import { getGroups } from '../services/members';
-import { groupKeys } from '../utils/queryKeys';
+import { getCurrentUser } from '../services/currentUser';
+import { currentUserKeys } from '../utils/queryKeys';
 
-export function useGroups(enabled = true) {
-    const env = useEnvironment();
+export function useCurrentUser(enabled = true) {
     return useQuery({
-        queryKey: groupKeys.list(env?.id ?? ''),
-        queryFn: () => getGroups(env!.id),
-        enabled: enabled && Boolean(env),
+        queryKey: currentUserKeys.me(),
+        queryFn: getCurrentUser,
+        enabled,
         staleTime: 5 * 60_000,
     });
 }

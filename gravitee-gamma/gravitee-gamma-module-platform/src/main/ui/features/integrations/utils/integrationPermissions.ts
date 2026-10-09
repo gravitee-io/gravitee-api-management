@@ -15,6 +15,7 @@
  */
 
 export const ENVIRONMENT_INTEGRATION_CREATE_PERMISSION = 'environment-integration-c' as const;
+export const ENVIRONMENT_INTEGRATION_UPDATE_PERMISSION = 'environment-integration-u' as const;
 export const INTEGRATION_DEFINITION_READ_PERMISSION = 'integration-definition-r' as const;
 export const INTEGRATION_DEFINITION_UPDATE_PERMISSION = 'integration-definition-u' as const;
 export const INTEGRATION_DEFINITION_DELETE_PERMISSION = 'integration-definition-d' as const;
