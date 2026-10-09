@@ -74,7 +74,7 @@ export interface HealthCheckLog {
     gatewayId: string;
     responseTime: number;
     success: boolean;
-    steps: HealthCheckStep[];
+    steps?: HealthCheckStep[];
 }
 
 export interface HealthCheckStep {

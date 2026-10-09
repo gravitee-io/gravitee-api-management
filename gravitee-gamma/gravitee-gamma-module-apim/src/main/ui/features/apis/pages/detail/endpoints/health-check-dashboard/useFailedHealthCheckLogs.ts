@@ -15,11 +15,11 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { getHealthCheckLogs } from '../../../../services/healthCheck';
 import type { HealthCheckLog } from '../../../../types/healthCheck';
-import { resolveHealthTimeRange, type Timeframe } from '../../../../utils/healthTimeframe';
+import type { HealthTimeRange } from '../../../../utils/healthTimeframe';
 import { apiHealthCheckKeys } from '../../../../utils/queryKeys';
 
 export const FAILED_LOGS_PAGE_SIZES = [10, 25, 50, 100];
@@ -41,7 +41,7 @@ export interface FailedHealthCheckLogsData {
  * changes don't re-render the rest of the dashboard. Always queries failures
  * (`success=false`) and keeps previous data while paging for a stable table.
  */
-export function useFailedHealthCheckLogs(apiId: string | undefined, timeframe: Timeframe): FailedHealthCheckLogsData {
+export function useFailedHealthCheckLogs(apiId: string | undefined, range: HealthTimeRange): FailedHealthCheckLogsData {
     const env = useEnvironment();
     const envId = env?.id ?? '';
     const id = apiId ?? '';
@@ -52,14 +52,14 @@ export function useFailedHealthCheckLogs(apiId: string | undefined, timeframe: T
 
     useEffect(() => {
         setPage(1);
-    }, [timeframe]);
+    }, [range.from, range.to]);
 
-    const { from, to } = useMemo(() => resolveHealthTimeRange(timeframe), [timeframe]);
     const enabled = Boolean(env && apiId && canRead);
 
     const { data, isLoading, isError } = useQuery({
-        queryKey: apiHealthCheckKeys.logs(envId, id, timeframe, page, pageSize),
-        queryFn: () => getHealthCheckLogs(envId, id, { from, to, page, perPage: pageSize, success: false }),
+        queryKey: apiHealthCheckKeys.logs(envId, id, range, page, pageSize),
+        queryFn: ({ signal }) =>
+            getHealthCheckLogs(envId, id, { from: range.from, to: range.to, page, perPage: pageSize, success: false }, { signal }),
         enabled,
         placeholderData: keepPreviousData,
         staleTime: 30_000,

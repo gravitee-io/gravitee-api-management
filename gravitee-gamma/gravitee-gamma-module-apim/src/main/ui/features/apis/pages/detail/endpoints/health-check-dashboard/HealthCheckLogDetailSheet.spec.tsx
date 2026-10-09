@@ -30,7 +30,14 @@ const LOG: HealthCheckLog = {
             name: 'default-step',
             success: false,
             message: 'connection refused',
-            request: { uri: 'https://api/health', method: 'GET', headers: { Accept: 'application/json' } },
+            request: {
+                uri: 'https://api/health',
+                method: 'GET',
+                headers: {
+                    Accept: 'application/json',
+                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.payload.signature',
+                },
+            },
             response: { status: 503, body: 'Service Unavailable', headers: { 'content-type': 'text/plain' } },
         },
     ],
@@ -53,5 +60,7 @@ describe('HealthCheckLogDetailSheet', () => {
         expect(screen.getByText(/GET https:\/\/api\/health/)).toBeInTheDocument();
         expect(screen.getByText(/Status: 503/)).toBeInTheDocument();
         expect(screen.getByText('Service Unavailable')).toBeInTheDocument();
+        expect(screen.getByText(/Bearer ••••••••ture/)).toBeInTheDocument();
+        expect(screen.queryByText(/eyJhbGciOiJIUzI1NiJ9/)).not.toBeInTheDocument();
     });
 });
