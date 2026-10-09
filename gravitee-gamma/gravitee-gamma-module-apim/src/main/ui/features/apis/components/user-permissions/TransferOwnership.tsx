@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import {
+    Alert,
+    AlertDescription,
     Button,
     cn,
     Input,
@@ -39,7 +41,45 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { MemberAvatar } from './MemberAvatar';
 import { isMemberPrimaryOwner } from './memberHelpers';
 import { searchUsers } from '../../services/members';
-import type { Member, SearchableUser, TransferOwnershipPayload } from '../../types/members.types';
+import type { Group, Member, SearchableUser, TransferOwnershipPayload } from '../../types/members.types';
+
+export type PrimaryOwnerMode = 'USER' | 'GROUP' | 'HYBRID';
+export type GroupOwnerField = 'apiPrimaryOwner' | 'apiProductPrimaryOwner';
+
+type TransferTab = 'member' | 'user' | 'group';
+
+function normalizePrimaryOwnerMode(mode: string | undefined): PrimaryOwnerMode {
+    const normalized = mode?.trim().toUpperCase();
+    if (normalized === 'GROUP' || normalized === 'HYBRID' || normalized === 'USER') return normalized;
+    return 'USER';
+}
+
+function defaultTabForMode(mode: PrimaryOwnerMode): TransferTab {
+    return mode === 'GROUP' ? 'group' : 'member';
+}
+
+function isGroupCapableMode(mode: PrimaryOwnerMode): boolean {
+    return mode === 'HYBRID' || mode === 'GROUP';
+}
+
+function filterEligiblePrimaryOwnerGroups(groups: Group[], groupOwnerField: GroupOwnerField, currentPrimaryOwnerId?: string): Group[] {
+    return groups.filter(g => {
+        const ownerId = g[groupOwnerField];
+        if (ownerId === null || ownerId === undefined) return false;
+        return currentPrimaryOwnerId ? g.id !== currentPrimaryOwnerId : true;
+    });
+}
+
+function hasTransferTarget(
+    tab: TransferTab,
+    selectedMemberId: string,
+    selectedGroupId: string,
+    selectedUser: SearchableUser | null,
+): boolean {
+    if (tab === 'member') return !!selectedMemberId;
+    if (tab === 'group') return !!selectedGroupId;
+    return !!selectedUser;
+}
 
 export function TransferOwnership({
     open,
@@ -48,6 +88,11 @@ export function TransferOwnership({
     onClose,
     onTransfer,
     isTransferring,
+    groups = [],
+    currentPrimaryOwnerId,
+    primaryOwnerMode = 'USER',
+    groupOwnerField = 'apiPrimaryOwner',
+    scopeLabel = 'API',
 }: Readonly<{
     open: boolean;
     members: Member[];
@@ -55,21 +100,39 @@ export function TransferOwnership({
     onClose: () => void;
     onTransfer: (payload: TransferOwnershipPayload) => void;
     isTransferring: boolean;
+    groups?: Group[];
+    currentPrimaryOwnerId?: string;
+    primaryOwnerMode?: string;
+    groupOwnerField?: GroupOwnerField;
+    scopeLabel?: string;
 }>) {
-    const [tab, setTab] = useState<'member' | 'user'>('member');
+    const mode = normalizePrimaryOwnerMode(primaryOwnerMode);
+    const [tab, setTab] = useState<TransferTab>(defaultTabForMode(mode));
     const [selectedMemberId, setSelectedMemberId] = useState('');
+    const [selectedGroupId, setSelectedGroupId] = useState('');
     const [selectedRoleOverride, setSelectedRoleOverride] = useState<string | null>(null);
     const selectedRole = selectedRoleOverride ?? roles[0] ?? '';
     const [userSearch, setUserSearch] = useState('');
     const [selectedUser, setSelectedUser] = useState<SearchableUser | null>(null);
+
+    const showModeTabs = mode !== 'GROUP';
+    const showGroupTab = mode === 'HYBRID';
+    const memberTabLabel = scopeLabel === 'API Product' ? 'API Product member' : 'API member';
+
+    const poGroups = useMemo(
+        () => filterEligiblePrimaryOwnerGroups(groups, groupOwnerField, currentPrimaryOwnerId),
+        [groups, currentPrimaryOwnerId, groupOwnerField],
+    );
+    const noEligibleGroups = isGroupCapableMode(mode) && poGroups.length === 0;
 
     // Reset dialog state each time it opens (setState-during-render pattern).
     const [prevOpen, setPrevOpen] = useState(open);
     if (prevOpen !== open) {
         setPrevOpen(open);
         if (open) {
-            setTab('member');
+            setTab(defaultTabForMode(mode));
             setSelectedMemberId('');
+            setSelectedGroupId('');
             setSelectedRoleOverride(null);
             setUserSearch('');
             setSelectedUser(null);
@@ -84,13 +147,15 @@ export function TransferOwnership({
     });
 
     const nonOwnerMembers = useMemo(() => members.filter(m => !isMemberPrimaryOwner(m)), [members]);
-    const hasTarget = tab === 'member' ? !!selectedMemberId : !!selectedUser;
+    const hasTarget = hasTransferTarget(tab, selectedMemberId, selectedGroupId, selectedUser);
     const canSubmit = selectedRole && hasTarget;
 
     function handleSubmit() {
         if (!canSubmit) return;
         if (tab === 'member') {
             onTransfer({ userId: selectedMemberId, userType: 'USER', poRole: selectedRole });
+        } else if (tab === 'group') {
+            onTransfer({ userId: selectedGroupId, userType: 'GROUP', poRole: selectedRole });
         } else if (selectedUser) {
             onTransfer({
                 userId: selectedUser.id ?? undefined,
@@ -102,8 +167,9 @@ export function TransferOwnership({
     }
 
     function handleClose() {
-        setTab('member');
+        setTab(defaultTabForMode(mode));
         setSelectedMemberId('');
+        setSelectedGroupId('');
         setSelectedRoleOverride(null);
         setUserSearch('');
         setSelectedUser(null);
@@ -115,43 +181,65 @@ export function TransferOwnership({
             <SheetContent side="right" style={{ maxWidth: '32rem' }}>
                 <SheetHeader>
                     <SheetTitle>Transfer ownership</SheetTitle>
-                    <SheetDescription>Transfer primary ownership of this API to another user.</SheetDescription>
+                    <SheetDescription>Transfer ownership and grant access to your {scopeLabel} to another user or group</SheetDescription>
                 </SheetHeader>
 
                 <div className="flex-1 space-y-8 overflow-y-auto px-4">
-                    <div className="flex rounded-lg border overflow-hidden">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setTab('member');
-                                setSelectedUser(null);
-                                setUserSearch('');
-                            }}
-                            className={cn(
-                                'flex-1 px-4 py-2.5 text-sm font-semibold transition-colors',
-                                tab === 'member' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
-                            )}
-                        >
-                            API Member
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setTab('user');
-                                setSelectedMemberId('');
-                            }}
-                            className={cn(
-                                'flex-1 px-4 py-2.5 text-sm font-semibold transition-colors border-l',
-                                tab === 'user' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
-                            )}
-                        >
-                            Other User
-                        </button>
-                    </div>
+                    {showModeTabs ? (
+                        <div className="flex overflow-hidden rounded-lg border">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTab('member');
+                                    setSelectedUser(null);
+                                    setSelectedGroupId('');
+                                    setUserSearch('');
+                                }}
+                                className={cn(
+                                    'flex-1 px-4 py-2.5 text-sm font-semibold transition-colors',
+                                    tab === 'member' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+                                )}
+                            >
+                                {memberTabLabel}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTab('user');
+                                    setSelectedMemberId('');
+                                    setSelectedGroupId('');
+                                }}
+                                className={cn(
+                                    'flex-1 border-l px-4 py-2.5 text-sm font-semibold transition-colors',
+                                    tab === 'user' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+                                )}
+                            >
+                                Other user
+                            </button>
+                            {showGroupTab ? (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setTab('group');
+                                        setSelectedMemberId('');
+                                        setSelectedUser(null);
+                                    }}
+                                    className={cn(
+                                        'flex-1 border-l px-4 py-2.5 text-sm font-semibold transition-colors',
+                                        tab === 'group' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground',
+                                    )}
+                                >
+                                    Primary owner group
+                                </button>
+                            ) : null}
+                        </div>
+                    ) : null}
 
                     {tab === 'member' ? (
                         <div className="space-y-2">
-                            <Label className="text-sm font-medium">Select API member</Label>
+                            <Label className="text-sm font-medium">
+                                Select {scopeLabel === 'API Product' ? 'product member' : 'API member'}
+                            </Label>
                             <Select value={selectedMemberId} onValueChange={setSelectedMemberId}>
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="Choose a member…" />
@@ -160,6 +248,32 @@ export function TransferOwnership({
                                     {nonOwnerMembers.map(m => (
                                         <SelectItem key={m.id} value={m.id}>
                                             {m.displayName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    ) : tab === 'group' ? (
+                        <div className="space-y-2">
+                            {noEligibleGroups ? (
+                                <Alert variant="warning">
+                                    <AlertDescription>
+                                        You can&apos;t set a group as primary owner. To set a group as a primary owner, the group must
+                                        contain a member with a primary owner {scopeLabel} role.
+                                    </AlertDescription>
+                                </Alert>
+                            ) : null}
+                            <Label htmlFor="transfer-primary-owner-group" className="text-sm font-medium">
+                                Select a primary owner group
+                            </Label>
+                            <Select value={selectedGroupId} onValueChange={setSelectedGroupId} disabled={noEligibleGroups}>
+                                <SelectTrigger id="transfer-primary-owner-group" className="w-full">
+                                    <SelectValue placeholder="Select a primary owner group." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {poGroups.map(g => (
+                                        <SelectItem key={g.id} value={g.id}>
+                                            {g.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
