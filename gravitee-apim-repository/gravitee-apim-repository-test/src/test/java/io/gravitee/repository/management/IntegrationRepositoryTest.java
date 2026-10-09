@@ -93,12 +93,21 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             .findAllByEnvironmentAndGroups(
                 "my-env",
                 Set.of("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"),
-                Set.of(""),
+                Set.of(),
                 new PageableBuilder().pageSize(10).pageNumber(0).build()
             )
             .getContent();
 
         assertThat(integrations).hasSize(1).are(haveId("f66274c9-3d8f-44c5-a274-c93d8fb4c5f3"));
+    }
+
+    @Test
+    public void shouldReturnEmptyPageWithoutIdsNorGroups() throws TechnicalException {
+        var integrations = integrationRepository
+            .findAllByEnvironmentAndGroups("my-env", Set.of(), Set.of(), new PageableBuilder().pageSize(10).pageNumber(0).build())
+            .getContent();
+
+        assertThat(integrations).isEmpty();
     }
 
     @Test
