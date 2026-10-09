@@ -25,23 +25,16 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@gravitee/graphene-core';
-import {
-    ArrowDownIcon,
-    ArrowUpIcon,
-    CircleXIcon,
-    GlobeIcon,
-    MoreVerticalIcon,
-    SearchIcon,
-    TriangleAlertIcon,
-} from '@gravitee/graphene-core/icons';
+import { CircleXIcon, GlobeIcon, MoreVerticalIcon, SearchIcon, TriangleAlertIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { PlanStatusBadge } from './PlanStatusBadge';
+import { SortablePlansTable } from './SortablePlansTable';
 import { ConfirmDialog } from '../../../../../shared/components';
 import { notify } from '../../../../../shared/notify';
 import { usePlanTransition, useReorderPlan } from '../../../hooks/usePlans';
-import type { ManagedPlan, PlanContext } from '../../../types/plan';
+import type { ManagedPlan, PlanContext, PlanStatus } from '../../../types/plan';
 import { PLAN_SECURITY_LABELS } from '../../../types/plan';
 
 type PlanTransitionDialogAction = 'publish' | 'deprecate' | 'close';
@@ -75,6 +68,7 @@ const PLAN_ACTION_CONFIG: Record<
 
 interface PlansTableProps {
     ctx: PlanContext;
+    status: PlanStatus;
     plans: ManagedPlan[];
     totalCount: number;
     page: number;
@@ -93,7 +87,18 @@ interface PendingAction {
 
 type Cell<T> = { row: { index: number; original: T } };
 
-export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, canUpdate, onPage, onPerPage }: Readonly<PlansTableProps>) {
+export function PlansTable({
+    ctx,
+    status,
+    plans,
+    totalCount,
+    page,
+    perPage,
+    isLoading,
+    canUpdate,
+    onPage,
+    onPerPage,
+}: Readonly<PlansTableProps>) {
     const navigate = useNavigate();
     const [pending, setPending] = useState<PendingAction | null>(null);
 
@@ -122,64 +127,21 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
     }, [pending, transitionMutation]);
 
     const handleReorder = useCallback(
-        (idx: number, plan: ManagedPlan, direction: 'up' | 'down') => {
-            if (direction === 'up' && idx === 0) return;
-            if (direction === 'down' && idx === plans.length - 1) return;
-            // Use 1-based target position (matching legacy console behaviour) so the
-            // backend can renumber correctly even when order values have gaps.
-            const newOrder = direction === 'up' ? idx : idx + 2;
+        (plan: ManagedPlan, newOrder: number, { onError }: { onError: () => void }) => {
             reorderMutation.mutate(
                 { planId: plan.id, fullPlan: plan, newOrder },
-                { onError: error => notify.error(error, 'Failed to reorder plan.') },
+                {
+                    onError: error => {
+                        onError();
+                        notify.error(error, 'Failed to reorder plan.');
+                    },
+                },
             );
         },
-        [plans, reorderMutation],
+        [reorderMutation],
     );
 
     const columns: DataTableProps<ManagedPlan>['columns'] = [
-        ...(canUpdate
-            ? [
-                  {
-                      id: 'reorder',
-                      header: () => <span className="sr-only">Reorder</span>,
-                      enableSorting: false,
-                      enableHiding: false,
-                      size: 72,
-                      cell: ({ row }: Cell<ManagedPlan>) => {
-                          const idx = row.index;
-                          const plan = row.original;
-                          return (
-                              <div className="flex items-center gap-0.5">
-                                  <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7"
-                                      disabled={idx === 0 || reorderMutation.isPending}
-                                      onClick={() => handleReorder(idx, plan, 'up')}
-                                      title="Move up"
-                                      aria-label="Move up"
-                                  >
-                                      <ArrowUpIcon className="size-3.5" aria-hidden />
-                                  </Button>
-                                  <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7"
-                                      disabled={idx === plans.length - 1 || reorderMutation.isPending}
-                                      onClick={() => handleReorder(idx, plan, 'down')}
-                                      title="Move down"
-                                      aria-label="Move down"
-                                  >
-                                      <ArrowDownIcon className="size-3.5" aria-hidden />
-                                  </Button>
-                              </div>
-                          );
-                      },
-                  },
-              ]
-            : []),
         {
             id: 'Name',
             accessorFn: (row: ManagedPlan) => row.name,
@@ -301,32 +263,52 @@ export function PlansTable({ ctx, plans, totalCount, page, perPage, isLoading, c
             : []),
     ];
 
+    const emptyMessage = (
+        <DataTableEmptyState
+            variant="no-results"
+            icon={<SearchIcon />}
+            title="No plans match the selected status"
+            description="Try selecting a different status filter."
+        />
+    );
+
+    // `order` is a position among the published plans only, so only that list can be reordered.
+    const isReorderable = canUpdate && status === 'PUBLISHED';
+
     return (
         <>
-            <DataTable
-                aria-label="Plans"
-                columns={columns}
-                data={plans}
-                loading={isLoading}
-                skeletonCount={perPage}
-                serverSide
-                pagination={{
-                    page,
-                    pageSize: perPage,
-                    totalCount,
-                    pageSizeOptions: [10, 25, 50, 100],
-                    onPageChange: onPage,
-                    onPageSizeChange: onPerPage,
-                }}
-                emptyMessage={
-                    <DataTableEmptyState
-                        variant="no-results"
-                        icon={<SearchIcon />}
-                        title="No plans match the selected status"
-                        description="Try selecting a different status filter."
-                    />
-                }
-            />
+            {isReorderable && !isLoading ? (
+                <SortablePlansTable
+                    columns={columns}
+                    plans={plans}
+                    totalCount={totalCount}
+                    page={page}
+                    perPage={perPage}
+                    emptyMessage={emptyMessage}
+                    onPage={onPage}
+                    onPerPage={onPerPage}
+                    disabled={reorderMutation.isPending}
+                    onReorder={handleReorder}
+                />
+            ) : (
+                <DataTable
+                    aria-label="Plans"
+                    columns={columns}
+                    data={plans}
+                    loading={isLoading}
+                    skeletonCount={perPage}
+                    serverSide
+                    pagination={{
+                        page,
+                        pageSize: perPage,
+                        totalCount,
+                        pageSizeOptions: [10, 25, 50, 100],
+                        onPageChange: onPage,
+                        onPageSizeChange: onPerPage,
+                    }}
+                    emptyMessage={emptyMessage}
+                />
+            )}
 
             {pending && (
                 <ConfirmDialog
