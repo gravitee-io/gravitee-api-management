@@ -56,10 +56,9 @@ public interface AuditService {
         String patch;
 
         /**
-         * The user recorded when no user is authenticated, for an action run outside a request, such as a scheduled sync.
-         * An authenticated user always takes precedence.
+         * For an action run outside a request, such as a scheduled sync. An authenticated user always takes precedence.
          */
-        String user;
+        String userWhenUnauthenticated;
     }
 
     default void createApiAuditLog(ExecutionContext executionContext, AuditLogData auditLogData, String apiId) {

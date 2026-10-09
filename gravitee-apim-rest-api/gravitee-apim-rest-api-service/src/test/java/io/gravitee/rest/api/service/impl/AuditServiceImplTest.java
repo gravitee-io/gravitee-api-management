@@ -237,7 +237,7 @@ class AuditServiceImplTest {
 
         @Test
         void should_record_the_given_user_when_no_user_is_authenticated() throws Exception {
-            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().user("sync-actor").build());
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().userWhenUnauthenticated("sync-actor").build());
 
             assertThat(capturedAudit().getUser()).isEqualTo("sync-actor");
         }
@@ -248,7 +248,7 @@ class AuditServiceImplTest {
             authenticatedUser.setId("console-user");
             SecurityContextHelper.authenticateAs(authenticatedUser);
 
-            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().user("sync-actor").build());
+            auditService.createAuditLog(EXECUTION_CONTEXT, anApiAudit().userWhenUnauthenticated("sync-actor").build());
 
             assertThat(capturedAudit().getUser()).isEqualTo("console-user");
         }

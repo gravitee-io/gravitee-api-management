@@ -461,7 +461,7 @@ public class AuditServiceImpl extends AbstractService implements AuditService {
     private String auditUser(ExecutionContext executionContext, AuditLogData auditLogData) {
         final UserDetails authenticatedUser = getAuthenticatedUser();
         if (authenticatedUser == null) {
-            return Objects.requireNonNullElse(auditLogData.getUser(), "system");
+            return Objects.requireNonNullElse(auditLogData.getUserWhenUnauthenticated(), "system");
         }
         if ("token".equals(authenticatedUser.getSource())) {
             return (
