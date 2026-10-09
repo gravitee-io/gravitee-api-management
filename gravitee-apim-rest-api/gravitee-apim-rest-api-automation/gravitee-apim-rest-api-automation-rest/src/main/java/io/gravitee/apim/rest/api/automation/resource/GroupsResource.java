@@ -18,7 +18,6 @@ package io.gravitee.apim.rest.api.automation.resource;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE;
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.group.use_case.ImportGroupCRDUseCase;
 import io.gravitee.apim.core.group.use_case.ValidateGroupCRDUseCase;
 import io.gravitee.apim.rest.api.automation.helpers.CrdIdHelper;
@@ -28,6 +27,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
@@ -41,7 +41,6 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.util.Set;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -58,6 +57,9 @@ public class GroupsResource extends AbstractResource {
     @Inject
     private ValidateGroupCRDUseCase validateGroupCRDUseCase;
 
+    @Inject
+    private GroupService groupService;
+
     @Path("/{hrid}")
     public GroupResource getGroupResource() {
         return resourceContext.getResource(GroupResource.class);
@@ -73,8 +75,6 @@ public class GroupsResource extends AbstractResource {
         @QueryParam("hridContainsUUID") boolean hridContainsUUID,
         @QueryParam("ignoreMembers") boolean ignoreMembers
     ) {
-        checkDefaultMemberRolesScopes(spec);
-
         var auditInfo = getAuditInfo();
 
         var groupCRDSpec = GroupMapper.INSTANCE.groupSpecToGroupCRDSpec(spec);
@@ -98,25 +98,12 @@ public class GroupsResource extends AbstractResource {
 
         var status = importGroupCRDUseCase.execute(new ImportGroupCRDUseCase.Input(auditInfo, groupCRDSpec)).status();
 
-        return Response.ok(GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext)).build();
-    }
-
-    private static final Set<String> GROUP_DEFAULT_ROLE_SCOPES = Set.of("API", "APPLICATION", "API_PRODUCT");
-
-    private void checkDefaultMemberRolesScopes(GroupSpec spec) {
-        if (spec.getDefaultMemberRoles() == null) {
-            return;
-        }
-        spec
-            .getDefaultMemberRoles()
-            .keySet()
-            .stream()
-            .filter(scope -> !GROUP_DEFAULT_ROLE_SCOPES.contains(scope))
-            .findFirst()
-            .ifPresent(scope -> {
-                throw new ValidationDomainException(
-                    "defaultMemberRoles: scope [" + scope + "] is not a group default role scope (API, APPLICATION, API_PRODUCT)"
-                );
-            });
+        var state = GroupMapper.INSTANCE.groupSpecAndStatusToGroupState(spec, status, executionContext);
+        // The group's defaults as stored, not the request's: an omitted object leaves them as they were, and an
+        // unknown role name leaves its scope without a default.
+        state.setDefaultMemberRoles(
+            GroupMapper.INSTANCE.groupEntityToDefaultMemberRoles(groupService.findById(executionContext, status.getId()))
+        );
+        return Response.ok(state).build();
     }
 }
