@@ -42,7 +42,7 @@
         "@gravitee/graphene-core": "3.26.3",
         "@gravitee/graphene-policy-studio": "3.26.3",
         "@gravitee/ui-analytics": "18.0.0",
-        "@gravitee/ui-components": "5.0.0",
+        "@gravitee/ui-components": "5.0.2",
         "@gravitee/ui-particles-angular": "18.0.0",
         "@gravitee/ui-policy-studio-angular": "18.0.0",
         "@highcharts/map-collection": "2.3.3",
