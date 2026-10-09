@@ -159,6 +159,25 @@ describe('ImportApiForm', () => {
         expect(mutate).not.toHaveBeenCalled();
     });
 
+    it('rejects a non-OpenAPI YAML file and a non-WSDL XML file by extension', async () => {
+        const { container, unmount } = renderForm('openapi');
+        const openApiInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+        fireEvent.change(openApiInput, {
+            target: { files: [fileWithText('notes.txt', 'openapi: 3.0.0\n', 'text/plain')] },
+        });
+        expect(await screen.findByText('The file does not match the selected API format')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /create api/i })).toBeDisabled();
+        unmount();
+
+        const wsdl = renderForm('wsdl');
+        const wsdlInput = wsdl.container.querySelector('input[type="file"]') as HTMLInputElement;
+        fireEvent.change(wsdlInput, {
+            target: { files: [fileWithText('service.json', '<definitions></definitions>', 'application/json')] },
+        });
+        expect(await screen.findByText('The file does not match the selected API format')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /create api/i })).toBeDisabled();
+    });
+
     it('submits an OpenAPI descriptor once a spec file is picked', async () => {
         const { container } = renderForm('openapi');
         const yaml = 'openapi: 3.0.0\ninfo:\n  title: My API';
@@ -260,7 +279,9 @@ describe('ImportApiForm', () => {
         await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
 
         const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-        fireEvent.change(fileInput, { target: { files: [fileWithText('service.wsdl', '<xml/>', 'application/xml')] } });
+        fireEvent.change(fileInput, {
+            target: { files: [fileWithText('service.wsdl', '<definitions></definitions>', 'application/xml')] },
+        });
         await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
         fireEvent.click(screen.getByRole('button', { name: /create api/i }));
 
@@ -268,7 +289,7 @@ describe('ImportApiForm', () => {
             {
                 format: 'wsdl',
                 descriptor: {
-                    payload: '<xml/>',
+                    payload: '<definitions></definitions>',
                     type: 'INLINE',
                     withDocumentation: true,
                     withOASValidationPolicy: true,

@@ -24,6 +24,7 @@ import { HealthCheckFilters } from './HealthCheckFilters';
 import { HealthCheckGlobalMetrics } from './HealthCheckGlobalMetrics';
 import { ResponseTimeTrendChart } from './ResponseTimeTrendChart';
 import { useHealthCheckDashboard } from './useHealthCheckDashboard';
+import { useHealthCheckWindow } from './useHealthCheckWindow';
 import { useApiDetailContext } from '../../../../context/ApiDetailContext';
 import { isHttpProxyApi } from '../../../../utils/apiHttpProxy';
 import { DEFAULT_TIMEFRAME, type Timeframe } from '../../../../utils/healthTimeframe';
@@ -35,7 +36,8 @@ export function ApiHealthCheckDashboardPage() {
 
     const isProxy = isHttpProxyApi(api) && api?.definitionVersion === 'V4';
     // Passing `undefined` apiId keeps every query disabled when not applicable.
-    const dashboard = useHealthCheckDashboard(isProxy ? apiId : undefined, timeframe);
+    const { range, refresh } = useHealthCheckWindow(timeframe);
+    const dashboard = useHealthCheckDashboard(isProxy ? apiId : undefined, range);
 
     // No-data is the common case (a freshly health-checked API, or a backend that
     // 500s on empty aggregations). Like the classic console, each widget degrades
@@ -66,7 +68,7 @@ export function ApiHealthCheckDashboardPage() {
     return (
         <PageShell>
             <ChartThemeFix />
-            <HealthCheckFilters timeframe={timeframe} onTimeframeChange={setTimeframe} onRefresh={dashboard.refresh} />
+            <HealthCheckFilters timeframe={timeframe} onTimeframeChange={setTimeframe} onRefresh={refresh} />
 
             <HealthCheckGlobalMetrics availability={dashboard.availability} responseTime={dashboard.responseTime} />
 
@@ -77,7 +79,7 @@ export function ApiHealthCheckDashboardPage() {
                 <AvailabilityByFieldTable field="gateway" data={dashboard.gateway} />
             </div>
 
-            <FailedHealthChecksTable apiId={apiId} timeframe={timeframe} />
+            <FailedHealthChecksTable apiId={apiId} range={range} />
         </PageShell>
     );
 }

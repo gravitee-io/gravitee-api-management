@@ -22,26 +22,30 @@ import {
     CardTitle,
     DataTable,
     DataTableEmptyState,
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
     type DataTableProps,
 } from '@gravitee/graphene-core';
-import { SearchIcon } from '@gravitee/graphene-core/icons';
+import { EyeIcon, SearchIcon } from '@gravitee/graphene-core/icons';
 import { useState } from 'react';
 
 import { HealthCheckLogDetailSheet } from './HealthCheckLogDetailSheet';
 import { FAILED_LOGS_PAGE_SIZES, useFailedHealthCheckLogs } from './useFailedHealthCheckLogs';
 import type { HealthCheckLog } from '../../../../types/healthCheck';
 import { formatTimestamp } from '../../../../utils/healthCheckDashboard';
-import type { Timeframe } from '../../../../utils/healthTimeframe';
+import type { HealthTimeRange } from '../../../../utils/healthTimeframe';
 
 type ColCell<T> = { row: { original: T } };
 
 interface FailedHealthChecksTableProps {
     apiId: string | undefined;
-    timeframe: Timeframe;
+    range: HealthTimeRange;
 }
 
-export function FailedHealthChecksTable({ apiId, timeframe }: Readonly<FailedHealthChecksTableProps>) {
-    const { logs, totalCount, page, pageSize, isLoading, isError, setPage, setPageSize } = useFailedHealthCheckLogs(apiId, timeframe);
+export function FailedHealthChecksTable({ apiId, range }: Readonly<FailedHealthChecksTableProps>) {
+    const { logs, totalCount, page, pageSize, isLoading, isError, setPage, setPageSize } = useFailedHealthCheckLogs(apiId, range);
     const [selectedLog, setSelectedLog] = useState<HealthCheckLog | null>(null);
 
     const columns: DataTableProps<HealthCheckLog>['columns'] = [
@@ -59,19 +63,7 @@ export function FailedHealthChecksTable({ apiId, timeframe }: Readonly<FailedHea
             accessorFn: (row: HealthCheckLog) => row.endpointName,
             header: 'Endpoint',
             enableSorting: false,
-            cell: ({ row }: ColCell<HealthCheckLog>) => {
-                const log = row.original;
-                return (
-                    <button
-                        type="button"
-                        className="text-left font-medium hover:underline"
-                        aria-label={`View health check detail for ${log.endpointName}`}
-                        onClick={() => setSelectedLog(log)}
-                    >
-                        {log.endpointName}
-                    </button>
-                );
-            },
+            cell: ({ row }: ColCell<HealthCheckLog>) => <span className="font-medium">{row.original.endpointName}</span>,
         },
         {
             id: 'Gateway',
@@ -80,52 +72,84 @@ export function FailedHealthChecksTable({ apiId, timeframe }: Readonly<FailedHea
             enableSorting: false,
             cell: ({ row }: ColCell<HealthCheckLog>) => <span className="text-muted-foreground">{row.original.gatewayId}</span>,
         },
+        {
+            id: 'Response Time',
+            accessorFn: (row: HealthCheckLog) => row.responseTime,
+            header: 'Response Time',
+            enableSorting: false,
+            cell: ({ row }: ColCell<HealthCheckLog>) => <span>{row.original.responseTime} ms</span>,
+        },
+        {
+            id: 'actions',
+            header: '',
+            enableSorting: false,
+            cell: ({ row }: ColCell<HealthCheckLog>) => {
+                const log = row.original;
+                const hasDetails = (log.steps?.length ?? 0) > 0;
+                const label = hasDetails ? 'View failure details' : 'No details available for this probe';
+                return (
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span className={hasDetails ? 'inline-flex' : 'inline-flex cursor-not-allowed'}>
+                                <button
+                                    type="button"
+                                    disabled={!hasDetails}
+                                    className={`inline-flex size-8 items-center justify-center rounded-md ${hasDetails ? 'hover:bg-muted' : 'pointer-events-none opacity-40'}`}
+                                    aria-label={label}
+                                    onClick={() => setSelectedLog(log)}
+                                >
+                                    <EyeIcon className="size-4" aria-hidden />
+                                </button>
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{label}</TooltipContent>
+                    </Tooltip>
+                );
+            },
+        },
     ];
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="text-base">Failed health checks</CardTitle>
-                <p className="text-sm text-muted-foreground">Recent failures, incidents, or downtimes from the health checks.</p>
-            </CardHeader>
-            <CardContent className="px-4 pb-4 pt-2">
-                {isError ? (
-                    <Alert variant="destructive">
-                        <AlertDescription>Failed to load health-check logs. Please refresh the page.</AlertDescription>
-                    </Alert>
-                ) : (
-                    <DataTable
-                        aria-label="Failed health checks"
-                        columns={columns}
-                        data={logs}
-                        loading={isLoading}
-                        skeletonCount={3}
-                        serverSide
-                        pagination={
-                            totalCount > 0
-                                ? {
-                                      page,
-                                      pageSize,
-                                      totalCount,
-                                      pageSizeOptions: FAILED_LOGS_PAGE_SIZES,
-                                      onPageChange: setPage,
-                                      onPageSizeChange: setPageSize,
-                                  }
-                                : undefined
-                        }
-                        emptyMessage={
-                            <DataTableEmptyState
-                                variant="no-results"
-                                icon={<SearchIcon />}
-                                title="No failed health checks"
-                                description="No failures, incidents, or downtimes for the selected period."
-                            />
-                        }
-                    />
-                )}
-            </CardContent>
+        <TooltipProvider>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-base">Failed health checks</CardTitle>
+                    <p className="text-sm text-muted-foreground">Recent failures, incidents, or downtimes from the health checks.</p>
+                </CardHeader>
+                <CardContent className="px-4 pb-4 pt-2">
+                    {isError ? (
+                        <Alert variant="destructive">
+                            <AlertDescription>Failed to load health-check logs. Please refresh the page.</AlertDescription>
+                        </Alert>
+                    ) : (
+                        <DataTable
+                            aria-label="Failed health checks"
+                            columns={columns}
+                            data={logs}
+                            loading={isLoading}
+                            skeletonCount={3}
+                            serverSide
+                            pagination={
+                                totalCount > 0
+                                    ? {
+                                          page,
+                                          pageSize,
+                                          totalCount,
+                                          pageSizeOptions: FAILED_LOGS_PAGE_SIZES,
+                                          onPageChange: setPage,
+                                          onPageSizeChange: setPageSize,
+                                      }
+                                    : undefined
+                            }
+                            emptyMessage={
+                                <DataTableEmptyState variant="no-results" icon={<SearchIcon />} title="No data to display" description="" />
+                            }
+                        />
+                    )}
+                </CardContent>
 
-            <HealthCheckLogDetailSheet log={selectedLog} onClose={() => setSelectedLog(null)} />
-        </Card>
+                <HealthCheckLogDetailSheet log={selectedLog} onClose={() => setSelectedLog(null)} />
+            </Card>
+        </TooltipProvider>
     );
 }

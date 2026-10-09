@@ -31,6 +31,10 @@ const POINTS = [
 ];
 
 describe('ResponseTimeTrendChart', () => {
+    it('shows an empty message when there are no points', () => {
+        render(<ResponseTimeTrendChart points={[]} isLoading={false} />);
+        expect(screen.getByText('No data to display')).toBeInTheDocument();
+    });
     it('renders a line chart by default', () => {
         render(<ResponseTimeTrendChart points={POINTS} isLoading={false} />);
         expect(screen.getByTestId('line-chart')).toBeInTheDocument();
