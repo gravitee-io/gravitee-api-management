@@ -260,6 +260,20 @@ class AuditServiceImplTest {
             assertThat(capturedAudit().getUser()).isEqualTo("system");
         }
 
+        @Test
+        void should_record_the_given_user_on_an_api_audit_when_no_user_is_authenticated() throws Exception {
+            var auditWithoutReference = AuditService.AuditLogData.builder()
+                .event(Api.AuditEvent.API_ENCRYPTED_PROPERTIES_REFRESHED)
+                .build();
+
+            auditService.createApiAuditLog(EXECUTION_CONTEXT, auditWithoutReference, "api-id", "sync-actor");
+
+            var audit = capturedAudit();
+            assertThat(audit.getReferenceType()).isEqualTo(Audit.AuditReferenceType.API);
+            assertThat(audit.getReferenceId()).isEqualTo("api-id");
+            assertThat(audit.getUser()).isEqualTo("sync-actor");
+        }
+
         private static AuditService.AuditLogData.AuditLogDataBuilder anApiAudit() {
             return AuditService.AuditLogData.builder()
                 .referenceType(Audit.AuditReferenceType.API)
