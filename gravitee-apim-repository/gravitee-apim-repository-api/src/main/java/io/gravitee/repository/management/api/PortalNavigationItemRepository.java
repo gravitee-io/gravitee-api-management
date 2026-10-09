@@ -51,6 +51,16 @@ public interface PortalNavigationItemRepository extends CrudRepository<PortalNav
 
     List<PortalNavigationItem> findAllByRootId(String rootId, String environmentId) throws TechnicalException;
 
+    /**
+     * Replaces the configuration of one item, and nothing else, provided the stored configuration is
+     * still {@code expectedConfiguration}: a compare-and-swap that lets a caller persist a partial
+     * change without overwriting what others wrote meanwhile.
+     *
+     * @return {@code true} when the row was replaced, {@code false} when the item does not exist or
+     *   its configuration has changed since it was read
+     */
+    boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException;
+
     void deleteByIds(List<String> ids) throws TechnicalException;
 
     void deleteByOrganizationId(String organizationId) throws TechnicalException;

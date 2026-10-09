@@ -35,6 +35,7 @@ import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -204,6 +205,18 @@ public class MongoPortalNavigationItemRepository implements PortalNavigationItem
         log.debug("Update PortalNavigationItem [{}]", item.getId());
         PortalNavigationItemMongo saved = internalRepo.save(mapper.map(item));
         return mapper.map(saved);
+    }
+
+    @Override
+    public boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException {
+        log.debug("Update configuration of PortalNavigationItem [{}] if unchanged", id);
+        try {
+            var query = new Query(where("_id").is(id).and("configuration").is(expectedConfiguration));
+            var result = mongoTemplate.updateFirst(query, Update.update("configuration", configuration), PortalNavigationItemMongo.class);
+            return result.getMatchedCount() == 1;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the configuration of portal navigation item " + id, ex);
+        }
     }
 
     @Override

@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.repository.model.PortalNavigationItemsRepositoryFixtures;
 import io.gravitee.apim.core.portal.model.PortalArea;
@@ -708,6 +709,85 @@ class PortalNavigationItemAdapterTest {
 
             // Then
             assertThat(roundTripped.getSource()).usingRecursiveComparison().isEqualTo(entity.getSource());
+        }
+    }
+
+    @Nested
+    class ConfigurationWithFetchState {
+
+        private static final String STORED_CONFIGURATION = """
+            {"portalPageContentId":"550e8400-e29b-41d4-a716-446655440013","source":{"type":"github-fetcher","configuration":"{\\"repository\\":\\"docs\\"}","fetchCron":"0 */10 * * * *","lastFetchedAt":"2026-07-17T10:00:00Z","lastFetchAttemptAt":"2026-07-17T11:00:00Z","lastFetchError":"boom","subtreeImport":true}}""";
+        private static final Instant FETCHED_AT = Instant.parse("2026-10-08T10:00:00Z");
+
+        @Test
+        void should_rewrite_only_the_fetch_state_of_the_source() throws Exception {
+            var rewritten = adapter.configurationWithFetchState(
+                STORED_CONFIGURATION,
+                PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT)
+            );
+
+            var config = new ObjectMapper().readTree(rewritten);
+            assertThat(config.get("portalPageContentId").asText()).isEqualTo("550e8400-e29b-41d4-a716-446655440013");
+            var source = config.get("source");
+            assertThat(source.get("type").asText()).isEqualTo("github-fetcher");
+            assertThat(source.get("configuration").asText()).isEqualTo("{\"repository\":\"docs\"}");
+            assertThat(source.get("fetchCron").asText()).isEqualTo("0 */10 * * * *");
+            assertThat(source.get("subtreeImport").asBoolean()).isTrue();
+            assertThat(source.get("lastFetchedAt").asText()).isEqualTo("2026-10-08T10:00:00Z");
+            assertThat(source.get("lastFetchAttemptAt").asText()).isEqualTo("2026-10-08T10:00:00Z");
+            assertThat(source.has("lastFetchError")).isFalse();
+        }
+
+        @Test
+        void should_leave_the_stored_last_success_when_the_state_carries_none() throws Exception {
+            var rewritten = adapter.configurationWithFetchState(
+                STORED_CONFIGURATION,
+                PortalNavigationItemSource.FetchState.failed(FETCHED_AT, "still failing")
+            );
+
+            var source = new ObjectMapper().readTree(rewritten).get("source");
+            assertThat(source.get("lastFetchedAt").asText()).isEqualTo("2026-07-17T10:00:00Z");
+            assertThat(source.get("lastFetchAttemptAt").asText()).isEqualTo("2026-10-08T10:00:00Z");
+            assertThat(source.get("lastFetchError").asText()).isEqualTo("still failing");
+        }
+
+        @Test
+        void should_read_back_the_same_source_as_a_full_write_would() {
+            var repositoryItem = PortalNavigationItemsRepositoryFixtures.aPage(
+                "550e8400-e29b-41d4-a716-446655440023",
+                "My Page",
+                "550e8400-e29b-41d4-a716-446655440013",
+                null
+            );
+            repositoryItem.setUseAutoFetch(true);
+            repositoryItem.setConfiguration(STORED_CONFIGURATION);
+            var expected = adapter
+                .toEntity(repositoryItem)
+                .getSource()
+                .toBuilder()
+                .lastFetchedAt(FETCHED_AT)
+                .lastFetchAttemptAt(FETCHED_AT)
+                .lastFetchError(null)
+                .build();
+
+            repositoryItem.setConfiguration(
+                adapter.configurationWithFetchState(
+                    STORED_CONFIGURATION,
+                    PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT)
+                )
+            );
+
+            assertThat(adapter.toEntity(repositoryItem).getSource()).usingRecursiveComparison().isEqualTo(expected);
+        }
+
+        @Test
+        void should_throw_when_the_configuration_carries_no_source() {
+            var fetchState = PortalNavigationItemSource.FetchState.succeeded(FETCHED_AT, FETCHED_AT);
+
+            assertThatThrownBy(() ->
+                adapter.configurationWithFetchState("{\"portalPageContentId\":\"550e8400-e29b-41d4-a716-446655440013\"}", fetchState)
+            ).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> adapter.configurationWithFetchState("", fetchState)).isInstanceOf(IllegalArgumentException.class);
         }
     }
 
