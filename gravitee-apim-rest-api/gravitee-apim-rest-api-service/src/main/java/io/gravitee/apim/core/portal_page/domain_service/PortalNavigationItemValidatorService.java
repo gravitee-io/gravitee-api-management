@@ -32,6 +32,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.ExternalSourc
 import io.gravitee.apim.core.portal_page.domain_service.validation.FileListingSourceOnFolderRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.HomepageUniquenessRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
+import io.gravitee.apim.core.portal_page.domain_service.validation.OwnerChangeRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PendingSegmentClaim;
@@ -113,6 +114,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             titleRequiredRule,
             new ApiItemUpdateRule(apiProductQueryService),
             new ApiProductItemUpdateRule(),
+            new OwnerChangeRule(),
             parentRule,
             segmentConflictRule,
             linkUrlRule,

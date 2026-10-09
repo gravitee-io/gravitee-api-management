@@ -32,6 +32,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import jakarta.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -184,6 +185,41 @@ public class ApiOwnedNavigationDomainService {
             .area(PortalArea.TOP_NAVBAR)
             .published(false)
             .build();
+    }
+
+    /**
+     * Where a page, folder or link ends up when it is placed under a parent, and who owns it there. An API's
+     * documentation is stored against the API, so an item placed under the API's listing takes no stored
+     * parent: the listing only displays it.
+     */
+    public Destination destinationUnder(String environmentId, @Nullable PortalNavigationItem parent) {
+        if (parent == null) {
+            return new Destination(NavigationItemReference.defaultReference(), null, null);
+        }
+        if (isInApiProductContext(environmentId, parent)) {
+            // A listing below an API product shows the API as a member of the product, not its documentation
+            return new Destination(portalOwnerOf(parent), parent.getId(), null);
+        }
+        if (parent instanceof PortalNavigationApi listing) {
+            return new Destination(new NavigationItemReference.ApiReference(listing.getApiId()), null, listing.getId());
+        }
+        return new Destination(parent.getReference(), parent.getId(), null);
+    }
+
+    private static NavigationItemReference portalOwnerOf(PortalNavigationItem item) {
+        return item.getReference() instanceof NavigationItemReference.PortalReference
+            ? item.getReference()
+            : NavigationItemReference.defaultReference();
+    }
+
+    public record Destination(
+        NavigationItemReference owner,
+        @Nullable PortalNavigationItemId storedParentId,
+        @Nullable PortalNavigationItemId renderedParentId
+    ) {}
+
+    public boolean isDocumentation(PortalNavigationItem item) {
+        return DOCUMENTATION_TYPES.contains(item.getType());
     }
 
     public boolean isInApiProductContext(String environmentId, PortalNavigationItem item) {

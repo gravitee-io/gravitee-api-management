@@ -36,6 +36,8 @@ public final class UpdatePortalNavigationItem {
     private PortalNavigationItemId parentId;
     /** Server-resolved display parent, used only for validation when parentId is normalized to the API documentation root. */
     private PortalNavigationItemId renderedParentId;
+    /** Server-resolved owner the item takes when a move changes it; never taken from a request, null when the owner is unchanged. */
+    private NavigationItemReference reference;
     private String url;
     private List<PortalCategoryId> categoryIds;
     private Boolean published;

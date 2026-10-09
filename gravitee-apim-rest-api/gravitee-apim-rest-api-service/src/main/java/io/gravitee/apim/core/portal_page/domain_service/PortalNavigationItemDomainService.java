@@ -40,6 +40,7 @@ import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQuer
 import io.gravitee.apim.core.portal_page.query_service.PortalPageContentQueryService;
 import io.gravitee.apim.core.slug.model.Slug;
 import io.gravitee.common.utils.TimeProvider;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -275,6 +276,60 @@ public class PortalNavigationItemDomainService {
         }
     }
 
+    /**
+     * Works out where an update places a page, folder or link, before it is validated. The parent a caller
+     * sends is the one the item is displayed under, which for the documentation of an API is not always
+     * the stored one, and the place decides who owns the item.
+     *
+     * The displayed parent is kept as renderedParentId so that validation checks the parent the caller chose.
+     * An item saved under the parent it is already stored under is not being moved and keeps its owner, so
+     * a page the editor once stored below a listing is left as it is.
+     *
+     * @param ownerFixed the caller only ever handles items of one API: the owner never changes, and no
+     *                   parent means the root of that API's documentation rather than the portal's top level
+     */
+    public UpdatePortalNavigationItem resolveDestination(
+        UpdatePortalNavigationItem requested,
+        PortalNavigationItem existing,
+        boolean ownerFixed
+    ) {
+        var resolved = requested.toBuilder().renderedParentId(null).reference(null).build();
+        if (!apiOwnedNavigationDomainService.isDocumentation(existing)) {
+            return resolved;
+        }
+        if (requested.getParentId() == null) {
+            if (!ownerFixed && existing.getReference() instanceof NavigationItemReference.ApiReference) {
+                resolved.setReference(NavigationItemReference.defaultReference());
+            }
+            return resolved;
+        }
+        if (requested.getParentId().equals(existing.getParentId())) {
+            return resolved;
+        }
+        var parent = queryService.findByIdAndEnvironmentId(existing.getEnvironmentId(), requested.getParentId());
+        if (parent == null) {
+            return resolved;
+        }
+        var destination = apiOwnedNavigationDomainService.destinationUnder(existing.getEnvironmentId(), parent);
+        boolean changesOwner = changesOwner(existing.getReference(), destination.owner());
+        if (changesOwner && ownerFixed) {
+            return resolved;
+        }
+        resolved.setParentId(destination.storedParentId());
+        resolved.setRenderedParentId(destination.renderedParentId());
+        if (changesOwner) {
+            resolved.setReference(destination.owner());
+        }
+        return resolved;
+    }
+
+    /** Two portal references are the same owner here: only a move to or from an API hands an item over. */
+    private static boolean changesOwner(NavigationItemReference current, NavigationItemReference destination) {
+        boolean involvesAnApi =
+            current instanceof NavigationItemReference.ApiReference || destination instanceof NavigationItemReference.ApiReference;
+        return involvesAnApi && !destination.equals(current);
+    }
+
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {
         return update(toUpdate, originalItem, false);
     }
@@ -292,7 +347,10 @@ public class PortalNavigationItemDomainService {
         final var changedPublished = !Objects.equals(originalItem.getPublished(), toUpdate.getPublished()) ? toUpdate.getPublished() : null;
         final var publishedToPropagate = resolvePublishedToPropagate(changedPublished, propagatePublishToChildren);
 
-        boolean isMoveToNewParent = !Objects.equals(originalParentId, toUpdate.getParentId());
+        final var newOwner = toUpdate.getReference();
+        // An item that changes owner without changing its stored parent, such as a top-level portal page
+        // handed to an API, has still moved: its descendants follow.
+        boolean isMoveToNewParent = !Objects.equals(originalParentId, toUpdate.getParentId()) || newOwner != null;
 
         int sanitizedOrder = isMoveToNewParent
             ? this.sanitizeOrderForInsertion(
@@ -328,6 +386,9 @@ public class PortalNavigationItemDomainService {
         }
 
         originalItem.update(toUpdate);
+        if (newOwner != null) {
+            originalItem.changeOwner(newOwner);
+        }
 
         if (isMoveToNewParent) {
             if (toUpdate.getParentId() != null) {
@@ -344,7 +405,7 @@ public class PortalNavigationItemDomainService {
             propagateAttributesToDescendants(updatedItem, visibilityToPropagate, publishedToPropagate);
         }
         if (isMoveToNewParent) {
-            propagateRootIdToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId());
+            propagateMoveToDescendants(updatedItem.getId(), updatedItem.getEnvironmentId(), newOwner);
         }
 
         List<PortalNavigationItem> siblingsToUpdate = new ArrayList<>();
@@ -387,11 +448,23 @@ public class PortalNavigationItemDomainService {
         return resolveRootId(parent.getParentId(), environmentId);
     }
 
-    private void propagateRootIdToDescendants(PortalNavigationItemId parentId, String environmentId) {
-        propagateRootIdToDescendants(parentId, environmentId, 0);
+    /**
+     * @param newOwner the owner the moved item took, null when the move did not change it
+     */
+    private void propagateMoveToDescendants(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        @Nullable NavigationItemReference newOwner
+    ) {
+        propagateMoveToDescendants(parentId, environmentId, newOwner, 0);
     }
 
-    private void propagateRootIdToDescendants(PortalNavigationItemId parentId, String environmentId, int currentNestingLevel) {
+    private void propagateMoveToDescendants(
+        PortalNavigationItemId parentId,
+        String environmentId,
+        @Nullable NavigationItemReference newOwner,
+        int currentNestingLevel
+    ) {
         if (currentNestingLevel > MAX_PROPAGATION_NESTING_LEVEL) {
             throw new IllegalStateException(
                 "Maximum portal navigation nesting level of %d exceeded while propagating rootId".formatted(MAX_PROPAGATION_NESTING_LEVEL)
@@ -405,8 +478,11 @@ public class PortalNavigationItemDomainService {
         }
         for (PortalNavigationItem child : children) {
             child.updateParent(parentContainer);
+            if (newOwner != null && apiOwnedNavigationDomainService.isDocumentation(child)) {
+                child.changeOwner(newOwner);
+            }
             crudService.update(child);
-            propagateRootIdToDescendants(child.getId(), environmentId, currentNestingLevel + 1);
+            propagateMoveToDescendants(child.getId(), environmentId, newOwner, currentNestingLevel + 1);
         }
     }
 
