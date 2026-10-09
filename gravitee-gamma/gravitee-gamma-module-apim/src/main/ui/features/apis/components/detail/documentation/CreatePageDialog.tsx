@@ -33,7 +33,7 @@ import {
 import { useState, type FormEvent } from 'react';
 
 import { type ImportedFile, ImportFileField } from './ImportFileField';
-import { useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
+import { type NewDocumentationPage, useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
 import { SelectionCards, type SelectionCardItem } from '../../../pages/detail/general/SelectionCards';
 import type { PortalNavigationFolder, PortalPageContentType } from '../../../types/apiDocumentation';
 import { titleFromFileName } from '../../../utils/documentationFile';
@@ -65,10 +65,13 @@ export function CreatePageDialog({
     /** Called once the page exists, even when an imported file could not be saved as its content. */
     onCreated: (pageId: string) => void;
 }>) {
+    const { createPage, isCreating } = useCreateDocumentationPage(apiId);
+
     return (
-        <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
+        // Escape, a click outside and the close button would leave the creation running, and then open the page anyway.
+        <Dialog open={open} onOpenChange={isOpen => !isOpen && !isCreating && onClose()}>
             <DialogContent style={{ maxWidth: '560px' }}>
-                <CreatePageForm apiId={apiId} parent={parent} onClose={onClose} onCreated={onCreated} />
+                <CreatePageForm parent={parent} createPage={createPage} isCreating={isCreating} onClose={onClose} onCreated={onCreated} />
             </DialogContent>
         </Dialog>
     );
@@ -76,13 +79,18 @@ export function CreatePageDialog({
 
 // Rendered inside the dialog content, so its state starts over each time the dialog opens.
 function CreatePageForm({
-    apiId,
     parent,
+    createPage,
+    isCreating,
     onClose,
     onCreated,
-}: Readonly<{ apiId: string; parent?: PortalNavigationFolder; onClose: () => void; onCreated: (pageId: string) => void }>) {
-    const { createPage, isCreating } = useCreateDocumentationPage(apiId);
-
+}: Readonly<{
+    parent?: PortalNavigationFolder;
+    createPage: (page: NewDocumentationPage) => Promise<string | null>;
+    isCreating: boolean;
+    onClose: () => void;
+    onCreated: (pageId: string) => void;
+}>) {
     const [title, setTitle] = useState('');
     // The title last taken from a file name, replaced by the next file's as long as the user has not changed it.
     const [titleFromFile, setTitleFromFile] = useState('');
