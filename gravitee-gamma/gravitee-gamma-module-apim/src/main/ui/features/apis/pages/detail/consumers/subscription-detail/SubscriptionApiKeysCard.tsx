@@ -20,7 +20,13 @@ import {
     CardHeader,
     CardTitle,
     DataTablePagination,
+    Dialog,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
     Input,
+    Label,
     Skeleton,
     Table,
     TableBody,
@@ -36,7 +42,14 @@ import { CalendarIcon, CircleCheckIcon, CircleXIcon, CopyIcon, RefreshCwIcon, XI
 import { useCallback, useState } from 'react';
 
 import { notify } from '../../../../../../shared/notify';
-import { useApiKeyList, useExpireApiKey, useRenewApiKey, useRevokeApiKey } from '../../../../hooks/useSubscriptionApiKeys';
+import { useCustomApiKeyEnabled } from '../../../../hooks/usePlanSecuritySettings';
+import {
+    useApiKeyList,
+    useExpireApiKey,
+    useReactivateApiKey,
+    useRenewApiKey,
+    useRevokeApiKey,
+} from '../../../../hooks/useSubscriptionApiKeys';
 import type { ApiKey, Subscription, SubscriptionContext } from '../../../../types/subscription';
 import { formatDate } from '../../../../utils/formatDate';
 
@@ -53,15 +66,50 @@ function InfoBanner({ children }: { children: React.ReactNode }) {
 
 interface ApiKeyRowActionsProps {
     apiKey: ApiKey;
-    subscriptionAccepted: boolean;
+    subscriptionStatus: Subscription['status'];
     canUpdate: boolean;
+    isShared: boolean;
+    isFederated: boolean;
     onRevoke: (id: string) => void;
     onExpire: (id: string) => void;
+    onReactivate: (id: string) => void;
     isRevoking: boolean;
 }
 
-function ApiKeyRowActions({ apiKey, subscriptionAccepted, canUpdate, onRevoke, onExpire, isRevoking }: ApiKeyRowActionsProps) {
-    if (!canUpdate || !subscriptionAccepted || apiKey.revoked || apiKey.expired) return null;
+function ApiKeyRowActions({
+    apiKey,
+    subscriptionStatus,
+    canUpdate,
+    isShared,
+    isFederated,
+    onRevoke,
+    onExpire,
+    onReactivate,
+    isRevoking,
+}: ApiKeyRowActionsProps) {
+    if (!canUpdate || isShared || (subscriptionStatus !== 'ACCEPTED' && subscriptionStatus !== 'PENDING')) return null;
+
+    const isValid = !apiKey.revoked && !apiKey.expired;
+    const canMutateValidKey = isValid && subscriptionStatus === 'ACCEPTED' && !isFederated;
+
+    if (!isValid) {
+        return (
+            <div className="flex items-center gap-1 justify-end">
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button type="button" variant="ghost" size="icon" className="size-7" onClick={() => onReactivate(apiKey.id)}>
+                            <RefreshCwIcon className="size-3.5" aria-hidden />
+                            <span className="sr-only">Reactivate key</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Reactivate key</TooltipContent>
+                </Tooltip>
+            </div>
+        );
+    }
+
+    if (!canMutateValidKey) return null;
+
     return (
         <div className="flex items-center gap-1 justify-end">
             <Tooltip>
@@ -112,18 +160,24 @@ interface SubscriptionApiKeysCardProps {
     ctx: SubscriptionContext;
     subscription: Subscription;
     canUpdate: boolean;
+    isFederated?: boolean;
 }
 
-export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readonly<SubscriptionApiKeysCardProps>) {
+export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate, isFederated = false }: Readonly<SubscriptionApiKeysCardProps>) {
     const [page, setPage] = useState(1);
     const [expiringKeyId, setExpiringKeyId] = useState<string | null>(null);
     const [expireDate, setExpireDate] = useState('');
+    const [renewOpen, setRenewOpen] = useState(false);
+    const [renewCustomKey, setRenewCustomKey] = useState('');
     const PER_PAGE = 5;
 
     const { data, isLoading } = useApiKeyList(ctx, subscription.id, page, PER_PAGE);
     const renewMutation = useRenewApiKey(ctx, subscription.id);
     const revokeMutation = useRevokeApiKey(ctx, subscription.id);
     const expireMutation = useExpireApiKey(ctx, subscription.id);
+    const reactivateMutation = useReactivateApiKey(ctx, subscription.id);
+
+    const canUseCustomApiKey = useCustomApiKeyEnabled();
 
     const handleRevoke = useCallback(
         (keyId: string) =>
@@ -133,6 +187,24 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
             }),
         [revokeMutation],
     );
+    const handleReactivate = useCallback(
+        (keyId: string) =>
+            reactivateMutation.mutate(keyId, {
+                onSuccess: () => notify.success('API key reactivated'),
+                onError: error => notify.error(error, 'Failed to reactivate API key.'),
+            }),
+        [reactivateMutation],
+    );
+    const handleRenewConfirm = useCallback(() => {
+        renewMutation.mutate(renewCustomKey.trim() || undefined, {
+            onSuccess: () => {
+                notify.success('API key renewed');
+                setRenewOpen(false);
+                setRenewCustomKey('');
+            },
+            onError: error => notify.error(error, 'Failed to renew API key.'),
+        });
+    }, [renewMutation, renewCustomKey]);
     const handleExpireConfirm = useCallback(() => {
         if (!expiringKeyId || !expireDate) return;
         expireMutation.mutate(
@@ -150,7 +222,7 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
 
     const securityType = subscription.plan.security?.type;
     const isShared = subscription.application.apiKeyMode === 'SHARED' && securityType === 'API_KEY';
-    const subscriptionAccepted = subscription.status === 'ACCEPTED';
+    const canRenew = canUpdate && subscription.status === 'ACCEPTED' && !isShared && !isFederated;
 
     const totalCount = data?.pagination.totalCount ?? 0;
 
@@ -172,19 +244,8 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-base">{isShared ? 'Shared API Keys' : 'API Keys'}</CardTitle>
-                {canUpdate && subscriptionAccepted && !isShared && (
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                            renewMutation.mutate(undefined, {
-                                onSuccess: () => notify.success('API key renewed'),
-                                onError: error => notify.error(error, 'Failed to renew API key.'),
-                            })
-                        }
-                        disabled={renewMutation.isPending}
-                    >
+                {canRenew && (
+                    <Button type="button" variant="outline" size="sm" onClick={() => setRenewOpen(true)} disabled={renewMutation.isPending}>
                         <RefreshCwIcon className="size-3.5" aria-hidden />
                         {renewMutation.isPending ? 'Renewing…' : 'Renew'}
                     </Button>
@@ -235,13 +296,16 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
                                         <TableCell>
                                             <ApiKeyRowActions
                                                 apiKey={key}
-                                                subscriptionAccepted={subscriptionAccepted}
+                                                subscriptionStatus={subscription.status}
                                                 canUpdate={canUpdate}
+                                                isShared={isShared}
+                                                isFederated={isFederated}
                                                 onRevoke={handleRevoke}
                                                 onExpire={id => {
                                                     setExpiringKeyId(id);
                                                     setExpireDate('');
                                                 }}
+                                                onReactivate={handleReactivate}
                                                 isRevoking={revokeMutation.isPending}
                                             />
                                         </TableCell>
@@ -275,6 +339,36 @@ export function SubscriptionApiKeysCard({ ctx, subscription, canUpdate }: Readon
                     </div>
                 )}
             </CardContent>
+
+            <Dialog open={renewOpen} onOpenChange={open => !open && setRenewOpen(false)}>
+                <DialogContent aria-describedby={undefined}>
+                    <DialogHeader>
+                        <DialogTitle>Renew your API Key</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-sm">Your previous API Key will be no longer valid in 2 hours!</p>
+                    {canUseCustomApiKey ? (
+                        <div className="space-y-2">
+                            <p className="text-sm text-muted-foreground">You can provide a custom API Key here</p>
+                            <Label htmlFor="renew-custom-api-key">Custom API Key</Label>
+                            <Input
+                                id="renew-custom-api-key"
+                                value={renewCustomKey}
+                                placeholder="Leave blank to generate an API Key"
+                                onChange={e => setRenewCustomKey(e.target.value)}
+                                disabled={renewMutation.isPending}
+                            />
+                        </div>
+                    ) : null}
+                    <DialogFooter className="flex-row justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setRenewOpen(false)} disabled={renewMutation.isPending}>
+                            Cancel
+                        </Button>
+                        <Button type="button" onClick={handleRenewConfirm} disabled={renewMutation.isPending}>
+                            {renewMutation.isPending ? 'Renewing…' : 'Renew'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Card>
     );
 }

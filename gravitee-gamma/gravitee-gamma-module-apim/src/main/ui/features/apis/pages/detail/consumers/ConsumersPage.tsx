@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { Button } from '@gravitee/graphene-core';
+import { Button, Skeleton } from '@gravitee/graphene-core';
 import { DownloadIcon, PlusIcon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 
@@ -27,14 +27,14 @@ import { downloadBlob } from '../../../../../shared/browser';
 import { notify } from '../../../../../shared/notify';
 import { useCreateSubscription } from '../../../hooks/useSubscriptionActions';
 import {
+    ALL_SUBSCRIPTION_STATUSES,
     DEFAULT_STATUSES,
-    isSubscriptionFiltersDirty,
     useApiPlans,
     useSubscriptionCount,
     useSubscriptionList,
 } from '../../../hooks/useSubscriptions';
 import { exportSubscriptionsCsv } from '../../../services/subscriptions';
-import type { SubscriptionContext, SubscriptionFilters } from '../../../types/subscription';
+import type { ApiKeyMode, SubscriptionContext, SubscriptionFilters } from '../../../types/subscription';
 
 const EMPTY_FILTERS: SubscriptionFilters = {
     statuses: [],
@@ -47,9 +47,10 @@ interface ConsumersPageProps {
     ctx: SubscriptionContext;
     canCreate: boolean;
     canRead: boolean;
+    isFederated?: boolean;
 }
 
-export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
+export function ConsumersPage({ ctx, canCreate, canRead, isFederated = false }: ConsumersPageProps) {
     const [filters, setFilters] = useState<SubscriptionFilters>(EMPTY_FILTERS);
     const [page, setPage] = useState(1);
     const [perPage, setPerPage] = useState(10);
@@ -61,7 +62,9 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
     const { data, isLoading: isLoadingList } = useSubscriptionList(ctx, filters, page, perPage);
     const { data: acceptedCount = 0, isLoading: isLoadingAccepted } = useSubscriptionCount(ctx, ['ACCEPTED']);
     const { data: pendingCount = 0, isLoading: isLoadingPending } = useSubscriptionCount(ctx, ['PENDING']);
-    const isLoading = isLoadingList || isLoadingAccepted || isLoadingPending;
+    const { data: anySubscriptionCount = 0, isLoading: isLoadingAny } = useSubscriptionCount(ctx, ALL_SUBSCRIPTION_STATUSES);
+    const isLoading = isLoadingList || isLoadingAccepted || isLoadingPending || isLoadingAny;
+    const hasAnySubscription = anySubscriptionCount > 0;
     const { data: plans = [] } = useApiPlans(ctx);
     const createMutation = useCreateSubscription(ctx);
 
@@ -76,9 +79,9 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
     }, []);
 
     const handleCreate = useCallback(
-        (applicationId: string, planId: string) => {
+        (applicationId: string, planId: string, options?: { customApiKey?: string; apiKeyMode?: ApiKeyMode }) => {
             createMutation.mutate(
-                { applicationId, planId },
+                { applicationId, planId, customApiKey: options?.customApiKey, apiKeyMode: options?.apiKeyMode },
                 {
                     onSuccess: () => {
                         notify.success('Subscription created');
@@ -110,9 +113,6 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
         }
     }, [env, ctx.entityId, filters, totalCount]);
 
-    const hasAnySubscriptions = totalCount > 0 || isLoading;
-    const isFiltered = isSubscriptionFiltersDirty(filters);
-
     if (!canRead) {
         return (
             <div className="flex flex-col gap-6">
@@ -122,67 +122,89 @@ export function ConsumersPage({ ctx, canCreate, canRead }: ConsumersPageProps) {
         );
     }
 
+    const header = (
+        <div className="flex items-center justify-between gap-4">
+            <div>
+                <h1 className="text-2xl font-semibold tracking-tight">Consumers</h1>
+                <p className="text-sm text-muted-foreground">View and manage {entityLabel} consumers and their usage.</p>
+            </div>
+            <div className="flex items-center gap-2">
+                {hasAnySubscription && ctx.type === 'api' && (
+                    <Button type="button" variant="outline" size="sm" disabled={isExporting || totalCount === 0} onClick={handleExport}>
+                        <DownloadIcon className="size-4" aria-hidden />
+                        Export CSV
+                    </Button>
+                )}
+                {canCreate && (
+                    <Button type="button" size="sm" onClick={() => setDialogOpen(true)}>
+                        <PlusIcon className="size-4" aria-hidden />
+                        Create subscription
+                    </Button>
+                )}
+            </div>
+        </div>
+    );
+
+    const createDialog = canCreate ? (
+        <CreateSubscription
+            ctx={ctx}
+            open={dialogOpen}
+            isPending={createMutation.isPending}
+            error={createMutation.error?.message ?? null}
+            isFederated={isFederated}
+            onConfirm={handleCreate}
+            onClose={() => {
+                setDialogOpen(false);
+                createMutation.reset();
+            }}
+        />
+    ) : null;
+
+    if (isLoading) {
+        return (
+            <div className="flex flex-col gap-6">
+                {header}
+                <Skeleton className="h-20 w-full rounded-lg" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="h-48 w-full rounded-lg" />
+            </div>
+        );
+    }
+
+    if (!hasAnySubscription) {
+        return (
+            <div className="flex flex-col gap-6">
+                {header}
+                <ConsumersEmptyState />
+                {createDialog}
+            </div>
+        );
+    }
+
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-semibold tracking-tight">Consumers</h1>
-                    <p className="text-sm text-muted-foreground">View and manage {entityLabel} consumers and their usage.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    {ctx.type === 'api' && (
-                        <Button type="button" variant="outline" size="sm" disabled={isExporting || totalCount === 0} onClick={handleExport}>
-                            <DownloadIcon className="size-4" aria-hidden />
-                            Export CSV
-                        </Button>
-                    )}
-                    {canCreate && (
-                        <Button type="button" size="sm" onClick={() => setDialogOpen(true)}>
-                            <PlusIcon className="size-4" aria-hidden />
-                            Create subscription
-                        </Button>
-                    )}
-                </div>
-            </div>
+            {header}
 
-            {!hasAnySubscriptions && !isFiltered ? (
-                <ConsumersEmptyState />
-            ) : (
-                <>
-                    <ConsumersSummaryCards
-                        totalCount={totalCount}
-                        acceptedCount={acceptedCount}
-                        pendingCount={pendingCount}
-                        isLoading={isLoading}
-                    />
+            <ConsumersSummaryCards
+                totalCount={totalCount}
+                acceptedCount={acceptedCount}
+                pendingCount={pendingCount}
+                isLoading={isLoading}
+            />
 
-                    <ConsumersFilterBar filters={filters} plans={plans} ctx={ctx} onChange={handleFilterChange} />
+            <ConsumersFilterBar filters={filters} plans={plans} ctx={ctx} onChange={handleFilterChange} />
 
-                    <ConsumersTable
-                        subscriptions={data?.data ?? []}
-                        totalCount={data?.pagination.totalCount ?? 0}
-                        page={page}
-                        perPage={perPage}
-                        isLoading={isLoading}
-                        onPage={setPage}
-                        onPerPageChange={handlePerPageChange}
-                    />
-                </>
-            )}
+            <ConsumersTable
+                subscriptions={data?.data ?? []}
+                totalCount={data?.pagination.totalCount ?? 0}
+                page={page}
+                perPage={perPage}
+                isLoading={isLoading}
+                onPage={setPage}
+                onPerPageChange={handlePerPageChange}
+            />
 
-            {canCreate && (
-                <CreateSubscription
-                    ctx={ctx}
-                    open={dialogOpen}
-                    isPending={createMutation.isPending}
-                    error={createMutation.error?.message ?? null}
-                    onConfirm={handleCreate}
-                    onClose={() => {
-                        setDialogOpen(false);
-                        createMutation.reset();
-                    }}
-                />
-            )}
+            {createDialog}
         </div>
     );
 }

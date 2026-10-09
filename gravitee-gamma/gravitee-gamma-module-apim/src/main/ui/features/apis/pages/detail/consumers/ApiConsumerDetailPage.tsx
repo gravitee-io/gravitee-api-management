@@ -14,15 +14,37 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
+import { Skeleton } from '@gravitee/graphene-core';
 import { useParams } from 'react-router-dom';
 
 import { ConsumerDetailPage } from './ConsumerDetailPage';
+import { useApiDetail } from '../../../hooks/useApiDetail';
 import type { SubscriptionContext } from '../../../types/subscription';
+import { isFederatedApi } from '../../../utils/federatedApi';
 
 export function ApiConsumerDetailPage() {
     const { apiId, subscriptionId } = useParams<{ apiId: string; subscriptionId: string }>();
     const ctx: SubscriptionContext = { type: 'api', entityId: apiId ?? '' };
     const canUpdate = useHasPermission({ anyOf: ['api-subscription-u'] });
     const canDelete = useHasPermission({ anyOf: ['api-subscription-d'] });
-    return <ConsumerDetailPage ctx={ctx} subscriptionId={subscriptionId} canUpdate={canUpdate} canDelete={canDelete} />;
+    const { data: api, isLoading } = useApiDetail(apiId);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-4">
+                <Skeleton className="h-10 w-64 rounded" />
+                <Skeleton className="h-64 w-full rounded-xl" />
+            </div>
+        );
+    }
+
+    return (
+        <ConsumerDetailPage
+            ctx={ctx}
+            subscriptionId={subscriptionId}
+            canUpdate={canUpdate}
+            canDelete={canDelete}
+            isFederated={isFederatedApi(api)}
+        />
+    );
 }

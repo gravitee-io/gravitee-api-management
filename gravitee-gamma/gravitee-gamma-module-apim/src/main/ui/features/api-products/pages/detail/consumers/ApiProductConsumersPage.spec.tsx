@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
@@ -40,6 +41,12 @@ jest.mock('../../../hooks/useApiProductPermissions', () => ({
 
 jest.mock('../../../../apis/hooks/useSubscriptionActions', () => ({
     useCreateSubscription: jest.fn(),
+}));
+
+jest.mock('../../../../apis/hooks/usePlanSecuritySettings', () => ({
+    useCustomApiKeyEnabled: jest.fn(() => false),
+    useSharedApiKeyEnabled: jest.fn(() => false),
+    usePlanSecuritySettings: jest.fn(() => ({})),
 }));
 
 jest.mock('../../../../apis/hooks/useSubscriptions', () => ({
@@ -227,11 +234,13 @@ function setupDefaults() {
 
 function renderPage() {
     render(
-        <MemoryRouter initialEntries={['/api-products/product-1/consumers']}>
-            <Routes>
-                <Route path="api-products/:productId/consumers" element={<ApiProductConsumersPage />} />
-            </Routes>
-        </MemoryRouter>,
+        <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+            <MemoryRouter initialEntries={['/api-products/product-1/consumers']}>
+                <Routes>
+                    <Route path="api-products/:productId/consumers" element={<ApiProductConsumersPage />} />
+                </Routes>
+            </MemoryRouter>
+        </QueryClientProvider>,
     );
 }
 
@@ -294,10 +303,11 @@ it('shows Create subscription button when user has canCreate', () => {
 
 // ─── 3. Empty state ──────────────────────────────────────────────────────────
 
-it('renders empty state when there are no subscriptions', () => {
+it('keeps the manage consumers view when there are no subscriptions', () => {
     setupDefaults();
     renderPage();
-    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Consumers' })).not.toBeNull();
+    expect(screen.getByRole('button', { name: /create subscription/i })).not.toBeNull();
 });
 
 // ─── 4. Subscription list ─────────────────────────────────────────────────────
@@ -316,7 +326,7 @@ it('renders skeletons while loading subscription list', () => {
     setupDefaults();
     mockUseSubscriptionList.mockReturnValue({ data: undefined, isLoading: true });
     renderPage();
-    expect(screen.getAllByRole('cell').some(el => el.querySelector('[aria-busy="true"]') !== null)).toBe(true);
+    expect(screen.getAllByRole('generic').some(el => el.getAttribute('aria-busy') === 'true')).toBe(true);
 });
 
 // ─── 6. Context isolation — ctx.type is api-product ──────────────────────────

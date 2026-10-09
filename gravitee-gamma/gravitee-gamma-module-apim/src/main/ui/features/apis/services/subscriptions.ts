@@ -119,7 +119,16 @@ export async function updateSubscriptionEndDate(
     subscriptionId: string,
     endingAt: string | null,
 ): Promise<Subscription> {
-    return apimFetchJsonV2<Subscription>(envId, sub(ctx, subscriptionId), { method: 'PUT', body: JSON.stringify({ endingAt }) });
+    const current = await getSubscription(envId, ctx, subscriptionId);
+    return apimFetchJsonV2<Subscription>(envId, sub(ctx, subscriptionId), {
+        method: 'PUT',
+        body: JSON.stringify({
+            startingAt: current.startingAt,
+            endingAt,
+            consumerConfiguration: current.consumerConfiguration,
+            metadata: current.metadata,
+        }),
+    });
 }
 
 export async function listApiKeys(
@@ -132,8 +141,18 @@ export async function listApiKeys(
     return apimFetchJsonV2<ApiKeyPage>(envId, `${sub(ctx, subscriptionId)}/api-keys${buildQuery({ page, perPage })}`);
 }
 
-export async function renewApiKey(envId: string, ctx: SubscriptionContext, subscriptionId: string): Promise<ApiKey> {
-    return apimFetchJsonV2<ApiKey>(envId, `${sub(ctx, subscriptionId)}/api-keys/_renew`, { method: 'POST', body: JSON.stringify({}) });
+export async function renewApiKey(envId: string, ctx: SubscriptionContext, subscriptionId: string, customApiKey?: string): Promise<ApiKey> {
+    return apimFetchJsonV2<ApiKey>(envId, `${sub(ctx, subscriptionId)}/api-keys/_renew`, {
+        method: 'POST',
+        body: JSON.stringify(customApiKey ? { customApiKey } : {}),
+    });
+}
+
+export async function reactivateApiKey(envId: string, ctx: SubscriptionContext, subscriptionId: string, apiKeyId: string): Promise<ApiKey> {
+    return apimFetchJsonV2<ApiKey>(envId, `${sub(ctx, subscriptionId)}/api-keys/${encodeURIComponent(apiKeyId)}/_reactivate`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
 }
 
 export async function revokeApiKey(envId: string, ctx: SubscriptionContext, subscriptionId: string, apiKeyId: string): Promise<void> {
@@ -248,6 +267,28 @@ interface V1ApplicationEntry {
     apiKeyMode?: Application['apiKeyMode'];
     owner?: { displayName: string; id?: string; email?: string };
     primaryOwner?: { displayName: string; id?: string; email?: string };
+}
+
+/** V1 application subscription row used to decide exclusive vs shared API key mode. */
+export interface ApplicationApiKeySubscriptionRef {
+    api?: string;
+    referenceType?: string;
+    referenceId?: string;
+}
+
+/**
+ * Lists the application's active API-key subscriptions (classic
+ * `ApplicationService.getSubscriptionsPage` with ACCEPTED/PENDING/PAUSED + API_KEY).
+ */
+export async function listApplicationApiKeySubscriptions(
+    envId: string,
+    applicationId: string,
+): Promise<ApplicationApiKeySubscriptionRef[]> {
+    const res = await apimFetchJsonV1Env<{ data?: ApplicationApiKeySubscriptionRef[] }>(
+        envId,
+        `/applications/${applicationId}/subscriptions?page=1&size=20&status=ACCEPTED,PENDING,PAUSED&security_types=API_KEY`,
+    );
+    return res.data ?? [];
 }
 
 export async function searchApplications(envId: string, query: string): Promise<ApplicationPage> {

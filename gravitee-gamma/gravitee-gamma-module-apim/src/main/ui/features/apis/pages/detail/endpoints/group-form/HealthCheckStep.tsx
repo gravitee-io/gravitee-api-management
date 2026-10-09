@@ -26,6 +26,7 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
+    Switch,
     Textarea,
 } from '@gravitee/graphene-core';
 import { PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
@@ -190,14 +191,21 @@ export function HealthCheckStep({
                 </Alert>
             )}
 
-            <SwitchRow
-                id="hc-enabled"
-                label="Enabled"
-                desc="This service requires an API deployment. Deploy the API to start the health-check service."
-                checked={healthCheck.enabled}
-                disabled={readOnly || inherit}
-                onChange={v => onChange({ enabled: v })}
-            />
+            <div className="flex items-center justify-between gap-4 rounded-lg border px-4 py-3">
+                <div className="space-y-0.5">
+                    <Label htmlFor="hc-enabled" className="text-sm font-medium">
+                        Enable health-check
+                    </Label>
+                    <p className="text-xs text-muted-foreground">Activate the health check to monitor this endpoint availability.</p>
+                </div>
+                <Switch
+                    id="hc-enabled"
+                    checked={healthCheck.enabled}
+                    disabled={readOnly || inherit}
+                    onCheckedChange={v => onChange({ enabled: v })}
+                    aria-label="Enable health-check"
+                />
+            </div>
 
             <Card>
                 <CardContent className="pt-4 pb-3 px-4">

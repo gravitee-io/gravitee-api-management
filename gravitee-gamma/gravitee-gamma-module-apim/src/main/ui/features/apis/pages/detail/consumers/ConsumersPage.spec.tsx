@@ -32,7 +32,6 @@ jest.mock('@gravitee/graphene-core', () => ({
 
 jest.mock('@gravitee/graphene-core/icons', () => new Proxy({}, { get: () => () => null }));
 
-jest.mock('./ConsumersEmptyState', () => ({ ConsumersEmptyState: () => null }));
 jest.mock('./ConsumersFilterBar', () => ({ ConsumersFilterBar: () => null }));
 jest.mock('./ConsumersSummaryCards', () => ({ ConsumersSummaryCards: () => null }));
 jest.mock('./ConsumersTable', () => ({ ConsumersTable: () => null }));
@@ -43,10 +42,11 @@ jest.mock('../../../../../shared/notify', () => ({ notify: { success: jest.fn(),
 
 jest.mock('../../../hooks/useSubscriptionActions', () => ({ useCreateSubscription: () => ({ mutate: jest.fn(), reset: jest.fn() }) }));
 jest.mock('../../../hooks/useSubscriptions', () => ({
+    ALL_SUBSCRIPTION_STATUSES: ['PENDING', 'ACCEPTED', 'REJECTED', 'CLOSED', 'PAUSED', 'RESUMED'],
     DEFAULT_STATUSES: ['ACCEPTED', 'PAUSED', 'PENDING'],
     isSubscriptionFiltersDirty: () => false,
     useApiPlans: () => ({ data: [] }),
-    useSubscriptionCount: () => ({ data: 0, isLoading: false }),
+    useSubscriptionCount: () => ({ data: 5, isLoading: false }),
     useSubscriptionList: jest.fn(),
 }));
 jest.mock('../../../services/subscriptions', () => ({ exportSubscriptionsCsv: jest.fn() }));

@@ -309,6 +309,7 @@ export function ClientRegistrationProviderPage() {
     const isSaving = createMutation.isPending || updateMutation.isPending;
     const canSaveProvider = isUpdate ? canUpdate : canCreate;
     const readOnly = !canSaveProvider;
+    const hasErrors = Object.keys(errors).length > 0;
 
     function handleSubmit(event: FormEvent) {
         event.preventDefault();
@@ -662,8 +663,8 @@ export function ClientRegistrationProviderPage() {
                     <Button type="button" variant="outline" onClick={() => navigate('..')} disabled={isSaving}>
                         Cancel
                     </Button>
-                    <Button type="submit" disabled={isSaving}>
-                        {isSaving ? 'Saving…' : isUpdate ? 'Save changes' : 'Create provider'}
+                    <Button type="submit" disabled={isSaving || hasErrors}>
+                        {isSaving ? 'Saving…' : isUpdate ? 'Save' : 'Create provider'}
                     </Button>
                 </div>
             ) : null}

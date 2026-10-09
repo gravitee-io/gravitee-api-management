@@ -15,6 +15,7 @@
  */
 import { Button, Checkbox, cn, Popover, PopoverContent, PopoverTrigger } from '@gravitee/graphene-core';
 import { ChevronDownIcon } from '@gravitee/graphene-core/icons';
+import { useState } from 'react';
 
 export interface MultiSelectFilterOption {
     value: string;
@@ -53,6 +54,7 @@ export function MultiSelectFilter({
     className?: string;
     disabled?: boolean;
 }>) {
+    const [open, setOpen] = useState(false);
     const display = formatSelection(options, selectedValues, placeholder);
 
     const toggle = (value: string) => {
@@ -62,7 +64,7 @@ export function MultiSelectFilter({
     };
 
     return (
-        <Popover>
+        <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
                     id={id}
@@ -78,11 +80,19 @@ export function MultiSelectFilter({
                     <ChevronDownIcon className="size-4 shrink-0 opacity-50" aria-hidden />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[260px] p-3" align="start">
+            <PopoverContent
+                className="w-[260px] p-3"
+                align="start"
+                onOpenAutoFocus={event => event.preventDefault()}
+                onCloseAutoFocus={event => event.preventDefault()}
+            >
                 {options.length === 0 ? (
                     <p className="text-xs text-muted-foreground">{emptyMessage ?? 'No options'}</p>
                 ) : (
-                    <div className="max-h-48 min-h-0 space-y-2 overflow-y-auto overscroll-contain">
+                    <div
+                        className="max-h-48 min-h-0 space-y-2 overflow-y-auto overscroll-contain"
+                        onPointerDown={event => event.preventDefault()}
+                    >
                         {options.map(option => (
                             <label
                                 key={option.value}
