@@ -116,7 +116,7 @@
     "environmentId": "my-progress-env",
     "initiatorId": "initiator-id",
     "type": "SCORING_REQUEST",
-    "status": "SUCCESS",
+    "status": "PARTIAL",
     "upperLimit": 40,
     "processed": 40,
     "details": "{\"imported\":37,\"failed\":3}",

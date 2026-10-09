@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AsyncJobFixture;
+import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.async_job.model.AsyncJobError;
 import java.util.List;
 import org.junit.jupiter.api.Nested;
@@ -47,6 +48,15 @@ class AsyncJobAdapterTest {
                 new AsyncJobError("slug_conflict", "Slug already used", "agent-1"),
                 new AsyncJobError("fetch_failed", "Provider unavailable", null)
             );
+        }
+
+        @Test
+        void should_map_partial_status() {
+            var source = fixtures.repository.AsyncJobFixture.BASE.get().status("PARTIAL").build();
+
+            var result = AsyncJobAdapter.INSTANCE.toEntity(source);
+
+            assertThat(result.getStatus()).isEqualTo(AsyncJob.Status.PARTIAL);
         }
 
         @Test

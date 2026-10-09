@@ -9676,6 +9676,7 @@ components:
                 - PENDING
                 - ERROR
                 - TIMEOUT
+                - PARTIAL
         AsyncJobError:
             type: object
             required:
