@@ -41,7 +41,7 @@ public final class EncryptedPropertyAuditRedaction {
     }
 
     // Hashes the ciphertext, not the plaintext, so nobody without the encryption key can match the fingerprint against guessed secrets.
-    private static String fingerprint(String ciphertext) {
+    public static String fingerprint(String ciphertext) {
         return "<sha256:" + DigestUtils.sha256Hex(ciphertext) + ">";
     }
 

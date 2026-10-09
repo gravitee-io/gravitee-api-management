@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.impl.configuration.dictionary;
 import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MASK;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 import static io.gravitee.repository.management.model.Dictionary.AuditEvent.DICTIONARY_UPDATED;
+import static io.gravitee.rest.api.service.impl.configuration.dictionary.DictionaryAuditPatch.json;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,6 +32,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.model.dictionary.DictionaryProperty;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -62,6 +65,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -76,6 +80,9 @@ public class DictionaryServiceImpl_UpdateTest {
 
     @InjectMocks
     private DictionaryServiceImpl dictionaryService = new DictionaryServiceImpl();
+
+    @Spy
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Mock
     private DictionaryRepository dictionaryRepository;
@@ -830,6 +837,142 @@ public class DictionaryServiceImpl_UpdateTest {
             argThat(dict -> dict.getProperties().get("secret").encrypted() && dict.getProperties().get("secret").value().equals("cipher"))
         );
         verifyNoInteractions(dataEncryptor);
+    }
+
+    @Test
+    public void should_audit_only_a_new_fingerprint_when_an_encrypted_value_is_renewed()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("OLD-CIPHER", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("renewed-plaintext")).thenReturn("NEW-CIPHER");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("secret", "renewed-plaintext"), null)
+        );
+
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"replace","path":"/properties/secret/value","value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>"}
+                """
+            )
+        );
+        assertThat(patch.toString()).doesNotContain("OLD-CIPHER").doesNotContain("NEW-CIPHER").doesNotContain("renewed-plaintext");
+    }
+
+    @Test
+    public void should_audit_only_the_fingerprint_when_a_plain_property_becomes_encrypted()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("secret", new DictionaryProperty("was-plain", false));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("was-plain")).thenReturn("NEW-CIPHER");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("secret", "was-plain"), Map.of("secret", DictionaryPropertyOptions.builder().encryptable(true).build()))
+        );
+
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"replace","path":"/properties/secret","value":{"value":"<sha256:bc66d34feaf1dd7d7ecd90ba7834e5cb554ba533abff6cb0664c6cec6647ad57>","encrypted":true}}
+                """
+            )
+        );
+        assertThat(patch.toString()).doesNotContain("NEW-CIPHER").doesNotContain("was-plain");
+    }
+
+    @Test
+    public void should_audit_the_addition_of_an_encrypted_property_beside_an_existing_one()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("a", new DictionaryProperty("CIPHER-A", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("plain-b")).thenReturn("CIPHER-B");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(
+                Map.of("a", ENCRYPTED_VALUE_MASK, "b", "plain-b"),
+                Map.of("b", DictionaryPropertyOptions.builder().encryptable(true).build())
+            )
+        );
+
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
+        assertThat(patch).noneMatch(operation -> Set.of("copy", "move").contains(operation.get("op").asText()));
+        assertThat(patch).anySatisfy(operation -> {
+            assertThat(operation.get("op").asText()).isEqualTo("add");
+            assertThat(operation.get("path").asText()).isEqualTo("/properties/b");
+            assertThat(operation.get("value")).isEqualTo(
+                json(
+                    """
+                    {"value":"<sha256:d775e5602bbc188268eeaeeb5f5dd7351f2606e085cd2d480fcda487e883ace4>","encrypted":true}
+                    """
+                )
+            );
+        });
+    }
+
+    @Test
+    public void should_audit_an_encrypted_property_sharing_an_existing_secret_as_a_copy_without_its_value()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("a", new DictionaryProperty("SHARED-CIPHER", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("shared-plaintext")).thenReturn("SHARED-CIPHER");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(
+                Map.of("a", ENCRYPTED_VALUE_MASK, "b", "shared-plaintext"),
+                Map.of("b", DictionaryPropertyOptions.builder().encryptable(true).build())
+            )
+        );
+
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
+        assertThat(patch).contains(
+            json(
+                """
+                {"op":"copy","from":"/properties/a","path":"/properties/b"}
+                """
+            )
+        );
+        assertThat(patch.toString()).doesNotContain("SHARED-CIPHER").doesNotContain("shared-plaintext");
+    }
+
+    @Test
+    public void should_audit_the_replacement_of_an_encrypted_property_as_a_removal_and_an_addition()
+        throws TechnicalException, GeneralSecurityException {
+        Map<String, DictionaryProperty> stored = new HashMap<>();
+        stored.put("a", new DictionaryProperty("CIPHER-A", true));
+        given_stored_dictionary(stored);
+        when(dataEncryptor.encrypt("plain-c")).thenReturn("CIPHER-C");
+
+        dictionaryService.update(
+            GraviteeContext.getExecutionContext(),
+            DICTIONARY_ID,
+            anUpdate(Map.of("c", "plain-c"), Map.of("c", DictionaryPropertyOptions.builder().encryptable(true).build()))
+        );
+
+        JsonNode patch = DictionaryAuditPatch.capturedPatch(auditService);
+        assertThat(patch).noneMatch(operation -> Set.of("copy", "move").contains(operation.get("op").asText()));
+        assertThat(patch).anySatisfy(operation -> {
+            assertThat(operation.get("op").asText()).isEqualTo("remove");
+            assertThat(operation.get("path").asText()).isEqualTo("/properties/a");
+        });
+        assertThat(patch).anySatisfy(operation -> {
+            assertThat(operation.get("op").asText()).isEqualTo("add");
+            assertThat(operation.get("path").asText()).isEqualTo("/properties/c");
+        });
     }
 
     private void given_stored_dictionary(Map<String, DictionaryProperty> properties) throws TechnicalException {
