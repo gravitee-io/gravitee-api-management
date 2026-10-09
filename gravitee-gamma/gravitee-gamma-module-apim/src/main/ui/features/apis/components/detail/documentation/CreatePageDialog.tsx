@@ -21,18 +21,13 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    Field,
-    FieldDescription,
-    FieldLabel,
     FieldLegend,
     FieldSet,
-    Input,
-    Label,
-    Switch,
 } from '@gravitee/graphene-core';
 import { useState, type FormEvent } from 'react';
 
 import { type ImportedFile, ImportFileField } from './ImportFileField';
+import { PageDetailsFields, privateParentOf } from './PageDetailsFields';
 import { type NewDocumentationPage, useCreateDocumentationPage } from '../../../hooks/useCreateDocumentationPage';
 import { SelectionCards, type SelectionCardItem } from '../../../pages/detail/general/SelectionCards';
 import type { PortalNavigationFolder, PortalPageContentType } from '../../../types/apiDocumentation';
@@ -94,8 +89,7 @@ function CreatePageForm({
     const [title, setTitle] = useState('');
     // The title last taken from a file name, replaced by the next file's as long as the user has not changed it.
     const [titleFromFile, setTitleFromFile] = useState('');
-    // The server refuses a public page inside a folder that requires authentication.
-    const privateParent = parent?.visibility === 'PRIVATE' ? parent : undefined;
+    const privateParent = privateParentOf(parent);
     const [isPrivate, setIsPrivate] = useState(privateParent !== undefined);
     const [source, setSource] = useState<ContentSource>('FILL');
     const [pageType, setPageType] = useState<PortalPageContentType>('GRAVITEE_MARKDOWN');
@@ -136,34 +130,14 @@ function CreatePageForm({
 
             <div className="flex flex-col gap-5">
                 <form id="create-documentation-page-form" onSubmit={handleSubmit} className="flex flex-col gap-5">
-                    <Field orientation="vertical" className="gap-1.5">
-                        <FieldLabel htmlFor="documentation-page-title">Title</FieldLabel>
-                        <Input
-                            id="documentation-page-title"
-                            value={title}
-                            onChange={event => setTitle(event.target.value)}
-                            disabled={isCreating}
-                            required
-                        />
-                    </Field>
-
-                    <FieldSet className="gap-1.5">
-                        <FieldLegend variant="label">Access</FieldLegend>
-                        <div className="flex items-center gap-2">
-                            <Switch
-                                id="documentation-page-private"
-                                checked={isPrivate}
-                                onCheckedChange={setIsPrivate}
-                                disabled={isCreating || privateParent !== undefined}
-                            />
-                            <Label htmlFor="documentation-page-private" className="font-normal">
-                                Authentication is required to view this page
-                            </Label>
-                        </div>
-                        {privateParent ? (
-                            <FieldDescription>{privateParent.title} requires authentication, so this page does too.</FieldDescription>
-                        ) : null}
-                    </FieldSet>
+                    <PageDetailsFields
+                        title={title}
+                        onTitleChange={setTitle}
+                        isPrivate={isPrivate}
+                        onPrivateChange={setIsPrivate}
+                        privateParent={privateParent}
+                        disabled={isCreating}
+                    />
 
                     <FieldSet className="gap-1.5">
                         <FieldLegend variant="label">Content</FieldLegend>
