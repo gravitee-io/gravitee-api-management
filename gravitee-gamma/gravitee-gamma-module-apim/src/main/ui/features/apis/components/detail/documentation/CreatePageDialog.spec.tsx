@@ -300,6 +300,26 @@ describe('CreatePageDialog', () => {
             expect(titleInput().value).toBe('Pet store reference');
         });
 
+        it('names the page after a newly chosen file, when its title came from the previous one', async () => {
+            const { user } = renderDialog();
+
+            await importFile(user, new File([OPENAPI_YAML], 'petstore.yaml'));
+            await uploadFile(user, new File(['asyncapi: 3.0.0\n'], 'events.yaml'));
+
+            expect(titleInput().value).toBe('events');
+        });
+
+        it('keeps a title edited after a file named the page, when another file is chosen', async () => {
+            const { user } = renderDialog();
+
+            await importFile(user, new File([OPENAPI_YAML], 'petstore.yaml'));
+            await user.clear(titleInput());
+            await user.type(titleInput(), 'Pet store reference');
+            await uploadFile(user, new File(['asyncapi: 3.0.0\n'], 'events.yaml'));
+
+            expect(titleInput().value).toBe('Pet store reference');
+        });
+
         it('creates an empty file as an empty page, without saving content', async () => {
             const { user, onCreated } = renderDialog();
 
