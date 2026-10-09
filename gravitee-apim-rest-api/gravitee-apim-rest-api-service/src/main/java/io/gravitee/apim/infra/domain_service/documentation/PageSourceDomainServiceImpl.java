@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.documentation;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.documentation.domain_service.PageSourceDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
@@ -24,6 +25,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.fetcher.api.Resource;
 import io.gravitee.fetcher.api.ResourceNotFoundException;
 import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
@@ -150,14 +152,7 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
     private String readContent(Fetcher fetcher, Page page) {
         var sourceType = page.getSource().getType();
         try {
-            var resource = fetcher.fetch();
-            try (var content = resource.getContent()) {
-                return new String(content.readAllBytes(), Charset.defaultCharset());
-            } catch (IOException e) {
-                log.warn("Unable to read the content of page [id={}] fetched from source [type={}]", page.getId(), sourceType);
-                log.debug("Read failure of page [id={}] content fetched from source [type={}]", page.getId(), sourceType, e);
-                throw new TechnicalDomainException("Unable to read the page content fetched from source [%s]".formatted(sourceType), e);
-            }
+            return readAll(fetcher.fetch(), page);
         } catch (FetcherException e) {
             var message = "Unable to fetch the page content from source [%s]: %s".formatted(
                 sourceType,
@@ -172,19 +167,24 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
         }
     }
 
+    private static String readAll(Resource resource, Page page) {
+        var sourceType = page.getSource().getType();
+        try (var content = resource.getContent()) {
+            return new String(content.readAllBytes(), Charset.defaultCharset());
+        } catch (IOException e) {
+            log.warn("Unable to read the content of page [id={}] fetched from source [type={}]", page.getId(), sourceType);
+            log.debug("Read failure of page [id={}] content fetched from source [type={}]", page.getId(), sourceType, e);
+            throw new TechnicalDomainException("Unable to read the page content fetched from source [%s]".formatted(sourceType), e);
+        }
+    }
+
     private static String redactSecrets(String message, FetcherConfiguration configuration) {
+        JsonNode values = new ObjectMapper().valueToTree(configuration);
         var redacted = message;
         for (Field field : configuration.getClass().getDeclaredFields()) {
-            if (field.isAnnotationPresent(Sensitive.class)) {
-                field.setAccessible(true);
-                try {
-                    if (field.get(configuration) instanceof String secret && !secret.isBlank()) {
-                        redacted = redacted.replace(secret, SENSITIVE_DATA_REPLACEMENT);
-                    }
-                } catch (IllegalAccessException e) {
-                    // A secret that cannot be read cannot be stripped: hide the whole message rather than risk echoing it
-                    return SENSITIVE_DATA_REPLACEMENT;
-                }
+            var value = values.path(field.getName());
+            if (field.isAnnotationPresent(Sensitive.class) && value.isTextual() && !value.asText().isBlank()) {
+                redacted = redacted.replace(value.asText(), SENSITIVE_DATA_REPLACEMENT);
             }
         }
         return redacted;
