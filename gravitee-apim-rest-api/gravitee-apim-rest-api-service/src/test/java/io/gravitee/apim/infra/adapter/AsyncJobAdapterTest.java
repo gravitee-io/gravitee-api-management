@@ -60,6 +60,15 @@ class AsyncJobAdapterTest {
         }
 
         @Test
+        void should_map_aim_agent_job_types() {
+            var discovery = fixtures.repository.AsyncJobFixture.BASE.get().type("AIM_AGENT_DISCOVERY").build();
+            var importJob = fixtures.repository.AsyncJobFixture.BASE.get().type("AIM_AGENT_IMPORT").build();
+
+            assertThat(AsyncJobAdapter.INSTANCE.toEntity(discovery).getType()).isEqualTo(AsyncJob.Type.AIM_AGENT_DISCOVERY);
+            assertThat(AsyncJobAdapter.INSTANCE.toEntity(importJob).getType()).isEqualTo(AsyncJob.Type.AIM_AGENT_IMPORT);
+        }
+
+        @Test
         void should_map_missing_errors_to_an_empty_list() {
             var source = fixtures.repository.AsyncJobFixture.BASE.get().errors(null).build();
 

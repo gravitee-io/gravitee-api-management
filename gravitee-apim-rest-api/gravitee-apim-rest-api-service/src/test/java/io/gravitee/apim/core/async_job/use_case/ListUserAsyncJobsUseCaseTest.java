@@ -27,6 +27,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
@@ -102,6 +103,45 @@ class ListUserAsyncJobsUseCaseTest {
 
         // Then
         assertThat(result).extracting(Output::jobs).extracting(Page::getContent).isEqualTo(List.of(job3));
+    }
+
+    @Test
+    void should_filter_user_async_jobs_by_source_and_aim_type() {
+        // Given
+        var discovery = AsyncJobFixture.anAsyncJob("discovery")
+            .toBuilder()
+            .sourceId("agent-source")
+            .type(AsyncJob.Type.AIM_AGENT_DISCOVERY)
+            .initiatorId(USER_ID)
+            .build();
+        var importJob = AsyncJobFixture.anAsyncJob("import")
+            .toBuilder()
+            .sourceId("agent-source")
+            .type(AsyncJob.Type.AIM_AGENT_IMPORT)
+            .initiatorId(USER_ID)
+            .build();
+        var otherSource = AsyncJobFixture.anAsyncJob("other-source")
+            .toBuilder()
+            .sourceId("another-agent-source")
+            .type(AsyncJob.Type.AIM_AGENT_DISCOVERY)
+            .initiatorId(USER_ID)
+            .build();
+        givenAsyncJobs(discovery, importJob, otherSource);
+
+        // When
+        var result = useCase.execute(
+            new ListUserAsyncJobsUseCase.Input(
+                ENV_ID,
+                USER_ID,
+                Optional.of(AsyncJob.Type.AIM_AGENT_DISCOVERY),
+                Optional.empty(),
+                Optional.of("agent-source"),
+                Optional.empty()
+            )
+        );
+
+        // Then
+        assertThat(result).extracting(Output::jobs).extracting(Page::getContent).isEqualTo(List.of(discovery));
     }
 
     @Test

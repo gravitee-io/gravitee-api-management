@@ -3993,13 +3993,25 @@ paths:
                 - $ref: "#/components/parameters/perPageParam"
                 - name: sourceId
                   in: query
-                  required: true
+                  required: false
                   description: SourceId to filter
                   schema:
                       type: string
+                - name: type
+                  in: query
+                  required: false
+                  description: Type to filter
+                  schema:
+                      type: string
+                      enum:
+                          - FEDERATED_APIS_INGESTION
+                          - SCORING_REQUEST
+                          - AM_USER_SYNC
+                          - AIM_AGENT_DISCOVERY
+                          - AIM_AGENT_IMPORT
                 - name: status
                   in: query
-                  required: true
+                  required: false
                   description: Status to filter
                   schema:
                       $ref: "#/components/schemas/AsyncJobStatus"
@@ -9538,6 +9550,8 @@ components:
                         - FEDERATED_APIS_INGESTION
                         - SCORING_REQUEST
                         - AM_USER_SYNC
+                        - AIM_AGENT_DISCOVERY
+                        - AIM_AGENT_IMPORT
                 status:
                     $ref: "#/components/schemas/AsyncJobStatus"
                 errorMessage:
