@@ -80,19 +80,11 @@ export function MultiSelectFilter({
                     <ChevronDownIcon className="size-4 shrink-0 opacity-50" aria-hidden />
                 </Button>
             </PopoverTrigger>
-            <PopoverContent
-                className="w-[260px] p-3"
-                align="start"
-                onOpenAutoFocus={event => event.preventDefault()}
-                onCloseAutoFocus={event => event.preventDefault()}
-            >
+            <PopoverContent className="w-[260px] p-3" align="start">
                 {options.length === 0 ? (
                     <p className="text-xs text-muted-foreground">{emptyMessage ?? 'No options'}</p>
                 ) : (
-                    <div
-                        className="max-h-48 min-h-0 space-y-2 overflow-y-auto overscroll-contain"
-                        onPointerDown={event => event.preventDefault()}
-                    >
+                    <div className="max-h-48 min-h-0 space-y-2 overflow-y-auto overscroll-contain">
                         {options.map(option => (
                             <label
                                 key={option.value}

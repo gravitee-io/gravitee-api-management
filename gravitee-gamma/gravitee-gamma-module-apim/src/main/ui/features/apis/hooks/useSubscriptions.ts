@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { getSubscription, listApiPlans, listApiSubscribers, listSubscriptions, searchApplications } from '../services/subscriptions';
 import type { SubscriptionContext, SubscriptionFilters, SubscriptionStatus } from '../types/subscription';
@@ -51,6 +51,7 @@ export function useSubscriptionList(ctx: SubscriptionContext | null, filters: Pa
                 perPage,
             }),
         enabled: Boolean(env && ctx?.entityId),
+        placeholderData: keepPreviousData,
     });
 }
 

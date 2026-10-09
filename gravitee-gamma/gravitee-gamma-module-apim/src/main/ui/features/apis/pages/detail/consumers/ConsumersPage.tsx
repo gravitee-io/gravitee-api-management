@@ -59,11 +59,12 @@ export function ConsumersPage({ ctx, canCreate, canRead, isFederated = false }: 
     const env = useEnvironment();
 
     const entityLabel = ctx.type === 'api-product' ? 'API Product' : 'API';
-    const { data, isLoading: isLoadingList } = useSubscriptionList(ctx, filters, page, perPage);
+    const { data, isLoading: isLoadingList, isFetching: isFetchingList } = useSubscriptionList(ctx, filters, page, perPage);
     const { data: acceptedCount = 0, isLoading: isLoadingAccepted } = useSubscriptionCount(ctx, ['ACCEPTED']);
     const { data: pendingCount = 0, isLoading: isLoadingPending } = useSubscriptionCount(ctx, ['PENDING']);
     const { data: anySubscriptionCount = 0, isLoading: isLoadingAny } = useSubscriptionCount(ctx, ALL_SUBSCRIPTION_STATUSES);
-    const isLoading = isLoadingList || isLoadingAccepted || isLoadingPending || isLoadingAny;
+    // First load only. A later filter change must not replace this page — that unmounts the status multiselect.
+    const isInitialLoading = isLoadingAny || isLoadingAccepted || isLoadingPending;
     const hasAnySubscription = anySubscriptionCount > 0;
     const { data: plans = [] } = useApiPlans(ctx);
     const createMutation = useCreateSubscription(ctx);
@@ -160,7 +161,7 @@ export function ConsumersPage({ ctx, canCreate, canRead, isFederated = false }: 
         />
     ) : null;
 
-    if (isLoading) {
+    if (isInitialLoading) {
         return (
             <div className="flex flex-col gap-6">
                 {header}
@@ -185,12 +186,7 @@ export function ConsumersPage({ ctx, canCreate, canRead, isFederated = false }: 
         <div className="flex flex-col gap-6">
             {header}
 
-            <ConsumersSummaryCards
-                totalCount={totalCount}
-                acceptedCount={acceptedCount}
-                pendingCount={pendingCount}
-                isLoading={isLoading}
-            />
+            <ConsumersSummaryCards totalCount={totalCount} acceptedCount={acceptedCount} pendingCount={pendingCount} isLoading={false} />
 
             <ConsumersFilterBar filters={filters} plans={plans} ctx={ctx} onChange={handleFilterChange} />
 
@@ -199,7 +195,7 @@ export function ConsumersPage({ ctx, canCreate, canRead, isFederated = false }: 
                 totalCount={data?.pagination.totalCount ?? 0}
                 page={page}
                 perPage={perPage}
-                isLoading={isLoading}
+                isLoading={isLoadingList || isFetchingList}
                 onPage={setPage}
                 onPerPageChange={handlePerPageChange}
             />
