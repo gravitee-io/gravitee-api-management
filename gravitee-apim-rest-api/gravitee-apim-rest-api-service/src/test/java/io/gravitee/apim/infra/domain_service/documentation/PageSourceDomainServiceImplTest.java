@@ -22,6 +22,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
 @ExtendWith(MockitoExtension.class)
@@ -216,6 +218,93 @@ class PageSourceDomainServiceImplTest {
         JsonNode configuration = new ObjectMapper().readTree(newPage.getSource().getConfiguration());
         assertThat(configuration.get("sensitiveData").textValue()).isEqualTo(newSensitiveData);
         assertThat(configuration.get("nonSensitiveData").textValue()).isEqualTo(nonSensitiveData);
+    }
+
+    @Test
+    void should_reject_a_masked_secret_when_the_address_changes() {
+        var oldPage = pageWithSource("{\"url\":\"https://a.example/doc.md\",\"sensitiveData\":\"original-secret-token\"}");
+        var newPage = pageWithSource(
+            "{\"url\":\"https://b.example/doc.md\",\"sensitiveData\":\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}"
+        );
+        mockDummyFetcherPlugin(
+            new DummyFetcherConfiguration(null, "original-secret-token"),
+            new DummyFetcherConfiguration(null, PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
+        );
+
+        assertThatThrownBy(() -> cut.mergeSensitiveData(oldPage, newPage))
+            .isInstanceOf(InvalidPageSourceException.class)
+            .hasMessageContaining("sensitiveData")
+            .hasMessageContaining("actual value")
+            .hasMessageNotContaining("b.example")
+            .hasMessageNotContaining("original-secret-token");
+    }
+
+    @Test
+    void should_merge_sensitive_data_when_only_non_address_fields_change() throws JsonProcessingException {
+        var oldPage = pageWithSource(
+            "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"main\",\"sensitiveData\":\"original-secret-token\"}"
+        );
+        var newPage = pageWithSource(
+            "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"dev\",\"sensitiveData\":\"" +
+                PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
+                "\"}"
+        );
+        mockDummyFetcherPlugin(
+            new DummyFetcherConfiguration("main", "original-secret-token"),
+            new DummyFetcherConfiguration("dev", PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
+        );
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        JsonNode configuration = new ObjectMapper().readTree(newPage.getSource().getConfiguration());
+        assertThat(configuration.get("sensitiveData").textValue()).isEqualTo("original-secret-token");
+    }
+
+    @Test
+    void should_accept_a_masked_value_with_no_stored_secret_when_the_address_changes() throws JsonProcessingException {
+        // Classic pages mask a sensitive field even when it holds nothing, so a public source comes back masked
+        var oldPage = pageWithSource("{\"url\":\"https://a.example\",\"sensitiveData\":null}");
+        var newPage = pageWithSource(
+            "{\"url\":\"https://b.example\",\"sensitiveData\":\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}"
+        );
+        mockDummyFetcherPlugin(
+            new DummyFetcherConfiguration(null, null),
+            new DummyFetcherConfiguration(null, PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
+        );
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        JsonNode configuration = new ObjectMapper().readTree(newPage.getSource().getConfiguration());
+        assertThat(configuration.get("sensitiveData").isNull()).isTrue();
+    }
+
+    @Test
+    void should_keep_a_new_secret_when_the_address_changes() {
+        var oldPage = pageWithSource("{\"url\":\"https://a.example\",\"sensitiveData\":\"original-secret-token\"}");
+        var newConfiguration = "{\"url\":\"https://b.example\",\"sensitiveData\":\"new-secret-token\"}";
+        var newPage = pageWithSource(newConfiguration);
+        mockDummyFetcherPlugin(
+            new DummyFetcherConfiguration(null, "original-secret-token"),
+            new DummyFetcherConfiguration(null, "new-secret-token")
+        );
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        assertThat(newPage.getSource().getConfiguration()).isEqualTo(newConfiguration);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void mockDummyFetcherPlugin(DummyFetcherConfiguration oldConfiguration, DummyFetcherConfiguration newConfiguration) {
+        when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mock(AutowireCapableBeanFactory.class));
+        when(fetcherPlugin.fetcher()).thenReturn(DummyFetcher.class);
+        when(fetcherPlugin.configuration()).thenReturn(DummyFetcherConfiguration.class);
+        when(fetcherPlugin.clazz()).thenReturn("io.gravitee.apim.infra.domain_service.documentation.DummyFetcher");
+        when(pluginManager.get("dummy-fetcher")).thenReturn(fetcherPlugin);
+        when(fetcherConfigurationFactory.create(any(), any())).thenReturn(oldConfiguration).thenReturn(newConfiguration);
+    }
+
+    private static Page pageWithSource(String configuration) {
+        return Page.builder().source(PageSource.builder().type("dummy-fetcher").configuration(configuration).build()).build();
     }
 
     private static PageSource dummySource() {
