@@ -169,23 +169,18 @@ function PageEditor({
     const actions =
         readOnly && !canEditDetails ? null : (
             <div className="flex shrink-0 gap-2">
-                {/* Shown even with nothing to save, as in the policy studios, so the page reads as editable. */}
-                {readOnly ? null : (
-                    <>
-                        <Button variant="outline" onClick={() => setDraft(saved.content)} disabled={!isDirty || isSaving}>
-                            Discard
-                        </Button>
-                        <Button onClick={() => void handleSave()} disabled={!isDirty || isSaving}>
-                            {isSaving ? 'Saving…' : 'Save changes'}
-                        </Button>
-                    </>
-                )}
                 {canEditDetails ? (
                     <Button variant="outline" onClick={() => setIsEditingDetails(true)}>
                         <PencilIcon className="size-4" aria-hidden />
                         Edit details
                     </Button>
                 ) : null}
+                {/* Shown even with nothing to save, as in the policy studios, so the page reads as editable. */}
+                {readOnly ? null : (
+                    <Button onClick={() => void handleSave()} disabled={!isDirty || isSaving}>
+                        {isSaving ? 'Saving…' : 'Save changes'}
+                    </Button>
+                )}
             </div>
         );
 
