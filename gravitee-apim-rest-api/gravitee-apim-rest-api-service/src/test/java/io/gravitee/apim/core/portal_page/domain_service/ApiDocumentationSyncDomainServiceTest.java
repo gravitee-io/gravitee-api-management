@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
@@ -198,7 +199,8 @@ class ApiDocumentationSyncDomainServiceTest {
                 navItemQuery,
                 PortalPageContentQueryServiceInMemory.sharing(pageContentQuery.storage()),
                 new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory()
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory()
             )
         );
         var folderId = PortalNavigationItemId.forApiFolder(AUDIT_INFO, API_ID, "/guides");

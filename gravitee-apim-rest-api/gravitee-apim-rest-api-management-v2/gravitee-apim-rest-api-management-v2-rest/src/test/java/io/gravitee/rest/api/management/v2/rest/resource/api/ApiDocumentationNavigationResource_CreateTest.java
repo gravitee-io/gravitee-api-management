@@ -30,6 +30,7 @@ import static org.mockito.Mockito.when;
 import fixtures.PortalNavigationItemsFixtures;
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -84,6 +85,8 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+
         when(createPortalNavigationItemUseCase.execute(any())).thenReturn(
             new CreatePortalNavigationItemUseCase.Output(PortalNavigationItemsFixtures.aPortalNavigationPage(ORGANIZATION, ENVIRONMENT))
         );
@@ -92,6 +95,7 @@ class ApiDocumentationNavigationResource_CreateTest extends AbstractResourceTest
     @AfterEach
     public void cleanUp() {
         GraviteeContext.cleanContext();
+        apiCrudService.reset();
         portalNavigationItemsQueryService.reset();
         Mockito.reset(createPortalNavigationItemUseCase);
     }

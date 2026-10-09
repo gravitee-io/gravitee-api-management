@@ -27,6 +27,7 @@ import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.domain_service.PortalNavigationItemSourceDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -86,6 +87,8 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
+
         sourceDomainService().givenRemoteFile("/docs/guide.md", "# Guide");
         sourceDomainService().givenRemoteFile("/docs/advanced/tuning.md", "# Tuning");
     }
@@ -93,6 +96,7 @@ class ApiDocumentationNavigationResource_ImportTest extends AbstractResourceTest
     @AfterEach
     public void cleanUp() {
         GraviteeContext.cleanContext();
+        apiCrudService.reset();
         portalNavigationItemCrudService.reset();
         portalPageContentCrudService.reset();
         sourceDomainService().resetFileListing();

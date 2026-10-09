@@ -98,7 +98,8 @@ class CreatePortalNavigationItemUseCaseTest {
             queryService,
             pageContentQueryService,
             apiProductQueryService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            apiCrudService
         );
         domainService = new PortalNavigationItemDomainService(
             crudService,
@@ -128,7 +129,12 @@ class CreatePortalNavigationItemUseCaseTest {
             new PortalNavigationItemSourceDomainServiceInMemory()
         );
         queryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
-        apiCrudService.initWith(List.of(Api.builder().id("apiId").name("apiIdName").build()));
+        apiCrudService.initWith(
+            List.of(
+                Api.builder().id("apiId").name("apiIdName").environmentId(ENV_ID).build(),
+                Api.builder().id("api-1").name("Alpha").environmentId(ENV_ID).build()
+            )
+        );
     }
 
     @Test

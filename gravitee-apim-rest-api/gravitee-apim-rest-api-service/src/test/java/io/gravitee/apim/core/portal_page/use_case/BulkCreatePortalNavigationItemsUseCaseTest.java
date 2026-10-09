@@ -87,14 +87,15 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         final var pageContentQueryService = new PortalPageContentQueryServiceInMemory();
         apiProductQueryService = new ApiProductQueryServiceInMemory();
+        apiCrudService = new ApiCrudServiceInMemory();
         validatorService = new PortalNavigationItemValidatorService(
             queryService,
             pageContentQueryService,
             apiProductQueryService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            apiCrudService
         );
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
-        apiCrudService = new ApiCrudServiceInMemory();
 
         final var domainService = new PortalNavigationItemDomainService(
             crudService,
@@ -209,6 +210,7 @@ class BulkCreatePortalNavigationItemsUseCaseTest {
 
     @Test
     void should_distinguish_standalone_and_product_listing_of_same_api_in_one_batch() {
+        apiCrudService.initWith(List.of(Api.builder().id("api-1").name("API 1").environmentId(ENV_ID).build()));
         var standaloneApi = queryService.findByIdAndEnvironmentId(ENV_ID, PortalNavigationItemId.of(API1_ID));
         var product = PortalNavigationItemFixtures.anApiProduct(PortalNavigationItemId.random().toString(), "Product", null, "product-id");
         product.markAsRoot();

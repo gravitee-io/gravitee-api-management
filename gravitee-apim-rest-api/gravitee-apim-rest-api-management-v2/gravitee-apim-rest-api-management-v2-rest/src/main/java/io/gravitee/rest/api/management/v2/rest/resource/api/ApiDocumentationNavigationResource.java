@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemId;
@@ -77,12 +79,16 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @Inject
     private ApiOwnedNavigationDomainService apiOwnedNavigationDomainService;
 
+    @Inject
+    private ApiCrudService apiCrudService;
+
     private final PortalNavigationItemsMapper mapper = PortalNavigationItemsMapper.INSTANCE;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
     public ApiPortalNavigationItemsResponse getApiPortalNavigationItems(@PathParam("apiId") String apiId) {
+        requireApi(apiId);
         var output = listApiDocumentationUseCase.execute(
             new ListApiDocumentationUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId)
         );
@@ -93,7 +99,8 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.READ }) })
-    public ApiPortalPublishLocationsResponse getApiPortalPublishLocations() {
+    public ApiPortalPublishLocationsResponse getApiPortalPublishLocations(@PathParam("apiId") String apiId) {
+        requireApi(apiId);
         var output = listApiPublishLocationsUseCase.execute(
             new ListApiPublishLocationsUseCase.Input(GraviteeContext.getCurrentEnvironment())
         );
@@ -108,6 +115,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @Valid @NotNull final BaseCreatePortalNavigationItem createPortalNavigationItem
     ) {
+        requireApi(apiId);
         var executionContext = GraviteeContext.getExecutionContext();
         var itemToCreate = apiOwnedNavigationDomainService.claimForApi(
             executionContext.getEnvironmentId(),
@@ -135,6 +143,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @Valid @NotNull final PublishApiToPortal publishApiToPortal
     ) {
+        requireApi(apiId);
         var executionContext = GraviteeContext.getExecutionContext();
         var output = publishApiToPortalUseCase.execute(
             new PublishApiToPortalUseCase.Input(
@@ -151,6 +160,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
     @POST
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.UPDATE }) })
     public Response unpublishApiFromPortal(@PathParam("apiId") String apiId) {
+        requireApi(apiId);
         unpublishApiFromPortalUseCase.execute(new UnpublishApiFromPortalUseCase.Input(GraviteeContext.getCurrentEnvironment(), apiId));
         return Response.noContent().build();
     }
@@ -164,6 +174,7 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @Valid @NotNull final ImportPortalNavigationRequest importPortalNavigationRequest
     ) {
+        requireApi(apiId);
         var executionContext = GraviteeContext.getExecutionContext();
         var input = mapper.map(executionContext.getOrganizationId(), executionContext.getEnvironmentId(), importPortalNavigationRequest);
         if (input.parentId() != null) {
@@ -175,6 +186,17 @@ public class ApiDocumentationNavigationResource extends AbstractResource {
         );
 
         return Response.ok(mapper.map(output)).build();
+    }
+
+    /**
+     * Called by each operation, after its permission check: at the point where this resource is reached the
+     * check has not run yet, and answering there would tell a caller without rights which APIs exist.
+     */
+    private void requireApi(String apiId) {
+        apiCrudService
+            .findById(apiId)
+            .filter(api -> api.belongsToEnvironment(GraviteeContext.getCurrentEnvironment()))
+            .orElseThrow(() -> new ApiNotFoundException(apiId));
     }
 
     @Path("{navId}")

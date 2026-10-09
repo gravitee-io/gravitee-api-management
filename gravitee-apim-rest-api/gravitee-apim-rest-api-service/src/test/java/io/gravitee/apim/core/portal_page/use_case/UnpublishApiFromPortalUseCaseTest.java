@@ -90,7 +90,8 @@ class UnpublishApiFromPortalUseCaseTest {
             queryService,
             pageContentQueryService,
             new ApiProductQueryServiceInMemory(),
-            sourceDomainService
+            sourceDomainService,
+            apiCrudService
         );
         useCase = new UnpublishApiFromPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);
         publishUseCase = new PublishApiToPortalUseCase(apiOwnedNavigationDomainService, validatorService, domainService);

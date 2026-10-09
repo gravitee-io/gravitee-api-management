@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.mock;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalCrudServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
@@ -448,7 +449,8 @@ class CreateOrUpdatePortalDocumentationUseCaseTest {
                     navQueryService,
                     PortalPageContentQueryServiceInMemory.sharing(crudService.storage()),
                     new ApiProductQueryServiceInMemory(),
-                    new PortalNavigationItemSourceDomainServiceInMemory()
+                    new PortalNavigationItemSourceDomainServiceInMemory(),
+                    new ApiCrudServiceInMemory()
                 )
             ),
             scopeEnforcer

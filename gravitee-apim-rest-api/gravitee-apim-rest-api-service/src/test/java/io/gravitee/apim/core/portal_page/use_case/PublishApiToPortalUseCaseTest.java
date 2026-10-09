@@ -85,7 +85,8 @@ class PublishApiToPortalUseCaseTest {
                 queryService,
                 pageContentQueryService,
                 new ApiProductQueryServiceInMemory(),
-                sourceDomainService
+                sourceDomainService,
+                apiCrudService
             ),
             new PortalNavigationItemDomainService(
                 crudService,

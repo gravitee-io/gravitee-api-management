@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.portal_page.domain_service;
 
 import io.gravitee.apim.core.DomainService;
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api_product.query_service.ApiProductQueryService;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ApiDocumentationAreaRule;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.portal_page.domain_service.validation.LinkUrlRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PageContentExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.ParentRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.PendingSegmentClaim;
+import io.gravitee.apim.core.portal_page.domain_service.validation.ReferencedApiExistsRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SegmentConflictRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceAutomationExclusivityRule;
 import io.gravitee.apim.core.portal_page.domain_service.validation.SourceConfigurationRule;
@@ -76,7 +78,8 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
         PortalNavigationItemsQueryService navigationItemsQueryService,
         PortalPageContentQueryService pageContentQueryService,
         ApiProductQueryService apiProductQueryService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        ApiCrudService apiCrudService
     ) {
         this.navigationItemsQueryService = navigationItemsQueryService;
         this.bulkCreateRules = List.of(new DuplicateApiIdsInPayloadRule(), new DuplicateApiProductIdsInPayloadRule());
@@ -100,6 +103,7 @@ public class PortalNavigationItemValidatorService implements PortalNavigationVal
             new ApiItemCreateRule(apiProductQueryService),
             new ApiProductItemCreateRule(apiProductQueryService),
             new ApiDocumentationAreaRule(),
+            new ReferencedApiExistsRule(apiCrudService),
             linkUrlRule,
             parentRule,
             segmentConflictRule,
