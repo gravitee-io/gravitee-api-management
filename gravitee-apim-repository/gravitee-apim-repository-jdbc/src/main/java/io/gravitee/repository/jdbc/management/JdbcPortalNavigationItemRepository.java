@@ -144,6 +144,22 @@ public class JdbcPortalNavigationItemRepository
     }
 
     @Override
+    public boolean updateConfigurationIfUnchanged(String id, String expectedConfiguration, String configuration) throws TechnicalException {
+        log.debug("JdbcPortalNavigationItemRepository.updateConfigurationIfUnchanged({})", id);
+        try {
+            int rows = jdbcTemplate.update(
+                "update " + this.tableName + " set configuration = ? where id = ? and configuration = ?",
+                configuration,
+                id,
+                expectedConfiguration
+            );
+            return rows == 1;
+        } catch (Exception ex) {
+            throw new TechnicalException("Failed to update the configuration of portal navigation item " + id, ex);
+        }
+    }
+
+    @Override
     public void delete(String id) throws TechnicalException {
         log.debug("JdbcPortalNavigationItemRepository.delete({})", id);
         try {

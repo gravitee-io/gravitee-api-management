@@ -15,6 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_category.model.PortalCategoryId;
@@ -261,6 +264,33 @@ public interface PortalNavigationItemAdapter {
         if (source.isSubtreeImport()) {
             sourceNode.put(SUBTREE_IMPORT, true);
         }
+    }
+
+    /**
+     * Rewrites the fetch state inside a stored configuration and leaves the rest of it as is: the source
+     * keys, and the stored {@code lastFetchedAt} when the state carries none.
+     */
+    default String configurationWithFetchState(String configuration, PortalNavigationItemSource.FetchState fetchState) {
+        final JsonNode config;
+        try {
+            config = OBJECT_MAPPER.readTree(configuration);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid configuration for PortalNavigationItem", e);
+        }
+        if (!(config.get(SOURCE) instanceof ObjectNode sourceNode)) {
+            throw new IllegalArgumentException("PortalNavigationItem configuration carries no source to stamp a fetch state on");
+        }
+        if (fetchState.lastFetchedAt() != null) {
+            sourceNode.put(LAST_FETCHED_AT, fetchState.lastFetchedAt().toString());
+        }
+        sourceNode.put(LAST_FETCH_ATTEMPT_AT, fetchState.lastFetchAttemptAt().toString());
+        // Mirrors writeSource: an absent value is an absent key, never an explicit null
+        if (fetchState.lastFetchError() == null) {
+            sourceNode.remove(LAST_FETCH_ERROR);
+        } else {
+            sourceNode.put(LAST_FETCH_ERROR, fetchState.lastFetchError());
+        }
+        return config.toString();
     }
 
     @Named("parsePortalPageContentId")

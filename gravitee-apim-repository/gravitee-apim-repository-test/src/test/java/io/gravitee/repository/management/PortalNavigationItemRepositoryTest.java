@@ -204,6 +204,61 @@ public class PortalNavigationItemRepositoryTest extends AbstractManagementReposi
     }
 
     @Test
+    public void should_replace_configuration_when_it_still_matches_the_expected_one() throws Exception {
+        PortalNavigationItem item = PortalNavigationItemFixtures.aSourcedPage(
+            "cas-sourced-nav-item",
+            "00f8c9e7-78fc-4907-b8c9-e778fc790750"
+        ).build();
+        portalNavigationItemRepository.create(item);
+        var updatedConfiguration = item.getConfiguration().replace("2024-07-17T12:00:00Z", "2026-10-08T10:00:00Z");
+
+        var replaced = portalNavigationItemRepository.updateConfigurationIfUnchanged(
+            item.getId(),
+            item.getConfiguration(),
+            updatedConfiguration
+        );
+
+        assertThat(replaced).isTrue();
+        var found = portalNavigationItemRepository.findById(item.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get().getConfiguration()).isEqualTo(updatedConfiguration);
+        assertThat(found.get().getTitle()).isEqualTo(item.getTitle());
+        assertThat(found.get().isUseAutoFetch()).isTrue();
+
+        portalNavigationItemRepository.delete(item.getId());
+    }
+
+    @Test
+    public void should_leave_configuration_untouched_when_it_no_longer_matches_the_expected_one() throws Exception {
+        PortalNavigationItem item = PortalNavigationItemFixtures.aSourcedPage(
+            "cas-stale-nav-item",
+            "00f8c9e7-78fc-4907-b8c9-e778fc790750"
+        ).build();
+        portalNavigationItemRepository.create(item);
+
+        var replaced = portalNavigationItemRepository.updateConfigurationIfUnchanged(
+            item.getId(),
+            item.getConfiguration().replace("docs", "other-repository"),
+            item.getConfiguration().replace("2024-07-17T12:00:00Z", "2026-10-08T10:00:00Z")
+        );
+
+        assertThat(replaced).isFalse();
+        var found = portalNavigationItemRepository.findById(item.getId());
+        assertThat(found).isPresent();
+        assertThat(found.get().getConfiguration()).isEqualTo(item.getConfiguration());
+
+        portalNavigationItemRepository.delete(item.getId());
+    }
+
+    @Test
+    public void should_not_replace_configuration_of_a_missing_navigation_item() throws Exception {
+        var replaced = portalNavigationItemRepository.updateConfigurationIfUnchanged("unknown-nav-item", "{}", "{\"a\":1}");
+
+        assertThat(replaced).isFalse();
+        assertThat(portalNavigationItemRepository.findById("unknown-nav-item")).isEmpty();
+    }
+
+    @Test
     public void should_read_navigation_item_without_source() throws Exception {
         var found = portalNavigationItemRepository.findById("2d7b9f6c-1a2b-4c3d-8e9f-0a1b2c3d4e5f");
 
