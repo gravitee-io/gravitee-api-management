@@ -510,6 +510,10 @@ const GATEWAY_INTEGRATION = { id: 'integration-gateway', name: 'Payments gateway
 
 const A2A_INTEGRATION = { id: 'integration-a2a', name: 'Support agents', provider: 'A2A', agentStatus: 'CONNECTED' };
 
+function emptyFederatedApisResponse() {
+    return jsonResponse({ data: [], pagination: { page: 1, perPage: 10, pageCount: 0, pageItemsCount: 0, totalCount: 0 } });
+}
+
 function spyOnIntegrationOverviewFetch(
     integration: { id: string },
     permissionsResponse: () => Promise<Response>,
@@ -521,6 +525,7 @@ function spyOnIntegrationOverviewFetch(
         if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
         if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
         if (url.endsWith(`/integrations/${integration.id}/permissions`)) return permissionsResponse();
+        if (url.includes(`/integrations/${integration.id}/apis?`)) return emptyFederatedApisResponse();
         if (url.endsWith(`/integrations/${integration.id}`)) return detailResponse();
         return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
     });
@@ -543,6 +548,7 @@ function spyOnIntegrationCreateAndListFetch(created: { id: string }) {
                 : okIntegrationsResponse();
         }
         if (url.endsWith(`/integrations/${created.id}/permissions`)) return jsonResponse({ DEFINITION: 'R' });
+        if (url.includes(`/integrations/${created.id}/apis?`)) return emptyFederatedApisResponse();
         if (url.endsWith(`/integrations/${created.id}`)) return jsonResponse(created);
         return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
     });
@@ -1379,10 +1385,15 @@ describe('AppRoutes', () => {
             renderIntegrationOverviewUrl(integration.id);
 
             const section = await screen.findByTestId('integration-agent-connection');
-            expect(within(section).getByRole('heading', { name: 'Agent connection' })).not.toBeNull();
+            expect(within(section).getByRole('heading', { name: 'Agent Connection' })).not.toBeNull();
             expect(within(section).getByText(shownLabel)).not.toBeNull();
             expect(within(section).queryByText(hiddenLabel)).toBeNull();
-            expect(within(section).queryByText(/Check your agent status/) !== null).toBe(showsGuidance);
+            expect(screen.queryByTestId('integration-agent-disconnected-banner') !== null).toBe(showsGuidance);
+            if (showsGuidance) {
+                expect(screen.getByText(/Check your agent status/)).not.toBeNull();
+            } else {
+                expect(screen.queryByText(/Check your agent status/)).toBeNull();
+            }
             fetchSpy.mockRestore();
         },
     );

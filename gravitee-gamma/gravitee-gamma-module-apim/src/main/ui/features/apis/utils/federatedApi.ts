@@ -28,9 +28,11 @@ export interface SourceIntegration {
     integrationName: string | undefined;
 }
 
+/** Source integration for a federated / federated-agent API with INTEGRATION origin. */
 export function getSourceIntegration(api: ApiDetailDto | null | undefined): SourceIntegration | null {
     const origin = api?.originContext;
-    if (!isFederatedApi(api) || origin?.origin !== 'INTEGRATION' || !origin.integrationId) {
+    const isFederatedFamily = isFederatedApi(api) || isFederatedAgentApi(api);
+    if (!isFederatedFamily || origin?.origin !== 'INTEGRATION' || !origin.integrationId) {
         return null;
     }
     return { integrationId: origin.integrationId, integrationName: origin.integrationName };

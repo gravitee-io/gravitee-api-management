@@ -33,6 +33,14 @@ describe('getSourceIntegration', () => {
             { definitionVersion: 'FEDERATED', originContext: { origin: 'INTEGRATION', integrationId: 'int-1' } },
             { integrationId: 'int-1', integrationName: undefined },
         ],
+        [
+            'the integration of a federated agent API sourced from an integration',
+            {
+                definitionVersion: 'FEDERATED_AGENT',
+                originContext: { origin: 'INTEGRATION', integrationId: 'int-1', integrationName: 'My env' },
+            },
+            { integrationId: 'int-1', integrationName: 'My env' },
+        ],
     ])('returns %s', (_label, overrides, expected) => {
         expect(getSourceIntegration(integrationApi(overrides))).toEqual(expected);
     });
@@ -50,13 +58,6 @@ describe('getSourceIntegration', () => {
         [
             'a non-federated API that carries an integration origin',
             { definitionVersion: 'V4', originContext: { origin: 'INTEGRATION', integrationId: 'int-1' } },
-        ],
-        [
-            'a federated agent API sourced from an integration',
-            {
-                definitionVersion: 'FEDERATED_AGENT',
-                originContext: { origin: 'INTEGRATION', integrationId: 'int-1', integrationName: 'My env' },
-            },
         ],
     ])('returns null for %s', (_label, overrides) => {
         expect(getSourceIntegration(integrationApi(overrides))).toBeNull();

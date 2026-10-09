@@ -31,6 +31,7 @@ import {
     Trash2Icon,
     UserIcon,
 } from '@gravitee/graphene-core/icons';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
@@ -51,12 +52,14 @@ import { useApiReviewEnabled } from '../../../hooks/useApiReviewEnabled';
 import { useAskForReviewDialog } from '../../../hooks/useAskForReviewDialog';
 import { useEnvCategories } from '../../../hooks/useEnvCategories';
 import { exportApiCrd, exportApiDefinition } from '../../../services/apis';
+import { getIntegration } from '../../../services/integrations';
 import type { ApiDetailDto } from '../../../types';
 import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntryMode } from '../../../utils/apiGeneralDuplicate';
 import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 import { canAskForReview, isReviewClearedForLifecycle } from '../../../utils/apiReview';
 import { getSourceIntegration, isFederatedApi } from '../../../utils/federatedApi';
 import { buildIntegrationOverviewPath } from '../../../utils/integrationOverviewPath';
+import { integrationKeys } from '../../../utils/queryKeys';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -116,6 +119,15 @@ export function ApiGeneralPage() {
     const isKubernetesManaged = api?.definitionContext?.origin === 'KUBERNETES';
     const isFederated = isFederatedApi(api);
     const sourceIntegration = getSourceIntegration(api);
+
+    const { data: sourceIntegrationDetail } = useQuery({
+        queryKey: integrationKeys.detail(env?.id ?? '', sourceIntegration?.integrationId ?? ''),
+        queryFn: () => getIntegration(env!.id, sourceIntegration!.integrationId),
+        enabled: Boolean(env?.id && sourceIntegration?.integrationId),
+        staleTime: 5 * 60_000,
+    });
+    const sourceIntegrationDisplayName =
+        sourceIntegrationDetail?.name || sourceIntegration?.integrationName || sourceIntegration?.integrationId || '';
 
     // Form is read-only until permissions are resolved, if user lacks update rights,
     // or if the API is managed by the Kubernetes operator.
@@ -546,21 +558,14 @@ export function ApiGeneralPage() {
                                     />
                                     {sourceIntegration && (
                                         <div className="flex items-center justify-between gap-2">
-                                            <dt className="text-muted-foreground shrink-0 text-xs">Source</dt>
+                                            <dt className="text-muted-foreground shrink-0 text-xs">From integration</dt>
                                             <dd className="text-right text-xs font-medium truncate">
-                                                {sourceIntegration.integrationName ? (
-                                                    <Link
-                                                        to={buildIntegrationOverviewPath(
-                                                            location.pathname,
-                                                            sourceIntegration.integrationId,
-                                                        )}
-                                                        className="underline"
-                                                    >
-                                                        {sourceIntegration.integrationName}
-                                                    </Link>
-                                                ) : (
-                                                    '—'
-                                                )}
+                                                <Link
+                                                    to={buildIntegrationOverviewPath(location.pathname, sourceIntegration.integrationId)}
+                                                    className="underline"
+                                                >
+                                                    {sourceIntegrationDisplayName || '—'}
+                                                </Link>
                                             </dd>
                                         </div>
                                     )}

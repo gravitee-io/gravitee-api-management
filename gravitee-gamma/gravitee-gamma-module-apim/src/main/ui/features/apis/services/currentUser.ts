@@ -13,18 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { apimFetchJsonOrg } from '../../../shared/api/apimClient';
 
-import { getGroups } from '../services/members';
-import { groupKeys } from '../utils/queryKeys';
+export interface CurrentUser {
+    id: string;
+}
 
-export function useGroups(enabled = true) {
-    const env = useEnvironment();
-    return useQuery({
-        queryKey: groupKeys.list(env?.id ?? ''),
-        queryFn: () => getGroups(env!.id),
-        enabled: enabled && Boolean(env),
-        staleTime: 5 * 60_000,
-    });
+export async function getCurrentUser(): Promise<CurrentUser> {
+    return apimFetchJsonOrg<CurrentUser>('/user');
 }

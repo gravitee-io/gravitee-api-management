@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useEnvironment } from '@gravitee/gamma-modules-sdk';
+
 import { useQuery } from '@tanstack/react-query';
 
-import { getGroups } from '../services/members';
-import { groupKeys } from '../utils/queryKeys';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-export function useGroups(enabled = true) {
+import { previewIntegration } from '../services/integrationDetail';
+import { integrationKeys } from '../utils/queryKeys';
+
+export function useIntegrationPreview(integrationId: string, enabled = true) {
     const env = useEnvironment();
+
     return useQuery({
-        queryKey: groupKeys.list(env?.id ?? ''),
-        queryFn: () => getGroups(env!.id),
-        enabled: enabled && Boolean(env),
-        staleTime: 5 * 60_000,
+        queryKey: integrationKeys.preview(env?.id ?? '', integrationId),
+        queryFn: () => previewIntegration(env!.id, integrationId),
+        enabled: Boolean(env && integrationId && enabled),
     });
 }
