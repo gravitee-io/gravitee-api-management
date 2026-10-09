@@ -1486,13 +1486,15 @@ public class ResourceContextConfiguration {
         PortalNavigationItemsQueryService portalNavigationItemsQueryService,
         PortalPageContentQueryService portalPageContentQueryService,
         io.gravitee.apim.core.api_product.query_service.ApiProductQueryService apiProductQueryService,
-        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService
+        PortalNavigationItemSourceDomainService portalNavigationItemSourceDomainService,
+        ApiCrudServiceInMemory apiCrudServiceInMemory
     ) {
         return new PortalNavigationItemValidatorService(
             portalNavigationItemsQueryService,
             portalPageContentQueryService,
             apiProductQueryService,
-            portalNavigationItemSourceDomainService
+            portalNavigationItemSourceDomainService,
+            apiCrudServiceInMemory
         );
     }
 

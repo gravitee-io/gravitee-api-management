@@ -27,10 +27,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import fixtures.core.model.PortalPageContentFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiProductQueryServiceInMemory;
 import inmemory.PortalNavigationItemSourceDomainServiceInMemory;
 import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_product.model.ApiProduct;
 import io.gravitee.apim.core.gravitee_markdown.GraviteeMarkdown;
 import io.gravitee.apim.core.portal.domain_service.navigation.PortalNavigationValidator;
@@ -73,6 +76,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
     private PortalNavigationItemsQueryServiceInMemory navigationItemsQueryService;
     private PortalPageContentQueryServiceInMemory pageContentQueryService;
     private ApiProductQueryServiceInMemory apiProductQueryService;
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private PortalNavigationItemValidatorService validatorService;
 
     @BeforeEach
@@ -86,7 +90,8 @@ class CreatePortalNavigationItemValidatorServiceTest {
             navigationItemsQueryService,
             pageContentQueryService,
             apiProductQueryService,
-            new PortalNavigationItemSourceDomainServiceInMemory()
+            new PortalNavigationItemSourceDomainServiceInMemory(),
+            apiCrudService
         );
         navigationItemsQueryService.initWith(PortalNavigationItemFixtures.sampleNavigationItems());
         pageContentQueryService.initWith(PortalPageContentFixtures.samplePortalPageContents());
@@ -531,6 +536,7 @@ class CreatePortalNavigationItemValidatorServiceTest {
         void setUp() {
             // No homepage yet, so the homepage uniqueness rule does not answer first.
             navigationItemsQueryService.initWith(List.of());
+            apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId(ENV_ID).build()));
         }
 
         @Test
@@ -558,6 +564,24 @@ class CreatePortalNavigationItemValidatorServiceTest {
             );
             assertDoesNotThrow(() ->
                 validatorService.validateOne(anApiOwned(PortalNavigationItemType.LINK, PortalArea.TOP_NAVBAR), ENV_ID)
+            );
+        }
+
+        @Test
+        void should_reject_an_item_owned_by_an_api_that_does_not_exist() {
+            apiCrudService.reset();
+
+            assertThrows(ApiNotFoundException.class, () ->
+                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID)
+            );
+        }
+
+        @Test
+        void should_reject_an_item_owned_by_an_api_of_another_environment() {
+            apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId("another-environment").build()));
+
+            assertThrows(ApiNotFoundException.class, () ->
+                validatorService.validateOne(anApiOwned(PortalNavigationItemType.FOLDER, PortalArea.TOP_NAVBAR), ENV_ID)
             );
         }
 

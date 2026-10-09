@@ -579,7 +579,8 @@ class PortalListingSyncDomainServiceTest {
                 navItemQuery,
                 pageContentQuery,
                 new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory()
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory()
             );
             syncService = newSyncService(realValidator);
         }
@@ -636,7 +637,8 @@ class PortalListingSyncDomainServiceTest {
                 navItemQuery,
                 pageContentQuery,
                 new ApiProductQueryServiceInMemory(),
-                new PortalNavigationItemSourceDomainServiceInMemory()
+                new PortalNavigationItemSourceDomainServiceInMemory(),
+                new ApiCrudServiceInMemory()
             );
             syncService = newSyncService(realValidator);
         }

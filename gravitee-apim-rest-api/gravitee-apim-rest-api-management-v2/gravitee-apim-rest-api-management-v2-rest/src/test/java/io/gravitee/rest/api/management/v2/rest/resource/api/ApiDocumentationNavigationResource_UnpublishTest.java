@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.PortalNavigationItemFixtures;
 import inmemory.PortalNavigationItemsCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal_page.model.NavigationItemReference;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationApi;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationFolder;
@@ -73,11 +74,14 @@ class ApiDocumentationNavigationResource_UnpublishTest extends AbstractResourceT
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).name("My API").environmentId(ENVIRONMENT).build()));
     }
 
     @AfterEach
     public void cleanUp() {
         GraviteeContext.cleanContext();
+        apiCrudService.reset();
         portalNavigationItemCrudService.reset();
     }
 

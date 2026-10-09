@@ -112,7 +112,8 @@ class UpdatePortalNavigationItemUseCaseTest {
             queryService,
             pageContentQueryService,
             apiProductQueryService,
-            sourceDomainService
+            sourceDomainService,
+            apiCrudService
         );
         domainService = new PortalNavigationItemDomainService(
             crudService,

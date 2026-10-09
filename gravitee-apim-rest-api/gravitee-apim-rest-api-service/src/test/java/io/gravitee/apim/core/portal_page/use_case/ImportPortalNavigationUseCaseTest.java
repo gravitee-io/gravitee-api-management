@@ -27,6 +27,7 @@ import inmemory.PortalNavigationItemsQueryServiceInMemory;
 import inmemory.PortalNavigationManifestParserInMemory;
 import inmemory.PortalPageContentCrudServiceInMemory;
 import inmemory.PortalPageContentQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.portal.model.PortalArea;
 import io.gravitee.apim.core.portal.model.PortalVisibility;
 import io.gravitee.apim.core.portal_page.domain_service.ApiOwnedNavigationDomainService;
@@ -68,11 +69,13 @@ class ImportPortalNavigationUseCaseTest {
     private PortalNavigationItemsQueryServiceInMemory queryService;
     private PortalPageContentCrudServiceInMemory pageContentCrudService;
     private PortalNavigationItemSourceDomainServiceInMemory sourceDomainService;
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private PortalNavigationManifestParserInMemory manifestParser;
 
     @BeforeEach
     void setUp() {
         var storage = new ArrayList<PortalNavigationItem>();
+        apiCrudService.initWith(List.of(Api.builder().id("api-id").name("My API").environmentId(ENV_ID).build()));
         crudService = new PortalNavigationItemsCrudServiceInMemory(storage);
         queryService = new PortalNavigationItemsQueryServiceInMemory(storage);
         pageContentCrudService = new PortalPageContentCrudServiceInMemory();
@@ -93,7 +96,8 @@ class ImportPortalNavigationUseCaseTest {
             queryService,
             pageContentQueryService,
             new ApiProductQueryServiceInMemory(),
-            sourceDomainService
+            sourceDomainService,
+            apiCrudService
         );
         var bulkImportDomainService = new PortalNavigationBulkImportDomainService(
             sourceDomainService,
