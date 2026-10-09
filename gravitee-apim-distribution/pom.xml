@@ -295,7 +295,7 @@
     <gravitee-policy-authz-pdp-authzen.version>4.0.0</gravitee-policy-authz-pdp-authzen.version>
 
         <!-- Agent Provider plugins -->
-        <gravitee-agent-provider-azure-foundry.version>1.0.0-alpha.1</gravitee-agent-provider-azure-foundry.version>
+        <gravitee-agent-provider-azure-foundry.version>1.0.0-async-support-SNAPSHOT</gravitee-agent-provider-azure-foundry.version>
     </properties>
 
     <dependencyManagement>
