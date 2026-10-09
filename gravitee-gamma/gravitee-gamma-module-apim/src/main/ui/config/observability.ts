@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { defineObservabilityFeatures } from '@gravitee/gamma-lib-observability';
+import { defineObservabilityFeatures, type DashboardCapabilities } from '@gravitee/gamma-lib-observability';
 
 import { observabilityTemplates } from './templates';
 
+export const PERMISSIVE_CAPABILITIES: DashboardCapabilities = {
+    'observability.dashboards.read': true,
+    'observability.dashboards.write': true,
+    'observability.logs.read': true,
+    'observability.traces.read': true,
+};
+
 export const observability = defineObservabilityFeatures({
+    // The plugin id (plugin.properties): scopes custom dashboards and tracing filters to APIM.
+    module: 'apim',
     scopeApiTypes: ['HTTP_PROXY'],
     features: {
         dashboards: { enabled: true, templates: observabilityTemplates },
