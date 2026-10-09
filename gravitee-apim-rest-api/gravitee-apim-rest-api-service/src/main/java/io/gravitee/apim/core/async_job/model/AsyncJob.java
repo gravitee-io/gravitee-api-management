@@ -18,6 +18,7 @@ package io.gravitee.apim.core.async_job.model;
 import io.gravitee.common.utils.TimeProvider;
 import jakarta.annotation.Nullable;
 import java.time.ZonedDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -64,6 +65,17 @@ public class AsyncJob {
      * For example, if the job is about ingesting Federated APIs from an external source, this limit will be the number of APIs to ingest.
      */
     Long upperLimit;
+
+    /** How many items have been processed so far, from 0 up to {@link #upperLimit}. */
+    Long processed;
+
+    /** Job-specific state as a JSON document; its shape is owned by whoever creates the job. */
+    @Nullable
+    String details;
+
+    /** Per-item failures; the failure of the job itself goes to {@link #errorMessage}. */
+    @Builder.Default
+    List<AsyncJobError> errors = List.of();
 
     public enum Status {
         PENDING,
