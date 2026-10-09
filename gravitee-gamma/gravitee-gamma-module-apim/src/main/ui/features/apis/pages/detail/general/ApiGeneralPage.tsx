@@ -59,6 +59,7 @@ import { extractContextPathPlaceholder, extractHostPlaceholder, getDuplicateEntr
 import { buildExcludeAdditionalData, buildExportFileName, type ExportIncludeKey } from '../../../utils/apiGeneralExport';
 import { canAskForReview, isReviewClearedForLifecycle } from '../../../utils/apiReview';
 import { getSourceIntegration, isFederatedApi } from '../../../utils/federatedApi';
+import { readableImportError } from '../../../utils/importFileValidation';
 import { buildIntegrationOverviewPath } from '../../../utils/integrationOverviewPath';
 import { integrationKeys } from '../../../utils/queryKeys';
 
@@ -405,11 +406,7 @@ export function ApiGeneralPage() {
             : 'Failed to duplicate API.'
         : null;
 
-    const importError = importMutation.isError
-        ? importMutation.error instanceof Error
-            ? importMutation.error.message
-            : 'Failed to import API definition.'
-        : null;
+    const importError = importMutation.isError ? (readableImportError(importMutation.error) ?? 'Failed to import API definition.') : null;
 
     // ── Loading ───────────────────────────────────────────────────────────────
 

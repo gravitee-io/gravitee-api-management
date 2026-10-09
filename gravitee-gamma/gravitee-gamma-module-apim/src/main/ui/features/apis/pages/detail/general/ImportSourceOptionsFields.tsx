@@ -70,6 +70,11 @@ export function ImportSourceOptionsFields({
             {(format === 'openapi' || format === 'wsdl') && (
                 <div className="space-y-3">
                     <p className="text-sm font-medium">Options</p>
+                    {state.policiesError && (
+                        <p className="text-xs text-destructive">
+                            Could not check which policies are installed — some options may be unavailable.
+                        </p>
+                    )}
                     {format === 'wsdl' && state.hasRestToSoapPolicy && (
                         <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/40 px-4 py-3">
                             <div>

@@ -60,11 +60,10 @@ function buildDashboard(overrides: Partial<dashboardHook.HealthCheckDashboardDat
         canRead: true,
         availability: { value: 92.68, isLoading: false, isError: false },
         responseTime: { value: 87, isLoading: false, isError: false },
-        trend: { points: [], isLoading: false, isError: false },
+        trend: { points: [{ timestamp: 1_700_000_000_000, responseTime: 42 }], isLoading: false, isError: false },
         endpoint: { rows: [{ key: 'ep-1', name: 'ep-1', availabilityPct: 99, avgResponseTimeMs: 42 }], isLoading: false, isError: false },
         gateway: { rows: [], isLoading: false, isError: false },
         anyError: false,
-        refresh: jest.fn(),
         ...overrides,
     };
 }
@@ -105,7 +104,10 @@ describe('ApiHealthCheckDashboardPage', () => {
         renderPage({ ...PROXY_API, listeners: [{ type: 'TCP' } as never] });
 
         expect(screen.getByText('Health checks are available for proxy APIs only')).toBeInTheDocument();
-        expect(useHealthCheckDashboardSpy).toHaveBeenCalledWith(undefined, '1d');
+        expect(useHealthCheckDashboardSpy).toHaveBeenCalledWith(
+            undefined,
+            expect.objectContaining({ from: expect.any(Number), to: expect.any(Number) }),
+        );
     });
 
     it('shows a "proxy APIs only" state for non-proxy APIs and fires no queries', () => {
@@ -113,7 +115,10 @@ describe('ApiHealthCheckDashboardPage', () => {
 
         expect(screen.getByText('Health checks are available for proxy APIs only')).toBeInTheDocument();
         // Not applicable → hook called with undefined apiId so queries stay disabled.
-        expect(useHealthCheckDashboardSpy).toHaveBeenCalledWith(undefined, '1d');
+        expect(useHealthCheckDashboardSpy).toHaveBeenCalledWith(
+            undefined,
+            expect.objectContaining({ from: expect.any(Number), to: expect.any(Number) }),
+        );
     });
 
     it('shows a permission state when the user cannot read health checks', () => {
@@ -124,14 +129,17 @@ describe('ApiHealthCheckDashboardPage', () => {
         expect(screen.getByText("You don't have permission to view health checks")).toBeInTheDocument();
     });
 
-    it('invalidates dashboard data when Refresh is clicked', async () => {
-        const refresh = jest.fn();
-        useHealthCheckDashboardSpy.mockReturnValue(buildDashboard({ refresh }));
-
+    it('recomputes the shared window when Refresh is clicked', async () => {
+        jest.spyOn(Date, 'now').mockReturnValue(1_000_000);
         renderPage(PROXY_API);
+        const first = useHealthCheckDashboardSpy.mock.calls.at(-1)?.[1] as { to: number };
+
+        jest.spyOn(Date, 'now').mockReturnValue(1_060_000);
         await userEvent.click(screen.getByRole('button', { name: /refresh data/i }));
 
-        expect(refresh).toHaveBeenCalledTimes(1);
+        const latest = useHealthCheckDashboardSpy.mock.calls.at(-1)?.[1] as { to: number };
+        expect(latest.to).toBe(first.to + 60_000);
+        jest.spyOn(Date, 'now').mockRestore();
     });
 
     it('degrades silently on load failure: keeps widgets, no banner, no error toast (classic parity)', () => {

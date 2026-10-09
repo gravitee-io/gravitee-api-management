@@ -19,6 +19,9 @@ import userEvent from '@testing-library/user-event';
 import { FailedHealthChecksTable } from './FailedHealthChecksTable';
 import * as logsHook from './useFailedHealthCheckLogs';
 import type { HealthCheckLog } from '../../../../types/healthCheck';
+import type { HealthTimeRange } from '../../../../utils/healthTimeframe';
+
+const RANGE: HealthTimeRange = { from: 1, to: 2, interval: 1 };
 
 const useFailedHealthCheckLogsSpy = jest.spyOn(logsHook, 'useFailedHealthCheckLogs');
 
@@ -62,27 +65,38 @@ describe('FailedHealthChecksTable', () => {
     afterEach(() => jest.clearAllMocks());
 
     it('renders failed log rows', () => {
-        render(<FailedHealthChecksTable apiId="api-1" timeframe="1d" />);
+        render(<FailedHealthChecksTable apiId="api-1" range={RANGE} />);
 
         expect(screen.getByText('endpoint-1')).toBeInTheDocument();
         expect(screen.getByText('gateway-a')).toBeInTheDocument();
+        expect(screen.getByText('250 ms')).toBeInTheDocument();
     });
 
     it('shows an empty state when there are no failures', () => {
         useFailedHealthCheckLogsSpy.mockReturnValue(buildData({ logs: [], totalCount: 0 }));
 
-        render(<FailedHealthChecksTable apiId="api-1" timeframe="1d" />);
+        render(<FailedHealthChecksTable apiId="api-1" range={RANGE} />);
 
-        expect(screen.getByText(/no failed health checks/i)).toBeInTheDocument();
+        expect(screen.getByText('No data to display')).toBeInTheDocument();
     });
 
     it('opens the log detail sheet with request/response steps on row click', async () => {
-        render(<FailedHealthChecksTable apiId="api-1" timeframe="1d" />);
+        render(<FailedHealthChecksTable apiId="api-1" range={RANGE} />);
 
-        await userEvent.click(screen.getByRole('button', { name: /view health check detail for endpoint-1/i }));
+        await userEvent.click(screen.getByRole('button', { name: 'View failure details' }));
 
         expect(screen.getByText('Health check detail')).toBeInTheDocument();
         expect(screen.getByText(/GET https:\/\/api\/health/)).toBeInTheDocument();
         expect(screen.getByText(/Status: 503/)).toBeInTheDocument();
+    });
+
+    it('keeps the view action unavailable when the probe has no steps', () => {
+        useFailedHealthCheckLogsSpy.mockReturnValue(buildData({ logs: [{ ...LOG, steps: undefined }], totalCount: 1 }));
+
+        render(<FailedHealthChecksTable apiId="api-1" range={RANGE} />);
+
+        const action = screen.getByRole('button', { name: 'No details available for this probe' });
+        expect(action).toBeDisabled();
+        expect(action).toHaveClass('opacity-40');
     });
 });

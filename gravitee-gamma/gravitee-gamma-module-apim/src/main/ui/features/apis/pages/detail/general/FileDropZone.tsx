@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { FileUpIcon } from '@gravitee/graphene-core/icons';
-import { useRef } from 'react';
-import type { DragEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { DragEvent as ReactDragEvent } from 'react';
 
 /** OS file drops inside a sheet are delivered to a file input, not to a div. */
 export function FileDropZone({
@@ -30,8 +30,22 @@ export function FileDropZone({
     onFile: (file: File) => void | Promise<void>;
 }>) {
     const inputRef = useRef<HTMLInputElement>(null);
+    const [dragOver, setDragOver] = useState(false);
 
-    const allowDrop = (event: DragEvent<HTMLDivElement>) => {
+    useEffect(() => {
+        // While this zone is mounted, cancel drops anywhere in the window so the browser does not open the file.
+        const preventNavigation = (event: DragEvent) => {
+            event.preventDefault();
+        };
+        window.addEventListener('dragover', preventNavigation);
+        window.addEventListener('drop', preventNavigation);
+        return () => {
+            window.removeEventListener('dragover', preventNavigation);
+            window.removeEventListener('drop', preventNavigation);
+        };
+    }, []);
+
+    const allowDrop = (event: ReactDragEvent<HTMLDivElement>) => {
         event.preventDefault();
         event.stopPropagation();
         event.dataTransfer.dropEffect = 'copy';
@@ -43,14 +57,19 @@ export function FileDropZone({
             tabIndex={0}
             onClick={() => inputRef.current?.click()}
             onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && inputRef.current?.click()}
-            onDragEnter={allowDrop}
+            onDragEnter={event => {
+                allowDrop(event);
+                setDragOver(true);
+            }}
             onDragOver={allowDrop}
+            onDragLeave={() => setDragOver(false)}
             onDrop={event => {
                 allowDrop(event);
+                setDragOver(false);
                 const file = event.dataTransfer.files?.[0];
                 if (file) void onFile(file);
             }}
-            className="relative flex items-center justify-center rounded-lg border-dashed bg-muted/40 p-6 cursor-pointer hover:border-primary/40 transition-colors"
+            className={`relative flex items-center justify-center rounded-lg border-dashed bg-muted/40 p-6 cursor-pointer hover:border-primary/40 transition-colors ${dragOver ? 'border-primary' : ''}`}
             style={{ borderWidth: '2px' }}
         >
             <div className="text-center space-y-1 pointer-events-none">
