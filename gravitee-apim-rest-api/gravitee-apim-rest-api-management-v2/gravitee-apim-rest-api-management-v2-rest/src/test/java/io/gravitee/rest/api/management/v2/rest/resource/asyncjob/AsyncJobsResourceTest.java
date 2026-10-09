@@ -132,6 +132,35 @@ class AsyncJobsResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    void should_filter_pending_aim_discovery_jobs_of_a_source() {
+        var discovery = aJobOfCurrentUser("discovery")
+            .toBuilder()
+            .sourceId("agent-source")
+            .type(io.gravitee.apim.core.async_job.model.AsyncJob.Type.AIM_AGENT_DISCOVERY)
+            .build();
+        asyncJobCrudServiceInMemory.initWith(
+            List.of(
+                discovery,
+                discovery.toBuilder().id("finished-discovery").build().complete(),
+                discovery.toBuilder().id("import").type(io.gravitee.apim.core.async_job.model.AsyncJob.Type.AIM_AGENT_IMPORT).build(),
+                discovery.toBuilder().id("other-source").sourceId("another-agent-source").build()
+            )
+        );
+
+        var response = rootTarget()
+            .queryParam("sourceId", "agent-source")
+            .queryParam("type", "AIM_AGENT_DISCOVERY")
+            .queryParam("status", "PENDING")
+            .request()
+            .get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(AsyncJobsResponse.class).getData())
+            .extracting(AsyncJob::getId, AsyncJob::getType)
+            .containsExactly(tuple("discovery", AsyncJob.TypeEnum.AIM_AGENT_DISCOVERY));
+    }
+
+    @Test
     void should_not_return_jobs_started_by_another_user() {
         asyncJobCrudServiceInMemory.initWith(
             List.of(aJobOfCurrentUser("job-1"), aJobOfCurrentUser("job-2").toBuilder().initiatorId("another-user").build())

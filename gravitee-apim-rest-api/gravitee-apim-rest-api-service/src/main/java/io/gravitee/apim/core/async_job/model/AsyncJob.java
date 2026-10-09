@@ -94,6 +94,8 @@ public class AsyncJob {
         FEDERATED_APIS_INGESTION,
         SCORING_REQUEST,
         AM_USER_SYNC,
+        AIM_AGENT_DISCOVERY,
+        AIM_AGENT_IMPORT,
     }
 
     public AsyncJob complete() {
