@@ -674,14 +674,14 @@ class ApiOwnedNavigationDomainServiceTest {
     class DestinationUnder {
 
         @Test
-        void should_give_the_api_as_owner_under_its_listing_row() {
+        void should_give_the_api_as_owner_under_its_listing() {
             var section = aFolder("APIs");
             var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
             queryService.initWith(List.of(section, listing));
 
             var destination = service.destinationUnder(ENV_ID, listing);
 
-            assertThat(destination.owner()).isEqualTo(ownedBy(API_ID));
+            assertThat(destination.apiOwner()).isEqualTo(ownedBy(API_ID));
             assertThat(destination.storedParentId()).isNull();
             assertThat(destination.renderedParentId()).isEqualTo(listing.getId());
         }
@@ -693,25 +693,25 @@ class ApiOwnedNavigationDomainServiceTest {
 
             var destination = service.destinationUnder(ENV_ID, folder);
 
-            assertThat(destination.owner()).isEqualTo(ownedBy(API_ID));
+            assertThat(destination.apiOwner()).isEqualTo(ownedBy(API_ID));
             assertThat(destination.storedParentId()).isEqualTo(folder.getId());
             assertThat(destination.renderedParentId()).isNull();
         }
 
         @Test
-        void should_give_the_portal_as_owner_under_a_portal_folder() {
+        void should_give_no_api_owner_under_a_portal_folder() {
             var folder = aFolder("Guides");
             queryService.initWith(List.of(folder));
 
             var destination = service.destinationUnder(ENV_ID, folder);
 
-            assertThat(destination.owner()).isEqualTo(NavigationItemReference.defaultReference());
+            assertThat(destination.apiOwner()).isNull();
             assertThat(destination.storedParentId()).isEqualTo(folder.getId());
             assertThat(destination.renderedParentId()).isNull();
         }
 
         @Test
-        void should_give_the_portal_as_owner_under_an_api_product() {
+        void should_give_no_api_owner_under_an_api_product() {
             var section = aFolder("APIs");
             var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", section.getId(), "product-id");
             var listingInProduct = anApi(PortalNavigationItemId.random().json(), "Api A", product.getId(), API_ID);
@@ -721,17 +721,17 @@ class ApiOwnedNavigationDomainServiceTest {
             for (var parent : List.of(product, listingInProduct, folderInProduct)) {
                 var destination = service.destinationUnder(ENV_ID, parent);
 
-                assertThat(destination.owner()).isEqualTo(NavigationItemReference.defaultReference());
+                assertThat(destination.apiOwner()).isNull();
                 assertThat(destination.storedParentId()).isEqualTo(parent.getId());
                 assertThat(destination.renderedParentId()).isNull();
             }
         }
 
         @Test
-        void should_give_the_portal_as_owner_at_the_top_level() {
+        void should_give_no_api_owner_at_the_top_level() {
             var destination = service.destinationUnder(ENV_ID, null);
 
-            assertThat(destination.owner()).isEqualTo(NavigationItemReference.defaultReference());
+            assertThat(destination.apiOwner()).isNull();
             assertThat(destination.storedParentId()).isNull();
             assertThat(destination.renderedParentId()).isNull();
         }

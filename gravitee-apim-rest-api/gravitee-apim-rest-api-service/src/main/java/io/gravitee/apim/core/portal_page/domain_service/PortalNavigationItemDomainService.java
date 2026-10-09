@@ -298,8 +298,8 @@ public class PortalNavigationItemDomainService {
             return resolved;
         }
         if (requested.getParentId() == null) {
-            if (!ownerFixed && existing.getReference() instanceof NavigationItemReference.ApiReference) {
-                resolved.setReference(NavigationItemReference.defaultReference());
+            if (!ownerFixed) {
+                resolved.setReference(newOwnerAt(DocumentationDestination.under(null), existing));
             }
             return resolved;
         }
@@ -311,23 +311,26 @@ public class PortalNavigationItemDomainService {
             return resolved;
         }
         var destination = apiOwnedNavigationDomainService.destinationUnder(existing.getEnvironmentId(), parent);
-        boolean changesOwner = changesOwner(existing.getReference(), destination.owner());
-        if (changesOwner && ownerFixed) {
+        var newOwner = newOwnerAt(destination, existing);
+        if (newOwner != null && ownerFixed) {
             return resolved;
         }
         resolved.setParentId(destination.storedParentId());
         resolved.setRenderedParentId(destination.renderedParentId());
-        if (changesOwner) {
-            resolved.setReference(destination.owner());
-        }
+        resolved.setReference(newOwner);
         return resolved;
     }
 
-    /** Two portal references are the same owner here: only a move to or from an API hands an item over. */
-    private static boolean changesOwner(NavigationItemReference current, NavigationItemReference destination) {
-        boolean involvesAnApi =
-            current instanceof NavigationItemReference.ApiReference || destination instanceof NavigationItemReference.ApiReference;
-        return involvesAnApi && !destination.equals(current);
+    /**
+     * @return the owner the item takes at the destination, null when it keeps the one it has. An item of the
+     *         portal stays with its portal wherever it goes in the portal: only an API takes or gives an item.
+     */
+    @Nullable
+    private static NavigationItemReference newOwnerAt(DocumentationDestination destination, PortalNavigationItem existing) {
+        if (destination.apiOwner() != null) {
+            return destination.apiOwner().equals(existing.getReference()) ? null : destination.apiOwner();
+        }
+        return existing.getReference() instanceof NavigationItemReference.ApiReference ? NavigationItemReference.defaultReference() : null;
     }
 
     public PortalNavigationItem update(UpdatePortalNavigationItem toUpdate, PortalNavigationItem originalItem) {

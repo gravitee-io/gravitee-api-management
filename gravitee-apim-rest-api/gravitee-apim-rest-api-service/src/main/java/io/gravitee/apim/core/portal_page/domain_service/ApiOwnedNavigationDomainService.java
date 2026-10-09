@@ -188,35 +188,22 @@ public class ApiOwnedNavigationDomainService {
     }
 
     /**
-     * Where a page, folder or link ends up when it is placed under a parent, and who owns it there. An API's
-     * documentation is stored against the API, so an item placed under the API's listing takes no stored
-     * parent: the listing only displays it.
+     * The destination a stored parent gives to a page, folder or link placed under it.
      */
-    public Destination destinationUnder(String environmentId, @Nullable PortalNavigationItem parent) {
+    public DocumentationDestination destinationUnder(String environmentId, @Nullable PortalNavigationItem parent) {
         if (parent == null) {
-            return new Destination(NavigationItemReference.defaultReference(), null, null);
+            return DocumentationDestination.under(null);
         }
-        if (isInApiProductContext(environmentId, parent)) {
-            // A listing below an API product shows the API as a member of the product, not its documentation
-            return new Destination(portalOwnerOf(parent), parent.getId(), null);
-        }
-        if (parent instanceof PortalNavigationApi listing) {
-            return new Destination(new NavigationItemReference.ApiReference(listing.getApiId()), null, listing.getId());
-        }
-        return new Destination(parent.getReference(), parent.getId(), null);
+        return DocumentationDestination.under(
+            new DocumentationDestination.Parent(
+                parent.getId(),
+                parent.getType(),
+                parent.getReference(),
+                parent instanceof PortalNavigationApi listing ? listing.getApiId() : null,
+                isInApiProductContext(environmentId, parent)
+            )
+        );
     }
-
-    private static NavigationItemReference portalOwnerOf(PortalNavigationItem item) {
-        return item.getReference() instanceof NavigationItemReference.PortalReference
-            ? item.getReference()
-            : NavigationItemReference.defaultReference();
-    }
-
-    public record Destination(
-        NavigationItemReference owner,
-        @Nullable PortalNavigationItemId storedParentId,
-        @Nullable PortalNavigationItemId renderedParentId
-    ) {}
 
     public boolean isDocumentation(PortalNavigationItem item) {
         return DOCUMENTATION_TYPES.contains(item.getType());
