@@ -132,20 +132,22 @@ class GroupResourceTest extends AbstractResourceTest {
             try (var response = rootTarget().path(HRID).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
                 var state = response.readEntity(GroupState.class);
-                assertThat(state.getDefaultMemberRoles()).containsExactlyInAnyOrderEntriesOf(
-                    java.util.Map.of("API", "USER", "API_PRODUCT", "OWNER")
+                assertThat(state.getDefaultMemberRoles()).isEqualTo(
+                    new io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles().api("USER").apiProduct("OWNER")
                 );
             }
         }
 
         @Test
-        void should_omit_default_member_roles_when_there_are_none() {
+        void should_answer_empty_default_member_roles_when_there_are_none() {
             givenExistingGroup();
             givenNoMembers();
 
             try (var response = rootTarget().path(HRID).request().get()) {
                 assertThat(response.getStatus()).isEqualTo(200);
-                assertThat(response.readEntity(GroupState.class).getDefaultMemberRoles()).isNullOrEmpty();
+                assertThat(response.readEntity(GroupState.class).getDefaultMemberRoles()).isEqualTo(
+                    new io.gravitee.apim.rest.api.automation.model.GroupDefaultMemberRoles()
+                );
             }
         }
 

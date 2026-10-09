@@ -1640,22 +1640,7 @@ components:
           items:
             $ref: "#/components/schemas/GroupMember"
         defaultMemberRoles:
-          type: object
-          description: |
-            Default role, per scope, given to a member who joins the group, including members
-            mapped from an identity provider.
-            Keys are `API`, `APPLICATION` and `API_PRODUCT`; any other key is refused with a 400.
-            When omitted or empty, the group's default roles on the platform are left untouched.
-            When it declares at least one scope, the map is the whole set: a scope absent from it
-            loses its default role.
-            `PRIMARY_OWNER` is refused; an unknown role name is reported as a warning and that scope
-            is left without a default role.
-          additionalProperties:
-            type: string
-          examples:
-            - API: USER
-              APPLICATION: USER
-              API_PRODUCT: USER
+          $ref: "#/components/schemas/GroupDefaultMemberRoles"
         notifyMembers:
           type: boolean
           description: If true, members will be notified when the group is synced with APIM.
@@ -1663,6 +1648,34 @@ components:
       required:
         - hrid
         - name
+    GroupDefaultMemberRoles:
+      description: |
+        Default role, per scope, given to a member who joins the group, including members
+        mapped from an identity provider.
+        When omitted, the group's default roles on the platform are left untouched.
+        When declared, it is the whole set: a scope left out loses its default role, and `{}`
+        clears all three.
+        Responses carry the group's stored default roles, `{}` when it has none.
+        `PRIMARY_OWNER` is refused; an unknown role name is reported as a warning and that scope
+        is left without a default role.
+      type: object
+      additionalProperties: false
+      properties:
+        api:
+          type: string
+          description: Default role on APIs.
+          examples:
+            - USER
+        application:
+          type: string
+          description: Default role on applications.
+          examples:
+            - USER
+        apiProduct:
+          type: string
+          description: Default role on API products.
+          examples:
+            - USER
     GroupMember:
       description: A member of a group, possibly identified by an external IDP source.
       type: object
