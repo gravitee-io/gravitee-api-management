@@ -138,6 +138,31 @@ public class AsyncJobQueryServiceImplTest {
 
         @Test
         @SneakyThrows
+        void should_search_aim_job_types_by_name() {
+            // Given
+            var pageable = new PageableImpl(1, 5);
+            when(integrationRepository.search(any(), any())).thenReturn(new Page<>(List.of(), pageable.getPageNumber(), 0, 0));
+
+            // When
+            service.listAsyncJobs(
+                new AsyncJobQueryService.ListQuery(
+                    "my-env",
+                    Optional.empty(),
+                    Optional.of(AsyncJob.Type.AIM_AGENT_DISCOVERY),
+                    Optional.empty(),
+                    Optional.empty()
+                ),
+                pageable
+            );
+
+            //Then
+            var captor = ArgumentCaptor.forClass(AsyncJobRepository.SearchCriteria.class);
+            verify(integrationRepository).search(captor.capture(), any());
+            assertThat(captor.getValue().type()).contains("AIM_AGENT_DISCOVERY");
+        }
+
+        @Test
+        @SneakyThrows
         void should_return_jobs_matching_query() {
             // Given
             var pageable = new PageableImpl(1, 5);
