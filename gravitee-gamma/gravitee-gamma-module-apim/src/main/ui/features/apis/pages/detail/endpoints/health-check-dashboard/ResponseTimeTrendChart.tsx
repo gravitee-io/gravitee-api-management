@@ -91,11 +91,15 @@ export function ResponseTimeTrendChart({ points, isLoading, timeframe }: Readonl
                 </div>
             </CardHeader>
             <CardContent>
-                <ChartContainer config={CHART_CONFIG} className="h-72 w-full">
-                    {chartType === 'line' && <LineChart {...commonProps} />}
-                    {chartType === 'area' && <AreaChart {...commonProps} stacked={false} />}
-                    {chartType === 'bar' && <BarChart {...commonProps} barRadius={4} />}
-                </ChartContainer>
+                {state === 'empty' ? (
+                    <p className="text-sm text-muted-foreground">No data to display</p>
+                ) : (
+                    <ChartContainer config={CHART_CONFIG} className="h-72 w-full">
+                        {chartType === 'line' && <LineChart {...commonProps} />}
+                        {chartType === 'area' && <AreaChart {...commonProps} stacked={false} />}
+                        {chartType === 'bar' && <BarChart {...commonProps} barRadius={4} />}
+                    </ChartContainer>
+                )}
             </CardContent>
         </Card>
     );

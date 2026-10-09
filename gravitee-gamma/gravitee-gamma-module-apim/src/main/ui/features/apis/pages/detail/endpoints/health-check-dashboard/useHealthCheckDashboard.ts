@@ -75,21 +75,23 @@ export function useHealthCheckDashboard(apiId: string | undefined, timeframe: Ti
     const canRead = useHasPermission({ anyOf: ['api-health-r'] });
     const queryClient = useQueryClient();
 
-    const { from, to } = useMemo(() => resolveHealthTimeRange(timeframe), [timeframe]);
     const enabled = Boolean(env && apiId && canRead);
 
     const trendQuery = useQuery({
         queryKey: apiHealthCheckKeys.trend(envId, id, timeframe),
-        queryFn: () => getResponseTimeOvertime(envId, id, from, to),
+        queryFn: ({ signal }) => {
+            const { from, to } = resolveHealthTimeRange(timeframe);
+            return getResponseTimeOvertime(envId, id, from, to, { signal });
+        },
         enabled,
         staleTime: STALE_TIME,
         retry: 0,
     });
 
-    const endpointAvailability = useFieldAvailability(envId, id, 'endpoint', timeframe, from, to, enabled);
-    const endpointResponseTime = useFieldResponseTime(envId, id, 'endpoint', timeframe, from, to, enabled);
-    const gatewayAvailability = useFieldAvailability(envId, id, 'gateway', timeframe, from, to, enabled);
-    const gatewayResponseTime = useFieldResponseTime(envId, id, 'gateway', timeframe, from, to, enabled);
+    const endpointAvailability = useFieldAvailability(envId, id, 'endpoint', timeframe, enabled);
+    const endpointResponseTime = useFieldResponseTime(envId, id, 'endpoint', timeframe, enabled);
+    const gatewayAvailability = useFieldAvailability(envId, id, 'gateway', timeframe, enabled);
+    const gatewayResponseTime = useFieldResponseTime(envId, id, 'gateway', timeframe, enabled);
 
     const trend = useMemo<TrendData>(
         () => ({ points: toResponseTimeTrend(trendQuery.data), isLoading: trendQuery.isLoading, isError: trendQuery.isError }),
@@ -167,36 +169,26 @@ export function useHealthCheckDashboard(apiId: string | undefined, timeframe: Ti
     };
 }
 
-function useFieldAvailability(
-    envId: string,
-    apiId: string,
-    field: HealthField,
-    timeframe: Timeframe,
-    from: number,
-    to: number,
-    enabled: boolean,
-) {
+function useFieldAvailability(envId: string, apiId: string, field: HealthField, timeframe: Timeframe, enabled: boolean) {
     return useQuery({
         queryKey: apiHealthCheckKeys.availability(envId, apiId, field, timeframe),
-        queryFn: () => getAvailability(envId, apiId, from, to, field),
+        queryFn: ({ signal }) => {
+            const { from, to } = resolveHealthTimeRange(timeframe);
+            return getAvailability(envId, apiId, from, to, field, { signal });
+        },
         enabled,
         staleTime: STALE_TIME,
         retry: 0,
     });
 }
 
-function useFieldResponseTime(
-    envId: string,
-    apiId: string,
-    field: HealthField,
-    timeframe: Timeframe,
-    from: number,
-    to: number,
-    enabled: boolean,
-) {
+function useFieldResponseTime(envId: string, apiId: string, field: HealthField, timeframe: Timeframe, enabled: boolean) {
     return useQuery({
         queryKey: apiHealthCheckKeys.avgResponseTime(envId, apiId, field, timeframe),
-        queryFn: () => getAverageResponseTime(envId, apiId, from, to, field),
+        queryFn: ({ signal }) => {
+            const { from, to } = resolveHealthTimeRange(timeframe);
+            return getAverageResponseTime(envId, apiId, from, to, field, { signal });
+        },
         enabled,
         staleTime: STALE_TIME,
         retry: 0,

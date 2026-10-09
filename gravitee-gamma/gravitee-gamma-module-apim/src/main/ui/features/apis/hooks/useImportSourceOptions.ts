@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { policyStudioKeys } from './usePolicyStudioData';
 import { listPolicies } from '../services/policyStudioService';
 import type { ApiImportFormat, ApiImportSubmission } from '../types';
+import { checkImportFile } from '../utils/importFileValidation';
 
 export type ImportSourceMode = 'local' | 'remote';
 
@@ -48,6 +49,7 @@ export interface UseImportSourceOptionsResult {
     withRestToSoap: boolean;
     hasOasValidationPolicy: boolean;
     hasRestToSoapPolicy: boolean;
+    policiesError: boolean;
     handleSourceModeChange: (next: ImportSourceMode) => void;
     handleRestToSoapChange: (checked: boolean) => void;
     handleFile: (file: File) => Promise<void>;
@@ -62,8 +64,8 @@ export interface UseImportSourceOptionsResult {
 
 /**
  * Owns state/logic for the "Configure file source" + "Options" sections on the create-via-import
- * page. `format` drives which fields/defaults apply; `policiesEnabled` gates the `listPolicies()`
- * query. (The update sheet still owns its own copy until it is migrated onto this hook.)
+ * page and the update sheet. `format` drives which fields/defaults apply; `policiesEnabled` gates
+ * the `listPolicies()` query.
  */
 export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled = true): UseImportSourceOptionsResult {
     const [sourceMode, setSourceMode] = useState<ImportSourceMode>('local');
@@ -76,7 +78,7 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
     const [withOASValidationPolicy, setWithOASValidationPolicy] = useState(false);
     const [withRestToSoap, setWithRestToSoap] = useState(false);
 
-    const { data: policies } = useQuery({
+    const { data: policies, isError: policiesError } = useQuery({
         queryKey: policyStudioKeys.policies(),
         queryFn: listPolicies,
         enabled: policiesEnabled && (format === 'openapi' || format === 'wsdl'),
@@ -154,19 +156,15 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
         setParseError(null);
         setFileName(file.name);
         const text = await file.text();
-        if (format === 'gravitee') {
-            try {
-                setDefinition(JSON.parse(text) as unknown);
-                setFileText(text);
-            } catch {
-                setParseError('Invalid JSON. Please upload a valid Gravitee API definition file.');
-                setDefinition(null);
-                setFileText(null);
-            }
-        } else {
+        const check = checkImportFile(format, text);
+        if (!check.accepted) {
+            setParseError(check.error);
             setDefinition(null);
-            setFileText(text);
+            setFileText(null);
+            return;
         }
+        setDefinition(check.definition);
+        setFileText(text);
     };
 
     const fileAccept =
@@ -238,6 +236,7 @@ export function useImportSourceOptions(format: ApiImportFormat, policiesEnabled 
         withRestToSoap,
         hasOasValidationPolicy,
         hasRestToSoapPolicy,
+        policiesError,
         handleSourceModeChange,
         handleRestToSoapChange,
         handleFile,

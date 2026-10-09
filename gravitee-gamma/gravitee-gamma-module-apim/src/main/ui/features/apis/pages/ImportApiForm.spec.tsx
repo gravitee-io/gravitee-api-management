@@ -231,7 +231,9 @@ describe('ImportApiForm', () => {
         await waitFor(() => expect(screen.getByText(/apply rest to soap transformer policy/i)).toBeInTheDocument());
 
         const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
-        fireEvent.change(fileInput, { target: { files: [fileWithText('service.wsdl', '<xml/>', 'application/xml')] } });
+        fireEvent.change(fileInput, {
+            target: { files: [fileWithText('service.wsdl', '<definitions></definitions>', 'application/xml')] },
+        });
         await waitFor(() => expect(screen.getByRole('button', { name: /create api/i })).not.toBeDisabled());
         fireEvent.click(screen.getByRole('button', { name: /create api/i }));
 
@@ -239,7 +241,7 @@ describe('ImportApiForm', () => {
             {
                 format: 'wsdl',
                 descriptor: {
-                    payload: '<xml/>',
+                    payload: '<definitions></definitions>',
                     type: 'INLINE',
                     withDocumentation: true,
                     withOASValidationPolicy: true,

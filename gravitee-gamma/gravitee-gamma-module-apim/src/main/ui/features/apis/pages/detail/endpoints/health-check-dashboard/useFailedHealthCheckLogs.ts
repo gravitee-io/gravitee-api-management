@@ -15,7 +15,7 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { getHealthCheckLogs } from '../../../../services/healthCheck';
 import type { HealthCheckLog } from '../../../../types/healthCheck';
@@ -54,12 +54,14 @@ export function useFailedHealthCheckLogs(apiId: string | undefined, timeframe: T
         setPage(1);
     }, [timeframe]);
 
-    const { from, to } = useMemo(() => resolveHealthTimeRange(timeframe), [timeframe]);
     const enabled = Boolean(env && apiId && canRead);
 
     const { data, isLoading, isError } = useQuery({
         queryKey: apiHealthCheckKeys.logs(envId, id, timeframe, page, pageSize),
-        queryFn: () => getHealthCheckLogs(envId, id, { from, to, page, perPage: pageSize, success: false }),
+        queryFn: ({ signal }) => {
+            const { from, to } = resolveHealthTimeRange(timeframe);
+            return getHealthCheckLogs(envId, id, { from, to, page, perPage: pageSize, success: false }, { signal });
+        },
         enabled,
         placeholderData: keepPreviousData,
         staleTime: 30_000,

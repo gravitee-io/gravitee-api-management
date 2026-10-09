@@ -17,6 +17,7 @@ import { Badge, Separator, Sheet, SheetContent, SheetDescription, SheetHeader, S
 
 import type { HealthCheckLog, HealthCheckStep } from '../../../../types/healthCheck';
 import { formatTimestamp } from '../../../../utils/healthCheckDashboard';
+import { maskSensitiveHeader } from '../../../../utils/maskSensitiveHeader';
 
 interface HealthCheckLogDetailSheetProps {
     log: HealthCheckLog | null;
@@ -114,7 +115,7 @@ function HeadersList({ headers }: Readonly<{ headers: Record<string, string> }>)
         <ul className="space-y-0.5">
             {entries.map(([name, value]) => (
                 <li key={name} className="font-mono text-xs text-muted-foreground break-all">
-                    <span className="text-foreground">{name}</span>: {value}
+                    <span className="text-foreground">{name}</span>: {maskSensitiveHeader(value, name)}
                 </li>
             ))}
         </ul>

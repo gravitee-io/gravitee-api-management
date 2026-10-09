@@ -55,7 +55,7 @@ describe('AvailabilityByFieldTable', () => {
     it('shows an empty state and no pagination when there are no rows', () => {
         render(<AvailabilityByFieldTable field="endpoint" data={buildData(0)} />);
 
-        expect(screen.getByText('No data')).toBeInTheDocument();
+        expect(screen.getByText('No data to display')).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /next page/i })).not.toBeInTheDocument();
     });
 });

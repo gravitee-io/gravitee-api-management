@@ -22,6 +22,7 @@ import { notify } from '../../../shared/notify';
 import { useCreateApiFromImport } from '../hooks/useCreateApiFromImport';
 import { useImportSourceOptions } from '../hooks/useImportSourceOptions';
 import type { ApiImportFormat } from '../types';
+import { readableImportError } from '../utils/importFileValidation';
 
 const FORMAT_LABELS: Record<ApiImportFormat, string> = {
     gravitee: 'Gravitee definition',
@@ -35,11 +36,12 @@ export function ImportApiForm({ format }: Readonly<{ format: ApiImportFormat }>)
     const { mutate, isPending, error } = useCreateApiFromImport();
 
     const canSubmit = !isPending && sourceOptions.canSubmit;
-    const errorMessage = error
+    const rawError = error
         ? error instanceof Error
             ? error.message
             : 'Failed to create the API. Please check your details and try again.'
         : null;
+    const errorMessage = readableImportError(rawError);
 
     const handleCreate = () => {
         mutate(sourceOptions.buildSubmission(), {

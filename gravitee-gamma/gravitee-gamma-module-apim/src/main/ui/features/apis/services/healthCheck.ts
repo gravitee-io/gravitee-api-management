@@ -30,10 +30,12 @@ export async function getResponseTimeOvertime(
     apiId: string,
     from: number,
     to: number,
+    init?: RequestInit,
 ): Promise<ApiHealthResponseTimeOvertime> {
     return apimFetchJsonV2<ApiHealthResponseTimeOvertime>(
         envId,
         `${healthPath(apiId)}/average-response-time-overtime?from=${from}&to=${to}`,
+        init,
     );
 }
 
@@ -43,8 +45,9 @@ export async function getAvailability(
     from: number,
     to: number,
     field: HealthField,
+    init?: RequestInit,
 ): Promise<ApiAvailability> {
-    return apimFetchJsonV2<ApiAvailability>(envId, `${healthPath(apiId)}/availability?from=${from}&to=${to}&field=${field}`);
+    return apimFetchJsonV2<ApiAvailability>(envId, `${healthPath(apiId)}/availability?from=${from}&to=${to}&field=${field}`, init);
 }
 
 export async function getAverageResponseTime(
@@ -53,10 +56,12 @@ export async function getAverageResponseTime(
     from: number,
     to: number,
     field: HealthField,
+    init?: RequestInit,
 ): Promise<ApiAverageResponseTime> {
     return apimFetchJsonV2<ApiAverageResponseTime>(
         envId,
         `${healthPath(apiId)}/average-response-time?from=${from}&to=${to}&field=${field}`,
+        init,
     );
 }
 
@@ -64,6 +69,7 @@ export async function getHealthCheckLogs(
     envId: string,
     apiId: string,
     params: HealthCheckLogsRequestParams,
+    init?: RequestInit,
 ): Promise<HealthCheckLogsResponse> {
     const query = new URLSearchParams({
         from: String(params.from),
@@ -72,5 +78,5 @@ export async function getHealthCheckLogs(
         perPage: String(params.perPage),
         success: String(params.success),
     });
-    return apimFetchJsonV2<HealthCheckLogsResponse>(envId, `${healthPath(apiId)}/logs?${query.toString()}`);
+    return apimFetchJsonV2<HealthCheckLogsResponse>(envId, `${healthPath(apiId)}/logs?${query.toString()}`, init);
 }

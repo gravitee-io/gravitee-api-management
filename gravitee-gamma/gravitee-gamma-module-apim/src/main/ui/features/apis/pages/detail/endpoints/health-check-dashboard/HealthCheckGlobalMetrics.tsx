@@ -77,6 +77,10 @@ function AvailabilityDonut({ availability }: Readonly<{ availability: MetricStat
               ]
             : [];
 
+    if (state === 'empty') {
+        return <p className="text-sm text-muted-foreground">No data to display</p>;
+    }
+
     return (
         <ChartContainer config={AVAILABILITY_DONUT_CONFIG} className="mx-auto h-44 w-44">
             <DoughnutChart
