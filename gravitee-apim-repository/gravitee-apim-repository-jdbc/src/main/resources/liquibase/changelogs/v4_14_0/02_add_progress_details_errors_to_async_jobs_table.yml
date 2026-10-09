@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.14.0_02_add_progress_details_errors_to_async_jobs_table
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}asyncjobs
+            columns:
+              - column: { name: processed, type: int, constraints: { nullable: true } }
+              - column: { name: details, type: nclob, constraints: { nullable: true } }
+              - column: { name: errors, type: nclob, constraints: { nullable: true } }

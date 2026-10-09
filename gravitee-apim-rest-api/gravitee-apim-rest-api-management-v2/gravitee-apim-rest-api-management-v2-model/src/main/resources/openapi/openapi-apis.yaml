@@ -9543,6 +9543,25 @@ components:
                 errorMessage:
                     type: string
                     description: A message detailing why the job failed.
+                upperLimit:
+                    type: integer
+                    format: int64
+                    description: How many items the job has to process, when known.
+                    example: 100
+                processed:
+                    type: integer
+                    format: int64
+                    description: How many items the job has processed so far.
+                    example: 40
+                details:
+                    type: object
+                    additionalProperties: true
+                    description: Job-specific state; its shape depends on the job type.
+                errors:
+                    type: array
+                    description: Failures on individual items; the failure of the job itself is in errorMessage.
+                    items:
+                        $ref: "#/components/schemas/AsyncJobError"
                 createdAt:
                     type: string
                     format: date-time
@@ -9562,6 +9581,22 @@ components:
                 - PENDING
                 - ERROR
                 - TIMEOUT
+        AsyncJobError:
+            type: object
+            required:
+                - code
+                - message
+            properties:
+                code:
+                    type: string
+                    description: A machine-readable code for the failure.
+                    example: slug_conflict
+                message:
+                    type: string
+                    description: A message detailing the failure.
+                itemId:
+                    type: string
+                    description: Id of the item that failed, when the failure is tied to one.
 
         # Analytics
         AnalyticTimeRange:
