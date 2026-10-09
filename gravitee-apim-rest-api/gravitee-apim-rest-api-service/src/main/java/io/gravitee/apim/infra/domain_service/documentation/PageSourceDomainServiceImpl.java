@@ -24,6 +24,7 @@ import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.fetcher.api.ResourceNotFoundException;
 import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.CustomLog;
@@ -135,20 +137,57 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
 
     private void fetchContent(Fetcher fetcher, Page page) {
         if (page.getType() != Page.Type.ROOT) {
-            page.setContent(readContent(fetcher, page.getSource()));
+            page.setContent(readContent(fetcher, page));
         }
         page.setUseAutoFetch(fetcher.getConfiguration().isAutoFetch());
     }
 
-    private String readContent(Fetcher fetcher, PageSource source) {
+    /**
+     * The failure message reaches the caller and the logs, so it never carries the source configuration: on update it holds
+     * the stored secrets, restored over the masked placeholder. Only the fetcher's own message is kept, stripped of any
+     * secret it might echo. The stack trace is logged at debug only, as third-party causes cannot be redacted.
+     */
+    private String readContent(Fetcher fetcher, Page page) {
+        var sourceType = page.getSource().getType();
         try {
             var resource = fetcher.fetch();
             try (var content = resource.getContent()) {
                 return new String(content.readAllBytes(), Charset.defaultCharset());
+            } catch (IOException e) {
+                log.warn("Unable to read the content of page [id={}] fetched from source [type={}]", page.getId(), sourceType);
+                log.debug("Read failure of page [id={}] content fetched from source [type={}]", page.getId(), sourceType, e);
+                throw new TechnicalDomainException("Unable to read the page content fetched from source [%s]".formatted(sourceType), e);
             }
-        } catch (FetcherException | IOException e) {
-            throw new TechnicalDomainException("unable to fetch content with configuration " + source.getConfiguration());
+        } catch (FetcherException e) {
+            var message = "Unable to fetch the page content from source [%s]: %s".formatted(
+                sourceType,
+                redactSecrets(Objects.toString(e.getMessage(), e.getClass().getSimpleName()), fetcher.getConfiguration())
+            );
+            log.warn("Unable to fetch the content of page [id={}]: {}", page.getId(), message);
+            log.debug("Fetch failure of page [id={}] from source [type={}]", page.getId(), sourceType, e);
+            if (e instanceof ResourceNotFoundException) {
+                throw new InvalidPageSourceException(message, e);
+            }
+            throw new TechnicalDomainException(message, e);
         }
+    }
+
+    private static String redactSecrets(String message, FetcherConfiguration configuration) {
+        var redacted = message;
+        for (Field field : configuration.getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(Sensitive.class)) {
+                field.setAccessible(true);
+                try {
+                    if (field.get(configuration) instanceof String secret && !secret.isBlank()) {
+                        redacted = redacted.replace(secret, SENSITIVE_DATA_REPLACEMENT);
+                    }
+                } catch (IllegalAccessException e) {
+                    // A secret that cannot be read cannot be stripped: hide the whole message rather than risk echoing it
+                    return SENSITIVE_DATA_REPLACEMENT;
+                }
+            }
+        }
+        return redacted;
     }
 
     private Optional<Fetcher> loadFetcher(Page page) {

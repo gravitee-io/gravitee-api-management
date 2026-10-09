@@ -27,6 +27,9 @@ public class DummyFetcher implements Fetcher {
     /** Allow tests to inject a specific InputStream to track stream lifecycle. Thread-safe: one value per thread. */
     public static final ThreadLocal<InputStream> nextStream = new ThreadLocal<>();
 
+    /** Allow tests to make the next fetch fail. Thread-safe: one value per thread. */
+    public static final ThreadLocal<FetcherException> nextFailure = new ThreadLocal<>();
+
     DummyFetcherConfiguration fetcherConfiguration;
 
     public DummyFetcher(DummyFetcherConfiguration fetcherConfiguration) {
@@ -35,6 +38,11 @@ public class DummyFetcher implements Fetcher {
 
     @Override
     public Resource fetch() throws FetcherException {
+        var failure = nextFailure.get();
+        nextFailure.remove();
+        if (failure != null) {
+            throw failure;
+        }
         var resource = new Resource();
         InputStream stream = nextStream.get() != null ? nextStream.get() : new ByteArrayInputStream("dummy content".getBytes());
         nextStream.remove(); // consume once
