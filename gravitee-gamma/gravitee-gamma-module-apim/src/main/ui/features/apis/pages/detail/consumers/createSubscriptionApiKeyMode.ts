@@ -16,10 +16,7 @@
 import type { ApplicationApiKeySubscriptionRef } from '../../../services/subscriptions';
 import type { ApiKeyMode, SubscriptionContext } from '../../../types/subscription';
 
-export function subscriptionMatchesContext(
-    subscription: ApplicationApiKeySubscriptionRef,
-    ctx: SubscriptionContext,
-): boolean {
+export function subscriptionMatchesContext(subscription: ApplicationApiKeySubscriptionRef, ctx: SubscriptionContext): boolean {
     if (ctx.type === 'api') {
         return subscription.api === ctx.entityId;
     }

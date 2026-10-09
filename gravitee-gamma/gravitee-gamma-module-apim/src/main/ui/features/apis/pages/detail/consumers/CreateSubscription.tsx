@@ -145,8 +145,7 @@ export function CreateSubscription({
         apiKeySubscriptions,
     });
 
-    const effectiveShared =
-        selectedApp?.apiKeyMode === 'SHARED' || (showApiKeyModeChoice && apiKeyMode === 'SHARED');
+    const effectiveShared = selectedApp?.apiKeyMode === 'SHARED' || (showApiKeyModeChoice && apiKeyMode === 'SHARED');
     const showCustomApiKey =
         Boolean(selectedApp) &&
         canUseCustomApiKey &&

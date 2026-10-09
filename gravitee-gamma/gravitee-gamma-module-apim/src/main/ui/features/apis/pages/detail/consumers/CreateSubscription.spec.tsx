@@ -35,13 +35,7 @@ jest.mock('@gravitee/gamma-modules-sdk', () => ({
 }));
 
 jest.mock('./ApplicationSearchList', () => ({
-    ApplicationSearchList: ({
-        selected,
-        onSelect,
-    }: {
-        selected: Application | null;
-        onSelect: (app: Application) => void;
-    }) => (
+    ApplicationSearchList: ({ selected, onSelect }: { selected: Application | null; onSelect: (app: Application) => void }) => (
         <button type="button" onClick={() => onSelect(APP)}>
             {selected ? selected.name : 'Pick application'}
         </button>

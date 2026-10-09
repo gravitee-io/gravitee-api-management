@@ -31,13 +31,7 @@ interface ConsumerDetailPageProps {
     isFederated?: boolean;
 }
 
-export function ConsumerDetailPage({
-    ctx,
-    subscriptionId,
-    canUpdate,
-    canDelete,
-    isFederated = false,
-}: ConsumerDetailPageProps) {
+export function ConsumerDetailPage({ ctx, subscriptionId, canUpdate, canDelete, isFederated = false }: ConsumerDetailPageProps) {
     const navigate = useNavigate();
     const { data: subscription, isLoading, isError } = useSubscriptionDetail(ctx, subscriptionId);
 
@@ -85,12 +79,7 @@ export function ConsumerDetailPage({
 
                     <SubscriptionInfoCard subscription={subscription} isLoading={false} />
 
-                    <SubscriptionApiKeysCard
-                        ctx={ctx}
-                        subscription={subscription}
-                        canUpdate={canUpdate}
-                        isFederated={isFederated}
-                    />
+                    <SubscriptionApiKeysCard ctx={ctx} subscription={subscription} canUpdate={canUpdate} isFederated={isFederated} />
                 </>
             )}
         </div>
