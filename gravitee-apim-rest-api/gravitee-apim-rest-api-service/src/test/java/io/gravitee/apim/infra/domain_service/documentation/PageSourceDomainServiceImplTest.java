@@ -379,6 +379,47 @@ class PageSourceDomainServiceImplTest {
     }
 
     @Test
+    void should_redact_a_restored_secret_echoed_by_the_fetcher_after_a_masked_update() {
+        var oldPage = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"stored-secret-token\"}");
+        var newPage = pageWithSource(
+            "{\"nonSensitiveData\":\"other.md\",\"sensitiveData\":\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}"
+        );
+        mockDummyFetcherPlugin(
+            new DummyFetcherConfiguration("doc.md", "stored-secret-token"),
+            new DummyFetcherConfiguration("other.md", PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
+        );
+        DummyFetcher.nextFailure.set(new FetcherException("Token stored-secret-token was rejected", null));
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        assertThatThrownBy(() -> cut.setContentFromSource(newPage))
+            .hasMessageEndingWith("Token " + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + " was rejected")
+            .hasMessageNotContaining("stored-secret-token");
+    }
+
+    @Test
+    void should_keep_the_fetcher_message_intact_when_the_secret_is_empty() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", ""));
+        DummyFetcher.nextFailure.set(new FetcherException("Token was rejected", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page)).hasMessage(
+            "Unable to fetch the page content from source [dummy-fetcher]: Token was rejected"
+        );
+    }
+
+    @Test
+    void should_name_the_fetch_failure_when_the_fetcher_gives_no_message() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        DummyFetcher.nextFailure.set(new FetcherException(null, null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page)).hasMessage(
+            "Unable to fetch the page content from source [dummy-fetcher]: FetcherException"
+        );
+    }
+
+    @Test
     void should_report_a_content_read_failure_without_the_configuration() {
         var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
         mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
