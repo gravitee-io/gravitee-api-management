@@ -34,7 +34,9 @@ import io.gravitee.rest.api.fetcher.FetcherConfigurationAddress;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -182,9 +184,19 @@ public class PageSourceDomainServiceImpl implements PageSourceDomainService {
         JsonNode values = new ObjectMapper().valueToTree(configuration);
         var redacted = message;
         for (Field field : configuration.getClass().getDeclaredFields()) {
-            var value = values.path(field.getName());
-            if (field.isAnnotationPresent(Sensitive.class) && value.isTextual() && !value.asText().isBlank()) {
-                redacted = redacted.replace(value.asText(), SENSITIVE_DATA_REPLACEMENT);
+            if (!field.isAnnotationPresent(Sensitive.class)) {
+                continue;
+            }
+            var value = values.get(field.getName());
+            if (value == null) {
+                // A secret that cannot be read cannot be stripped: hide the whole message rather than risk echoing it
+                return SENSITIVE_DATA_REPLACEMENT;
+            }
+            if (value.isTextual() && !value.asText().isBlank()) {
+                var secret = value.asText();
+                redacted = redacted
+                    .replace(secret, SENSITIVE_DATA_REPLACEMENT)
+                    .replace(URLEncoder.encode(secret, StandardCharsets.UTF_8), SENSITIVE_DATA_REPLACEMENT);
             }
         }
         return redacted;

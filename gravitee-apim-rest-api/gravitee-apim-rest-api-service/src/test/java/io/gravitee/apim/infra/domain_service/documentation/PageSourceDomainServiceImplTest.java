@@ -32,6 +32,7 @@ import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.ResourceNotFoundException;
+import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
@@ -409,6 +410,28 @@ class PageSourceDomainServiceImplTest {
     }
 
     @Test
+    void should_redact_a_url_encoded_secret_echoed_by_the_fetcher() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"tok/en+1=\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "tok/en+1="));
+        DummyFetcher.nextFailure.set(new FetcherException("Unable to fetch 'https://a.example/doc.md?token=tok%2Fen%2B1%3D'", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page))
+            .hasMessageEndingWith("token=" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "'")
+            .hasMessageNotContaining("tok%2Fen%2B1%3D");
+    }
+
+    @Test
+    void should_hide_the_whole_fetcher_message_when_a_secret_cannot_be_read() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new UnreadableSecretFetcherConfiguration());
+        DummyFetcher.nextFailure.set(new FetcherException("Token unreadable-secret-token was rejected", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page)).hasMessage(
+            "Unable to fetch the page content from source [dummy-fetcher]: " + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+        );
+    }
+
+    @Test
     void should_name_the_fetch_failure_when_the_fetcher_gives_no_message() {
         var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
         mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
@@ -436,6 +459,46 @@ class PageSourceDomainServiceImplTest {
             .isInstanceOf(TechnicalDomainException.class)
             .hasMessage("Unable to read the page content fetched from source [dummy-fetcher]")
             .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    void should_log_the_read_failure_without_the_configuration() {
+        var page = Page.builder()
+            .id("page-id")
+            .source(
+                PageSource.builder()
+                    .type("dummy-fetcher")
+                    .configuration("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}")
+                    .build()
+            )
+            .build();
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        DummyFetcher.nextStream.set(
+            new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    throw new IOException("Connection reset");
+                }
+            }
+        );
+        var logger = (Logger) LoggerFactory.getLogger(PageSourceDomainServiceImpl.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            assertThatThrownBy(() -> cut.setContentFromSource(page)).isInstanceOf(TechnicalDomainException.class);
+        } finally {
+            logger.detachAppender(appender);
+        }
+
+        assertThat(appender.list)
+            .filteredOn(event -> event.getLevel() == Level.WARN)
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.getFormattedMessage()).contains("page-id", "dummy-fetcher").doesNotContain("typed-secret-token");
+                assertThat(event.getThrowableProxy()).isNull();
+            });
     }
 
     @Test
@@ -511,6 +574,17 @@ class PageSourceDomainServiceImplTest {
                 )
             )
             .build();
+    }
+
+    /** A configuration whose secret has no getter, so it cannot be read back for redaction. */
+    static class UnreadableSecretFetcherConfiguration extends DummyFetcherConfiguration {
+
+        @Sensitive
+        private final String hiddenSecret = "unreadable-secret-token";
+
+        UnreadableSecretFetcherConfiguration() {
+            super("doc.md", null);
+        }
     }
 
     /** Wraps an InputStream and tracks whether close() was called. */
