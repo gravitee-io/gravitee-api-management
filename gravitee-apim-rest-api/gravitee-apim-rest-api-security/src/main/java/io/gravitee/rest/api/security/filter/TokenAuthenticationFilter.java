@@ -119,6 +119,7 @@ public class TokenAuthenticationFilter extends GenericFilterBean {
                         userDetails.setFirstname(jwt.getClaim(Claims.FIRSTNAME).asString());
                         userDetails.setLastname(jwt.getClaim(Claims.LASTNAME).asString());
                         userDetails.setOrganizationId(jwt.getClaim(Claims.ORG).asString());
+                        userDetails.setGcat(jwt.getClaim(Claims.GCAT).asString());
 
                         SecurityContextHolder.getContext().setAuthentication(
                             new UsernamePasswordAuthenticationToken(userDetails, null, authorities)
