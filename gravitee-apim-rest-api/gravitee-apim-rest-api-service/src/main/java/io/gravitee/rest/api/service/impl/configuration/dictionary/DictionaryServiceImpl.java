@@ -19,7 +19,10 @@ import static io.gravitee.apim.core.utils.EncryptedValueMask.ENCRYPTED_VALUE_MAS
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DICTIONARY;
 import static io.gravitee.repository.management.model.Audit.AuditProperties.ENCRYPTED;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.gravitee.apim.infra.json.jackson.EncryptedPropertyAuditRedaction;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.common.utils.IdGenerator;
@@ -61,6 +64,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -497,10 +501,35 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 .properties(auditProperties)
                 .event(event)
                 .createdAt(createdAt)
-                .oldValue(oldValue)
-                .newValue(newValue)
+                .oldValue(withoutEncryptedValues(oldValue))
+                .newValue(withoutEncryptedValues(newValue))
                 .build()
         );
+    }
+
+    private ObjectNode withoutEncryptedValues(Dictionary dictionary) {
+        if (dictionary == null) {
+            return null;
+        }
+        ObjectNode snapshot = mapper.valueToTree(dictionary);
+        JsonNode properties = snapshot.path("properties");
+        encryptedPropertyKeys(dictionary).forEach(key -> {
+            ObjectNode property = (ObjectNode) properties.get(key);
+            property.put("value", EncryptedPropertyAuditRedaction.fingerprint(property.get("value").asText()));
+        });
+        return snapshot;
+    }
+
+    private static Stream<String> encryptedPropertyKeys(Dictionary dictionary) {
+        if (dictionary.getProperties() == null) {
+            return Stream.empty();
+        }
+        return dictionary
+            .getProperties()
+            .entrySet()
+            .stream()
+            .filter(property -> property.getValue() != null && property.getValue().encrypted())
+            .map(Map.Entry::getKey);
     }
 
     private static boolean hasEncryptedProperty(Dictionary dictionary) {
