@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { focusManager, onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 
@@ -122,6 +122,26 @@ describe('useApiDocumentation hooks', () => {
             await waitFor(() => expect(result.current.isSuccess).toBe(true));
             expect(mockGetApiDocumentationPageContent).toHaveBeenCalledWith('env-1', 'api-1', 'nav-1');
             expect(result.current.data).toEqual(content);
+        });
+
+        it('is not loaded again when the window regains focus or the browser comes back online', async () => {
+            mockGetApiDocumentationPageContent.mockResolvedValue({ id: 'content-1', type: 'GRAVITEE_MARKDOWN', content: '# Hello' });
+            const { result } = renderWithQueryClient(() => useApiDocumentationPageContent('api-1', 'nav-1'));
+            await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+            try {
+                await act(async () => {
+                    focusManager.setFocused(false);
+                    focusManager.setFocused(true);
+                    onlineManager.setOnline(false);
+                    onlineManager.setOnline(true);
+                });
+            } finally {
+                focusManager.setFocused(undefined);
+                onlineManager.setOnline(true);
+            }
+
+            expect(mockGetApiDocumentationPageContent).toHaveBeenCalledTimes(1);
         });
 
         it('does not load until it is enabled', () => {
