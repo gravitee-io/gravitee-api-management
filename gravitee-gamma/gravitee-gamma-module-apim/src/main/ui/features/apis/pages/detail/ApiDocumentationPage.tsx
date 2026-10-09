@@ -34,10 +34,11 @@ import { ConfirmDialog } from '../../../../shared/components/ConfirmDialog';
 import { notify } from '../../../../shared/notify';
 import { CreatePageDialog } from '../../components/detail/documentation/CreatePageDialog';
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
+import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
-import type { ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
+import type { ApiPortalPublication, PortalNavigationFolder, PortalNavigationPage } from '../../types/apiDocumentation';
 import { type DocumentationRow, getPublishedSection } from '../../utils/documentationTree';
 
 const DESCRIPTION = 'Pages, folders and links that describe this API in the developer portal.';
@@ -69,6 +70,7 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const canDelete = useHasPermission({ anyOf: ['api-documentation-d'] });
     // A page is created, then its content is saved: with create alone it would stay empty.
     const canAdd = useHasPermission({ allOf: ['api-documentation-c', 'api-documentation-u'] });
+    const canEdit = useHasPermission({ anyOf: ['api-documentation-u'] });
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
     const expandedFolders = useExpandedDocumentationFolders(apiId);
@@ -76,11 +78,16 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
     // `parent` is absent for a page added at the top level.
     const [pageToAdd, setPageToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
+    const [pageToEdit, setPageToEdit] = useState<PortalNavigationPage | null>(null);
 
     const items = data?.items ?? [];
     const isFirstUse = !isLoading && !isError && items.length === 0;
     const openDeleteDialog = useCallback((row: DocumentationRow) => setToDelete(row), []);
     const openAddPageDialog = useCallback((parent: PortalNavigationFolder) => setPageToAdd({ parent }), []);
+    const openEditDetailsDialog = useCallback((page: PortalNavigationPage) => setPageToEdit(page), []);
+    const parentOfPageToEdit = items.find(
+        (item): item is PortalNavigationFolder => item.type === 'FOLDER' && item.id === pageToEdit?.parentId,
+    );
 
     async function handleDelete() {
         if (!toDelete) return;
@@ -133,6 +140,8 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     onDelete={openDeleteDialog}
                     canAdd={canAdd}
                     onAddPage={openAddPageDialog}
+                    canEdit={canEdit}
+                    onEditDetails={openEditDetailsDialog}
                 />
             )}
 
@@ -160,6 +169,16 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                     navigate(`${pageId}/edit`);
                 }}
             />
+
+            {pageToEdit ? (
+                <EditPageDetailsDialog
+                    open
+                    apiId={apiId}
+                    page={pageToEdit}
+                    parent={parentOfPageToEdit}
+                    onClose={() => setPageToEdit(null)}
+                />
+            ) : null}
         </div>
     );
 }
