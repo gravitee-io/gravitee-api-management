@@ -193,7 +193,7 @@ this repository, which is why the inventory had missed them:
 - [ ] The chart is on the OCI registry under `apim-<revision>-alpha.1.tgz`, and names that version in
       both `version` and `appVersion`.
 - [ ] The `cloud-apim` pull request is open, and merged once reviewed.
-- [ ] The Google OAuth client carries the four redirect URIs and two origins of the new environment.
+- [ ] The Google OAuth client carries the redirect URIs and origins step 07 prints for the new environment.
 - [ ] The new branch's four schedules exist, at the hours step 08 declares, and none is duplicated.
       A schedule answered `s` is created by nobody, and nothing says so afterwards — this is the check that catches it.
 - [ ] A release from the new branch is possible — `yarn prepare_distribution_release --version=… --dry-run`
