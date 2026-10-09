@@ -15,7 +15,7 @@
  */
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
@@ -124,6 +124,7 @@ function renderPage(pageId = 'getting-started') {
             </MemoryRouter>
         </QueryClientProvider>,
     );
+    return queryClient;
 }
 
 async function editor() {
@@ -272,6 +273,26 @@ describe('ApiDocumentationEditPage', () => {
             expect(notify.error).toHaveBeenCalledWith(serverError, "Failed to save 'Getting started'");
             expect((await editor()).value).toBe('# Getting started!');
             expect(saveButton().disabled).toBe(false);
+        });
+
+        it('keeps the editor and its unsaved changes when reloading the documentation or the content fails', async () => {
+            const queryClient = renderPage();
+            await userEvent.type(await editor(), '!');
+
+            mockListApiDocumentation.mockRejectedValue(new ApimApiError(500, 'Internal error'));
+            mockGetContent.mockRejectedValue(new ApimApiError(500, 'Internal error'));
+            await act(() => queryClient.refetchQueries());
+            // React Query tells the page about the failure on a later tick.
+            await act(() => new Promise(resolve => setTimeout(resolve, 0)));
+
+            expect(
+                queryClient
+                    .getQueryCache()
+                    .getAll()
+                    .map(query => query.state.status),
+            ).toEqual(['error', 'error']);
+            expect(screen.queryByText(/Failed to load/)).not.toBeInTheDocument();
+            expect((await editor()).value).toBe('# Getting started!');
         });
 
         it('goes back to the saved content on Discard', async () => {

@@ -61,7 +61,7 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     const page = items.find((item): item is PortalNavigationPage => item.id === pageId && item.type === 'PAGE');
     const content = useApiDocumentationPageContent(apiId, pageId, page !== undefined);
 
-    if (documentation.isError) {
+    if (documentation.isError && !documentation.data) {
         return <PageAlert message="Failed to load the documentation. Refresh the page." />;
     }
     if (documentation.isLoading || content.isLoading) {
@@ -75,7 +75,7 @@ function ApiDocumentationEditContent({ apiId, pageId }: Readonly<{ apiId: string
     if (!page) {
         return <PageAlert message="This page does not exist in the documentation of this API." />;
     }
-    if (content.isError || !content.data) {
+    if (!content.data) {
         return <PageAlert message="Failed to load the content of this page. Refresh the page." />;
     }
 

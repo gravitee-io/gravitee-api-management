@@ -68,6 +68,9 @@ export function useApiDocumentationPageContent(apiId: string, navId: string, ena
         queryKey: apiDocumentationKeys.content(envId, apiId, navId),
         queryFn: () => getApiDocumentationPageContent(envId, apiId, navId),
         enabled: Boolean(env && enabled),
+        // The editor copies the content into its draft once: a reload would move the saved content under the draft.
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
     });
 }
 
