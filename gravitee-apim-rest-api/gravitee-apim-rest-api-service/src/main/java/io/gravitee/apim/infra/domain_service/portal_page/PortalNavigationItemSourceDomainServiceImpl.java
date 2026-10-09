@@ -31,6 +31,7 @@ import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
+import io.gravitee.rest.api.fetcher.FetcherConfigurationAddress;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.UrlForbiddenException;
@@ -164,9 +165,9 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
     }
 
     /**
-     * Restores stored secrets only within the same source type: a placeholder sent against another
-     * fetcher would otherwise hand that fetcher the previous one's credentials. Across a type change
-     * the placeholder is left unresolved, and validation rejects it.
+     * Restores stored secrets only within the same source type and address: a placeholder sent against
+     * another fetcher or address would otherwise hand the previous credentials to whoever answers there.
+     * In those cases the placeholder is left unresolved, and validation rejects it.
      */
     @Override
     public void mergeSensitiveData(PortalNavigationItemSource oldSource, PortalNavigationItemSource newSource) {
@@ -180,11 +181,18 @@ public class PortalNavigationItemSourceDomainServiceImpl implements PortalNaviga
             }
             var updated = (ObjectNode) JSON_MAPPER.readTree(newSource.getSourceConfiguration());
             var original = (ObjectNode) JSON_MAPPER.readTree(oldSource.getSourceConfiguration());
+            var sameAddress = FetcherConfigurationAddress.sameAddress(
+                oldSource.getSourceConfiguration(),
+                newSource.getSourceConfiguration()
+            );
             boolean merged = false;
             for (String key : sensitiveKeys) {
                 var value = updated.get(key);
                 if (value != null && value.isTextual() && SENSITIVE_DATA_REPLACEMENT.equals(value.textValue())) {
                     var originalValue = original.get(key);
+                    if (!sameAddress && originalValue != null && !originalValue.isNull()) {
+                        continue;
+                    }
                     if (originalValue != null) {
                         updated.set(key, originalValue);
                     } else {
