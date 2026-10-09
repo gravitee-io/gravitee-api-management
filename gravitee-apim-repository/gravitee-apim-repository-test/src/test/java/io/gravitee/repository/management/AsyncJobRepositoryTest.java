@@ -167,6 +167,11 @@ public class AsyncJobRepositoryTest extends AbstractManagementRepositoryTest {
         assertThat(asyncJobRepository.findPendingJobFor("unknown")).isNotPresent();
     }
 
+    @Test
+    public void should_not_return_partial_job_as_pending() throws TechnicalException {
+        assertThat(asyncJobRepository.findPendingJobFor("progress-source-id")).isEmpty();
+    }
+
     // Search
     @Test
     public void should_search_with_1_criteria() throws TechnicalException {

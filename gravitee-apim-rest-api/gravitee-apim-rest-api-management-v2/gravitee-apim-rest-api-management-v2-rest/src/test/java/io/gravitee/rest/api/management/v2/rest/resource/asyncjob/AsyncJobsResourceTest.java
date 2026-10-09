@@ -17,12 +17,14 @@ package io.gravitee.rest.api.management.v2.rest.resource.asyncjob;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AsyncJobFixture;
 import inmemory.AsyncJobCrudServiceInMemory;
 import io.gravitee.apim.core.async_job.model.AsyncJobError;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJob;
+import io.gravitee.rest.api.management.v2.rest.model.AsyncJobStatus;
 import io.gravitee.rest.api.management.v2.rest.model.AsyncJobsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -115,6 +117,18 @@ class AsyncJobsResourceTest extends AbstractResourceTest {
 
         assertThat(response.getStatus()).isEqualTo(OK_200);
         assertThat(response.readEntity(AsyncJobsResponse.class).getData()).extracting(AsyncJob::getId).containsExactly("job-1");
+    }
+
+    @Test
+    void should_filter_partial_jobs() {
+        asyncJobCrudServiceInMemory.initWith(List.of(aJobOfCurrentUser("job-1").partial(), aJobOfCurrentUser("job-2").complete()));
+
+        var response = rootTarget().queryParam("status", "PARTIAL").request().get();
+
+        assertThat(response.getStatus()).isEqualTo(OK_200);
+        assertThat(response.readEntity(AsyncJobsResponse.class).getData())
+            .extracting(AsyncJob::getId, AsyncJob::getStatus)
+            .containsExactly(tuple("job-1", AsyncJobStatus.PARTIAL));
     }
 
     @Test
