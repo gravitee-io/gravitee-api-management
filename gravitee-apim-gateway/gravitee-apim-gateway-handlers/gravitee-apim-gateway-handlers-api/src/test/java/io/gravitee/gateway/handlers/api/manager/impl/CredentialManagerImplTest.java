@@ -225,6 +225,6 @@ class CredentialManagerImplTest {
     }
 
     private static DeployedCredential credential(String id, String environmentId, String encryptedSecret, long updatedAt) {
-        return new DeployedCredential(id, environmentId, "org-1", Set.of("api-1"), encryptedSecret, updatedAt);
+        return new DeployedCredential(id, environmentId, "org-1", Set.of("api-1"), null, encryptedSecret, updatedAt);
     }
 }

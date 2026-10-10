@@ -24,6 +24,7 @@ import io.gravitee.gateway.core.component.ComponentProvider;
 import io.gravitee.gateway.core.component.CompositeComponentProvider;
 import io.gravitee.gateway.core.component.CustomComponentProvider;
 import io.gravitee.gateway.dictionary.DictionaryManager;
+import io.gravitee.gateway.handlers.api.manager.CredentialDestinations;
 import io.gravitee.gateway.handlers.api.manager.CredentialResolver;
 import io.gravitee.gateway.policy.PolicyConfigurationFactory;
 import io.gravitee.gateway.policy.impl.CachedPolicyConfigurationFactory;
@@ -166,7 +167,12 @@ public abstract class AbstractReactorFactory<T extends ReactableApi<? extends Ab
             .map(name -> applicationContext.getBean(name, CredentialResolver.class))
             .ifPresent(credentialResolver ->
                 templateVariableProviders.add(
-                    new CredentialsTemplateVariableProvider(reactableApi.getEnvironmentId(), reactableApi.getId(), credentialResolver)
+                    new CredentialsTemplateVariableProvider(
+                        reactableApi.getEnvironmentId(),
+                        reactableApi.getId(),
+                        CredentialDestinations.of(reactableApi.getDefinition()),
+                        credentialResolver
+                    )
                 )
             );
         List<TemplateVariableProvider> list = Stream.of(

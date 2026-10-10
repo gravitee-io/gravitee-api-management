@@ -22,6 +22,7 @@ import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.secrets.api.el.SecretFieldAccessControl;
 import java.security.GeneralSecurityException;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Resolves one field of a credential deployed to the gateway.
@@ -29,7 +30,9 @@ import java.util.Map;
  * <p>A credential is only resolved while a secret field is being evaluated, which is what the
  * {@link SecretFieldAccessControl} marker says. Anywhere else the resolution is refused, so an expression in an
  * arbitrary policy cannot read a credential. Only the APIs listed on the credential may resolve it, so a reference
- * copied into another API is refused as well. The secret is decrypted on each resolution and never kept in clear text.
+ * copied into another API is refused as well. When the credential also lists the origins it may be sent to, an API whose
+ * endpoints referencing it point anywhere else is refused, so a reference cannot be retargeted by editing the API. The
+ * secret is decrypted on each resolution and never kept in clear text.
  */
 public class CredentialResolver {
 
@@ -48,13 +51,21 @@ public class CredentialResolver {
     /**
      * @param environmentId the environment of the API asking for the credential
      * @param apiId the id of the API asking for the credential
+     * @param apiDestinations where the deployed API sends each credential it references
      * @param credentialId the id of the credential
      * @param field the name of the field to return, e.g. {@code clientSecret}
      * @param accessControl the marker set while a secret field is evaluated, or {@code null} outside one
      * @return the value of the field
      * @throws CredentialResolutionException when the resolution is refused, or the credential or field cannot be found or read
      */
-    public String resolve(String environmentId, String apiId, String credentialId, String field, SecretFieldAccessControl accessControl) {
+    public String resolve(
+        String environmentId,
+        String apiId,
+        CredentialDestinations apiDestinations,
+        String credentialId,
+        String field,
+        SecretFieldAccessControl accessControl
+    ) {
         if (accessControl == null || !accessControl.allowed()) {
             throw new CredentialResolutionException("Credential [%s] can only be resolved in a secret field".formatted(credentialId));
         }
@@ -67,6 +78,13 @@ public class CredentialResolver {
 
         if (apiId == null || !credential.allowedApiIds().contains(apiId)) {
             throw new CredentialResolutionException("Credential [%s] is not allowed for API [%s]".formatted(credentialId, apiId));
+        }
+
+        Set<String> allowedTargets = credential.allowedTargets();
+        if (allowedTargets != null && (apiDestinations == null || !apiDestinations.onlyReach(credentialId, allowedTargets))) {
+            throw new CredentialResolutionException(
+                "Credential [%s] is not allowed for the endpoints of API [%s]".formatted(credentialId, apiId)
+            );
         }
 
         if (decrypt(credential).get(field) instanceof String value) {

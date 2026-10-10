@@ -63,6 +63,7 @@ public class CredentialMapper {
                     .environmentId(payload.environmentId())
                     .organizationId(payload.organizationId())
                     .allowedApiIds(payload.allowedApiIds() == null ? Set.of() : Set.copyOf(payload.allowedApiIds()))
+                    .allowedTargets(payload.allowedTargets() == null ? null : Set.copyOf(payload.allowedTargets()))
                     .encryptedSecret(payload.encryptedSecret())
                     .updatedAt(payload.updatedAt())
                     .syncAction(syncAction)
@@ -90,6 +91,7 @@ public class CredentialMapper {
                                 deployable.environmentId(),
                                 deployable.organizationId(),
                                 deployable.allowedApiIds(),
+                                deployable.allowedTargets(),
                                 deployable.encryptedSecret(),
                                 deployable.updatedAt()
                             )
@@ -113,6 +115,7 @@ public class CredentialMapper {
         String environmentId,
         String organizationId,
         Set<String> allowedApiIds,
+        Set<String> allowedTargets,
         String encryptedSecret,
         long updatedAt
     ) {}

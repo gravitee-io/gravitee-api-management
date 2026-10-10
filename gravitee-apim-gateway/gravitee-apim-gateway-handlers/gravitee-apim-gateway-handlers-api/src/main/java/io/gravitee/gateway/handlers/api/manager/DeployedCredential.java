@@ -24,6 +24,7 @@ import java.util.Set;
  * @param environmentId the environment the credential belongs to
  * @param organizationId the organization of that environment, used for the license check
  * @param allowedApiIds the ids of the APIs allowed to resolve the credential; empty when no API is
+ * @param allowedTargets the origins the credential may be sent to; {@code null} when its publisher does not restrict them
  * @param encryptedSecret the secret, still encrypted with {@code api.properties.encryption.secret}
  * @param updatedAt when the credential was last changed, in epoch milliseconds
  */
@@ -32,11 +33,13 @@ public record DeployedCredential(
     String environmentId,
     String organizationId,
     Set<String> allowedApiIds,
+    Set<String> allowedTargets,
     String encryptedSecret,
     long updatedAt
 ) {
     public DeployedCredential {
         allowedApiIds = allowedApiIds == null ? Set.of() : Set.copyOf(allowedApiIds);
+        allowedTargets = allowedTargets == null ? null : Set.copyOf(allowedTargets);
     }
 
     @Override
@@ -50,6 +53,8 @@ public record DeployedCredential(
             organizationId +
             ", allowedApiIds=" +
             allowedApiIds +
+            ", allowedTargets=" +
+            allowedTargets +
             ", encryptedSecret=***, updatedAt=" +
             updatedAt +
             "]"

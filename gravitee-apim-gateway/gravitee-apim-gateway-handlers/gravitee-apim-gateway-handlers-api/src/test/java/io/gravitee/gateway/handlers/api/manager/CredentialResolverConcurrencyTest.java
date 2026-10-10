@@ -83,7 +83,7 @@ class CredentialResolverConcurrencyTest {
                         barrier.await();
                         for (int i = 0; i < RESOLUTIONS_PER_THREAD; i++) {
                             String id = ids.get((thread + i) % ids.size());
-                            String value = resolver.resolve("env-1", "api-1", id, "clientSecret", SECRET_FIELD);
+                            String value = resolver.resolve("env-1", "api-1", null, id, "clientSecret", SECRET_FIELD);
                             if (!secretsById.get(id).equals(value)) {
                                 mismatches.add(id + " resolved to " + value);
                             }
@@ -108,7 +108,7 @@ class CredentialResolverConcurrencyTest {
         Map<String, DeployedCredential> deployed = new HashMap<>();
         for (Map.Entry<String, String> entry : secretsById.entrySet()) {
             String encrypted = dataEncryptor.encrypt("{\"clientSecret\": \"" + entry.getValue() + "\"}");
-            deployed.put(entry.getKey(), new DeployedCredential(entry.getKey(), "env-1", "org-1", Set.of("api-1"), encrypted, 1L));
+            deployed.put(entry.getKey(), new DeployedCredential(entry.getKey(), "env-1", "org-1", Set.of("api-1"), null, encrypted, 1L));
         }
         return Map.copyOf(deployed);
     }

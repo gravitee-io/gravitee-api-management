@@ -62,7 +62,15 @@ class CredentialDeployerTest {
             cut.deploy(deployable(SyncAction.DEPLOY)).test().assertComplete();
 
             verify(credentialManager).deploy(
-                new DeployedCredential("credential-1", "env-1", "org-1", Set.of("api-1"), "ciphertext", 1234L)
+                new DeployedCredential(
+                    "credential-1",
+                    "env-1",
+                    "org-1",
+                    Set.of("api-1"),
+                    Set.of("https://api.openai.com:443"),
+                    "ciphertext",
+                    1234L
+                )
             );
         }
 
@@ -118,6 +126,7 @@ class CredentialDeployerTest {
             .environmentId("env-1")
             .organizationId("org-1")
             .allowedApiIds(Set.of("api-1"))
+            .allowedTargets(Set.of("https://api.openai.com:443"))
             .encryptedSecret("ciphertext")
             .updatedAt(1234L)
             .syncAction(syncAction)

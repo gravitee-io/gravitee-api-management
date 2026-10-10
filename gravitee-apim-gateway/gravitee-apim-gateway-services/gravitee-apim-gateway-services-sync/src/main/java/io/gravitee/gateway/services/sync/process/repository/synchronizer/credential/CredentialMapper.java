@@ -42,6 +42,7 @@ public class CredentialMapper {
                     .credentialId(wire.getId())
                     .environmentId(wire.getEnvironmentId())
                     .allowedApiIds(wire.getAllowedApiIds() == null ? Set.of() : Set.copyOf(wire.getAllowedApiIds()))
+                    .allowedTargets(wire.getAllowedTargets() == null ? null : Set.copyOf(wire.getAllowedTargets()))
                     .encryptedSecret(wire.getEncryptedSecret())
                     .updatedAt(event.getUpdatedAt() != null ? event.getUpdatedAt().getTime() : 0L)
                     .syncAction(SyncAction.DEPLOY)
