@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getGroupMembers, searchEnvironmentGroupsByIds } from './groupMembers';
+import { getGroupMembers, listEnvironmentGroups, searchEnvironmentGroupsByIds } from './groupMembers';
 import { apimFetchJsonV2 } from '../../../shared/api/apimClient';
 
 jest.mock('../../../shared/api/apimClient', () => ({
@@ -61,6 +61,38 @@ describe('environment group search service', () => {
         mockApimFetchJsonV2.mockResolvedValue({});
 
         const groups = await searchEnvironmentGroupsByIds('env-1', ['g1']);
+
+        expect(groups).toEqual([]);
+    });
+});
+
+describe('environment group listing service', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('lists every group of the environment in a single page', async () => {
+        mockApimFetchJsonV2.mockResolvedValue({
+            data: [
+                { id: 'g1', name: 'Group 1' },
+                { id: 'g2', name: 'Group 2' },
+            ],
+        });
+
+        const groups = await listEnvironmentGroups('env-1');
+
+        expect(mockApimFetchJsonV2).toHaveBeenCalledTimes(1);
+        expect(mockApimFetchJsonV2).toHaveBeenCalledWith('env-1', '/groups?page=1&perPage=9999');
+        expect(groups).toEqual([
+            { id: 'g1', name: 'Group 1' },
+            { id: 'g2', name: 'Group 2' },
+        ]);
+    });
+
+    it('resolves to no groups when the listing response has no data', async () => {
+        mockApimFetchJsonV2.mockResolvedValue({});
+
+        const groups = await listEnvironmentGroups('env-1');
 
         expect(groups).toEqual([]);
     });

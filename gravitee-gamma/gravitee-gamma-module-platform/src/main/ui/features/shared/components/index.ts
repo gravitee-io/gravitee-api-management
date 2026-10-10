@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export { AddMembersSheet } from './AddMembersSheet';
 export { ChipInput } from './ChipInput';
 export { FeatureTile } from './FeatureTile';
 export { GroupMembersSection } from './GroupMembersSection';
+export { ManageGroupsSheet } from './ManageGroupsSheet';
 export { MemberAvatar } from './MemberAvatar';

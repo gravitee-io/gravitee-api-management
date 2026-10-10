@@ -20,9 +20,22 @@ export interface IntegrationMemberRole {
 }
 
 export interface IntegrationMember {
-    id?: string;
+    id: string;
     displayName?: string;
     roles?: IntegrationMemberRole[];
+}
+
+export interface AddIntegrationMember {
+    userId?: string;
+    externalReference: string;
+    roleName: string;
+}
+
+export type IntegrationMemberEditState = { memberId: string; role: string } | null;
+
+export interface IntegrationRole {
+    name: string;
+    default?: boolean;
 }
 
 export interface IntegrationMembersResponse {

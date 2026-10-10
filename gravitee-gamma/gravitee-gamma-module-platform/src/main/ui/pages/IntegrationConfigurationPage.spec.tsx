@@ -16,7 +16,7 @@
 
 import { dataTableHarness, renderWithGraphene } from '@gravitee/graphene-core/testing';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { act, screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
@@ -25,17 +25,30 @@ import { useIntegrationGroupMembers, type IntegrationGroupMembersView } from '..
 import { useIntegrationMembers } from '../features/integrations/hooks/useIntegrationMembers';
 import { getIntegration } from '../features/integrations/services/integrationDetail';
 import { getIntegrationPermissions } from '../features/integrations/services/integrationPermissions';
+import { updateIntegration } from '../features/integrations/services/integrationUpdate';
 import type { IntegrationMember } from '../features/integrations/types/integrationMembers';
 import {
     INTEGRATION_DEFINITION_DELETE_PERMISSION,
     INTEGRATION_DEFINITION_READ_PERMISSION,
     INTEGRATION_DEFINITION_UPDATE_PERMISSION,
+    INTEGRATION_MEMBER_CREATE_PERMISSION,
+    INTEGRATION_MEMBER_DELETE_PERMISSION,
     INTEGRATION_MEMBER_READ_PERMISSION,
+    INTEGRATION_MEMBER_UPDATE_PERMISSION,
 } from '../features/integrations/utils/integrationPermissions';
+import { listEnvironmentGroups } from '../features/shared/services/groupMembers';
 import { ApimApiError } from '../shared/api/apimClient';
 import { notify } from '../shared/notify';
+import { extractErrorMessage } from '../shared/notify/extractErrorMessage';
 
 jest.mock('../features/integrations/services/integrationDetail', () => ({ getIntegration: jest.fn() }));
+jest.mock('../features/integrations/services/integrationUpdate', () => ({ updateIntegration: jest.fn() }));
+jest.mock('../features/shared/services/groupMembers', () => ({ listEnvironmentGroups: jest.fn() }));
+jest.mock('../features/integrations/services/integrationMembers', () => ({
+    listIntegrationMembers: jest.fn(),
+    listIntegrationRoles: jest.fn().mockResolvedValue([]),
+    addIntegrationMember: jest.fn(),
+}));
 jest.mock('../features/integrations/services/integrationPermissions', () => ({ getIntegrationPermissions: jest.fn() }));
 jest.mock('../features/integrations/components/IntegrationDangerZone', () => ({
     IntegrationDangerZone: ({ integrationId }: { integrationId: string }) => <section>Danger Zone of {integrationId}</section>,
@@ -46,7 +59,10 @@ jest.mock('../shared/notify', () => ({ notify: { success: jest.fn(), error: jest
 
 const mockGetIntegration = jest.mocked(getIntegration);
 const mockGetIntegrationPermissions = jest.mocked(getIntegrationPermissions);
+const mockUpdateIntegration = jest.mocked(updateIntegration);
+const mockListEnvironmentGroups = jest.mocked(listEnvironmentGroups);
 const mockNotifyError = jest.mocked(notify.error);
+const mockNotifySuccess = jest.mocked(notify.success);
 const mockUseIntegrationMembers = jest.mocked(useIntegrationMembers);
 const mockUseIntegrationGroupMembers = jest.mocked(useIntegrationGroupMembers);
 
@@ -59,6 +75,10 @@ function groupMembersResult(views: IntegrationGroupMembersView[]): ReturnType<ty
 }
 
 beforeAll(() => {
+    Element.prototype.hasPointerCapture = jest.fn();
+    Element.prototype.setPointerCapture = jest.fn();
+    Element.prototype.releasePointerCapture = jest.fn();
+    Element.prototype.scrollIntoView = jest.fn();
     Object.defineProperty(window, 'matchMedia', {
         writable: true,
         value: jest.fn().mockImplementation((query: string) => ({
@@ -104,6 +124,16 @@ function renderPage(initialPath = '/integrations/int-1/configuration') {
     return queryClient;
 }
 
+async function isMemberActionOffered(user: ReturnType<typeof userEvent.setup>, displayName: string, actionName: string) {
+    const memberActions = within(dataTableHarness().getRow(displayName).getElement()).queryByRole('button', { name: 'Member actions' });
+    if (memberActions === null) {
+        return false;
+    }
+    await user.click(memberActions);
+    await screen.findByRole('menu');
+    return screen.queryByRole('menuitem', { name: actionName }) !== null;
+}
+
 async function waitForIntegrationAndPermissionsToLoad() {
     await waitFor(() => expect(mockGetIntegration).toHaveBeenCalledWith('DEFAULT', 'int-1'));
     await waitFor(() => expect(mockGetIntegrationPermissions).toHaveBeenCalledWith('DEFAULT', 'int-1'));
@@ -136,6 +166,100 @@ describe('IntegrationConfigurationPage', () => {
             .map(row => row.getCellText('Name'));
 
         expect(names).toEqual([expect.stringContaining('Charlie'), expect.stringContaining('Alice'), expect.stringContaining('Bob')]);
+    });
+
+    it.each([
+        [
+            'offers no',
+            'can read but not add integration members',
+            [INTEGRATION_DEFINITION_READ_PERMISSION, INTEGRATION_MEMBER_READ_PERMISSION],
+            false,
+        ],
+        [
+            'offers an',
+            'can add integration members',
+            [INTEGRATION_DEFINITION_READ_PERMISSION, INTEGRATION_MEMBER_READ_PERMISSION, INTEGRATION_MEMBER_CREATE_PERMISSION],
+            true,
+        ],
+    ])('%s Add members action next to the Direct Members table to a user who %s', async (_offers, _who, permissions, offered) => {
+        mockGetIntegrationPermissions.mockResolvedValue(permissions);
+        mockUseIntegrationMembers.mockReturnValue(
+            directMembersResult([{ id: 'user-1', displayName: 'Alice', roles: [{ name: 'OWNER', scope: 'INTEGRATION' }] }]),
+        );
+
+        renderPage('/integrations/int-1/configuration/members');
+        await screen.findByRole('table');
+
+        expect(screen.queryByRole('button', { name: 'Add members' }) !== null).toBe(offered);
+    });
+
+    it.each([
+        [
+            'offers no',
+            'Edit role',
+            'can read but not update integration members',
+            [INTEGRATION_DEFINITION_READ_PERMISSION, INTEGRATION_MEMBER_READ_PERMISSION],
+            false,
+        ],
+        [
+            'offers no',
+            'Edit role',
+            'can read, add and remove but not update integration members',
+            [
+                INTEGRATION_DEFINITION_READ_PERMISSION,
+                INTEGRATION_MEMBER_READ_PERMISSION,
+                INTEGRATION_MEMBER_CREATE_PERMISSION,
+                INTEGRATION_MEMBER_DELETE_PERMISSION,
+            ],
+            false,
+        ],
+        [
+            'offers an',
+            'Edit role',
+            'can update integration members',
+            [INTEGRATION_DEFINITION_READ_PERMISSION, INTEGRATION_MEMBER_READ_PERMISSION, INTEGRATION_MEMBER_UPDATE_PERMISSION],
+            true,
+        ],
+        [
+            'offers no',
+            'Remove member',
+            'can read but not remove integration members',
+            [INTEGRATION_DEFINITION_READ_PERMISSION, INTEGRATION_MEMBER_READ_PERMISSION],
+            false,
+        ],
+        [
+            'offers no',
+            'Remove member',
+            'can read, add and update but not remove integration members',
+            [
+                INTEGRATION_DEFINITION_READ_PERMISSION,
+                INTEGRATION_MEMBER_READ_PERMISSION,
+                INTEGRATION_MEMBER_CREATE_PERMISSION,
+                INTEGRATION_MEMBER_UPDATE_PERMISSION,
+            ],
+            false,
+        ],
+        [
+            'offers a',
+            'Remove member',
+            'can remove integration members',
+            [INTEGRATION_DEFINITION_READ_PERMISSION, INTEGRATION_MEMBER_READ_PERMISSION, INTEGRATION_MEMBER_DELETE_PERMISSION],
+            true,
+        ],
+    ])('%s %s action on a listed member row to a user who %s', async (_offers, actionName, _who, permissions, offered) => {
+        mockGetIntegrationPermissions.mockResolvedValue(permissions);
+        mockUseIntegrationMembers.mockReturnValue(
+            directMembersResult([
+                { id: 'user-jane', displayName: 'Jane Owner', roles: [{ name: 'PRIMARY_OWNER', scope: 'INTEGRATION' }] },
+                { id: 'user-bob', displayName: 'Bob Reader', roles: [{ name: 'USER', scope: 'INTEGRATION' }] },
+            ]),
+        );
+        const user = userEvent.setup();
+
+        renderPage('/integrations/int-1/configuration/members');
+        await screen.findByRole('table');
+
+        expect(await isMemberActionOffered(user, 'Bob Reader', actionName)).toBe(offered);
     });
 
     it("lists each inherited member of an associated group with the member's integration role on the User Permissions tab", async () => {
@@ -400,5 +524,210 @@ describe('IntegrationConfigurationPage', () => {
         expect(names).toEqual([expect.stringContaining('Alice')]);
         expect(screen.queryByText('Group Inherited Members')).toBeNull();
         expect(mockUseIntegrationGroupMembers).not.toHaveBeenCalled();
+    });
+
+    describe('Manage groups', () => {
+        const MEMBERS_PATH = '/integrations/int-1/configuration/members';
+
+        beforeEach(() => {
+            mockGetIntegrationPermissions.mockResolvedValue([
+                INTEGRATION_DEFINITION_READ_PERMISSION,
+                INTEGRATION_DEFINITION_UPDATE_PERMISSION,
+                INTEGRATION_MEMBER_READ_PERMISSION,
+            ]);
+        });
+
+        async function openManageGroups(user: ReturnType<typeof userEvent.setup>) {
+            await user.click(await screen.findByRole('button', { name: 'Manage groups' }));
+            return screen.findByRole('dialog');
+        }
+
+        async function closeManageGroups(user: ReturnType<typeof userEvent.setup>, sheet: HTMLElement) {
+            await user.click(within(sheet).getByRole('button', { name: 'Cancel' }));
+            await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+        }
+
+        function groupCheckbox(sheet: HTMLElement, groupName: string) {
+            return within(sheet).findByRole('checkbox', { name: new RegExp(`^${groupName}`) });
+        }
+
+        async function toggleGroups(user: ReturnType<typeof userEvent.setup>, sheet: HTMLElement, groupNames: string[]) {
+            for (const groupName of groupNames) {
+                await user.click(await groupCheckbox(sheet, groupName));
+            }
+        }
+
+        it('saves exactly the groups left selected, keeping the integration name and description unchanged', async () => {
+            mockGetIntegration.mockResolvedValue({
+                id: 'int-1',
+                name: 'Old name',
+                description: 'Old description',
+                provider: 'solace',
+                groups: ['group-a', 'group-b'],
+            });
+            mockListEnvironmentGroups.mockResolvedValue([
+                { id: 'group-a', name: 'group-a' },
+                { id: 'group-b', name: 'group-b' },
+                { id: 'group-c', name: 'group-c' },
+            ]);
+            mockUpdateIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: ['group-b', 'group-c'] });
+            const user = userEvent.setup();
+
+            renderPage(MEMBERS_PATH);
+            const sheet = await openManageGroups(user);
+            await toggleGroups(user, sheet, ['group-a', 'group-c']);
+            await user.click(within(sheet).getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => expect(mockUpdateIntegration).toHaveBeenCalledTimes(1));
+            const [environmentId, integrationId, request] = mockUpdateIntegration.mock.calls[0];
+            expect([environmentId, integrationId]).toEqual(['DEFAULT', 'int-1']);
+            expect({ ...request, groups: [...request.groups].sort() }).toEqual({
+                name: 'Old name',
+                description: 'Old description',
+                groups: ['group-b', 'group-c'],
+            });
+        });
+
+        it('keeps the associated groups and sends no update when the user dismisses the dialog without saving', async () => {
+            mockGetIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: ['group-a'] });
+            mockListEnvironmentGroups.mockResolvedValue([
+                { id: 'group-a', name: 'group-a' },
+                { id: 'group-b', name: 'group-b' },
+            ]);
+            const user = userEvent.setup();
+
+            renderPage(MEMBERS_PATH);
+            const sheet = await openManageGroups(user);
+            await toggleGroups(user, sheet, ['group-a', 'group-b']);
+            await closeManageGroups(user, sheet);
+            const reopenedSheet = await openManageGroups(user);
+
+            expect(mockUpdateIntegration).not.toHaveBeenCalled();
+            expect(await groupCheckbox(reopenedSheet, 'group-a')).toBeChecked();
+            expect(await groupCheckbox(reopenedSheet, 'group-b')).not.toBeChecked();
+        });
+
+        it('shows the API error message and keeps the associated groups when saving the selection fails', async () => {
+            mockGetIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: ['grp-a'] });
+            mockListEnvironmentGroups.mockResolvedValue([
+                { id: 'grp-a', name: 'Group A' },
+                { id: 'grp-b', name: 'Group B' },
+            ]);
+            mockUpdateIntegration.mockRejectedValue(
+                new ApimApiError(500, 'Integration update failed', { message: 'Integration update failed' }),
+            );
+            const user = userEvent.setup();
+
+            renderPage(MEMBERS_PATH);
+            const sheet = await openManageGroups(user);
+            await toggleGroups(user, sheet, ['Group A', 'Group B']);
+            await user.click(within(sheet).getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => expect(mockNotifyError).toHaveBeenCalledTimes(1));
+            const [error, fallback] = mockNotifyError.mock.calls[0];
+            expect(extractErrorMessage(error, fallback)).toBe('Integration update failed');
+
+            await closeManageGroups(user, sheet);
+            const reopenedSheet = await openManageGroups(user);
+            expect(mockUpdateIntegration).toHaveBeenCalledTimes(1);
+            expect(await groupCheckbox(reopenedSheet, 'Group A')).toBeChecked();
+            expect(await groupCheckbox(reopenedSheet, 'Group B')).not.toBeChecked();
+        });
+
+        it('shows the Manage groups action disabled to a user who can add integration members but not update the integration', async () => {
+            mockGetIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: [] });
+            mockGetIntegrationPermissions.mockResolvedValue([
+                INTEGRATION_DEFINITION_READ_PERMISSION,
+                INTEGRATION_MEMBER_READ_PERMISSION,
+                INTEGRATION_MEMBER_CREATE_PERMISSION,
+            ]);
+            mockListEnvironmentGroups.mockResolvedValue([{ id: 'grp-a', name: 'Group A' }]);
+
+            renderPage(MEMBERS_PATH);
+
+            expect(await screen.findByRole('button', { name: 'Manage groups' })).toBeDisabled();
+        });
+
+        it('does not list the environment groups for a user who can add integration members but not update the integration', async () => {
+            mockGetIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: [] });
+            mockGetIntegrationPermissions.mockResolvedValue([
+                INTEGRATION_DEFINITION_READ_PERMISSION,
+                INTEGRATION_MEMBER_READ_PERMISSION,
+                INTEGRATION_MEMBER_CREATE_PERMISSION,
+            ]);
+            mockListEnvironmentGroups.mockResolvedValue([{ id: 'grp-a', name: 'Group A' }]);
+
+            renderPage(MEMBERS_PATH);
+            expect(await screen.findByRole('button', { name: 'Manage groups' })).toBeDisabled();
+            await waitForIntegrationAndPermissionsToLoad();
+
+            expect(mockListEnvironmentGroups).not.toHaveBeenCalled();
+        });
+
+        it('closes the sheet and confirms the save when saving the selection succeeds', async () => {
+            mockGetIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: [] });
+            mockListEnvironmentGroups.mockResolvedValue([{ id: 'grp-a', name: 'Group A' }]);
+            mockUpdateIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: ['grp-a'] });
+            const user = userEvent.setup();
+
+            renderPage(MEMBERS_PATH);
+            const sheet = await openManageGroups(user);
+            await toggleGroups(user, sheet, ['Group A']);
+            await user.click(within(sheet).getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+            expect(mockNotifySuccess).toHaveBeenCalledWith('Changes successfully saved!');
+        });
+
+        it('saves an empty description and only the selected group for an integration with no description and no groups field', async () => {
+            mockGetIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace' });
+            mockListEnvironmentGroups.mockResolvedValue([{ id: 'grp-a', name: 'Group A' }]);
+            mockUpdateIntegration.mockResolvedValue({ id: 'int-1', name: 'Old name', provider: 'solace', groups: ['grp-a'] });
+            const user = userEvent.setup();
+
+            renderPage(MEMBERS_PATH);
+            const sheet = await openManageGroups(user);
+            await toggleGroups(user, sheet, ['Group A']);
+            await user.click(within(sheet).getByRole('button', { name: 'Save' }));
+
+            await waitFor(() => expect(mockUpdateIntegration).toHaveBeenCalledTimes(1));
+            expect(mockUpdateIntegration).toHaveBeenCalledWith('DEFAULT', 'int-1', {
+                name: 'Old name',
+                description: '',
+                groups: ['grp-a'],
+            });
+        });
+
+        it.each([
+            ['an empty groups list', { id: 'int-1', name: 'Old name', provider: 'solace', groups: [] }],
+            ['no groups field', { id: 'int-1', name: 'Old name', provider: 'solace' }],
+        ])("keeps the sheet open with the user's selection when saving fails for an integration with %s", async (_variant, integration) => {
+            mockGetIntegration.mockResolvedValue(integration);
+            mockListEnvironmentGroups.mockResolvedValue([{ id: 'grp-a', name: 'Group A' }]);
+            mockUpdateIntegration.mockRejectedValue(new ApimApiError(500, 'Integration update failed'));
+            const user = userEvent.setup();
+
+            renderPage(MEMBERS_PATH);
+            const sheet = await openManageGroups(user);
+            await toggleGroups(user, sheet, ['Group A']);
+            await user.click(within(sheet).getByRole('button', { name: 'Save' }));
+            await waitFor(() => expect(mockNotifyError).toHaveBeenCalledTimes(1));
+
+            expect(screen.getByRole('dialog')).toBe(sheet);
+            expect(await groupCheckbox(sheet, 'Group A')).toBeChecked();
+        });
+
+        it('shows no Manage groups action while the integration is loading', async () => {
+            mockGetIntegration.mockReturnValue(new Promise(() => {}));
+            mockListEnvironmentGroups.mockResolvedValue([{ id: 'grp-a', name: 'Group A' }]);
+            mockUseIntegrationMembers.mockReturnValue(
+                directMembersResult([{ id: 'user-1', displayName: 'Alice', roles: [{ name: 'OWNER', scope: 'INTEGRATION' }] }]),
+            );
+
+            renderPage(MEMBERS_PATH);
+            await screen.findByRole('table');
+
+            expect(screen.queryByRole('button', { name: 'Manage groups' })).toBeNull();
+        });
     });
 });

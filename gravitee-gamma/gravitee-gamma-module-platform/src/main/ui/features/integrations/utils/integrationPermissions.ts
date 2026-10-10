@@ -19,6 +19,9 @@ export const INTEGRATION_DEFINITION_READ_PERMISSION = 'integration-definition-r'
 export const INTEGRATION_DEFINITION_UPDATE_PERMISSION = 'integration-definition-u' as const;
 export const INTEGRATION_DEFINITION_DELETE_PERMISSION = 'integration-definition-d' as const;
 export const INTEGRATION_MEMBER_READ_PERMISSION = 'integration-member-r' as const;
+export const INTEGRATION_MEMBER_CREATE_PERMISSION = 'integration-member-c' as const;
+export const INTEGRATION_MEMBER_UPDATE_PERMISSION = 'integration-member-u' as const;
+export const INTEGRATION_MEMBER_DELETE_PERMISSION = 'integration-member-d' as const;
 export const ENVIRONMENT_API_DELETE_PERMISSION = 'environment-api-d' as const;
 export const INTEGRATION_CONFIGURATION_PERMISSIONS = [
     INTEGRATION_DEFINITION_UPDATE_PERMISSION,

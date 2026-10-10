@@ -38,10 +38,8 @@ import { useParams } from 'react-router-dom';
 
 import { useEnvironment, useHasPermission } from '@gravitee/gamma-modules-sdk';
 
-import { AddMembersSheet } from '../features/applications/components/user-permissions/AddMembersSheet';
 import { DirectMembersTable } from '../features/applications/components/user-permissions/DirectMembersTable';
-import { ManageGroupsSheet } from '../features/applications/components/user-permissions/ManageGroupsSheet';
-import { formatAddMembersResultMessage, getApplicationRole } from '../features/applications/components/user-permissions/memberHelpers';
+import { getApplicationRole } from '../features/applications/components/user-permissions/memberHelpers';
 import { RemoveMemberDialog } from '../features/applications/components/user-permissions/RemoveMemberDialog';
 import { TransferOwnershipSheet } from '../features/applications/components/user-permissions/TransferOwnershipSheet';
 import { useApplicationDetailContext } from '../features/applications/context/ApplicationDetailContext';
@@ -68,19 +66,10 @@ import type {
 } from '../features/applications/types/applicationMembers.types';
 import { toApplicationMemberEntity } from '../features/applications/utils/applicationMemberMapper';
 import { applicationDetailKeys, applicationMemberKeys } from '../features/applications/utils/queryKeys';
-import { GroupMembersSection } from '../features/shared/components';
+import { AddMembersSheet, GroupMembersSection, ManageGroupsSheet } from '../features/shared/components';
+import { AddMembersFailedError, throwIfAnyAddFailed } from '../features/shared/utils/addMembersResult';
 import { notify } from '../shared/notify';
 import type { SearchableUser } from '../shared/types/userSearch';
-
-class AddMembersMutationError extends Error {
-    public readonly succeededCount: number;
-
-    constructor(message: string, succeededCount: number) {
-        super(message);
-        this.name = 'AddMembersMutationError';
-        this.succeededCount = succeededCount;
-    }
-}
 
 export function ApplicationUserPermissionsPage() {
     const { applicationId } = useParams<{ applicationId: string }>();
@@ -132,21 +121,7 @@ export function ApplicationUserPermissionsPage() {
                 ),
             );
 
-            let succeededCount = 0;
-            const failed: { user: SearchableUser; reason: string }[] = [];
-
-            results.forEach((result, index) => {
-                if (result.status === 'fulfilled') {
-                    succeededCount += 1;
-                } else {
-                    const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
-                    failed.push({ user: users[index]!, reason });
-                }
-            });
-
-            if (failed.length > 0) {
-                throw new AddMembersMutationError(formatAddMembersResultMessage(users.length, succeededCount, failed), succeededCount);
-            }
+            throwIfAnyAddFailed(users, results);
         },
         onSuccess: () => {
             if (env?.id && applicationId) {
@@ -157,7 +132,7 @@ export function ApplicationUserPermissionsPage() {
         },
         onError: error => {
             notify.error(error);
-            if (error instanceof AddMembersMutationError && error.succeededCount > 0 && env?.id && applicationId) {
+            if (error instanceof AddMembersFailedError && error.succeededCount > 0 && env?.id && applicationId) {
                 // Partial success: refresh the list even though the mutation is considered failed.
                 void queryClient.invalidateQueries({
                     queryKey: applicationMemberKeys.list(env.id, applicationId),
@@ -266,13 +241,9 @@ export function ApplicationUserPermissionsPage() {
 
     const handleAddMembers = useCallback(
         async (users: SearchableUser[], roleName: string) => {
-            try {
-                await addMutation.mutateAsync({ users, roleName });
-                notify.success('Changes successfully saved!');
-                setAddMembersOpen(false);
-            } catch {
-                // Error is surfaced via notify in addMutation.onError
-            }
+            await addMutation.mutateAsync({ users, roleName });
+            notify.success('Changes successfully saved!');
+            setAddMembersOpen(false);
         },
         [addMutation],
     );
@@ -436,10 +407,11 @@ export function ApplicationUserPermissionsPage() {
             />
             <AddMembersSheet
                 open={addMembersOpen}
+                description="Search for users by name or email and add them to this application."
                 roles={roleNames}
                 existingMembers={members}
                 onClose={() => setAddMembersOpen(false)}
-                onAdd={(users, roleName) => void handleAddMembers(users, roleName)}
+                onAdd={handleAddMembers}
                 isAdding={addMutation.isPending}
             />
             <TransferOwnershipSheet
@@ -459,6 +431,7 @@ export function ApplicationUserPermissionsPage() {
                 open={manageGroupsOpen}
                 allGroups={allGroups}
                 currentGroupIds={currentGroupIds}
+                description="Select the groups that should have access to this application."
                 onClose={() => setManageGroupsOpen(false)}
                 onSave={groupIds =>
                     groupsMutation.mutate(groupIds, {

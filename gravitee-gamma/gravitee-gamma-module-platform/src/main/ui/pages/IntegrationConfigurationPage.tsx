@@ -21,6 +21,7 @@ import { IntegrationDangerZone } from '../features/integrations/components/Integ
 import { IntegrationDirectMembers } from '../features/integrations/components/IntegrationDirectMembers';
 import { IntegrationGeneralInformationForm } from '../features/integrations/components/IntegrationGeneralInformationForm';
 import { IntegrationGroupInheritedMembers } from '../features/integrations/components/IntegrationGroupInheritedMembers';
+import { IntegrationManageGroups } from '../features/integrations/components/IntegrationManageGroups';
 import { useIntegration } from '../features/integrations/hooks/useIntegration';
 import { INTEGRATION_LOAD_ERROR_MESSAGE, useIntegrationLoadFailure } from '../features/integrations/hooks/useIntegrationLoadFailure';
 import { useIntegrationPermissions } from '../features/integrations/hooks/useIntegrationPermissions';
@@ -28,7 +29,10 @@ import { isA2aIntegration } from '../features/integrations/utils/integrationKind
 import {
     INTEGRATION_DEFINITION_DELETE_PERMISSION,
     INTEGRATION_DEFINITION_UPDATE_PERMISSION,
+    INTEGRATION_MEMBER_CREATE_PERMISSION,
+    INTEGRATION_MEMBER_DELETE_PERMISSION,
     INTEGRATION_MEMBER_READ_PERMISSION,
+    INTEGRATION_MEMBER_UPDATE_PERMISSION,
 } from '../features/integrations/utils/integrationPermissions';
 import { resolveListHrefFromDetailBasePath, useDetailBasePath } from '../features/shared/hooks/useDetailBasePath';
 
@@ -54,6 +58,9 @@ export function IntegrationConfigurationPage() {
     const canUpdate = Boolean(permissions?.includes(INTEGRATION_DEFINITION_UPDATE_PERMISSION));
     const canDelete = Boolean(permissions?.includes(INTEGRATION_DEFINITION_DELETE_PERMISSION));
     const canReadMembers = Boolean(permissions?.includes(INTEGRATION_MEMBER_READ_PERMISSION));
+    const canCreateMembers = Boolean(permissions?.includes(INTEGRATION_MEMBER_CREATE_PERMISSION));
+    const canUpdateMembers = Boolean(permissions?.includes(INTEGRATION_MEMBER_UPDATE_PERMISSION));
+    const canDeleteMembers = Boolean(permissions?.includes(INTEGRATION_MEMBER_DELETE_PERMISSION));
     const canSeeGeneral = !permissions || canUpdate || canDelete;
 
     function renderGeneralContent() {
@@ -101,7 +108,17 @@ export function IntegrationConfigurationPage() {
             {canReadMembers ? (
                 <TabsContent value="members">
                     <div className="space-y-6">
-                        <IntegrationDirectMembers integrationId={integrationId} />
+                        {integration ? (
+                            <div className="flex justify-end">
+                                <IntegrationManageGroups integration={integration} canSave={canUpdate} />
+                            </div>
+                        ) : null}
+                        <IntegrationDirectMembers
+                            integrationId={integrationId}
+                            canCreateMembers={canCreateMembers}
+                            canUpdateMembers={canUpdateMembers}
+                            canDeleteMembers={canDeleteMembers}
+                        />
                         {renderGroupInheritedMembers()}
                     </div>
                 </TabsContent>
