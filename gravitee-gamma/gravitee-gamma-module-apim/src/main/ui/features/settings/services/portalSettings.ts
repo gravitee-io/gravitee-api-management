@@ -17,6 +17,16 @@ import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 
 export interface EnvironmentPortalSettings {
     portal?: { entrypoint?: string };
+    plan?: {
+        security?: {
+            apikey?: { enabled?: boolean };
+            oauth2?: { enabled?: boolean };
+            jwt?: { enabled?: boolean };
+            mtls?: { enabled?: boolean };
+            keyless?: { enabled?: boolean };
+            push?: { enabled?: boolean };
+        };
+    };
 }
 
 /**

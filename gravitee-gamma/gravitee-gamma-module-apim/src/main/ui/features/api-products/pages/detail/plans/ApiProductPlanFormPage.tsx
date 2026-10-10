@@ -17,6 +17,7 @@ import { Button, PageFocused, Skeleton } from '@gravitee/graphene-core';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { usePlan } from '../../../../apis/hooks/usePlans';
+import { usePlanSecuritySettings } from '../../../../apis/hooks/usePlanSecuritySettings';
 import { PlanFormWizard } from '../../../../apis/pages/detail/plans/plan-form/PlanFormWizard';
 import { PLAN_TYPES_BY_CTX } from '../../../../apis/types/plan';
 import type { PlanContext, PlanSecurityType } from '../../../../apis/types/plan';
@@ -33,6 +34,7 @@ export function ApiProductPlanFormPage() {
     const { canCreate, canUpdate, isLoading: permissionsLoading } = useApiProductResourcePermissions(productId, 'PLAN');
     // Plan sharding tags are constrained to the parent API Product's tags (subset rule).
     const { data: product } = useApiProductDetail(productId);
+    const planSecuritySettings = usePlanSecuritySettings();
 
     if (permissionsLoading) {
         return (
@@ -44,7 +46,9 @@ export function ApiProductPlanFormPage() {
     }
 
     if (securityType) {
-        if (!(PLAN_TYPES_BY_CTX[ctx.type] as string[]).includes(securityType)) {
+        const securityTypeValid = PLAN_TYPES_BY_CTX[ctx.type].includes(securityType as PlanSecurityType);
+        const securityEnabled = planSecuritySettings[securityType as PlanSecurityType] ?? true;
+        if (!securityTypeValid || !securityEnabled) {
             return <Navigate to=".." replace />;
         }
         if (!canCreate) {

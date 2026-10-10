@@ -20,6 +20,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { PlanFormWizard } from './plan-form/PlanFormWizard';
 import { useApiDetail } from '../../../hooks/useApiDetail';
 import { usePlan } from '../../../hooks/usePlans';
+import { usePlanSecuritySettings } from '../../../hooks/usePlanSecuritySettings';
 import { PLAN_TYPES_BY_CTX } from '../../../types/plan';
 import type { PlanContext, PlanSecurityType } from '../../../types/plan';
 import { areAllListenersTcp, hasTcpListener } from '../../../utils/apiHttpProxy';
@@ -35,6 +36,7 @@ export function ApiPlanFormPage() {
     const canUpdate = useHasPermission({ anyOf: ['api-plan-u'] });
     // Plan sharding tags are constrained to the parent API's tags (subset rule).
     const { data: api, isLoading } = useApiDetail(apiId);
+    const planSecuritySettings = usePlanSecuritySettings();
     const tcpListener = hasTcpListener(api);
     const keylessOnly = areAllListenersTcp(api);
 
@@ -48,7 +50,9 @@ export function ApiPlanFormPage() {
     }
 
     if (securityType) {
-        if (!(PLAN_TYPES_BY_CTX[ctx.type] as string[]).includes(securityType)) {
+        const securityTypeValid = PLAN_TYPES_BY_CTX[ctx.type].includes(securityType as PlanSecurityType);
+        const securityEnabled = planSecuritySettings[securityType as PlanSecurityType] ?? true;
+        if (!securityTypeValid || !securityEnabled) {
             return <Navigate to=".." replace />;
         }
         if (keylessOnly && securityType !== 'KEY_LESS') {
