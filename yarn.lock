@@ -18886,6 +18886,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"dompurify@npm:3.4.16":
+  version: 3.4.16
+  resolution: "dompurify@npm:3.4.16"
+  dependencies:
+    "@types/trusted-types": "npm:^2.0.7"
+  dependenciesMeta:
+    "@types/trusted-types":
+      optional: true
+  checksum: 10c0/65a901c6b6d489d3e898f67223d81dac66d613cda48f5785f0ed52a4ae320c4b2745490a58c14161e29f0273080fea0a0cb234a9ef892650e1a9b2a7befa07a5
+  languageName: node
+  linkType: hard
+
 "dompurify@npm:3.4.8":
   version: 3.4.8
   resolution: "dompurify@npm:3.4.8"
@@ -21565,7 +21577,7 @@ __metadata:
     date-fns: "npm:4.4.0"
     diff: "npm:3.5.1"
     diff2html: "npm:3.4.56"
-    dompurify: "npm:3.4.15"
+    dompurify: "npm:3.4.16"
     eslint: "npm:9.39.5"
     eslint-config-angular: "npm:0.5.0"
     eslint-config-prettier: "npm:10.1.8"
