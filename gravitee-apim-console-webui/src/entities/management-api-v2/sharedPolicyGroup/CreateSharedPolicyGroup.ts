@@ -15,14 +15,14 @@
  */
 
 import { FlowPhase } from '../plugin';
-import { ApiType, StepV4 } from '../api';
+import { FlowApiType, StepV4 } from '../api';
 
 export interface CreateSharedPolicyGroup {
   name: string;
   crossId?: string;
   description?: string;
   prerequisiteMessage?: string;
-  apiType: ApiType;
+  apiType: FlowApiType;
   phase: FlowPhase;
   policies?: StepV4[];
 }
