@@ -1,3 +1,4 @@
 # Default
 *                                                             @gravitee-io/apim
 /helm/                                                        @gravitee-io/platform @gravitee-io/apim
+/gravitee-apim-rest-api/gravitee-apim-rest-api-automation/    @gravitee-io/gko @gravitee-io/tech-lead
