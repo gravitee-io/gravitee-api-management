@@ -77,6 +77,9 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private final AtomicLong totalSyncOnErrorCounter = new AtomicLong(0);
     private final AtomicLong lastSuccessfulSyncAt = new AtomicLong(-1);
     private final AtomicBoolean lastSyncOnError = new AtomicBoolean(false);
+    /** Random 0..initialJitterMs delay before the first secondary sync cycle, so scaled-out pods join gradually. */
+    private final long initialJitterMs;
+    private volatile boolean firstCycle = true;
 
     private final AtomicReference<String> lastSyncErrorMessage = new AtomicReference<>();
 
@@ -105,6 +108,15 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
         this.delay = delay;
         this.unit = unit;
         this.retryAttempt = retryAttempt;
+        this.initialJitterMs = parseJitterMs(System.getProperty("services.sync.distributed.jitterMs", "0"));
+    }
+
+    private static long parseJitterMs(final String value) {
+        try {
+            return Math.max(0, Long.parseLong(value));
+        } catch (NumberFormatException e) {
+            return 5_000L;
+        }
     }
 
     @Override
@@ -167,6 +179,14 @@ public class DefaultSyncManager extends AbstractService<SyncManager> implements 
     private Completable synchronize() {
         AtomicBoolean cyclePrimary = new AtomicBoolean(true);
         return Completable.defer(() -> {
+            if (firstCycle && initialJitterMs > 0 && distributedSyncService.isEnabled() && !distributedSyncService.isPrimaryNode()) {
+                firstCycle = false;
+                // A configured jitter always waits at least 1ms: a deployed fleet never wants instant boots.
+                long jitter = 1 + (long) (Math.random() * initialJitterMs);
+                log.debug("Distributed sync secondary waiting {}ms jitter before its first cycle", jitter);
+                return Completable.timer(jitter, TimeUnit.MILLISECONDS);
+            }
+            firstCycle = false;
             log.debug("Running synchronization process...");
             return distributedSyncService.ready();
         })

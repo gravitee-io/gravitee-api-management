@@ -102,6 +102,9 @@ class RedisDistributedEventRepositoryWriteTest {
             updatedKeys.add(args.get(0));
             return Future.succeededFuture(mock(Response.class));
         });
+        // v3 is not present in this test's (mocked) store: updateAll must fall back to the SCAN path.
+        when(redisAPI.ftAggregate(any())).thenReturn(Future.failedFuture("Unknown index name"));
+        when(redisAPI.ftInfo(any())).thenReturn(Future.failedFuture("Unknown index name"));
 
         new RedisDistributedEventRepository(redisClientReturning(redisAPI))
             .updateAllAtWriteTime("cluster", DistributedEventType.API, "api-1", DistributedSyncAction.UNDEPLOY)

@@ -100,4 +100,61 @@ class RedisDistributedEventRepositoryIndexTest {
         repository.ensureSearchable().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
         repository.fullyIndexed().test().awaitDone(10, TimeUnit.SECONDS).assertValue(true);
     }
+
+    @Test
+    void should_create_the_v3_index_with_reference_fields() throws Exception {
+        redisClient
+            .redisApi()
+            .flatMap(redisAPI -> redisAPI.ftInfo(List.of("distributed-event-search-idx-v3")))
+            .toCompletionStage()
+            .toCompletableFuture()
+            .get(10, TimeUnit.SECONDS);
+    }
+
+    @Test
+    void should_update_only_the_events_of_the_given_reference_on_v3() throws Exception {
+        repository
+            .createOrUpdate(
+                DistributedEvent.builder()
+                    .clusterId("cluster")
+                    .id("api-1")
+                    .refType(DistributedEventType.API)
+                    .refId("1")
+                    .type(DistributedEventType.API)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .payload("p")
+                    .updatedAt(new java.util.Date())
+                    .build()
+            )
+            .blockingAwait(10, TimeUnit.SECONDS);
+        repository
+            .createOrUpdate(
+                DistributedEvent.builder()
+                    .clusterId("cluster")
+                    .id("api-10")
+                    .refType(DistributedEventType.API)
+                    .refId("10")
+                    .type(DistributedEventType.API)
+                    .syncAction(DistributedSyncAction.DEPLOY)
+                    .payload("p")
+                    .updatedAt(new java.util.Date())
+                    .build()
+            )
+            .blockingAwait(10, TimeUnit.SECONDS);
+        // Let both events be indexed by v3 before querying it.
+        Thread.sleep(500);
+
+        java.util.Date now = new java.util.Date();
+        repository
+            .updateAllAtWriteTime("cluster", DistributedEventType.API, "1", DistributedSyncAction.UNDEPLOY)
+            .blockingAwait(10, TimeUnit.SECONDS);
+
+        var events = repository.searchAll(DistributedEventCriteria.builder().clusterId("cluster").build(), 100).toList().blockingGet();
+        assertThat(events)
+            .filteredOn(e -> "api-1".equals(e.getId()) && e.getRefId() != null)
+            .allSatisfy(e -> assertThat(e.getSyncAction()).isEqualTo(DistributedSyncAction.UNDEPLOY));
+        assertThat(events)
+            .filteredOn(e -> "api-10".equals(e.getId()))
+            .allSatisfy(e -> assertThat(e.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY));
+    }
 }

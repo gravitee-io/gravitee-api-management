@@ -63,7 +63,7 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
     private final ThreadPoolExecutor syncDeployerExecutor;
     private final AtomicInteger consecutiveHeldAttempts = new AtomicInteger();
     private final AtomicBoolean holdRequested = new AtomicBoolean();
-/** Schema version this node can decode; events with a higher version fail the cycle instead of being misread. */
+    /** Schema version this node can decode; events with a higher version fail the cycle instead of being misread. */
     private final int supportedSchemaVersion =
         io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService.EVENT_SCHEMA_VERSION;
     /** id -> last applied updatedAt, committed only when a cycle succeeds. An event whose timestamp is not newer
