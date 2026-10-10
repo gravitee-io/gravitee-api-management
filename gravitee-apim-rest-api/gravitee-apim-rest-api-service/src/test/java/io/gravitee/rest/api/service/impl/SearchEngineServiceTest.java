@@ -37,8 +37,10 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.command.CommandSearchIndexerEntity;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.federation.FederatedApiAgentEntity;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -233,6 +235,26 @@ public class SearchEngineServiceTest {
 
         assertThat(beforeDeletion.getHits()).isEqualTo(1);
         assertThat(beforeDeletion.getDocuments()).containsExactly("api-1");
+        assertThat(afterDeletion.getHits()).isEqualTo(0);
+
+        // force reindex after delete
+        isIndexed = false;
+    }
+
+    @Test
+    public void should_delete_federated_agent_from_replayed_delete_command() {
+        Map<String, Object> filters = new HashMap<>();
+        CommandSearchIndexerEntity deleteCommand = new CommandSearchIndexerEntity();
+        deleteCommand.setAction("D");
+        deleteCommand.setId("api-1");
+        deleteCommand.setClazz(FederatedApiAgentEntity.class.getName());
+
+        searchEngineService.process(GraviteeContext.getExecutionContext(), deleteCommand);
+        SearchResult afterDeletion = searchEngineService.search(
+            GraviteeContext.getExecutionContext(),
+            QueryBuilder.create(ApiEntity.class).setQuery("name:\"My Awesome api / 1\"").setFilters(filters).build()
+        );
+
         assertThat(afterDeletion.getHits()).isEqualTo(0);
 
         // force reindex after delete
