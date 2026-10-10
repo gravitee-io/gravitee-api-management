@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { formatAddMembersResultMessage, getApplicationRole, isMemberPrimaryOwner } from './memberHelpers';
+import { getApplicationRole, isMemberPrimaryOwner } from './memberHelpers';
 import type { ApplicationUiMember } from '../../types/applicationMembers.types';
 
 describe('memberHelpers', () => {
@@ -59,35 +59,6 @@ describe('memberHelpers', () => {
                     roles: [{ name: 'USER', scope: 'APPLICATION' }],
                 }),
             ).toBe(false);
-        });
-    });
-
-    describe('formatAddMembersResultMessage', () => {
-        const alice = { reference: 'ref-a', displayName: 'Alice' };
-        const bob = { reference: 'ref-b', displayName: 'Bob' };
-
-        it('describes partial success with failed member names', () => {
-            expect(
-                formatAddMembersResultMessage(5, 2, [
-                    { user: alice, reason: 'Conflict' },
-                    { user: bob, reason: 'Forbidden' },
-                ]),
-            ).toBe('Added 2 of 5 members. Failed to add: Alice (Conflict), Bob (Forbidden).');
-        });
-
-        it('describes total failure for multiple members', () => {
-            expect(
-                formatAddMembersResultMessage(2, 0, [
-                    { user: alice, reason: 'Conflict' },
-                    { user: bob, reason: 'Forbidden' },
-                ]),
-            ).toBe('Failed to add 2 members: Alice (Conflict), Bob (Forbidden).');
-        });
-
-        it('describes single-member failure with API reason', () => {
-            expect(formatAddMembersResultMessage(1, 0, [{ user: alice, reason: 'Member already exists' }])).toBe(
-                'Failed to add member: Member already exists',
-            );
         });
     });
 });

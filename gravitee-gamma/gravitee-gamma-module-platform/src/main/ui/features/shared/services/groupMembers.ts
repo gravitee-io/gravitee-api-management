@@ -18,6 +18,11 @@ import type { EnvironmentGroup, GroupMember, GroupsPagedResponse } from '../type
 
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
+export async function listEnvironmentGroups(environmentId: string): Promise<EnvironmentGroup[]> {
+    const response = await apimFetchJsonV2<GroupsPagedResponse>(environmentId, '/groups?page=1&perPage=9999');
+    return response.data ?? [];
+}
+
 /** Resolves environment groups by id (console GroupV2Service.listById). */
 export async function searchEnvironmentGroupsByIds(environmentId: string, ids: string[]): Promise<EnvironmentGroup[]> {
     if (ids.length === 0) {

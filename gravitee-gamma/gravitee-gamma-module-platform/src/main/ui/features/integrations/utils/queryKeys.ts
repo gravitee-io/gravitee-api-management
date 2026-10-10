@@ -24,4 +24,6 @@ export const integrationKeys = {
     groupMembership: (envId: string, integrationId: string, groupId: string) =>
         [...integrationKeys.all, 'group-membership', envId, integrationId, groupId] as const,
     groups: (envId: string, groupIdsKey: string) => [...integrationKeys.all, 'groups', envId, groupIdsKey] as const,
+    environmentGroups: (envId: string) => [...integrationKeys.all, 'environment-groups', envId] as const,
+    roles: () => [...integrationKeys.all, 'roles'] as const,
 } as const;

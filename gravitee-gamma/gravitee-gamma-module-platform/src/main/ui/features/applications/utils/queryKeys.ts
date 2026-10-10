@@ -55,7 +55,6 @@ export const applicationMemberKeys = {
         [...applicationMemberKeys.all, 'group-members', envId, applicationId, groupId] as const,
     associatedGroups: (envId: string, groupIdsKey: string) =>
         [...applicationMemberKeys.all, 'associated-groups', envId, groupIdsKey] as const,
-    userSearch: (query: string) => [...applicationMemberKeys.all, 'user-search', query] as const,
     userSearchTransfer: (query: string) => [...applicationMemberKeys.all, 'user-search-transfer', query] as const,
 } as const;
 

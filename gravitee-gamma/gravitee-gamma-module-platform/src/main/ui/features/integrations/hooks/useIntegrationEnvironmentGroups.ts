@@ -13,14 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApplicationUiMember } from '../../types/applicationMembers.types';
+import { useQuery } from '@tanstack/react-query';
 
-const APPLICATION_SCOPE = 'APPLICATION';
+import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-export function getApplicationRole(member: ApplicationUiMember): string {
-    return member.roles?.find(role => role.scope === APPLICATION_SCOPE)?.name ?? member.roles?.[0]?.name ?? '';
-}
+import { listEnvironmentGroups } from '../../shared/services/groupMembers';
+import { integrationKeys } from '../utils/queryKeys';
 
-export function isMemberPrimaryOwner(member: ApplicationUiMember): boolean {
-    return member.roles?.some(role => role.name === 'PRIMARY_OWNER') ?? false;
+export function useIntegrationEnvironmentGroups({ enabled = true }: { enabled?: boolean } = {}) {
+    const env = useEnvironment();
+    return useQuery({
+        queryKey: integrationKeys.environmentGroups(env?.id ?? ''),
+        queryFn: () => listEnvironmentGroups(env!.id),
+        enabled: enabled && Boolean(env),
+    });
 }

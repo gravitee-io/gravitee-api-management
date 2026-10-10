@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -357,7 +358,7 @@ public class MembershipService_IntegrationMembershipTest {
     class DeleteMembership {
 
         @Test
-        public void shouldNotRemoveApiPrimaryOwner() throws TechnicalException {
+        void should_not_remove_integration_primary_owner() throws TechnicalException {
             Membership membership = new Membership();
             membership.setId("membership-id");
             membership.setRoleId(INTEGRATION_PRIMARY_OWNER);
@@ -387,6 +388,7 @@ public class MembershipService_IntegrationMembershipTest {
             assertThatThrownBy(() ->
                 membershipService.deleteMemberForIntegration(GraviteeContext.getExecutionContext(), INTEGRATION_ID, EXISTING_USER_ID)
             ).isInstanceOf(PrimaryOwnerRemovalException.class);
+            verify(membershipRepository, never()).delete(anyString());
         }
 
         @Test

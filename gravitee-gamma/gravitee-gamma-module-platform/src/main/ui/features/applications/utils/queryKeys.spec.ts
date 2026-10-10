@@ -19,7 +19,6 @@ describe('application query keys', () => {
     describe('applicationMemberKeys', () => {
         it('builds stable list and user search keys', () => {
             expect(applicationMemberKeys.list('env', 'app')).toEqual(['application-members', 'list', 'env', 'app']);
-            expect(applicationMemberKeys.userSearch('alice')).toEqual(['application-members', 'user-search', 'alice']);
             expect(applicationMemberKeys.userSearchTransfer('bob')).toEqual(['application-members', 'user-search-transfer', 'bob']);
         });
     });
