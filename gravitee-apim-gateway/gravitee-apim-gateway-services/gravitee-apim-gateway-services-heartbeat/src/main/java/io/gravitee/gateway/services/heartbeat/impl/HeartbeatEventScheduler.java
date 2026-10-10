@@ -36,6 +36,7 @@ import lombok.Getter;
 public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventScheduler> {
 
     public static final String HEARTBEATS = "heartbeats";
+    private static final long FINAL_EVENT_TIMEOUT_SECONDS = 10;
     private final ClusterManager clusterManager;
     private final int delay;
     private final TimeUnit unit;
@@ -88,6 +89,11 @@ public class HeartbeatEventScheduler extends AbstractService<HeartbeatEventSched
         heartbeatEvent.getProperties().put(EVENT_CLUSTER_PRIMARY_NODE_PROPERTY, Boolean.toString(clusterManager.self().primary()));
         heartbeatEvent.getProperties().put(EVENT_STOPPED_AT_PROPERTY, Long.toString(heartbeatEvent.getUpdatedAt().getTime()));
         log.debug("Sending a {} event", heartbeatEvent.getType());
+        if (clusterManager.self().primary()) {
+            // The topic delivers messages asynchronously, and the listener is shut down right after this method: the
+            // primary node, which is the one writing events, persists its own final event before stopping.
+            heartbeatEventListener.persistFinalEvent(heartbeatEvent, FINAL_EVENT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        }
         topic.publish(heartbeatEvent);
         return this;
     }
