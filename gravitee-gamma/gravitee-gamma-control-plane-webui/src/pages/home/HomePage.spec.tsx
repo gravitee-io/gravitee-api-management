@@ -137,6 +137,7 @@ describe('HomePage', () => {
             'API Management',
             'Event Stream Management',
             'Authorization Management',
+            'Access Management',
             'Developer Portals',
             'Edge Management',
             'Platform Management',
