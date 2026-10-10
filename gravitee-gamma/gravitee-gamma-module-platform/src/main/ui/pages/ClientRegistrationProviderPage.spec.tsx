@@ -170,11 +170,9 @@ describe('ClientRegistrationProviderPage', () => {
         expect(screen.queryByRole('textbox', { name: /Client ID/ })).toBeNull();
     });
 
-    it('shows validation errors after submitting an empty form', async () => {
-        const user = userEvent.setup();
+    it('keeps create disabled while the form is invalid', () => {
         renderCreate();
-        await user.click(screen.getByRole('button', { name: 'Create provider' }));
-        expect(screen.getAllByText('This field is required.').length).toBeGreaterThan(0);
+        expect(screen.getByRole('button', { name: 'Create provider' })).toBeDisabled();
         expect(createMutate).not.toHaveBeenCalled();
     });
 
@@ -205,6 +203,22 @@ describe('ClientRegistrationProviderPage', () => {
         expect(mockNotifySuccess).toHaveBeenCalledWith('Client registration provider Okta DCR has been created.');
     });
 
+    it('labels the submit button Save on edit and disables it while invalid', () => {
+        mockProviderQuery.mockReturnValue({
+            data: PROVIDER,
+            isLoading: false,
+            isError: false,
+            refetch: jest.fn(),
+        } as unknown as ReturnType<typeof useClientRegistrationProvider>);
+        renderEdit();
+        const save = screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement;
+        expect(save).not.toBeNull();
+        expect(screen.queryByRole('button', { name: 'Create provider' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull();
+        fireEvent.change(nameInput(), { target: { value: '' } });
+        expect(save.disabled).toBe(true);
+    });
+
     it('PUTs on update', async () => {
         mockProviderQuery.mockReturnValue({
             data: PROVIDER,
@@ -216,6 +230,7 @@ describe('ClientRegistrationProviderPage', () => {
         expect(screen.getByText('Claim Mappings')).not.toBeNull();
         expect(screen.getByDisplayValue('org_id')).not.toBeNull();
         expect(screen.getByRole('textbox', { name: /Client ID/ })).not.toBeNull();
+        expect(screen.getByRole('button', { name: 'Save' })).not.toBeNull();
         fireEvent.submit(document.querySelector('form') as HTMLFormElement);
         expect(updateMutate).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -254,7 +269,7 @@ describe('ClientRegistrationProviderPage', () => {
             refetch: jest.fn(),
         } as unknown as ReturnType<typeof useClientRegistrationProvider>);
         renderEdit();
-        expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
         expect(nameInput()).toBeDisabled();
         expect(screen.getByDisplayValue('org_id')).toBeDisabled();
         expect(screen.queryByRole('button', { name: 'Show password' })).toBeNull();
@@ -299,7 +314,7 @@ describe('ClientRegistrationProviderPage', () => {
             refetch: jest.fn(),
         } as unknown as ReturnType<typeof useClientRegistrationProvider>);
         renderEdit();
-        expect(screen.queryByRole('button', { name: 'Save changes' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
         expect(nameInput()).toBeDisabled();
     });
 

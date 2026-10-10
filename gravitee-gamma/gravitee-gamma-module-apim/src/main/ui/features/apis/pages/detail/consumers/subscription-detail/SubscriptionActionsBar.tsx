@@ -56,6 +56,7 @@ import {
 } from '../../../../hooks/useSubscriptionActions';
 import { useApiPlans } from '../../../../hooks/useSubscriptions';
 import type { ApproveSubscriptionPayload, Subscription, SubscriptionContext } from '../../../../types/subscription';
+import { dateInputToOffsetDateTime, offsetDateTimeToDateInput } from '../../../../utils/dateInputToOffsetDateTime';
 
 type InlineAction = 'pause' | 'resume' | 'close' | 'resumeFailure' | null;
 
@@ -64,9 +65,16 @@ interface SubscriptionActionsBarProps {
     subscription: Subscription;
     canUpdate: boolean;
     canDelete: boolean;
+    isFederated?: boolean;
 }
 
-export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete }: Readonly<SubscriptionActionsBarProps>) {
+export function SubscriptionActionsBar({
+    ctx,
+    subscription,
+    canUpdate,
+    canDelete,
+    isFederated = false,
+}: Readonly<SubscriptionActionsBarProps>) {
     const [inlineAction, setInlineAction] = useState<InlineAction>(null);
     const [approveOpen, setApproveOpen] = useState(false);
     const [rejectOpen, setRejectOpen] = useState(false);
@@ -165,8 +173,14 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
         });
     }, [selectedPlanId, transferMutation]);
 
+    const openEndDateDialog = useCallback(() => {
+        setEndDate(offsetDateTimeToDateInput(subscription.endingAt));
+        setEndDateOpen(true);
+    }, [subscription.endingAt]);
+
     const handleEndDate = useCallback(() => {
-        endDateMutation.mutate(endDate || null, {
+        const endingAt = endDate.trim() ? dateInputToOffsetDateTime(endDate) : null;
+        endDateMutation.mutate(endingAt, {
             onSuccess: () => {
                 notify.success('End date updated');
                 setEndDateOpen(false);
@@ -214,20 +228,19 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
                     </Button>
                 )}
 
-                {/* ACCEPTED actions */}
-                {canUpdate && status === 'ACCEPTED' && (
+                {canUpdate && (status === 'ACCEPTED' || status === 'PAUSED') && !isFederated && (
                     <Button type="button" variant="outline" size="sm" onClick={() => setTransferOpen(true)}>
                         <ArrowRightIcon className="size-3.5" aria-hidden />
                         Transfer
                     </Button>
                 )}
-                {canUpdate && (status === 'ACCEPTED' || status === 'PAUSED') && (
-                    <Button type="button" variant="outline" size="sm" onClick={() => setEndDateOpen(true)}>
+                {canUpdate && (status === 'ACCEPTED' || status === 'PAUSED') && !isFederated && (
+                    <Button type="button" variant="outline" size="sm" onClick={openEndDateDialog}>
                         <CalendarIcon className="size-3.5" aria-hidden />
                         Change end date
                     </Button>
                 )}
-                {canUpdate && status === 'ACCEPTED' && (
+                {canUpdate && status === 'ACCEPTED' && !isFederated && (
                     <Button type="button" variant="outline" size="sm" onClick={() => setInlineAction('pause')}>
                         <CircleStopIcon className="size-3.5" aria-hidden />
                         Pause
@@ -298,6 +311,8 @@ export function SubscriptionActionsBar({ ctx, subscription, canUpdate, canDelete
             <SubscriptionApproveDialog
                 open={approveOpen}
                 isApiKeyPlan={isApiKeyPlan}
+                isSharedApiKeyMode={subscription.application.apiKeyMode === 'SHARED'}
+                isFederated={isFederated}
                 isPending={approveMutation.isPending}
                 onConfirm={handleApprove}
                 onClose={handleApproveClose}

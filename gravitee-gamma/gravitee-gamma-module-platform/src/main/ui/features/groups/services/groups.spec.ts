@@ -13,7 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { associateGroupToExisting, deleteGroupInvitation, inviteGroupMember, listGroupInvitations, removeGroupMember } from './groups';
+import {
+    associateGroupToExisting,
+    deleteGroupInvitation,
+    inviteGroupMember,
+    listGroupInvitations,
+    listGroups,
+    removeGroupMember,
+} from './groups';
 import { apimFetchJsonV1Env } from '../../../shared/api/apimClient';
 import type { GroupInvitationPayload } from '../types/group';
 
@@ -34,6 +41,13 @@ const INVITATION: GroupInvitationPayload = {
 describe('groups service', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it('lists all groups for name uniqueness checks', async () => {
+        mockApimFetchJsonV1Env.mockResolvedValue([{ id: 'g1', name: 'Support Team' }]);
+
+        await expect(listGroups('DEFAULT')).resolves.toEqual([{ id: 'g1', name: 'Support Team' }]);
+        expect(mockApimFetchJsonV1Env).toHaveBeenCalledWith('DEFAULT', '/configuration/groups');
     });
 
     it('returns invitation-created when the backend persists an invitation', async () => {

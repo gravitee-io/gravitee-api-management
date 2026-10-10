@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { getSubscription, listApiPlans, listApiSubscribers, listSubscriptions, searchApplications } from '../services/subscriptions';
 import type { SubscriptionContext, SubscriptionFilters, SubscriptionStatus } from '../types/subscription';
@@ -27,6 +27,9 @@ export function isSubscriptionFiltersDirty(filters: SubscriptionFilters): boolea
 }
 
 export const DEFAULT_STATUSES = ['ACCEPTED', 'PAUSED', 'PENDING'] as const;
+
+/** Every subscription status — used to detect “no subscriptions at all” for the educational empty state. */
+export const ALL_SUBSCRIPTION_STATUSES: SubscriptionStatus[] = ['PENDING', 'ACCEPTED', 'REJECTED', 'CLOSED', 'PAUSED', 'RESUMED'];
 
 const SAFE_CTX: SubscriptionContext = { type: 'api', entityId: '' };
 
@@ -48,6 +51,7 @@ export function useSubscriptionList(ctx: SubscriptionContext | null, filters: Pa
                 perPage,
             }),
         enabled: Boolean(env && ctx?.entityId),
+        placeholderData: keepPreviousData,
     });
 }
 

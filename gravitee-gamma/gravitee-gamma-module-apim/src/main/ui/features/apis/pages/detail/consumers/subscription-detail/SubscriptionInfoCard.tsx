@@ -99,11 +99,12 @@ export function SubscriptionInfoCard({ subscription: sub, isLoading }: Readonly<
                 <Row label="Subscribed by">{sub.subscribedBy?.displayName || EMPTY_VALUE}</Row>
                 <Row label="Application">
                     <div>
-                        <p>{sub.application.name}</p>
+                        <p>
+                            {sub.application.name}
+                            {sub.application.primaryOwner?.displayName ? ` (${sub.application.primaryOwner.displayName})` : ''}
+                            {sub.application.type ? ` - Type: ${sub.application.type}` : ''}
+                        </p>
                         {sub.application.description && <p className="text-xs text-muted-foreground">{sub.application.description}</p>}
-                        {sub.application.primaryOwner?.displayName && (
-                            <p className="text-xs text-muted-foreground">{sub.application.primaryOwner.displayName}</p>
-                        )}
                     </div>
                 </Row>
                 <Row label="Publisher message">{sub.publisherMessage || EMPTY_VALUE}</Row>

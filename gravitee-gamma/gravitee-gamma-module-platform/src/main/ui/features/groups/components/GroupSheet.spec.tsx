@@ -62,6 +62,7 @@ function renderSheet({
     applicationRoles = APPLICATION_ROLES,
     apiProductRoles = API_PRODUCT_ROLES,
     onAssociateToExisting,
+    existingGroupNames = [],
 }: {
     open?: boolean;
     mode: 'create' | 'edit';
@@ -71,6 +72,7 @@ function renderSheet({
     applicationRoles?: GroupRole[];
     apiProductRoles?: GroupRole[];
     onAssociateToExisting?: (type: GroupMembershipType) => void;
+    existingGroupNames?: string[];
 }) {
     const onClose = jest.fn();
     const onSubmit = jest.fn();
@@ -87,6 +89,7 @@ function renderSheet({
             onSubmit={onSubmit}
             isSaving={isSaving}
             onAssociateToExisting={onAssociateToExisting}
+            existingGroupNames={existingGroupNames}
         />,
     );
     return { onClose, onSubmit };
@@ -207,6 +210,14 @@ describe('GroupSheet', () => {
             expect(onSubmit).not.toHaveBeenCalled();
         });
 
+        it('blocks create when the name duplicates an existing group', () => {
+            const { onSubmit } = renderSheet({ mode: 'create', existingGroupNames: ['Support Team'] });
+            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'support team' } });
+            expect(screen.getByText('A group with this name already exists.')).not.toBeNull();
+            fireEvent.click(screen.getByRole('button', { name: 'Create group' }));
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
         it('shows "Creating…" label while saving', () => {
             renderSheet({ mode: 'create', isSaving: true });
             expect(screen.queryByRole('button', { name: 'Creating…' })).not.toBeNull();
@@ -252,6 +263,21 @@ describe('GroupSheet', () => {
             renderSheet({ mode: 'edit', group: EXISTING_GROUP });
             fireEvent.click(screen.getByLabelText('Notify members when added'));
             expect((screen.getByRole('button', { name: 'Save' }) as HTMLButtonElement).disabled).toBe(false);
+        });
+
+        it('blocks Save when renaming to an existing group name', () => {
+            const { onSubmit } = renderSheet({ mode: 'edit', group: EXISTING_GROUP, existingGroupNames: ['Other Team'] });
+            fireEvent.change(screen.getByLabelText(/Name/i), { target: { value: 'other team' } });
+            expect(screen.getByText('A group with this name already exists.')).not.toBeNull();
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('allows keeping the same name on edit', () => {
+            const { onSubmit } = renderSheet({ mode: 'edit', group: EXISTING_GROUP, existingGroupNames: ['Support Team'] });
+            fireEvent.click(screen.getByLabelText('Lock API role'));
+            fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+            expect(onSubmit).toHaveBeenCalled();
         });
 
         it('submits updated values for the existing group', () => {
