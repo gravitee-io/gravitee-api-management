@@ -73,4 +73,17 @@ public class DistributedEventFetcher {
             .build();
         return distributedEventRepository.searchAll(distributedEventCriteria, Math.max(bulkItems, MIN_FETCH_BATCH_SIZE));
     }
+
+    /**
+     * All DEPLOY events of the type, whatever their timestamp. Used to reconcile the local in-memory state with the
+     * authoritative set after a full synchronization.
+     */
+    public Flowable<DistributedEvent> fetchAuthoritative(final DistributedEventType type, final Set<DistributedSyncAction> syncActions) {
+        DistributedEventCriteria distributedEventCriteria = DistributedEventCriteria.builder()
+            .clusterId(clusterManager.clusterId())
+            .type(type)
+            .syncActions(syncActions)
+            .build();
+        return distributedEventRepository.searchAll(distributedEventCriteria, Math.max(bulkItems, MIN_FETCH_BATCH_SIZE));
+    }
 }

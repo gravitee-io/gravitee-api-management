@@ -258,6 +258,11 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
         }
     }
 
+    @Override
+    public void recordLocalDeploy() {
+        metrics.recordLocalDeploy();
+    }
+
     /**
      * Detects that the catalog must be rebuilt (state lost, or left paused by a primary that died while rebuilding
      * it) and starts the pending rebuild: the state is marked {@link DistributedSyncStatus#PAUSED} so that nodes

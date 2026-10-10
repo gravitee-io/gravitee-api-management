@@ -206,6 +206,12 @@ public abstract class AbstractApiSynchronizer {
             .andThen(apiKeyDeployer.doAfterDeployment(deployable))
             .andThen(apiDeployer.doAfterDeployment(deployable))
             .andThen(Flowable.just(deployable))
+            .doOnNext(ignored -> {
+                DistributedSyncService distributedSyncService = this.deployerFactory.distributedSyncService();
+                if (distributedSyncService != null) {
+                    distributedSyncService.recordLocalDeploy();
+                }
+            })
             .onErrorResumeNext(throwable -> resumeOnDeployError(initialSync, throwable));
     }
 

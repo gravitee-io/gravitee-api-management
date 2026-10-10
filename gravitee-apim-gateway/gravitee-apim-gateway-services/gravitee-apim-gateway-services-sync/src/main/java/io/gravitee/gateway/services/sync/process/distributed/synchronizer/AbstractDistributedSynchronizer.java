@@ -58,7 +58,7 @@ public abstract class AbstractDistributedSynchronizer<T extends Deployable, Y ex
      */
     public static final int MAX_HELD_ATTEMPTS = 12;
 
-    private final DistributedEventFetcher distributedEventFetcher;
+    protected final DistributedEventFetcher distributedEventFetcher;
     private final ThreadPoolExecutor syncFetcherExecutor;
     private final ThreadPoolExecutor syncDeployerExecutor;
     private final AtomicInteger consecutiveHeldAttempts = new AtomicInteger();

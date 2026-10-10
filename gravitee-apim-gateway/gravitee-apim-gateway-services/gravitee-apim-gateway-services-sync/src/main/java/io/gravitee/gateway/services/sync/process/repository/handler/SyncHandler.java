@@ -72,6 +72,7 @@ public class SyncHandler implements Handler<RoutingContext> {
                     .put("decodeFailures", metrics.decodeFailures())
                     .put("decodeFailuresByType", byType(metrics.decodeFailuresByType()))
                     .put("distributionFailures", metrics.distributionFailures())
+                    .put("localDeploys", metrics.localDeploys())
                     .put("replayedCycles", metrics.replayedCycles())
                     .put("heldWindows", metrics.heldWindows())
                     .put("staleEntriesRemoved", metrics.staleEntriesRemoved())
