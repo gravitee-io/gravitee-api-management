@@ -333,6 +333,103 @@ describe('ApiEntrypointsPage', () => {
         expect(screen.getByText(/entrypoint context-paths/i)).toBeInTheDocument();
     });
 
+<<<<<<< HEAD
+=======
+    it('keeps every existing context path as a virtual host row when virtual hosts are enabled', () => {
+        mockUseApiDetailContext.mockReturnValue({
+            api: {
+                id: 'api-1',
+                name: 'Multi path API',
+                listeners: [{ type: 'HTTP', paths: [{ path: '/orders' }, { path: '/invoices' }], hosts: [], entrypoints: [] }],
+            },
+            isLoading: false,
+            permissionsReady: true,
+        });
+        renderPage();
+
+        fireEvent.click(screen.getByRole('checkbox', { name: /enable virtual hosts/i }));
+
+        const paths = screen.getAllByRole('textbox', { name: /context path/i }).map(input => (input as HTMLInputElement).value);
+        expect(paths).toEqual(['/orders', '/invoices']);
+        expect(screen.getAllByRole('textbox', { name: /virtual host/i })).toHaveLength(2);
+    });
+
+    // ── TCP entrypoints ────────────────────────────────────────────────────────
+
+    describe('tcp-proxy entrypoints', () => {
+        beforeEach(() => {
+            mockUseApiDetailContext.mockReturnValue({ api: API_TCP, isLoading: false, permissionsReady: true });
+            mockUpdateApiListeners.mockResolvedValue(API_TCP);
+        });
+
+        it('shows the TCP hosts card instead of context paths / virtual hosts', () => {
+            renderPage('api-2');
+            expect(screen.getByText(/entrypoint hosts/i)).toBeInTheDocument();
+            expect(screen.queryByText(/entrypoint context-paths/i)).not.toBeInTheDocument();
+            expect(screen.queryByText(/why configure entrypoints/i)).not.toBeInTheDocument();
+        });
+
+        it('loads and shows exposed entrypoints for TCP APIs', async () => {
+            mockGetExposedEntrypoints.mockResolvedValue([{ value: 'aaa:4082' }]);
+            renderPage('api-2');
+
+            expect(mockGetExposedEntrypoints).toHaveBeenCalledWith('DEFAULT', 'api-2');
+            expect(await screen.findByText('aaa:4082')).toBeInTheDocument();
+            expect(screen.getByText(/exposed entrypoints/i)).toBeInTheDocument();
+        });
+
+        it('seeds the host input from the existing TCP listener', () => {
+            renderPage('api-2');
+            expect(screen.getByRole('textbox', { name: /^host$/i })).toHaveValue('tcp.example.com');
+        });
+
+        it('does not verify a host that was loaded from the API', async () => {
+            renderPage('api-2');
+            expect(screen.getByRole('textbox', { name: /^host$/i })).toHaveValue('tcp.example.com');
+            await waitFor(() => expect(mockGetExposedEntrypoints).toHaveBeenCalled());
+            expect(mockVerifyApiHosts).not.toHaveBeenCalled();
+        });
+
+        it('adds a new empty host row when "Add host" is clicked', () => {
+            renderPage('api-2');
+            fireEvent.click(screen.getByRole('button', { name: /add host/i }));
+            expect(screen.getAllByRole('textbox', { name: /^host$/i })).toHaveLength(2);
+        });
+
+        it('disables the delete button when only one host remains', () => {
+            renderPage('api-2');
+            expect(screen.getByRole('button', { name: /delete host/i })).toBeDisabled();
+        });
+
+        it('saves an updated TCP listener with the edited hosts on Save', async () => {
+            renderPage('api-2');
+
+            fireEvent.change(screen.getByRole('textbox', { name: /^host$/i }), { target: { value: 'new-tcp.example.com' } });
+            await waitFor(() => expect(screen.getByRole('button', { name: /save changes/i })).toBeEnabled());
+            fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+            await waitFor(() => expect(mockUpdateApiListeners).toHaveBeenCalledTimes(1));
+            expect(mockVerifyApiHosts).toHaveBeenCalledWith('DEFAULT', 'TCP', ['new-tcp.example.com'], 'api-2');
+
+            const [, , , listeners] = mockUpdateApiListeners.mock.calls[0];
+            expect(listeners).toEqual([
+                expect.objectContaining({ type: 'TCP', hosts: ['new-tcp.example.com'], entrypoints: [{ type: 'tcp-proxy' }] }),
+            ]);
+        });
+
+        it('keeps Save disabled and shows the reason when another API already uses the host', async () => {
+            mockVerifyApiHosts.mockResolvedValue({ ok: false, reason: 'Host already exists' });
+            renderPage('api-2');
+
+            fireEvent.change(screen.getByRole('textbox', { name: /^host$/i }), { target: { value: 'taken.example.com' } });
+
+            expect(await screen.findByText('Host already exists')).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /save changes/i })).toBeDisabled();
+            expect(mockUpdateApiListeners).not.toHaveBeenCalled();
+        });
+    });
+
+>>>>>>> a8b8659 (fix(gamma-apim): keep context paths when enabling virtual hosts and align their columns)
     // ── permission guard tests ──────────────────────────────────────────────────
 
     it('hides Save and mutating controls when user lacks api-definition-u permission', () => {

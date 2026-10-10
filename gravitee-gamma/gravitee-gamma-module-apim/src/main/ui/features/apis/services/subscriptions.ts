@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
+import { apimFetchBlobV2, apimFetchJsonV1Env, apimFetchJsonV2 } from '../../../shared/api/apimClient';
 import type {
     ApiKey,
     ApiKeyPage,
@@ -43,28 +43,38 @@ const entityBase = (ctx: SubscriptionContext) =>
 
 const sub = (ctx: SubscriptionContext, subId: string) => `${entityBase(ctx)}/subscriptions/${encodeURIComponent(subId)}`;
 
-export async function listSubscriptions(
-    envId: string,
-    ctx: SubscriptionContext,
-    filters: {
-        statuses?: SubscriptionStatus[];
-        planIds?: string[];
-        applicationIds?: string[];
-        apiKey?: string;
-        page?: number;
-        perPage?: number;
-    },
-): Promise<SubscriptionPage> {
-    const q = buildQuery({
+interface SubscriptionListFilters {
+    statuses?: SubscriptionStatus[];
+    planIds?: string[];
+    applicationIds?: string[];
+    apiKey?: string;
+    page?: number;
+    perPage?: number;
+}
+
+function subscriptionFiltersQuery(filters: SubscriptionListFilters) {
+    return {
         statuses: filters.statuses,
         planIds: filters.planIds,
         applicationIds: filters.applicationIds,
         apiKey: filters.apiKey,
         page: filters.page ?? 1,
         perPage: filters.perPage ?? 10,
-        expands: 'plan,application',
-    });
+    };
+}
+
+export async function listSubscriptions(
+    envId: string,
+    ctx: SubscriptionContext,
+    filters: SubscriptionListFilters,
+): Promise<SubscriptionPage> {
+    const q = buildQuery({ ...subscriptionFiltersQuery(filters), expands: 'plan,application' });
     return apimFetchJsonV2<SubscriptionPage>(envId, `${entityBase(ctx)}/subscriptions${q}`);
+}
+
+export async function exportSubscriptionsCsv(envId: string, apiId: string, filters: SubscriptionListFilters): Promise<Blob> {
+    const q = buildQuery(subscriptionFiltersQuery(filters));
+    return apimFetchBlobV2(envId, `/apis/${encodeURIComponent(apiId)}/subscriptions/_export${q}`);
 }
 
 export async function getSubscription(envId: string, ctx: SubscriptionContext, subscriptionId: string): Promise<Subscription> {
@@ -181,6 +191,58 @@ export async function listApiPlans(envId: string, ctx: SubscriptionContext): Pro
     return apimFetchJsonV2<PlanPage>(envId, `${entityBase(ctx)}/plans${buildQuery({ statuses: 'PUBLISHED', perPage: 100 })}`);
 }
 
+<<<<<<< HEAD
+=======
+interface ApiSubscriberEntry {
+    id: string;
+    name?: string;
+}
+
+interface ApiSubscribersPage {
+    data?: ApiSubscriberEntry[];
+    pagination?: { totalCount?: number };
+}
+
+/** Applications subscribed to an API (Classic `getSubscribers`). */
+export async function listApiSubscribers(
+    envId: string,
+    apiId: string,
+    options?: { page?: number; perPage?: number; name?: string; signal?: AbortSignal },
+): Promise<ApiSubscribersPage> {
+    const q = buildQuery({
+        page: options?.page ?? 1,
+        perPage: options?.perPage ?? 100,
+        name: options?.name,
+    });
+    return apimFetchJsonV2<ApiSubscribersPage>(envId, `/apis/${encodeURIComponent(apiId)}/subscribers${q}`, { signal: options?.signal });
+}
+
+/** Fetches every subscriber page for alert filter pickers. */
+export async function listAllApiSubscribers(envId: string, apiId: string): Promise<ApiSubscriberEntry[]> {
+    const perPage = 100;
+    const all: ApiSubscriberEntry[] = [];
+    let page = 1;
+    let totalCount: number | undefined;
+    while (page <= 100) {
+        const response = await listApiSubscribers(envId, apiId, { page, perPage });
+        const batch = response.data ?? [];
+        all.push(...batch);
+        totalCount = response.pagination?.totalCount ?? totalCount;
+        if (batch.length === 0) {
+            break;
+        }
+        if (totalCount !== undefined && all.length >= totalCount) {
+            break;
+        }
+        if (batch.length < perPage) {
+            break;
+        }
+        page += 1;
+    }
+    return all;
+}
+
+>>>>>>> fee4d53 (feat(gamma-apim): filter and export API subscriptions and show every subscription detail)
 interface V1ApplicationEntry {
     id: string;
     name: string;

@@ -15,7 +15,7 @@
  */
 import type { SideLine, UnifiedLine } from './types';
 import { diffLines } from '../../../../../shared/utils/lineDiff';
-import type { ApiEvent } from '../../../types';
+import type { ApiDetailDto, ApiEvent } from '../../../types';
 
 export function formatDate(iso: string): string {
     return new Date(iso).toLocaleString(undefined, {
@@ -81,4 +81,21 @@ export function computeSideBySideDiff(left: string, right: string): SideLine[] {
 
 export function hasDiffChanges(lines: UnifiedLine[]): boolean {
     return lines.some(l => l.type !== ' ');
+}
+
+/** The management API returns a native API as a V4 API of type NATIVE. */
+export function isNativeApi(api: ApiDetailDto | null): boolean {
+    return api?.definitionVersion === 'V4' && api.type === 'NATIVE';
+}
+
+type RollbackContext = { liveEventId: string | undefined; isNative: boolean; needsRedeploy: boolean };
+
+/**
+ * The live version is already deployed, so rolling back to it only makes sense to discard pending
+ * changes. Native APIs cannot be rolled back.
+ */
+export function canRollbackTo(event: ApiEvent, { liveEventId, isNative, needsRedeploy }: RollbackContext): boolean {
+    if (isNative) return false;
+    const isLiveVersion = event.id === liveEventId;
+    return !isLiveVersion || needsRedeploy;
 }

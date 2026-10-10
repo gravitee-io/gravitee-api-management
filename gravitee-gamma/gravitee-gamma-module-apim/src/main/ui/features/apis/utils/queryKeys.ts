@@ -161,4 +161,6 @@ export const apiSubscriptionKeys = {
         [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'api-keys', envId, subscriptionId, page] as const,
     plans: (envId: string, ctx: SubscriptionContext) => [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'plans', envId] as const,
     applications: (envId: string, query: string) => [...apiSubscriptionKeys.all, 'applications', envId, query] as const,
+    subscribers: (envId: string, ctx: SubscriptionContext, term: string) =>
+        [...apiSubscriptionKeys.all, ctx.type, ctx.entityId, 'subscribers', envId, term] as const,
 };
