@@ -19,6 +19,10 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +30,9 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageSourceException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageSource;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.fetcher.api.ResourceNotFoundException;
+import io.gravitee.fetcher.api.Sensitive;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
@@ -37,6 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
@@ -293,6 +301,245 @@ class PageSourceDomainServiceImplTest {
         assertThat(newPage.getSource().getConfiguration()).isEqualTo(newConfiguration);
     }
 
+    @Test
+    void should_not_return_the_stored_secret_when_the_fetch_fails_after_a_masked_update() {
+        var oldPage = pageWithSource(
+            "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"stored-secret-token\"}"
+        );
+        var newPage = pageWithSource(
+            "{\"url\":\"https://a.example\",\"nonSensitiveData\":\"missing.md\",\"sensitiveData\":\"" +
+                PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT +
+                "\"}"
+        );
+        mockDummyFetcherPlugin(
+            new DummyFetcherConfiguration("doc.md", "stored-secret-token"),
+            new DummyFetcherConfiguration("missing.md", PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
+        );
+        DummyFetcher.nextFailure.set(new ResourceNotFoundException("Unable to find file 'missing.md'", null));
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        assertThatThrownBy(() -> cut.setContentFromSource(newPage))
+            .hasMessageNotContaining("stored-secret-token")
+            .hasMessageNotContaining("sensitiveData");
+    }
+
+    @Test
+    void should_not_return_a_typed_secret_when_the_fetch_fails_on_create() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"missing.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("missing.md", "typed-secret-token"));
+        DummyFetcher.nextFailure.set(new ResourceNotFoundException("Unable to find file 'missing.md'", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page))
+            .hasMessageNotContaining("typed-secret-token")
+            .hasMessageNotContaining("sensitiveData");
+    }
+
+    @Test
+    void should_reject_a_missing_file_as_an_invalid_source() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"missing.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("missing.md", "typed-secret-token"));
+        var notFound = new ResourceNotFoundException("Unable to find file 'missing.md' in repository 'https://a.example/repo.git'", null);
+        DummyFetcher.nextFailure.set(notFound);
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page))
+            .isInstanceOf(InvalidPageSourceException.class)
+            .hasMessage(
+                "Unable to fetch the page content from source [dummy-fetcher]: Unable to find file 'missing.md' in repository 'https://a.example/repo.git'"
+            )
+            .hasCause(notFound);
+    }
+
+    @Test
+    void should_report_a_fetch_failure_as_technical_with_its_cause() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        var authenticationFailure = new FetcherException(
+            "Unable to fetch git content: authentication failed for repository 'https://a.example/repo.git'",
+            null
+        );
+        DummyFetcher.nextFailure.set(authenticationFailure);
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page))
+            .isInstanceOf(TechnicalDomainException.class)
+            .hasMessage(
+                "Unable to fetch the page content from source [dummy-fetcher]: Unable to fetch git content: authentication failed for repository 'https://a.example/repo.git'"
+            )
+            .hasCause(authenticationFailure);
+    }
+
+    @Test
+    void should_redact_a_secret_echoed_by_the_fetcher() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        DummyFetcher.nextFailure.set(new FetcherException("Token typed-secret-token was rejected", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page))
+            .hasMessageEndingWith("Token " + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + " was rejected")
+            .hasMessageNotContaining("typed-secret-token");
+    }
+
+    @Test
+    void should_redact_a_restored_secret_echoed_by_the_fetcher_after_a_masked_update() {
+        var oldPage = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"stored-secret-token\"}");
+        var newPage = pageWithSource(
+            "{\"nonSensitiveData\":\"other.md\",\"sensitiveData\":\"" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "\"}"
+        );
+        mockDummyFetcherPlugin(
+            new DummyFetcherConfiguration("doc.md", "stored-secret-token"),
+            new DummyFetcherConfiguration("other.md", PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT)
+        );
+        DummyFetcher.nextFailure.set(new FetcherException("Token stored-secret-token was rejected", null));
+
+        cut.mergeSensitiveData(oldPage, newPage);
+
+        assertThatThrownBy(() -> cut.setContentFromSource(newPage))
+            .hasMessageEndingWith("Token " + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + " was rejected")
+            .hasMessageNotContaining("stored-secret-token");
+    }
+
+    @Test
+    void should_keep_the_fetcher_message_intact_when_the_secret_is_empty() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", ""));
+        DummyFetcher.nextFailure.set(new FetcherException("Token was rejected", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page)).hasMessage(
+            "Unable to fetch the page content from source [dummy-fetcher]: Token was rejected"
+        );
+    }
+
+    @Test
+    void should_redact_a_url_encoded_secret_echoed_by_the_fetcher() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"tok/en+1=\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "tok/en+1="));
+        DummyFetcher.nextFailure.set(new FetcherException("Unable to fetch 'https://a.example/doc.md?token=tok%2Fen%2B1%3D'", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page))
+            .hasMessageEndingWith("token=" + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT + "'")
+            .hasMessageNotContaining("tok%2Fen%2B1%3D");
+    }
+
+    @Test
+    void should_hide_the_whole_fetcher_message_when_a_secret_cannot_be_read() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new UnreadableSecretFetcherConfiguration());
+        DummyFetcher.nextFailure.set(new FetcherException("Token unreadable-secret-token was rejected", null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page)).hasMessage(
+            "Unable to fetch the page content from source [dummy-fetcher]: " + PageSourceDomainServiceImpl.SENSITIVE_DATA_REPLACEMENT
+        );
+    }
+
+    @Test
+    void should_name_the_fetch_failure_when_the_fetcher_gives_no_message() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        DummyFetcher.nextFailure.set(new FetcherException(null, null));
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page)).hasMessage(
+            "Unable to fetch the page content from source [dummy-fetcher]: FetcherException"
+        );
+    }
+
+    @Test
+    void should_report_a_content_read_failure_without_the_configuration() {
+        var page = pageWithSource("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}");
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        DummyFetcher.nextStream.set(
+            new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    throw new IOException("Connection reset");
+                }
+            }
+        );
+
+        assertThatThrownBy(() -> cut.setContentFromSource(page))
+            .isInstanceOf(TechnicalDomainException.class)
+            .hasMessage("Unable to read the page content fetched from source [dummy-fetcher]")
+            .hasCauseInstanceOf(IOException.class);
+    }
+
+    @Test
+    void should_log_the_read_failure_without_the_configuration() {
+        var page = Page.builder()
+            .id("page-id")
+            .source(
+                PageSource.builder()
+                    .type("dummy-fetcher")
+                    .configuration("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}")
+                    .build()
+            )
+            .build();
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        DummyFetcher.nextStream.set(
+            new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    throw new IOException("Connection reset");
+                }
+            }
+        );
+        var logger = (Logger) LoggerFactory.getLogger(PageSourceDomainServiceImpl.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            assertThatThrownBy(() -> cut.setContentFromSource(page)).isInstanceOf(TechnicalDomainException.class);
+        } finally {
+            logger.detachAppender(appender);
+        }
+
+        assertThat(appender.list)
+            .filteredOn(event -> event.getLevel() == Level.WARN)
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.getFormattedMessage()).contains("page-id", "dummy-fetcher").doesNotContain("typed-secret-token");
+                assertThat(event.getThrowableProxy()).isNull();
+            });
+    }
+
+    @Test
+    void should_log_the_fetch_failure_without_the_secret() {
+        var page = Page.builder()
+            .id("page-id")
+            .source(
+                PageSource.builder()
+                    .type("dummy-fetcher")
+                    .configuration("{\"nonSensitiveData\":\"doc.md\",\"sensitiveData\":\"typed-secret-token\"}")
+                    .build()
+            )
+            .build();
+        mockDummyFetcherPlugin(new DummyFetcherConfiguration("doc.md", "typed-secret-token"));
+        DummyFetcher.nextFailure.set(new FetcherException("Token typed-secret-token was rejected", null));
+        var logger = (Logger) LoggerFactory.getLogger(PageSourceDomainServiceImpl.class);
+        var appender = new ListAppender<ILoggingEvent>();
+        appender.start();
+        logger.addAppender(appender);
+
+        try {
+            assertThatThrownBy(() -> cut.setContentFromSource(page)).isInstanceOf(TechnicalDomainException.class);
+        } finally {
+            logger.detachAppender(appender);
+        }
+
+        assertThat(appender.list)
+            .filteredOn(event -> event.getLevel() == Level.WARN)
+            .singleElement()
+            .satisfies(event -> {
+                assertThat(event.getFormattedMessage())
+                    .contains("page-id", "dummy-fetcher", "was rejected")
+                    .doesNotContain("typed-secret-token");
+                assertThat(event.getThrowableProxy()).isNull();
+            });
+    }
+
+    private void mockDummyFetcherPlugin(DummyFetcherConfiguration configuration) {
+        mockDummyFetcherPlugin(configuration, configuration);
+    }
+
     @SuppressWarnings("unchecked")
     private void mockDummyFetcherPlugin(DummyFetcherConfiguration oldConfiguration, DummyFetcherConfiguration newConfiguration) {
         when(applicationContext.getAutowireCapableBeanFactory()).thenReturn(mock(AutowireCapableBeanFactory.class));
@@ -327,6 +574,17 @@ class PageSourceDomainServiceImplTest {
                 )
             )
             .build();
+    }
+
+    /** A configuration whose secret has no getter, so it cannot be read back for redaction. */
+    static class UnreadableSecretFetcherConfiguration extends DummyFetcherConfiguration {
+
+        @Sensitive
+        private final String hiddenSecret = "unreadable-secret-token";
+
+        UnreadableSecretFetcherConfiguration() {
+            super("doc.md", null);
+        }
     }
 
     /** Wraps an InputStream and tracks whether close() was called. */
