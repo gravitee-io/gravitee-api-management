@@ -81,4 +81,54 @@ public class WebsocketHeadersTest extends AbstractWebsocketV4GatewayTest {
             .test()
             .await();
     }
+
+    @Test
+    @DeployApi({ "/apis/v4/http/api.json" })
+    public void websocket_should_forward_origin_header(VertxTestContext testContext, WebSocketClient webSocketClient) throws Throwable {
+        // Origin is special-cased by Vert.x, unlike arbitrary headers, so the custom-header test does not cover it.
+        var serverConnected = testContext.checkpoint();
+        var serverMessageSent = testContext.checkpoint();
+        var serverMessageChecked = testContext.checkpoint();
+
+        final String originValue = "http://my-origin-host";
+        WebSocketConnectOptions options = new WebSocketConnectOptions();
+        options.setURI("/test").setHeaders(MultiMap.caseInsensitiveMultiMap().add("Origin", originValue));
+
+        Promise<Void> clientReady = Promise.promise();
+
+        websocketServerHandler = serverWebSocket ->
+            Completable.fromRunnable(() -> {
+                serverConnected.flag();
+
+                String origin = serverWebSocket.headers().get("Origin");
+                testContext.verify(() -> assertThat(origin).isEqualTo(originValue));
+
+                clientReady
+                    .future()
+                    .onSuccess(__ ->
+                        serverWebSocket
+                            .writeTextMessage("PING")
+                            .doOnComplete(serverMessageSent::flag)
+                            .doOnError(testContext::failNow)
+                            .subscribe()
+                    );
+            })
+                .subscribeOn(Schedulers.io())
+                .subscribe();
+
+        webSocketClient
+            .connect(options)
+            .doOnSuccess(webSocket -> {
+                webSocket.exceptionHandler(testContext::failNow);
+                webSocket.frameHandler(frame -> {
+                    testContext.verify(() -> assertThat(frame.isText()).isTrue());
+                    testContext.verify(() -> assertThat(frame.textData()).isEqualTo("PING"));
+                    serverMessageChecked.flag();
+                });
+                clientReady.complete();
+            })
+            .doOnError(testContext::failNow)
+            .test()
+            .await();
+    }
 }
