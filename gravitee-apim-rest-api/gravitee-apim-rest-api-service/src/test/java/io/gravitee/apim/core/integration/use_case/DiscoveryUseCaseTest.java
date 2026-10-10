@@ -33,6 +33,7 @@ import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.node.api.license.LicenseManager;
@@ -40,7 +41,11 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class DiscoveryUseCaseTest {
 
@@ -82,10 +87,19 @@ class DiscoveryUseCaseTest {
         usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().assertError(NotAllowedDomainException.class);
     }
 
-    @Test
-    void should_throw_exception_if_no_integration_found() {
-        //When
+    @ParameterizedTest
+    @MethodSource
+    void should_throw_exception_if_no_integration_found_in_the_environment(List<Integration> storedIntegrations) {
+        integrationCrudService.initWith(storedIntegrations);
+
         usecase.execute(new DiscoveryUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().assertError(IntegrationNotFoundException.class);
+    }
+
+    static Stream<Arguments> should_throw_exception_if_no_integration_found_in_the_environment() {
+        return Stream.of(
+            Arguments.of(Named.of("no integration stored", List.of())),
+            Arguments.of(Named.of("integration stored in another environment", List.of(IntegrationFixture.anApiIntegration("another-env"))))
+        );
     }
 
     @Test

@@ -18,20 +18,22 @@ import { useQuery } from '@tanstack/react-query';
 
 import { useEnvironment } from '@gravitee/gamma-modules-sdk';
 
-import { getIntegration } from '../services/integrationDetail';
-import { INGESTION_POLL_INTERVAL_MS, isIngestionInProgress } from '../utils/ingestion';
+import { previewIntegration } from '../services/integrationDetail';
 import { integrationKeys } from '../utils/queryKeys';
 
-export function useIntegration(integrationId: string) {
+// Discovery asks the agent to scan the provider, so it runs once per visit and is never retried
+// (the module default retries a 5xx); gcTime 0 makes reopening the route run it again.
+export function useIntegrationDiscovery(integrationId: string, enabled: boolean) {
     const env = useEnvironment();
 
     return useQuery({
-        queryKey: integrationKeys.detail(env?.id ?? '', integrationId),
-        queryFn: () => getIntegration(env!.id, integrationId),
-        enabled: Boolean(env && integrationId),
-        refetchInterval: query =>
-            query.state.status === 'success' && query.state.data && isIngestionInProgress(query.state.data)
-                ? INGESTION_POLL_INTERVAL_MS
-                : false,
+        queryKey: integrationKeys.preview(env?.id ?? '', integrationId),
+        queryFn: () => previewIntegration(env!.id, integrationId),
+        enabled: Boolean(env && integrationId) && enabled,
+        retry: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        staleTime: Infinity,
+        gcTime: 0,
     });
 }

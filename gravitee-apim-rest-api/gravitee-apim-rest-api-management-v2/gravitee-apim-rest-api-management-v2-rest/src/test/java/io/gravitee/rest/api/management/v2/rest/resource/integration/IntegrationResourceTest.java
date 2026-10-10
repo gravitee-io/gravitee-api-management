@@ -38,6 +38,7 @@ import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.async_job.model.AsyncJob;
 import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.integration.model.Integration.ApiIntegration;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
@@ -73,11 +74,13 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Named;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class IntegrationResourceTest extends AbstractResourceTest {
@@ -99,6 +102,19 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     static final String ENVIRONMENT = "my-env";
     static final String INTEGRATION_ID = "integration-id";
+    static final String INTEGRATION_NOT_FOUND = "Integration not found.";
+    static final String INTEGRATIONS_NOT_VISIBLE_FROM_THE_CALLER_ENVIRONMENT =
+        "io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationResourceTest#integrationsNotVisibleFromTheCallerEnvironment";
+
+    static Stream<Named<List<ApiIntegration>>> integrationsNotVisibleFromTheCallerEnvironment() {
+        return Stream.of(
+            Named.of("no integration", List.of()),
+            Named.of(
+                "the integration in another environment",
+                List.of(IntegrationFixture.anApiIntegration("another-env").withId(INTEGRATION_ID))
+            )
+        );
+    }
 
     WebTarget target;
 
@@ -266,21 +282,55 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             assertThat(response).hasStatus(FORBIDDEN_403);
         }
 
-        @Test
-        public void should_throw_error_when_integration_not_found() {
-            //Given
-            integrationCrudServiceInMemory.reset();
-            var entity = Entity.entity(new ApisIngest(), MediaType.APPLICATION_JSON_TYPE);
+        @ParameterizedTest
+        @MethodSource(INTEGRATIONS_NOT_VISIBLE_FROM_THE_CALLER_ENVIRONMENT)
+        void should_return_404_when_integration_is_not_found_in_the_caller_environment(List<ApiIntegration> integrations) {
+            integrationCrudServiceInMemory.initializeWith(integrations);
 
-            //When
-            Response response = target.request().post(entity);
+            Response response = target.request().post(Entity.json(new ApisIngest().apiIds(List.of())));
 
-            //Then
-            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+            assertThat(response)
+                .hasStatus(HttpStatusCode.NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(HttpStatusCode.NOT_FOUND_404)
+                .hasMessage(INTEGRATION_NOT_FOUND);
         }
 
         @Test
-        public void should_return_success_when_ingestion_has_started() {
+        void should_return_403_when_license_does_not_allow_federation() {
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID)));
+            when(licenseManager.getOrganizationLicenseOrPlatform(anyString())).thenReturn(LicenseFixtures.anOssLicense());
+
+            Response response = target.request().post(Entity.json(new ApisIngest().apiIds(List.of())));
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("The organization does not have a license allowing Federation feature");
+        }
+
+        @Test
+        void should_accept_the_ingestion_without_a_pending_job_when_the_provider_has_no_apis_to_ingest() {
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID)));
+            integrationAgentInMemory.configureApisNumberToIngest(INTEGRATION_ID, 0L);
+
+            Response ingestResponse = target.request().post(Entity.json(new ApisIngest().apiIds(List.of())));
+            Response integrationResponse = rootTarget().request().get();
+
+            assertThat(ingestResponse)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(IntegrationIngestionResponse.class)
+                .isEqualTo(new IntegrationIngestionResponse().status(AsyncJobStatus.PENDING));
+            assertThat(integrationResponse)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(Integration.class)
+                .extracting(Integration::getPendingJob)
+                .isNull();
+        }
+
+        @Test
+        void should_return_success_and_expose_a_pending_job_when_ingestion_has_started() {
             //Given
             var entity = Entity.entity(new ApisIngest().apiIds(List.of()), MediaType.APPLICATION_JSON_TYPE);
             integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID)));
@@ -288,12 +338,18 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
             //When
             Response response = target.request().post(entity);
+            Response integrationResponse = rootTarget().request().get();
 
             //Then
             assertThat(response)
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationIngestionResponse.class)
                 .isEqualTo(new IntegrationIngestionResponse().status(AsyncJobStatus.PENDING));
+            assertThat(integrationResponse)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(Integration.class)
+                .extracting(Integration::getPendingJob)
+                .isNotNull();
         }
     }
 
@@ -658,6 +714,33 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             final Response response = target.request().get();
 
             assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
+        void should_return_403_when_license_does_not_allow_federation() {
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration().withId(INTEGRATION_ID)));
+            when(licenseManager.getOrganizationLicenseOrPlatform(anyString())).thenReturn(LicenseFixtures.anOssLicense());
+
+            Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("The organization does not have a license allowing Federation feature");
+        }
+
+        @Test
+        void should_return_404_when_integration_is_not_found_in_the_caller_environment() {
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anApiIntegration("another-env").withId(INTEGRATION_ID)));
+
+            Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(HttpStatusCode.NOT_FOUND_404)
+                .asError()
+                .hasHttpStatus(HttpStatusCode.NOT_FOUND_404)
+                .hasMessage(INTEGRATION_NOT_FOUND);
         }
 
         @Test

@@ -18,8 +18,9 @@ import { Skeleton } from '@gravitee/graphene-core';
 import { Navigate, useParams } from 'react-router-dom';
 
 import { IntegrationAgentConnection } from '../features/integrations/components/IntegrationAgentConnection';
+import { IntegrationDiscoverButton } from '../features/integrations/components/IntegrationDiscoverButton';
 import { IntegrationId } from '../features/integrations/components/IntegrationId';
-import { IntegrationIngestionInProgress } from '../features/integrations/components/IntegrationIngestionInProgress';
+import { IntegrationIngestedApisSection } from '../features/integrations/components/IntegrationIngestedApisSection';
 import { IntegrationProviderLabel } from '../features/integrations/components/IntegrationProviderLabel';
 import { useIntegration } from '../features/integrations/hooks/useIntegration';
 import { INTEGRATION_LOAD_ERROR_MESSAGE, useIntegrationLoadFailure } from '../features/integrations/hooks/useIntegrationLoadFailure';
@@ -46,6 +47,8 @@ export function IntegrationOverviewPage() {
             return <Skeleton className="h-8 w-64" />;
         }
 
+        const isIngesting = isIngestionInProgress(integration);
+
         return (
             <>
                 <div className="space-y-1">
@@ -54,7 +57,8 @@ export function IntegrationOverviewPage() {
                 </div>
                 <IntegrationAgentConnection agentStatus={integration.agentStatus} />
                 <IntegrationId integrationId={integration.id} />
-                {isIngestionInProgress(integration) && <IntegrationIngestionInProgress />}
+                <IntegrationDiscoverButton integrationId={integration.id} agentStatus={integration.agentStatus} isIngesting={isIngesting} />
+                <IntegrationIngestedApisSection integrationId={integration.id} isIngesting={isIngesting} />
             </>
         );
     }

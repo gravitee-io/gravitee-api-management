@@ -58,6 +58,40 @@ export interface IntegrationFederatedApisResponse {
     pagination: IntegrationsPagination;
 }
 
+export interface IngestedApi {
+    id: string;
+    name: string;
+    version?: string;
+}
+
+export interface IngestedApisResponse {
+    data: IngestedApi[];
+    pagination: IntegrationsPagination;
+}
+
+export type IntegrationPreviewApiState = 'NEW' | 'UPDATE';
+
+export interface IntegrationPreviewApi {
+    id: string;
+    name: string;
+    version?: string;
+    state: IntegrationPreviewApiState;
+}
+
+export interface IntegrationPreview {
+    isPartiallyDiscovered: boolean;
+    totalCount: number;
+    newCount: number;
+    updateCount: number;
+    apis: IntegrationPreviewApi[];
+}
+
+export type IngestionScope = { kind: 'ALL' } | { kind: 'SELECTED'; apiIds: string[] };
+
+export interface IntegrationIngestionResponse {
+    status: IngestionJobStatus;
+}
+
 export interface IntegrationDeletedFederatedApisResponse {
     deleted: number;
     skipped: number;

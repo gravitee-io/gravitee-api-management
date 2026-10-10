@@ -15,6 +15,8 @@
  */
 import type { Integration } from '../types/integration';
 
+export const INGESTION_POLL_INTERVAL_MS = 5_000;
+
 export function isIngestionInProgress(integration: Integration): boolean {
     return integration.pendingJob?.status === 'PENDING';
 }

@@ -105,6 +105,7 @@ import { GatewayInstancesPage } from '../pages/GatewayInstancesPage';
 import { GroupDetailPage } from '../pages/GroupDetailPage';
 import { GroupsPage } from '../pages/GroupsPage';
 import { IntegrationConfigurationPage } from '../pages/IntegrationConfigurationPage';
+import { IntegrationDiscoveryPreviewPage } from '../pages/IntegrationDiscoveryPreviewPage';
 import { IntegrationOverviewPage } from '../pages/IntegrationOverviewPage';
 import { IntegrationsPage } from '../pages/IntegrationsPage';
 import { ManagementAndSchedulersPage } from '../pages/ManagementAndSchedulersPage';
@@ -921,6 +922,14 @@ export function AppRoutes() {
                                         <Route index />
                                         <Route path="members" />
                                     </Route>
+                                    <Route
+                                        path="discover"
+                                        element={
+                                            <PermissionPageGuard permission={ENVIRONMENT_INTEGRATION_CREATE_PERMISSION} unauthorizedTo="..">
+                                                <IntegrationDiscoveryPreviewPage />
+                                            </PermissionPageGuard>
+                                        }
+                                    />
                                 </Route>
                             </Route>
                             <Route

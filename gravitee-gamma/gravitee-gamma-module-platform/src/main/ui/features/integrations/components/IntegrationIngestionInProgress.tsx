@@ -18,7 +18,9 @@ import { Alert, AlertDescription } from '@gravitee/graphene-core';
 export function IntegrationIngestionInProgress() {
     return (
         <Alert data-testid="integration-ingestion-in-progress">
-            <AlertDescription>Ingestion in progress. This may take some time depending on volume.</AlertDescription>
+            <AlertDescription>
+                APIs are currently being ingested and will appear below once completed. This may take some time depending on volume.
+            </AlertDescription>
         </Alert>
     );
 }

@@ -16,5 +16,6 @@
 import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
 
 export function integrationErrorMessage(error: unknown): string {
-    return `Something went wrong! ${extractErrorMessage(error)}`;
+    const detail = extractErrorMessage(error, '');
+    return detail.trim() ? `Something went wrong! ${detail}` : 'Something went wrong!';
 }

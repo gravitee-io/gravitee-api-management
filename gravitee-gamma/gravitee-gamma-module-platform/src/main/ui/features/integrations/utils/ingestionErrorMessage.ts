@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { extractErrorMessage } from '../../../shared/notify/extractErrorMessage';
 
-export { SMALLEST_TABLE_PAGE_SIZE, TABLE_PAGE_SIZE_OPTIONS } from '../../../shared/utils/paginationConstants';
-
-export const DEFAULT_INTEGRATION_LIST_PAGE_SIZE = 10;
-
-export const DEFAULT_INGESTED_API_LIST_PAGE_SIZE = 10;
+export function ingestionErrorMessage(error: unknown): string {
+    const detail = extractErrorMessage(error, '');
+    return `Ingestion failed. Please check your settings and try again: ${detail.trim() ? detail : 'Something went wrong.'}`;
+}

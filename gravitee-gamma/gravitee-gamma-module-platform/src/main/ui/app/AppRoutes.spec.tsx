@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import type { License } from '@gravitee/gamma-modules-sdk/types';
+import { toast } from '@gravitee/graphene-core';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ComponentType } from 'react';
@@ -514,6 +515,8 @@ function spyOnIntegrationOverviewFetch(
     integration: { id: string },
     permissionsResponse: () => Promise<Response>,
     detailResponse: () => Promise<Response> = () => jsonResponse(integration),
+    ingestedAgentsResponse?: () => Promise<Response>,
+    previewResponse?: () => Promise<Response>,
 ) {
     resetApimClientForTests();
     return jest.spyOn(global, 'fetch').mockImplementation(input => {
@@ -521,6 +524,8 @@ function spyOnIntegrationOverviewFetch(
         if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
         if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
         if (url.endsWith(`/integrations/${integration.id}/permissions`)) return permissionsResponse();
+        if (previewResponse && url.endsWith(`/integrations/${integration.id}/_preview`)) return previewResponse();
+        if (ingestedAgentsResponse && url.split('?')[0].endsWith(`/integrations/${integration.id}/apis`)) return ingestedAgentsResponse();
         if (url.endsWith(`/integrations/${integration.id}`)) return detailResponse();
         return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
     });
@@ -563,6 +568,10 @@ function renderIntegrationPath(path: string) {
 
 function integrationsRequestUrls(fetchSpy: ReturnType<typeof spyOnApimFetch>): string[] {
     return fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => /integration/i.test(url));
+}
+
+function previewRequestUrls(fetchSpy: ReturnType<typeof spyOnApimFetch>, integrationId: string): string[] {
+    return fetchSpy.mock.calls.map(([input]) => String(input)).filter(url => url.endsWith(`/integrations/${integrationId}/_preview`));
 }
 
 function integrationCreateRequestUrls(fetchSpy: ReturnType<typeof spyOnApimFetch>): string[] {
@@ -1454,6 +1463,119 @@ describe('AppRoutes', () => {
         );
         expect(await screen.findByRole('tab', { name: 'User Permissions' })).not.toBeNull();
         expect(screen.queryByRole('tab', { name: 'General' })).toBeNull();
+        fetchSpy.mockRestore();
+    });
+
+    it.each([
+        [
+            'without integration-definition-r to the Integrations list',
+            'discover-without-definition-read',
+            { DEFINITION: 'C' },
+            [],
+            '/integrations',
+        ],
+        [
+            'without environment-integration-c to the integration overview',
+            'discover-without-environment-create',
+            { DEFINITION: 'R' },
+            ['environment-integration-c'],
+            '/integrations/discover-without-environment-create',
+        ],
+    ])(
+        'redirects a direct discover visit by a user %s without requesting discovery',
+        async (_case, integrationId, integrationPermissions, deniedPermissions, expectedLocation) => {
+            const integration = { ...GATEWAY_INTEGRATION, id: integrationId };
+            const fetchSpy = spyOnIntegrationOverviewFetch(integration, () => jsonResponse(integrationPermissions));
+            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+            mockSetLicense(ENTITLED_LICENSE);
+            denyPermissions(...deniedPermissions);
+
+            renderIntegrationPath(`/integrations/${integration.id}/discover`);
+
+            await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(expectedLocation));
+            expect(previewRequestUrls(fetchSpy, integration.id)).toEqual([]);
+            fetchSpy.mockRestore();
+        },
+    );
+
+    // The module query client retries a 5xx twice with about three seconds of backoff, so the redirect wait
+    // outlasts it: a retried discovery would then show up as more than one preview request.
+    it.each([
+        [
+            '500 with a message',
+            'discover-preview-failed-with-message',
+            () => jsonResponse({ message: 'Discovery failed' }, 500),
+            'Something went wrong! Discovery failed',
+        ],
+        [
+            '500 with an empty body',
+            'discover-preview-failed-empty-body',
+            () => Promise.resolve(new Response('', { status: 500 })),
+            'Something went wrong!',
+        ],
+        [
+            '403',
+            'discover-preview-forbidden',
+            () => jsonResponse({ httpStatus: 403, message: 'You do not have permission to preview this integration.' }, 403),
+            'Something went wrong! You do not have permission to preview this integration.',
+        ],
+    ])(
+        'returns to the integration overview with one error notification after a single discovery request that fails with %s',
+        async (_case, integrationId, previewResponse, expectedNotification) => {
+            const integration = { ...GATEWAY_INTEGRATION, id: integrationId };
+            const fetchSpy = spyOnIntegrationOverviewFetch(
+                integration,
+                () => jsonResponse({ DEFINITION: 'R' }),
+                () => jsonResponse(integration),
+                () => jsonResponse(NO_INTEGRATIONS_RESPONSE),
+                previewResponse,
+            );
+            const toastError = jest.spyOn(toast, 'error').mockImplementation(() => '');
+            const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+            mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+            mockSetLicense(ENTITLED_LICENSE);
+
+            renderIntegrationPath(`/integrations/${integration.id}/discover`);
+
+            await waitFor(() => expect(screen.getByTestId('location').textContent).toBe(`/integrations/${integration.id}`), {
+                timeout: 5000,
+            });
+            expect(previewRequestUrls(fetchSpy, integration.id)).toHaveLength(1);
+            expect(toastError.mock.calls.map(([message]) => message)).toEqual([expectedNotification]);
+            warn.mockRestore();
+            toastError.mockRestore();
+            fetchSpy.mockRestore();
+        },
+        10_000,
+    );
+
+    it('requests discovery with a GET on the environment-scoped preview URL carrying the encoded integration id', async () => {
+        const integration = { ...GATEWAY_INTEGRATION, id: 'payments&eu' };
+        const integrationUrl = 'https://apim.test/management/v2/environments/env-1/integrations/payments%26eu';
+        const previewUrl = `${integrationUrl}/_preview`;
+        resetApimClientForTests();
+        const fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(input => {
+            const url = String(input);
+            if (url.endsWith('/constants.json')) return jsonResponse({ gammaBaseURL: APIM_BOOTSTRAP.gammaBaseURL });
+            if (url.endsWith('/ui/bootstrap')) return jsonResponse(APIM_BOOTSTRAP);
+            if (url === `${integrationUrl}/permissions`) return jsonResponse({ DEFINITION: 'R' });
+            if (url === previewUrl)
+                return jsonResponse({ isPartiallyDiscovered: false, totalCount: 0, newCount: 0, updateCount: 0, apis: [] });
+            if (url === integrationUrl) return jsonResponse(integration);
+            return jsonResponse({ httpStatus: 404, message: 'Not found' }, 404);
+        });
+        mockUseConsoleSettings.mockReturnValue({ federation: { enabled: true } });
+        mockSetLicense(ENTITLED_LICENSE);
+
+        renderIntegrationPath('/integrations/payments%26eu/discover');
+
+        await waitFor(() =>
+            expect(
+                fetchSpy.mock.calls
+                    .filter(([input]) => String(input).endsWith('/_preview'))
+                    .map(([input, init]) => [String(input), init?.method ?? 'GET']),
+            ).toEqual([[previewUrl, 'GET']]),
+        );
         fetchSpy.mockRestore();
     });
 

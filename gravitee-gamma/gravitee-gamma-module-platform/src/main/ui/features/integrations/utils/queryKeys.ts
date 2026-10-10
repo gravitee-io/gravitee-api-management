@@ -24,4 +24,9 @@ export const integrationKeys = {
     groupMembership: (envId: string, integrationId: string, groupId: string) =>
         [...integrationKeys.all, 'group-membership', envId, integrationId, groupId] as const,
     groups: (envId: string, groupIdsKey: string) => [...integrationKeys.all, 'groups', envId, groupIdsKey] as const,
+    ingestedApisAllPages: (envId: string, integrationId: string) =>
+        [...integrationKeys.all, 'ingested-apis', envId, integrationId] as const,
+    ingestedApis: (envId: string, integrationId: string, page: number, perPage: number) =>
+        [...integrationKeys.ingestedApisAllPages(envId, integrationId), page, perPage] as const,
+    preview: (envId: string, integrationId: string) => [...integrationKeys.all, 'preview', envId, integrationId] as const,
 } as const;
