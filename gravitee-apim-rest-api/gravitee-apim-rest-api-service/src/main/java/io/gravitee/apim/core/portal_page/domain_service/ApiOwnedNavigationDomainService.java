@@ -32,6 +32,7 @@ import io.gravitee.apim.core.portal_page.model.PortalNavigationItemQueryCriteria
 import io.gravitee.apim.core.portal_page.model.PortalNavigationItemType;
 import io.gravitee.apim.core.portal_page.model.PortalNavigationPage;
 import io.gravitee.apim.core.portal_page.query_service.PortalNavigationItemsQueryService;
+import jakarta.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -184,6 +185,28 @@ public class ApiOwnedNavigationDomainService {
             .area(PortalArea.TOP_NAVBAR)
             .published(false)
             .build();
+    }
+
+    /**
+     * The destination a stored parent gives to a page, folder or link placed under it.
+     */
+    public DocumentationDestination destinationUnder(String environmentId, @Nullable PortalNavigationItem parent) {
+        if (parent == null) {
+            return DocumentationDestination.under(null);
+        }
+        return DocumentationDestination.under(
+            new DocumentationDestination.Parent(
+                parent.getId(),
+                parent.getType(),
+                parent.getReference(),
+                parent instanceof PortalNavigationApi listing ? listing.getApiId() : null,
+                isInApiProductContext(environmentId, parent)
+            )
+        );
+    }
+
+    public boolean isDocumentation(PortalNavigationItem item) {
+        return DOCUMENTATION_TYPES.contains(item.getType());
     }
 
     public boolean isInApiProductContext(String environmentId, PortalNavigationItem item) {

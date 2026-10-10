@@ -670,6 +670,73 @@ class ApiOwnedNavigationDomainServiceTest {
         }
     }
 
+    @Nested
+    class DestinationUnder {
+
+        @Test
+        void should_give_the_api_as_owner_under_its_listing() {
+            var section = aFolder("APIs");
+            var listing = anApi(PortalNavigationItemId.random().json(), "Api A", section.getId(), API_ID);
+            queryService.initWith(List.of(section, listing));
+
+            var destination = service.destinationUnder(ENV_ID, listing);
+
+            assertThat(destination.apiOwner()).isEqualTo(ownedBy(API_ID));
+            assertThat(destination.storedParentId()).isNull();
+            assertThat(destination.renderedParentId()).isEqualTo(listing.getId());
+        }
+
+        @Test
+        void should_give_the_api_as_owner_under_a_folder_it_owns() {
+            var folder = aFolder("Auth").toBuilder().reference(ownedBy(API_ID)).build();
+            queryService.initWith(List.of(folder));
+
+            var destination = service.destinationUnder(ENV_ID, folder);
+
+            assertThat(destination.apiOwner()).isEqualTo(ownedBy(API_ID));
+            assertThat(destination.storedParentId()).isEqualTo(folder.getId());
+            assertThat(destination.renderedParentId()).isNull();
+        }
+
+        @Test
+        void should_give_no_api_owner_under_a_portal_folder() {
+            var folder = aFolder("Guides");
+            queryService.initWith(List.of(folder));
+
+            var destination = service.destinationUnder(ENV_ID, folder);
+
+            assertThat(destination.apiOwner()).isNull();
+            assertThat(destination.storedParentId()).isEqualTo(folder.getId());
+            assertThat(destination.renderedParentId()).isNull();
+        }
+
+        @Test
+        void should_give_no_api_owner_under_an_api_product() {
+            var section = aFolder("APIs");
+            var product = anApiProduct(PortalNavigationItemId.random().json(), "Product", section.getId(), "product-id");
+            var listingInProduct = anApi(PortalNavigationItemId.random().json(), "Api A", product.getId(), API_ID);
+            var folderInProduct = aFolder("Product guides", product.getId());
+            queryService.initWith(List.of(section, product, listingInProduct, folderInProduct));
+
+            for (var parent : List.of(product, listingInProduct, folderInProduct)) {
+                var destination = service.destinationUnder(ENV_ID, parent);
+
+                assertThat(destination.apiOwner()).isNull();
+                assertThat(destination.storedParentId()).isEqualTo(parent.getId());
+                assertThat(destination.renderedParentId()).isNull();
+            }
+        }
+
+        @Test
+        void should_give_no_api_owner_at_the_top_level() {
+            var destination = service.destinationUnder(ENV_ID, null);
+
+            assertThat(destination.apiOwner()).isNull();
+            assertThat(destination.storedParentId()).isNull();
+            assertThat(destination.renderedParentId()).isNull();
+        }
+    }
+
     private static NavigationItemReference ownedBy(String apiId) {
         return new NavigationItemReference.ApiReference(apiId);
     }
