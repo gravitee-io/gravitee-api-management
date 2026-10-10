@@ -45,6 +45,22 @@ public interface GroupService {
     List<GroupSimpleEntity> findAllByOrganization(String organizationId);
     GroupEntity findById(ExecutionContext executionContext, String groupId);
     Set<GroupEntity> findByIds(Set<String> groupIds);
+
+    /**
+     * Groups stored on APIs or applications the user is a direct member of, in this environment.
+     * This is not the environment group directory.
+     */
+    Set<String> findGroupIdsAttachedToUserResources(ExecutionContext executionContext, String userId);
+
+    /**
+     * Without environment GROUP Read, a caller may only keep groups already on the resource or groups they belong to.
+     */
+    Set<String> retainGroupsTheCallerMayAssign(
+        ExecutionContext executionContext,
+        String userId,
+        Set<String> requested,
+        Set<String> alreadyOnResource
+    );
     void associate(final ExecutionContext executionContext, String groupId, String associationType);
     Set<GroupEntity> findByEvent(final String environmentId, GroupEvent event);
     List<GroupEntity> findByName(final String environmentId, String name);
