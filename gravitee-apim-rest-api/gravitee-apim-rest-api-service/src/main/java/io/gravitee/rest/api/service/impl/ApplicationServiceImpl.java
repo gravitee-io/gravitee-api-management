@@ -472,8 +472,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         validateAndEncodeClientCertificate(newApplicationEntity.getSettings(), executionContext.getEnvironmentId());
 
         if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
-            //throw a NotFoundException if the group doesn't exist
-            groupService.findByIds(newApplicationEntity.getGroups());
+            Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
+                executionContext,
+                userId,
+                newApplicationEntity.getGroups(),
+                Set.of()
+            );
+            newApplicationEntity.setGroups(groups);
+            if (!groups.isEmpty()) {
+                groupService.findByIds(groups);
+            }
         }
 
         Application application = applicationConverter.toApplication(newApplicationEntity);
@@ -674,6 +682,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             LOGGER.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
+<<<<<<< HEAD
             Set<String> groups = updateApplicationEntity.getGroups();
             validateUserGroups(executionContext, groups);
 
@@ -682,10 +691,13 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
                 groupService.findByIds(groups);
             }
 
+=======
+>>>>>>> dca7855 (fix(rest-api): keep owned groups visible without environment GROUP Read)
             Application applicationToUpdate = applicationRepository
                 .findById(applicationId)
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
 
+<<<<<<< HEAD
             if (ApplicationStatus.ARCHIVED.equals(applicationToUpdate.getStatus())) {
                 throw new ApplicationArchivedException(applicationToUpdate.getName());
             }
@@ -699,6 +711,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             if (updateApplicationEntity.getSettings().getApp() == null && updateApplicationEntity.getSettings().getOauth() == null) {
                 throw new InvalidApplicationTypeException();
             }
+=======
+            Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
+                executionContext,
+                getAuthenticatedUsername(),
+                updateApplicationEntity.getGroups(),
+                applicationToUpdate.getGroups()
+            );
+            updateApplicationEntity.setGroups(groups);
+            validateUserGroups(executionContext, groups);
+
+            updatePreFlightChecks(updateApplicationEntity, applicationToUpdate, groups);
+>>>>>>> dca7855 (fix(rest-api): keep owned groups visible without environment GROUP Read)
 
             // Retro-compatibility : If input API Key mode is not specified, get it from existing application
             if (updateApplicationEntity.getApiKeyMode() == null && applicationToUpdate.getApiKeyMode() != null) {
