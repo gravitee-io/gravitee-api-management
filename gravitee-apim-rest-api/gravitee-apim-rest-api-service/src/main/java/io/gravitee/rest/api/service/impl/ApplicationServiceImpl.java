@@ -461,8 +461,16 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         );
 
         if (newApplicationEntity.getGroups() != null && !newApplicationEntity.getGroups().isEmpty()) {
-            //throw a NotFoundException if the group doesn't exist
-            groupService.findByIds(newApplicationEntity.getGroups());
+            Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
+                executionContext,
+                userId,
+                newApplicationEntity.getGroups(),
+                Set.of()
+            );
+            newApplicationEntity.setGroups(groups);
+            if (!groups.isEmpty()) {
+                groupService.findByIds(groups);
+            }
         }
 
         Application application = applicationConverter.toApplication(newApplicationEntity);
@@ -636,12 +644,18 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
             log.debug("Update application {}", applicationId);
 
             validateApplicationClientId(executionContext, applicationId, updateApplicationEntity);
-            Set<String> groups = updateApplicationEntity.getGroups();
-            validateUserGroups(executionContext, groups);
-
             Application applicationToUpdate = applicationRepository
                 .findById(applicationId)
                 .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+
+            Set<String> groups = groupService.retainGroupsTheCallerMayAssign(
+                executionContext,
+                getAuthenticatedUsername(),
+                updateApplicationEntity.getGroups(),
+                applicationToUpdate.getGroups()
+            );
+            updateApplicationEntity.setGroups(groups);
+            validateUserGroups(executionContext, groups);
 
             updatePreFlightChecks(updateApplicationEntity, applicationToUpdate, groups);
 
