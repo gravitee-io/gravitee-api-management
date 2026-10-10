@@ -575,11 +575,11 @@ public class SearchMetricsQueryAdapter {
         }
     }
 
+    // No request-id tie-break on purpose: a second key on that high-cardinality keyword defeats Elasticsearch's
+    // skipping of non-competitive hits and times out on large ranges in cold indices. The cost is that requests
+    // sharing a millisecond may repeat or be skipped across from/size page boundaries.
     private static JsonArray buildSort() {
-        return JsonArray.of(
-            JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")),
-            JsonObject.of(RequestV2MetricsV4Fields.REQUEST_ID.v4Metrics(), JsonObject.of("order", "asc", "unmapped_type", "keyword"))
-        );
+        return JsonArray.of(JsonObject.of(RequestV2MetricsV4Fields.TIMESTAMP, JsonObject.of("order", "desc")));
     }
 
     private static JsonObject buildV4Terms(RequestV2MetricsV4Fields.Field field, Collection<?> value) {
