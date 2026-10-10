@@ -161,7 +161,7 @@
     <!--
     <gravitee-policy-token-bucket-ratelimit.version>5.0.0</gravitee-policy-token-bucket-ratelimit.version>    -->
     <gravitee-policy-ratelimit.version>5.0.3</gravitee-policy-ratelimit.version>
-    <gravitee-policy-regex-threat-protection.version>1.6.0</gravitee-policy-regex-threat-protection.version>
+    <gravitee-policy-regex-threat-protection.version>2.0.0</gravitee-policy-regex-threat-protection.version>
     <gravitee-policy-request-content-limit.version>2.0.0</gravitee-policy-request-content-limit.version>
     <gravitee-policy-request-validation.version>2.0.0</gravitee-policy-request-validation.version>
     <gravitee-policy-resource-filtering.version>2.0.3</gravitee-policy-resource-filtering.version>
