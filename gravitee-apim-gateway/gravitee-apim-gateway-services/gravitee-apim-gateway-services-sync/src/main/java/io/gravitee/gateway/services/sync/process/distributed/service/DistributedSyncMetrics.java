@@ -43,6 +43,7 @@ public class DistributedSyncMetrics {
     private final AtomicLong deadLetters = new AtomicLong();
     private final AtomicLong decodeFailures = new AtomicLong();
     private final AtomicLong distributionFailures = new AtomicLong();
+    private final AtomicLong localDeploys = new AtomicLong();
     private final AtomicLong replayedCycles = new AtomicLong();
     private final AtomicLong heldWindows = new AtomicLong();
     private final AtomicLong staleEntriesRemoved = new AtomicLong();
@@ -86,6 +87,14 @@ public class DistributedSyncMetrics {
 
     public void recordDistributionFailure() {
         distributionFailures.incrementAndGet();
+    }
+
+    public void recordLocalDeploy() {
+        localDeploys.incrementAndGet();
+    }
+
+    public long localDeploys() {
+        return localDeploys.get();
     }
 
     public void recordReplayedCycle() {
