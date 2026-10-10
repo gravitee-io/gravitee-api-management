@@ -38,6 +38,7 @@ import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import java.net.URI;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import lombok.CustomLog;
 import org.springframework.stereotype.Component;
@@ -51,9 +52,16 @@ import org.springframework.stereotype.Component;
 public class HttpClientServiceImpl extends AbstractService implements HttpClientService {
 
     private static final String HTTPS_SCHEME = "https";
+    private static final int MAX_CONNECTIONS = 20;
 
     private final Configuration configuration;
     private final Vertx vertx;
+
+    /**
+     * Vert.x holds on to every client it creates until the Vert.x instance itself is closed, so a client per call
+     * would accumulate for as long as the node runs. A client is built once per distinct configuration and shared.
+     */
+    private final Map<ClientKey, HttpClient> clients = new ConcurrentHashMap<>();
 
     public HttpClientServiceImpl(Configuration configuration, Vertx vertx) {
         this.configuration = configuration;
@@ -63,7 +71,11 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     @Override
     public HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy) {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(uriScheme);
+        boolean proxy = (useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured());
+        return clients.computeIfAbsent(new ClientKey(ssl, proxy), key -> buildHttpClient(key.ssl(), key.proxy()));
+    }
 
+    private HttpClient buildHttpClient(boolean ssl, boolean proxy) {
         final HttpClientOptions options = new HttpClientOptions()
             .setSsl(ssl)
             .setTrustAll(true)
@@ -72,12 +84,12 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
             .setTcpKeepAlive(false)
             .setConnectTimeout(httpClientTimeout());
 
-        final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(1);
+        final PoolOptions poolOptions = new PoolOptions().setHttp1MaxSize(MAX_CONNECTIONS);
 
-        if ((useSystemProxy == Boolean.TRUE) || (useSystemProxy == null && this.isProxyConfigured())) {
+        if (proxy) {
             ProxyOptions proxyOptions = new ProxyOptions();
             proxyOptions.setType(ProxyType.valueOf(httpClientProxyType()));
-            if (HTTPS_SCHEME.equals(uriScheme)) {
+            if (ssl) {
                 proxyOptions.setHost(httpClientProxyHttpsHost());
                 proxyOptions.setPort(httpClientProxyHttpsPort());
                 proxyOptions.setUsername(httpClientProxyHttpsUsername());
@@ -138,9 +150,6 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                     @Override
                     public void handle(Throwable throwable) {
                         promise.fail(throwable);
-
-                        // Close client
-                        httpClient.close();
                     }
                 }
             )
@@ -150,9 +159,6 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                     .onComplete(asyncResponse -> {
                         if (asyncResponse.failed()) {
                             promise.fail(asyncResponse.cause());
-
-                            // Close client
-                            httpClient.close();
                         } else {
                             HttpClientResponse response = asyncResponse.result();
                             log.debug("Web response status code : {}", response.statusCode());
@@ -160,9 +166,6 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
                             if (response.statusCode() >= HttpStatusCode.OK_200 && response.statusCode() <= 299) {
                                 response.bodyHandler(buffer -> {
                                     promise.complete(buffer);
-
-                                    // Close client
-                                    httpClient.close();
                                 });
                             } else {
                                 response.bodyHandler(buffer ->
@@ -250,4 +253,6 @@ public class HttpClientServiceImpl extends AbstractService implements HttpClient
     private Boolean isProxyConfigured() {
         return Boolean.valueOf(System.getProperty("httpClient.proxy", "false"));
     }
+
+    private record ClientKey(boolean ssl, boolean proxy) {}
 }

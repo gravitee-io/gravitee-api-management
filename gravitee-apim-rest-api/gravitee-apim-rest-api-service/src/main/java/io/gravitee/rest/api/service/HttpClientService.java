@@ -25,6 +25,10 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface HttpClientService {
+    /**
+     * Returns a client shared by every caller with the same scheme and proxy setting. It must not be closed: it lives
+     * as long as the Vert.x instance, which holds on to every client it creates.
+     */
     HttpClient createHttpClient(String uriScheme, Boolean useSystemProxy);
 
     Buffer request(HttpMethod method, final String uri, final Map<String, String> headers, String body, Boolean useSystemProxy);

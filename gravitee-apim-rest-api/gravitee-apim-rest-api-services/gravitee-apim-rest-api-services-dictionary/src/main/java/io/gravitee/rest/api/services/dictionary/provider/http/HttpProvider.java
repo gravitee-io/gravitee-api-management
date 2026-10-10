@@ -98,9 +98,6 @@ public class HttpProvider implements Provider {
                         @Override
                         public void handle(Throwable event) {
                             promise.fail(event);
-
-                            // Close client
-                            httpClient.close();
                         }
                     }
                 )
@@ -114,22 +111,13 @@ public class HttpProvider implements Provider {
                                     if (response.statusCode() == HttpStatusCode.OK_200) {
                                         response.bodyHandler(buffer -> {
                                             promise.complete(buffer);
-
-                                            // Close client
-                                            httpClient.close();
                                         });
                                     } else {
                                         promise.complete(null);
-
-                                        // Close client
-                                        httpClient.close();
                                     }
                                 })
                                 .onFailure(throwable -> {
                                     promise.fail(throwable);
-
-                                    // Close client
-                                    httpClient.close();
                                 });
 
                             if (!StringUtils.isEmpty(configuration.getBody())) {
