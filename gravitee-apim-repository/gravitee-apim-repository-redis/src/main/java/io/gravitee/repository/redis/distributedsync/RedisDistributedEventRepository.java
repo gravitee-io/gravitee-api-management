@@ -55,6 +55,10 @@ import lombok.CustomLog;
 public class RedisDistributedEventRepository implements DistributedEventRepository {
 
     private static final String REDIS_INDEX_NAME = "distributed-event-search-idx-v2";
+    private static final String REDIS_INDEX_NAME_V3 = "distributed-event-search-idx-v3";
+    private static final String INDEX_ALREADY_EXISTS = "Index already exists";
+    private static final String REDISEARCH_WITHCURSOR = "WITHCURSOR";
+    private static final String REDISEARCH_COUNT = "COUNT";
     private static final String REDIS_KEY_PREFIX = "distributed_event" + REDIS_KEY_SEPARATOR;
     private static final String REDIS_SEARCH_RESULTS_FIELD = "results";
     private static final String REDIS_RESPONSE_ATTRIBUTES_FIELD = "extra_attributes";
@@ -113,8 +117,15 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         this.redisClient.redisApi()
             .flatMap(redisAPI -> redisAPI.ftCreate(buildSearchIndex()))
             .onFailure(throwable -> {
-                if (!"Index already exists".equals(throwable.getMessage())) {
+                if (!INDEX_ALREADY_EXISTS.equals(throwable.getMessage())) {
                     log.error("Unable to create distributed-event index", throwable);
+                }
+            });
+        this.redisClient.redisApi()
+            .flatMap(redisAPI -> redisAPI.ftCreate(buildSearchIndexV3()))
+            .onFailure(throwable -> {
+                if (!INDEX_ALREADY_EXISTS.equals(throwable.getMessage())) {
+                    log.debug("Unable to create distributed-event index v3, updateAll will fall back to SCAN", throwable);
                 }
             });
     }
@@ -215,10 +226,70 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         // escaped and the matched keys are filtered exactly.
         String baseKey = REDIS_KEY_PREFIX + clusterId + REDIS_KEY_SEPARATOR + refType.name() + REDIS_KEY_SEPARATOR + refId;
         String matchingKey = escapeGlob(baseKey) + "*";
+        return updateAllFromV3(clusterId, refType, refId, baseKey, syncAction, updatedAt, stampAtWriteTime).onErrorResumeNext(throwable -> {
+            if (isUnknownIndex(throwable)) {
+                log.debug("Distributed event search index v3 is missing, updateAll falls back to SCAN");
+                return updateAllWithScan(baseKey, matchingKey, syncAction, updatedAt, stampAtWriteTime);
+            }
+            return Completable.error(throwable);
+        });
+    }
+
+    /**
+     * Update the events of a single reference through the v3 index (refType/refId are tags), which avoids a full
+     * keyspace SCAN.
+     */
+    private Completable updateAllFromV3(
+        final String clusterId,
+        final DistributedEventType refType,
+        final String refId,
+        final String baseKey,
+        final DistributedSyncAction syncAction,
+        final Date updatedAt,
+        final boolean stampAtWriteTime
+    ) {
+        String query =
+            clusterQuery(clusterId) +
+            "@" +
+            DistributedEvent.Fields.refType +
+            ":{" +
+            refType.name() +
+            "}@" +
+            DistributedEvent.Fields.refId +
+            ":{" +
+            RediSearchTagValues.escapeTagValue(refId) +
+            "}";
+        return searchKeysOnV3(query)
+            .flatMapCompletable(
+                key ->
+                    createOrUpdateKey(
+                        key,
+                        DistributedEvent.builder().syncAction(syncAction).updatedAt(updatedAt).build(),
+                        stampAtWriteTime
+                    ),
+                false,
+                UPDATE_MAX_CONCURRENCY
+            )
+            // The reference's own event carries no refId in its hash (only its children do), so it is updated
+            // directly by key.
+            .andThen(
+                createOrUpdateKey(baseKey, DistributedEvent.builder().syncAction(syncAction).updatedAt(updatedAt).build(), stampAtWriteTime)
+            );
+    }
+
+    private Completable updateAllWithScan(
+        final String baseKey,
+        final String matchingKey,
+        final DistributedSyncAction syncAction,
+        final Date updatedAt,
+        final boolean stampAtWriteTime
+    ) {
         return Completable.defer(() -> {
             // SCAN cursors are unsigned 64-bit values
             AtomicLong cursor = new AtomicLong(0);
-            return send(redisAPI -> redisAPI.scan(List.of(String.valueOf(cursor.get()), "MATCH", matchingKey, "COUNT", SCAN_BATCH_SIZE)))
+            return send(redisAPI ->
+                redisAPI.scan(List.of(String.valueOf(cursor.get()), "MATCH", matchingKey, REDISEARCH_COUNT, SCAN_BATCH_SIZE))
+            )
                 .filter(response -> response.type() == ResponseType.MULTI)
                 .flattenStreamAsFlowable(response -> {
                     cursor.set(response.get(0).toLong());
@@ -242,6 +313,51 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
     }
 
     /**
+     * Streams the keys of the matching v3-indexed events, like {@link #searchKeys} but against v3.
+     */
+    private Flowable<String> searchKeysOnV3(final String query) {
+        return Flowable.defer(() -> {
+            AtomicLong cursorId = new AtomicLong(NO_CURSOR);
+            return send(redisAPI ->
+                cursorId.get() == NO_CURSOR
+                    ? redisAPI.ftAggregate(
+                        List.of(
+                            REDIS_INDEX_NAME_V3,
+                            query,
+                            "LOAD",
+                            "1",
+                            "@" + KEY_FIELD,
+                            REDISEARCH_WITHCURSOR,
+                            REDISEARCH_COUNT,
+                            SCAN_BATCH_SIZE
+                        )
+                    )
+                    : redisAPI.ftCursor(List.of("READ", REDIS_INDEX_NAME_V3, String.valueOf(cursorId.get())))
+            )
+                .flattenStreamAsFlowable(response -> {
+                    cursorId.set(response.get(1).toLong());
+                    return getSearchResults(response.get(0))
+                        .stream()
+                        .filter(item -> item.type() == ResponseType.MULTI)
+                        .map(item -> getResultAttributes(item).get(KEY_FIELD))
+                        .filter(java.util.Objects::nonNull)
+                        .map(Response::toString);
+                })
+                .repeatUntil(() -> cursorId.get() == 0)
+                .doFinally(() -> closeCursorV3(cursorId.get()));
+        });
+    }
+
+    private void closeCursorV3(final long cursorId) {
+        if (cursorId > 0) {
+            redisClient
+                .redisApi()
+                .flatMap(redisAPI -> redisAPI.ftCursor(List.of("DEL", REDIS_INDEX_NAME_V3, String.valueOf(cursorId))))
+                .onFailure(throwable -> log.debug("Unable to close distributed-event cursor on index v3 {}", cursorId, throwable));
+        }
+    }
+
+    /**
      * The index is created once at startup; if it is missing afterwards (store restarted without persistence,
      * flushed, or created while the store was unreachable) every search fails until it is recreated.
      */
@@ -254,10 +370,9 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                     log.warn("Distributed event search index [{}] is missing, recreating it", REDIS_INDEX_NAME);
                     return send(redisAPI -> redisAPI.ftCreate(buildSearchIndex()))
                         .ignoreElement()
+                        .andThen(send(redisAPI -> redisAPI.ftCreate(buildSearchIndexV3())).ignoreElement())
                         .onErrorResumeNext(createError ->
-                            "Index already exists".equals(createError.getMessage())
-                                ? Completable.complete()
-                                : Completable.error(createError)
+                            INDEX_ALREADY_EXISTS.equals(createError.getMessage()) ? Completable.complete() : Completable.error(createError)
                         );
                 }
                 return Completable.error(throwable);
@@ -353,8 +468,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
                             "LOAD",
                             "1",
                             "@" + KEY_FIELD,
-                            "WITHCURSOR",
-                            "COUNT",
+                            REDISEARCH_WITHCURSOR,
+                            REDISEARCH_COUNT,
                             SCAN_BATCH_SIZE,
                             "MAXIDLE",
                             String.valueOf(CURSOR_MAX_IDLE_MS)
@@ -488,6 +603,12 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         addField(args, DistributedEvent.Fields.id, distributedEvent.getId());
         addField(args, DistributedEvent.Fields.payload, distributedEvent.getPayload());
         addField(args, DistributedEvent.Fields.type, distributedEvent.getType() == null ? null : distributedEvent.getType().name());
+        addField(
+            args,
+            DistributedEvent.Fields.refType,
+            distributedEvent.getRefType() == null ? null : distributedEvent.getRefType().name()
+        );
+        addField(args, DistributedEvent.Fields.refId, distributedEvent.getRefId());
         addField(
             args,
             DistributedEvent.Fields.syncAction,
@@ -677,6 +798,35 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         );
     }
 
+    /**
+     * v3 adds the reference type/id as indexed tags (v2 predates them): once this index exists, {@code updateAll}
+     * can address the events of one reference with a search instead of scanning the whole keyspace.
+     */
+    private List<String> buildSearchIndexV3() {
+        return List.of(
+            REDIS_INDEX_NAME_V3,
+            "ON",
+            "HASH",
+            "PREFIX",
+            "1",
+            REDIS_KEY_PREFIX,
+            "SCHEMA",
+            DistributedEvent.Fields.clusterId,
+            "TAG",
+            DistributedEvent.Fields.refType,
+            "TAG",
+            DistributedEvent.Fields.refId,
+            "TAG",
+            DistributedEvent.Fields.type,
+            "TAG",
+            DistributedEvent.Fields.syncAction,
+            "TAG",
+            DistributedEvent.Fields.updatedAt,
+            "NUMERIC",
+            "SORTABLE"
+        );
+    }
+
     private List<String> buildSearchArgs(DistributedEventCriteria criteria, Long page, Long size) {
         var args = new ArrayList<String>();
         args.add(REDIS_INDEX_NAME);
@@ -712,8 +862,8 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
             "@" + DistributedEvent.Fields.syncAction,
             "@" + DistributedEvent.Fields.updatedAt,
             "@" + DistributedEvent.Fields.schemaVersion,
-            "WITHCURSOR",
-            "COUNT",
+            REDISEARCH_WITHCURSOR,
+            REDISEARCH_COUNT,
             String.valueOf(batchSize),
             "MAXIDLE",
             String.valueOf(CURSOR_MAX_IDLE_MS)
@@ -783,6 +933,14 @@ public class RedisDistributedEventRepository implements DistributedEventReposito
         if (distributedEvent.getType() != null) {
             args.add(DistributedEvent.Fields.type);
             args.add(distributedEvent.getType().name());
+        }
+        if (distributedEvent.getRefType() != null) {
+            args.add(DistributedEvent.Fields.refType);
+            args.add(distributedEvent.getRefType().name());
+        }
+        if (distributedEvent.getRefId() != null) {
+            args.add(DistributedEvent.Fields.refId);
+            args.add(distributedEvent.getRefId());
         }
         if (distributedEvent.getSyncAction() != null) {
             args.add(DistributedEvent.Fields.syncAction);
