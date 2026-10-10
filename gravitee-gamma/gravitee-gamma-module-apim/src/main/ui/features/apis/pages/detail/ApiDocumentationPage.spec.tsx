@@ -16,7 +16,7 @@
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 
 import { ApiDocumentationPage } from './ApiDocumentationPage';
 import { ApimApiError } from '../../../../shared/api/apimClient';
@@ -40,6 +40,35 @@ jest.mock('../../hooks/useApiDocumentation', () => ({
 
 jest.mock('../../../../shared/notify', () => ({
     notify: { success: jest.fn(), error: jest.fn() },
+}));
+
+// The dialog has its own spec; here only whether the page opens it, for which API, and what follows, matters.
+jest.mock('../../components/detail/documentation/CreatePageDialog', () => ({
+    CreatePageDialog: ({
+        open,
+        apiId,
+        parent,
+        onClose,
+        onCreated,
+    }: {
+        open: boolean;
+        apiId: string;
+        parent?: { title: string };
+        onClose: () => void;
+        onCreated: (pageId: string) => void;
+    }) =>
+        open ? (
+            <div role="dialog" aria-label="Add a page">
+                Adding a page to {apiId}
+                {parent ? ` in ${parent.title}` : ' at the top level'}
+                <button type="button" onClick={onClose}>
+                    Close
+                </button>
+                <button type="button" onClick={() => onCreated('new-page')}>
+                    Created
+                </button>
+            </div>
+        ) : null,
 }));
 
 const mockUseHasPermission = useHasPermission as jest.Mock;
@@ -92,11 +121,19 @@ function givenDocumentation(data: ApiPortalNavigationItemsResponse) {
     mockUseApiDocumentation.mockReturnValue({ data, isLoading: false, isError: false });
 }
 
+function EditRoute() {
+    const { pageId } = useParams<{ pageId: string }>();
+    return <p>Editing {pageId}</p>;
+}
+
 function renderPage() {
-    render(
+    return render(
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
-                <Route path="apis/:apiId/documentation" element={<ApiDocumentationPage />} />
+                <Route path="apis/:apiId/documentation">
+                    <Route index element={<ApiDocumentationPage />} />
+                    <Route path=":pageId/edit" element={<EditRoute />} />
+                </Route>
             </Routes>
         </MemoryRouter>,
     );
@@ -104,6 +141,7 @@ function renderPage() {
 
 beforeEach(() => {
     jest.clearAllMocks();
+    sessionStorage.clear();
     mockUseHasPermission.mockReturnValue(true);
     mockUseApiDetailContext.mockReturnValue({ api: { id: 'api-1' }, isLoading: false, permissionsReady: true });
     givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [] });
@@ -184,6 +222,30 @@ describe('ApiDocumentationPage', () => {
         });
     });
 
+    describe('open folders', () => {
+        it('stay open when coming back to the documentation', async () => {
+            const { unmount } = renderPage();
+            await userEvent.click(screen.getByRole('button', { name: 'Expand Guides' }));
+            unmount();
+
+            renderPage();
+
+            expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
+        });
+
+        it('include the folder a page was just added to', async () => {
+            const { unmount } = renderPage();
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Add page' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Created' }));
+            unmount();
+
+            renderPage();
+
+            expect(screen.getByRole('link', { name: 'Getting started' })).toBeInTheDocument();
+        });
+    });
+
     it('invites to write documentation when the API has none', () => {
         givenDocumentation({ items: [], publications: [] });
         renderPage();
@@ -253,11 +315,72 @@ describe('ApiDocumentationPage', () => {
             expect(notify.error).toHaveBeenCalledWith(serverError, "Failed to delete 'Changelog'");
         });
 
-        it('offers no delete without api-documentation-d', () => {
-            mockUseHasPermission.mockImplementation(({ anyOf }: { anyOf: string[] }) => !anyOf.includes('api-documentation-d'));
+        it('offers no delete without api-documentation-d', async () => {
+            mockUseHasPermission.mockImplementation(({ anyOf = [] }: { anyOf?: string[] }) => !anyOf.includes('api-documentation-d'));
             renderPage();
 
-            expect(screen.queryByRole('button', { name: /^Actions for/ })).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Actions for Changelog' })).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('adding documentation', () => {
+        it('opens the page dialog for this API from the Add menu, and closes it', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Add documentation' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Page' }));
+            expect(screen.getByRole('dialog', { name: 'Add a page' })).toHaveTextContent('Adding a page to api-1 at the top level');
+
+            await userEvent.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Add a page' })).not.toBeInTheDocument();
+        });
+
+        it('opens the page dialog for a folder from its row', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Add page' }));
+
+            expect(screen.getByRole('dialog', { name: 'Add a page' })).toHaveTextContent('Adding a page to api-1 in Guides');
+        });
+
+        it('opens the new page once it is created', async () => {
+            renderPage();
+
+            await userEvent.click(screen.getByRole('button', { name: 'Add documentation' }));
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Page' }));
+            await userEvent.click(screen.getByRole('button', { name: 'Created' }));
+
+            expect(screen.getByText('Editing new-page')).toBeInTheDocument();
+        });
+
+        it('offers the same Add menu from the empty state', async () => {
+            givenDocumentation({ items: [], publications: [] });
+            renderPage();
+
+            const addButtons = screen.getAllByRole('button', { name: 'Add documentation' });
+            await userEvent.click(addButtons[addButtons.length - 1]!);
+            await userEvent.click(screen.getByRole('menuitem', { name: 'Page' }));
+
+            expect(screen.getByRole('dialog', { name: 'Add a page' })).toBeInTheDocument();
+        });
+
+        // A page is created, then its content is saved: with create alone it would stay empty.
+        it('requires both api-documentation-c and api-documentation-u', () => {
+            renderPage();
+
+            expect(mockUseHasPermission).toHaveBeenCalledWith({ allOf: ['api-documentation-c', 'api-documentation-u'] });
+        });
+
+        it('offers no add without those permissions', async () => {
+            mockUseHasPermission.mockImplementation((query: { allOf?: string[] }) => query.allOf === undefined);
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: 'Add documentation' })).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
         });
     });
 });

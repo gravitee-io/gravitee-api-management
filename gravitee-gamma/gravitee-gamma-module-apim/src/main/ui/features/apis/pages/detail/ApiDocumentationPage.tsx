@@ -14,17 +14,30 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { Alert, AlertDescription, Badge, DataTableEmptyState, PageHeader } from '@gravitee/graphene-core';
-import { BookOpenIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import {
+    Alert,
+    AlertDescription,
+    Badge,
+    Button,
+    DataTableEmptyState,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    PageHeader,
+} from '@gravitee/graphene-core';
+import { BookOpenIcon, ChevronDownIcon, FileTextIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 import { ConfirmDialog } from '../../../../shared/components/ConfirmDialog';
 import { notify } from '../../../../shared/notify';
+import { CreatePageDialog } from '../../components/detail/documentation/CreatePageDialog';
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
 import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
-import type { ApiPortalPublication } from '../../types/apiDocumentation';
+import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
+import type { ApiPortalPublication, PortalNavigationFolder } from '../../types/apiDocumentation';
 import { type DocumentationRow, getPublishedSection } from '../../utils/documentationTree';
 
 const DESCRIPTION = 'Pages, folders and links that describe this API in the developer portal.';
@@ -47,19 +60,27 @@ export function ApiDocumentationPage() {
         );
     }
 
-    return <ApiDocumentationContent apiId={apiId ?? ''} />;
+    // Keyed so that moving to another API starts from that API's own open folders.
+    return <ApiDocumentationContent key={apiId} apiId={apiId ?? ''} />;
 }
 
 // Split from the page so the list is only requested once the user is known to be allowed to read it.
 function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     const canDelete = useHasPermission({ anyOf: ['api-documentation-d'] });
+    // A page is created, then its content is saved: with create alone it would stay empty.
+    const canAdd = useHasPermission({ allOf: ['api-documentation-c', 'api-documentation-u'] });
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
+    const expandedFolders = useExpandedDocumentationFolders(apiId);
+    const navigate = useNavigate();
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
+    // `parent` is absent for a page added at the top level.
+    const [pageToAdd, setPageToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
 
     const items = data?.items ?? [];
     const isFirstUse = !isLoading && !isError && items.length === 0;
     const openDeleteDialog = useCallback((row: DocumentationRow) => setToDelete(row), []);
+    const openAddPageDialog = useCallback((parent: PortalNavigationFolder) => setPageToAdd({ parent }), []);
 
     async function handleDelete() {
         if (!toDelete) return;
@@ -73,11 +94,20 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
         }
     }
 
+    const addMenu = canAdd ? <AddDocumentationMenu onAddPage={() => setPageToAdd({})} /> : null;
+
     return (
         <div className="flex flex-col gap-6">
-            <PageHeader title="Documentation" description={DESCRIPTION}>
-                {data ? <PublicationBadge publications={data.publications} /> : null}
-            </PageHeader>
+            <PageHeader
+                title="Documentation"
+                description={DESCRIPTION}
+                actions={
+                    <>
+                        {data ? <PublicationBadge publications={data.publications} /> : null}
+                        {addMenu}
+                    </>
+                }
+            />
 
             {isError ? (
                 <Alert variant="destructive">
@@ -90,10 +120,20 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                         icon={<BookOpenIcon />}
                         title="No documentation yet"
                         description="Pages, folders and links you add here appear in the developer portal once the API is published."
+                        primaryAction={addMenu}
                     />
                 </div>
             ) : (
-                <DocumentationTree items={items} isLoading={isLoading} canDelete={canDelete} onDelete={openDeleteDialog} />
+                <DocumentationTree
+                    items={items}
+                    isLoading={isLoading}
+                    expandedIds={expandedFolders.expandedIds}
+                    onToggle={expandedFolders.toggle}
+                    canDelete={canDelete}
+                    onDelete={openDeleteDialog}
+                    canAdd={canAdd}
+                    onAddPage={openAddPageDialog}
+                />
             )}
 
             <ConfirmDialog
@@ -108,7 +148,39 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 isPending={deleteMutation.isPending}
                 onConfirm={handleDelete}
             />
+
+            <CreatePageDialog
+                open={pageToAdd !== null}
+                apiId={apiId}
+                parent={pageToAdd?.parent}
+                onClose={() => setPageToAdd(null)}
+                onCreated={pageId => {
+                    // So the new page shows when coming back from it.
+                    if (pageToAdd?.parent) expandedFolders.expand(pageToAdd.parent.id);
+                    navigate(`${pageId}/edit`);
+                }}
+            />
         </div>
+    );
+}
+
+function AddDocumentationMenu({ onAddPage }: Readonly<{ onAddPage: () => void }>) {
+    return (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button type="button">
+                    <PlusIcon className="size-4" aria-hidden />
+                    Add documentation
+                    <ChevronDownIcon className="size-4" aria-hidden />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={onAddPage}>
+                    <FileTextIcon className="size-4" aria-hidden />
+                    Page
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     );
 }
 

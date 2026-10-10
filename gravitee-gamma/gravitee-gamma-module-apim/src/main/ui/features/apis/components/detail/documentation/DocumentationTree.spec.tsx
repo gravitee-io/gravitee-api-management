@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { useState, type ComponentProps } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 import { DocumentationTree } from './DocumentationTree';
@@ -76,26 +77,41 @@ const STATUS_PAGE: ApiDocumentationItem = {
 
 const ITEMS = [GUIDES, GETTING_STARTED, OAUTH, REFERENCE, ENDPOINTS, STATUS_PAGE];
 
-function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelete: boolean; isLoading: boolean }> = {}) {
+function renderTree(overrides: Partial<{ items: ApiDocumentationItem[]; canDelete: boolean; canAdd: boolean; isLoading: boolean }> = {}) {
     const onDelete = jest.fn();
+    const onAddPage = jest.fn();
     render(
         <MemoryRouter initialEntries={['/apis/api-1/documentation']}>
             <Routes>
                 <Route
                     path="apis/:apiId/documentation"
                     element={
-                        <DocumentationTree
+                        <StatefulTree
                             items={overrides.items ?? ITEMS}
                             isLoading={overrides.isLoading ?? false}
                             canDelete={overrides.canDelete ?? true}
                             onDelete={onDelete}
+                            canAdd={overrides.canAdd ?? true}
+                            onAddPage={onAddPage}
                         />
                     }
                 />
             </Routes>
         </MemoryRouter>,
     );
-    return { onDelete };
+    return { onDelete, onAddPage };
+}
+
+// The page owns which folders are open; this stands in for it.
+function StatefulTree(props: Omit<ComponentProps<typeof DocumentationTree>, 'expandedIds' | 'onToggle'>) {
+    const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(new Set());
+    const toggle = (id: string) =>
+        setExpandedIds(previous => {
+            const next = new Set(previous);
+            if (!next.delete(id)) next.add(id);
+            return next;
+        });
+    return <DocumentationTree {...props} expandedIds={expandedIds} onToggle={toggle} />;
 }
 
 const rowOf = (title: string) => screen.getByText(title).closest('tr') as HTMLElement;
@@ -108,6 +124,15 @@ const visibleTitles = () =>
 async function expand(user: ReturnType<typeof userEvent.setup>, folderTitle: string) {
     await user.click(screen.getByRole('button', { name: `Expand ${folderTitle}` }));
 }
+
+beforeAll(() => {
+    // The tooltips on the badges measure their trigger, which jsdom cannot do.
+    global.ResizeObserver = class ResizeObserver {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+    } as typeof ResizeObserver;
+});
 
 describe('DocumentationTree', () => {
     it('starts with every folder collapsed, showing only the top-level items', () => {
@@ -128,7 +153,16 @@ describe('DocumentationTree', () => {
         expect(within(rowOf('Guides')).getByText('Unpublished')).toBeInTheDocument();
         expect(within(rowOf('OAuth setup')).getByText('Private')).toBeInTheDocument();
         // Both access values are badges, so their text lines up in the column
-        expect(within(rowOf('Guides')).getByText('Public')).toHaveAttribute('data-slot', 'badge');
+        expect(within(rowOf('Guides')).getByText('Public')).toHaveAttribute('data-variant', 'outline');
+    });
+
+    it('explains what the status and access of an item mean, naming the kind of item', async () => {
+        const user = userEvent.setup();
+        renderTree();
+
+        await user.hover(within(rowOf('Guides')).getByText('Unpublished'));
+
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Not shown in the developer portal until the folder is published.');
     });
 
     it('collapses an expanded folder to hide its contents again', async () => {
@@ -193,9 +227,90 @@ describe('DocumentationTree', () => {
         expect(screen.getByRole('button', { name: 'Actions for Status page' })).toBeInTheDocument();
     });
 
-    it('offers no delete without the permission', () => {
+    it('offers no delete without the permission', async () => {
+        const user = userEvent.setup();
         renderTree({ canDelete: false });
 
-        expect(screen.queryByRole('button', { name: /^Actions for/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Actions for Status page' })).not.toBeInTheDocument();
+        await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+        expect(screen.queryByRole('menuitem', { name: 'Delete' })).not.toBeInTheDocument();
+    });
+
+    describe('adding a page to a folder', () => {
+        it('offers it from the folder and reports which one', async () => {
+            const user = userEvent.setup();
+            const { onAddPage } = renderTree();
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+            await user.click(screen.getByRole('menuitem', { name: 'Add page' }));
+
+            expect(onAddPage).toHaveBeenCalledWith(GUIDES);
+        });
+
+        it('offers it only on a folder', async () => {
+            const user = userEvent.setup();
+            renderTree();
+
+            await expand(user, 'Guides');
+            await user.click(screen.getByRole('button', { name: 'Actions for Getting started' }));
+
+            expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
+        });
+
+        it('does not offer it on a synced folder, which the server refuses', () => {
+            renderTree({ canDelete: false });
+
+            expect(screen.queryByRole('button', { name: 'Actions for Reference' })).not.toBeInTheDocument();
+        });
+
+        it('does not offer it without the permission', async () => {
+            const user = userEvent.setup();
+            renderTree({ canAdd: false });
+
+            await user.click(screen.getByRole('button', { name: 'Actions for Guides' }));
+
+            expect(screen.queryByRole('menuitem', { name: 'Add page' })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('right-clicking a row', () => {
+        it('opens the same menu as the row button, anywhere in the row', async () => {
+            const user = userEvent.setup();
+            const { onDelete } = renderTree();
+
+            const browserMenuShown = fireEvent.contextMenu(within(rowOf('Guides')).getByText('Unpublished'));
+
+            expect(browserMenuShown).toBe(false);
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Add page', 'Delete']);
+            await user.click(screen.getByRole('menuitem', { name: 'Delete' }));
+            expect(onDelete).toHaveBeenCalledWith(expect.objectContaining({ item: GUIDES }));
+        });
+
+        it('offers only what the row button offers for that row', () => {
+            renderTree();
+
+            fireEvent.contextMenu(screen.getByText('Status page'));
+
+            expect(screen.getAllByRole('menuitem').map(item => item.textContent)).toEqual(['Delete']);
+        });
+
+        it.each([
+            ['a synced item', () => screen.getByText('Reference')],
+            ['the column headers', () => screen.getByText('Status')],
+        ])('leaves the browser menu alone on %s, which has no actions', (_case, target) => {
+            renderTree();
+
+            const browserMenuShown = fireEvent.contextMenu(target());
+
+            expect(browserMenuShown).toBe(true);
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        });
+
+        it('leaves the browser menu alone without the permissions', () => {
+            renderTree({ canDelete: false, canAdd: false });
+
+            expect(fireEvent.contextMenu(screen.getByText('Guides'))).toBe(true);
+            expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+        });
     });
 });
