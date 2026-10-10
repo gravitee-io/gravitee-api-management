@@ -44,6 +44,7 @@ import { InvitationConfirmationComponent } from './registration/invitation-confi
 import { RegistrationConfirmationComponent } from './registration/registration-confirmation/registration-confirmation.component';
 import { ServiceUnavailableComponent } from './service-unavailable/service-unavailable.component';
 import { NavigationPageFullWidthComponent } from '../components/navigation-page-full-width/navigation-page-full-width.component';
+import { aiWorkspacesEnabledGuard } from '../guards/ai-workspaces-enabled.guard';
 import { analyticsEnabledGuard } from '../guards/analytics-enabled.guard';
 import { applicationInvitationsEnabledGuard, applicationMembershipEnabledGuard } from '../guards/application-membership-enabled.guard';
 import { redirectGuard } from '../guards/redirect.guard';
@@ -225,6 +226,20 @@ export const routes: Routes = [
             path: 'invitations',
             component: ApplicationTabInvitationsComponent,
             canActivate: [applicationInvitationsEnabledGuard],
+          },
+        ],
+      },
+      {
+        path: 'workspaces',
+        canActivate: [aiWorkspacesEnabledGuard],
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./dashboard/workspaces/workspaces.component'),
+          },
+          {
+            path: ':workspaceId',
+            loadComponent: () => import('./dashboard/workspaces/workspace-details/workspace-details.component'),
           },
         ],
       },

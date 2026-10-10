@@ -19,6 +19,8 @@ import { provideRouter } from '@angular/router';
 
 import { UserAvatarComponent } from './user-avatar.component';
 import { fakeUser } from '../../entities/user/user.fixtures';
+import { ConfigService } from '../../services/config.service';
+import { ConfigServiceStub } from '../../testing/app-testing.module';
 
 describe('UserAvatarComponent', () => {
   let fixture: ComponentFixture<UserAvatarComponent>;
@@ -26,7 +28,7 @@ describe('UserAvatarComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [UserAvatarComponent, NoopAnimationsModule],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), { provide: ConfigService, useClass: ConfigServiceStub }],
     }).compileComponents();
 
     fixture = TestBed.createComponent(UserAvatarComponent);
@@ -45,6 +47,7 @@ describe('UserAvatarComponent', () => {
     const panel = document.querySelector('.mat-mdc-menu-panel');
     const labels = Array.from(panel?.querySelectorAll('.mat-mdc-menu-item') ?? []).map(el => el.textContent?.trim());
     expect(labels.some(t => t === 'Analytics')).toBe(false);
+    expect(labels).not.toContain('My Workspace');
   });
 
   it('should show Analytics menu item when analyticsEnabled is true', async () => {

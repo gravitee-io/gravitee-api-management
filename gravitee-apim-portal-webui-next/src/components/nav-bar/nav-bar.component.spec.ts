@@ -60,7 +60,7 @@ describe('NavBarComponent', () => {
     } as PortalNavigationLink,
   ];
 
-  const init = async (isMobile: boolean = false, portalNextAnalyticsEnabled = false) => {
+  const init = async (isMobile: boolean = false, portalNextAnalyticsEnabled = false, aiWorkspacesEnabled = true) => {
     const mockBreakpointObserver = {
       observe: () => of({ matches: isMobile, breakpoints: { [Breakpoints.XSmall]: isMobile } }),
     };
@@ -85,16 +85,15 @@ describe('NavBarComponent', () => {
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
 
-    if (portalNextAnalyticsEnabled) {
-      const config = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
-      config.configuration = {
-        ...config.configuration,
-        portalNext: {
-          ...config.configuration.portalNext,
-          analytics: { enabled: true },
-        },
-      };
-    }
+    const config = TestBed.inject(ConfigService) as unknown as ConfigServiceStub;
+    config.configuration = {
+      ...config.configuration,
+      portalNext: {
+        ...config.configuration.portalNext,
+        ...(portalNextAnalyticsEnabled ? { analytics: { enabled: true } } : {}),
+        aiWorkspaces: { enabled: aiWorkspacesEnabled },
+      },
+    };
 
     fixture.detectChanges();
   };
@@ -175,7 +174,7 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Subscriptions', 'Log out']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Subscriptions', 'My Workspace', 'Log out']);
     });
 
     it('should not show menu if user is not connected and login is forced', async () => {
@@ -207,6 +206,7 @@ describe('NavBarComponent', () => {
         'link-name-2 open_in_new(opens in new tab)',
         'Applications',
         'Subscriptions',
+        'My Workspace',
         'Log out',
       ]);
     });
@@ -272,6 +272,29 @@ describe('NavBarComponent', () => {
     });
   });
 
+  describe('using mobile view with AI workspaces off', () => {
+    beforeEach(async () => {
+      await init(true, false, false);
+    });
+
+    afterEach(() => {
+      httpTestingController.verify();
+    });
+
+    it('should hide My Workspace when the capability is off', async () => {
+      expectHomePage();
+      componentRef.setInput('currentUser', fakeUser());
+      fixture.detectChanges();
+
+      const menuButton = await harnessLoader.getHarness(MatButtonHarness.with({ selector: '.mobile-menu__button' }));
+      await menuButton.click();
+
+      const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
+      const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Applications', 'Subscriptions', 'Log out']);
+    });
+  });
+
   describe('using mobile view with portal next analytics enabled', () => {
     beforeEach(async () => {
       await init(true, true);
@@ -291,7 +314,7 @@ describe('NavBarComponent', () => {
 
       const links: NodeList = fixture.debugElement.nativeElement.querySelectorAll('.mobile-menu__link');
       const linkTexts = Array.from(links).map((el: Node) => el.textContent?.trim());
-      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Analytics', 'Applications', 'Subscriptions', 'Log out']);
+      expect(linkTexts).toEqual(['Homepage', 'Catalog', 'Analytics', 'Applications', 'Subscriptions', 'My Workspace', 'Log out']);
     });
   });
 
