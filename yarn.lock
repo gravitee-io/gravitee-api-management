@@ -4972,9 +4972,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@gravitee/ui-components@npm:5.0.0":
-  version: 5.0.0
-  resolution: "@gravitee/ui-components@npm:5.0.0"
+"@gravitee/ui-components@npm:5.0.2":
+  version: 5.0.2
+  resolution: "@gravitee/ui-components@npm:5.0.2"
   dependencies:
     "@codemirror/autocomplete": "npm:^6.20.3"
     "@codemirror/lang-json": "npm:^6.0.2"
@@ -5012,7 +5012,7 @@ __metadata:
       optional: true
     highlight.js:
       optional: true
-  checksum: 10c0/edc61b0119e5c24c4d32ff0731f06bac2872d3df2ec99dffc74a59e18d10ffaa4ae1a96db739aef2607fac2fd0bd3f7ebc533b8211154c9f89c7811d3567f5d2
+  checksum: 10c0/c6cbc17d2a32c7706cd37f442933a2eb52e50ccb82c49b29c4279519df891e124a2c3b95225e4018e6018438345d1cce58d3352b94c4cf40e81ef41d03d60d69
   languageName: node
   linkType: hard
 
@@ -21484,7 +21484,7 @@ __metadata:
     "@gravitee/graphene-core": "npm:3.26.3"
     "@gravitee/graphene-policy-studio": "npm:3.26.3"
     "@gravitee/ui-analytics": "npm:18.0.0"
-    "@gravitee/ui-components": "npm:5.0.0"
+    "@gravitee/ui-components": "npm:5.0.2"
     "@gravitee/ui-particles-angular": "npm:18.0.0"
     "@gravitee/ui-policy-studio-angular": "npm:18.0.0"
     "@gravitee/ui-schematics": "npm:18.0.0"
