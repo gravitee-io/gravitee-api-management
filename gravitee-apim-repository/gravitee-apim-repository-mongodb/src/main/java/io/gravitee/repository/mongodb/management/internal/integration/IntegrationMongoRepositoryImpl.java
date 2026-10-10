@@ -46,7 +46,7 @@ public class IntegrationMongoRepositoryImpl implements IntegrationMongoRepositor
         Collection<String> integrationIds,
         Collection<String> groups
     ) {
-        if (groups.isEmpty()) {
+        if (integrationIds.isEmpty() && groups.isEmpty()) {
             return new Page<>(List.of(), 0, 0, 0);
         }
         Query query = new Query();
