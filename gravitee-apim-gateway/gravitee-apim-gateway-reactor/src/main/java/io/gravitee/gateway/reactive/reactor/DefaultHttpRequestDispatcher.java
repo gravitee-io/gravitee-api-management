@@ -90,6 +90,12 @@ import lombok.CustomLog;
 public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
 
     private static final String ATTR_INTERNAL_VERTX_TIMER_ID = ContextAttributes.ATTR_PREFIX + "vertx-timer-id";
+
+    /**
+     * Internal attribute holding a {@link Runnable} that cancels the upstream connection of a v3 exchange.
+     * It is set once the upstream connection is available and invoked when the client goes away before the exchange ends.
+     */
+    public static final String ATTR_INTERNAL_V3_CANCEL_UPSTREAM = ContextAttributes.ATTR_PREFIX + "v3-cancel-upstream";
     public static final String ATTR_ENTRYPOINT = ContextAttributes.ATTR_PREFIX + "entrypoint";
     // Key checked by gravitee-node's RouteGetter (OTel span naming) before falling back to the raw request URI.
     private static final String TRACING_ROUTE_CONTEXT_KEY = "VertxRoute";
@@ -562,6 +568,8 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
         // Prepare handler chain and catch the end of the v3 request handling to complete the reactive chain.
         return Completable.create(emitter -> {
             Handler<io.gravitee.gateway.api.ExecutionContext> endHandler = endRequestHandler(emitter, httpServerRequest);
+            // Disposed when the client goes away: nothing else tells the v3 engine, so release the upstream connection.
+            emitter.setCancellable(() -> cancelUpstreamIfPending(simpleExecutionContext));
             requestProcessorChainFactory
                 .create()
                 .handler(ctx -> {
@@ -598,6 +606,19 @@ public class DefaultHttpRequestDispatcher implements HttpRequestDispatcher {
                         throwable
                     );
             });
+    }
+
+    private void cancelUpstreamIfPending(final io.gravitee.gateway.api.ExecutionContext context) {
+        if (!context.response().ended()) {
+            final Object cancelUpstream = context.getAttribute(ATTR_INTERNAL_V3_CANCEL_UPSTREAM);
+            if (cancelUpstream instanceof Runnable runnable) {
+                try {
+                    runnable.run();
+                } catch (Exception e) {
+                    log.debug("Unable to cancel the upstream connection", e);
+                }
+            }
+        }
     }
 
     private Handler<io.gravitee.gateway.api.ExecutionContext> endRequestHandler(
