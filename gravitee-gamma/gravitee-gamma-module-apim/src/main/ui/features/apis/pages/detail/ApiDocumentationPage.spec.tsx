@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { useHasPermission } from '@gravitee/gamma-modules-sdk';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 
@@ -22,7 +22,7 @@ import { ApiDocumentationPage } from './ApiDocumentationPage';
 import { ApimApiError } from '../../../../shared/api/apimClient';
 import { notify } from '../../../../shared/notify';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
-import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
+import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
 import type { ApiDocumentationItem, ApiPortalNavigationItemsResponse, ApiPortalPublication } from '../../types/apiDocumentation';
 
 jest.mock('@gravitee/gamma-modules-sdk', () => ({
@@ -36,6 +36,7 @@ jest.mock('../../context/ApiDetailContext', () => ({
 jest.mock('../../hooks/useApiDocumentation', () => ({
     useApiDocumentation: jest.fn(),
     useDeleteApiDocumentationItem: jest.fn(),
+    useUnpublishApiFromPortal: jest.fn(),
 }));
 
 jest.mock('../../../../shared/notify', () => ({
@@ -100,11 +101,36 @@ jest.mock('../../components/detail/documentation/EditPageDetailsDialog', () => (
         ) : null,
 }));
 
+// The dialog has its own spec; here only whether the page opens it, for which API and listings, matters.
+jest.mock('../../components/detail/documentation/PublishToPortalDialog', () => ({
+    PublishToPortalDialog: ({
+        open,
+        apiId,
+        publications,
+        onClose,
+    }: {
+        open: boolean;
+        apiId: string;
+        publications: { sectionName: string }[];
+        onClose: () => void;
+    }) =>
+        open ? (
+            <div role="dialog" aria-label="Publish to the developer portal">
+                Publishing {apiId}, listed in [{publications.map(publication => publication.sectionName).join(', ')}]
+                <button type="button" onClick={onClose}>
+                    Close
+                </button>
+            </div>
+        ) : null,
+}));
+
 const mockUseHasPermission = useHasPermission as jest.Mock;
 const mockUseApiDetailContext = useApiDetailContext as jest.Mock;
 const mockUseApiDocumentation = useApiDocumentation as jest.Mock;
 const mockUseDeleteApiDocumentationItem = useDeleteApiDocumentationItem as jest.Mock;
 const mockDelete = jest.fn();
+const mockUseUnpublishApiFromPortal = useUnpublishApiFromPortal as jest.Mock;
+const mockUnpublish = jest.fn();
 
 const BASE = { organizationId: 'DEFAULT', environmentId: 'DEFAULT', area: 'TOP_NAVBAR', published: false, visibility: 'PUBLIC' } as const;
 const GUIDES: ApiDocumentationItem = { ...BASE, id: 'guides', rootId: 'guides', title: 'Guides', type: 'FOLDER', order: 0 };
@@ -176,6 +202,8 @@ beforeEach(() => {
     givenDocumentation({ items: [GUIDES, GETTING_STARTED, CHANGELOG], publications: [] });
     mockDelete.mockResolvedValue(undefined);
     mockUseDeleteApiDocumentationItem.mockReturnValue({ mutateAsync: mockDelete, isPending: false });
+    mockUnpublish.mockResolvedValue(undefined);
+    mockUseUnpublishApiFromPortal.mockReturnValue({ mutateAsync: mockUnpublish, isPending: false });
 });
 
 describe('ApiDocumentationPage', () => {
@@ -248,6 +276,126 @@ describe('ApiDocumentationPage', () => {
             renderPage();
 
             expect(screen.queryByText(/published/i)).not.toBeInTheDocument();
+        });
+    });
+
+    describe('publishing the API', () => {
+        it('offers to publish an API that is not listed, opening the dialog for this API', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: 'Unpublish' })).not.toBeInTheDocument();
+            await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+            expect(screen.getByRole('dialog', { name: 'Publish to the developer portal' })).toHaveTextContent(
+                'Publishing api-1, listed in []',
+            );
+            await user.click(screen.getByRole('button', { name: 'Close' }));
+            expect(screen.queryByRole('dialog', { name: 'Publish to the developer portal' })).not.toBeInTheDocument();
+        });
+
+        it('offers to publish an API whose listing is hidden, handing that listing to the dialog', async () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(false)] });
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+            expect(screen.getByRole('dialog', { name: 'Publish to the developer portal' })).toHaveTextContent('listed in [APIs]');
+        });
+
+        it('offers to unpublish a published API, and not to publish it', () => {
+            givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
+            renderPage();
+
+            expect(screen.getByRole('button', { name: 'Unpublish' })).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
+        });
+
+        it('requires api-documentation-u to publish or unpublish', () => {
+            mockUseHasPermission.mockImplementation((query: { anyOf?: string[] }) => !query.anyOf?.includes('api-documentation-u'));
+            renderPage();
+
+            expect(screen.getByText('Not published')).toBeInTheDocument();
+            expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
+
+            givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
+            renderPage();
+            expect(screen.queryByRole('button', { name: 'Unpublish' })).not.toBeInTheDocument();
+        });
+
+        it('offers neither while the documentation is loading', () => {
+            mockUseApiDocumentation.mockReturnValue({ data: undefined, isLoading: true, isError: false });
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /publish/i })).not.toBeInTheDocument();
+        });
+
+        it('offers neither when the documentation failed to load', () => {
+            mockUseApiDocumentation.mockReturnValue({ data: undefined, isLoading: false, isError: true });
+            renderPage();
+
+            expect(screen.queryByRole('button', { name: /publish/i })).not.toBeInTheDocument();
+        });
+    });
+
+    describe('unpublishing the API', () => {
+        beforeEach(() => {
+            mockUseApiDetailContext.mockReturnValue({
+                api: { id: 'api-1', name: 'Payment API' },
+                isLoading: false,
+                permissionsReady: true,
+            });
+            givenDocumentation({ items: [GUIDES], publications: [publication(true)] });
+        });
+
+        it('asks first, naming the API and saying the documentation is kept', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+
+            const dialog = screen.getByRole('dialog', { name: 'Unpublish "Payment API"?' });
+            expect(dialog).toHaveTextContent(
+                'The API and its documentation disappear from the developer portal. Nothing is deleted: publishing again shows every page, folder and link.',
+            );
+            expect(mockUnpublish).not.toHaveBeenCalled();
+        });
+
+        it('unpublishes once confirmed, then closes', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+            await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
+
+            expect(mockUnpublish).toHaveBeenCalled();
+            expect(notify.success).toHaveBeenCalledWith('Unpublished from the developer portal');
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        });
+
+        it('reports a refusal, keeping the confirmation open', async () => {
+            const serverError = new ApimApiError(400, 'The API is not published');
+            mockUnpublish.mockRejectedValue(serverError);
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+            await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Unpublish' }));
+
+            expect(notify.error).toHaveBeenCalledWith(serverError, 'Failed to unpublish the API');
+            expect(screen.getByRole('dialog', { name: 'Unpublish "Payment API"?' })).toBeInTheDocument();
+        });
+
+        it('does nothing when cancelled', async () => {
+            const user = userEvent.setup();
+            renderPage();
+
+            await user.click(screen.getByRole('button', { name: 'Unpublish' }));
+            await user.click(screen.getByRole('button', { name: 'Cancel' }));
+
+            expect(mockUnpublish).not.toHaveBeenCalled();
+            expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         });
     });
 
