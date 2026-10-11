@@ -36,6 +36,7 @@ import io.gravitee.gateway.handlers.api.processor.RequestProcessorChainFactory;
 import io.gravitee.gateway.handlers.api.processor.ResponseProcessorChainFactory;
 import io.gravitee.gateway.opentelemetry.TracingContext;
 import io.gravitee.gateway.policy.PolicyManager;
+import io.gravitee.gateway.reactive.reactor.DefaultHttpRequestDispatcher;
 import io.gravitee.gateway.reactor.handler.AbstractReactorHandler;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.HttpAcceptorFactory;
@@ -169,6 +170,9 @@ public class ApiReactorHandler extends AbstractReactorHandler<Api> {
             context.request().customFrameHandler(connection::writeCustomFrame);
 
             connection.responseHandler(proxyResponse -> handleProxyResponse(context, endHandler, proxyResponse));
+
+            // Lets the dispatcher cancel the upstream call when the client goes away before the exchange ends.
+            context.setAttribute(DefaultHttpRequestDispatcher.ATTR_INTERNAL_V3_CANCEL_UPSTREAM, (Runnable) connection::cancel);
 
             // Override the stream error handler to be able to cancel connection to backend
             chain.streamErrorHandler(failure -> {
