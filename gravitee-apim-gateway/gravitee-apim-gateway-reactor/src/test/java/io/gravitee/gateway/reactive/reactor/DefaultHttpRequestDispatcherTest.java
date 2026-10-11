@@ -450,6 +450,46 @@ class DefaultHttpRequestDispatcherTest {
         }
 
         @Test
+        void shouldCancelUpstreamWhenClientConnectionIsClosedBeforeV3ExchangeEnds() {
+            when(response.ended()).thenReturn(false);
+            final Runnable cancelUpstream = mock(Runnable.class);
+
+            doAnswer(i -> {
+                i
+                    .getArgument(0, ExecutionContext.class)
+                    .setAttribute(DefaultHttpRequestDispatcher.ATTR_INTERNAL_V3_CANCEL_UPSTREAM, cancelUpstream);
+                // The upstream never answers: only the client going away ends the exchange
+                return null;
+            })
+                .when(apiReactor)
+                .handle(any(ExecutionContext.class), any(Handler.class));
+
+            cut.dispatch(rxRequest, SERVER_ID).test().dispose();
+
+            verify(cancelUpstream).run();
+        }
+
+        @Test
+        void shouldNotCancelUpstreamWhenV3ExchangeHasEnded() {
+            when(response.ended()).thenReturn(true);
+            final Runnable cancelUpstream = mock(Runnable.class);
+
+            doAnswer(i -> {
+                i
+                    .getArgument(0, ExecutionContext.class)
+                    .setAttribute(DefaultHttpRequestDispatcher.ATTR_INTERNAL_V3_CANCEL_UPSTREAM, cancelUpstream);
+                simulateEndHandlerCall(i);
+                return null;
+            })
+                .when(apiReactor)
+                .handle(any(ExecutionContext.class), any(Handler.class));
+
+            cut.dispatch(rxRequest, SERVER_ID).test().assertResult();
+
+            verify(cancelUpstream, never()).run();
+        }
+
+        @Test
         void shouldPropagateErrorWhenExceptionWithV3Request() {
             doThrow(new RuntimeException(MOCK_ERROR_MESSAGE)).when(apiReactor).handle(any(ExecutionContext.class), any(Handler.class));
 
