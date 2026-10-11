@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ApiDocumentationItem, ApiPortalPublication } from '../types/apiDocumentation';
+import type { ApiDocumentationItem, ApiPortalPublication, ApiPortalPublishLocation } from '../types/apiDocumentation';
 
 export interface DocumentationRow {
     item: ApiDocumentationItem;
@@ -155,4 +155,17 @@ export function allowedChanges(state: SyncState): AllowedChanges {
 /** The section the API is visible under, if any: a hidden listing does not make the API published. */
 export function getPublishedSection(publications: ApiPortalPublication[]): string | undefined {
     return publications.find(publication => publication.portalNavigationItem.published)?.sectionName;
+}
+
+/** A listing kept hidden, typically added in the portal editor: publishing the API reuses it rather than adding another. */
+export function getHiddenListing(publications: ApiPortalPublication[]): ApiPortalPublication | undefined {
+    return publications.find(publication => !publication.portalNavigationItem.published);
+}
+
+/** The section to offer first: where a hidden listing already sits, else the one named "APIs", else the first. */
+export function defaultPublishSectionId(locations: ApiPortalPublishLocation[], publications: ApiPortalPublication[]): string | undefined {
+    const hiddenListingSectionId = getHiddenListing(publications)?.portalNavigationItem.parentId;
+    const preferred =
+        locations.find(location => location.id === hiddenListingSectionId) ?? locations.find(location => location.name === 'APIs');
+    return (preferred ?? locations[0])?.id;
 }

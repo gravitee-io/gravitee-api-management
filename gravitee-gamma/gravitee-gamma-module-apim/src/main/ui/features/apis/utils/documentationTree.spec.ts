@@ -13,8 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { allowedChanges, buildDocumentationRows, getAncestors, getPublishedSection, syncStateOf } from './documentationTree';
-import type { ApiDocumentationItem, ApiPortalPublication, PortalNavigationItemSource } from '../types/apiDocumentation';
+import {
+    allowedChanges,
+    buildDocumentationRows,
+    defaultPublishSectionId,
+    getAncestors,
+    getHiddenListing,
+    getPublishedSection,
+    syncStateOf,
+} from './documentationTree';
+import type {
+    ApiDocumentationItem,
+    ApiPortalPublication,
+    ApiPortalPublishLocation,
+    PortalNavigationItemSource,
+} from '../types/apiDocumentation';
 
 const SOURCE: PortalNavigationItemSource = { type: 'github-fetcher', configuration: {} };
 
@@ -200,5 +213,48 @@ describe('getPublishedSection', () => {
 
     it('is undefined when every listing is hidden', () => {
         expect(getPublishedSection([publication('APIs', false)])).toBeUndefined();
+    });
+});
+
+describe('getHiddenListing', () => {
+    it('finds the listing that is not visible', () => {
+        const hidden = publication('Partner APIs', false);
+
+        expect(getHiddenListing([publication('APIs', true), hidden])).toBe(hidden);
+    });
+
+    it('is undefined when the only listing is visible', () => {
+        expect(getHiddenListing([publication('APIs', true)])).toBeUndefined();
+    });
+
+    it('is undefined when the API is not listed', () => {
+        expect(getHiddenListing([])).toBeUndefined();
+    });
+});
+
+describe('defaultPublishSectionId', () => {
+    const location = (name: string): ApiPortalPublishLocation => ({ id: `section-${name}`, name });
+    const GUIDES = location('Guides');
+    const APIS = location('APIs');
+    const PARTNERS = location('Partner APIs');
+
+    it('keeps the section a hidden listing is already in', () => {
+        expect(defaultPublishSectionId([GUIDES, APIS, PARTNERS], [publication('Partner APIs', false)])).toBe(PARTNERS.id);
+    });
+
+    it('falls back to the section named APIs when the hidden listing is somewhere it cannot be published to', () => {
+        expect(defaultPublishSectionId([GUIDES, APIS], [publication('Nested folder', false)])).toBe(APIS.id);
+    });
+
+    it('prefers the section named APIs over the first one', () => {
+        expect(defaultPublishSectionId([GUIDES, APIS], [])).toBe(APIS.id);
+    });
+
+    it('takes the first section when none is named APIs', () => {
+        expect(defaultPublishSectionId([GUIDES, PARTNERS], [])).toBe(GUIDES.id);
+    });
+
+    it('is undefined when there is no section to publish to', () => {
+        expect(defaultPublishSectionId([], [publication('Partner APIs', false)])).toBeUndefined();
     });
 });
