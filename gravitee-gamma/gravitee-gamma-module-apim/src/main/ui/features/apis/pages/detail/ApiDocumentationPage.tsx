@@ -26,7 +26,7 @@ import {
     DropdownMenuTrigger,
     PageHeader,
 } from '@gravitee/graphene-core';
-import { BookOpenIcon, ChevronDownIcon, FileTextIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
+import { BookOpenIcon, ChevronDownIcon, EyeOffIcon, FileTextIcon, GlobeIcon, PlusIcon, Trash2Icon } from '@gravitee/graphene-core/icons';
 import { useCallback, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -35,8 +35,9 @@ import { notify } from '../../../../shared/notify';
 import { CreatePageDialog } from '../../components/detail/documentation/CreatePageDialog';
 import { DocumentationTree } from '../../components/detail/documentation/DocumentationTree';
 import { EditPageDetailsDialog } from '../../components/detail/documentation/EditPageDetailsDialog';
+import { PublishToPortalDialog } from '../../components/detail/documentation/PublishToPortalDialog';
 import { useApiDetailContext } from '../../context/ApiDetailContext';
-import { useApiDocumentation, useDeleteApiDocumentationItem } from '../../hooks/useApiDocumentation';
+import { useApiDocumentation, useDeleteApiDocumentationItem, useUnpublishApiFromPortal } from '../../hooks/useApiDocumentation';
 import { useExpandedDocumentationFolders } from '../../hooks/useExpandedDocumentationFolders';
 import type { ApiPortalPublication, PortalNavigationFolder, PortalNavigationPage } from '../../types/apiDocumentation';
 import { type DocumentationRow, getAncestors, getPublishedSection, syncStateOf } from '../../utils/documentationTree';
@@ -71,14 +72,18 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
     // A page is created, then its content is saved: with create alone it would stay empty.
     const canAdd = useHasPermission({ allOf: ['api-documentation-c', 'api-documentation-u'] });
     const canEdit = useHasPermission({ anyOf: ['api-documentation-u'] });
+    const { api } = useApiDetailContext();
     const { data, isLoading, isError } = useApiDocumentation(apiId);
     const deleteMutation = useDeleteApiDocumentationItem(apiId);
+    const unpublishMutation = useUnpublishApiFromPortal(apiId);
     const expandedFolders = useExpandedDocumentationFolders(apiId);
     const navigate = useNavigate();
     const [toDelete, setToDelete] = useState<DocumentationRow | null>(null);
     // `parent` is absent for a page added at the top level.
     const [pageToAdd, setPageToAdd] = useState<{ parent?: PortalNavigationFolder } | null>(null);
     const [pageToEdit, setPageToEdit] = useState<PortalNavigationPage | null>(null);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [isUnpublishing, setIsUnpublishing] = useState(false);
 
     const items = data?.items ?? [];
     const isFirstUse = !isLoading && !isError && items.length === 0;
@@ -101,6 +106,16 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
         }
     }
 
+    async function handleUnpublish() {
+        try {
+            await unpublishMutation.mutateAsync();
+            notify.success('Unpublished from the developer portal');
+            setIsUnpublishing(false);
+        } catch (error) {
+            notify.error(error, 'Failed to unpublish the API');
+        }
+    }
+
     const addMenu = canAdd ? <AddDocumentationMenu onAddPage={() => setPageToAdd({})} /> : null;
 
     return (
@@ -111,6 +126,13 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 actions={
                     <>
                         {data ? <PublicationBadge publications={data.publications} /> : null}
+                        {data && canEdit ? (
+                            <PublicationAction
+                                publications={data.publications}
+                                onPublish={() => setIsPublishing(true)}
+                                onUnpublish={() => setIsUnpublishing(true)}
+                            />
+                        ) : null}
                         {addMenu}
                     </>
                 }
@@ -170,6 +192,25 @@ function ApiDocumentationContent({ apiId }: Readonly<{ apiId: string }>) {
                 }}
             />
 
+            <PublishToPortalDialog
+                open={isPublishing}
+                apiId={apiId}
+                publications={data?.publications ?? []}
+                onClose={() => setIsPublishing(false)}
+            />
+
+            <ConfirmDialog
+                open={isUnpublishing}
+                onOpenChange={setIsUnpublishing}
+                title={`Unpublish "${api?.name ?? 'this API'}"?`}
+                description="The API and its documentation disappear from the developer portal. Nothing is deleted: publishing again shows every page, folder and link."
+                confirmLabel="Unpublish"
+                pendingLabel="Unpublishing…"
+                icon={<EyeOffIcon className="size-4" aria-hidden />}
+                isPending={unpublishMutation.isPending}
+                onConfirm={handleUnpublish}
+            />
+
             {pageToEdit ? (
                 <EditPageDetailsDialog
                     open
@@ -210,6 +251,25 @@ function PublicationBadge({ publications }: Readonly<{ publications: ApiPortalPu
         <Badge variant="success">Published in {publishedSection}</Badge>
     ) : (
         <Badge variant="outline">Not published</Badge>
+    );
+}
+
+// A hidden listing does not make the API published, so it gets Publish, which reuses that listing.
+function PublicationAction({
+    publications,
+    onPublish,
+    onUnpublish,
+}: Readonly<{ publications: ApiPortalPublication[]; onPublish: () => void; onUnpublish: () => void }>) {
+    return getPublishedSection(publications) ? (
+        <Button type="button" variant="outline" onClick={onUnpublish}>
+            <EyeOffIcon className="size-4" aria-hidden />
+            Unpublish
+        </Button>
+    ) : (
+        <Button type="button" variant="outline" onClick={onPublish}>
+            <GlobeIcon className="size-4" aria-hidden />
+            Publish
+        </Button>
     );
 }
 
