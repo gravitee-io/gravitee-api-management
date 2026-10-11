@@ -24,18 +24,23 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.HttpHeaderNames;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.reporter.api.v4.metric.Metrics;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.env.StandardEnvironment;
+import org.springframework.mock.env.MockEnvironment;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -66,5 +71,23 @@ class NotFoundProcessorTest extends AbstractProcessorTest {
         assertThat(metrics.getApiId()).isEqualTo(UNKNOWN_SERVICE);
         assertThat(metrics.getApplicationId()).isEqualTo(UNKNOWN_SERVICE);
         verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "No API here.", "Aucune API à cette adresse.", "API introuvable 🔎", "" })
+    void should_set_content_length_to_encoded_body_size(String message) {
+        MockEnvironment environment = new MockEnvironment().withProperty("http.errors[404].message", message);
+        notFoundProcessor = new NotFoundProcessor(environment);
+
+        notFoundProcessor.execute(ctx).test().assertResult();
+
+        ArgumentCaptor<Buffer> bodyCaptor = ArgumentCaptor.forClass(Buffer.class);
+        verify(mockResponse).body(bodyCaptor.capture());
+        Buffer body = bodyCaptor.getValue();
+        assertThat(body.toString()).isEqualTo(message);
+        assertThat(body.length()).isEqualTo(message.getBytes(StandardCharsets.UTF_8).length);
+        assertThat(mockResponse.headers().get(HttpHeaderNames.CONTENT_LENGTH)).isEqualTo(Integer.toString(body.length()));
+        verify(mockResponse).status(HttpStatusCode.NOT_FOUND_404);
+        verify(mockResponse).end(ctx);
     }
 }
