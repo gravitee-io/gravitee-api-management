@@ -34,7 +34,7 @@ todos:
     status: pending
   - id: STORY-10
     content: "Constrain API-owned folders and links to the top navigation area, not just pages."
-    status: pending
+    status: completed
   - id: STORY-11
     content: "Publish the OpenAPI contract for the API documentation endpoints. Unblocks all frontend work."
     status: in_progress
@@ -714,6 +714,7 @@ Java test files mirror their main path under `src/test/java/`; Gamma test files 
 2. Route the seeded page through owner assignment so it is API-owned like everything else.
 
 #### STORY-10 — Constrain API-owned folders and links to the top navigation area
+**Status:** Done under [PORTAL-251](https://gravitee.atlassian.net/browse/PORTAL-251), as [#20936](https://github.com/gravitee-io/gravitee-api-management/pull/20936).
 **Why:** the rule that API documentation lives in the top navigation area only checks pages, so folders and links can be created in the wrong area. Gamma creates both.
 **Acceptance criteria:**
 - Creating an API-owned folder or link outside the top navigation area is rejected.
